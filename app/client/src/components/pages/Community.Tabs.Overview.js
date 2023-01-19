@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { useEffect, useCallback, useContext, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,11 @@ import {
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import {
+  circleIcon,
+  diamondIcon,
+  squareIcon,
+} from 'components/shared/MapLegend';
 import Switch from 'components/shared/Switch';
 import WaterbodyList from 'components/shared/WaterbodyList';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
@@ -45,11 +50,28 @@ import {
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
-import { toggleTableStyles } from 'styles/index.js';
+import { colors, toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
+  }
+`;
+
+const legendItemsStyles = css`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+
+  span {
+    display: flex;
+    align-items: center;
+    font-size: 0.875em;
+    margin-bottom: 1em;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
   }
 `;
 
@@ -212,6 +234,69 @@ function Overview() {
     updateVisibleLayers,
   ]);
 
+  const handleWaterbodiesToggle = useCallback(
+    (checked) => {
+      if (!waterbodyLayer) return;
+
+      setWaterbodiesDisplayed(checked);
+      updateVisibleLayers({
+        key: 'waterbodyLayer',
+        value: checked,
+      });
+    },
+    [updateVisibleLayers, waterbodyLayer],
+  );
+
+  const handleMonitoringLocationsToggle = useCallback(
+    (checked) => {
+      if (!usgsStreamgagesLayer) return;
+      if (!monitoringLocationsLayer) return;
+
+      setMonitoringAndSensorsDisplayed(checked);
+      setUsgsStreamgagesDisplayed(checked);
+      setMonitoringLocationsDisplayed(checked);
+      setVisibleLayers({
+        usgsStreamgagesLayer: checked,
+        monitoringLocationsLayer: checked,
+        // NOTE: no change for the following layers:
+        waterbodyLayer: waterbodiesDisplayed,
+        dischargersLayer: permittedDischargersDisplayed,
+      });
+    },
+    [
+      monitoringLocationsLayer,
+      permittedDischargersDisplayed,
+      setVisibleLayers,
+      usgsStreamgagesLayer,
+      waterbodiesDisplayed,
+    ],
+  );
+
+  const handlePermittedDischargersToggle = useCallback(
+    (checked) => {
+      if (!dischargersLayer) return;
+      setPermittedDischargersDisplayed(checked);
+      updateVisibleLayers({
+        key: 'dischargersLayer',
+        value: checked,
+      });
+    },
+    [dischargersLayer, updateVisibleLayers],
+  );
+
+  const handleTabClick = useCallback(
+    (index) => {
+      if (index === 0) handleWaterbodiesToggle(true);
+      if (index === 1) handleMonitoringLocationsToggle(true);
+      if (index === 2) handlePermittedDischargersToggle(true);
+    },
+    [
+      handleMonitoringLocationsToggle,
+      handlePermittedDischargersToggle,
+      handleWaterbodiesToggle,
+    ],
+  );
+
   const waterbodies = useWaterbodyFeatures();
 
   const uniqueWaterbodies = waterbodies
@@ -271,22 +356,15 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(waterbodies?.length) && cipSummary.status === 'success'
-                  ? waterbodies.length.toLocaleString()
+                {Boolean(totalWaterbodies) && cipSummary.status === 'success'
+                  ? totalWaterbodies.toLocaleString()
                   : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={Boolean(totalWaterbodies) && waterbodiesDisplayed}
-                  onChange={(checked) => {
-                    if (!waterbodyLayer) return;
-                    setWaterbodiesDisplayed(!waterbodiesDisplayed);
-                    updateVisibleLayers({
-                      key: 'waterbodyLayer',
-                      value: !waterbodiesDisplayed,
-                    });
-                  }}
+                  onChange={handleWaterbodiesToggle}
                   disabled={!Boolean(totalWaterbodies)}
                   ariaLabel="Waterbodies"
                 />
@@ -318,24 +396,7 @@ function Overview() {
                     Boolean(totalMonitoringAndSensors) &&
                     monitoringAndSensorsDisplayed
                   }
-                  onChange={(checked) => {
-                    if (!usgsStreamgagesLayer) return;
-                    if (!monitoringLocationsLayer) return;
-                    setMonitoringAndSensorsDisplayed(
-                      !monitoringAndSensorsDisplayed,
-                    );
-                    setUsgsStreamgagesDisplayed(!monitoringAndSensorsDisplayed);
-                    setMonitoringLocationsDisplayed(
-                      !monitoringAndSensorsDisplayed,
-                    );
-                    setVisibleLayers({
-                      usgsStreamgagesLayer: !monitoringAndSensorsDisplayed,
-                      monitoringLocationsLayer: !monitoringAndSensorsDisplayed,
-                      // NOTE: no change for the following layers:
-                      waterbodyLayer: waterbodiesDisplayed,
-                      dischargersLayer: permittedDischargersDisplayed,
-                    });
-                  }}
+                  onChange={handleMonitoringLocationsToggle}
                   disabled={!Boolean(totalMonitoringAndSensors)}
                   ariaLabel="Monitoring Stations"
                 />
@@ -362,16 +423,7 @@ function Overview() {
                     Boolean(totalPermittedDischargers) &&
                     permittedDischargersDisplayed
                   }
-                  onChange={(checked) => {
-                    if (!dischargersLayer) return;
-                    setPermittedDischargersDisplayed(
-                      !permittedDischargersDisplayed,
-                    );
-                    updateVisibleLayers({
-                      key: 'dischargersLayer',
-                      value: !permittedDischargersDisplayed,
-                    });
-                  }}
+                  onChange={handlePermittedDischargersToggle}
                   disabled={!Boolean(totalPermittedDischargers)}
                   ariaLabel="Permitted Dischargers"
                 />
@@ -382,7 +434,7 @@ function Overview() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs>
+        <Tabs onChange={handleTabClick}>
           <TabList>
             <Tab>Waterbodies</Tab>
             <Tab>Monitoring Locations</Tab>
@@ -425,6 +477,12 @@ function WaterbodiesTab() {
   const { watershed } = useContext(LocationSearchContext);
   const waterbodies = useWaterbodyFeatures();
 
+  const uniqueWaterbodies = waterbodies
+    ? getUniqueWaterbodies(waterbodies)
+    : [];
+
+  const totalWaterbodies = uniqueWaterbodies.length;
+
   // draw the waterbody on the map
   useWaterbodyOnMap();
 
@@ -435,8 +493,8 @@ function WaterbodiesTab() {
       title={
         <span data-testid="overview-waterbodies-accordion-title">
           Overall condition of{' '}
-          <strong>{waterbodies?.length.toLocaleString()}</strong>{' '}
-          {waterbodies?.length === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
+          <strong>{totalWaterbodies.toLocaleString()}</strong>{' '}
+          {totalWaterbodies === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
           <em>{watershed}</em> watershed.
         </span>
       }
@@ -467,7 +525,7 @@ function MonitoringAndSensorsTab({
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  // if either of the "Current Water Conditions" or "Past Water Conditions" switches
+  // if either of the "USGS Sensors" or "Past Water Conditions" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
   useEffect(() => {
@@ -530,7 +588,7 @@ function MonitoringAndSensorsTab({
       const displayedTypes = [];
 
       if (usgsStreamgagesDisplayed) {
-        displayedTypes.push('Current Water Conditions');
+        displayedTypes.push('USGS Sensors');
       }
 
       if (monitoringLocationsDisplayed) {
@@ -541,6 +599,146 @@ function MonitoringAndSensorsTab({
     },
   );
 
+  const handleUsgsSensorsToggle = useCallback(
+    (checked) => {
+      if (!usgsStreamgagesLayer) return;
+
+      setUsgsStreamgagesDisplayed(checked);
+      updateVisibleLayers({
+        key: 'usgsStreamgagesLayer',
+        value: checked,
+      });
+    },
+    [setUsgsStreamgagesDisplayed, updateVisibleLayers, usgsStreamgagesLayer],
+  );
+
+  const handlePastWaterConditionsToggle = useCallback(
+    (checked) => {
+      if (!monitoringLocationsLayer) return;
+
+      setMonitoringLocationsDisplayed(checked);
+      updateVisibleLayers({
+        key: 'monitoringLocationsLayer',
+        value: checked,
+      });
+    },
+    [
+      monitoringLocationsLayer,
+      setMonitoringLocationsDisplayed,
+      updateVisibleLayers,
+    ],
+  );
+
+  const handleSortChange = useCallback(
+    ({ value }) => setMonitoringAndSensorsSortedBy(value),
+    [],
+  );
+
+  const handleExpandCollapse = useCallback(
+    (allExpanded) => {
+      if (allExpanded) {
+        setExpandedRows([...Array(filteredMonitoringAndSensors.length).keys()]);
+      } else {
+        setExpandedRows([]);
+      }
+    },
+    [filteredMonitoringAndSensors],
+  );
+
+  const accordionItemToggleHandler = useCallback(
+    (index) => {
+      return function toggleAccordionItem() {
+        // add the item to the expandedRows array so the accordion item
+        // will stay expanded when the user scrolls or highlights map items
+        if (expandedRows.includes(index)) {
+          setExpandedRows(expandedRows.filter((item) => item !== index));
+        } else setExpandedRows(expandedRows.concat(index));
+      };
+    },
+    [expandedRows],
+  );
+
+  const accordionItemToggleHandlers = useMemo(() => {
+    return filteredMonitoringAndSensors.map((_item, index) => {
+      return accordionItemToggleHandler(index);
+    });
+  }, [accordionItemToggleHandler, filteredMonitoringAndSensors]);
+
+  const renderListItem = useCallback(
+    ({ index }) => {
+      const item = filteredMonitoringAndSensors[index];
+      let icon = circleIcon({ color: colors.lightPurple() });
+      if (item.monitoringType === 'USGS Sensors')
+        icon = squareIcon({ color: '#fffe00' });
+
+      const feature = {
+        geometry: {
+          type: 'point',
+          longitude: item.locationLongitude,
+          latitude: item.locationLatitude,
+        },
+        attributes: item,
+      };
+
+      return (
+        <AccordionItem
+          icon={icon}
+          key={index}
+          index={index}
+          title={<strong>{item.locationName || 'Unknown'}</strong>}
+          subTitle={
+            <>
+              <em>Monitoring Type:</em>&nbsp;&nbsp;
+              {item.monitoringType}
+              <br />
+              <em>Organization Name:</em>&nbsp;&nbsp;
+              {item.orgName}
+              <br />
+              <em>Water Type:</em>&nbsp;&nbsp;
+              {item.locationType}
+              {item.monitoringType === 'Past Water Conditions' && (
+                <>
+                  <br />
+                  <em>Monitoring Measurements:</em>&nbsp;&nbsp;
+                  {item.stationTotalMeasurements}
+                </>
+              )}
+            </>
+          }
+          feature={feature}
+          idKey="siteId"
+          allExpanded={expandedRows.includes(index)}
+          onChange={accordionItemToggleHandlers[index]}
+        >
+          <div css={accordionContentStyles}>
+            {item.monitoringType === 'USGS Sensors' && (
+              <WaterbodyInfo
+                type="USGS Sensors"
+                feature={feature}
+                services={services}
+              />
+            )}
+
+            {item.monitoringType === 'Past Water Conditions' && (
+              <WaterbodyInfo
+                type="Past Water Conditions"
+                feature={feature}
+                services={services}
+              />
+            )}
+
+            <ViewOnMapButton feature={feature} />
+          </div>
+        </AccordionItem>
+      );
+    },
+    [
+      accordionItemToggleHandlers,
+      expandedRows,
+      filteredMonitoringAndSensors,
+      services,
+    ],
+  );
   if (
     monitoringLocations.status === 'fetching' ||
     usgsStreamgages.status === 'idle' ||
@@ -561,6 +759,17 @@ function MonitoringAndSensorsTab({
           Universities, volunteers and others also help detect water quality
           concerns.
         </p>
+
+        <div css={legendItemsStyles}>
+          <span>
+            {circleIcon({ color: colors.lightPurple() })}
+            &nbsp;Past Water Conditions&nbsp;
+          </span>
+          <span>
+            {squareIcon({ color: '#fffe00' })}
+            &nbsp;USGS Sensors&nbsp;
+          </span>
+        </div>
 
         <p>
           Water quality monitoring locations are shown on the map as both purple
@@ -613,20 +822,11 @@ function MonitoringAndSensorsTab({
                           normalizedUsgsStreamgages.length > 0 &&
                           usgsStreamgagesDisplayed
                         }
-                        onChange={(checked) => {
-                          if (!usgsStreamgagesLayer) return;
-                          setUsgsStreamgagesDisplayed(
-                            !usgsStreamgagesDisplayed,
-                          );
-                          updateVisibleLayers({
-                            key: 'usgsStreamgagesLayer',
-                            value: !usgsStreamgagesDisplayed,
-                          });
-                        }}
+                        onChange={handleUsgsSensorsToggle}
                         disabled={normalizedUsgsStreamgages.length === 0}
-                        ariaLabel="Current Water Conditions"
+                        ariaLabel="USGS Sensors"
                       />
-                      <span>Current Water Conditions</span>
+                      <span>USGS Sensors</span>
                     </div>
                   </td>
                   <td>{normalizedUsgsStreamgages.length}</td>
@@ -639,16 +839,7 @@ function MonitoringAndSensorsTab({
                           normalizedMonitoringLocations.length > 0 &&
                           monitoringLocationsDisplayed
                         }
-                        onChange={(checked) => {
-                          if (!monitoringLocationsLayer) return;
-                          setMonitoringLocationsDisplayed(
-                            !monitoringLocationsDisplayed,
-                          );
-                          updateVisibleLayers({
-                            key: 'monitoringLocationsLayer',
-                            value: !monitoringLocationsDisplayed,
-                          });
-                        }}
+                        onChange={handlePastWaterConditionsToggle}
                         disabled={normalizedMonitoringLocations.length === 0}
                         ariaLabel="Past Water Conditions"
                       />
@@ -668,18 +859,8 @@ function MonitoringAndSensorsTab({
                   with data in the <em>{watershed}</em> watershed.
                 </>
               }
-              onSortChange={({ value }) =>
-                setMonitoringAndSensorsSortedBy(value)
-              }
-              onExpandCollapse={(allExpanded) => {
-                if (allExpanded) {
-                  setExpandedRows([
-                    ...Array(filteredMonitoringAndSensors.length).keys(),
-                  ]);
-                } else {
-                  setExpandedRows([]);
-                }
-              }}
+              onSortChange={handleSortChange}
+              onExpandCollapse={handleExpandCollapse}
               sortOptions={[
                 {
                   label: 'Location Name',
@@ -706,77 +887,7 @@ function MonitoringAndSensorsTab({
             >
               <VirtualizedList
                 items={filteredMonitoringAndSensors}
-                renderer={({ index }) => {
-                  const item = filteredMonitoringAndSensors[index];
-
-                  const feature = {
-                    geometry: {
-                      type: 'point',
-                      longitude: item.locationLongitude,
-                      latitude: item.locationLatitude,
-                    },
-                    attributes: item,
-                  };
-
-                  return (
-                    <AccordionItem
-                      key={index}
-                      index={index}
-                      title={<strong>{item.locationName || 'Unknown'}</strong>}
-                      subTitle={
-                        <>
-                          <em>Monitoring Type:</em>&nbsp;&nbsp;
-                          {item.monitoringType}
-                          <br />
-                          <em>Organization Name:</em>&nbsp;&nbsp;
-                          {item.orgName}
-                          <br />
-                          <em>Water Type:</em>&nbsp;&nbsp;
-                          {item.locationType}
-                          {item.monitoringType === 'Past Water Conditions' && (
-                            <>
-                              <br />
-                              <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                              {item.stationTotalMeasurements}
-                            </>
-                          )}
-                        </>
-                      }
-                      feature={feature}
-                      idKey="siteId"
-                      allExpanded={expandedRows.includes(index)}
-                      onChange={() => {
-                        // add the item to the expandedRows array so the accordion item
-                        // will stay expanded when the user scrolls or highlights map items
-                        if (expandedRows.includes(index)) {
-                          setExpandedRows(
-                            expandedRows.filter((item) => item !== index),
-                          );
-                        } else setExpandedRows(expandedRows.concat(index));
-                      }}
-                    >
-                      <div css={accordionContentStyles}>
-                        {item.monitoringType === 'Current Water Conditions' && (
-                          <WaterbodyInfo
-                            type="Current Water Conditions"
-                            feature={feature}
-                            services={services}
-                          />
-                        )}
-
-                        {item.monitoringType === 'Past Water Conditions' && (
-                          <WaterbodyInfo
-                            type="Past Water Conditions"
-                            feature={feature}
-                            services={services}
-                          />
-                        )}
-
-                        <ViewOnMapButton feature={feature} />
-                      </div>
-                    </AccordionItem>
-                  );
-                }}
+                renderer={renderListItem}
               />
             </AccordionList>
           </>
@@ -786,6 +897,30 @@ function MonitoringAndSensorsTab({
   }
 
   return null;
+}
+
+const complianceRank = {
+  Significant: 0,
+  'Significant/Category I Noncompliance': 0,
+  'Violation Identified': 1,
+  'No Violation': 2,
+  'No Violation Identified': 2,
+  Unknown: 3,
+};
+
+function sortDischarchers(discharchers, sortBy) {
+  if (sortBy === 'CWPStatus') {
+    return discharchers.sort((a, b) => {
+      return (
+        (complianceRank[a.CWPStatus] ?? complianceRank.Unknown) -
+        (complianceRank[b.CWPStatus] ?? complianceRank.Unknown)
+      );
+    });
+  } else {
+    return discharchers.sort((a, b) => {
+      return a[sortBy].localeCompare(b[sortBy]);
+    });
+  }
 }
 
 function PermittedDischargersTab({ totalPermittedDischargers }) {
@@ -808,13 +943,13 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
   const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
     useState('CWPName');
 
+  const handleSortChange = useCallback((sortBy) => {
+    setPermittedDischargersSortedBy(sortBy.value);
+  }, []);
+
   /* prettier-ignore */
   const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
-    ? permittedDischargers.data.Results.Facilities.sort((a, b) => {
-        return a[permittedDischargersSortedBy].localeCompare(
-          b[permittedDischargersSortedBy],
-        );
-      })
+    ? sortDischarchers(permittedDischargers.data.Results.Facilities, permittedDischargersSortedBy)
     : [];
 
   if (permittedDischargers.status === 'fetching') {
@@ -839,60 +974,82 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
         )}
 
         {totalPermittedDischargers > 0 && (
-          <AccordionList
-            title={
-              <>
-                There {totalPermittedDischargers === 1 ? 'is' : 'are'}{' '}
-                <strong>{totalPermittedDischargers}</strong> permitted{' '}
-                {totalPermittedDischargers === 1 ? 'discharger' : 'dischargers'}{' '}
-                in the <em>{watershed}</em> watershed.
-              </>
-            }
-            onSortChange={(sortBy) => {
-              setPermittedDischargersSortedBy(sortBy.value);
-            }}
-            sortOptions={[
-              {
-                value: 'CWPName',
-                label: 'Discharger Name',
-              },
-              {
-                value: 'SourceID',
-                label: 'NPDES ID',
-              },
-            ]}
-          >
-            {sortedPermittedDischargers.map((discharger, index) => {
-              const id = discharger.SourceID;
-              const name = discharger.CWPName;
-              const feature = {
-                geometry: {
-                  type: 'point',
-                  longitude: discharger.FacLong,
-                  latitude: discharger.FacLat,
+          <>
+            <div css={legendItemsStyles}>
+              <span>
+                {diamondIcon({ color: colors.orange })}
+                &nbsp;Permitted Dischargers&nbsp;
+              </span>
+            </div>
+            <AccordionList
+              title={
+                <>
+                  There {totalPermittedDischargers === 1 ? 'is' : 'are'}{' '}
+                  <strong>{totalPermittedDischargers}</strong> permitted{' '}
+                  {totalPermittedDischargers === 1
+                    ? 'discharger'
+                    : 'dischargers'}{' '}
+                  in the <em>{watershed}</em> watershed.
+                </>
+              }
+              onSortChange={handleSortChange}
+              sortOptions={[
+                {
+                  value: 'CWPName',
+                  label: 'Discharger Name',
                 },
-                attributes: discharger,
-              };
-              return (
-                <AccordionItem
-                  key={index}
-                  title={<strong>{name || 'Unknown'}</strong>}
-                  subTitle={<>NPDES ID: {id}</>}
-                  feature={feature}
-                  idKey="CWPName"
-                >
-                  <div css={accordionContentStyles}>
-                    <WaterbodyInfo
-                      type="Permitted Discharger"
-                      feature={feature}
-                    />
+                {
+                  value: 'SourceID',
+                  label: 'NPDES ID',
+                },
+                {
+                  value: 'CWPStatus',
+                  label: 'Compliance Status',
+                },
+              ]}
+            >
+              {sortedPermittedDischargers.map((discharger, index) => {
+                const id = discharger.SourceID;
+                const name = discharger.CWPName;
+                const status = discharger.CWPStatus;
 
-                    <ViewOnMapButton feature={feature} />
-                  </div>
-                </AccordionItem>
-              );
-            })}
-          </AccordionList>
+                const feature = {
+                  geometry: {
+                    type: 'point',
+                    longitude: discharger.FacLong,
+                    latitude: discharger.FacLat,
+                  },
+                  attributes: discharger,
+                };
+
+                return (
+                  <AccordionItem
+                    icon={diamondIcon({ color: colors.orange })}
+                    key={discharger.SourceID}
+                    title={<strong>{name || 'Unknown'}</strong>}
+                    subTitle={
+                      <>
+                        NPDES ID: {id}
+                        <br />
+                        Compliance Status: {status}
+                      </>
+                    }
+                    feature={feature}
+                    idKey="CWPName"
+                  >
+                    <div css={accordionContentStyles}>
+                      <WaterbodyInfo
+                        type="Permitted Discharger"
+                        feature={feature}
+                      />
+
+                      <ViewOnMapButton feature={feature} />
+                    </div>
+                  </AccordionItem>
+                );
+              })}
+            </AccordionList>
+          </>
         )}
       </>
     );

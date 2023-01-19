@@ -3,7 +3,7 @@
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from 'styled-components/macro';
-import WindowSize from '@reach/window-size';
+import { WindowSize } from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
 // components
 import Page from 'components/shared/Page';

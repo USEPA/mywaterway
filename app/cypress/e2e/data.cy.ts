@@ -77,10 +77,12 @@ describe('Data page', () => {
     scrollTest(
       'Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)',
     );
+    scrollTest('Cyanobacteria Assessment Network (CyAN)');
     scrollTest('Enforcement and Compliance History Online (ECHO)');
     scrollTest('Grants Reporting and Tracking System (GRTS)');
     scrollTest('Protected Areas');
     scrollTest('Safe Drinking Water Information System (SDWIS)');
+    scrollTest('USGS Sensors (USGS Stream Gages)');
     scrollTest('Water Quality Portal (WQP)');
     scrollTest(
       'Watershed Assessment, Tracking & Environmental Results System (WATERS)',

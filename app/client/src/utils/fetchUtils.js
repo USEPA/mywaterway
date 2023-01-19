@@ -1,17 +1,22 @@
 // @flow
 
-import { escapeRegex } from 'utils/utils';
+import { escapeRegex, isAbort } from 'utils/utils';
 
 const defaultTimeout = 60000;
 
-export function fetchCheck(apiUrl: string, timeout: number = defaultTimeout) {
+export function fetchCheck(
+  apiUrl: string,
+  signal: ?AbortSignal = null,
+  timeout: number = defaultTimeout,
+) {
   const startTime = performance.now();
-  return timeoutPromise(timeout, fetch(apiUrl))
+  return timeoutPromise(timeout, fetch(apiUrl, { signal }))
     .then((response) => {
       logCallToGoogleAnalytics(apiUrl, response.status, startTime);
       return checkResponse(response);
     })
     .catch((err) => {
+      if (isAbort(err)) return Promise.reject(err);
       console.error(err);
 
       let status = err;
@@ -21,16 +26,24 @@ export function fetchCheck(apiUrl: string, timeout: number = defaultTimeout) {
     });
 }
 
-export function proxyFetch(apiUrl: string, timeout: number = defaultTimeout) {
+export function proxyFetch(
+  apiUrl: string,
+  signal: ?AbortSignal = null,
+  timeout: number = defaultTimeout,
+) {
   const { REACT_APP_PROXY_URL } = process.env;
   // if environment variable is not set, default to use the current site origin
   const proxyUrl = REACT_APP_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
-  return fetchCheck(url, timeout);
+  return fetchCheck(url, signal, timeout);
 }
 
-export function lookupFetch(path: string, timeout: number = defaultTimeout) {
+export function lookupFetch(
+  path: string,
+  signal: AbortSignal = null,
+  timeout: number = defaultTimeout,
+) {
   const { REACT_APP_SERVER_URL } = process.env;
   const baseUrl = REACT_APP_SERVER_URL || window.location.origin;
   const url = `${baseUrl}/data/${path}`;
@@ -40,7 +53,7 @@ export function lookupFetch(path: string, timeout: number = defaultTimeout) {
     // This will retry the fetch 3 times if the fetch fails with a
     // 1 second delay between each retry.
     const fetchLookup = (retryCount: number = 0) => {
-      proxyFetch(url)
+      proxyFetch(url, signal, timeout)
         .then((data) => {
           resolve(data);
         })

@@ -1,11 +1,12 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import type { ExtendedGraphic } from 'types';
 
 type State = {
-  highlightedGraphic: __esri.Graphic | null;
-  selectedGraphic: __esri.Graphic | null;
-  setHighlightedGraphic: Dispatch<SetStateAction<__esri.Graphic | null>>;
-  setSelectedGraphic: Dispatch<SetStateAction<__esri.Graphic | null>>;
+  highlightedGraphic: ExtendedGraphic | null;
+  selectedGraphic: ExtendedGraphic | null;
+  setHighlightedGraphic: Dispatch<SetStateAction<ExtendedGraphic | null>>;
+  setSelectedGraphic: Dispatch<SetStateAction<ExtendedGraphic | null>>;
 };
 
 const StateContext = createContext<State | undefined>(undefined);
