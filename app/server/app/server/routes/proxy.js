@@ -68,6 +68,10 @@ module.exports = function (app) {
       function deleteTSHeaders(response) {
         if (!response) return;
 
+        /* This is a workaround for an issue where service responses don't 
+          include headers. */
+        if (!response.headers) response.headers = {};
+
         /* The EPA Terminology Services (TS) exposes sensitive 
           information about its underlying technology. While we 
           notified the TS Team about this, they have not had time 

@@ -1,7 +1,4 @@
-// @flow
-
-import React, { useContext, useState, useEffect } from 'react';
-import type { Node } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
@@ -17,16 +14,15 @@ const mapContainerStyles = css`
 `;
 
 type Props = {
-  layers: Object,
-  startingExtent?: Object,
-  children?: Node,
+  layers: __esri.Layer[] | null;
+  startingExtent?: Object | null;
 };
 
-function Map({ layers = null, startingExtent = null, children }: Props) {
+function Map({ layers = null, startingExtent = null }: Props) {
   const { basemap, highlightOptions, initialExtent, mapView, setMapView } =
     useContext(LocationSearchContext);
 
-  const [map, setMap] = useState(null);
+  const [map, setMap] = useState<__esri.Map | null>(null);
 
   const [mapInitialized, setMapInitialized] = useState(false);
 
@@ -62,11 +58,18 @@ function Map({ layers = null, startingExtent = null, children }: Props) {
     setMapView,
   ]);
 
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+
   return (
-    <div id="hmw-map-container" css={mapContainerStyles}>
+    <div id="hmw-map-container" css={mapContainerStyles} ref={mapContainerRef}>
       {map && mapView && (
         <>
-          <MapWidgets map={map} view={mapView} layers={layers} />
+          <MapWidgets
+            map={map}
+            mapRef={mapContainerRef}
+            view={mapView}
+            layers={layers}
+          />
           <MapMouseEvents map={map} view={mapView} />
         </>
       )}

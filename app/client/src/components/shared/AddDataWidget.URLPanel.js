@@ -13,6 +13,8 @@ import CSVLayer from '@arcgis/core/layers/CSVLayer';
 import GeoRSSLayer from '@arcgis/core/layers/GeoRSSLayer';
 import KMLLayer from '@arcgis/core/layers/KMLLayer';
 import Layer from '@arcgis/core/layers/Layer';
+import WCSLayer from '@arcgis/core/layers/WCSLayer';
+import WFSLayer from '@arcgis/core/layers/WFSLayer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // components
 import { linkButtonStyles } from 'components/shared/LinkButton';
@@ -28,6 +30,8 @@ import {
   urlLayerFailureMessage,
   urlLayerSuccessMessage,
 } from 'config/errorMessages';
+// styles
+import { colors } from 'styles/index.js';
 
 const MessageBoxStyles = `
   margin-bottom: 10px;
@@ -56,6 +60,18 @@ const addButtonStyles = css`
   min-width: 50%;
   font-weight: normal;
   font-size: 12px;
+  color: ${colors.white()};
+  background-color: ${colors.blue()};
+
+  &:not(.btn-danger):hover,
+  &:not(.btn-danger):focus {
+    color: ${colors.white()};
+    background-color: ${colors.navyBlue()};
+  }
+
+  &:disabled {
+    cursor: default;
+  }
 `;
 
 const urlInputStyles = css`
@@ -136,13 +152,15 @@ function URLPanel() {
         });
       return;
     }
+    if (type === 'WCS') {
+      newLayer = new WCSLayer({ url });
+    }
+    if (type === 'WFS') {
+      newLayer = new WFSLayer({ url });
+    }
     if (type === 'WMS') {
       newLayer = new WMSLayer({ url });
     }
-    /* // not supported in 4.x js api
-        if(type === 'WFS') {
-          layer = new WFSLayer({ url });
-        } */
     if (type === 'KML') {
       newLayer = new KMLLayer({ url });
     }
@@ -184,8 +202,9 @@ function URLPanel() {
         }}
         options={[
           { value: 'ArcGIS', label: 'An ArcGIS Server Web Service' },
+          { value: 'WCS', label: 'A WCS OGC Web Service' },
           { value: 'WMS', label: 'A WMS OGC Web Service' },
-          // {value: 'WFS', label: 'A WFS OGC Web Service'}, // not supported in 4.x yet
+          { value: 'WFS', label: 'A WFS OGC Web Service' },
           { value: 'KML', label: 'A KML File' },
           { value: 'GeoRSS', label: 'A GeoRSS File' },
           { value: 'CSV', label: 'A CSV File' },
@@ -227,7 +246,13 @@ function URLPanel() {
         >
           SAMPLE URL(S)
         </button>
-        <button css={addButtonStyles} type="submit" onClick={handleAdd}>
+        <button
+          css={addButtonStyles}
+          className="btn"
+          disabled={!url.trim()}
+          type="submit"
+          onClick={handleAdd}
+        >
           ADD
         </button>
       </div>
@@ -239,8 +264,13 @@ function URLPanel() {
               <p>
                 http://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Cities/FeatureServer/0
               </p>
+              <p>https://giswebservices.massgis.state.ma.us/geoserver/wfs</p>
+            </div>
+          )}
+          {urlType.value === 'WCS' && (
+            <div>
               <p>
-                http://services.arcgisonline.com/ArcGIS/rest/services/Demographics/USA_Tapestry/MapServer
+                https://sampleserver6.arcgisonline.com/arcgis/services/ScientificData/SeaTemperature/ImageServer/WCSServer
               </p>
             </div>
           )}
@@ -251,13 +281,14 @@ function URLPanel() {
               </p>
             </div>
           )}
-          {/* Not supported in 4.x JS API
           {urlType.value === 'WFS' && (
             <div>
-              <p>https://dservices.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/services/JapanPrefectures2018/WFSServer</p>
+              <p>https://giswebservices.massgis.state.ma.us/geoserver/wfs</p>
+              <p>
+                https://dservices.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/services/JapanPrefectures2018/WFSServer
+              </p>
             </div>
-          )} 
-          */}
+          )}
           {urlType.value === 'KML' && (
             <div>
               <p>

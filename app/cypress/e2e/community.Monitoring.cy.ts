@@ -56,7 +56,7 @@ describe('Monitoring Tab', () => {
   it('Should update the total measurement counts when flipping the "PFAS" toggle switch', () => {
     // navigate to Monitoring tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '45203',
+      'auburn al',
     );
     cy.findByText('Go').click();
 
@@ -101,7 +101,7 @@ describe('Monitoring Tab', () => {
   it('Should update the mapped locations when flipping the "PFAS" toggle switch', () => {
     // navigate to Monitoring tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '45203',
+      'auburn al',
     );
     cy.findByText('Go').click();
 
@@ -127,13 +127,46 @@ describe('Monitoring Tab', () => {
     // this triggers the virtualized list to load
     cy.scrollTo('bottom');
 
-    cy.findAllByText('Ohio: Middle').should('not.exist');
+    const pfasLocation = 'Well ( R 2) CITY OF AUBURN 323500085274801 AL';
+    cy.findAllByText(pfasLocation).should('not.exist');
 
     // flip the PFAS switch
     cy.findByText('PFAS').siblings().first().find('input').click({
       force: true,
     });
 
-    cy.findAllByText('Ohio: Middle').should('exist');
+    cy.findAllByText(pfasLocation).should('exist');
+  });
+
+  it('Verify CyAN data displayed', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '030901011701',
+    );
+    cy.findByText('Go').click();
+
+    cy.findByText('Monitoring').click();
+
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // this triggers the virtualized list to load
+    cy.scrollTo('bottom');
+
+    cy.findAllByText('Lake Jackson').click();
+
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findAllByText('Daily Cyanobacteria Estimates for Lake Jackson', {
+      exact: false,
+    }).should('be.visible');
+
+    cy.findAllByText(
+      'Cyanobacteria Concentration Histogram and Maximum for Selected Date:',
+      { exact: false },
+    ).should('be.visible');
   });
 });

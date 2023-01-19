@@ -11,6 +11,7 @@ export const StateTribalTabsContext: Object = createContext({
   activeState: { value: '', label: '', source: 'All' },
   introText: { status: 'fetching', data: {} },
   stateAndOrganizationId: null,
+  errorType: '',
 });
 
 type Props = {
@@ -28,6 +29,7 @@ type State = {
   },
   introText: object,
   stateAndOrganization: object,
+  errorType: '' | 'invalid-page' | 'invalid-org-id',
 };
 
 export class StateTribalTabsProvider extends Component<Props, State> {
@@ -48,6 +50,7 @@ export class StateTribalTabsProvider extends Component<Props, State> {
       data: {},
     },
     stateAndOrganization: null,
+    errorType: '',
     // in case ATTAINS usesStateSummary service returns invalid data or an internal error
     usesStateSummaryServiceError: false,
     setActiveTabIndex: (activeTabIndex: number) => {
@@ -79,6 +82,9 @@ export class StateTribalTabsProvider extends Component<Props, State> {
     },
     setStateAndOrganization: (stateAndOrganization: object) => {
       this.setState({ stateAndOrganization });
+    },
+    setErrorType: (errorType: string) => {
+      this.setState({ errorType });
     },
   };
 
