@@ -25,6 +25,7 @@ type LookupFile = {
 };
 
 type LookupFiles = {
+  dataSources: LookupFile,
   documentOrder: LookupFile,
   setDocumentOrder: Function,
   educatorMaterials: LookupFile,
@@ -50,6 +51,8 @@ type LookupFiles = {
 };
 
 const LookupFilesContext: Object = createContext<LookupFiles>({
+  dataSources: { status: 'fetching', data: null },
+  setDataSources: () => {},
   documentOrder: { status: 'fetching', data: null },
   setDocumentOrder: () => {},
   educatorMaterials: { status: 'fetching', data: null },
@@ -79,6 +82,10 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
+  const [dataSources, setDataSources] = useState({
+    status: 'fetching',
+    data: null,
+  });
   const [documentOrder, setDocumentOrder] = useState({
     status: 'fetching',
     data: {},
@@ -127,6 +134,8 @@ function LookupFilesProvider({ children }: Props) {
   return (
     <LookupFilesContext.Provider
       value={{
+        dataSources,
+        setDataSources,
         documentOrder,
         setDocumentOrder,
         educatorMaterials,
@@ -154,6 +163,20 @@ function LookupFilesProvider({ children }: Props) {
       {children}
     </LookupFilesContext.Provider>
   );
+}
+
+// Custom hook for the data.json file.
+let dataSourcesInitialized = false; // global var for ensuring fetch only happens once
+function useDataSourcesContext() {
+  const { dataSources, setDataSources } = useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!dataSourcesInitialized) {
+    dataSourcesInitialized = true;
+    getLookupFile('data.json', setDataSources);
+  }
+
+  return dataSources;
 }
 
 // Custom hook for the documentOrder.json lookup file.
@@ -371,6 +394,7 @@ function useWaterTypeOptionsContext() {
 export {
   LookupFilesContext,
   LookupFilesProvider,
+  useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,
   useNarsContext,

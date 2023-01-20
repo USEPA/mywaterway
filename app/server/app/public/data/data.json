@@ -1,0 +1,115 @@
+{
+  "intro": "<em>How’s My Waterway</em> pulls data from multiple databases at EPA and other federal agencies through web services. Below is a summary of data included in <em>How’s My Waterway</em>.",
+  "content": [
+    {
+      "description": "ATTAINS contains information on water quality assessments, impaired waters, and total maximum daily loads (TMDLs), through data submitted by states under Clean Water Act sections <span data-glossary-term data-term='303(d) listed impaired waters (Category 5)'>303(d)</span> and 305(b).",
+      "extraContent": "<h2 style='display:block;margin-bottom:0.25rem;font-size:1.125em;line-height:1.125;font-family:Source Sans Pro,Helvetica Neue,Helvetica,Roboto,Arial,sans-serif;font-weight:bold;padding-bottom:0'>Impairment Category Filtering Tool:</h2><p><a href='attains' target='_blank' rel='noopener noreferrer'>How ATTAINS data are grouped in How’s My Waterway</a></p>",
+      "id": "attains",
+      "linkHref": "https://www.epa.gov/waterdata/attains",
+      "linkLabel": "ATTAINS Data/System",
+      "shortName": "ATTAINS",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term data-term='overall waterbody condition'>waterbody condition</span> list and map), Swimming, Eating Fish, Aquatic Life, Identified Issues ( <span data-glossary-term data-term='impairment'>impairments</span> ), Restore ( <span data-glossary-term data-term='restoration plan'>restoration plans</span>), Drinking Water (Which waters have been assessed for drinking water use?). It can also be found on the state page under the State Water Quality Overview and Advanced Search tabs.",
+      "title": "Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)"
+    },
+    {
+      "description": "The Cyanobacteria Assessment Network (CyAN) data provides access to <span data-glossary-term data-term='cyanobacteria'>cyanobacterial</span> bloom satellite data for over 2,000 of the largest lakes and reservoirs across the United States.",
+      "extraContent": null,
+      "id": "cyan",
+      "linkHref": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
+      "linkLabel": "CyAN Data/System",
+      "shortName": "CyAN",
+      "siteLocation": "Information from CyAN can be found on the Community Page in the Monitoring Tab under current water conditions, CyAN Satellite Imagery.",
+      "title": "Cyanobacteria Assessment Network (CyAN)"
+    },
+    {
+      "description": "ECHO allows users to search for facilities in their community to assess their compliance with environmental regulations.",
+      "extraContent": null,
+      "id": "echo",
+      "linkHref": "https://echo.epa.gov/",
+      "linkLabel": "ECHO Data/System",
+      "shortName": "ECHO",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term jkdata-term='dischargers'>permitted dischargers</span> ) and Identified Issues ( <span data-term='significant violations'> dischargers with significant effluent violations </span> ).",
+      "title": "Enforcement and Compliance History Online (ECHO)"
+    },
+    {
+      "description": "GRTS is the primary tool for management and oversight of the EPA’s Nonpoint Source (NPS) Pollution Control Program. Under Clean Water Act Section 319(h), EPA awards grants for implementation of state NPS management programs.",
+      "extraContent": null,
+      "id": "grts",
+      "linkHref": "https://iaspub.epa.gov/apex/grts/f?p=grts:95",
+      "linkLabel": "GRTS Data/System",
+      "shortName": "GRTS",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Restore ( <span data-glossary-term data-term='Clean Water Act Section 319 Projects'> Clean Water Act Section 319 Projects </span> ), Protect, Watershed Health and Protection (Protection Projects). On the State page under Water Stories.",
+      "title": "Grants Reporting and Tracking System (GRTS)"
+    },
+    {
+      "description": "The Protected Areas Database (PAD-US) is America’s official national inventory of U.S. terrestrial and marine protected areas that are dedicated to the preservation of biological diversity and to other natural, recreation and cultural uses, managed for these purposes through legal or other effective means.",
+      "extraContent": null,
+      "id": "protected-areas",
+      "linkHref": "https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas",
+      "linkLabel": "Protected Areas Data/System",
+      "shortName": "Wild and Protected Areas",
+      "siteLocation": "Information from this database can be found on the Community page on the protect tab under Watershed Health and Protection, Protected Areas.",
+      "title": "Protected Areas"
+    },
+    {
+      "description": "The Safe Drinking Water Information System (SDWIS) contains information on public water systems, including monitoring, enforcement, and violation data related to requirements established by the Safe Drinking Water Act (SDWA).",
+      "extraContent": null,
+      "id": "sdwis",
+      "linkHref": "https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting",
+      "linkLabel": "SDWIS Data/System",
+      "shortName": "SDWIS",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Drinking Water (Who provides the drinking water here?, Who withdraws water for drinking here?). On the State page under the Drinking Water topic (Drinking Water Information). On the National page under the National Drinking Water tab.",
+      "title": "Safe Drinking Water Information System (SDWIS)"
+    },
+    {
+      "description": "Data and GIS files from the USGS current conditions can be found on the <a href='https://waterdata.usgs.gov/nwis/sw' target='_blank' rel='noopener noreferrer'>USGS website</a>.",
+      "extraContent": null,
+      "id": "usgs-sensors",
+      "linkHref": "https://waterdata.usgs.gov/nwis/rt",
+      "linkLabel": "USGS Stream Gages Data/System",
+      "shortName": "USGS Stream Gage",
+      "siteLocation": "Information from the USGS databases can be found on the Community page on the Overview tab under Monitoring Locations, Current Water Conditions, USGS Sensors and in the Monitoring Tab under current water conditions, USGS Sensors.",
+      "title": "USGS Sensors (USGS Stream Gages)"
+    },
+    {
+      "description": "The Water Quality Portal (WQP) is a cooperative service sponsored by the United States Geological Survey (USGS), the Environmental Protection Agency (EPA) and the National Water Quality Monitoring Council (NWQMC) that integrates publicly available water quality monitoring data.",
+      "extraContent": null,
+      "id": "wqp",
+      "linkHref": "https://www.waterqualitydata.us/",
+      "linkLabel": "WQP Data/System",
+      "shortName": "WQP",
+      "siteLocation": "Information from this database can be found on the Community page under the Overview tab under Monitoring Locations, Past Water Conditions, and on the Monitoring tab under Past Water Conditions, as well as on the Monitoring Report pages.",
+      "title": "Water Quality Portal (WQP)"
+    },
+    {
+      "description": "A suite of web services that provide comprehensive information about the quality of the nation's surface water.",
+      "extraContent": null,
+      "id": "waters",
+      "linkHref": "https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system",
+      "linkLabel": "WATERS Data/System",
+      "shortName": "WATERS",
+      "siteLocation": "Information from WATERS supports the display of Watershed boundaries on the map display.",
+      "title": "Watershed Assessment, Tracking &amp; Environmental Results System (WATERS)"
+    },
+    {
+      "description": "The Watershed Index Online (WSIO) is a free, publicly available data library of watershed indicators and a decision-support tool, developed by EPA, to assist resource managers, citizens, and other users with evaluating, comparing, and prioritizing watersheds for a user-defined purpose.",
+      "extraContent": null,
+      "id": "wsio",
+      "linkHref": "https://www.epa.gov/wsio",
+      "linkLabel": "WSIO Data/System",
+      "shortName": "WSIO",
+      "siteLocation": "Information from this database can be found on the Community page on the protect tab under Watershed Health and Protection, Watershed Health Scores.",
+      "title": "Watershed Index Online (WSIO)"
+    },
+    {
+      "description": "Data and GIS files on wild and scenic rivers can be found on the <a href='https://www.rivers.gov/mapping-gis.php' target='_blank' rel='noopener noreferrer'>National Wild and Scenic Rivers System</a> website.",
+      "extraContent": null,
+      "id": "wild-scenic-rivers",
+      "linkHref": "https://www.rivers.gov/",
+      "linkLabel": "Wild and Scenic Rivers Data/System",
+      "shortName": "Wild and Scenic Rivers",
+      "siteLocation": "Information from this database can be found on the Community page on the protect tab under Watershed Health and Protection, Wild and Scenic Rivers.",
+      "title": "Wild and Scenic Rivers"
+    }
+  ]
+}
