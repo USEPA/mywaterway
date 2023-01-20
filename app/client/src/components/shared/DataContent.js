@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useEffect, useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
 // components
@@ -210,7 +210,6 @@ function DataContent() {
                 Where do I find {shortName} data in How’s My Waterway?
               </h2>
               <p dangerouslySetInnerHTML={{ __html: siteLocation }} />
-              <br />
               {extraContent !== null && (
                 <div dangerouslySetInnerHTML={{ __html: extraContent }} />
               )}

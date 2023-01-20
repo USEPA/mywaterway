@@ -28,7 +28,7 @@
       "linkHref": "https://echo.epa.gov/",
       "linkLabel": "ECHO Data/System",
       "shortName": "ECHO",
-      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term jkdata-term='dischargers'>permitted dischargers</span> ) and Identified Issues ( <span data-term='significant violations'> dischargers with significant effluent violations </span> ).",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term data-term='dischargers'>permitted dischargers</span> ) and Identified Issues ( <span data-glossary-term data-term='significant violations'> dischargers with significant effluent violations</span> ).",
       "title": "Enforcement and Compliance History Online (ECHO)"
     },
     {
@@ -89,7 +89,7 @@
       "linkLabel": "WATERS Data/System",
       "shortName": "WATERS",
       "siteLocation": "Information from WATERS supports the display of Watershed boundaries on the map display.",
-      "title": "Watershed Assessment, Tracking &amp; Environmental Results System (WATERS)"
+      "title": "Watershed Assessment, Tracking & Environmental Results System (WATERS)"
     },
     {
       "description": "The Watershed Index Online (WSIO) is a free, publicly available data library of watershed indicators and a decision-support tool, developed by EPA, to assist resource managers, citizens, and other users with evaluating, comparing, and prioritizing watersheds for a user-defined purpose.",
