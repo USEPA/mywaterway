@@ -25,7 +25,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:      
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -71,14 +71,14 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       
       # Set up node and npm
-      - uses: actions/setup-node@master
+      - uses: actions/setup-node@v3
       
       # Run front-end processes (install, lint, test, bundle)
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/client/.npm
           key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
@@ -139,7 +139,7 @@ jobs:
         working-directory: app
       
       - name: Store artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: hmwv2
           path: app/hmwv2.tar.gz
