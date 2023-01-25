@@ -107,7 +107,7 @@ jobs:
           cf set-env $APP_NAME "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
 
       - name: Configure Public AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ env.CF_S3_PUB_ACCESS_KEY }}
           aws-secret-access-key: ${{ env.CF_S3_PUB_SECRET_KEY }}
