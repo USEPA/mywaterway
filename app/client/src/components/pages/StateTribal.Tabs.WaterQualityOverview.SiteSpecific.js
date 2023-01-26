@@ -231,17 +231,15 @@ function SiteSpecific({
         // match the param with an item in the attainsToHmwMapping file
         const match = impairmentFields.filter((field) => {
           return field.parameterGroup === param;
-        })[0];
+        })?.[0];
 
-        const sentence =
-          match && match.sentence ? (
-            <>{match.sentence}</>
-          ) : (
-            <>
-              contain{' '}
-              <GlossaryTerm term={match.term}>{match.label}</GlossaryTerm>
-            </>
-          );
+        const sentence = !match ? null : match.sentence ? (
+          <>{match.sentence}</>
+        ) : (
+          <>
+            contain <GlossaryTerm term={match.term}>{match.label}</GlossaryTerm>
+          </>
+        );
 
         return (
           <li key={index}>
