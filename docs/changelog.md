@@ -1,6 +1,12 @@
 
 # Change Log
 
+## 2.5.0.1 (January 2023) 
+
+### Changed
+
+- Fixed a bug where the attains page crashed because of a new Attains Parameter Group.
+
 ## 2.5.0 (January 2023)
 
 ### Added
