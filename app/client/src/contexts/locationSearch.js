@@ -1,4 +1,5 @@
 import Color from '@arcgis/core/Color';
+import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
 import type { MonitoringLocationsData } from 'types';
@@ -165,7 +166,7 @@ type State = {
   upstreamWidgetDisabled: boolean,
   allWaterbodiesWidgetDisabled: boolean,
   surroundingMonitoringLocationsWidgetDisabled: boolean,
-  hucBoundaries: Object,
+  hucBoundaries: __esri.FeatureSet | null,
   atHucBoundaries: boolean,
   countyBoundaries: Object,
   waterbodyData: Array<Object>,
@@ -257,7 +258,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     surroundingMonitoringLocationsWidgetDisabled: false,
     visibleLayers: {},
     basemap: 'gray-vector',
-    hucBoundaries: '',
+    hucBoundaries: null,
     atHucBoundaries: false,
     countyBoundaries: '',
     waterbodyData: null,
@@ -394,6 +395,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     getMonitoringLocations: () => {
       return this.state.monitoringLocations;
     },
+    getLayers: () => this.state.layers,
     setLayers: (layers) => {
       this.setState({ layers });
     },
@@ -447,6 +449,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     setWsioHealthIndexLayer: (wsioHealthIndexLayer) => {
       this.setState({ wsioHealthIndexLayer });
     },
+    getAllWaterbodiesLayer: () => this.state.allWaterbodiesLayer,
     setAllWaterbodiesLayer: (allWaterbodiesLayer) => {
       this.setState({ allWaterbodiesLayer });
     },
@@ -716,7 +719,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         waterbodyCountMismatch: null,
         countyBoundaries: '',
         atHucBoundaries: false,
-        hucBoundaries: '',
+        hucBoundaries: null,
         monitoringGroups: null,
         monitoringFeatureUpdates: null,
         monitoringLocations: { status: 'fetching', data: {} },

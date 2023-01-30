@@ -28,6 +28,7 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
+import { useSurroundingWidget } from 'components/shared/SurroundingWidget';
 // contexts
 import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -627,6 +628,18 @@ function MapWidgets({
     observers.push(observer);
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode, observers]);
+
+  // Create the surrounding locations widget
+  const surroundingWidget = useSurroundingWidget();
+  useEffect(() => {
+    if (!view?.ui) return;
+
+    view.ui.add({ component: surroundingWidget, position: 'top-right' });
+
+    return function cleanup() {
+      view?.ui.remove(surroundingWidget);
+    };
+  }, [surroundingWidget, view]);
 
   // Creates and adds the legend widget to the map
   const rnd = useRef<Rnd | null>(null);
