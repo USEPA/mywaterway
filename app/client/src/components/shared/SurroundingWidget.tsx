@@ -189,7 +189,7 @@ function useAllFeaturesLayer(
   const surroundingLayer = useMemo(() => {
     return new GraphicsLayer({
       graphics: [surroundingMask],
-      opacity: surroundingLayerVisibleOpacity,
+      opacity: 0,
     });
   }, [surroundingMask]);
 
@@ -204,6 +204,7 @@ function useAllFeaturesLayer(
 
   const maskLayer = useMemo(() => {
     return new GroupLayer({
+      blendMode: 'destination-in',
       layers: [surroundingLayer, enclosingLayer],
     });
   }, [enclosingLayer, surroundingLayer]);
@@ -211,7 +212,6 @@ function useAllFeaturesLayer(
   const allFeaturesLayer = useMemo(() => {
     const layers = layer ? [layer, maskLayer] : [maskLayer];
     return new GroupLayer({
-      blendMode: 'destination-in',
       layers,
     });
   }, [layer, maskLayer]);
@@ -219,8 +219,8 @@ function useAllFeaturesLayer(
   const toggleSurroundings = useCallback(
     (ev: ChangeEvent<HTMLInputElement>) => {
       surroundingLayer.opacity = ev.target.checked
-        ? 0
-        : surroundingLayerVisibleOpacity;
+        ? surroundingLayerVisibleOpacity
+        : 0;
     },
     [surroundingLayer],
   );
@@ -254,7 +254,7 @@ function isPolygon(geometry: __esri.Geometry): geometry is __esri.Polygon {
 ## Constants
 */
 
-const surroundingLayerVisibleOpacity = 0.3;
+const surroundingLayerVisibleOpacity = 0.8;
 
 /*
 ## Styles

@@ -1,5 +1,4 @@
 import Color from '@arcgis/core/Color';
-import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
 import type { MonitoringLocationsData } from 'types';

@@ -870,8 +870,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     newCyanLayer.add(cyanWaterbodies);
     newCyanLayer.add(cyanImages);
 
+    const sharedLayers = getSharedLayers().filter(
+      (layer) => layer.id !== 'allWaterbodiesLayer',
+    );
     setLayers([
-      ...getSharedLayers(),
+      ...sharedLayers,
       providersLayer,
       boundariesLayer,
       newCyanLayer,
@@ -1653,7 +1656,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .then((res) => {
           // duplicate the objectid to a
           // different field for later reference
-          const features = res.features.map((item) => {
+          const features = res.features?.map((item) => {
             return new Graphic({
               attributes: {
                 ...item.attributes,
