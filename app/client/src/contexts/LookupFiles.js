@@ -165,7 +165,7 @@ function LookupFilesProvider({ children }: Props) {
   );
 }
 
-// Custom hook for the data.json file.
+// Custom hook for the dataPage.json file.
 let dataSourcesInitialized = false; // global var for ensuring fetch only happens once
 function useDataSourcesContext() {
   const { dataSources, setDataSources } = useContext(LookupFilesContext);
@@ -173,7 +173,7 @@ function useDataSourcesContext() {
   // fetch the lookup file if necessary
   if (!dataSourcesInitialized) {
     dataSourcesInitialized = true;
-    getLookupFile('data.json', setDataSources);
+    getLookupFile('dataPage.json', setDataSources);
   }
 
   return dataSources;

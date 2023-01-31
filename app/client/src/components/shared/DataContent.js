@@ -1,6 +1,6 @@
 // @flow
 
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect } from 'react';
 import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
 // components
@@ -50,16 +50,17 @@ const contentsTitleStyles = css`
   text-decoration: underline;
 `;
 
-const modifiedErrorBoxStyles = css`
-  ${errorBoxStyles}
-  margin-bottom: 1.25rem;
-`;
-
 const modifiedLinkButtonStyles = css`
   ${linkButtonStyles}
   font-size: 16px;
   font-weight: 400;
   text-align: left;
+`;
+
+const pageErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin: 1rem;
+  text-align: center;
 `;
 
 const titleStyles = css`
@@ -127,7 +128,7 @@ function DataContent() {
 
   const { data, status } = useDataSourcesContext();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (status !== 'success') return;
     const spans = Array.from(document.querySelectorAll('span'));
     spans.forEach((span) => {
@@ -150,11 +151,12 @@ function DataContent() {
 
   if (status === 'failure') {
     return (
-      <div css={modifiedErrorBoxStyles}>
+      <div css={pageErrorBoxStyles}>
         <p>{dataContentError}</p>
       </div>
     );
   }
+
   return (
     <div css={containerStyles} className="container">
       <p dangerouslySetInnerHTML={{ __html: data.intro }} />
