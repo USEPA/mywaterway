@@ -165,7 +165,7 @@ type State = {
   upstreamWidgetDisabled: boolean,
   allWaterbodiesWidgetDisabled: boolean,
   surroundingMonitoringLocationsWidgetDisabled: boolean,
-  hucBoundaries: __esri.FeatureSet | null,
+  hucBoundaries: Object,
   atHucBoundaries: boolean,
   countyBoundaries: Object,
   waterbodyData: Array<Object>,

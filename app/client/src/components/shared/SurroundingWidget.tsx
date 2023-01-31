@@ -1,5 +1,6 @@
 import Color from '@arcgis/core/Color';
 import Extent from '@arcgis/core/geometry/Extent';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -13,6 +14,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -36,18 +38,38 @@ export function useSurroundingWidget() {
     setLayers,
   } = useContext(LocationSearchContext);
 
+  const [testLayer, setTestLayer] = useState<__esri.FeatureLayer | null>(null);
+  useEffect(() => {
+    setTestLayer(
+      new FeatureLayer({
+        portalItem: {
+          id: 'c786669a00b547c995f0cc970dc007d8',
+        },
+        opacity: 1,
+      }),
+    );
+  }, []);
+
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
     render(
       <SurroundingWidget
         getHucBoundaries={getHucBoundaries}
         getLayers={getLayers}
+        testLayer={testLayer}
         getWaterbodiesLayer={getWaterbodiesLayer}
         setLayers={setLayers}
       />,
       container,
     );
-  }, [container, getHucBoundaries, getLayers, getWaterbodiesLayer, setLayers]);
+  }, [
+    container,
+    getHucBoundaries,
+    getLayers,
+    getWaterbodiesLayer,
+    setLayers,
+    testLayer,
+  ]);
 
   return container;
 }
@@ -80,6 +102,7 @@ function SurroundingWidgetContent({
   getLayers,
   getWaterbodiesLayer,
   setLayers,
+  testLayer,
   visible,
 }: SurroundingWidgetContentProps) {
   const hucGraphic = useHucGraphic(getHucBoundaries());
@@ -89,9 +112,12 @@ function SurroundingWidgetContent({
     toggleSurroundings: toggleSurroundingWaterbodies,
   } = useAllFeaturesLayer(getWaterbodiesLayer(), hucGraphic);
 
+  const { layer: allTestLayer, toggleSurroundings: toggleTestLayer } =
+    useAllFeaturesLayer(testLayer, hucGraphic);
+
   const surroundingLayers = useMemo(() => {
-    return [allWaterbodiesLayer];
-  }, [allWaterbodiesLayer]);
+    return [allWaterbodiesLayer, allTestLayer];
+  }, [allTestLayer, allWaterbodiesLayer]);
 
   useEffect(() => {
     setLayers(
@@ -109,7 +135,8 @@ function SurroundingWidgetContent({
 
   return (
     <>
-      <div>
+      <div css={widgetContentStyles}>
+        <input type="checkbox" onChange={toggleTestLayer}></input>
         <input type="checkbox" onChange={toggleSurroundingWaterbodies}></input>
       </div>
     </>
@@ -294,6 +321,11 @@ const divHoverStyle = {
   cursor: 'pointer',
 };
 
+const widgetContentStyles = css`
+  position: relative;
+  right: 50px;
+`;
+
 /*
 ## Types
 */
@@ -312,4 +344,5 @@ type SurroundingWidgetProps = {
   getLayers: () => __esri.Layer[];
   getWaterbodiesLayer: () => __esri.GroupLayer;
   setLayers: (layers: __esri.Layer[]) => void;
+  testLayer: __esri.Layer | null;
 };

@@ -634,7 +634,10 @@ function MapWidgets({
   useEffect(() => {
     if (!view?.ui) return;
 
-    view.ui.add({ component: surroundingWidget, position: 'top-right' });
+    view.ui.add({
+      component: surroundingWidget,
+      position: 'top-right',
+    });
 
     return function cleanup() {
       view?.ui.remove(surroundingWidget);
