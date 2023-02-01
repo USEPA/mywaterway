@@ -24,9 +24,11 @@ function compareContextName(objA, objB) {
 }
 
 function getMatchingLabel(ATTAINSContext) {
-  return impairmentFields.filter((field) => {
-    return field.parameterGroup === ATTAINSContext;
-  })[0].label;
+  return (
+    impairmentFields.filter((field) => {
+      return field.parameterGroup === ATTAINSContext;
+    })[0]?.label ?? ATTAINSContext
+  );
 }
 
 const containerStyles = css`
