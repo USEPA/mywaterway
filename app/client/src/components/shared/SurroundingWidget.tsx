@@ -1,6 +1,7 @@
 import Color from '@arcgis/core/Color';
 import Extent from '@arcgis/core/geometry/Extent';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import FeatureSet from '@arcgis/core/rest/support/FeatureSet';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -16,6 +17,7 @@ import {
 } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
+import { v4 as uuid } from 'uuid';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // types
@@ -38,24 +40,23 @@ export function useSurroundingWidget() {
     setLayers,
   } = useContext(LocationSearchContext);
 
-  const [testLayer, setTestLayer] = useState<__esri.FeatureLayer | null>(null);
-  useEffect(() => {
-    setTestLayer(
-      new FeatureLayer({
-        portalItem: {
-          id: 'c786669a00b547c995f0cc970dc007d8',
-        },
-        opacity: 1,
-      }),
-    );
-  }, []);
+  const [testLayer] = useState<__esri.FeatureLayer>(
+    new FeatureLayer({
+      id: 'countyCropsLayer',
+      portalItem: {
+        id: 'c786669a00b547c995f0cc970dc007d8',
+      },
+      opacity: 1,
+      title: 'County Crops',
+    }),
+  );
 
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
     render(
       <SurroundingWidget
         getHucBoundaries={getHucBoundaries}
-        getLayers={getLayers}
+        getMapLayers={getLayers}
         testLayer={testLayer}
         getWaterbodiesLayer={getWaterbodiesLayer}
         setLayers={setLayers}
@@ -99,18 +100,20 @@ function SurroundingWidget(props: SurroundingWidgetProps) {
 
 function SurroundingWidgetContent({
   getHucBoundaries,
-  getLayers,
+  getMapLayers,
   getWaterbodiesLayer,
   setLayers,
   testLayer,
   visible,
 }: SurroundingWidgetContentProps) {
-  const hucGraphic = useHucGraphic(getHucBoundaries());
+  const hucBoundaries = getHucBoundaries() ?? new FeatureSet();
+  const hucGraphic = useHucGraphic(hucBoundaries);
 
+  const waterBodiesLayer = getWaterbodiesLayer() ?? createNullGroupLayer();
   const {
     layer: allWaterbodiesLayer,
     toggleSurroundings: toggleSurroundingWaterbodies,
-  } = useAllFeaturesLayer(getWaterbodiesLayer(), hucGraphic);
+  } = useAllFeaturesLayer(waterBodiesLayer, hucGraphic);
 
   const { layer: allTestLayer, toggleSurroundings: toggleTestLayer } =
     useAllFeaturesLayer(testLayer, hucGraphic);
@@ -121,7 +124,7 @@ function SurroundingWidgetContent({
 
   useEffect(() => {
     setLayers(
-      getLayers().reduce((current: __esri.Layer[], layer: __esri.Layer) => {
+      getMapLayers().reduce((current: __esri.Layer[], layer: __esri.Layer) => {
         if (layer.id === 'boundariesLayer') {
           return current.concat([layer, ...surroundingLayers]);
         } else {
@@ -129,7 +132,7 @@ function SurroundingWidgetContent({
         }
       }, []),
     );
-  }, [getLayers, setLayers, surroundingLayers]);
+  }, [getMapLayers, setLayers, surroundingLayers]);
 
   if (!visible) return null;
 
@@ -183,11 +186,11 @@ function SurroundingWidgetTrigger({
 ## Hooks
 */
 
-function useHucGraphic(hucBoundaries: __esri.FeatureSet | null) {
+function useHucGraphic(hucBoundaries: __esri.FeatureSet) {
   const [hucGraphic, setHucGraphic] = useState(new Graphic());
 
   useEffect(() => {
-    if (!hucBoundaries?.features.length) return;
+    if (!hucBoundaries.features.length) return;
     const geometry = hucBoundaries.features[0].geometry;
     if (!isPolygon(geometry)) return;
 
@@ -207,10 +210,7 @@ function useHucGraphic(hucBoundaries: __esri.FeatureSet | null) {
   return hucGraphic;
 }
 
-function useAllFeaturesLayer(
-  layer: __esri.Layer | null,
-  hucGraphic: __esri.Graphic,
-) {
+function useAllFeaturesLayer(layer: __esri.Layer, hucGraphic: __esri.Graphic) {
   const [surroundingMask] = useState(getSurroundingMask());
 
   const surroundingLayer = useMemo(() => {
@@ -220,26 +220,29 @@ function useAllFeaturesLayer(
     });
   }, [surroundingMask]);
 
-  const enclosingLayer = useMemo(() => {
+  const enclosedLayer = useMemo(() => {
     return new GraphicsLayer();
   }, []);
 
   useEffect(() => {
-    enclosingLayer.graphics.removeAll();
-    if (hucGraphic) enclosingLayer.graphics.add(hucGraphic);
-  }, [enclosingLayer, hucGraphic]);
+    enclosedLayer.graphics.removeAll();
+    if (hucGraphic) enclosedLayer.graphics.add(hucGraphic);
+  }, [enclosedLayer, hucGraphic]);
 
   const maskLayer = useMemo(() => {
     return new GroupLayer({
       blendMode: 'destination-in',
-      layers: [surroundingLayer, enclosingLayer],
+      layers: [surroundingLayer, enclosedLayer],
     });
-  }, [enclosingLayer, surroundingLayer]);
+  }, [enclosedLayer, surroundingLayer]);
 
   const allFeaturesLayer = useMemo(() => {
     const layers = layer ? [layer, maskLayer] : [maskLayer];
     return new GroupLayer({
+      id: `all${layer.id}`,
       layers,
+      listMode: 'hide-children',
+      title: layer.title,
     });
   }, [layer, maskLayer]);
 
@@ -258,6 +261,13 @@ function useAllFeaturesLayer(
 /*
 ## Utils
 */
+
+function createNullGroupLayer() {
+  return new GroupLayer({
+    id: uuid(),
+    title: 'Layer',
+  });
+}
 
 function getSurroundingMask() {
   return new Graphic({
@@ -341,8 +351,8 @@ type SurroundingWidgetContentProps = SurroundingWidgetProps & {
 
 type SurroundingWidgetProps = {
   getHucBoundaries: () => __esri.FeatureSet;
-  getLayers: () => __esri.Layer[];
+  getMapLayers: () => __esri.Layer[];
   getWaterbodiesLayer: () => __esri.GroupLayer;
   setLayers: (layers: __esri.Layer[]) => void;
-  testLayer: __esri.Layer | null;
+  testLayer: __esri.Layer;
 };
