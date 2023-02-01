@@ -259,6 +259,13 @@ export const defaultErrorBoundaryMessage = (
   </p>
 );
 
+export const dataContentError = (
+  <>
+    Information about data used in <em>How's My Waterway</em> is temporarily
+    unavailable, please try again later.
+  </>
+);
+
 // message displayed when the Esri map fails to load due to incompatible browsers and devices
 export const esriMapLoadingFailure = `The How's My Waterway Map is unavailable. Your web browser is
 incompatible or outdated.`;
