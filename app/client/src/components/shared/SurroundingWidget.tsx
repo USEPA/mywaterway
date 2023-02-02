@@ -120,6 +120,7 @@ function SurroundingWidgetContent({
 
   const surroundingLayers = useMemo(() => {
     return [allWaterbodiesLayer, allTestLayer];
+    // return [allWaterbodiesLayer];
   }, [allTestLayer, allWaterbodiesLayer]);
 
   useEffect(() => {
@@ -201,7 +202,7 @@ function useHucGraphic(hucBoundaries: __esri.FeatureSet) {
           rings: geometry.rings,
         }),
         symbol: new SimpleFillSymbol({
-          color: 'white',
+          color: new Color({ r: 255, g: 255, b: 255, a: 1 }),
         }),
       }),
     );
@@ -216,13 +217,17 @@ function useAllFeaturesLayer(layer: __esri.Layer, hucGraphic: __esri.Graphic) {
   const surroundingLayer = useMemo(() => {
     return new GraphicsLayer({
       graphics: [surroundingMask],
+      id: `surrounding-${layer.id}`,
       opacity: 0,
     });
-  }, [surroundingMask]);
+  }, [layer, surroundingMask]);
 
   const enclosedLayer = useMemo(() => {
-    return new GraphicsLayer();
-  }, []);
+    return new GraphicsLayer({
+      id: `enclosed-${layer.id}`,
+      opacity: 1,
+    });
+  }, [layer]);
 
   useEffect(() => {
     enclosedLayer.graphics.removeAll();
@@ -232,14 +237,16 @@ function useAllFeaturesLayer(layer: __esri.Layer, hucGraphic: __esri.Graphic) {
   const maskLayer = useMemo(() => {
     return new GroupLayer({
       blendMode: 'destination-in',
+      id: `mask-${layer.id}`,
       layers: [surroundingLayer, enclosedLayer],
+      opacity: 1,
     });
-  }, [enclosedLayer, surroundingLayer]);
+  }, [enclosedLayer, layer, surroundingLayer]);
 
   const allFeaturesLayer = useMemo(() => {
     const layers = layer ? [layer, maskLayer] : [maskLayer];
     return new GroupLayer({
-      id: `all${layer.id}`,
+      id: `all-${layer.id}`,
       layers,
       listMode: 'hide-children',
       title: layer.title,

@@ -19,11 +19,12 @@ export default class AllFeaturesLayer extends GroupLayer {
     properties: __esri.FeatureLayerProperties,
     boundaries?: __esri.Polygon,
   ) {
-    super(properties);
+    super();
 
     this.featureLayer = new FeatureLayer(properties);
 
     this.id = `surrounding${this.featureLayer.id}`;
+    this.title = properties.title ?? 'allFeaturesLayer';
     this.visibilityMode = 'inherited';
     this.layers = new Collection<__esri.Layer>().addMany([
       this.featureLayer,
@@ -43,8 +44,28 @@ export default class AllFeaturesLayer extends GroupLayer {
   @property()
   private featureLayer: __esri.FeatureLayer;
 
+  @aliasOf('featureLayer.featureReduction')
+  featureReduction?:
+    | __esri.FeatureReductionBinning
+    | __esri.FeatureReductionCluster
+    | __esri.FeatureReductionSelection;
+
   @property()
   private surroundingLayer = buildSurroundingLayer(buildSurroundingMask());
+
+  applyEdits(
+    edits: __esri.FeatureLayerApplyEditsEdits,
+    options?: __esri.FeatureLayerApplyEditsOptions,
+  ) {
+    return this.featureLayer.applyEdits(edits, options);
+  }
+
+  queryFeatures(
+    query?: __esri.Query | __esri.QueryProperties,
+    options?: __esri.FeatureLayerQueryFeaturesOptions,
+  ) {
+    return this.featureLayer.queryFeatures(query, options);
+  }
 
   setBoundaries(boundaries?: __esri.Polygon) {
     this.enclosedLayer.graphics.removeAll();
