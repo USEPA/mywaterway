@@ -13,7 +13,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // utilities
-import { useDynamicPopup } from 'utils/hooks';
+import { useReset, useDynamicPopup } from 'utils/hooks';
 // types
 import type {
   MonitoringFeatureUpdate,
@@ -179,10 +179,11 @@ function MapMouseEvents({ view }: Props) {
     monitoringFeatureUpdates,
     monitoringLocations,
     monitoringLocationsLayer,
-    resetData,
     protectedAreasLayer,
     surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
+
+  const { resetData } = useReset();
 
   const getDynamicPopup = useDynamicPopup();
   const onTribePage = window.location.pathname.startsWith('/tribe/');

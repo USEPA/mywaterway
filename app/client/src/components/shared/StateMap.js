@@ -33,7 +33,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
-import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import { useReset, useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // styles
 import 'styles/mapStyles.css';
@@ -96,8 +96,9 @@ function StateMap({
     setAreasLayer,
 
     homeWidget,
-    resetData,
   } = useContext(LocationSearchContext);
+
+  const { resetData } = useReset();
 
   const [layers, setLayers] = useState(null);
 

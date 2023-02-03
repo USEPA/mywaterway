@@ -44,7 +44,8 @@ const waterbodyStatuses = {
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
 } as const;
 
-type WaterbodyStatus = typeof waterbodyStatuses[keyof typeof waterbodyStatuses];
+type WaterbodyStatus =
+  (typeof waterbodyStatuses)[keyof typeof waterbodyStatuses];
 
 const waterbodyOverallStatuses = {
   ...waterbodyStatuses,
@@ -52,7 +53,7 @@ const waterbodyOverallStatuses = {
 } as const;
 
 type WaterbodyOverallStatus =
-  typeof waterbodyOverallStatuses[keyof typeof waterbodyOverallStatuses];
+  (typeof waterbodyOverallStatuses)[keyof typeof waterbodyOverallStatuses];
 
 // Gets the type of symbol using the shape's attributes.
 export function getTypeFromAttributes(graphic: __esri.Graphic) {

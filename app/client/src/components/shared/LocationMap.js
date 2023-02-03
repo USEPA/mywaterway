@@ -44,6 +44,7 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
+import { useLayersActions, useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -66,6 +67,7 @@ import {
   useDynamicPopup,
   useGeometryUtils,
   useMonitoringLocations,
+  useReset,
   useSharedLayers,
   useStreamgageData,
   useWaterbodyHighlight,
@@ -211,7 +213,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringLocationsLayer,
-    setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setDischargersLayer,
     setNonprofitsLayer,
@@ -219,8 +220,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setBoundariesLayer,
     setSearchIconLayer,
     setWatershed,
-    resetData,
-    setNoDataAvailable,
     FIPS,
     setFIPS,
     layers,
@@ -238,8 +237,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-    usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
+
+  const { usgsStreamgagesLayer } = useLayersState();
+  const { setUsgsStreamgagesLayer } = useLayersActions();
+
+  const { resetData, setNoDataAvailable } = useReset();
 
   const stateNationalUses = useStateNationalUsesContext();
 

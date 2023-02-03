@@ -1,5 +1,6 @@
 import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
+// types
 import type { ReactNode } from 'react';
 import type { MonitoringLocationsData } from 'types';
 
@@ -148,7 +149,6 @@ type State = {
   issuesLayer: Object,
   monitoringLocationsLayer: Object,
   surroundingMonitoringLocationsLayer: Object,
-  usgsStreamgagesLayer: Object,
   dischargersLayer: Object,
   nonprofitsLayer: Object,
   wildScenicRiversLayer: Object,
@@ -237,7 +237,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     issuesLayer: '',
     monitoringLocationsLayer: '',
     surroundingMonitoringLocationsLayer: '',
-    usgsStreamgagesLayer: '',
     dischargersLayer: '',
     nonprofitsLayer: '',
     wildScenicRiversLayer: '',
@@ -412,9 +411,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     ) => {
       this.setState({ surroundingMonitoringLocationsLayer });
     },
-    setUsgsStreamgagesLayer: (usgsStreamgagesLayer) => {
-      this.setState({ usgsStreamgagesLayer });
-    },
     setDischargersLayer: (dischargersLayer) => {
       this.setState({ dischargersLayer });
     },
@@ -567,7 +563,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       return features;
     },
 
-    resetMap: (useDefaultZoom = false) => {
+    resetMap: (resetLayers, useDefaultZoom = false) => {
       const {
         initialExtent,
         layers,
@@ -578,7 +574,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         boundariesLayer,
         searchIconLayer,
         monitoringLocationsLayer,
-        usgsStreamgagesLayer,
         upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
@@ -621,6 +616,9 @@ export class LocationSearchProvider extends Component<Props, State> {
 
       this.setState(newState);
 
+      // reset layers in the Layers context
+      resetLayers();
+
       // hide and remove upstream layer graphics when switching locations
       if (upstreamLayer) {
         newState['upstreamLayerVisible'] = false;
@@ -640,13 +638,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       if (monitoringLocationsLayer) {
         monitoringLocationsLayer.queryFeatures().then((featureSet) => {
           monitoringLocationsLayer.applyEdits({
-            deleteFeatures: featureSet.features,
-          });
-        });
-      }
-      if (usgsStreamgagesLayer) {
-        usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-          usgsStreamgagesLayer.applyEdits({
             deleteFeatures: featureSet.features,
           });
         });
@@ -704,7 +695,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       }
     },
 
-    resetData: () => {
+    resetData: (resetLayers) => {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
@@ -733,13 +724,13 @@ export class LocationSearchProvider extends Component<Props, State> {
       // remove map content
       // only zoom out the map if we are on the community intro page at /community
       if (window.location.pathname === '/community') {
-        this.state.resetMap(true);
+        this.state.resetMap(resetLayers, true);
       } else {
-        this.state.resetMap(false);
+        this.state.resetMap(resetLayers, false);
       }
     },
 
-    setNoDataAvailable: () => {
+    setNoDataAvailable: (resetLayers) => {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
@@ -762,7 +753,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       });
 
       // remove map content
-      this.state.resetMap(true);
+      this.state.resetMap(resetLayers, true);
     },
   };
 
