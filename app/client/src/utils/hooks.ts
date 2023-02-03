@@ -28,6 +28,7 @@ import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -68,6 +69,12 @@ import type {
   UsgsStreamgageAttributes,
   UsgsStreamgagesData,
 } from 'types';
+
+declare global {
+  interface Window {
+    logToGa: Function;
+  }
+}
 
 let dynamicPopupFields: __esri.Field[] = [];
 
@@ -2155,6 +2162,98 @@ function useMonitoringLocations() {
   ]);
 }
 
+// Hook for storing save panel selections to user's session storage
+function useSaveSettings() {
+  const key = 'hmw_save_settings';
+
+  const {
+    activeTabIndex,
+    setActiveTabIndex,
+    addSaveDataWidgetVisible,
+    setAddSaveDataWidgetVisible,
+    saveAsName,
+    setSaveAsName,
+    saveContinue,
+    setSaveContinue,
+    saveLayerFilter,
+    setSaveLayerFilter,
+    saveLayersList,
+    setSaveLayersList,
+  } = useAddSaveDataWidgetState();
+
+  // Retreives training mode data from browser storage when the app loads
+  const [localSaveSettingsInitialized, setLocalSaveSettingsInitialized] =
+    useState(false);
+  useEffect(() => {
+    if (localSaveSettingsInitialized) return;
+
+    setLocalSaveSettingsInitialized(true);
+
+    const saveSettingsStr = sessionStorage.getItem(key);
+    if (!saveSettingsStr) return;
+    const saveSettings = JSON.parse(saveSettingsStr);
+
+    setActiveTabIndex(saveSettings.activeTabIndex);
+    setAddSaveDataWidgetVisible(saveSettings.addSaveDataWidgetVisible);
+    setSaveAsName(saveSettings.saveAsName);
+    setSaveContinue(saveSettings.saveContinue);
+    setSaveLayerFilter(saveSettings.saveLayerFilter);
+    setSaveLayersList(saveSettings.saveLayersList);
+  }, [
+    localSaveSettingsInitialized,
+    setActiveTabIndex,
+    setAddSaveDataWidgetVisible,
+    setSaveAsName,
+    setSaveContinue,
+    setSaveLayerFilter,
+    setSaveLayersList,
+  ]);
+
+  useEffect(() => {
+    const newSaveLayerList: any = {};
+    if (saveLayersList) {
+      Object.keys(saveLayersList).forEach((key) => {
+        const value = saveLayersList[key];
+
+        newSaveLayerList[key] = {
+          ...value,
+          layer: null,
+        };
+      });
+    }
+
+    const saveSettings = {
+      activeTabIndex,
+      addSaveDataWidgetVisible,
+      saveAsName,
+      saveContinue,
+      saveLayerFilter,
+      saveLayersList: newSaveLayerList,
+    };
+
+    try {
+      sessionStorage.setItem(key, JSON.stringify(saveSettings));
+    } catch (e) {
+      console.error(e);
+      let message;
+      if (e instanceof Error) message = `${e.message}:${e.stack}`;
+      else message = String(e);
+      window.logToGa('send', 'exception', {
+        exDescription: `sessionKey=${key}:${message}`,
+        exFatal: false,
+      });
+    }
+  }, [
+    activeTabIndex,
+    addSaveDataWidgetVisible,
+    localSaveSettingsInitialized,
+    saveAsName,
+    saveContinue,
+    saveLayerFilter,
+    saveLayersList,
+  ]);
+}
+
 export {
   useAbortSignal,
   useDynamicPopup,
@@ -2162,6 +2261,7 @@ export {
   useKeyPress,
   useMonitoringLocations,
   useOnScreen,
+  useSaveSettings,
   useSharedLayers,
   useStreamgageData,
   useStreamgageFeatures,
