@@ -8,8 +8,8 @@ type SearchResultsState =
   | { status: 'success'; data: __esri.PortalQueryResult | null };
 
 type State = {
-  addDataWidgetVisible: boolean;
-  setAddDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
+  addSaveDataWidgetVisible: boolean;
+  setAddSaveDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
   pageNumber: number;
   setPageNumber: Dispatch<SetStateAction<number>>;
   searchResults: SearchResultsState;
@@ -24,8 +24,8 @@ type Props = {
   children: ReactNode;
 };
 
-export function AddDataWidgetProvider({ children }: Props) {
-  const [addDataWidgetVisible, setAddDataWidgetVisible] = useState(false);
+export function AddSaveDataWidgetProvider({ children }: Props) {
+  const [addSaveDataWidgetVisible, setAddSaveDataWidgetVisible] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [searchResults, setSearchResults] = useState<SearchResultsState>({
     status: 'idle',
@@ -35,27 +35,27 @@ export function AddDataWidgetProvider({ children }: Props) {
 
   const state: State = useMemo(() => {
     return {
-      addDataWidgetVisible,
+      addSaveDataWidgetVisible,
       pageNumber,
       searchResults,
-      setAddDataWidgetVisible,
+      setAddSaveDataWidgetVisible,
       setPageNumber,
       setSearchResults,
       setWidgetLayers,
       widgetLayers,
     };
-  }, [addDataWidgetVisible, pageNumber, searchResults, widgetLayers]);
+  }, [addSaveDataWidgetVisible, pageNumber, searchResults, widgetLayers]);
 
   return (
     <StateContext.Provider value={state}>{children}</StateContext.Provider>
   );
 }
 
-export function useAddDataWidgetState() {
+export function useAddSaveDataWidgetState() {
   const context = useContext(StateContext);
   if (context === undefined) {
     throw new Error(
-      'useAddDataWidgetState must be called within an AddDataWidgetProvider',
+      'useAddSaveDataWidgetState must be called within an AddSaveDataWidgetProvider',
     );
   }
   return context;

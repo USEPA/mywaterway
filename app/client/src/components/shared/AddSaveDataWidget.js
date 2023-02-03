@@ -7,11 +7,11 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import { linkButtonStyles } from 'components/shared/LinkButton';
-import FilePanel from 'components/shared/AddDataWidget.FilePanel';
-import SearchPanel from 'components/shared/AddDataWidget.SearchPanel';
-import URLPanel from 'components/shared/AddDataWidget.URLPanel';
+import FilePanel from 'components/shared/AddSaveDataWidget.FilePanel';
+import SearchPanel from 'components/shared/AddSaveDataWidget.SearchPanel';
+import URLPanel from 'components/shared/AddSaveDataWidget.URLPanel';
 // contexts
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 
 // --- styles (AddData) ---
@@ -153,16 +153,16 @@ const layerIconButtonStyles = css`
 `;
 
 // --- components (AddData) ---
-function AddDataWidget() {
+function AddSaveDataWidget() {
   const { mapView } = useContext(LocationSearchContext);
   const {
-    setAddDataWidgetVisible,
+    setAddSaveDataWidgetVisible,
     pageNumber,
     setPageNumber,
     searchResults,
     widgetLayers,
     setWidgetLayers,
-  } = useAddDataWidgetState();
+  } = useAddSaveDataWidgetState();
 
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [layerPanelVisible, setLayerPanelVisible] = useState(false);
@@ -201,7 +201,7 @@ function AddDataWidget() {
           onClick={() => {
             const widget = document.getElementById('add-data-widget');
             widget.classList.add('hidden');
-            setAddDataWidgetVisible(false);
+            setAddSaveDataWidgetVisible(false);
           }}
         >
           X
@@ -374,4 +374,4 @@ function AddDataWidget() {
   );
 }
 
-export default AddDataWidget;
+export default AddSaveDataWidget;

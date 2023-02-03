@@ -18,7 +18,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // config
 import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
@@ -200,7 +200,7 @@ type SortBy =
 // --- components (SearchPanel) ---
 function SearchPanel() {
   const { pageNumber, setPageNumber, searchResults, setSearchResults } =
-    useAddDataWidgetState();
+    useAddSaveDataWidgetState();
 
   const locationList = [
     { value: '161a24e10b8d405d97492264589afd0b', label: 'Suggested Content' },
@@ -749,7 +749,7 @@ type ResultCardProps = {
 };
 
 function ResultCard({ result }: ResultCardProps) {
-  const { widgetLayers, setWidgetLayers } = useAddDataWidgetState();
+  const { widgetLayers, setWidgetLayers } = useAddSaveDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
 
   // Used to determine if the layer for this card has been added or not

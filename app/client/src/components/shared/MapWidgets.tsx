@@ -26,10 +26,10 @@ import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
-import AddDataWidget from 'components/shared/AddDataWidget';
+import AddSaveDataWidget from 'components/shared/AddSaveDataWidget';
 import MapLegend from 'components/shared/MapLegend';
 // contexts
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -332,8 +332,8 @@ function MapWidgets({
   layers,
   onHomeWidgetRendered = () => {},
 }: Props) {
-  const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
-    useAddDataWidgetState();
+  const { addSaveDataWidgetVisible, setAddSaveDataWidgetVisible, widgetLayers } =
+    useAddSaveDataWidgetState();
 
   const abortSignal = useAbortSignal();
   const watchHandles = useMemo<IHandle[]>(() => [], []);
@@ -630,18 +630,18 @@ function MapWidgets({
 
   // Creates and adds the legend widget to the map
   const rnd = useRef<Rnd | null>(null);
-  const [addDataWidget, setAddDataWidget] = useState<HTMLDivElement | null>(
+  const [addSaveDataWidget, setAddSaveDataWidget] = useState<HTMLDivElement | null>(
     null,
   );
   useEffect(() => {
-    if (!view?.ui || addDataWidget) return;
+    if (!view?.ui || addSaveDataWidget) return;
 
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 1 });
 
     render(
-      <ShowAddDataWidget
-        setAddDataWidgetVisibleParam={setAddDataWidgetVisible}
+      <ShowAddSaveDataWidget
+        setAddSaveDataWidgetVisibleParam={setAddSaveDataWidgetVisible}
       />,
       node,
     );
@@ -678,8 +678,8 @@ function MapWidgets({
 
     window.addEventListener('resize', handleResize);
 
-    setAddDataWidget(node);
-  }, [view, addDataWidget, addDataWidgetVisible, setAddDataWidgetVisible]);
+    setAddSaveDataWidget(node);
+  }, [view, addSaveDataWidget, addSaveDataWidgetVisible, setAddSaveDataWidgetVisible]);
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
@@ -1312,7 +1312,7 @@ function MapWidgets({
     visibleLayers,
   ]);
 
-  if (!addDataWidget) return null;
+  if (!addSaveDataWidget) return null;
 
   const mapWidth = document
     .getElementById('hmw-map-container')
@@ -1324,7 +1324,7 @@ function MapWidgets({
   return (
     <div
       style={{
-        display: addDataWidgetVisible ? 'block' : 'none',
+        display: addSaveDataWidgetVisible ? 'block' : 'none',
         position: 'absolute',
         top: '0',
         width: '100%',
@@ -1335,7 +1335,7 @@ function MapWidgets({
       {viewportWidth < 960 ? (
         <div
           id="add-data-widget"
-          className={addDataWidgetVisible ? '' : 'hidden'}
+          className={addSaveDataWidgetVisible ? '' : 'hidden'}
           style={{
             backgroundColor: 'white',
             pointerEvents: 'all',
@@ -1345,12 +1345,12 @@ function MapWidgets({
             bottom: 0,
           }}
         >
-          <AddDataWidget />
+          <AddSaveDataWidget />
         </div>
       ) : (
         <Rnd
           id="add-data-widget"
-          className={addDataWidgetVisible ? '' : 'hidden'}
+          className={addSaveDataWidgetVisible ? '' : 'hidden'}
           style={{ backgroundColor: 'white', pointerEvents: 'all' }}
           ref={rnd}
           default={{
@@ -1367,7 +1367,7 @@ function MapWidgets({
           }}
           dragHandleClassName="drag-handle"
         >
-          <AddDataWidget />
+          <AddSaveDataWidget />
           <div css={resizeHandleStyles}>
             <img src={resizeIcon} alt="Resize Handle"></img>
           </div>
@@ -1377,10 +1377,10 @@ function MapWidgets({
   );
 }
 
-function ShowAddDataWidget({
-  setAddDataWidgetVisibleParam,
+function ShowAddSaveDataWidget({
+  setAddSaveDataWidgetVisibleParam,
 }: {
-  setAddDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
+  setAddSaveDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
 }) {
   const [hover, setHover] = useState(false);
 
@@ -1398,10 +1398,10 @@ function ShowAddDataWidget({
         if (!widget) return;
         if (widgetHidden) {
           widget.classList.remove('hidden');
-          setAddDataWidgetVisibleParam(true);
+          setAddSaveDataWidgetVisibleParam(true);
         } else {
           widget.classList.add('hidden');
-          setAddDataWidgetVisibleParam(false);
+          setAddSaveDataWidgetVisibleParam(false);
         }
       }}
     >

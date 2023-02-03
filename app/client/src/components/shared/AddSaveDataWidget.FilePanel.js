@@ -18,7 +18,7 @@ import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { fetchPostFile, fetchPostForm } from 'utils/fetchUtils';
@@ -231,7 +231,7 @@ type UploadStatusType =
   | 'file-read-error';
 
 function FilePanel() {
-  const { widgetLayers, setWidgetLayers } = useAddDataWidgetState();
+  const { widgetLayers, setWidgetLayers } = useAddSaveDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
 
   const [generalizeFeatures, setGeneralizeFeatures] = useState(false);
