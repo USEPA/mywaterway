@@ -8,10 +8,20 @@ type SearchResultsState =
   | { status: 'success'; data: __esri.PortalQueryResult | null };
 
 type State = {
+  activeTabIndex: number,
+  setActiveTabIndex: Dispatch<SetStateAction<number>>,
   addSaveDataWidgetVisible: boolean;
   setAddSaveDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
   pageNumber: number;
   setPageNumber: Dispatch<SetStateAction<number>>;
+  saveAsName: string,
+  setSaveAsName: Function,
+  saveContinue: boolean,
+  setSaveContinue: Function,
+  saveLayerFilter: Object,
+  setSaveLayerFilter: Function,
+  saveLayersList: any, // TODO Fix usage of any
+  setSaveLayersList: Function,
   searchResults: SearchResultsState;
   setSearchResults: Dispatch<SetStateAction<SearchResultsState>>;
   widgetLayers: WidgetLayer[];
@@ -25,8 +35,13 @@ type Props = {
 };
 
 export function AddSaveDataWidgetProvider({ children }: Props) {
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [addSaveDataWidgetVisible, setAddSaveDataWidgetVisible] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
+  const [saveAsName, setSaveAsName] = useState('');
+  const [saveContinue, setSaveContinue] = useState(false);
+  const [saveLayerFilter, setSaveLayerFilter] = useState({});
+  const [saveLayersList, setSaveLayersList] = useState<any>(null); // TODO Fix any usage
   const [searchResults, setSearchResults] = useState<SearchResultsState>({
     status: 'idle',
     data: null,
@@ -35,16 +50,36 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
 
   const state: State = useMemo(() => {
     return {
+      activeTabIndex,
       addSaveDataWidgetVisible,
       pageNumber,
+      saveAsName,
+      saveContinue,
+      saveLayerFilter,
+      saveLayersList,
       searchResults,
+      setActiveTabIndex,
       setAddSaveDataWidgetVisible,
       setPageNumber,
+      setSaveAsName,
+      setSaveContinue,
+      setSaveLayerFilter,
+      setSaveLayersList,
       setSearchResults,
       setWidgetLayers,
       widgetLayers,
     };
-  }, [addSaveDataWidgetVisible, pageNumber, searchResults, widgetLayers]);
+  }, [
+    activeTabIndex,
+    addSaveDataWidgetVisible,
+    pageNumber,
+    saveAsName,
+    saveContinue,
+    saveLayerFilter,
+    saveLayersList,
+    searchResults,
+    widgetLayers
+  ]);
 
   return (
     <StateContext.Provider value={state}>{children}</StateContext.Provider>

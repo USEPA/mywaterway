@@ -8,6 +8,7 @@ import { tabsStyles } from 'components/shared/ContentTabs';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import { linkButtonStyles } from 'components/shared/LinkButton';
 import FilePanel from 'components/shared/AddSaveDataWidget.FilePanel';
+import SavePanel from 'components/shared/AddSaveDataWidget.SavePanel';
 import SearchPanel from 'components/shared/AddSaveDataWidget.SearchPanel';
 import URLPanel from 'components/shared/AddSaveDataWidget.URLPanel';
 // contexts
@@ -156,6 +157,8 @@ const layerIconButtonStyles = css`
 function AddSaveDataWidget() {
   const { mapView } = useContext(LocationSearchContext);
   const {
+    activeTabIndex,
+    setActiveTabIndex,
     setAddSaveDataWidgetVisible,
     pageNumber,
     setPageNumber,
@@ -164,7 +167,6 @@ function AddSaveDataWidget() {
     setWidgetLayers,
   } = useAddSaveDataWidgetState();
 
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [layerPanelVisible, setLayerPanelVisible] = useState(false);
 
   // Build an array of layers to display on the layers panel.
@@ -199,7 +201,7 @@ function AddSaveDataWidget() {
         </div>
         <button
           onClick={() => {
-            const widget = document.getElementById('add-data-widget');
+            const widget = document.getElementById('add-save-data-widget');
             widget.classList.add('hidden');
             setAddSaveDataWidgetVisible(false);
           }}
@@ -222,6 +224,7 @@ function AddSaveDataWidget() {
               <Tab>Search</Tab>
               <Tab>URL</Tab>
               <Tab>File</Tab>
+              <Tab>Save</Tab>
             </TabList>
 
             <TabPanels>
@@ -235,6 +238,10 @@ function AddSaveDataWidget() {
 
               <TabPanel>
                 <FilePanel />
+              </TabPanel>
+
+              <TabPanel>
+                <SavePanel visible={true} />
               </TabPanel>
             </TabPanels>
           </Tabs>

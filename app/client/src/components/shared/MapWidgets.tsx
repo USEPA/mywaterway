@@ -657,7 +657,7 @@ function MapWidgets({
         .getElementById('hmw-map-container')
         ?.getBoundingClientRect();
       let awdRect = document
-        .getElementById('add-data-widget')
+        .getElementById('add-save-data-widget')
         ?.getBoundingClientRect();
 
       if (!mapRect || !awdRect) return;
@@ -665,7 +665,7 @@ function MapWidgets({
       const maxLeft = mapRect.width - awdRect.width;
       const curLeft = awdRect.left - mapRect.left;
 
-      // update the position of the add data widget
+      // update the position of the add save data widget
       const newPosition =
         curLeft > maxLeft
           ? maxLeft
@@ -1334,7 +1334,7 @@ function MapWidgets({
     >
       {viewportWidth < 960 ? (
         <div
-          id="add-data-widget"
+          id="add-save-data-widget"
           className={addSaveDataWidgetVisible ? '' : 'hidden'}
           style={{
             backgroundColor: 'white',
@@ -1349,7 +1349,7 @@ function MapWidgets({
         </div>
       ) : (
         <Rnd
-          id="add-data-widget"
+          id="add-save-data-widget"
           className={addSaveDataWidgetVisible ? '' : 'hidden'}
           style={{ backgroundColor: 'white', pointerEvents: 'all' }}
           ref={rnd}
@@ -1384,13 +1384,13 @@ function ShowAddSaveDataWidget({
 }) {
   const [hover, setHover] = useState(false);
 
-  const widget = document.getElementById('add-data-widget');
+  const widget = document.getElementById('add-save-data-widget');
   const widgetHidden = widget?.classList.contains('hidden');
 
   return (
     <div
-      className="add-data-widget"
-      title={widgetHidden ? 'Open Add Data Widget' : 'Close Add Data Widget'}
+      className="add-save-data-widget"
+      title={widgetHidden ? 'Open Add & Save Data Widget' : 'Close Add & Save Data Widget'}
       style={hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
