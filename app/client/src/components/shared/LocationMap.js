@@ -28,6 +28,7 @@ import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
+import AllFeaturesLayer from 'classes/AllFeaturesLayer';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import mapPin from 'images/pin.png';
@@ -729,7 +730,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringLocationsLayer(monitoringLocationsLayer);
 
-    const usgsStreamgagesLayer = new FeatureLayer({
+    const usgsStreamgagesLayer = new AllFeaturesLayer({
       id: 'usgsStreamgagesLayer',
       title: 'USGS Sensors',
       listMode: 'hide',
@@ -774,6 +775,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           getPopupContent({ feature: feature.graphic, navigate, services }),
       },
     });
+    console.log(usgsStreamgagesLayer);
 
     setUsgsStreamgagesLayer(usgsStreamgagesLayer);
 
@@ -873,11 +875,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     newCyanLayer.add(cyanWaterbodies);
     newCyanLayer.add(cyanImages);
 
-    const sharedLayers = getSharedLayers().filter(
-      (layer) => layer.id !== 'allWaterbodiesLayer',
-    );
     setLayers([
-      ...sharedLayers,
+      ...getSharedLayers(),
       providersLayer,
       boundariesLayer,
       newCyanLayer,

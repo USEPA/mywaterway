@@ -33,12 +33,9 @@ import type {
 */
 
 export function useSurroundingWidget() {
-  const {
-    getAllWaterbodiesLayer: getWaterbodiesLayer,
-    getHucBoundaries,
-    getLayers,
-    setLayers,
-  } = useContext(LocationSearchContext);
+  const { getHucBoundaries, getLayers, setLayers } = useContext(
+    LocationSearchContext,
+  );
 
   const [testLayer] = useState<__esri.FeatureLayer>(
     new FeatureLayer({
@@ -58,19 +55,11 @@ export function useSurroundingWidget() {
         getHucBoundaries={getHucBoundaries}
         getMapLayers={getLayers}
         testLayer={testLayer}
-        getWaterbodiesLayer={getWaterbodiesLayer}
         setLayers={setLayers}
       />,
       container,
     );
-  }, [
-    container,
-    getHucBoundaries,
-    getLayers,
-    getWaterbodiesLayer,
-    setLayers,
-    testLayer,
-  ]);
+  }, [container, getHucBoundaries, getLayers, setLayers, testLayer]);
 
   return container;
 }
@@ -101,7 +90,6 @@ function SurroundingWidget(props: SurroundingWidgetProps) {
 function SurroundingWidgetContent({
   getHucBoundaries,
   getMapLayers,
-  getWaterbodiesLayer,
   setLayers,
   testLayer,
   visible,
@@ -109,19 +97,13 @@ function SurroundingWidgetContent({
   const hucBoundaries = getHucBoundaries() ?? new FeatureSet();
   const hucGraphic = useHucGraphic(hucBoundaries);
 
-  const waterBodiesLayer = getWaterbodiesLayer() ?? createNullGroupLayer();
-  const {
-    layer: allWaterbodiesLayer,
-    toggleSurroundings: toggleSurroundingWaterbodies,
-  } = useAllFeaturesLayer(waterBodiesLayer, hucGraphic);
-
   const { layer: allTestLayer, toggleSurroundings: toggleTestLayer } =
     useAllFeaturesLayer(testLayer, hucGraphic);
 
   const surroundingLayers = useMemo(() => {
-    return [allWaterbodiesLayer, allTestLayer];
+    return [allTestLayer];
     // return [allWaterbodiesLayer];
-  }, [allTestLayer, allWaterbodiesLayer]);
+  }, [allTestLayer]);
 
   useEffect(() => {
     setLayers(
@@ -141,7 +123,6 @@ function SurroundingWidgetContent({
     <>
       <div css={widgetContentStyles}>
         <input type="checkbox" onChange={toggleTestLayer}></input>
-        <input type="checkbox" onChange={toggleSurroundingWaterbodies}></input>
       </div>
     </>
   );
@@ -359,7 +340,6 @@ type SurroundingWidgetContentProps = SurroundingWidgetProps & {
 type SurroundingWidgetProps = {
   getHucBoundaries: () => __esri.FeatureSet;
   getMapLayers: () => __esri.Layer[];
-  getWaterbodiesLayer: () => __esri.GroupLayer;
   setLayers: (layers: __esri.Layer[]) => void;
   testLayer: __esri.Layer;
 };

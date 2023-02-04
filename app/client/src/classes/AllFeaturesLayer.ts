@@ -23,12 +23,16 @@ export default class AllFeaturesLayer extends GroupLayer {
 
     this.featureLayer = new FeatureLayer(properties);
 
-    this.id = `surrounding${this.featureLayer.id}`;
+    this.id = `${properties.id}-all`;
     this.title = properties.title ?? 'allFeaturesLayer';
     this.visibilityMode = 'inherited';
+    this.enclosedLayer = new GraphicsLayer({
+      id: `${this.id}-enclosed`,
+    });
+    this.surroundingLayer = this.buildSurroundingLayer(buildSurroundingMask());
     this.layers = new Collection<__esri.Layer>().addMany([
       this.featureLayer,
-      buildMaskLayer(this.surroundingLayer, this.enclosedLayer),
+      this.buildMaskLayer(this.surroundingLayer, this.enclosedLayer),
     ]);
     this.listMode = 'hide-children';
 
@@ -36,7 +40,7 @@ export default class AllFeaturesLayer extends GroupLayer {
   }
 
   @property()
-  private enclosedLayer = new GraphicsLayer();
+  private enclosedLayer: __esri.GraphicsLayer;
 
   @property()
   surroundingsVisible: boolean = false;
@@ -51,13 +55,32 @@ export default class AllFeaturesLayer extends GroupLayer {
     | __esri.FeatureReductionSelection;
 
   @property()
-  private surroundingLayer = buildSurroundingLayer(buildSurroundingMask());
+  private surroundingLayer: __esri.GraphicsLayer;
 
   applyEdits(
     edits: __esri.FeatureLayerApplyEditsEdits,
     options?: __esri.FeatureLayerApplyEditsOptions,
   ) {
     return this.featureLayer.applyEdits(edits, options);
+  }
+
+  private buildMaskLayer(
+    surroundingLayer: __esri.GraphicsLayer,
+    enclosedLayer: __esri.GraphicsLayer,
+  ) {
+    return new GroupLayer({
+      id: `${this.id}-mask`,
+      blendMode: 'destination-in',
+      layers: [surroundingLayer, enclosedLayer],
+    });
+  }
+
+  private buildSurroundingLayer(surroundingMask: __esri.Graphic) {
+    return new GraphicsLayer({
+      id: `${this.id}-surrounding`,
+      graphics: [surroundingMask],
+      opacity: 0,
+    });
   }
 
   queryFeatures(
@@ -94,23 +117,6 @@ function buildBoundariesGraphic(boundaries?: __esri.Polygon) {
     symbol: new SimpleFillSymbol({
       color: 'white',
     }),
-  });
-}
-
-function buildMaskLayer(
-  surroundingLayer: __esri.GraphicsLayer,
-  enclosedLayer: __esri.GraphicsLayer,
-) {
-  return new GroupLayer({
-    blendMode: 'destination-in',
-    layers: [surroundingLayer, enclosedLayer],
-  });
-}
-
-function buildSurroundingLayer(surroundingMask: __esri.Graphic) {
-  return new GraphicsLayer({
-    graphics: [surroundingMask],
-    opacity: 0,
   });
 }
 
