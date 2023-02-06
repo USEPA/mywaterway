@@ -27,6 +27,7 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
 import Map from 'components/shared/Map';
@@ -1207,9 +1208,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useMonitoringLocations();
 
   const fetchUsgsStreamgageIds = useCallback(
-    (extentMercator) => {
-      if (!extentMercator) return [];
+    async (mapView) => {
+      if (!mapView) return null;
 
+      await reactiveUtils.whenOnce(() => mapView.stationary);
+      if (mapView.zoom <= 8) return null;
+
+      const extentMercator = mapView.extent;
       const extent = webMercatorUtils.webMercatorToGeographic(extentMercator);
 
       const url =
@@ -1224,27 +1229,29 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       return fetch(url)
         .then((res) => res.text())
-        .then((text) => {
-          const sitesNode = window
-            .DOMParser()
-            .parseFromString(text, 'text/xml')
-            .querySelector('sites');
+        .then((text) =>
+          new window.DOMParser().parseFromString(text, 'text/xml'),
+        )
+        .then((data) => {
+          const sitesNode = data.querySelector('sites');
           if (sitesNode) {
             return [...sitesNode.children].map((site) => {
               return `${site.getAttribute('agc')}-${site.getAttribute('sno')}`;
             });
           }
-          return [];
+          return null;
         })
-        .catch(() => []);
+        .catch(() => null);
     },
     [services],
   );
 
   const fetchUsgsStreamgages = useCallback(
-    async (extentMercator) => {
-      const sites = await fetchUsgsStreamgageIds(extentMercator);
-      const filter = sites.map((site) => `name eq '${site}'`).join(' or ');
+    async (huc12, mapView) => {
+      const sites = await fetchUsgsStreamgageIds(mapView);
+      const filter = sites
+        ? sites.map((site) => `name eq '${site}'`).join(' or ')
+        : `properties/hydrologicUnit eq '${huc12}'`;
 
       const url =
         `${services.data.usgsSensorThingsAPI}?` +
@@ -1272,7 +1279,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         /*        */ `$orderBy=phenomenonTime desc` +
         /*      */ `)` +
         /*  */ `)&` +
-        // /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
         /**/ `$filter=${filter}`;
 
       fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
@@ -1289,7 +1295,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_FAILURE' });
         });
     },
-    [fetchUsgsStreamgageIds, services, fetchedDataDispatch],
+    [services, fetchedDataDispatch],
   );
 
   const fetchUsgsPrecipitation = useCallback(
@@ -1862,7 +1868,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setHuc12(huc12);
           processBoundariesData(response);
           queryMonitoringStationService(huc12);
-          fetchUsgsStreamgages(mapView?.extent);
+          fetchUsgsStreamgages(huc12, mapView);
           fetchUsgsPrecipitation(huc12);
           fetchUsgsDailyAverages(huc12);
           queryPermittedDischargersService(huc12);
@@ -1884,8 +1890,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setHuc12,
       processBoundariesData,
       queryMonitoringStationService,
-      fetchUsgsStreamgages,
+      fetchUsgsStreamgageIds,
       mapView,
+      fetchUsgsStreamgages,
       fetchUsgsPrecipitation,
       fetchUsgsDailyAverages,
       queryPermittedDischargersService,
