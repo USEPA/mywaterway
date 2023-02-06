@@ -27,8 +27,8 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
-import AllFeaturesLayer from 'classes/AllFeaturesLayer';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import mapPin from 'images/pin.png';
@@ -45,7 +45,6 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { useLayersActions, useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -68,7 +67,6 @@ import {
   useDynamicPopup,
   useGeometryUtils,
   useMonitoringLocations,
-  useReset,
   useSharedLayers,
   useStreamgageData,
   useWaterbodyHighlight,
@@ -86,6 +84,7 @@ import {
   resetCanonicalLink,
   removeJsonLD,
   parseAttributes,
+  toFixedFloat,
 } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -238,12 +237,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
+    usgsStreamgagesLayer,
+    setUsgsStreamgagesLayer,
+    resetData,
+    setNoDataAvailable,
   } = useContext(LocationSearchContext);
-
-  const { usgsStreamgagesLayer } = useLayersState();
-  const { setUsgsStreamgagesLayer } = useLayersActions();
-
-  const { resetData, setNoDataAvailable } = useReset();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -730,7 +728,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringLocationsLayer(monitoringLocationsLayer);
 
-    const usgsStreamgagesLayer = new AllFeaturesLayer({
+    const usgsStreamgagesLayer = new FeatureLayer({
       id: 'usgsStreamgagesLayer',
       title: 'USGS Sensors',
       listMode: 'hide',
@@ -753,7 +751,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
-          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
+          geometry: {
+            type: 'point',
+            longitude: -98.5795,
+            latitude: 39.8283,
+          },
           attributes: { OBJECTID: 1 },
         }),
       ],
@@ -775,7 +777,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           getPopupContent({ feature: feature.graphic, navigate, services }),
       },
     });
-    console.log(usgsStreamgagesLayer);
 
     setUsgsStreamgagesLayer(usgsStreamgagesLayer);
 
@@ -1205,8 +1206,46 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // and the monitoring groups
   useMonitoringLocations();
 
+  const fetchUsgsStreamgageIds = useCallback(
+    (extentMercator) => {
+      if (!extentMercator) return [];
+
+      const extent = webMercatorUtils.webMercatorToGeographic(extentMercator);
+
+      const url =
+        `${services.data.usgsSites}?` +
+        `format=mapper` +
+        `&siteStatus=active` +
+        `&hasDataTypeCd=dv` +
+        `&bBox=${toFixedFloat(extent.xmin, 7)},${toFixedFloat(
+          extent.ymin,
+          7,
+        )},${toFixedFloat(extent.xmax, 7)},${toFixedFloat(extent.ymax, 7)}`;
+
+      return fetch(url)
+        .then((res) => res.text())
+        .then((text) => {
+          const sitesNode = window
+            .DOMParser()
+            .parseFromString(text, 'text/xml')
+            .querySelector('sites');
+          if (sitesNode) {
+            return [...sitesNode.children].map((site) => {
+              return `${site.getAttribute('agc')}-${site.getAttribute('sno')}`;
+            });
+          }
+          return [];
+        })
+        .catch(() => []);
+    },
+    [services],
+  );
+
   const fetchUsgsStreamgages = useCallback(
-    (huc12) => {
+    async (extentMercator) => {
+      const sites = await fetchUsgsStreamgageIds(extentMercator);
+      const filter = sites.map((site) => `name eq '${site}'`).join(' or ');
+
       const url =
         `${services.data.usgsSensorThingsAPI}?` +
         /**/ `$select=name,` +
@@ -1233,7 +1272,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         /*        */ `$orderBy=phenomenonTime desc` +
         /*      */ `)` +
         /*  */ `)&` +
-        /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
+        // /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
+        /**/ `$filter=${filter}`;
 
       fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
 
@@ -1249,7 +1289,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_FAILURE' });
         });
     },
-    [services, fetchedDataDispatch],
+    [fetchUsgsStreamgageIds, services, fetchedDataDispatch],
   );
 
   const fetchUsgsPrecipitation = useCallback(
@@ -1658,24 +1698,25 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .then((res) => {
           // duplicate the objectid to a
           // different field for later reference
-          const features = res.features?.map((item) => {
-            return new Graphic({
-              attributes: {
-                ...item.attributes,
-                locationName: item.attributes.GNIS_NAME,
-                monitoringType: 'CyAN',
-                oid: item.attributes.OBJECTID,
-                orgName: 'Cyanobacteria Assessment Network (CyAN)',
-              },
-              geometry: new Polygon({
-                rings: item.geometry.rings,
-                spatialReference: {
-                  wkid: 102100,
+          const features =
+            res.features?.map((item) => {
+              return new Graphic({
+                attributes: {
+                  ...item.attributes,
+                  locationName: item.attributes.GNIS_NAME,
+                  monitoringType: 'CyAN',
+                  oid: item.attributes.OBJECTID,
+                  orgName: 'Cyanobacteria Assessment Network (CyAN)',
                 },
-              }),
-              layer: cyanWaterbodiesLayer,
-            });
-          });
+                geometry: new Polygon({
+                  rings: item.geometry.rings,
+                  spatialReference: {
+                    wkid: 102100,
+                  },
+                }),
+                layer: cyanWaterbodiesLayer,
+              });
+            }) ?? [];
 
           setCyanWaterbodies({ status: 'success', data: features });
 
@@ -1821,7 +1862,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setHuc12(huc12);
           processBoundariesData(response);
           queryMonitoringStationService(huc12);
-          fetchUsgsStreamgages(huc12);
+          fetchUsgsStreamgages(mapView?.extent);
           fetchUsgsPrecipitation(huc12);
           fetchUsgsDailyAverages(huc12);
           queryPermittedDischargersService(huc12);
@@ -1840,15 +1881,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
     },
     [
+      setHuc12,
       processBoundariesData,
-      queryAttainsPlans,
-      queryGrtsHuc12,
       queryMonitoringStationService,
       fetchUsgsStreamgages,
+      mapView,
       fetchUsgsPrecipitation,
       fetchUsgsDailyAverages,
       queryPermittedDischargersService,
-      setHuc12,
+      queryGrtsHuc12,
+      queryAttainsPlans,
       handleNoDataAvailable,
     ],
   );

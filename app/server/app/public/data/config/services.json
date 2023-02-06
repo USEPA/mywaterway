@@ -25,6 +25,7 @@
     "monitoringLocationDetails": "https://www.waterqualitydata.us/provider/"
   },
   "usgsSensorThingsAPI": "https://labs.waterdata.usgs.gov/sta/v1.1/Things",
+  "usgsSites": "https://waterservices.usgs.gov/nwis/site/",
   "usgsDailyValues": "https://waterservices.usgs.gov/nwis/dv/",
   "usgsWaterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions",
   "echoNPDES": {
@@ -197,6 +198,11 @@
       "urlLookup": "usgsSensorThingsAPI",
       "wildcardUrl": "{urlLookup}*",
       "name": "usgs – SensorThings API"
+    },
+    {
+      "urlLookup": "usgsSites",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – sites"
     },
     {
       "urlLookup": "usgsDailyValues",

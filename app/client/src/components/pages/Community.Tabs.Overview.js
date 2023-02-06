@@ -32,7 +32,6 @@ import { tabsStyles } from 'components/shared/ContentTabs';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
-import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -122,9 +121,8 @@ function Overview() {
     watershed,
     visibleLayers,
     setVisibleLayers,
+    usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
-
-  const { usgsStreamgagesLayer } = useLayersState();
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
@@ -520,9 +518,8 @@ function MonitoringAndSensorsTab({
     monitoringLocations,
     monitoringLocationsLayer,
     watershed,
+    usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
-
-  const { usgsStreamgagesLayer } = useLayersState();
 
   const services = useServicesContext();
 

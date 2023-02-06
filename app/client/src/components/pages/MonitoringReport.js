@@ -48,7 +48,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
-import { useReset, useSharedLayers } from 'utils/hooks';
+import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 import { parseAttributes } from 'utils/utils';
 // styles
@@ -2186,9 +2186,8 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
     setLayers,
     setMonitoringLocationsLayer,
     setVisibleLayers,
+    resetData,
   } = useContext(LocationSearchContext);
-
-  const { resetData } = useReset();
 
   useEffect(() => {
     if (!mapView) return;

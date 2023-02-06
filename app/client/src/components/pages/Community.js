@@ -21,8 +21,6 @@ import {
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-// utils
-import { useReset } from 'utils/hooks';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -124,11 +122,8 @@ function Community() {
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const { setSearchText, setLastSearchText, errorMessage } = useContext(
-    LocationSearchContext,
-  );
-
-  const { resetData } = useReset();
+  const { setSearchText, setLastSearchText, errorMessage, resetData } =
+    useContext(LocationSearchContext);
 
   useEffect(() => {
     return function cleanup() {

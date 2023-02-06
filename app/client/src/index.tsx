@@ -10,7 +10,6 @@ import AppRoutes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
 import { AddDataWidgetProvider } from 'contexts/AddDataWidget';
-import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
 import { LookupFilesProvider } from 'contexts/LookupFiles';
@@ -40,18 +39,16 @@ function Root() {
     <BrowserRouter>
       <LookupFilesProvider>
         <FetchedDataProvider>
-          <LayersProvider>
-            <LocationSearchProvider>
-              <GlossaryProvider>
-                <AddDataWidgetProvider>
-                  <GlobalStyle />
-                  <ErrorBoundary message={defaultErrorBoundaryMessage}>
-                    <AppRoutes />
-                  </ErrorBoundary>
-                </AddDataWidgetProvider>
-              </GlossaryProvider>
-            </LocationSearchProvider>
-          </LayersProvider>
+          <LocationSearchProvider>
+            <GlossaryProvider>
+              <AddDataWidgetProvider>
+                <GlobalStyle />
+                <ErrorBoundary message={defaultErrorBoundaryMessage}>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </AddDataWidgetProvider>
+            </GlossaryProvider>
+          </LocationSearchProvider>
         </FetchedDataProvider>
       </LookupFilesProvider>
     </BrowserRouter>

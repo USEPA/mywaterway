@@ -630,19 +630,19 @@ function MapWidgets({
   }, [view, esriLegend, esriLegendNode, observers]);
 
   // Create the surrounding locations widget
-  const surroundingWidget = useSurroundingWidget();
-  useEffect(() => {
-    if (!view?.ui) return;
+  // const surroundingWidget = useSurroundingWidget();
+  // useEffect(() => {
+  //   if (!view?.ui) return;
 
-    view.ui.add({
-      component: surroundingWidget,
-      position: 'top-right',
-    });
+  //   view.ui.add({
+  //     component: surroundingWidget,
+  //     position: 'top-right',
+  //   });
 
-    return function cleanup() {
-      view?.ui.remove(surroundingWidget);
-    };
-  }, [surroundingWidget, view]);
+  //   return function cleanup() {
+  //     view?.ui.remove(surroundingWidget);
+  //   };
+  // }, [surroundingWidget, view]);
 
   // Creates and adds the legend widget to the map
   const rnd = useRef<Rnd | null>(null);

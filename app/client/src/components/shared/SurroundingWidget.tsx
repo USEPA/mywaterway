@@ -33,9 +33,8 @@ import type {
 */
 
 export function useSurroundingWidget() {
-  const { getHucBoundaries, getLayers, setLayers } = useContext(
-    LocationSearchContext,
-  );
+  const { getHucBoundaries, getLayers, setLayers, usgsStreamgagesLayer } =
+    useContext(LocationSearchContext);
 
   const [testLayer] = useState<__esri.FeatureLayer>(
     new FeatureLayer({
@@ -50,16 +49,17 @@ export function useSurroundingWidget() {
 
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
+    if (!usgsStreamgagesLayer) return;
     render(
       <SurroundingWidget
         getHucBoundaries={getHucBoundaries}
         getMapLayers={getLayers}
-        testLayer={testLayer}
+        testLayer={usgsStreamgagesLayer}
         setLayers={setLayers}
       />,
       container,
     );
-  }, [container, getHucBoundaries, getLayers, setLayers, testLayer]);
+  }, [container, getHucBoundaries, getLayers, setLayers, usgsStreamgagesLayer]);
 
   return container;
 }

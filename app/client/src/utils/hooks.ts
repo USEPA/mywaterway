@@ -27,7 +27,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // contexts
-import { useLayersActions, useLayersState } from 'contexts/Layers';
+import { useLayersActions } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -491,8 +491,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     pointsData,
     linesData,
     areasData,
+    usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
-  const { usgsStreamgagesLayer } = useLayersState();
   const services = useServicesContext();
   const navigate = useNavigate();
 
@@ -881,8 +881,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 function useDynamicPopup() {
   const navigate = useNavigate();
   const services = useServicesContext();
-  const { getHucBoundaries, getMapView } = useContext(LocationSearchContext);
-  const { resetData } = useReset();
+  const { getHucBoundaries, getMapView, resetData } = useContext(
+    LocationSearchContext,
+  );
 
   const setDynamicPopupFields = (fields: __esri.Field[]) => {
     dynamicPopupFields = fields;
