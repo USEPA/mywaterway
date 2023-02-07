@@ -5,7 +5,7 @@ import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
@@ -13,10 +13,16 @@ import {
   useFetchedDataState,
 } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useLayersState, useLayersActions } from 'contexts/Layers';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
-import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
+import { useAllFeaturesLayer } from 'utils/hooks';
+import {
+  getPopupContent,
+  getPopupTitle,
+  isFeatureLayer,
+} from 'utils/mapFunctions';
 import { toFixedFloat } from 'utils/utils';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
@@ -34,59 +40,163 @@ import type {
   UsgsStreamgagesData,
 } from 'types';
 
+/*
+## Hooks
+*/
+
 export function useStreamgages() {
   const fetchedDataDispatch = useFetchedDataDispatch();
+
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
-  const { huc12, mapView, setUsgsStreamgagesLayer, usgsStreamgagesLayer } =
-    useContext(LocationSearchContext);
+
+  const { huc12, mapView } = useContext(LocationSearchContext);
+
+  const { usgsStreamgagesLayer } = useLayersState();
+  const { setUsgsStreamgagesLayer } = useLayersActions();
+
   const { services } = useServicesContext();
+
   const navigate = useNavigate();
+
+  // Build the group layer
+  const buildBaseLayer = useCallback(() => {
+    return buildUsgsStreamgagesLayer(navigate, services);
+  }, [navigate, services]);
+
+  const [featureLayer, setFeatureLayer] = useState<__esri.FeatureLayer | null>(
+    null,
+  );
+
+  const { layer, toggleSurroundings } = useAllFeaturesLayer(
+    layerId,
+    buildBaseLayer,
+  );
+
+  useEffect(() => {
+    if (!layer) return;
+
+    const newFeatureLayer = layer.findLayerById(`${layer.id}-features`);
+    isFeatureLayer(newFeatureLayer) && setFeatureLayer(newFeatureLayer);
+  }, [layer]);
+
+  const resetFeatures = useCallback(async () => {
+    if (!featureLayer) return;
+
+    updateLayer(featureLayer);
+  }, [featureLayer]);
 
   useEffect(() => {
     if (usgsStreamgagesLayer) return;
-    setUsgsStreamgagesLayer(buildUsgsStreamgagesLayer(navigate, services));
-  }, [navigate, services, setUsgsStreamgagesLayer, usgsStreamgagesLayer]);
+    setUsgsStreamgagesLayer({
+      layer,
+      reset: resetFeatures,
+      toggleSurroundings,
+    });
+  }, [
+    layer,
+    resetFeatures,
+    setUsgsStreamgagesLayer,
+    toggleSurroundings,
+    usgsStreamgagesLayer,
+  ]);
 
-  const streamgageData = useStreamgageData(
+  // Fetch new data when the extent changes
+  const getDvFilter = useCallback(
+    async (type: 'huc' | 'bBox' = 'bBox') => {
+      if (type === 'bBox') {
+        const extent = await getGeographicExtent(mapView);
+        const bBox = getExtentBoundingBox(extent);
+        if (bBox) return `bBox=${bBox}`;
+      }
+      return `huc=${huc12.substring(0, 8)}`;
+    },
+    [huc12, mapView],
+  );
+
+  const getThingsFilter = useCallback(
+    async (type: 'huc' | 'bBox' = 'bBox') => {
+      if (type === 'bBox') {
+        const extent = await getGeographicExtent(mapView);
+        const wkt = getExtentWkt(extent);
+        if (wkt)
+          return `$filter=st_within(Location/location,geography'POLYGON(${wkt})')`;
+      }
+      return `$filter=properties/hydrologicUnit eq '${huc12}'`;
+    },
+    [huc12, mapView],
+  );
+
+  useEffect(() => {
+    if (!layer) return;
+    if (layer.hasHandles(handleGroupKey)) return;
+
+    const handle = reactiveUtils.when(
+      () => mapView?.stationary,
+      async () => {
+        const dvFilter = await getDvFilter();
+        const thingsFilter = await getThingsFilter();
+        fetchUsgsStreamgages(thingsFilter, services, fetchedDataDispatch);
+        fetchUsgsPrecipitation(dvFilter, services, fetchedDataDispatch);
+        fetchUsgsDailyAverages(dvFilter, services, fetchedDataDispatch);
+      },
+    );
+
+    layer.addHandles(handle, handleGroupKey);
+
+    return function cleanup() {
+      layer.removeHandles(handleGroupKey);
+    };
+  }, [
+    fetchedDataDispatch,
+    getDvFilter,
+    getThingsFilter,
+    layer,
+    mapView,
+    services,
+  ]);
+
+  // Get the streamgage data and add features
+  const [streamgageData, localStreamgageData] = useStreamgageData(
     usgsStreamgages,
     usgsPrecipitation,
     usgsDailyAverages,
   );
 
-  const normalizedUsgsStreamgages = useStreamgageFeatures(streamgageData);
+  const streamgageFeatures = useMemo(() => {
+    return buildStreamgageFeatures(streamgageData);
+  }, [streamgageData]);
+
+  const localStreamgageFeatures = useMemo(() => {
+    return buildStreamgageFeatures(localStreamgageData);
+  }, [localStreamgageData]);
 
   useEffect(() => {
-    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
+    if (!featureLayer) return;
 
-    const graphics = normalizedUsgsStreamgages.map((gage) => {
-      return new Graphic({
-        geometry: new Point({
-          longitude: gage.attributes.locationLongitude,
-          latitude: gage.attributes.locationLatitude,
-        }),
-        attributes: gage,
-      });
-    });
+    updateLayer(featureLayer, streamgageFeatures);
+  }, [featureLayer, streamgageFeatures]);
 
-    return usgsStreamgagesLayer
-      .queryFeatures()
-      .then((featureSet: __esri.FeatureSet) => {
-        return usgsStreamgagesLayer.applyEdits({
-          deleteFeatures: featureSet.features,
-          addFeatures: graphics,
-        });
-      });
-  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
+  return {
+    streamgageData,
+    streamgageFeatures,
+    localStreamgageData,
+    localStreamgageFeatures,
+  };
 }
 
-/** Normalizes USGS streamgage data with monitoring stations data. */
-export function useStreamgageData(
+// Normalizes USGS streamgage data with monitoring stations data.
+function useStreamgageData(
   usgsStreamgages: FetchState<UsgsStreamgagesData>,
   usgsPrecipitation: FetchState<UsgsPrecipitationData>,
   usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
 ) {
-  const [normalizedStreamgages, setNormalizedStreamgages] = useState<
+  const { hucBoundaries } = useContext(LocationSearchContext);
+
+  const [normalizedData, setNormalizedData] = useState<
+    UsgsStreamgageAttributes[]
+  >([]);
+  const [localNormalizedData, setLocalNormalizedData] = useState<
     UsgsStreamgageAttributes[]
   >([]);
 
@@ -240,34 +350,46 @@ export function useStreamgageData(
       });
     }
 
-    setNormalizedStreamgages(gages);
-  }, [usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
+    setLocalNormalizedData(
+      gages.filter((gage) => {
+        return hucBoundaries?.features[0]?.geometry.contains(
+          new Point({
+            latitude: gage.locationLatitude,
+            longitude: gage.locationLongitude,
+          }),
+        );
+      }),
+    );
+    setNormalizedData(gages);
+  }, [hucBoundaries, usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
 
-  return normalizedStreamgages;
-}
-
-function useStreamgageFeatures(streamgageData: UsgsStreamgageAttributes[]) {
-  return streamgageData.map((streamgage) => {
-    return {
-      geometry: {
-        type: 'point',
-        longitude: streamgage.locationLongitude,
-        latitude: streamgage.locationLatitude,
-      },
-      attributes: streamgage,
-    };
-  });
+  return [normalizedData, localNormalizedData];
 }
 
 /*
 ## Utils
 */
+
+// Builds features from streamgage data
+function buildStreamgageFeatures(streamgageData: UsgsStreamgageAttributes[]) {
+  return streamgageData.map((gage) => {
+    return new Graphic({
+      geometry: new Point({
+        longitude: gage.locationLongitude,
+        latitude: gage.locationLatitude,
+      }),
+      attributes: gage,
+    });
+  });
+}
+
+// Builds the base feature layer
 function buildUsgsStreamgagesLayer(
   navigate: NavigateFunction,
   services: ServicesState,
 ) {
   return new FeatureLayer({
-    id: 'usgsStreamgagesLayer',
+    id: `${layerId}-features`,
     title: 'USGS Sensors',
     listMode: 'hide',
     legendEnabled: false,
@@ -316,7 +438,7 @@ function buildUsgsStreamgagesLayer(
 }
 
 function fetchUsgsDailyAverages(
-  huc12: string,
+  locationFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
 ) {
@@ -335,7 +457,7 @@ function fetchUsgsDailyAverages(
     `?format=json` +
     `&siteStatus=active` +
     `&period=P7D` +
-    `&huc=${huc12.substring(0, 8)}`;
+    `&${locationFilter}`;
 
   dispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
 
@@ -359,7 +481,7 @@ function fetchUsgsDailyAverages(
 }
 
 function fetchUsgsPrecipitation(
-  huc12: string,
+  locationFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
 ) {
@@ -377,7 +499,7 @@ function fetchUsgsPrecipitation(
     `&siteStatus=active` +
     `&statCd=${sumValues}` +
     `&parameterCd=${precipitation}` +
-    `&huc=${huc12.substring(0, 8)}`;
+    `&${locationFilter}`;
 
   dispatch({ type: 'USGS_PRECIPITATION/FETCH_REQUEST' });
 
@@ -394,57 +516,12 @@ function fetchUsgsPrecipitation(
     });
 }
 
-async function fetchUsgsStreamgageIds(
-  mapView: __esri.MapView | '',
-  services: ServicesState,
-) {
-  if (services.status !== 'success') return null;
-  if (!mapView) return null;
-
-  await reactiveUtils.whenOnce(() => mapView.stationary);
-  if (mapView.zoom <= 8) return null;
-
-  const extentMercator = mapView.extent;
-  const extent = webMercatorUtils.webMercatorToGeographic(
-    extentMercator,
-  ) as __esri.Extent;
-
-  const url =
-    `${services.data.usgsSites}?` +
-    `format=mapper` +
-    `&siteStatus=active` +
-    `&hasDataTypeCd=dv` +
-    `&bBox=${toFixedFloat(extent.xmin, 7)},${toFixedFloat(
-      extent.ymin,
-      7,
-    )},${toFixedFloat(extent.xmax, 7)},${toFixedFloat(extent.ymax, 7)}`;
-
-  return fetch(url)
-    .then((res) => res.text())
-    .then((text) => new window.DOMParser().parseFromString(text, 'text/xml'))
-    .then((data) => {
-      const sitesNode = data.querySelector('sites');
-      if (sitesNode) {
-        return [...sitesNode.children].map((site) => {
-          return `${site.getAttribute('agc')}-${site.getAttribute('sno')}`;
-        });
-      }
-      return null;
-    })
-    .catch(() => null);
-}
-
-async function fetchUsgsStreamgages(
-  huc12: string,
+function fetchUsgsStreamgages(
+  locationFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
-  sites: string[] | null,
 ) {
   if (services.status !== 'success') return;
-
-  const filter = sites
-    ? sites.map((site) => `name eq '${site}'`).join(' or ')
-    : `properties/hydrologicUnit eq '${huc12}'`;
 
   const url =
     `${services.data.usgsSensorThingsAPI}?` +
@@ -452,8 +529,8 @@ async function fetchUsgsStreamgages(
     `$expand=Locations($select=location),Datastreams($select=description,properties/ParameterCode,properties/WebDescription,unitOfMeasurement/name,unitOfMeasurement/symbol;` +
     `$expand=Observations($select=phenomenonTime,result;` +
     `$top=1;` +
-    `$orderBy=phenomenonTime desc))&` +
-    `$filter=${filter}`;
+    `$orderBy=phenomenonTime desc))` +
+    `&${locationFilter}`;
 
   dispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
 
@@ -469,3 +546,57 @@ async function fetchUsgsStreamgages(
       dispatch({ type: 'USGS_STREAMGAGES/FETCH_FAILURE' });
     });
 }
+
+// Gets a string representation of the view's extent as a bounding box
+function getExtentBoundingBox(extent: __esri.Extent | null) {
+  if (!extent) return null;
+
+  return `${toFixedFloat(extent.xmin, 7)},${toFixedFloat(
+    extent.ymin,
+    7,
+  )},${toFixedFloat(extent.xmax, 7)},${toFixedFloat(extent.ymax, 7)}`;
+}
+
+// Gets a string representation of the view's extent as Well-Known Text
+function getExtentWkt(extent: __esri.Extent | null) {
+  if (!extent) return null;
+
+  return `(${extent.xmax} ${extent.ymin}, ${extent.xmax} ${extent.ymax}, ${extent.xmin} ${extent.ymax}, ${extent.xmin} ${extent.ymin}, ${extent.xmax} ${extent.ymin})`;
+}
+
+// Converts the view's extent from a Web Mercator
+// projection to geographic coordinates
+async function getGeographicExtent(mapView: __esri.MapView | '') {
+  if (!mapView) return null;
+
+  await reactiveUtils.whenOnce(() => mapView.stationary);
+  if (mapView.zoom <= 8) return null;
+
+  const extentMercator = mapView.extent;
+  return webMercatorUtils.webMercatorToGeographic(
+    extentMercator,
+  ) as __esri.Extent;
+}
+
+async function updateLayer(
+  layer: __esri.FeatureLayer | null,
+  features?: __esri.Graphic[],
+) {
+  if (!layer) return;
+
+  const featureSet = await layer?.queryFeatures();
+  const edits: {
+    addFeatures?: __esri.Graphic[];
+    deleteFeatures: __esri.Graphic[];
+  } = {
+    deleteFeatures: featureSet.features,
+  };
+  if (features) edits.addFeatures = features;
+  layer.applyEdits(edits);
+}
+/*
+## Constants
+*/
+
+const layerId = 'usgsStreamgagesLayer';
+const handleGroupKey = 'view-stationary-updates';

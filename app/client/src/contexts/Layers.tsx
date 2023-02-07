@@ -5,10 +5,8 @@ import {
   useMemo,
   useReducer,
 } from 'react';
-// utils
-import { isFeatureLayer } from 'utils/mapFunctions';
 // types
-import type { Dispatch, ReactNode } from 'react';
+import type { ChangeEvent, Dispatch, ReactNode } from 'react';
 
 const StateContext = createContext<LayersState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<LayersAction> | undefined>(
@@ -66,7 +64,7 @@ export function useLayersDispatch() {
   return dispatch;
 }
 
-export function useLayersActions() {
+export function useLayersReset() {
   const state = useLayersState();
   const dispatch = useLayersDispatch();
 
@@ -74,34 +72,60 @@ export function useLayersActions() {
     await Promise.all([
       ...Object.values(state).map(async (layer) => {
         if (layer === null) return;
-        if (isFeatureLayer(layer)) {
-          const featureSet = await layer.queryFeatures();
-          layer.applyEdits({
-            deleteFeatures: featureSet.features,
-          });
+        if (isAllFeaturesLayer(layer)) {
+          await layer.reset();
         }
       }),
     ]);
     dispatch({ type: 'resetLayers', payload: state });
   }, [dispatch, state]);
 
+  return resetLayers;
+}
+
+export function useLayersActions() {
+  const dispatch = useLayersDispatch();
+
   const dispatchers = useMemo(() => {
     return {
-      setUsgsStreamgagesLayer: (layer: __esri.FeatureLayer) =>
+      setUsgsStreamgagesLayer: (layer: AllFeaturesLayer) =>
         dispatch({ type: 'usgsStreamgagesLayer', payload: layer }),
     };
   }, [dispatch]);
 
-  return { resetLayers, ...dispatchers };
+  return { ...dispatchers };
 }
 
-export type LayersState = {
-  usgsStreamgagesLayer: __esri.FeatureLayer | null;
+/*
+## Utils
+*/
+function isAllFeaturesLayer(
+  layer: __esri.Layer | AllFeaturesLayer,
+): layer is AllFeaturesLayer {
+  return (
+    layer.hasOwnProperty('layer') &&
+    layer.hasOwnProperty('toggleSurroundings') &&
+    layer.hasOwnProperty('reset')
+  );
+}
+
+/*
+## Types
+*/
+
+type AllFeaturesLayer = {
+  layer: __esri.GroupLayer;
+  toggleSurroundings: (ev: ChangeEvent<HTMLInputElement>) => void;
+  reset: () => Promise<void>;
+};
+
+type LayersState = {
+  usgsStreamgagesLayer: AllFeaturesLayer | null;
 };
 
 type LayersAction =
   | { type: 'resetLayers'; payload: LayersState }
-  | { type: 'usgsStreamgagesLayer'; payload: __esri.FeatureLayer };
+  | { type: 'usgsStreamgagesLayer'; payload: AllFeaturesLayer };
 
 type LayersProviderProps = {
   children: ReactNode;

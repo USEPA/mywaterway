@@ -1,12 +1,5 @@
-import Color from '@arcgis/core/Color';
-import Extent from '@arcgis/core/geometry/Extent';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import FeatureSet from '@arcgis/core/rest/support/FeatureSet';
-import Graphic from '@arcgis/core/Graphic';
-import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
-import GroupLayer from '@arcgis/core/layers/GroupLayer';
-import Polygon from '@arcgis/core/geometry/Polygon';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import {
   useCallback,
   useContext,
@@ -17,16 +10,10 @@ import {
 } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
-import { v4 as uuid } from 'uuid';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // types
-import type {
-  ChangeEvent,
-  CSSProperties,
-  MutableRefObject,
-  ReactNode,
-} from 'react';
+import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
 
 /*
 ## Components
@@ -95,10 +82,9 @@ function SurroundingWidgetContent({
   visible,
 }: SurroundingWidgetContentProps) {
   const hucBoundaries = getHucBoundaries() ?? new FeatureSet();
-  const hucGraphic = useHucGraphic(hucBoundaries);
 
   const { layer: allTestLayer, toggleSurroundings: toggleTestLayer } =
-    useAllFeaturesLayer(testLayer, hucGraphic);
+    useAllFeaturesLayer(testLayer, hucBoundaries);
 
   const surroundingLayers = useMemo(() => {
     return [allTestLayer];
@@ -163,123 +149,6 @@ function SurroundingWidgetTrigger({
     </div>
   );
 }
-
-/*
-## Hooks
-*/
-
-function useHucGraphic(hucBoundaries: __esri.FeatureSet) {
-  const [hucGraphic, setHucGraphic] = useState(new Graphic());
-
-  useEffect(() => {
-    if (!hucBoundaries.features.length) return;
-    const geometry = hucBoundaries.features[0].geometry;
-    if (!isPolygon(geometry)) return;
-
-    setHucGraphic(
-      new Graphic({
-        geometry: new Polygon({
-          spatialReference: hucBoundaries.spatialReference,
-          rings: geometry.rings,
-        }),
-        symbol: new SimpleFillSymbol({
-          color: new Color({ r: 255, g: 255, b: 255, a: 1 }),
-        }),
-      }),
-    );
-  }, [hucBoundaries]);
-
-  return hucGraphic;
-}
-
-function useAllFeaturesLayer(layer: __esri.Layer, hucGraphic: __esri.Graphic) {
-  const [surroundingMask] = useState(getSurroundingMask());
-
-  const surroundingLayer = useMemo(() => {
-    return new GraphicsLayer({
-      graphics: [surroundingMask],
-      id: `surrounding-${layer.id}`,
-      opacity: 0,
-    });
-  }, [layer, surroundingMask]);
-
-  const enclosedLayer = useMemo(() => {
-    return new GraphicsLayer({
-      id: `enclosed-${layer.id}`,
-      opacity: 1,
-    });
-  }, [layer]);
-
-  useEffect(() => {
-    enclosedLayer.graphics.removeAll();
-    if (hucGraphic) enclosedLayer.graphics.add(hucGraphic);
-  }, [enclosedLayer, hucGraphic]);
-
-  const maskLayer = useMemo(() => {
-    return new GroupLayer({
-      blendMode: 'destination-in',
-      id: `mask-${layer.id}`,
-      layers: [surroundingLayer, enclosedLayer],
-      opacity: 1,
-    });
-  }, [enclosedLayer, layer, surroundingLayer]);
-
-  const allFeaturesLayer = useMemo(() => {
-    const layers = layer ? [layer, maskLayer] : [maskLayer];
-    return new GroupLayer({
-      id: `all-${layer.id}`,
-      layers,
-      listMode: 'hide-children',
-      title: layer.title,
-    });
-  }, [layer, maskLayer]);
-
-  const toggleSurroundings = useCallback(
-    (ev: ChangeEvent<HTMLInputElement>) => {
-      surroundingLayer.opacity = ev.target.checked
-        ? surroundingLayerVisibleOpacity
-        : 0;
-    },
-    [surroundingLayer],
-  );
-
-  return { layer: allFeaturesLayer, toggleSurroundings };
-}
-
-/*
-## Utils
-*/
-
-function createNullGroupLayer() {
-  return new GroupLayer({
-    id: uuid(),
-    title: 'Layer',
-  });
-}
-
-function getSurroundingMask() {
-  return new Graphic({
-    geometry: new Extent({
-      xmin: -180,
-      xmax: 180,
-      ymin: -90,
-      ymax: 90,
-    }),
-    symbol: new SimpleFillSymbol({
-      color: new Color('rgba(0, 0, 0, 1)'),
-    }),
-  });
-}
-
-function isPolygon(geometry: __esri.Geometry): geometry is __esri.Polygon {
-  return geometry.type === 'polygon';
-}
-
-/*
-## Constants
-*/
-
-const surroundingLayerVisibleOpacity = 0.8;
 
 /*
 ## Styles

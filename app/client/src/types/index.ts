@@ -208,7 +208,6 @@ interface ServicesData {
   upstreamWatershed: string;
   usgsDailyValues: string;
   usgsSensorThingsAPI: string;
-  usgsSites: string;
   usgsWaterAlert: string;
   waterQualityPortal: {
     resultSearch: string;

@@ -393,9 +393,9 @@ export function isClassBreaksRenderer(
 }
 
 export function isFeatureLayer(
-  layer: __esri.Layer,
+  layer: __esri.Layer | null,
 ): layer is __esri.FeatureLayer {
-  return (layer as __esri.FeatureLayer).type === 'feature';
+  return layer !== null && (layer as __esri.FeatureLayer).type === 'feature';
 }
 
 export function isGraphicsLayer(
@@ -442,7 +442,7 @@ export function isPoint(geometry: __esri.Geometry): geometry is __esri.Point {
 export function isPolygon(
   geometry: __esri.Geometry,
 ): geometry is __esri.Polygon {
-  return (geometry as __esri.Polygon).type === 'polygon';
+  return geometry.type === 'polygon';
 }
 
 export function isPolyline(

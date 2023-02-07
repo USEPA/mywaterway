@@ -26,7 +26,7 @@ import WMSLayer from '@arcgis/core/layers/WMSLayer';
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
 // contexts
-import { useLayersActions } from 'contexts/Layers';
+import { useLayersReset } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -1961,7 +1961,7 @@ function useMonitoringLocations() {
 }
 
 function useReset() {
-  const { resetLayers } = useLayersActions();
+  const resetLayers = useLayersReset();
   const { resetData, setNoDataAvailable } = useContext(LocationSearchContext);
 
   const wrappedResetData = useCallback(() => {
