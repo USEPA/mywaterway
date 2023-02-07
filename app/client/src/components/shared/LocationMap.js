@@ -1890,7 +1890,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setHuc12,
       processBoundariesData,
       queryMonitoringStationService,
-      fetchUsgsStreamgageIds,
       mapView,
       fetchUsgsStreamgages,
       fetchUsgsPrecipitation,

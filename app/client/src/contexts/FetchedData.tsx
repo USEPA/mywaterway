@@ -15,7 +15,7 @@ type Props = {
   children: ReactNode;
 };
 
-type State = {
+type FetchedDataState = {
   usgsStreamgages:
     | { status: 'idle'; data: {} }
     | { status: 'pending'; data: {} }
@@ -33,7 +33,7 @@ type State = {
     | { status: 'failure'; data: {} };
 };
 
-export type Action =
+export type FetchedDataAction =
   | { type: 'RESET_FETCHED_DATA' }
   | { type: 'USGS_STREAMGAGES/FETCH_REQUEST' }
   | {
@@ -54,16 +54,21 @@ export type Action =
     }
   | { type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' };
 
-const StateContext = createContext<State | undefined>(undefined);
-const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
+const StateContext = createContext<FetchedDataState | undefined>(undefined);
+const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
+  undefined,
+);
 
-const initialState: State = {
+const initialState: FetchedDataState = {
   usgsStreamgages: { status: 'idle', data: {} },
   usgsPrecipitation: { status: 'idle', data: {} },
   usgsDailyAverages: { status: 'idle', data: {} },
 };
 
-function reducer(state: State, action: Action): State {
+function reducer(
+  state: FetchedDataState,
+  action: FetchedDataAction,
+): FetchedDataState {
   switch (action.type) {
     case 'RESET_FETCHED_DATA': {
       return initialState;
