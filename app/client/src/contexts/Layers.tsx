@@ -154,7 +154,7 @@ type GroupLayerId = 'usgsStreamgagesLayer';
 
 type LayerId = GroupLayerId;
 
-type LayersState = {
+export type LayersState = {
   layers: {
     [G in GroupLayerId]: __esri.GroupLayer | null;
   };

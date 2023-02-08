@@ -53,7 +53,7 @@ import {
   shallowCompare,
   updateMonitoringLocationsLayer,
 } from 'utils/mapFunctions';
-import { getBaseLayer } from './boundariesToggleLayer';
+import { getBaseLayer } from 'classes/BoundariesToggleLayer';
 import { parseAttributes } from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';

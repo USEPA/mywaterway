@@ -35,6 +35,7 @@ import type {
   UsgsStreamgageAttributes,
   UsgsStreamgagesData,
 } from 'types';
+import type { BoundariesFilterType } from 'utils/hooks';
 
 /*
 ## Hooks
@@ -57,45 +58,62 @@ export function useStreamgageLayer() {
   const { huc12, mapView } = useContext(LocationSearchContext);
 
   const getDvFilter = useCallback(
-    async (type: 'huc' | 'bBox' = 'bBox') => {
-      if (type === 'bBox') {
-        const extent = await getGeographicExtent(mapView);
-        const bBox = getExtentBoundingBox(extent);
-        if (bBox) return `bBox=${bBox}`;
-      } else if (huc12) {
-        return `huc=${huc12.substring(0, 8)}`;
+    async (filterType: BoundariesFilterType = 'bBox') => {
+      const hucFilter = huc12 ? `huc=${huc12.substring(0, 8)}` : null;
+      switch (filterType) {
+        case 'huc': {
+          return hucFilter;
+        }
+        case 'bBox': {
+          const extent = await getGeographicExtent(mapView);
+          const bBox = getExtentBoundingBox(extent);
+          if (bBox) return `bBox=${bBox}`;
+          else return hucFilter;
+        }
+        default:
+          return null;
       }
-      return null;
     },
     [huc12, mapView],
   );
 
   const getThingsFilter = useCallback(
-    async (type: 'huc' | 'bBox' = 'bBox') => {
-      if (type === 'bBox') {
-        const extent = await getGeographicExtent(mapView);
-        const wkt = getExtentWkt(extent);
-        if (wkt)
-          return `$filter=st_within(Location/location,geography'POLYGON(${wkt})')`;
-      } else if (huc12) {
-        return `$filter=properties/hydrologicUnit eq '${huc12}'`;
+    async (filterType: BoundariesFilterType = 'bBox') => {
+      const hucFilter = huc12
+        ? `$filter=properties/hydrologicUnit eq '${huc12}'`
+        : null;
+      switch (filterType) {
+        case 'huc': {
+          return hucFilter;
+        }
+        case 'bBox': {
+          const extent = await getGeographicExtent(mapView);
+          const wkt = getExtentWkt(extent);
+          if (wkt) {
+            return `$filter=st_within(Location/location,geography'POLYGON(${wkt})')`;
+          } else return hucFilter;
+        }
+        default:
+          return null;
       }
-      return null;
     },
     [huc12, mapView],
   );
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const updateData = useCallback(async () => {
-    const dvFilter = await getDvFilter();
-    const thingsFilter = await getThingsFilter();
-    if (!dvFilter || !thingsFilter) return;
+  const updateData = useCallback(
+    async (filterType: BoundariesFilterType) => {
+      const dvFilter = await getDvFilter(filterType);
+      const thingsFilter = await getThingsFilter(filterType);
+      if (!dvFilter || !thingsFilter) return;
 
-    fetchUsgsStreamgages(thingsFilter, services, fetchedDataDispatch);
-    fetchUsgsPrecipitation(dvFilter, services, fetchedDataDispatch);
-    fetchUsgsDailyAverages(dvFilter, services, fetchedDataDispatch);
-  }, [fetchedDataDispatch, getDvFilter, getThingsFilter, services]);
+      fetchUsgsStreamgages(thingsFilter, services, fetchedDataDispatch);
+      fetchUsgsPrecipitation(dvFilter, services, fetchedDataDispatch);
+      fetchUsgsDailyAverages(dvFilter, services, fetchedDataDispatch);
+    },
+    [fetchedDataDispatch, getDvFilter, getThingsFilter, services],
+  );
 
   // Create the layer features
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
@@ -416,7 +434,7 @@ function buildUsgsStreamgagesLayer(
 }
 
 function fetchUsgsDailyAverages(
-  locationFilter: string,
+  boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
 ) {
@@ -435,7 +453,7 @@ function fetchUsgsDailyAverages(
     `?format=json` +
     `&siteStatus=active` +
     `&period=P7D` +
-    `&${locationFilter}`;
+    `&${boundariesFilter}`;
 
   dispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
 
@@ -459,7 +477,7 @@ function fetchUsgsDailyAverages(
 }
 
 function fetchUsgsPrecipitation(
-  locationFilter: string,
+  boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
 ) {
@@ -477,7 +495,7 @@ function fetchUsgsPrecipitation(
     `&siteStatus=active` +
     `&statCd=${sumValues}` +
     `&parameterCd=${precipitation}` +
-    `&${locationFilter}`;
+    `&${boundariesFilter}`;
 
   dispatch({ type: 'USGS_PRECIPITATION/FETCH_REQUEST' });
 
@@ -495,7 +513,7 @@ function fetchUsgsPrecipitation(
 }
 
 function fetchUsgsStreamgages(
-  locationFilter: string,
+  boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
 ) {
@@ -508,7 +526,7 @@ function fetchUsgsStreamgages(
     `$expand=Observations($select=phenomenonTime,result;` +
     `$top=1;` +
     `$orderBy=phenomenonTime desc))` +
-    `&${locationFilter}`;
+    `&${boundariesFilter}`;
 
   dispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
 
@@ -548,7 +566,6 @@ async function getGeographicExtent(mapView: __esri.MapView | '') {
   if (!mapView) return null;
 
   await reactiveUtils.whenOnce(() => mapView.stationary);
-  if (mapView.zoom <= 8) return null;
 
   const extentMercator = mapView.extent;
   return webMercatorUtils.webMercatorToGeographic(

@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
+// contexts
+import { useLayers, useLayersSurroundingsToggles } from 'contexts/Layers';
 // types
+import type { LayersState } from 'contexts/Layers';
 import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
 
 /*
@@ -9,10 +12,13 @@ import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
 */
 
 export function useSurroundingsWidget() {
+  const toggles = useLayersSurroundingsToggles();
+  const layers = useLayers();
+
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
-    render(<SurroundingsWidget />, container);
-  }, [container]);
+    render(<SurroundingsWidget toggles={toggles} layers={layers} />, container);
+  }, [container, layers, toggles]);
 
   return container;
 }
@@ -40,13 +46,28 @@ function SurroundingsWidget(props: SurroundingWidgetProps) {
   );
 }
 
-function SurroundingsWidgetContent({ visible }: SurroundingWidgetContentProps) {
+function SurroundingsWidgetContent({
+  layers,
+  toggles,
+  visible,
+}: SurroundingWidgetContentProps) {
   if (!visible) return null;
 
   return (
     <>
       <div css={widgetContentStyles}>
-        <input type="checkbox" onChange={() => null}></input>
+        {layers.usgsStreamgagesLayer && (
+          <>
+            <label htmlFor={layers.usgsStreamgagesLayer.id}>
+              {layers.usgsStreamgagesLayer.title}
+            </label>
+            <input
+              id={layers.usgsStreamgagesLayer.id}
+              type="checkbox"
+              onChange={(ev) => toggles.usgsStreamgagesLayer(ev.target.checked)}
+            ></input>
+          </>
+        )}
       </div>
     </>
   );
@@ -54,11 +75,6 @@ function SurroundingsWidgetContent({ visible }: SurroundingWidgetContentProps) {
 
 function Portal({ children, container }: PortalProps) {
   return createPortal(children, container);
-}
-
-interface ShowSurroundingWidgetProps {
-  onClick: React.MouseEventHandler<HTMLDivElement>;
-  forwardedRef: MutableRefObject<HTMLDivElement | null>;
 }
 
 function SurroundingsWidgetTrigger({
@@ -140,8 +156,16 @@ type PortalProps = {
   container: HTMLDivElement;
 };
 
+type ShowSurroundingWidgetProps = {
+  onClick: React.MouseEventHandler<HTMLDivElement>;
+  forwardedRef: MutableRefObject<HTMLDivElement | null>;
+};
+
 type SurroundingWidgetContentProps = SurroundingWidgetProps & {
   visible: boolean;
 };
 
-type SurroundingWidgetProps = {};
+type SurroundingWidgetProps = {
+  layers: LayersState['layers'];
+  toggles: LayersState['surroundingsToggles'];
+};

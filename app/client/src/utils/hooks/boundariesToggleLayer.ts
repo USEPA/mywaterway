@@ -33,7 +33,7 @@ function useBoundariesToggleLayer<
   layerId,
   updateData,
   updateLayer,
-}: useBoundariesToggleLayerParams<T>) {
+}: UseBoundariesToggleLayerParams<T>) {
   const { mapView } = useContext(LocationSearchContext);
 
   const hucGraphic = useHucGraphic();
@@ -41,6 +41,7 @@ function useBoundariesToggleLayer<
   const [surroundingMask] = useState(getSurroundingMask());
   const [handleGroupKey] = useState(uuid());
 
+  // Component layer that manages visibility of surrounding features
   const surroundingLayer = useMemo(() => {
     return new GraphicsLayer({
       graphics: [surroundingMask],
@@ -49,6 +50,7 @@ function useBoundariesToggleLayer<
     });
   }, [layerId, surroundingMask]);
 
+  // Component layer that ensures features within HUC remain visible
   const enclosedLayer = useMemo(() => {
     return new GraphicsLayer({
       id: `${layerId}-enclosed`,
@@ -56,11 +58,14 @@ function useBoundariesToggleLayer<
     });
   }, [layerId]);
 
+  // Add the graphic that enables constant visibility within the HUC
   useEffect(() => {
     enclosedLayer.graphics.removeAll();
     if (hucGraphic) enclosedLayer.graphics.add(hucGraphic);
   }, [enclosedLayer, hucGraphic]);
 
+  // Component layer that manages the always visible
+  // HUC area and the togglable surrounding area
   const maskLayer = useMemo(() => {
     return new GroupLayer({
       blendMode: 'destination-in',
@@ -70,6 +75,7 @@ function useBoundariesToggleLayer<
     });
   }, [enclosedLayer, layerId, surroundingLayer]);
 
+  // Group layer that contains the base layer and its masks
   const parentLayer = useMemo(() => {
     const layers = baseLayer ? [baseLayer, maskLayer] : [maskLayer];
     const properties: __esri.GroupLayerProperties = {
@@ -83,6 +89,7 @@ function useBoundariesToggleLayer<
       : new AllGraphicsLayer(properties);
   }, [baseLayer, baseLayerType, layerId, maskLayer]);
 
+  // Manages the surrounding features visibility
   const toggleSurroundings = useCallback(
     (visible: boolean) => {
       surroundingLayer.opacity = visible ? surroundingLayerVisibleOpacity : 0;
@@ -90,13 +97,16 @@ function useBoundariesToggleLayer<
     [surroundingLayer],
   );
 
+  // Update data when the mapView updates
   useEffect(() => {
     if (parentLayer.hasHandles(handleGroupKey)) return;
 
     const handle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
-        updateData();
+        if (mapView.scale >= minScale) {
+          updateData('huc');
+        } else updateData('bBox');
       },
     );
 
@@ -107,6 +117,7 @@ function useBoundariesToggleLayer<
     };
   }, [parentLayer, mapView, updateData, handleGroupKey]);
 
+  // Resets the base layer's features and hides surrounding features
   const resetLayer = useCallback(async () => {
     if (!baseLayer) return;
 
@@ -114,6 +125,7 @@ function useBoundariesToggleLayer<
     updateLayer(baseLayer);
   }, [baseLayer, toggleSurroundings, updateLayer]);
 
+  // Update layer features when new data is available
   useEffect(() => {
     updateLayer(baseLayer, features);
   }, [baseLayer, features, updateLayer]);
@@ -124,7 +136,7 @@ function useBoundariesToggleLayer<
 export function useAllFeaturesLayer(
   layerId: string,
   baseLayerBuilder: (baseLayerId: string) => __esri.FeatureLayer,
-  updateData: () => Promise<void>,
+  updateData: (filterType: BoundariesFilterType) => Promise<void>,
   features: __esri.Graphic[],
 ) {
   return useBoundariesToggleLayer({
@@ -166,9 +178,6 @@ function useHucGraphic() {
 /*
 ## Utils
 */
-export function getBaseLayer(layer: AllFeaturesLayer | AllGraphicsLayer) {
-  return layer.findLayerById(`${layer.id}-features`);
-}
 
 function getSurroundingMask() {
   return new Graphic({
@@ -206,18 +215,20 @@ async function updateFeatureLayer(
 */
 
 const surroundingLayerVisibleOpacity = 0.8;
+const minScale = 577791;
 
 /*
 ## Types
 */
+export type BoundariesFilterType = 'huc' | 'bBox';
 
-type useBoundariesToggleLayerParams<
+type UseBoundariesToggleLayerParams<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
 > = {
   baseLayerBuilder: (baseLayerId: string) => T;
   baseLayerType: BaseLayerType;
   features: __esri.Graphic[];
   layerId: string;
-  updateData: () => Promise<void>;
+  updateData: (filterType: BoundariesFilterType) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };

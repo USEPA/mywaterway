@@ -110,7 +110,13 @@ const toggleStyles = css`
 `;
 
 function Overview() {
-  const { usgsStreamgages } = useFetchedDataState();
+  const { usgsDailyAverages, usgsPrecipitation, usgsStreamgages } =
+    useFetchedDataState();
+  const { localStreamgageData: normalizedUsgsStreamgages } = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
 
   const {
     cipSummary,
@@ -310,7 +316,8 @@ function Overview() {
   const totalMonitoringLocations =
     monitoringLocations.data.features?.length || 0;
 
-  const totalUsgsStreamgages = usgsStreamgages.data.value?.length || 0;
+  const totalUsgsStreamgages = normalizedUsgsStreamgages.length;
+  // const totalUsgsStreamgages = usgsStreamgages.data.value?.length || 0;
 
   const totalMonitoringAndSensors =
     monitoringLocations.data.features || usgsStreamgages.data.value

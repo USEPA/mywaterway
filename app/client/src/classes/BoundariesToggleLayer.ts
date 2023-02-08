@@ -32,4 +32,8 @@ export class AllGraphicsLayer extends BoundariesToggleLayer {
   }
 }
 
+export function getBaseLayer(layer: AllFeaturesLayer | AllGraphicsLayer) {
+  return layer.findLayerById(`${layer.id}-features`);
+}
+
 export type BaseLayerType = 'feature' | 'graphic';
