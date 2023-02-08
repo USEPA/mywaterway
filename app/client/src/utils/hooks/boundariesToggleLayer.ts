@@ -4,24 +4,32 @@ import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { v4 as uuid } from 'uuid';
+// contexts
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { isPolygon } from 'utils/mapFunctions';
-// types
-import { LocationSearchContext } from 'contexts/locationSearch';
 
 /*
 ## Hooks
 */
 
-export function useAllFeaturesLayer(
+function useBoundariesToggleLayer<T extends __esri.Layer>(
+  baseLayerBuilder: () => T,
+  features: __esri.Graphic[],
   layerId: string,
-  baseLayerBuilder: () => __esri.Layer,
+  updateData: () => Promise<void>,
+  updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>,
 ) {
+  const { mapView } = useContext(LocationSearchContext);
+
   const hucGraphic = useHucGraphic();
   const [baseLayer] = useState(baseLayerBuilder());
   const [surroundingMask] = useState(getSurroundingMask());
+  const [handleGroupKey] = useState(uuid());
 
   const surroundingLayer = useMemo(() => {
     return new GraphicsLayer({
@@ -52,7 +60,7 @@ export function useAllFeaturesLayer(
     });
   }, [enclosedLayer, layerId, surroundingLayer]);
 
-  const allFeaturesLayer = useMemo(() => {
+  const parentLayer = useMemo(() => {
     const layers = baseLayer ? [baseLayer, maskLayer] : [maskLayer];
     return new GroupLayer({
       id: layerId,
@@ -69,7 +77,54 @@ export function useAllFeaturesLayer(
     [surroundingLayer],
   );
 
-  return { layer: allFeaturesLayer, toggleSurroundings };
+  useEffect(() => {
+    if (!parentLayer) return;
+    if (parentLayer.hasHandles(handleGroupKey)) return;
+
+    const handle = reactiveUtils.when(
+      () => mapView?.stationary,
+      async () => {
+        if (!parentLayer.visible) return;
+        updateData();
+      },
+    );
+
+    parentLayer.addHandles(handle, handleGroupKey);
+
+    return function cleanup() {
+      parentLayer.removeHandles(handleGroupKey);
+    };
+  }, [parentLayer, mapView, updateData, handleGroupKey]);
+
+  const resetLayer = useCallback(async () => {
+    if (!baseLayer) return;
+
+    toggleSurroundings(false);
+    updateLayer(baseLayer);
+  }, [baseLayer, toggleSurroundings, updateLayer]);
+
+  useEffect(() => {
+    if (!baseLayer) return;
+
+    updateLayer(baseLayer, features);
+  }, [baseLayer, features, updateLayer]);
+
+  return { layer: parentLayer, resetLayer, toggleSurroundings };
+}
+
+export function useAllFeaturesLayer({
+  layerId,
+  baseLayerBuilder,
+  updateData,
+  features,
+}: UseAllFeaturesLayerParams) {
+  return useBoundariesToggleLayer(
+    baseLayerBuilder,
+    features,
+    layerId,
+    updateData,
+    updateFeatureLayer,
+  );
 }
 
 function useHucGraphic() {
@@ -116,8 +171,35 @@ function getSurroundingMask() {
   });
 }
 
+async function updateFeatureLayer(
+  layer: __esri.FeatureLayer | null,
+  features?: __esri.Graphic[],
+) {
+  if (!layer) return;
+
+  const featureSet = await layer?.queryFeatures();
+  const edits: {
+    addFeatures?: __esri.Graphic[];
+    deleteFeatures: __esri.Graphic[];
+  } = {
+    deleteFeatures: featureSet.features,
+  };
+  if (features) edits.addFeatures = features;
+  layer.applyEdits(edits);
+}
+
 /*
 ## Constants
 */
 
 const surroundingLayerVisibleOpacity = 0.8;
+
+/*
+## Types
+*/
+type UseAllFeaturesLayerParams = {
+  layerId: string;
+  baseLayerBuilder: () => __esri.FeatureLayer;
+  updateData: () => Promise<void>;
+  features: __esri.Graphic[];
+};

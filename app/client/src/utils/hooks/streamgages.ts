@@ -18,11 +18,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import { useAllFeaturesLayer } from 'utils/hooks';
-import {
-  getPopupContent,
-  getPopupTitle,
-  isFeatureLayer,
-} from 'utils/mapFunctions';
+import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 import { toFixedFloat } from 'utils/utils';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
@@ -44,65 +40,19 @@ import type {
 ## Hooks
 */
 
-export function useStreamgages() {
-  const fetchedDataDispatch = useFetchedDataDispatch();
-
-  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
-    useFetchedDataState();
-
-  const { huc12, mapView } = useContext(LocationSearchContext);
-
-  const {
-    setUsgsStreamgagesLayer,
-    setUsgsStreamgagesLayerReset,
-    setUsgsStreamgagesLayerSurroundingsToggle,
-  } = useLayersActions();
-
+export function useStreamgageLayer() {
+  // Build the base feature layer
   const { services } = useServicesContext();
 
   const navigate = useNavigate();
 
-  // Build the group layer
   const buildBaseLayer = useCallback(() => {
     return buildUsgsStreamgagesLayer(navigate, services);
   }, [navigate, services]);
 
-  const { layer, toggleSurroundings } = useAllFeaturesLayer(
-    layerId,
-    buildBaseLayer,
-  );
+  // Build the data update function
+  const { huc12, mapView } = useContext(LocationSearchContext);
 
-  useEffect(() => {
-    setUsgsStreamgagesLayer(layer);
-  }, [layer, setUsgsStreamgagesLayer]);
-
-  useEffect(() => {
-    setUsgsStreamgagesLayerSurroundingsToggle(toggleSurroundings);
-  }, [setUsgsStreamgagesLayerSurroundingsToggle, toggleSurroundings]);
-
-  const [featureLayer, setFeatureLayer] = useState<__esri.FeatureLayer | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (!layer) return;
-
-    const newFeatureLayer = layer.findLayerById(`${layer.id}-features`);
-    isFeatureLayer(newFeatureLayer) && setFeatureLayer(newFeatureLayer);
-  }, [layer]);
-
-  const resetLayer = useCallback(async () => {
-    if (!featureLayer) return;
-
-    toggleSurroundings(false);
-    updateLayer(featureLayer);
-  }, [featureLayer, toggleSurroundings]);
-
-  useEffect(() => {
-    setUsgsStreamgagesLayerReset(resetLayer);
-  }, [resetLayer, setUsgsStreamgagesLayerReset]);
-
-  // Fetch new data when the extent changes
   const getDvFilter = useCallback(
     async (type: 'huc' | 'bBox' = 'bBox') => {
       if (type === 'bBox') {
@@ -128,38 +78,21 @@ export function useStreamgages() {
     [huc12, mapView],
   );
 
-  useEffect(() => {
-    if (!layer) return;
-    if (layer.hasHandles(handleGroupKey)) return;
+  const fetchedDataDispatch = useFetchedDataDispatch();
 
-    const handle = reactiveUtils.when(
-      () => mapView?.stationary,
-      async () => {
-        if (!layer.visible) return;
-        const dvFilter = await getDvFilter();
-        const thingsFilter = await getThingsFilter();
-        fetchUsgsStreamgages(thingsFilter, services, fetchedDataDispatch);
-        fetchUsgsPrecipitation(dvFilter, services, fetchedDataDispatch);
-        fetchUsgsDailyAverages(dvFilter, services, fetchedDataDispatch);
-      },
-    );
+  const updateData = useCallback(async () => {
+    const dvFilter = await getDvFilter();
+    const thingsFilter = await getThingsFilter();
+    fetchUsgsStreamgages(thingsFilter, services, fetchedDataDispatch);
+    fetchUsgsPrecipitation(dvFilter, services, fetchedDataDispatch);
+    fetchUsgsDailyAverages(dvFilter, services, fetchedDataDispatch);
+  }, [fetchedDataDispatch, getDvFilter, getThingsFilter, services]);
 
-    layer.addHandles(handle, handleGroupKey);
+  // Create the layer features
+  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
+    useFetchedDataState();
 
-    return function cleanup() {
-      layer.removeHandles(handleGroupKey);
-    };
-  }, [
-    fetchedDataDispatch,
-    getDvFilter,
-    getThingsFilter,
-    layer,
-    mapView,
-    services,
-  ]);
-
-  // Get the streamgage data and add features
-  const [streamgageData, localStreamgageData] = useStreamgageData(
+  const { streamgageData } = useStreamgageData(
     usgsStreamgages,
     usgsPrecipitation,
     usgsDailyAverages,
@@ -169,26 +102,38 @@ export function useStreamgages() {
     return buildStreamgageFeatures(streamgageData);
   }, [streamgageData]);
 
-  const localStreamgageFeatures = useMemo(() => {
-    return buildStreamgageFeatures(localStreamgageData);
-  }, [localStreamgageData]);
+  // Build a group layer with toggleable boundaries
+  const { layer, resetLayer, toggleSurroundings } = useAllFeaturesLayer({
+    layerId,
+    baseLayerBuilder: buildBaseLayer,
+    updateData,
+    features: streamgageFeatures,
+  });
+
+  // Update Layers context
+  const {
+    setUsgsStreamgagesLayer,
+    setUsgsStreamgagesLayerReset,
+    setUsgsStreamgagesLayerSurroundingsToggle,
+  } = useLayersActions();
 
   useEffect(() => {
-    if (!featureLayer) return;
+    setUsgsStreamgagesLayer(layer);
+  }, [layer, setUsgsStreamgagesLayer]);
 
-    updateLayer(featureLayer, streamgageFeatures);
-  }, [featureLayer, streamgageFeatures]);
+  useEffect(() => {
+    setUsgsStreamgagesLayerSurroundingsToggle(toggleSurroundings);
+  }, [setUsgsStreamgagesLayerSurroundingsToggle, toggleSurroundings]);
 
-  return {
-    streamgageData,
-    streamgageFeatures,
-    localStreamgageData,
-    localStreamgageFeatures,
-  };
+  useEffect(() => {
+    setUsgsStreamgagesLayerReset(resetLayer);
+  }, [resetLayer, setUsgsStreamgagesLayerReset]);
+
+  return layer;
 }
 
 // Normalizes USGS streamgage data with monitoring stations data.
-function useStreamgageData(
+export function useStreamgageData(
   usgsStreamgages: FetchState<UsgsStreamgagesData>,
   usgsPrecipitation: FetchState<UsgsPrecipitationData>,
   usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
@@ -365,7 +310,10 @@ function useStreamgageData(
     setNormalizedData(gages);
   }, [hucBoundaries, usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
 
-  return [normalizedData, localNormalizedData];
+  return {
+    streamgageData: normalizedData,
+    localStreamgageData: localNormalizedData,
+  };
 }
 
 /*
@@ -580,25 +528,8 @@ async function getGeographicExtent(mapView: __esri.MapView | '') {
   ) as __esri.Extent;
 }
 
-async function updateLayer(
-  layer: __esri.FeatureLayer | null,
-  features?: __esri.Graphic[],
-) {
-  if (!layer) return;
-
-  const featureSet = await layer?.queryFeatures();
-  const edits: {
-    addFeatures?: __esri.Graphic[];
-    deleteFeatures: __esri.Graphic[];
-  } = {
-    deleteFeatures: featureSet.features,
-  };
-  if (features) edits.addFeatures = features;
-  layer.applyEdits(edits);
-}
 /*
 ## Constants
 */
 
 const layerId = 'usgsStreamgagesLayer';
-const handleGroupKey = 'view-stationary-updates';

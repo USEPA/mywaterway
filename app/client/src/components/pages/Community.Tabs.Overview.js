@@ -542,7 +542,7 @@ function MonitoringAndSensorsTab({
     setMonitoringAndSensorsDisplayed,
   ]);
 
-  const normalizedUsgsStreamgages = useStreamgageData(
+  const { localStreamgageData: normalizedUsgsStreamgages } = useStreamgageData(
     usgsStreamgages,
     usgsPrecipitation,
     usgsDailyAverages,

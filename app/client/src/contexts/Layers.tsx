@@ -78,38 +78,10 @@ export function LayersProvider({ children }: LayersProviderProps) {
   );
 }
 
-// Returns state stored in `LayersProvider` context component.
-export function useLayersState() {
-  const state = useContext(StateContext);
-  if (state === undefined) {
-    throw new Error('useLayersState must be called within a LayersProvider');
-  }
-  return state;
-}
-
-export function useLayersDispatch() {
-  const dispatch = useContext(DispatchContext);
-  if (dispatch === undefined) {
-    throw new Error('useLayersDispatch must be used within a LayersProvider');
-  }
-
-  return dispatch;
-}
-
-export function useLayersReset() {
+export function useLayers() {
   const state = useLayersState();
-  const dispatch = useLayersDispatch();
 
-  const resetLayers = useCallback(async () => {
-    await Promise.all([
-      ...Object.values(state.resets).map(async (reset) => {
-        await reset();
-      }),
-    ]);
-    dispatch({ type: 'resetLayers', payload: state.layers });
-  }, [dispatch, state]);
-
-  return resetLayers;
+  return state.layers;
 }
 
 export function useLayersActions() {
@@ -132,6 +104,46 @@ export function useLayersActions() {
   }, [dispatch]);
 
   return dispatchers;
+}
+
+// Returns state stored in `LayersProvider` context component.
+function useLayersState() {
+  const state = useContext(StateContext);
+  if (state === undefined) {
+    throw new Error('useLayersState must be called within a LayersProvider');
+  }
+  return state;
+}
+
+export function useLayersSurroundingsToggles() {
+  const state = useLayersState();
+
+  return state.surroundingsToggles;
+}
+
+function useLayersDispatch() {
+  const dispatch = useContext(DispatchContext);
+  if (dispatch === undefined) {
+    throw new Error('useLayersDispatch must be used within a LayersProvider');
+  }
+
+  return dispatch;
+}
+
+export function useLayersReset() {
+  const state = useLayersState();
+  const dispatch = useLayersDispatch();
+
+  const resetLayers = useCallback(async () => {
+    await Promise.all([
+      ...Object.values(state.resets).map(async (reset) => {
+        await reset();
+      }),
+    ]);
+    dispatch({ type: 'resetLayers', payload: state.layers });
+  }, [dispatch, state]);
+
+  return resetLayers;
 }
 
 /*
