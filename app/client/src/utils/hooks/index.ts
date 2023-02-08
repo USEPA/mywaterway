@@ -642,8 +642,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = dischargersLayer;
     } else if (attributes.monitoringType === 'Past Water Conditions') {
       layer = monitoringLocationsLayer;
+      featureLayerType = 'monitoringLocations';
     } else if (attributes.monitoringType === 'USGS Sensors') {
       layer = usgsStreamgagesLayer;
+      featureLayerType = 'monitoringLocations';
     } else if (attributes.monitoringType === 'CyAN') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
       featureLayerType = 'cyanWaterbodies';
@@ -757,10 +759,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         where = `FID = ${attributes.FID}`;
       }
 
-      if (
-        layer === monitoringLocationsLayer ||
-        layer === usgsStreamgagesLayer
-      ) {
+      if (featureLayerType === 'monitoringLocations') {
         const orgId = graphic?.attributes?.orgId || '';
         const siteId = graphic?.attributes?.siteId || '';
         key = `${orgId} - ${siteId}`;

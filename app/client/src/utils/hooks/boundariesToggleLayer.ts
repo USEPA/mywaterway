@@ -91,13 +91,11 @@ function useBoundariesToggleLayer<
   );
 
   useEffect(() => {
-    if (!parentLayer) return;
     if (parentLayer.hasHandles(handleGroupKey)) return;
 
     const handle = reactiveUtils.when(
-      () => mapView?.stationary,
-      async () => {
-        if (!parentLayer.visible) return;
+      () => mapView?.stationary === true,
+      () => {
         updateData();
       },
     );
@@ -105,7 +103,7 @@ function useBoundariesToggleLayer<
     parentLayer.addHandles(handle, handleGroupKey);
 
     return function cleanup() {
-      parentLayer.removeHandles(handleGroupKey);
+      parentLayer?.removeHandles(handleGroupKey);
     };
   }, [parentLayer, mapView, updateData, handleGroupKey]);
 
@@ -117,8 +115,6 @@ function useBoundariesToggleLayer<
   }, [baseLayer, toggleSurroundings, updateLayer]);
 
   useEffect(() => {
-    if (!baseLayer) return;
-
     updateLayer(baseLayer, features);
   }, [baseLayer, features, updateLayer]);
 

@@ -1,6 +1,12 @@
+import {
+  subclass,
+  property,
+} from '@arcgis/core/core/accessorSupport/decorators';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 
+@subclass('esri.core.layers.BoundariesToggleLayer')
 export class BoundariesToggleLayer extends GroupLayer {
+  @property()
   baseLayerType: BaseLayerType;
 
   constructor(
@@ -12,12 +18,14 @@ export class BoundariesToggleLayer extends GroupLayer {
   }
 }
 
+@subclass('esri.core.layers.AllFeaturesLayer')
 export class AllFeaturesLayer extends BoundariesToggleLayer {
   constructor(properties: __esri.GroupLayerProperties) {
     super(properties, 'feature');
   }
 }
 
+@subclass('esri.core.layers.AllGraphicsLayer')
 export class AllGraphicsLayer extends BoundariesToggleLayer {
   constructor(properties: __esri.GroupLayerProperties) {
     super(properties, 'graphic');
