@@ -1,17 +1,6 @@
-import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
-import FeatureSet from '@arcgis/core/rest/support/FeatureSet';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
-// contexts
-import { LocationSearchContext } from 'contexts/locationSearch';
 // types
 import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
 
@@ -20,33 +9,10 @@ import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
 */
 
 export function useSurroundingsWidget() {
-  const { getHucBoundaries, getLayers, setLayers, usgsStreamgagesLayer } =
-    useContext(LocationSearchContext);
-
-  const [testLayer] = useState<__esri.FeatureLayer>(
-    new FeatureLayer({
-      id: 'countyCropsLayer',
-      portalItem: {
-        id: 'c786669a00b547c995f0cc970dc007d8',
-      },
-      opacity: 1,
-      title: 'County Crops',
-    }),
-  );
-
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
-    if (!usgsStreamgagesLayer) return;
-    render(
-      <SurroundingsWidget
-        getHucBoundaries={getHucBoundaries}
-        getMapLayers={getLayers}
-        testLayer={usgsStreamgagesLayer}
-        setLayers={setLayers}
-      />,
-      container,
-    );
-  }, [container, getHucBoundaries, getLayers, setLayers, usgsStreamgagesLayer]);
+    render(<SurroundingsWidget />, container);
+  }, [container]);
 
   return container;
 }
@@ -74,41 +40,13 @@ function SurroundingsWidget(props: SurroundingWidgetProps) {
   );
 }
 
-function SurroundingsWidgetContent({
-  getHucBoundaries,
-  getMapLayers,
-  setLayers,
-  testLayer,
-  visible,
-}: SurroundingWidgetContentProps) {
-  const hucBoundaries = getHucBoundaries() ?? new FeatureSet();
-
-  const { layer: allTestLayer, toggleSurroundings: toggleTestLayer } =
-    useAllFeaturesLayer(testLayer, hucBoundaries);
-
-  const surroundingLayers = useMemo(() => {
-    return [allTestLayer];
-    // return [allWaterbodiesLayer];
-  }, [allTestLayer]);
-
-  useEffect(() => {
-    setLayers(
-      getMapLayers().reduce((current: __esri.Layer[], layer: __esri.Layer) => {
-        if (layer.id === 'boundariesLayer') {
-          return current.concat([layer, ...surroundingLayers]);
-        } else {
-          return current.concat(layer);
-        }
-      }, []),
-    );
-  }, [getMapLayers, setLayers, surroundingLayers]);
-
+function SurroundingsWidgetContent({ visible }: SurroundingWidgetContentProps) {
   if (!visible) return null;
 
   return (
     <>
       <div css={widgetContentStyles}>
-        <input type="checkbox" onChange={toggleTestLayer}></input>
+        <input type="checkbox" onChange={() => null}></input>
       </div>
     </>
   );
@@ -206,9 +144,4 @@ type SurroundingWidgetContentProps = SurroundingWidgetProps & {
   visible: boolean;
 };
 
-type SurroundingWidgetProps = {
-  getHucBoundaries: () => __esri.FeatureSet;
-  getMapLayers: () => __esri.Layer[];
-  setLayers: (layers: __esri.Layer[]) => void;
-  testLayer: __esri.Layer;
-};
+type SurroundingWidgetProps = {};

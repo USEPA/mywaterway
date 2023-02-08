@@ -162,7 +162,7 @@ type LayersState = {
     [L in LayerId]: () => Promise<void>;
   };
   surroundingsToggles: {
-    [S in SurroundingsLayerId]: (visible: boolean) => void;
+    [S in SurroundingsToggleLayerId]: (visible: boolean) => void;
   };
 };
 
@@ -179,4 +179,4 @@ type LayersProviderProps = {
   children: ReactNode;
 };
 
-type SurroundingsLayerId = 'usgsStreamgagesLayer';
+type SurroundingsToggleLayerId = 'usgsStreamgagesLayer';

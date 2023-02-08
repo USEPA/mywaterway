@@ -27,6 +27,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { tabs } from 'config/communityConfig';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useMapHighlightState } from 'contexts/MapHighlight';
@@ -220,8 +221,9 @@ function Protect() {
     cipSummary,
     allWaterbodiesLayer,
     surroundingMonitoringLocationsLayer,
-    usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
+
+  const { usgsStreamgagesLayer } = useLayers();
 
   const { usgsStreamgages } = useFetchedDataState();
 

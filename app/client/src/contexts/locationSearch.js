@@ -149,7 +149,6 @@ type State = {
   issuesLayer: Object,
   monitoringLocationsLayer: Object,
   surroundingMonitoringLocationsLayer: Object,
-  usgsStreamgagesLayer: Object,
   dischargersLayer: Object,
   nonprofitsLayer: Object,
   wildScenicRiversLayer: Object,
@@ -238,7 +237,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     issuesLayer: '',
     monitoringLocationsLayer: '',
     surroundingMonitoringLocationsLayer: '',
-    usgsStreamgagesLayer: '',
     dischargersLayer: '',
     nonprofitsLayer: '',
     wildScenicRiversLayer: '',
@@ -406,9 +404,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     ) => {
       this.setState({ surroundingMonitoringLocationsLayer });
     },
-    setUsgsStreamgagesLayer: (usgsStreamgagesLayer) => {
-      this.setState({ usgsStreamgagesLayer });
-    },
     setDischargersLayer: (dischargersLayer) => {
       this.setState({ dischargersLayer });
     },
@@ -571,7 +566,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         boundariesLayer,
         searchIconLayer,
         monitoringLocationsLayer,
-        usgsStreamgagesLayer,
         upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
@@ -633,13 +627,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       if (monitoringLocationsLayer) {
         monitoringLocationsLayer.queryFeatures().then((featureSet) => {
           monitoringLocationsLayer.applyEdits({
-            deleteFeatures: featureSet.features,
-          });
-        });
-      }
-      if (usgsStreamgagesLayer) {
-        usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-          usgsStreamgagesLayer.applyEdits({
             deleteFeatures: featureSet.features,
           });
         });

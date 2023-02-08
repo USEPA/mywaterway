@@ -28,7 +28,7 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
-import { useSurroundingWidget } from 'components/shared/SurroundingWidget';
+import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';

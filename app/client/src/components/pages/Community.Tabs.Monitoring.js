@@ -34,6 +34,7 @@ import VirtualizedList from 'components/shared/VirtualizedList';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -320,8 +321,9 @@ function Monitoring() {
     mapView,
     visibleLayers,
     setVisibleLayers,
-    usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
+
+  const { usgsStreamgagesLayer } = useLayers();
 
   const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
     useState(true);

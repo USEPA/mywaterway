@@ -8,26 +8,36 @@ import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
+// components
+import {
+  AllFeaturesLayer,
+  AllGraphicsLayer,
+} from 'classes/BoundariesToggleLayer';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { isPolygon } from 'utils/mapFunctions';
+// types
+import type { BaseLayerType } from 'classes/BoundariesToggleLayer';
 
 /*
 ## Hooks
 */
 
-function useBoundariesToggleLayer<T extends __esri.Layer>(
-  baseLayerBuilder: () => T,
-  features: __esri.Graphic[],
-  layerId: string,
-  updateData: () => Promise<void>,
-  updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>,
-) {
+function useBoundariesToggleLayer<
+  T extends __esri.FeatureLayer | __esri.GraphicsLayer,
+>({
+  baseLayerBuilder,
+  baseLayerType,
+  features,
+  layerId,
+  updateData,
+  updateLayer,
+}: useBoundariesToggleLayerParams<T>) {
   const { mapView } = useContext(LocationSearchContext);
 
   const hucGraphic = useHucGraphic();
-  const [baseLayer] = useState(baseLayerBuilder());
+  const [baseLayer] = useState(baseLayerBuilder(`${layerId}-features`));
   const [surroundingMask] = useState(getSurroundingMask());
   const [handleGroupKey] = useState(uuid());
 
@@ -62,13 +72,16 @@ function useBoundariesToggleLayer<T extends __esri.Layer>(
 
   const parentLayer = useMemo(() => {
     const layers = baseLayer ? [baseLayer, maskLayer] : [maskLayer];
-    return new GroupLayer({
+    const properties: __esri.GroupLayerProperties = {
       id: layerId,
       layers,
       listMode: 'hide-children',
       title: baseLayer.title,
-    });
-  }, [baseLayer, layerId, maskLayer]);
+    };
+    return baseLayerType === 'feature'
+      ? new AllFeaturesLayer(properties)
+      : new AllGraphicsLayer(properties);
+  }, [baseLayer, baseLayerType, layerId, maskLayer]);
 
   const toggleSurroundings = useCallback(
     (visible: boolean) => {
@@ -112,19 +125,20 @@ function useBoundariesToggleLayer<T extends __esri.Layer>(
   return { layer: parentLayer, resetLayer, toggleSurroundings };
 }
 
-export function useAllFeaturesLayer({
-  layerId,
-  baseLayerBuilder,
-  updateData,
-  features,
-}: UseAllFeaturesLayerParams) {
-  return useBoundariesToggleLayer(
+export function useAllFeaturesLayer(
+  layerId: string,
+  baseLayerBuilder: (baseLayerId: string) => __esri.FeatureLayer,
+  updateData: () => Promise<void>,
+  features: __esri.Graphic[],
+) {
+  return useBoundariesToggleLayer({
     baseLayerBuilder,
+    baseLayerType: 'feature',
     features,
     layerId,
     updateData,
-    updateFeatureLayer,
-  );
+    updateLayer: updateFeatureLayer,
+  });
 }
 
 function useHucGraphic() {
@@ -133,7 +147,7 @@ function useHucGraphic() {
   const [hucGraphic, setHucGraphic] = useState(new Graphic());
 
   useEffect(() => {
-    if (!hucBoundaries.features.length) return;
+    if (!hucBoundaries?.features?.length) return;
     const geometry = hucBoundaries.features[0].geometry;
     if (!isPolygon(geometry)) return;
 
@@ -156,6 +170,9 @@ function useHucGraphic() {
 /*
 ## Utils
 */
+export function getBaseLayer(layer: AllFeaturesLayer | AllGraphicsLayer) {
+  return layer.findLayerById(`${layer.id}-features`);
+}
 
 function getSurroundingMask() {
   return new Graphic({
@@ -197,9 +214,14 @@ const surroundingLayerVisibleOpacity = 0.8;
 /*
 ## Types
 */
-type UseAllFeaturesLayerParams = {
-  layerId: string;
-  baseLayerBuilder: () => __esri.FeatureLayer;
-  updateData: () => Promise<void>;
+
+type useBoundariesToggleLayerParams<
+  T extends __esri.FeatureLayer | __esri.GraphicsLayer,
+> = {
+  baseLayerBuilder: (baseLayerId: string) => T;
+  baseLayerType: BaseLayerType;
   features: __esri.Graphic[];
+  layerId: string;
+  updateData: () => Promise<void>;
+  updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };

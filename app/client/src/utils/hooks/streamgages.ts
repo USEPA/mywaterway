@@ -42,13 +42,16 @@ import type {
 
 export function useStreamgageLayer() {
   // Build the base feature layer
-  const { services } = useServicesContext();
+  const services = useServicesContext();
 
   const navigate = useNavigate();
 
-  const buildBaseLayer = useCallback(() => {
-    return buildUsgsStreamgagesLayer(navigate, services);
-  }, [navigate, services]);
+  const buildBaseLayer = useCallback(
+    (baseLayerId: string) => {
+      return buildUsgsStreamgagesLayer(baseLayerId, navigate, services);
+    },
+    [navigate, services],
+  );
 
   // Build the data update function
   const { huc12, mapView } = useContext(LocationSearchContext);
@@ -59,8 +62,10 @@ export function useStreamgageLayer() {
         const extent = await getGeographicExtent(mapView);
         const bBox = getExtentBoundingBox(extent);
         if (bBox) return `bBox=${bBox}`;
+      } else if (huc12) {
+        return `huc=${huc12.substring(0, 8)}`;
       }
-      return `huc=${huc12.substring(0, 8)}`;
+      return null;
     },
     [huc12, mapView],
   );
@@ -72,8 +77,10 @@ export function useStreamgageLayer() {
         const wkt = getExtentWkt(extent);
         if (wkt)
           return `$filter=st_within(Location/location,geography'POLYGON(${wkt})')`;
+      } else if (huc12) {
+        return `$filter=properties/hydrologicUnit eq '${huc12}'`;
       }
-      return `$filter=properties/hydrologicUnit eq '${huc12}'`;
+      return null;
     },
     [huc12, mapView],
   );
@@ -83,6 +90,8 @@ export function useStreamgageLayer() {
   const updateData = useCallback(async () => {
     const dvFilter = await getDvFilter();
     const thingsFilter = await getThingsFilter();
+    if (!dvFilter || !thingsFilter) return;
+
     fetchUsgsStreamgages(thingsFilter, services, fetchedDataDispatch);
     fetchUsgsPrecipitation(dvFilter, services, fetchedDataDispatch);
     fetchUsgsDailyAverages(dvFilter, services, fetchedDataDispatch);
@@ -92,23 +101,19 @@ export function useStreamgageLayer() {
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
 
-  const { streamgageData } = useStreamgageData(
+  const { streamgageFeatures } = useStreamgageFeatures(
     usgsStreamgages,
     usgsPrecipitation,
     usgsDailyAverages,
   );
 
-  const streamgageFeatures = useMemo(() => {
-    return buildStreamgageFeatures(streamgageData);
-  }, [streamgageData]);
-
   // Build a group layer with toggleable boundaries
-  const { layer, resetLayer, toggleSurroundings } = useAllFeaturesLayer({
+  const { layer, resetLayer, toggleSurroundings } = useAllFeaturesLayer(
     layerId,
-    baseLayerBuilder: buildBaseLayer,
+    buildBaseLayer,
     updateData,
-    features: streamgageFeatures,
-  });
+    streamgageFeatures,
+  );
 
   // Update Layers context
   const {
@@ -316,6 +321,28 @@ export function useStreamgageData(
   };
 }
 
+export function useStreamgageFeatures(
+  usgsStreamgages: FetchState<UsgsStreamgagesData>,
+  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
+  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
+) {
+  const { localStreamgageData, streamgageData } = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
+
+  const localStreamgageFeatures = useMemo(() => {
+    return buildStreamgageFeatures(localStreamgageData);
+  }, [localStreamgageData]);
+
+  const streamgageFeatures = useMemo(() => {
+    return buildStreamgageFeatures(streamgageData);
+  }, [streamgageData]);
+
+  return { localStreamgageFeatures, streamgageFeatures };
+}
+
 /*
 ## Utils
 */
@@ -335,11 +362,12 @@ function buildStreamgageFeatures(streamgageData: UsgsStreamgageAttributes[]) {
 
 // Builds the base feature layer
 function buildUsgsStreamgagesLayer(
+  baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
 ) {
   return new FeatureLayer({
-    id: `${layerId}-features`,
+    id: baseLayerId,
     title: 'USGS Sensors',
     listMode: 'hide',
     legendEnabled: false,

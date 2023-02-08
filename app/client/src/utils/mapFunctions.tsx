@@ -405,7 +405,7 @@ export function isGraphicsLayer(
 }
 
 export function isGroupLayer(layer: __esri.Layer): layer is __esri.GroupLayer {
-  return (layer as __esri.GroupLayer).type === 'group';
+  return layer.type === 'group';
 }
 
 type HighlightLayerView = __esri.FeatureLayerView | __esri.GraphicsLayerView;
