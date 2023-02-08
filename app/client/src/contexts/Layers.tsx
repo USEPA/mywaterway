@@ -6,7 +6,7 @@ import {
   useReducer,
 } from 'react';
 // types
-import type { ChangeEvent, Dispatch, ReactNode } from 'react';
+import type { Dispatch, ReactNode } from 'react';
 
 const StateContext = createContext<LayersState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<LayersAction> | undefined>(
@@ -14,18 +14,50 @@ const DispatchContext = createContext<Dispatch<LayersAction> | undefined>(
 );
 
 const initialState: LayersState = {
-  usgsStreamgagesLayer: null,
+  resets: {
+    usgsStreamgagesLayer: () => Promise.resolve(),
+  },
+  layers: {
+    usgsStreamgagesLayer: null,
+  },
+  surroundingsToggles: {
+    usgsStreamgagesLayer: () => null,
+  },
 };
 
 function reducer(state: LayersState, action: LayersAction): LayersState {
   switch (action.type) {
     case 'resetLayers': {
-      return action.payload;
+      return {
+        ...state,
+        layers: action.payload,
+      };
     }
     case 'usgsStreamgagesLayer': {
       return {
         ...state,
-        usgsStreamgagesLayer: action.payload,
+        layers: {
+          ...state.layers,
+          usgsStreamgagesLayer: action.payload,
+        },
+      };
+    }
+    case 'usgsStreamgagesLayerReset': {
+      return {
+        ...state,
+        resets: {
+          ...state.resets,
+          usgsStreamgagesLayer: action.payload,
+        },
+      };
+    }
+    case 'usgsStreamgagesLayerSurroundingsToggle': {
+      return {
+        ...state,
+        surroundingsToggles: {
+          ...state.surroundingsToggles,
+          usgsStreamgagesLayer: action.payload,
+        },
       };
     }
     default: {
@@ -70,14 +102,11 @@ export function useLayersReset() {
 
   const resetLayers = useCallback(async () => {
     await Promise.all([
-      ...Object.values(state).map(async (layer) => {
-        if (layer === null) return;
-        if (isAllFeaturesLayer(layer)) {
-          await layer.reset();
-        }
+      ...Object.values(state.resets).map(async (reset) => {
+        await reset();
       }),
     ]);
-    dispatch({ type: 'resetLayers', payload: state });
+    dispatch({ type: 'resetLayers', payload: state.layers });
   }, [dispatch, state]);
 
   return resetLayers;
@@ -88,45 +117,54 @@ export function useLayersActions() {
 
   const dispatchers = useMemo(() => {
     return {
-      setUsgsStreamgagesLayer: (layer: AllFeaturesLayer) =>
+      setUsgsStreamgagesLayer: (layer: __esri.GroupLayer) =>
         dispatch({ type: 'usgsStreamgagesLayer', payload: layer }),
+      setUsgsStreamgagesLayerReset: (reset: () => Promise<void>) =>
+        dispatch({ type: 'usgsStreamgagesLayerReset', payload: reset }),
+      setUsgsStreamgagesLayerSurroundingsToggle: (
+        toggle: (visible: boolean) => void,
+      ) =>
+        dispatch({
+          type: 'usgsStreamgagesLayerSurroundingsToggle',
+          payload: toggle,
+        }),
     };
   }, [dispatch]);
 
-  return { ...dispatchers };
-}
-
-/*
-## Utils
-*/
-function isAllFeaturesLayer(
-  layer: __esri.Layer | AllFeaturesLayer,
-): layer is AllFeaturesLayer {
-  return (
-    layer.hasOwnProperty('layer') &&
-    layer.hasOwnProperty('toggleSurroundings') &&
-    layer.hasOwnProperty('reset')
-  );
+  return dispatchers;
 }
 
 /*
 ## Types
 */
 
-type AllFeaturesLayer = {
-  layer: __esri.GroupLayer;
-  toggleSurroundings: (ev: ChangeEvent<HTMLInputElement>) => void;
-  reset: () => Promise<void>;
-};
+type GroupLayerId = 'usgsStreamgagesLayer';
+
+type LayerId = GroupLayerId;
 
 type LayersState = {
-  usgsStreamgagesLayer: AllFeaturesLayer | null;
+  layers: {
+    [G in GroupLayerId]: __esri.GroupLayer | null;
+  };
+  resets: {
+    [L in LayerId]: () => Promise<void>;
+  };
+  surroundingsToggles: {
+    [S in SurroundingsLayerId]: (visible: boolean) => void;
+  };
 };
 
 type LayersAction =
-  | { type: 'resetLayers'; payload: LayersState }
-  | { type: 'usgsStreamgagesLayer'; payload: AllFeaturesLayer };
+  | { type: 'resetLayers'; payload: LayersState['layers'] }
+  | { type: 'usgsStreamgagesLayer'; payload: __esri.GroupLayer }
+  | { type: 'usgsStreamgagesLayerReset'; payload: () => Promise<void> }
+  | {
+      type: 'usgsStreamgagesLayerSurroundingsToggle';
+      payload: (visible: boolean) => void;
+    };
 
 type LayersProviderProps = {
   children: ReactNode;
 };
+
+type SurroundingsLayerId = 'usgsStreamgagesLayer';

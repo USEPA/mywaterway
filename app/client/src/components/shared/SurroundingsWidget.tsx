@@ -19,7 +19,7 @@ import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
 ## Components
 */
 
-export function useSurroundingWidget() {
+export function useSurroundingsWidget() {
   const { getHucBoundaries, getLayers, setLayers, usgsStreamgagesLayer } =
     useContext(LocationSearchContext);
 
@@ -38,7 +38,7 @@ export function useSurroundingWidget() {
   useEffect(() => {
     if (!usgsStreamgagesLayer) return;
     render(
-      <SurroundingWidget
+      <SurroundingsWidget
         getHucBoundaries={getHucBoundaries}
         getMapLayers={getLayers}
         testLayer={usgsStreamgagesLayer}
@@ -51,7 +51,7 @@ export function useSurroundingWidget() {
   return container;
 }
 
-function SurroundingWidget(props: SurroundingWidgetProps) {
+function SurroundingsWidget(props: SurroundingWidgetProps) {
   const [contentVisible, setContentVisible] = useState(false);
   const toggleContentVisibility = useCallback(() => {
     setContentVisible(!contentVisible);
@@ -63,10 +63,10 @@ function SurroundingWidget(props: SurroundingWidgetProps) {
     <>
       {triggerRef.current && (
         <Portal container={triggerRef.current}>
-          <SurroundingWidgetContent {...props} visible={contentVisible} />
+          <SurroundingsWidgetContent {...props} visible={contentVisible} />
         </Portal>
       )}
-      <SurroundingWidgetTrigger
+      <SurroundingsWidgetTrigger
         onClick={toggleContentVisibility}
         forwardedRef={triggerRef}
       />
@@ -74,7 +74,7 @@ function SurroundingWidget(props: SurroundingWidgetProps) {
   );
 }
 
-function SurroundingWidgetContent({
+function SurroundingsWidgetContent({
   getHucBoundaries,
   getMapLayers,
   setLayers,
@@ -123,7 +123,7 @@ interface ShowSurroundingWidgetProps {
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
 }
 
-function SurroundingWidgetTrigger({
+function SurroundingsWidgetTrigger({
   onClick,
   forwardedRef,
 }: ShowSurroundingWidgetProps) {

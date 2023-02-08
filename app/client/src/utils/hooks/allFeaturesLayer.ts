@@ -9,7 +9,6 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 // utils
 import { isPolygon } from 'utils/mapFunctions';
 // types
-import type { ChangeEvent } from 'react';
 import { LocationSearchContext } from 'contexts/locationSearch';
 
 /*
@@ -64,10 +63,8 @@ export function useAllFeaturesLayer(
   }, [baseLayer, layerId, maskLayer]);
 
   const toggleSurroundings = useCallback(
-    (ev: ChangeEvent<HTMLInputElement>) => {
-      surroundingLayer.opacity = ev.target.checked
-        ? surroundingLayerVisibleOpacity
-        : 0;
+    (visible: boolean) => {
+      surroundingLayer.opacity = visible ? surroundingLayerVisibleOpacity : 0;
     },
     [surroundingLayer],
   );

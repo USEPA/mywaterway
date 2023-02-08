@@ -13,7 +13,7 @@ import {
   useFetchedDataState,
 } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useLayersState, useLayersActions } from 'contexts/Layers';
+import { useLayersActions } from 'contexts/Layers';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
@@ -52,8 +52,11 @@ export function useStreamgages() {
 
   const { huc12, mapView } = useContext(LocationSearchContext);
 
-  const { usgsStreamgagesLayer } = useLayersState();
-  const { setUsgsStreamgagesLayer } = useLayersActions();
+  const {
+    setUsgsStreamgagesLayer,
+    setUsgsStreamgagesLayerReset,
+    setUsgsStreamgagesLayerSurroundingsToggle,
+  } = useLayersActions();
 
   const { services } = useServicesContext();
 
@@ -64,13 +67,21 @@ export function useStreamgages() {
     return buildUsgsStreamgagesLayer(navigate, services);
   }, [navigate, services]);
 
-  const [featureLayer, setFeatureLayer] = useState<__esri.FeatureLayer | null>(
-    null,
-  );
-
   const { layer, toggleSurroundings } = useAllFeaturesLayer(
     layerId,
     buildBaseLayer,
+  );
+
+  useEffect(() => {
+    setUsgsStreamgagesLayer(layer);
+  }, [layer, setUsgsStreamgagesLayer]);
+
+  useEffect(() => {
+    setUsgsStreamgagesLayerSurroundingsToggle(toggleSurroundings);
+  }, [setUsgsStreamgagesLayerSurroundingsToggle, toggleSurroundings]);
+
+  const [featureLayer, setFeatureLayer] = useState<__esri.FeatureLayer | null>(
+    null,
   );
 
   useEffect(() => {
@@ -80,26 +91,16 @@ export function useStreamgages() {
     isFeatureLayer(newFeatureLayer) && setFeatureLayer(newFeatureLayer);
   }, [layer]);
 
-  const resetFeatures = useCallback(async () => {
+  const resetLayer = useCallback(async () => {
     if (!featureLayer) return;
 
+    toggleSurroundings(false);
     updateLayer(featureLayer);
-  }, [featureLayer]);
+  }, [featureLayer, toggleSurroundings]);
 
   useEffect(() => {
-    if (usgsStreamgagesLayer) return;
-    setUsgsStreamgagesLayer({
-      layer,
-      reset: resetFeatures,
-      toggleSurroundings,
-    });
-  }, [
-    layer,
-    resetFeatures,
-    setUsgsStreamgagesLayer,
-    toggleSurroundings,
-    usgsStreamgagesLayer,
-  ]);
+    setUsgsStreamgagesLayerReset(resetLayer);
+  }, [resetLayer, setUsgsStreamgagesLayerReset]);
 
   // Fetch new data when the extent changes
   const getDvFilter = useCallback(
@@ -134,6 +135,7 @@ export function useStreamgages() {
     const handle = reactiveUtils.when(
       () => mapView?.stationary,
       async () => {
+        if (!layer.visible) return;
         const dvFilter = await getDvFilter();
         const thingsFilter = await getThingsFilter();
         fetchUsgsStreamgages(thingsFilter, services, fetchedDataDispatch);
