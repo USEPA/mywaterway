@@ -28,7 +28,7 @@ export class AllFeaturesLayer extends BoundariesToggleLayer {
 @subclass('esri.core.layers.AllGraphicsLayer')
 export class AllGraphicsLayer extends BoundariesToggleLayer {
   constructor(properties: __esri.GroupLayerProperties) {
-    super(properties, 'graphic');
+    super(properties, 'graphics');
   }
 }
 
@@ -36,4 +36,4 @@ export function getBaseLayer(layer: AllFeaturesLayer | AllGraphicsLayer) {
   return layer.findLayerById(`${layer.id}-features`);
 }
 
-export type BaseLayerType = 'feature' | 'graphic';
+type BaseLayerType = 'feature' | 'graphics';

@@ -101,17 +101,31 @@ export function useStreamgageLayer() {
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
+  const [dvFilter, setDvFilter] = useState<string | null>(null);
+  const [thingsFilter, setThingsFilter] = useState<string | null>(null);
+
   const updateData = useCallback(
     async (filterType: BoundariesFilterType) => {
-      const dvFilter = await getDvFilter(filterType);
-      const thingsFilter = await getThingsFilter(filterType);
-      if (!dvFilter || !thingsFilter) return;
+      const newDvFilter = await getDvFilter(filterType);
+      const newThingsFilter = await getThingsFilter(filterType);
+      if (newDvFilter === dvFilter || newThingsFilter === thingsFilter) return;
+      if (!newDvFilter || !newThingsFilter) return;
 
-      fetchUsgsStreamgages(thingsFilter, services, fetchedDataDispatch);
-      fetchUsgsPrecipitation(dvFilter, services, fetchedDataDispatch);
-      fetchUsgsDailyAverages(dvFilter, services, fetchedDataDispatch);
+      fetchUsgsStreamgages(newThingsFilter, services, fetchedDataDispatch);
+      fetchUsgsPrecipitation(newDvFilter, services, fetchedDataDispatch);
+      fetchUsgsDailyAverages(newDvFilter, services, fetchedDataDispatch);
+
+      setDvFilter(newDvFilter);
+      setThingsFilter(newThingsFilter);
     },
-    [fetchedDataDispatch, getDvFilter, getThingsFilter, services],
+    [
+      dvFilter,
+      fetchedDataDispatch,
+      getDvFilter,
+      getThingsFilter,
+      services,
+      thingsFilter,
+    ],
   );
 
   // Create the layer features
@@ -521,9 +535,16 @@ function fetchUsgsStreamgages(
     });
 }
 
+function getExtentArea(extent: __esri.Extent) {
+  return (
+    Math.abs(extent.xmax - extent.xmin) * Math.abs(extent.ymax - extent.ymin)
+  );
+}
 // Gets a string representation of the view's extent as a bounding box
 function getExtentBoundingBox(extent: __esri.Extent | null) {
   if (!extent) return null;
+  // Service requires that area of extent cannot exceed 25 degrees
+  if (getExtentArea(extent) > 25) return null;
 
   return `${toFixedFloat(extent.xmin, 7)},${toFixedFloat(
     extent.ymin,

@@ -784,58 +784,58 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         });
       }
 
-      if (!cachedHighlights[key]) {
-        if (!key || !where) return;
+      // if (!cachedHighlights[key]) {
+      if (!key || !where) return;
 
-        const query = new Query({
-          returnGeometry: false,
-          where,
-          outFields: ['*'],
-        });
+      const query = new Query({
+        returnGeometry: false,
+        where,
+        outFields: ['*'],
+      });
 
-        const requests = [];
+      const requests = [];
 
-        if (featureLayerType === 'waterbodyLayer') {
-          if (areasLayer && areasLayer !== 'error')
-            requests.push(areasLayer.queryFeatures(query));
+      if (featureLayerType === 'waterbodyLayer') {
+        if (areasLayer && areasLayer !== 'error')
+          requests.push(areasLayer.queryFeatures(query));
 
-          if (linesLayer && linesLayer !== 'error')
-            requests.push(linesLayer.queryFeatures(query));
+        if (linesLayer && linesLayer !== 'error')
+          requests.push(linesLayer.queryFeatures(query));
 
-          if (pointsLayer && pointsLayer !== 'error')
-            requests.push(pointsLayer.queryFeatures(query));
-        } else {
-          requests.push(layer.queryFeatures(query));
-        }
+        if (pointsLayer && pointsLayer !== 'error')
+          requests.push(pointsLayer.queryFeatures(query));
+      } else {
+        requests.push(layer.queryFeatures(query));
+      }
 
-        Promise.all(requests).then((responses) => {
-          const featuresToCache: ExtendedGraphic[] = [];
-          responses.forEach((response) => {
-            if (!response || !response.features) return;
+      Promise.all(requests).then((responses) => {
+        const featuresToCache: ExtendedGraphic[] = [];
+        responses.forEach((response) => {
+          if (!response || !response.features) return;
 
-            highlightFeature({
-              mapView,
-              features: response.features,
-              highlightOptions,
-              handles,
-              group,
-              callback: (feature) => featuresToCache.push(feature),
-            });
+          highlightFeature({
+            mapView,
+            features: response.features,
+            highlightOptions,
+            handles,
+            group,
+            // callback: (feature) => featuresToCache.push(feature),
+          });
 
-            // build the new cachedHighlights object
-            const keyToSet: { [key: string]: ExtendedGraphic[] } = {};
-            keyToSet[key] = featuresToCache;
-            cachedHighlights = { ...cachedHighlights, ...keyToSet };
+          // build the new cachedHighlights object
+          const keyToSet: { [key: string]: ExtendedGraphic[] } = {};
+          keyToSet[key] = featuresToCache;
+          cachedHighlights = { ...cachedHighlights, ...keyToSet };
 
-            currentHighlight = graphic;
-            setHighlightState({
-              currentHighlight,
-              currentSelection,
-              cachedHighlights,
-            });
+          currentHighlight = graphic;
+          setHighlightState({
+            currentHighlight,
+            currentSelection,
+            cachedHighlights,
           });
         });
-      }
+      });
+      // }
     }
     //
     else {

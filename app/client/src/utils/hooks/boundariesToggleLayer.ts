@@ -17,10 +17,9 @@ import {
 import { useLayersDispatch } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
-import { isPolygon } from 'utils/mapFunctions';
+import { isFeatureLayer, isPolygon } from 'utils/mapFunctions';
 // types
 import type { BoundariesToggleLayerId } from 'contexts/Layers';
-import type { BaseLayerType } from 'classes/BoundariesToggleLayer';
 
 /*
 ## Hooks
@@ -30,7 +29,6 @@ function useBoundariesToggleLayer<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
 >({
   baseLayerBuilder,
-  baseLayerType,
   features,
   layerId,
   updateData,
@@ -86,10 +84,10 @@ function useBoundariesToggleLayer<
       listMode: 'hide-children',
       title: baseLayer.title,
     };
-    return baseLayerType === 'feature'
+    return isFeatureLayer(baseLayer)
       ? new AllFeaturesLayer(properties)
       : new AllGraphicsLayer(properties);
-  }, [baseLayer, baseLayerType, layerId, maskLayer]);
+  }, [baseLayer, layerId, maskLayer]);
 
   // Manages the surrounding features visibility
   const toggleSurroundings = useCallback(
@@ -102,6 +100,11 @@ function useBoundariesToggleLayer<
   // Update data when the mapView updates
   useEffect(() => {
     if (parentLayer.hasHandles(handleGroupKey)) return;
+
+    // Update data once with HUC boundaries until the mapView is available
+    reactiveUtils
+      .whenOnce(() => mapView?.ready !== true)
+      .then(() => updateData('huc'));
 
     const handle = reactiveUtils.when(
       () => mapView?.stationary === true,
@@ -161,7 +164,6 @@ export function useAllFeaturesLayer(
 ) {
   return useBoundariesToggleLayer({
     baseLayerBuilder,
-    baseLayerType: 'feature',
     features,
     layerId,
     updateData,
@@ -246,7 +248,6 @@ type UseBoundariesToggleLayerParams<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
 > = {
   baseLayerBuilder: (baseLayerId: string) => T;
-  baseLayerType: BaseLayerType;
   features: __esri.Graphic[];
   layerId: BoundariesToggleLayerId;
   updateData: (filterType: BoundariesFilterType) => Promise<void>;
