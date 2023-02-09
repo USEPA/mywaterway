@@ -31,7 +31,6 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -110,13 +109,11 @@ const toggleStyles = css`
 `;
 
 function Overview() {
-  const { usgsDailyAverages, usgsPrecipitation, usgsStreamgages } =
-    useFetchedDataState();
-  const { localStreamgageData: normalizedUsgsStreamgages } = useStreamgageData(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
+  const {
+    localStreamgageData: streamgageData,
+    localStreamgageDataDirty: streamgageDataDirty,
+    localStreamgageDataFailure: streamgageDataFailure,
+  } = useStreamgageData();
 
   const {
     cipSummary,
@@ -189,7 +186,7 @@ function Overview() {
             : monitoringLocationsDisplayed;
       }
 
-      if (usgsStreamgages.status !== 'failure') {
+      if (!streamgageDataFailure) {
         layers.usgsStreamgagesLayer =
           !usgsStreamgagesLayer || useCurrentValue
             ? visibleLayers.usgsStreamgagesLayer
@@ -215,17 +212,17 @@ function Overview() {
     [
       cipSummary,
       monitoringLocations,
-      usgsStreamgages,
+      streamgageDataFailure,
       permittedDischargers,
-      waterbodyLayer,
-      monitoringLocationsLayer,
-      usgsStreamgagesLayer,
-      dischargersLayer,
-      waterbodiesDisplayed,
-      monitoringLocationsDisplayed,
-      usgsStreamgagesDisplayed,
-      permittedDischargersDisplayed,
       visibleLayers,
+      waterbodyLayer,
+      waterbodiesDisplayed,
+      monitoringLocationsLayer,
+      monitoringLocationsDisplayed,
+      usgsStreamgagesLayer,
+      usgsStreamgagesDisplayed,
+      dischargersLayer,
+      permittedDischargersDisplayed,
       setVisibleLayers,
     ],
   );
@@ -236,8 +233,8 @@ function Overview() {
   }, [
     cipSummary,
     monitoringLocations,
-    usgsStreamgages,
     permittedDischargers,
+    streamgageData,
     visibleLayers,
     updateVisibleLayers,
   ]);
@@ -316,13 +313,10 @@ function Overview() {
   const totalMonitoringLocations =
     monitoringLocations.data.features?.length || 0;
 
-  const totalUsgsStreamgages = normalizedUsgsStreamgages.length;
-  // const totalUsgsStreamgages = usgsStreamgages.data.value?.length || 0;
+  const totalUsgsStreamgages = streamgageData.length;
 
   const totalMonitoringAndSensors =
-    monitoringLocations.data.features || usgsStreamgages.data.value
-      ? totalMonitoringLocations + totalUsgsStreamgages
-      : null;
+    totalMonitoringLocations + totalUsgsStreamgages;
 
   const totalPermittedDischargers =
     permittedDischargers.data.Results?.Facilities.length;
@@ -335,13 +329,12 @@ function Overview() {
         </div>
       )}
 
-      {usgsStreamgages.status === 'failure' &&
-        monitoringLocations.status === 'failure' && (
-          <div css={modifiedErrorBoxStyles}>
-            <p>{streamgagesError}</p>
-            <p>{monitoringError}</p>
-          </div>
-        )}
+      {streamgageDataFailure && monitoringLocations.status === 'failure' && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{streamgagesError}</p>
+          <p>{monitoringError}</p>
+        </div>
+      )}
 
       {permittedDischargers.status === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
@@ -386,15 +379,12 @@ function Overview() {
           {!monitoringLocationsLayer ||
           !usgsStreamgagesLayer ||
           monitoringLocations.status === 'fetching' ||
-          usgsStreamgages.status === 'idle' ||
-          usgsStreamgages.status === 'pending' ? (
+          streamgageDataDirty ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalMonitoringAndSensors) &&
-                (monitoringLocations.status === 'success' ||
-                  usgsStreamgages.status === 'success')
+                {Boolean(totalMonitoringAndSensors)
                   ? totalMonitoringAndSensors
                   : 'N/A'}
               </span>
@@ -519,9 +509,6 @@ function MonitoringAndSensorsTab({
   setUsgsStreamgagesDisplayed,
   updateVisibleLayers,
 }) {
-  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
-    useFetchedDataState();
-
   const {
     monitoringGroups,
     monitoringLocations,
@@ -552,11 +539,11 @@ function MonitoringAndSensorsTab({
     setMonitoringAndSensorsDisplayed,
   ]);
 
-  const { localStreamgageData: normalizedUsgsStreamgages } = useStreamgageData(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
+  const {
+    localStreamgageData: streamgageData,
+    localStreamgageDataDirty: streamgageDataDirty,
+    localStreamgageDataFailure: streamgageDataFailure,
+  } = useStreamgageData();
 
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
@@ -568,7 +555,7 @@ function MonitoringAndSensorsTab({
   }, [monitoringGroups, monitoringLocationsLayer]);
 
   const allMonitoringAndSensors = [
-    ...normalizedUsgsStreamgages,
+    ...streamgageData,
     ...normalizedMonitoringLocations,
   ];
 
@@ -751,17 +738,13 @@ function MonitoringAndSensorsTab({
   );
   if (
     monitoringLocations.status === 'fetching' ||
-    usgsStreamgages.status === 'idle' ||
-    usgsStreamgages.status === 'pending' ||
-    !monitoringGroups
+    !monitoringGroups ||
+    streamgageDataDirty
   ) {
     return <LoadingSpinner />;
   }
 
-  if (
-    monitoringLocations.status === 'success' ||
-    usgsStreamgages.status === 'success'
-  ) {
+  if (monitoringLocations.status === 'success' || !streamgageDataFailure) {
     return (
       <>
         <p>
@@ -802,7 +785,7 @@ function MonitoringAndSensorsTab({
 
         {allMonitoringAndSensors.length > 0 && (
           <>
-            {usgsStreamgages.status === 'failure' && (
+            {streamgageDataFailure && (
               <div css={modifiedErrorBoxStyles}>
                 <p>{streamgagesError}</p>
               </div>
@@ -829,17 +812,16 @@ function MonitoringAndSensorsTab({
                     <div css={toggleStyles}>
                       <Switch
                         checked={
-                          normalizedUsgsStreamgages.length > 0 &&
-                          usgsStreamgagesDisplayed
+                          streamgageData.length > 0 && usgsStreamgagesDisplayed
                         }
                         onChange={handleUsgsSensorsToggle}
-                        disabled={normalizedUsgsStreamgages.length === 0}
+                        disabled={streamgageData.length === 0}
                         ariaLabel="USGS Sensors"
                       />
                       <span>USGS Sensors</span>
                     </div>
                   </td>
-                  <td>{normalizedUsgsStreamgages.length}</td>
+                  <td>{streamgageData.length}</td>
                 </tr>
                 <tr>
                   <td>
@@ -1018,7 +1000,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 },
               ]}
             >
-              {sortedPermittedDischargers.map((discharger, index) => {
+              {sortedPermittedDischargers.map((discharger) => {
                 const id = discharger.SourceID;
                 const name = discharger.CWPName;
                 const status = discharger.CWPStatus;

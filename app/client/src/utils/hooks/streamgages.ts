@@ -26,13 +26,9 @@ import type { FetchedDataAction } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
-  FetchState,
   ServicesState,
   StreamgageMeasurement,
-  UsgsDailyAveragesData,
-  UsgsPrecipitationData,
   UsgsStreamgageAttributes,
-  UsgsStreamgagesData,
 } from 'types';
 import type { BoundariesFilterType } from 'utils/hooks';
 
@@ -128,15 +124,7 @@ export function useStreamgageLayer() {
     ],
   );
 
-  // Create the layer features
-  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
-    useFetchedDataState();
-
-  const { streamgageFeatures } = useStreamgageFeatures(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
+  const { streamgageFeatures } = useStreamgageFeatures();
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer(
@@ -148,20 +136,64 @@ export function useStreamgageLayer() {
 }
 
 // Normalizes USGS streamgage data with monitoring stations data.
-export function useStreamgageData(
-  usgsStreamgages: FetchState<UsgsStreamgagesData>,
-  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
-  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
-) {
-  const { hucBoundaries } = useContext(LocationSearchContext);
+export function useStreamgageData() {
+  // Create the layer features
+  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
+    useFetchedDataState();
 
-  const [normalizedData, setNormalizedData] = useState<
-    UsgsStreamgageAttributes[]
-  >([]);
-  const [localNormalizedData, setLocalNormalizedData] = useState<
-    UsgsStreamgageAttributes[]
-  >([]);
+  const { huc12, hucBoundaries } = useContext(LocationSearchContext);
 
+  const [data, setData] = useState<UsgsStreamgageAttributes[]>([]);
+  const [localData, setLocalData] = useState<UsgsStreamgageAttributes[]>([]);
+
+  const [dataDirty, setDataDirty] = useState(true);
+  const [localDataDirty, setLocalDataDirty] = useState(true);
+
+  const [dataFailure, setDataFailure] = useState(false);
+  const [localDataFailure, setLocalDataFailure] = useState(false);
+
+  // Mark local data for updates when HUC changes
+  useEffect(() => {
+    if (huc12) return;
+    setLocalDataDirty(true);
+  }, [huc12]);
+
+  // Update local data only if needed and complete dataset is ready
+  useEffect(() => {
+    if (!localDataDirty || dataDirty) return;
+    setLocalData(
+      data.filter((gage) => {
+        return hucBoundaries?.features[0]?.geometry.contains(
+          new Point({
+            latitude: gage.locationLatitude,
+            longitude: gage.locationLongitude,
+          }),
+        );
+      }),
+    );
+    setLocalDataDirty(false);
+  }, [data, dataDirty, hucBoundaries, localDataDirty]);
+
+  // Mark data failure if service fails
+  useEffect(() => {
+    if (
+      usgsStreamgages.status === 'failure' ||
+      usgsPrecipitation.status === 'failure' ||
+      usgsDailyAverages.status === 'failure'
+    ) {
+      setData([]);
+      setDataFailure(true);
+      setLocalData([]);
+      setLocalDataFailure(true);
+    }
+
+    return function cleanup() {
+      setDataFailure(false);
+      setLocalDataFailure(false);
+    };
+  }, [usgsDailyAverages, usgsPrecipitation, usgsStreamgages]);
+
+  // Update the complete dataset
   useEffect(() => {
     if (
       usgsStreamgages.status !== 'success' ||
@@ -170,6 +202,8 @@ export function useStreamgageData(
     ) {
       return;
     }
+
+    setDataDirty(true);
 
     const gages = usgsStreamgages.data.value.map((gage) => {
       const streamgageMeasurements: {
@@ -312,35 +346,29 @@ export function useStreamgageData(
       });
     }
 
-    setLocalNormalizedData(
-      gages.filter((gage) => {
-        return hucBoundaries?.features[0]?.geometry.contains(
-          new Point({
-            latitude: gage.locationLatitude,
-            longitude: gage.locationLongitude,
-          }),
-        );
-      }),
-    );
-    setNormalizedData(gages);
+    setData(gages);
+    setDataDirty(false);
   }, [hucBoundaries, usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
 
   return {
-    streamgageData: normalizedData,
-    localStreamgageData: localNormalizedData,
+    localStreamgageData: localData,
+    localStreamgageDataDirty: localDataDirty,
+    localStreamgageDataFailure: localDataFailure,
+    streamgageData: data,
+    streamgageDataDirty: dataDirty,
+    streamgageDataFailure: dataFailure,
   };
 }
 
-export function useStreamgageFeatures(
-  usgsStreamgages: FetchState<UsgsStreamgagesData>,
-  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
-  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
-) {
-  const { localStreamgageData, streamgageData } = useStreamgageData(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
+export function useStreamgageFeatures() {
+  const {
+    localStreamgageData,
+    localStreamgageDataDirty,
+    localStreamgageDataFailure,
+    streamgageData,
+    streamgageDataDirty,
+    streamgageDataFailure,
+  } = useStreamgageData();
 
   const localStreamgageFeatures = useMemo(() => {
     return buildStreamgageFeatures(localStreamgageData);
@@ -350,7 +378,14 @@ export function useStreamgageFeatures(
     return buildStreamgageFeatures(streamgageData);
   }, [streamgageData]);
 
-  return { localStreamgageFeatures, streamgageFeatures };
+  return {
+    localStreamgageFeatures,
+    localStreamgageFeaturesDirty: localStreamgageDataDirty,
+    localStreamgageFeaturesFailure: localStreamgageDataFailure,
+    streamgageFeatures,
+    streamgageFeaturesDirty: streamgageDataDirty,
+    streamgageFeaturesFailure: streamgageDataFailure,
+  };
 }
 
 /*

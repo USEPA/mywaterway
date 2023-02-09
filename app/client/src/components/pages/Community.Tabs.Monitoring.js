@@ -33,7 +33,6 @@ import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -309,7 +308,6 @@ function filterLocations(groups, timeframe) {
 
 function Monitoring() {
   const navigate = useNavigate();
-  const { usgsStreamgages } = useFetchedDataState();
 
   const {
     cipSummary,
@@ -324,6 +322,12 @@ function Monitoring() {
   } = useContext(LocationSearchContext);
 
   const { usgsStreamgagesLayer } = useLayers();
+
+  const {
+    localStreamgageFeatures: streamgageFeatures,
+    localStreamgageFeaturesDirty: streamgageFeaturesDirty,
+    localStreamgageFeaturesFailure: streamgageFeaturesFailure,
+  } = useStreamgageFeatures();
 
   const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
     useState(true);
@@ -386,7 +390,7 @@ function Monitoring() {
             : monitoringDisplayed;
       }
 
-      if (usgsStreamgages.status !== 'failure') {
+      if (!streamgageFeaturesFailure) {
         layers.usgsStreamgagesLayer =
           !usgsStreamgagesLayer || useCurrentValue
             ? visibleLayers.usgsStreamgagesLayer
@@ -424,7 +428,7 @@ function Monitoring() {
       monitoringLocationsLayer,
       permittedDischargers,
       setVisibleLayers,
-      usgsStreamgages,
+      streamgageFeaturesFailure,
       usgsStreamgagesDisplayed,
       usgsStreamgagesLayer,
       visibleLayers,
@@ -438,8 +442,8 @@ function Monitoring() {
     cipSummary,
     monitoringLocations,
     permittedDischargers,
+    streamgageFeatures,
     updateVisibleLayers,
-    usgsStreamgages,
     visibleLayers,
   ]);
 
@@ -485,23 +489,18 @@ function Monitoring() {
   );
 
   const totalCurrentWaterConditions =
-    (usgsStreamgages.data.value?.length ?? 0) +
-    (cyanWaterbodies.data?.length ?? 0);
+    streamgageFeatures.length + (cyanWaterbodies.data?.length ?? 0);
 
   return (
     <div css={containerStyles}>
       <div css={keyMetricsStyles}>
         <div css={keyMetricStyles}>
-          {usgsStreamgages.status === 'idle' ||
-          usgsStreamgages.status === 'pending' ? (
+          {streamgageFeaturesDirty ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {usgsStreamgages.status === 'success' ||
-                cyanWaterbodies.status === 'success'
-                  ? totalCurrentWaterConditions
-                  : 'N/A'}
+                {totalCurrentWaterConditions || 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Current Water Conditions</p>
               <div css={switchContainerStyles}>
@@ -679,9 +678,6 @@ function CurrentConditionsTab({
     setCurrentWaterConditionsDisplayed,
   ]);
 
-  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
-    useFetchedDataState();
-
   // draw the waterbody on the map
   useWaterbodyOnMap();
 
@@ -691,16 +687,16 @@ function CurrentConditionsTab({
     LocationSearchContext,
   );
 
-  const normalizedUsgsStreamgages = useStreamgageFeatures(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
+  const {
+    localStreamgageFeatures: streamgageFeatures,
+    localStreamgageFeaturesDirty: streamgageFeaturesDirty,
+    localStreamgageFeaturesFailure: streamgageFeaturesFailure,
+  } = useStreamgageFeatures();
 
   const [sortedBy, setSortedBy] = useState('locationName');
 
   const sortedLocations = [
-    ...normalizedUsgsStreamgages,
+    ...streamgageFeatures,
     ...(cyanWaterbodies.status === 'success' ? cyanWaterbodies.data : []),
   ].sort(({ attributes: a }, { attributes: b }) => {
     if (sortedBy in a && sortedBy in b) {
@@ -747,12 +743,11 @@ function CurrentConditionsTab({
 
   const handleSortChange = useCallback(({ value }) => setSortedBy(value), []);
 
-  if (usgsStreamgages.status === 'idle' || usgsStreamgages.status === 'pending')
-    return <LoadingSpinner />;
+  if (streamgageFeaturesDirty) return <LoadingSpinner />;
 
   return (
     <>
-      {usgsStreamgages.status === 'failure' && (
+      {streamgageFeaturesFailure && (
         <div css={modifiedErrorBoxStyles}>
           <p>{streamgagesError}</p>
         </div>
@@ -779,17 +774,16 @@ function CurrentConditionsTab({
               <div css={toggleStyles}>
                 <Switch
                   checked={
-                    normalizedUsgsStreamgages.length > 0 &&
-                    usgsStreamgagesDisplayed
+                    streamgageFeatures.length > 0 && usgsStreamgagesDisplayed
                   }
                   onChange={handleUsgsSensorsToggle}
-                  disabled={normalizedUsgsStreamgages.length === 0}
+                  disabled={streamgageFeatures.length === 0}
                   ariaLabel="USGS Sensors"
                 />
                 <span>USGS Sensors</span>
               </div>
             </td>
-            <td>{normalizedUsgsStreamgages.length}</td>
+            <td>{streamgageFeatures.length}</td>
           </tr>
           <tr>
             <td>
