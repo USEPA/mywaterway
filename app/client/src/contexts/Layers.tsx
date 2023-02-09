@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useReducer,
-} from 'react';
+import { createContext, useCallback, useContext, useReducer } from 'react';
 // types
 import type { Dispatch, ReactNode } from 'react';
 
@@ -20,43 +14,43 @@ const initialState: LayersState = {
   layers: {
     usgsStreamgagesLayer: null,
   },
-  surroundingsToggles: {
+  boundariesToggles: {
     usgsStreamgagesLayer: () => null,
   },
 };
 
 function reducer(state: LayersState, action: LayersAction): LayersState {
   switch (action.type) {
-    case 'resetLayers': {
+    case 'resetAll': {
       return {
         ...state,
         layers: action.payload,
       };
     }
-    case 'usgsStreamgagesLayer': {
+    case 'layer': {
       return {
         ...state,
         layers: {
           ...state.layers,
-          usgsStreamgagesLayer: action.payload,
+          [action.id]: action.payload,
         },
       };
     }
-    case 'usgsStreamgagesLayerReset': {
+    case 'reset': {
       return {
         ...state,
         resets: {
           ...state.resets,
-          usgsStreamgagesLayer: action.payload,
+          [action.id]: action.payload,
         },
       };
     }
-    case 'usgsStreamgagesLayerSurroundingsToggle': {
+    case 'boundariesToggle': {
       return {
         ...state,
-        surroundingsToggles: {
-          ...state.surroundingsToggles,
-          usgsStreamgagesLayer: action.payload,
+        boundariesToggles: {
+          ...state.boundariesToggles,
+          [action.id]: action.payload,
         },
       };
     }
@@ -84,28 +78,6 @@ export function useLayers() {
   return state.layers;
 }
 
-export function useLayersActions() {
-  const dispatch = useLayersDispatch();
-
-  const dispatchers = useMemo(() => {
-    return {
-      setUsgsStreamgagesLayer: (layer: __esri.GroupLayer) =>
-        dispatch({ type: 'usgsStreamgagesLayer', payload: layer }),
-      setUsgsStreamgagesLayerReset: (reset: () => Promise<void>) =>
-        dispatch({ type: 'usgsStreamgagesLayerReset', payload: reset }),
-      setUsgsStreamgagesLayerSurroundingsToggle: (
-        toggle: (visible: boolean) => void,
-      ) =>
-        dispatch({
-          type: 'usgsStreamgagesLayerSurroundingsToggle',
-          payload: toggle,
-        }),
-    };
-  }, [dispatch]);
-
-  return dispatchers;
-}
-
 // Returns state stored in `LayersProvider` context component.
 function useLayersState() {
   const state = useContext(StateContext);
@@ -115,13 +87,13 @@ function useLayersState() {
   return state;
 }
 
-export function useLayersSurroundingsToggles() {
+export function useLayersBoundariesToggles() {
   const state = useLayersState();
 
-  return state.surroundingsToggles;
+  return state.boundariesToggles;
 }
 
-function useLayersDispatch() {
+export function useLayersDispatch() {
   const dispatch = useContext(DispatchContext);
   if (dispatch === undefined) {
     throw new Error('useLayersDispatch must be used within a LayersProvider');
@@ -140,7 +112,7 @@ export function useLayersReset() {
         await reset();
       }),
     ]);
-    dispatch({ type: 'resetLayers', payload: state.layers });
+    dispatch({ type: 'resetAll', payload: state.layers });
   }, [dispatch, state]);
 
   return resetLayers;
@@ -161,17 +133,18 @@ export type LayersState = {
   resets: {
     [L in LayerId]: () => Promise<void>;
   };
-  surroundingsToggles: {
-    [S in SurroundingsToggleLayerId]: (visible: boolean) => void;
+  boundariesToggles: {
+    [B in BoundariesToggleLayerId]: (visible: boolean) => void;
   };
 };
 
 type LayersAction =
-  | { type: 'resetLayers'; payload: LayersState['layers'] }
-  | { type: 'usgsStreamgagesLayer'; payload: __esri.GroupLayer }
-  | { type: 'usgsStreamgagesLayerReset'; payload: () => Promise<void> }
+  | { type: 'resetAll'; payload: LayersState['layers'] }
+  | { type: 'layer'; id: 'usgsStreamgagesLayer'; payload: __esri.GroupLayer }
+  | { type: 'reset'; id: 'usgsStreamgagesLayer'; payload: () => Promise<void> }
   | {
-      type: 'usgsStreamgagesLayerSurroundingsToggle';
+      type: 'boundariesToggle';
+      id: 'usgsStreamgagesLayer';
       payload: (visible: boolean) => void;
     };
 
@@ -179,4 +152,4 @@ type LayersProviderProps = {
   children: ReactNode;
 };
 
-type SurroundingsToggleLayerId = 'usgsStreamgagesLayer';
+export type BoundariesToggleLayerId = 'usgsStreamgagesLayer';

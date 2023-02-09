@@ -14,10 +14,12 @@ import {
   AllGraphicsLayer,
 } from 'classes/BoundariesToggleLayer';
 // contexts
+import { useLayersDispatch } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { isPolygon } from 'utils/mapFunctions';
 // types
+import type { BoundariesToggleLayerId } from 'contexts/Layers';
 import type { BaseLayerType } from 'classes/BoundariesToggleLayer';
 
 /*
@@ -130,11 +132,29 @@ function useBoundariesToggleLayer<
     updateLayer(baseLayer, features);
   }, [baseLayer, features, updateLayer]);
 
-  return { layer: parentLayer, resetLayer, toggleSurroundings };
+  const layersDispatch = useLayersDispatch();
+
+  useEffect(() => {
+    layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
+  }, [layerId, layersDispatch, parentLayer]);
+
+  useEffect(() => {
+    layersDispatch({
+      type: 'boundariesToggle',
+      id: layerId,
+      payload: toggleSurroundings,
+    });
+  }, [layerId, layersDispatch, toggleSurroundings]);
+
+  useEffect(() => {
+    layersDispatch({ type: 'reset', id: layerId, payload: resetLayer });
+  }, [layerId, layersDispatch, resetLayer]);
+
+  return parentLayer;
 }
 
 export function useAllFeaturesLayer(
-  layerId: string,
+  layerId: BoundariesToggleLayerId,
   baseLayerBuilder: (baseLayerId: string) => __esri.FeatureLayer,
   updateData: (filterType: BoundariesFilterType) => Promise<void>,
   features: __esri.Graphic[],
@@ -228,7 +248,7 @@ type UseBoundariesToggleLayerParams<
   baseLayerBuilder: (baseLayerId: string) => T;
   baseLayerType: BaseLayerType;
   features: __esri.Graphic[];
-  layerId: string;
+  layerId: BoundariesToggleLayerId;
   updateData: (filterType: BoundariesFilterType) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };

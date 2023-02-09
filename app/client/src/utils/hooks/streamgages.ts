@@ -13,7 +13,6 @@ import {
   useFetchedDataState,
 } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useLayersActions } from 'contexts/Layers';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
@@ -126,33 +125,12 @@ export function useStreamgageLayer() {
   );
 
   // Build a group layer with toggleable boundaries
-  const { layer, resetLayer, toggleSurroundings } = useAllFeaturesLayer(
+  return useAllFeaturesLayer(
     layerId,
     buildBaseLayer,
     updateData,
     streamgageFeatures,
   );
-
-  // Update Layers context
-  const {
-    setUsgsStreamgagesLayer,
-    setUsgsStreamgagesLayerReset,
-    setUsgsStreamgagesLayerSurroundingsToggle,
-  } = useLayersActions();
-
-  useEffect(() => {
-    setUsgsStreamgagesLayer(layer);
-  }, [layer, setUsgsStreamgagesLayer]);
-
-  useEffect(() => {
-    setUsgsStreamgagesLayerSurroundingsToggle(toggleSurroundings);
-  }, [setUsgsStreamgagesLayerSurroundingsToggle, toggleSurroundings]);
-
-  useEffect(() => {
-    setUsgsStreamgagesLayerReset(resetLayer);
-  }, [resetLayer, setUsgsStreamgagesLayerReset]);
-
-  return layer;
 }
 
 // Normalizes USGS streamgage data with monitoring stations data.

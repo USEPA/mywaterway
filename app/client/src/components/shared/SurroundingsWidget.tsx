@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
-import { useLayers, useLayersSurroundingsToggles } from 'contexts/Layers';
+import { useLayers, useLayersBoundariesToggles } from 'contexts/Layers';
 // types
 import type { LayersState } from 'contexts/Layers';
 import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
@@ -12,7 +12,7 @@ import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
 */
 
 export function useSurroundingsWidget() {
-  const toggles = useLayersSurroundingsToggles();
+  const toggles = useLayersBoundariesToggles();
   const layers = useLayers();
 
   const [container] = useState(document.createElement('div'));
@@ -167,5 +167,5 @@ type SurroundingWidgetContentProps = SurroundingWidgetProps & {
 
 type SurroundingWidgetProps = {
   layers: LayersState['layers'];
-  toggles: LayersState['surroundingsToggles'];
+  toggles: LayersState['boundariesToggles'];
 };
