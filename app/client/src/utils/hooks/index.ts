@@ -546,26 +546,19 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     setHandles(new Handles());
   }, [handles]);
 
-  // Clears the cache when users change searches. This is to fix issues
-  // with layer mismatch in ArcGIS API 4.14+
   type HighlightState = {
     currentHighlight: ExtendedGraphic | null;
     currentSelection: ExtendedGraphic | null;
-    cachedHighlights: {
-      [key: string]: ExtendedGraphic[];
-    };
   };
   const [highlightState, setHighlightState] = useState<HighlightState>({
     currentHighlight: null,
     currentSelection: null,
-    cachedHighlights: {},
   });
 
   useEffect(() => {
     setHighlightState({
       currentHighlight: null,
       currentSelection: null,
-      cachedHighlights: {},
     });
   }, [huc12]);
 
@@ -580,8 +573,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     else if (selectedGraphic) graphic = selectedGraphic;
 
     // save the state into separate variables for now
-    let { currentHighlight, currentSelection, cachedHighlights } =
-      highlightState;
+    let { currentHighlight, currentSelection } = highlightState;
 
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
@@ -599,7 +591,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         setHighlightState({
           currentHighlight,
           currentSelection,
-          cachedHighlights,
         });
       }
 
@@ -690,7 +681,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       setHighlightState({
         currentHighlight,
         currentSelection,
-        cachedHighlights,
       });
     }
 
@@ -766,25 +756,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         where = `orgId = '${orgId}' And siteId = '${siteId}'`;
       }
 
-      if (cachedHighlights[key]) {
-        highlightFeature({
-          mapView,
-          features: cachedHighlights[key],
-          highlightOptions,
-          handles,
-          group,
-        });
-
-        currentHighlight = graphic;
-
-        setHighlightState({
-          currentHighlight,
-          currentSelection,
-          cachedHighlights,
-        });
-      }
-
-      // if (!cachedHighlights[key]) {
       if (!key || !where) return;
 
       const query = new Query({
@@ -809,7 +780,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       }
 
       Promise.all(requests).then((responses) => {
-        const featuresToCache: ExtendedGraphic[] = [];
         responses.forEach((response) => {
           if (!response || !response.features) return;
 
@@ -819,26 +789,17 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
             highlightOptions,
             handles,
             group,
-            // callback: (feature) => featuresToCache.push(feature),
           });
 
-          // build the new cachedHighlights object
-          const keyToSet: { [key: string]: ExtendedGraphic[] } = {};
-          keyToSet[key] = featuresToCache;
-          cachedHighlights = { ...cachedHighlights, ...keyToSet };
-
           currentHighlight = graphic;
+
           setHighlightState({
             currentHighlight,
             currentSelection,
-            cachedHighlights,
           });
         });
       });
-      // }
-    }
-    //
-    else {
+    } else {
       highlightFeature({
         mapView,
         layer,
