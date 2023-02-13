@@ -1,5 +1,6 @@
 import Color from '@arcgis/core/Color';
 import Extent from '@arcgis/core/geometry/Extent';
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -24,6 +25,26 @@ import type { BoundariesToggleLayerId } from 'contexts/Layers';
 /*
 ## Hooks
 */
+
+export function useAllFeatures() {}
+
+export function useAllData() {}
+// normalizeData,
+
+export function useAllFeaturesLayer(
+  layerId: BoundariesToggleLayerId,
+  baseLayerBuilder: (baseLayerId: string) => __esri.FeatureLayer,
+  updateData: (filterType: BoundariesFilterType) => Promise<void>,
+  features: __esri.Graphic[],
+) {
+  return useBoundariesToggleLayer({
+    baseLayerBuilder,
+    features,
+    layerId,
+    updateData,
+    updateLayer: updateFeatureLayer,
+  });
+}
 
 function useBoundariesToggleLayer<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
@@ -89,14 +110,6 @@ function useBoundariesToggleLayer<
       : new AllGraphicsLayer(properties);
   }, [baseLayer, layerId, maskLayer]);
 
-  // Manages the surrounding features visibility
-  const toggleSurroundings = useCallback(
-    (visible: boolean) => {
-      surroundingLayer.opacity = visible ? surroundingLayerVisibleOpacity : 0;
-    },
-    [surroundingLayer],
-  );
-
   // Update data when the mapView updates
   useEffect(() => {
     if (parentLayer.hasHandles(handleGroupKey)) return;
@@ -126,9 +139,9 @@ function useBoundariesToggleLayer<
   const resetLayer = useCallback(async () => {
     if (!baseLayer) return;
 
-    toggleSurroundings(false);
+    surroundingLayer.opacity = surroundingsHiddenOpacity;
     updateLayer(baseLayer);
-  }, [baseLayer, toggleSurroundings, updateLayer]);
+  }, [baseLayer, surroundingLayer, updateLayer]);
 
   // Update layer features when new data is available
   useEffect(() => {
@@ -140,6 +153,20 @@ function useBoundariesToggleLayer<
   useEffect(() => {
     layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
   }, [layerId, layersDispatch, parentLayer]);
+
+  // Manages the surrounding features visibility
+  const toggleSurroundings = useCallback(() => {
+    const surroundingsVisible =
+      surroundingLayer.opacity === surroundingsVisibleOpacity;
+    surroundingLayer.opacity = surroundingsVisible
+      ? surroundingsHiddenOpacity
+      : surroundingsVisibleOpacity;
+    layersDispatch({
+      type: 'surroundingsVibility',
+      id: layerId,
+      payload: !surroundingsVisible,
+    });
+  }, [layerId, layersDispatch, surroundingLayer]);
 
   useEffect(() => {
     layersDispatch({
@@ -154,21 +181,6 @@ function useBoundariesToggleLayer<
   }, [layerId, layersDispatch, resetLayer]);
 
   return parentLayer;
-}
-
-export function useAllFeaturesLayer(
-  layerId: BoundariesToggleLayerId,
-  baseLayerBuilder: (baseLayerId: string) => __esri.FeatureLayer,
-  updateData: (filterType: BoundariesFilterType) => Promise<void>,
-  features: __esri.Graphic[],
-) {
-  return useBoundariesToggleLayer({
-    baseLayerBuilder,
-    features,
-    layerId,
-    updateData,
-    updateLayer: updateFeatureLayer,
-  });
 }
 
 function useHucGraphic() {
@@ -236,7 +248,8 @@ async function updateFeatureLayer(
 ## Constants
 */
 
-const surroundingLayerVisibleOpacity = 0.8;
+const surroundingsHiddenOpacity = 0;
+const surroundingsVisibleOpacity = 0.8;
 const minScale = 577791;
 
 /*

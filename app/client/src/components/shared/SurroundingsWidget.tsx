@@ -2,10 +2,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
-import { useLayers, useLayersBoundariesToggles } from 'contexts/Layers';
+import {
+  BoundariesToggleLayerId,
+  useLayers,
+  useLayersBoundariesToggles,
+  useLayersSurroundingsVisibilities,
+} from 'contexts/Layers';
+// styles
+import { fonts } from 'styles';
 // types
 import type { LayersState } from 'contexts/Layers';
-import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
+import type { MutableRefObject, ReactNode } from 'react';
 
 /*
 ## Components
@@ -14,11 +21,19 @@ import type { CSSProperties, MutableRefObject, ReactNode } from 'react';
 export function useSurroundingsWidget() {
   const toggles = useLayersBoundariesToggles();
   const layers = useLayers();
+  const surroundings = useLayersSurroundingsVisibilities();
 
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
-    render(<SurroundingsWidget toggles={toggles} layers={layers} />, container);
-  }, [container, layers, toggles]);
+    render(
+      <SurroundingsWidget
+        surroundings={surroundings}
+        toggles={toggles}
+        layers={layers}
+      />,
+      container,
+    );
+  }, [container, layers, surroundings, toggles]);
 
   return container;
 }
@@ -48,28 +63,38 @@ function SurroundingsWidget(props: SurroundingWidgetProps) {
 
 function SurroundingsWidgetContent({
   layers,
+  surroundings,
   toggles,
   visible,
 }: SurroundingWidgetContentProps) {
-  if (!visible) return null;
-
   return (
-    <>
-      <div css={widgetContentStyles}>
-        {layers.usgsStreamgagesLayer && (
-          <>
-            <label htmlFor={layers.usgsStreamgagesLayer.id}>
-              {layers.usgsStreamgagesLayer.title}
-            </label>
-            <input
-              id={layers.usgsStreamgagesLayer.id}
-              type="checkbox"
-              onChange={(ev) => toggles.usgsStreamgagesLayer(ev.target.checked)}
-            ></input>
-          </>
-        )}
+    <div css={widgetContentStyles(visible)}>
+      <div>
+        <h1>Surrounding Features:</h1>
+        <div>
+          <ul>
+            {(Object.keys(toggles) as BoundariesToggleLayerId[]).map((id) => {
+              const layer = layers[id];
+              if (!layer) return <></>;
+              return (
+                <li key={id}>
+                  <div>
+                    <div css={listItemContentStyles} onClick={toggles[id]}>
+                      <span
+                        className={`esri-icon-${
+                          surroundings[id] ? '' : 'non-'
+                        }visible`}
+                      ></span>
+                      <span>{layer.title}</span>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -90,16 +115,13 @@ function SurroundingsWidgetTrigger({
   return (
     <div
       title={title}
-      style={hover ? divHoverStyle : divStyle}
+      css={divStyle(hover)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={onClick}
       ref={forwardedRef}
     >
-      <span
-        className={iconClass}
-        style={hover ? buttonHoverStyle : buttonStyle}
-      />
+      <span className={iconClass} css={buttonStyle(hover)} />
     </div>
   );
 }
@@ -108,43 +130,94 @@ function SurroundingsWidgetTrigger({
 ## Styles
 */
 
-const buttonStyle: CSSProperties = {
-  margin: '8.5px',
-  fontSize: '15px',
-  textAlign: 'center',
-  verticalAlign: 'middle',
+const buttonStyle = (hover: boolean) => css`
+  margin: 8.5px;
+  fontsize: 15px;
+  text-align: center;
+  vertical-align: middle;
+  color: ${hover ? 'black' : '#6E6E6E'};
+`;
 
-  backgroundColor: 'white',
-  color: '#6E6E6E',
-};
-
-const buttonHoverStyle: CSSProperties = {
-  margin: '8.5px',
-  fontSize: '15px',
-  textAlign: 'center',
-  verticalAlign: 'middle',
-
-  backgroundColor: '#F0F0F0',
-  color: 'black',
-  cursor: 'pointer',
-};
-
-const divStyle = {
-  height: '32px',
-  width: '32px',
-  backgroundColor: 'white',
-};
-
-const divHoverStyle = {
-  height: '32px',
-  width: '32px',
-  backgroundColor: '#F0F0F0',
-  cursor: 'pointer',
-};
-
-const widgetContentStyles = css`
+const divStyle = (hover: boolean) => css`
+  background-color: ${hover ? '#F0F0F0' : 'white'};
+  cursor: pointer;
+  height: 32px;
   position: relative;
-  right: 50px;
+  width: 32px;
+`;
+
+const listItemContentStyles = css``;
+
+const widgetContentStyles = (visible: boolean) => css`
+  background-color: white;
+  cursor: initial;
+  height: auto;
+  margin-right: 7px;
+  max-height: 420px;
+  opacity: ${visible ? 1 : 0};
+  overflow: auto;
+  position: absolute;
+  transition: opacity 250ms ease-in-out, margin 250ms ease-in-out;
+  right: 32px;
+  top: 0px;
+  visibility: ${visible ? 'visible' : 'hidden'};
+  width: auto;
+
+  & > div {
+    padding-top: 10px;
+    width: 200px;
+
+    h1 {
+      font-family: ${fonts.primary};
+      font-size: 1.25em;
+      font-weight: 500;
+      line-height: 1.2;
+      margin: 0 10px;
+      padding: 0;
+    }
+
+    & > div {
+      color: #323232;
+      display: flex;
+      flex-flow: column;
+      padding: 12px 10px 0;
+
+      & > ul {
+        list-style: none;
+        padding: 2px;
+
+        & > li {
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+          line-height: 1;
+          margin-bottom: 10px;
+
+          & > div {
+            border-left: 3px solid transparent;
+            padding: 5px;
+
+            & > div {
+              align-items: flex-start;
+              cursor: pointer;
+              display: flex;
+              flex-flow: row;
+              gap: 5px;
+              justify-content: flex-start;
+              padding: 5px;
+
+              span:first-of-type {
+                font-size: 16px;
+              }
+
+              span:last-of-type {
+                font-size: 0.8125em;
+                margin: auto 0;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 `;
 
 /*
@@ -167,5 +240,6 @@ type SurroundingWidgetContentProps = SurroundingWidgetProps & {
 
 type SurroundingWidgetProps = {
   layers: LayersState['layers'];
+  surroundings: LayersState['surroundingsVibilities'];
   toggles: LayersState['boundariesToggles'];
 };

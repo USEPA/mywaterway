@@ -17,6 +17,9 @@ const initialState: LayersState = {
   boundariesToggles: {
     usgsStreamgagesLayer: () => null,
   },
+  surroundingsVibilities: {
+    usgsStreamgagesLayer: false,
+  },
 };
 
 function reducer(state: LayersState, action: LayersAction): LayersState {
@@ -54,6 +57,15 @@ function reducer(state: LayersState, action: LayersAction): LayersState {
         },
       };
     }
+    case 'surroundingsVibility': {
+      return {
+        ...state,
+        surroundingsVibilities: {
+          ...state.surroundingsVibilities,
+          [action.id]: action.payload,
+        },
+      };
+    }
     default: {
       throw new Error(`Unhandled action type: ${action}`);
     }
@@ -78,6 +90,10 @@ export function useLayers() {
   return state.layers;
 }
 
+/*
+## Hooks
+*/
+
 // Returns state stored in `LayersProvider` context component.
 function useLayersState() {
   const state = useContext(StateContext);
@@ -91,6 +107,12 @@ export function useLayersBoundariesToggles() {
   const state = useLayersState();
 
   return state.boundariesToggles;
+}
+
+export function useLayersSurroundingsVisibilities() {
+  const state = useLayersState();
+
+  return state.surroundingsVibilities;
 }
 
 export function useLayersDispatch() {
@@ -119,6 +141,16 @@ export function useLayersReset() {
 }
 
 /*
+## Utils
+*/
+
+export function isBoundariesToggleLayerId(
+  id: string,
+): id is BoundariesToggleLayerId {
+  return Object.keys(initialState['boundariesToggles']).includes(id);
+}
+
+/*
 ## Types
 */
 
@@ -134,7 +166,10 @@ export type LayersState = {
     [L in LayerId]: () => Promise<void>;
   };
   boundariesToggles: {
-    [B in BoundariesToggleLayerId]: (visible: boolean) => void;
+    [B in BoundariesToggleLayerId]: () => void;
+  };
+  surroundingsVibilities: {
+    [B in BoundariesToggleLayerId]: boolean;
   };
 };
 
@@ -145,7 +180,12 @@ type LayersAction =
   | {
       type: 'boundariesToggle';
       id: 'usgsStreamgagesLayer';
-      payload: (visible: boolean) => void;
+      payload: () => void;
+    }
+  | {
+      type: 'surroundingsVibility';
+      id: 'usgsStreamgagesLayer';
+      payload: boolean;
     };
 
 type LayersProviderProps = {
