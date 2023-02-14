@@ -66,7 +66,12 @@ export function useStreamgageLayer() {
   );
 
   // Build a group layer with toggleable boundaries
-  return useAllFeaturesLayer(layerId, buildBaseLayer, updateData, features);
+  return useAllFeaturesLayer({
+    layerId,
+    baseLayerBuilder: buildBaseLayer,
+    updateData,
+    features,
+  });
 }
 
 export function useLocalStreamgageFeatures() {

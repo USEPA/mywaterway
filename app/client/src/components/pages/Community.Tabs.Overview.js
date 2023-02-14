@@ -555,7 +555,7 @@ function MonitoringAndSensorsTab({
   }, [monitoringGroups, monitoringLocationsLayer]);
 
   const allMonitoringAndSensors = [
-    ...streamgageFeatures,
+    ...streamgageFeatures.map((feature) => feature.attributes),
     ...normalizedMonitoringLocations,
   ];
 
@@ -668,17 +668,14 @@ function MonitoringAndSensorsTab({
       if (item.monitoringType === 'USGS Sensors')
         icon = squareIcon({ color: '#fffe00' });
 
-      const feature =
-        item.monitoringType === 'Past Water Conditions'
-          ? {
-              geometry: {
-                type: 'point',
-                longitude: item.locationLongitude,
-                latitude: item.locationLatitude,
-              },
-              attributes: item,
-            }
-          : item;
+      const feature = {
+        geometry: {
+          type: 'point',
+          longitude: item.locationLongitude,
+          latitude: item.locationLatitude,
+        },
+        attributes: item,
+      };
 
       return (
         <AccordionItem

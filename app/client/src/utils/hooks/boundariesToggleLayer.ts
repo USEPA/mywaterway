@@ -16,7 +16,10 @@ import {
   AllGraphicsLayer,
 } from 'classes/BoundariesToggleLayer';
 // contexts
-import { useLayersDispatch } from 'contexts/Layers';
+import {
+  useLayersDispatch,
+  useLayersSurroundingsVisibilities,
+} from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { isFeatureLayer, isPolygon } from 'utils/mapFunctions';
@@ -94,19 +97,8 @@ export function useAllFeatures<T>(
   return { features, featuresDirty, serviceFailure };
 }
 
-export function useAllFeaturesLayer(
-  layerId: BoundariesToggleLayerId,
-  baseLayerBuilder: (baseLayerId: string) => __esri.FeatureLayer,
-  updateData: (filterType: BoundariesFilterType) => Promise<void>,
-  features: __esri.Graphic[],
-) {
-  return useBoundariesToggleLayer({
-    baseLayerBuilder,
-    features,
-    layerId,
-    updateData,
-    updateLayer: updateFeatureLayer,
-  });
+export function useAllFeaturesLayer(args: UseAllFeaturesLayerParams) {
+  return useBoundariesToggleLayer({ ...args, updateLayer: updateFeatureLayer });
 }
 
 function useBoundariesToggleLayer<
@@ -173,6 +165,8 @@ function useBoundariesToggleLayer<
       : new AllGraphicsLayer(properties);
   }, [baseLayer, layerId, maskLayer]);
 
+  const surroundingsVisible = useLayersSurroundingsVisibilities();
+
   // Update data when the mapView updates
   useEffect(() => {
     if (parentLayer.hasHandles(handleGroupKey)) return;
@@ -185,10 +179,14 @@ function useBoundariesToggleLayer<
     const handle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
-        if (mapView.scale >= minScale) {
+        if (
+          mapView.scale >= minScale ||
+          surroundingsVisible[layerId] === false
+        ) {
           updateData('huc');
         } else updateData('bBox');
       },
+      { initial: true },
     );
 
     parentLayer.addHandles(handle, handleGroupKey);
@@ -196,22 +194,43 @@ function useBoundariesToggleLayer<
     return function cleanup() {
       parentLayer?.removeHandles(handleGroupKey);
     };
-  }, [parentLayer, mapView, updateData, handleGroupKey]);
+  }, [
+    layerId,
+    handleGroupKey,
+    mapView,
+    parentLayer,
+    surroundingsVisible,
+    updateData,
+  ]);
+
+  const layersDispatch = useLayersDispatch();
 
   // Resets the base layer's features and hides surrounding features
   const resetLayer = useCallback(async () => {
     if (!baseLayer) return;
 
-    surroundingLayer.opacity = surroundingsHiddenOpacity;
+    if (parentLayer.resetHidesSurroundings) {
+      surroundingLayer.opacity = surroundingsHiddenOpacity;
+      layersDispatch({
+        type: 'surroundingsVibility',
+        id: layerId,
+        payload: false,
+      });
+    }
     updateLayer(baseLayer);
-  }, [baseLayer, surroundingLayer, updateLayer]);
+  }, [
+    baseLayer,
+    layersDispatch,
+    layerId,
+    parentLayer,
+    surroundingLayer,
+    updateLayer,
+  ]);
 
   // Update layer features when new data is available
   useEffect(() => {
     updateLayer(baseLayer, features);
   }, [baseLayer, features, updateLayer]);
-
-  const layersDispatch = useLayersDispatch();
 
   useEffect(() => {
     layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
@@ -344,3 +363,8 @@ type UseBoundariesToggleLayerParams<
   updateData: (filterType: BoundariesFilterType) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };
+
+type UseAllFeaturesLayerParams = Omit<
+  UseBoundariesToggleLayerParams<__esri.FeatureLayer>,
+  'updateLayer'
+>;

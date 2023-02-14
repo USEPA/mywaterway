@@ -9,12 +9,17 @@ export class BoundariesToggleLayer extends GroupLayer {
   @property()
   baseLayerType: BaseLayerType;
 
+  @property()
+  resetHidesSurroundings: boolean;
+
   constructor(
     properties: __esri.GroupLayerProperties,
     baseLayerType: BaseLayerType,
+    resetHidesSurroundings?: boolean,
   ) {
     super(properties);
     this.baseLayerType = baseLayerType;
+    this.resetHidesSurroundings = resetHidesSurroundings ?? false;
   }
 }
 
