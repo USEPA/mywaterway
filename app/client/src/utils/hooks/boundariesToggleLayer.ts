@@ -9,6 +9,7 @@ import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
 import {
   AllFeaturesLayer,
@@ -26,10 +27,72 @@ import type { BoundariesToggleLayerId } from 'contexts/Layers';
 ## Hooks
 */
 
-export function useAllFeatures() {}
+export function useLocalFeatures<T>(
+  transformData: () => T[] | null,
+  buildFeatures: (data: T[]) => Graphic[],
+  serviceFailure: boolean,
+) {
+  const { huc12, hucBoundaries } = useContext(LocationSearchContext);
+  const { features, featuresDirty } = useAllFeatures(
+    transformData,
+    buildFeatures,
+    serviceFailure,
+  );
 
-export function useAllData() {}
-// normalizeData,
+  const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
+  const [localFeaturesDirty, setLocalFeaturesDirty] = useState(true);
+
+  // Mark local data for updates when HUC changes
+  useEffect(() => {
+    if (huc12) return;
+    setLocalFeaturesDirty(true);
+  }, [huc12]);
+
+  // Update local features only if needed and complete featureset is ready
+  useEffect(() => {
+    if (!localFeaturesDirty || featuresDirty) return;
+    setLocalFeatures(
+      features.filter((feature) => {
+        const hucPolygon = hucBoundaries?.features[0]?.geometry;
+        if (!hucPolygon) return false;
+
+        return geometryEngine.intersects(
+          hucPolygon,
+          projectGeometry(feature.geometry, hucPolygon),
+        );
+      }),
+    );
+    setLocalFeaturesDirty(false);
+  }, [features, featuresDirty, hucBoundaries, localFeaturesDirty]);
+
+  return {
+    features: localFeatures,
+    featuresDirty: localFeaturesDirty,
+    serviceFailure,
+  };
+}
+
+// normalizeData and create features
+export function useAllFeatures<T>(
+  transformData: () => T[] | null,
+  buildFeatures: (data: T[]) => Graphic[],
+  serviceFailure: boolean,
+) {
+  const [features, setFeatures] = useState<__esri.Graphic[]>([]);
+  const [featuresDirty, setFeaturesDirty] = useState(true);
+
+  // Update the complete dataset
+  useEffect(() => {
+    setFeaturesDirty(true);
+    const data = transformData();
+    if (data === null) return;
+
+    setFeatures(buildFeatures(data));
+    setFeaturesDirty(false);
+  }, [buildFeatures, transformData]);
+
+  return { features, featuresDirty, serviceFailure };
+}
 
 export function useAllFeaturesLayer(
   layerId: BoundariesToggleLayerId,
@@ -227,9 +290,24 @@ function getSurroundingMask() {
   });
 }
 
+function projectGeometry(
+  source: __esri.Geometry,
+  destination: __esri.Geometry,
+) {
+  if (
+    !webMercatorUtils.canProject(
+      source.spatialReference,
+      destination.spatialReference,
+    )
+  )
+    return source;
+
+  return webMercatorUtils.project(source, destination.spatialReference);
+}
+
 async function updateFeatureLayer(
   layer: __esri.FeatureLayer | null,
-  features?: __esri.Graphic[],
+  features?: __esri.Graphic[] | null,
 ) {
   if (!layer) return;
 

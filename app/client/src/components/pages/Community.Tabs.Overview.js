@@ -36,7 +36,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
-  useStreamgageData,
+  useLocalStreamgageFeatures,
   useWaterbodyFeatures,
   useWaterbodyOnMap,
 } from 'utils/hooks';
@@ -110,10 +110,10 @@ const toggleStyles = css`
 
 function Overview() {
   const {
-    localStreamgageData: streamgageData,
-    localStreamgageDataDirty: streamgageDataDirty,
-    localStreamgageDataFailure: streamgageDataFailure,
-  } = useStreamgageData();
+    streamgageFeatures,
+    streamgageFeaturesDirty,
+    streamgageServiceFailure,
+  } = useLocalStreamgageFeatures();
 
   const {
     cipSummary,
@@ -186,7 +186,7 @@ function Overview() {
             : monitoringLocationsDisplayed;
       }
 
-      if (!streamgageDataFailure) {
+      if (!streamgageServiceFailure) {
         layers.usgsStreamgagesLayer =
           !usgsStreamgagesLayer || useCurrentValue
             ? visibleLayers.usgsStreamgagesLayer
@@ -212,7 +212,7 @@ function Overview() {
     [
       cipSummary,
       monitoringLocations,
-      streamgageDataFailure,
+      streamgageServiceFailure,
       permittedDischargers,
       visibleLayers,
       waterbodyLayer,
@@ -234,7 +234,7 @@ function Overview() {
     cipSummary,
     monitoringLocations,
     permittedDischargers,
-    streamgageData,
+    streamgageFeatures,
     visibleLayers,
     updateVisibleLayers,
   ]);
@@ -313,7 +313,7 @@ function Overview() {
   const totalMonitoringLocations =
     monitoringLocations.data.features?.length || 0;
 
-  const totalUsgsStreamgages = streamgageData.length;
+  const totalUsgsStreamgages = streamgageFeatures.length;
 
   const totalMonitoringAndSensors =
     totalMonitoringLocations + totalUsgsStreamgages;
@@ -329,7 +329,7 @@ function Overview() {
         </div>
       )}
 
-      {streamgageDataFailure && monitoringLocations.status === 'failure' && (
+      {streamgageServiceFailure && monitoringLocations.status === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
           <p>{streamgagesError}</p>
           <p>{monitoringError}</p>
@@ -379,7 +379,7 @@ function Overview() {
           {!monitoringLocationsLayer ||
           !usgsStreamgagesLayer ||
           monitoringLocations.status === 'fetching' ||
-          streamgageDataDirty ? (
+          streamgageFeaturesDirty ? (
             <LoadingSpinner />
           ) : (
             <>
@@ -540,10 +540,10 @@ function MonitoringAndSensorsTab({
   ]);
 
   const {
-    localStreamgageData: streamgageData,
-    localStreamgageDataDirty: streamgageDataDirty,
-    localStreamgageDataFailure: streamgageDataFailure,
-  } = useStreamgageData();
+    streamgageFeatures,
+    streamgageFeaturesDirty,
+    streamgageServiceFailure,
+  } = useLocalStreamgageFeatures();
 
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
@@ -555,7 +555,7 @@ function MonitoringAndSensorsTab({
   }, [monitoringGroups, monitoringLocationsLayer]);
 
   const allMonitoringAndSensors = [
-    ...streamgageData,
+    ...streamgageFeatures,
     ...normalizedMonitoringLocations,
   ];
 
@@ -668,14 +668,17 @@ function MonitoringAndSensorsTab({
       if (item.monitoringType === 'USGS Sensors')
         icon = squareIcon({ color: '#fffe00' });
 
-      const feature = {
-        geometry: {
-          type: 'point',
-          longitude: item.locationLongitude,
-          latitude: item.locationLatitude,
-        },
-        attributes: item,
-      };
+      const feature =
+        item.monitoringType === 'Past Water Conditions'
+          ? {
+              geometry: {
+                type: 'point',
+                longitude: item.locationLongitude,
+                latitude: item.locationLatitude,
+              },
+              attributes: item,
+            }
+          : item;
 
       return (
         <AccordionItem
@@ -739,12 +742,12 @@ function MonitoringAndSensorsTab({
   if (
     monitoringLocations.status === 'fetching' ||
     !monitoringGroups ||
-    streamgageDataDirty
+    streamgageFeaturesDirty
   ) {
     return <LoadingSpinner />;
   }
 
-  if (monitoringLocations.status === 'success' || !streamgageDataFailure) {
+  if (monitoringLocations.status === 'success' || !streamgageServiceFailure) {
     return (
       <>
         <p>
@@ -785,7 +788,7 @@ function MonitoringAndSensorsTab({
 
         {allMonitoringAndSensors.length > 0 && (
           <>
-            {streamgageDataFailure && (
+            {streamgageServiceFailure && (
               <div css={modifiedErrorBoxStyles}>
                 <p>{streamgagesError}</p>
               </div>
@@ -812,16 +815,17 @@ function MonitoringAndSensorsTab({
                     <div css={toggleStyles}>
                       <Switch
                         checked={
-                          streamgageData.length > 0 && usgsStreamgagesDisplayed
+                          streamgageFeatures.length > 0 &&
+                          usgsStreamgagesDisplayed
                         }
                         onChange={handleUsgsSensorsToggle}
-                        disabled={streamgageData.length === 0}
+                        disabled={streamgageFeatures.length === 0}
                         ariaLabel="USGS Sensors"
                       />
                       <span>USGS Sensors</span>
                     </div>
                   </td>
-                  <td>{streamgageData.length}</td>
+                  <td>{streamgageFeatures.length}</td>
                 </tr>
                 <tr>
                   <td>

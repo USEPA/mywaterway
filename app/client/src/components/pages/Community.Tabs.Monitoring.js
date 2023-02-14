@@ -38,7 +38,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { plotFacilities } from 'utils/mapFunctions';
-import { useStreamgageFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { useLocalStreamgageFeatures, useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
@@ -324,10 +324,10 @@ function Monitoring() {
   const { usgsStreamgagesLayer } = useLayers();
 
   const {
-    localStreamgageFeatures: streamgageFeatures,
-    localStreamgageFeaturesDirty: streamgageFeaturesDirty,
-    localStreamgageFeaturesFailure: streamgageFeaturesFailure,
-  } = useStreamgageFeatures();
+    streamgageFeatures,
+    streamgageFeaturesDirty,
+    streamgageServiceFailure,
+  } = useLocalStreamgageFeatures();
 
   const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
     useState(true);
@@ -390,7 +390,7 @@ function Monitoring() {
             : monitoringDisplayed;
       }
 
-      if (!streamgageFeaturesFailure) {
+      if (!streamgageServiceFailure) {
         layers.usgsStreamgagesLayer =
           !usgsStreamgagesLayer || useCurrentValue
             ? visibleLayers.usgsStreamgagesLayer
@@ -428,7 +428,7 @@ function Monitoring() {
       monitoringLocationsLayer,
       permittedDischargers,
       setVisibleLayers,
-      streamgageFeaturesFailure,
+      streamgageServiceFailure,
       usgsStreamgagesDisplayed,
       usgsStreamgagesLayer,
       visibleLayers,
@@ -688,10 +688,10 @@ function CurrentConditionsTab({
   );
 
   const {
-    localStreamgageFeatures: streamgageFeatures,
-    localStreamgageFeaturesDirty: streamgageFeaturesDirty,
-    localStreamgageFeaturesFailure: streamgageFeaturesFailure,
-  } = useStreamgageFeatures();
+    streamgageFeatures,
+    streamgageFeaturesDirty,
+    streamgageServiceFailure,
+  } = useLocalStreamgageFeatures();
 
   const [sortedBy, setSortedBy] = useState('locationName');
 
@@ -747,7 +747,7 @@ function CurrentConditionsTab({
 
   return (
     <>
-      {streamgageFeaturesFailure && (
+      {streamgageServiceFailure && (
         <div css={modifiedErrorBoxStyles}>
           <p>{streamgagesError}</p>
         </div>
