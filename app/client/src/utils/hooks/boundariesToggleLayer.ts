@@ -23,6 +23,7 @@ import {
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { isFeatureLayer, isPolygon } from 'utils/mapFunctions';
+import { toFixedFloat } from 'utils/utils';
 // types
 import type { BoundariesToggleLayerId } from 'contexts/Layers';
 
@@ -30,17 +31,17 @@ import type { BoundariesToggleLayerId } from 'contexts/Layers';
 ## Hooks
 */
 
-export function useLocalFeatures<T>(
-  transformData: () => T[] | null,
-  buildFeatures: (data: T[]) => Graphic[],
-  serviceFailure: boolean,
-) {
+export function useLocalFeatures<T>({
+  transformData,
+  buildFeatures,
+  serviceFailure,
+}: UseFeaturesParams<T>) {
   const { huc12, hucBoundaries } = useContext(LocationSearchContext);
-  const { features, featuresDirty } = useAllFeatures(
+  const { features, featuresDirty } = useAllFeatures<T>({
     transformData,
     buildFeatures,
     serviceFailure,
-  );
+  });
 
   const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
   const [localFeaturesDirty, setLocalFeaturesDirty] = useState(true);
@@ -71,16 +72,15 @@ export function useLocalFeatures<T>(
   return {
     features: localFeatures,
     featuresDirty: localFeaturesDirty,
-    serviceFailure,
   };
 }
 
 // normalizeData and create features
-export function useAllFeatures<T>(
-  transformData: () => T[] | null,
-  buildFeatures: (data: T[]) => Graphic[],
-  serviceFailure: boolean,
-) {
+export function useAllFeatures<T>({
+  transformData,
+  buildFeatures,
+  serviceFailure,
+}: UseFeaturesParams<T>) {
   const [features, setFeatures] = useState<__esri.Graphic[]>([]);
   const [featuresDirty, setFeaturesDirty] = useState(true);
 
@@ -104,7 +104,7 @@ export function useAllFeaturesLayer(args: UseAllFeaturesLayerParams) {
 function useBoundariesToggleLayer<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
 >({
-  baseLayerBuilder,
+  buildBaseLayer,
   features,
   layerId,
   updateData,
@@ -113,7 +113,7 @@ function useBoundariesToggleLayer<
   const { mapView } = useContext(LocationSearchContext);
 
   const hucGraphic = useHucGraphic();
-  const [baseLayer] = useState(baseLayerBuilder(`${layerId}-features`));
+  const [baseLayer] = useState(buildBaseLayer(`${layerId}-features`));
   const [surroundingMask] = useState(getSurroundingMask());
   const [handleGroupKey] = useState(uuid());
 
@@ -295,6 +295,43 @@ function useHucGraphic() {
 ## Utils
 */
 
+function getExtentArea(extent: __esri.Extent) {
+  return (
+    Math.abs(extent.xmax - extent.xmin) * Math.abs(extent.ymax - extent.ymin)
+  );
+}
+
+// Gets a string representation of the view's extent as a bounding box
+export function getExtentBoundingBox(
+  extent: __esri.Extent | null,
+  maxArea = Infinity,
+  truncate = false,
+) {
+  if (!extent) return null;
+  if (getExtentArea(extent) > maxArea) return null;
+
+  if (truncate) {
+    return `${toFixedFloat(extent.xmin, 7)},${toFixedFloat(
+      extent.ymin,
+      7,
+    )},${toFixedFloat(extent.xmax, 7)},${toFixedFloat(extent.ymax, 7)}`;
+  }
+  return `${extent.xmin},${extent.ymin},${extent.xmax},${extent.ymax}`;
+}
+
+// Converts the view's extent from a Web Mercator
+// projection to geographic coordinates
+export async function getGeographicExtent(mapView: __esri.MapView | '') {
+  if (!mapView) return null;
+
+  await reactiveUtils.whenOnce(() => mapView.stationary);
+
+  const extentMercator = mapView.extent;
+  return webMercatorUtils.webMercatorToGeographic(
+    extentMercator,
+  ) as __esri.Extent;
+}
+
 function getSurroundingMask() {
   return new Graphic({
     geometry: new Extent({
@@ -357,11 +394,17 @@ export type BoundariesFilterType = 'huc' | 'bBox';
 type UseBoundariesToggleLayerParams<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
 > = {
-  baseLayerBuilder: (baseLayerId: string) => T;
+  buildBaseLayer: (baseLayerId: string) => T;
   features: __esri.Graphic[];
   layerId: BoundariesToggleLayerId;
   updateData: (filterType: BoundariesFilterType) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
+};
+
+type UseFeaturesParams<T> = {
+  transformData: () => T[] | null;
+  buildFeatures: (data: T[]) => Graphic[];
+  serviceFailure: boolean;
 };
 
 type UseAllFeaturesLayerParams = Omit<

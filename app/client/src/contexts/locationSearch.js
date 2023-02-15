@@ -2,7 +2,10 @@ import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
 // types
 import type { ReactNode } from 'react';
-import type { MonitoringLocationsData } from 'types';
+import type {
+  MonitoringLocationsData,
+  MonitoringLocationAttributes,
+} from 'types';
 
 export const LocationSearchContext = createContext();
 
@@ -16,7 +19,7 @@ type MonitoringLocationGroups = {
   [label: string]: {
     label: string,
     characteristicGroups?: Array<string>,
-    stations: StationData[],
+    stations: MonitoringLocationAttributes[],
     toggled: boolean,
   },
 };

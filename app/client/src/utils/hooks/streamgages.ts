@@ -1,10 +1,8 @@
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
-import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
@@ -17,12 +15,13 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  getExtentBoundingBox,
+  getGeographicExtent,
   useAllFeatures,
   useLocalFeatures,
   useAllFeaturesLayer,
-} from 'utils/hooks';
+} from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
-import { toFixedFloat } from 'utils/utils';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
@@ -52,36 +51,36 @@ export function useStreamgageLayer() {
 
   const buildBaseLayer = useCallback(
     (baseLayerId: string) => {
-      return buildUsgsStreamgagesLayer(baseLayerId, navigate, services);
+      return buildLayer(baseLayerId, navigate, services);
     },
     [navigate, services],
   );
 
-  const { servicesFailed, transformData, updateData } = useStreamgageUtils();
+  const { serviceFailure, transformData, updateData } = useUtils();
 
-  const { features } = useAllFeatures(
+  const { features } = useAllFeatures<UsgsStreamgageAttributes>({
     transformData,
-    buildStreamgageFeatures,
-    servicesFailed,
-  );
+    buildFeatures,
+    serviceFailure,
+  });
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
     layerId,
-    baseLayerBuilder: buildBaseLayer,
+    buildBaseLayer,
     updateData,
     features,
   });
 }
 
 export function useLocalStreamgageFeatures() {
-  const { servicesFailed, transformData } = useStreamgageUtils();
+  const { serviceFailure, transformData } = useUtils();
 
-  const { features, featuresDirty, serviceFailure } = useLocalFeatures(
+  const { features, featuresDirty } = useLocalFeatures({
     transformData,
-    buildStreamgageFeatures,
-    servicesFailed,
-  );
+    buildFeatures,
+    serviceFailure,
+  });
 
   return {
     streamgageFeatures: features,
@@ -90,7 +89,7 @@ export function useLocalStreamgageFeatures() {
   };
 }
 
-function useStreamgageUtils() {
+function useUtils() {
   // Build the data update function
   const { huc12, mapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
@@ -107,9 +106,9 @@ function useStreamgageUtils() {
       if (newDvFilter === dvFilter || newThingsFilter === thingsFilter) return;
       if (!newDvFilter || !newThingsFilter) return;
 
-      fetchUsgsStreamgages(newThingsFilter, services, fetchedDataDispatch);
-      fetchUsgsPrecipitation(newDvFilter, services, fetchedDataDispatch);
-      fetchUsgsDailyAverages(newDvFilter, services, fetchedDataDispatch);
+      fetchStreamgages(newThingsFilter, services, fetchedDataDispatch);
+      fetchPrecipitation(newDvFilter, services, fetchedDataDispatch);
+      fetchDailyAverages(newDvFilter, services, fetchedDataDispatch);
 
       setDvFilter(newDvFilter);
       setThingsFilter(newThingsFilter);
@@ -121,16 +120,15 @@ function useStreamgageUtils() {
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
 
-  const transformData = useMemo(() => {
-    return () =>
-      streamgageDataTransform(
-        usgsDailyAverages,
-        usgsPrecipitation,
-        usgsStreamgages,
-      );
+  const transformData = useCallback(() => {
+    return transformServiceData(
+      usgsDailyAverages,
+      usgsPrecipitation,
+      usgsStreamgages,
+    );
   }, [usgsDailyAverages, usgsPrecipitation, usgsStreamgages]);
 
-  const servicesFailed = useMemo(() => {
+  const serviceFailure = useMemo(() => {
     return (
       usgsStreamgages.status === 'failure' ||
       usgsPrecipitation.status === 'failure' ||
@@ -138,7 +136,7 @@ function useStreamgageUtils() {
     );
   }, [usgsDailyAverages, usgsPrecipitation, usgsStreamgages]);
 
-  return { servicesFailed, updateData, transformData };
+  return { serviceFailure, updateData, transformData };
 }
 
 /*
@@ -146,20 +144,20 @@ function useStreamgageUtils() {
 */
 
 // Builds features from streamgage data
-function buildStreamgageFeatures(streamgageData: UsgsStreamgageAttributes[]) {
-  return streamgageData.map((gage) => {
+function buildFeatures(transformedData: UsgsStreamgageAttributes[]) {
+  return transformedData.map((datum) => {
     return new Graphic({
       geometry: new Point({
-        longitude: gage.locationLongitude,
-        latitude: gage.locationLatitude,
+        longitude: datum.locationLongitude,
+        latitude: datum.locationLatitude,
       }),
-      attributes: gage,
+      attributes: datum,
     });
   });
 }
 
 // Builds the base feature layer
-function buildUsgsStreamgagesLayer(
+function buildLayer(
   baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
@@ -213,7 +211,7 @@ function buildUsgsStreamgagesLayer(
   });
 }
 
-function streamgageDataTransform(
+function transformServiceData(
   usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
   usgsPrecipitation: FetchState<UsgsPrecipitationData>,
   usgsStreamgages: FetchState<UsgsStreamgagesData>,
@@ -367,10 +365,10 @@ function streamgageDataTransform(
     });
   }
 
-  return gages;
+  return gages as UsgsStreamgageAttributes[];
 }
 
-function fetchUsgsDailyAverages(
+function fetchDailyAverages(
   boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
@@ -392,7 +390,7 @@ function fetchUsgsDailyAverages(
     `&period=P7D` +
     `&${boundariesFilter}`;
 
-  dispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
+  dispatch({ type: 'pending', id: 'usgsDailyAverages' });
 
   Promise.all([
     fetchCheck(`${url}&statCd=${meanValues}&parameterCd=${allParams}`),
@@ -400,7 +398,8 @@ function fetchUsgsDailyAverages(
   ])
     .then(([allParamsRes, precipitationRes]) => {
       dispatch({
-        type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS',
+        type: 'success',
+        id: 'usgsDailyAverages',
         payload: {
           allParamsMean: allParamsRes,
           precipitationSum: precipitationRes,
@@ -409,11 +408,11 @@ function fetchUsgsDailyAverages(
     })
     .catch((err) => {
       console.error(err);
-      dispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' });
+      dispatch({ type: 'failure', id: 'usgsDailyAverages' });
     });
 }
 
-function fetchUsgsPrecipitation(
+function fetchPrecipitation(
   boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
@@ -434,22 +433,23 @@ function fetchUsgsPrecipitation(
     `&parameterCd=${precipitation}` +
     `&${boundariesFilter}`;
 
-  dispatch({ type: 'USGS_PRECIPITATION/FETCH_REQUEST' });
+  dispatch({ type: 'pending', id: 'usgsPrecipitation' });
 
   fetchCheck(url)
     .then((res) => {
       dispatch({
-        type: 'USGS_PRECIPITATION/FETCH_SUCCESS',
+        type: 'success',
+        id: 'usgsPrecipitation',
         payload: res,
       });
     })
     .catch((err) => {
       console.error(err);
-      dispatch({ type: 'USGS_PRECIPITATION/FETCH_FAILURE' });
+      dispatch({ type: 'failure', id: 'usgsPrecipitation' });
     });
 }
 
-function fetchUsgsStreamgages(
+function fetchStreamgages(
   boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
@@ -465,18 +465,19 @@ function fetchUsgsStreamgages(
     `$orderBy=phenomenonTime desc))` +
     `&${boundariesFilter}`;
 
-  dispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
+  dispatch({ type: 'pending', id: 'usgsStreamgages' });
 
   fetchCheck(url)
     .then((res) => {
       dispatch({
-        type: 'USGS_STREAMGAGES/FETCH_SUCCESS',
+        type: 'success',
+        id: 'usgsStreamgages',
         payload: res,
       });
     })
     .catch((err) => {
       console.error(err);
-      dispatch({ type: 'USGS_STREAMGAGES/FETCH_FAILURE' });
+      dispatch({ type: 'failure', id: 'usgsStreamgages' });
     });
 }
 
@@ -492,7 +493,8 @@ async function getDvFilter(
     }
     case 'bBox': {
       const extent = await getGeographicExtent(mapView);
-      const bBox = getExtentBoundingBox(extent);
+      // Service requires that area of extent cannot exceed 25 degrees
+      const bBox = getExtentBoundingBox(extent, 25, true);
       if (bBox) return `bBox=${bBox}`;
       else return hucFilter;
     }
@@ -525,41 +527,11 @@ async function getThingsFilter(
   }
 }
 
-function getExtentArea(extent: __esri.Extent) {
-  return (
-    Math.abs(extent.xmax - extent.xmin) * Math.abs(extent.ymax - extent.ymin)
-  );
-}
-// Gets a string representation of the view's extent as a bounding box
-function getExtentBoundingBox(extent: __esri.Extent | null) {
-  if (!extent) return null;
-  // Service requires that area of extent cannot exceed 25 degrees
-  if (getExtentArea(extent) > 25) return null;
-
-  return `${toFixedFloat(extent.xmin, 7)},${toFixedFloat(
-    extent.ymin,
-    7,
-  )},${toFixedFloat(extent.xmax, 7)},${toFixedFloat(extent.ymax, 7)}`;
-}
-
 // Gets a string representation of the view's extent as Well-Known Text
 function getExtentWkt(extent: __esri.Extent | null) {
   if (!extent) return null;
 
   return `(${extent.xmax} ${extent.ymin}, ${extent.xmax} ${extent.ymax}, ${extent.xmin} ${extent.ymax}, ${extent.xmin} ${extent.ymin}, ${extent.xmax} ${extent.ymin})`;
-}
-
-// Converts the view's extent from a Web Mercator
-// projection to geographic coordinates
-async function getGeographicExtent(mapView: __esri.MapView | '') {
-  if (!mapView) return null;
-
-  await reactiveUtils.whenOnce(() => mapView.stationary);
-
-  const extentMercator = mapView.extent;
-  return webMercatorUtils.webMercatorToGeographic(
-    extentMercator,
-  ) as __esri.Extent;
 }
 
 /*

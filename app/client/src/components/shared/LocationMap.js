@@ -1938,7 +1938,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useEffect(() => {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
-    fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+    fetchedDataDispatch({ type: 'reset' });
     resetData();
     setMapLoading(true);
     setHucResponse(null);

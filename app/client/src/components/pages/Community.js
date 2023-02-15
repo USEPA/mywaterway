@@ -127,7 +127,7 @@ function Community() {
 
   useEffect(() => {
     return function cleanup() {
-      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+      fetchedDataDispatch({ type: 'reset' });
       resetData();
       setSearchText('');
       setLastSearchText('');
@@ -148,7 +148,7 @@ function Community() {
   // reset data when navigating back to /community
   useEffect(() => {
     if (window.location.pathname === '/community') {
-      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+      fetchedDataDispatch({ type: 'reset' });
       resetData();
       setSearchText('');
       setLastSearchText('');

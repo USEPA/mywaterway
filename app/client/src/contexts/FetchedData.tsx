@@ -6,53 +6,12 @@ import {
   useReducer,
 } from 'react';
 import type {
+  FetchState,
+  MonitoringLocationsData,
   UsgsDailyAveragesData,
   UsgsPrecipitationData,
   UsgsStreamgagesData,
 } from 'types';
-
-type Props = {
-  children: ReactNode;
-};
-
-type FetchedDataState = {
-  usgsStreamgages:
-    | { status: 'idle'; data: {} }
-    | { status: 'pending'; data: {} }
-    | { status: 'success'; data: UsgsStreamgagesData }
-    | { status: 'failure'; data: {} };
-  usgsPrecipitation:
-    | { status: 'idle'; data: {} }
-    | { status: 'pending'; data: {} }
-    | { status: 'success'; data: UsgsPrecipitationData }
-    | { status: 'failure'; data: {} };
-  usgsDailyAverages:
-    | { status: 'idle'; data: {} }
-    | { status: 'pending'; data: {} }
-    | { status: 'success'; data: UsgsDailyAveragesData }
-    | { status: 'failure'; data: {} };
-};
-
-export type FetchedDataAction =
-  | { type: 'RESET_FETCHED_DATA' }
-  | { type: 'USGS_STREAMGAGES/FETCH_REQUEST' }
-  | {
-      type: 'USGS_STREAMGAGES/FETCH_SUCCESS';
-      payload: UsgsStreamgagesData;
-    }
-  | { type: 'USGS_STREAMGAGES/FETCH_FAILURE' }
-  | { type: 'USGS_PRECIPITATION/FETCH_REQUEST' }
-  | {
-      type: 'USGS_PRECIPITATION/FETCH_SUCCESS';
-      payload: UsgsPrecipitationData;
-    }
-  | { type: 'USGS_PRECIPITATION/FETCH_FAILURE' }
-  | { type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' }
-  | {
-      type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS';
-      payload: UsgsDailyAveragesData;
-    }
-  | { type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' };
 
 const StateContext = createContext<FetchedDataState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
@@ -60,9 +19,10 @@ const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
 );
 
 const initialState: FetchedDataState = {
-  usgsStreamgages: { status: 'idle', data: {} },
-  usgsPrecipitation: { status: 'idle', data: {} },
-  usgsDailyAverages: { status: 'idle', data: {} },
+  monitoringLocations: { status: 'idle', data: null },
+  usgsStreamgages: { status: 'idle', data: null },
+  usgsPrecipitation: { status: 'idle', data: null },
+  usgsDailyAverages: { status: 'idle', data: null },
 };
 
 function reducer(
@@ -70,83 +30,24 @@ function reducer(
   action: FetchedDataAction,
 ): FetchedDataState {
   switch (action.type) {
-    case 'RESET_FETCHED_DATA': {
+    case 'reset': {
       return initialState;
     }
-
-    case 'USGS_STREAMGAGES/FETCH_REQUEST': {
+    case 'pending':
+    case 'failure':
+    case 'success': {
       return {
         ...state,
-        usgsStreamgages: { status: 'pending', data: {} },
+        [action.id]: buildNewDataState(action),
       };
     }
-
-    case 'USGS_STREAMGAGES/FETCH_SUCCESS': {
-      const data = action.payload;
-      return {
-        ...state,
-        usgsStreamgages: { status: 'success', data },
-      };
-    }
-
-    case 'USGS_STREAMGAGES/FETCH_FAILURE': {
-      return {
-        ...state,
-        usgsStreamgages: { status: 'failure', data: {} },
-      };
-    }
-
-    case 'USGS_PRECIPITATION/FETCH_REQUEST': {
-      return {
-        ...state,
-        usgsPrecipitation: { status: 'pending', data: {} },
-      };
-    }
-
-    case 'USGS_PRECIPITATION/FETCH_SUCCESS': {
-      const data = action.payload;
-      return {
-        ...state,
-        usgsPrecipitation: { status: 'success', data },
-      };
-    }
-
-    case 'USGS_PRECIPITATION/FETCH_FAILURE': {
-      return {
-        ...state,
-        usgsPrecipitation: { status: 'failure', data: {} },
-      };
-    }
-
-    case 'USGS_DAILY_AVERAGES/FETCH_REQUEST': {
-      return {
-        ...state,
-        usgsDailyAverages: { status: 'pending', data: {} },
-      };
-    }
-
-    case 'USGS_DAILY_AVERAGES/FETCH_SUCCESS': {
-      const data = action.payload;
-      return {
-        ...state,
-        usgsDailyAverages: { status: 'success', data },
-      };
-    }
-
-    case 'USGS_DAILY_AVERAGES/FETCH_FAILURE': {
-      return {
-        ...state,
-        usgsDailyAverages: { status: 'failure', data: {} },
-      };
-    }
-
     default: {
       throw new Error(`Unhandled action type: ${action}`);
     }
   }
 }
 
-export function FetchedDataProvider({ children }: Props) {
+export function FetchedDataProvider({ children }: ProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -184,3 +85,51 @@ export function useFetchedDataDispatch() {
   }
   return context;
 }
+
+/*
+## Utils
+*/
+function buildNewDataState(action: FetchedDataAction) {
+  switch (action.type) {
+    case 'failure':
+    case 'pending': {
+      return { status: action.type, data: null };
+    }
+    case 'success': {
+      return { status: action.type, data: action.payload };
+    }
+  }
+}
+
+/*
+## Types
+*/
+
+type ProviderProps = {
+  children: ReactNode;
+};
+
+type FetchedData = {
+  monitoringLocations: MonitoringLocationsData;
+  usgsStreamgages: UsgsStreamgagesData;
+  usgsPrecipitation: UsgsPrecipitationData;
+  usgsDailyAverages: UsgsDailyAveragesData;
+};
+
+type FetchedDataState = {
+  [D in keyof FetchedData]: FetchState<FetchedData[D]>;
+};
+
+type FetchedDataSuccessAction = {
+  [D in keyof FetchedDataState]: {
+    type: 'success';
+    id: D;
+    payload: FetchedData[D];
+  };
+}[keyof FetchedDataState];
+
+export type FetchedDataAction =
+  | { type: 'reset' }
+  | { type: 'pending'; id: keyof FetchedDataState }
+  | { type: 'failure'; id: keyof FetchedDataState }
+  | FetchedDataSuccessAction;

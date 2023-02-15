@@ -1756,10 +1756,7 @@ function ShowSurroundingMonitoringLocations({
         };
         setSurroundingMonitoringLocations(newData);
 
-        const stations = buildStations(
-          newData,
-          surroundingMonitoringLocationsLayer,
-        );
+        const stations = buildStations(newData);
         if (!stations) return;
 
         updateMonitoringLocationsLayer(

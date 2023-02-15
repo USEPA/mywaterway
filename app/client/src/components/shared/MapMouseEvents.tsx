@@ -277,7 +277,7 @@ function MapMouseEvents({ view }: Props) {
                     content: getPopupContent({
                       navigate,
                       resetData: () => {
-                        fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+                        fetchedDataDispatch({ type: 'reset' });
                         resetData();
                       },
                       feature: {

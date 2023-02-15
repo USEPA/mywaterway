@@ -247,6 +247,30 @@ function highlightFeature({
   });
 }
 
+// TODO: Migrate to this hook, the other doesn't properly reset
+function _useAbortSignal() {
+  const abortController = useRef(new AbortController());
+  const getAbortController = useCallback(() => {
+    if (abortController.current.signal.aborted) {
+      abortController.current = new AbortController();
+    }
+    return abortController.current;
+  }, []);
+
+  useEffect(() => {
+    return function cleanup() {
+      abortController.current.abort();
+    };
+  }, [getAbortController]);
+
+  const getSignal = useCallback(
+    () => getAbortController().signal,
+    [getAbortController],
+  );
+
+  return getSignal;
+}
+
 function useAbortSignal() {
   const abortController = useRef(new AbortController());
 
@@ -1913,10 +1937,7 @@ function useMonitoringLocations() {
 
   useEffect(() => {
     if (!monitoringGroups) {
-      const stations = buildStations(
-        monitoringLocations,
-        monitoringLocationsLayer,
-      );
+      const stations = buildStations(monitoringLocations);
       if (!stations) return;
 
       updateMonitoringLocationsLayer(stations, monitoringLocationsLayer);

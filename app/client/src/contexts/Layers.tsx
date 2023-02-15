@@ -1,28 +1,32 @@
 import { createContext, useCallback, useContext, useReducer } from 'react';
+// classes
+import { BoundariesToggleLayer } from 'classes/BoundariesToggleLayer';
 // types
 import type { Dispatch, ReactNode } from 'react';
 
 const StateContext = createContext<LayersState | undefined>(undefined);
-const DispatchContext = createContext<Dispatch<LayersAction> | undefined>(
-  undefined,
-);
+const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 const initialState: LayersState = {
   resets: {
+    monitoringLocationsLayer: () => Promise.resolve(),
     usgsStreamgagesLayer: () => Promise.resolve(),
   },
   layers: {
+    monitoringLocationsLayer: null,
     usgsStreamgagesLayer: null,
   },
   boundariesToggles: {
+    monitoringLocationsLayer: () => null,
     usgsStreamgagesLayer: () => null,
   },
   surroundingsVibilities: {
+    monitoringLocationsLayer: false,
     usgsStreamgagesLayer: false,
   },
 };
 
-function reducer(state: LayersState, action: LayersAction): LayersState {
+function reducer(state: LayersState, action: Action): LayersState {
   switch (action.type) {
     case 'resetAll': {
       return {
@@ -72,7 +76,7 @@ function reducer(state: LayersState, action: LayersAction): LayersState {
   }
 }
 
-export function LayersProvider({ children }: LayersProviderProps) {
+export function LayersProvider({ children }: ProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -141,26 +145,43 @@ export function useLayersReset() {
 }
 
 /*
-## Utils
-*/
-
-export function isBoundariesToggleLayerId(
-  id: string,
-): id is BoundariesToggleLayerId {
-  return Object.keys(initialState['boundariesToggles']).includes(id);
-}
-
-/*
 ## Types
 */
 
-type GroupLayerId = 'usgsStreamgagesLayer';
+type Action =
+  | { type: 'resetAll'; payload: LayersState['layers'] }
+  | {
+      type: 'layer';
+      id: LayerId;
+      payload: Exclude<LayersState['layers'][LayerId], 'null'>;
+    }
+  | { type: 'reset'; id: LayerId; payload: () => Promise<void> }
+  | {
+      type: 'boundariesToggle';
+      id: BoundariesToggleLayerId;
+      payload: () => void;
+    }
+  | {
+      type: 'surroundingsVibility';
+      id: BoundariesToggleLayerId;
+      payload: boolean;
+    };
 
-type LayerId = GroupLayerId;
+export type BoundariesToggleLayerId =
+  | 'usgsStreamgagesLayer'
+  | 'monitoringLocationsLayer';
+
+// type FeatureLayerId =
+
+// type GraphicsLayerId =
+
+// type GroupLayerId =
+
+type LayerId = keyof (typeof initialState)['layers'];
 
 export type LayersState = {
   layers: {
-    [G in GroupLayerId]: __esri.GroupLayer | null;
+    [B in BoundariesToggleLayerId]: BoundariesToggleLayer | null;
   };
   resets: {
     [L in LayerId]: () => Promise<void>;
@@ -173,23 +194,6 @@ export type LayersState = {
   };
 };
 
-type LayersAction =
-  | { type: 'resetAll'; payload: LayersState['layers'] }
-  | { type: 'layer'; id: 'usgsStreamgagesLayer'; payload: __esri.GroupLayer }
-  | { type: 'reset'; id: 'usgsStreamgagesLayer'; payload: () => Promise<void> }
-  | {
-      type: 'boundariesToggle';
-      id: 'usgsStreamgagesLayer';
-      payload: () => void;
-    }
-  | {
-      type: 'surroundingsVibility';
-      id: 'usgsStreamgagesLayer';
-      payload: boolean;
-    };
-
-type LayersProviderProps = {
+type ProviderProps = {
   children: ReactNode;
 };
-
-export type BoundariesToggleLayerId = 'usgsStreamgagesLayer';

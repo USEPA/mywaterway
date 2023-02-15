@@ -1085,7 +1085,7 @@ const editLayer = async (
   return layer.applyEdits(edits);
 };
 
-function stringifyAttributes(
+export function stringifyAttributes(
   structuredAttributes: string[],
   attributes: { [property: string]: any },
 ) {
@@ -1100,11 +1100,7 @@ function stringifyAttributes(
   return { ...attributes, ...stringified };
 }
 
-export function buildStations(
-  locations: FetchState<MonitoringLocationsData>,
-  layer: __esri.Layer,
-) {
-  if (!layer) return;
+export function buildStations(locations: FetchState<MonitoringLocationsData>) {
   if (locations.status !== 'success' || !locations.data.features?.length) {
     return;
   }
@@ -1164,6 +1160,7 @@ export function updateMonitoringLocationsLayer(
   stations: MonitoringLocationAttributes[],
   layer: __esri.FeatureLayer,
 ) {
+  if (!layer) return;
   const structuredProps = ['stationTotalsByGroup', 'timeframe'];
   const graphics = stations.map((station) => {
     const attributes = stringifyAttributes(structuredProps, station);
