@@ -6,7 +6,7 @@ import Select from 'react-select';
 import IdentityManager from '@arcgis/core/identity/IdentityManager';
 import OAuthInfo from '@arcgis/core/identity/OAuthInfo';
 import Portal from '@arcgis/core/portal/Portal';
-import * as watchUtils from '@arcgis/core/core/watchUtils';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
@@ -202,8 +202,9 @@ function SavePanel({ visible }: Props) {
     if (!mapView || layerWatcher) return;
 
     console.log('init layers watchers...');
-    const watcher = watchUtils.watch(mapView.map.layers, 'length', (newCount) =>
-      setMapLayerCount(newCount),
+    const watcher = reactiveUtils.watch(
+      () => mapView.map.layers.length,
+      () => setMapLayerCount(mapView.map.layers.length),
     );
 
     setLayerWatcher(watcher);
