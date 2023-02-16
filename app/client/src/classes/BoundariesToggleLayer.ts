@@ -6,10 +6,10 @@ import GroupLayer from '@arcgis/core/layers/GroupLayer';
 
 @subclass('esri.core.layers.BoundariesToggleLayer')
 export class BoundariesToggleLayer extends GroupLayer {
-  @property()
+  @property({ constructOnly: true })
   baseLayerType: BaseLayerType;
 
-  @property()
+  @property({ constructOnly: true })
   resetHidesSurroundings: boolean;
 
   constructor(

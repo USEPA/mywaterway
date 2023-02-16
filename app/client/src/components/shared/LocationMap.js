@@ -41,6 +41,7 @@ import {
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -64,7 +65,6 @@ import {
   useGeometryUtils,
   useMonitoringLocations,
   useSharedLayers,
-  useStreamgageLayer,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
 } from 'utils/hooks';
@@ -233,7 +233,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
   } = useContext(LocationSearchContext);
 
-  const usgsStreamgagesLayer = useStreamgageLayer();
+  const { usgsStreamgagesLayer } = useLayers();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -617,6 +617,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
+    if (!usgsStreamgagesLayer) return;
     if (!getSharedLayers || layersInitialized) return;
 
     if (layers.length > 0) return;
@@ -816,19 +817,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     newCyanLayer.add(cyanWaterbodies);
     newCyanLayer.add(cyanImages);
 
-    setLayers([
-      ...getSharedLayers(),
-      providersLayer,
-      boundariesLayer,
-      newCyanLayer,
-      upstreamLayer,
-      monitoringLocationsLayer,
-      usgsStreamgagesLayer,
-      issuesLayer,
-      dischargersLayer,
-      nonprofitsLayer,
-      searchIconLayer,
-    ]);
+    setLayers(
+      [
+        ...getSharedLayers(),
+        providersLayer,
+        boundariesLayer,
+        newCyanLayer,
+        upstreamLayer,
+        monitoringLocationsLayer,
+        usgsStreamgagesLayer,
+        issuesLayer,
+        dischargersLayer,
+        nonprofitsLayer,
+        searchIconLayer,
+      ].filter((layer) => layer !== null),
+    );
 
     setLayersInitialized(true);
   }, [

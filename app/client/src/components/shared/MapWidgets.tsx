@@ -1534,6 +1534,7 @@ function ShowAllWaterbodies({
 
   // create a watcher to control the loading spinner for the widget
   useEffect(() => {
+    if (!allWaterbodiesLayer) return;
     if (firstLoad) {
       setFirstLoad(false);
 

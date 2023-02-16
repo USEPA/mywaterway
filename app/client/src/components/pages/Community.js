@@ -21,6 +21,8 @@ import {
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+// utils
+import { useStreamgageLayer } from 'utils/hooks';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -110,6 +112,8 @@ function Community() {
   const { activeTabIndex } = useContext(CommunityTabsContext);
 
   const { fullscreenActive } = useFullscreenState();
+
+  useStreamgageLayer();
 
   // CommunityIntro is rendered in Outlet when at the '/community' and '/community/' routes
   const atCommunityIntroRoute =

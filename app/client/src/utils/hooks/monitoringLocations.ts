@@ -14,6 +14,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
+import { isAbort } from 'utils/utils';
 import {
   getExtentBoundingBox,
   getGeographicExtent,
@@ -100,14 +101,19 @@ function useUtils() {
   const [filter, setFilter] = useState<string | null>(null);
 
   const updateData = useCallback(
-    async (filterType: BoundariesFilterType) => {
+    async (filterType: BoundariesFilterType, abortSignal: AbortSignal) => {
       const newFilter = await getFilter(filterType, huc12, mapView);
-      if (newFilter === filter) return;
-      if (!newFilter) return;
-
-      fetchMonitoringLocations(newFilter, services, fetchedDataDispatch);
+      if (newFilter === filter) return true;
+      if (!newFilter) return false;
 
       setFilter(newFilter);
+
+      return await fetchMonitoringLocations(
+        newFilter,
+        services,
+        fetchedDataDispatch,
+        abortSignal,
+      );
     },
     [fetchedDataDispatch, filter, huc12, mapView, services],
   );
@@ -221,8 +227,9 @@ async function fetchMonitoringLocations(
   boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
+  abortSignal: AbortSignal,
 ) {
-  if (services.status !== 'success') return;
+  if (services.status !== 'success') return false;
 
   const url =
     `${services.data.waterQualityPortal.monitoringLocation}` +
@@ -230,16 +237,24 @@ async function fetchMonitoringLocations(
 
   dispatch({ type: 'pending', id: 'monitoringLocations' });
 
-  const newMonitoringLocations = await fetchCheck(url).catch((err) => {
-    console.error(err);
-    dispatch({ type: 'failure', id: 'monitoringLocations' });
-  });
+  const newMonitoringLocations = await fetchCheck(url, abortSignal).catch(
+    (err) => {
+      if (isAbort(err)) {
+        dispatch({ type: 'idle', id: 'monitoringLocations' });
+        return true;
+      }
+      console.error(err);
+      dispatch({ type: 'failure', id: 'monitoringLocations' });
+      return false;
+    },
+  );
 
   dispatch({
     type: 'success',
     id: 'monitoringLocations',
     payload: newMonitoringLocations,
   });
+  return true;
 }
 
 async function getFilter(

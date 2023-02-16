@@ -248,7 +248,7 @@ function highlightFeature({
 }
 
 // TODO: Migrate to this hook, the other doesn't properly reset
-function _useAbortSignal() {
+function useAbort() {
   const abortController = useRef(new AbortController());
   const getAbortController = useCallback(() => {
     if (abortController.current.signal.aborted) {
@@ -256,6 +256,10 @@ function _useAbortSignal() {
     }
     return abortController.current;
   }, []);
+
+  const abort = useCallback(() => {
+    getAbortController().abort();
+  }, [getAbortController]);
 
   useEffect(() => {
     return function cleanup() {
@@ -268,7 +272,7 @@ function _useAbortSignal() {
     [getAbortController],
   );
 
-  return getSignal;
+  return { abort, getSignal };
 }
 
 function useAbortSignal() {
@@ -1976,6 +1980,7 @@ function useReset() {
 }
 
 export {
+  useAbort,
   useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,

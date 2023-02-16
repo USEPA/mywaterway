@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
+import { useFetchedDataState } from 'contexts/FetchedData';
 import {
   BoundariesToggleLayerId,
   useLayers,
@@ -75,7 +76,7 @@ function SurroundingsWidgetContent({
           <ul>
             {(Object.keys(toggles) as BoundariesToggleLayerId[]).map((id) => {
               const layer = layers[id];
-              if (!layer) return <></>;
+              if (!layer) return null;
               return (
                 <li key={id}>
                   <div>

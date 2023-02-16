@@ -22,6 +22,7 @@ import {
 } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
+import { useAbort } from 'utils/hooks';
 import { isFeatureLayer, isPolygon } from 'utils/mapFunctions';
 import { toFixedFloat } from 'utils/utils';
 // types
@@ -34,13 +35,11 @@ import type { BoundariesToggleLayerId } from 'contexts/Layers';
 export function useLocalFeatures<T>({
   transformData,
   buildFeatures,
-  serviceFailure,
 }: UseFeaturesParams<T>) {
   const { huc12, hucBoundaries } = useContext(LocationSearchContext);
   const { features, featuresDirty } = useAllFeatures<T>({
     transformData,
     buildFeatures,
-    serviceFailure,
   });
 
   const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
@@ -79,7 +78,6 @@ export function useLocalFeatures<T>({
 export function useAllFeatures<T>({
   transformData,
   buildFeatures,
-  serviceFailure,
 }: UseFeaturesParams<T>) {
   const [features, setFeatures] = useState<__esri.Graphic[]>([]);
   const [featuresDirty, setFeaturesDirty] = useState(true);
@@ -94,7 +92,7 @@ export function useAllFeatures<T>({
     setFeaturesDirty(false);
   }, [buildFeatures, transformData]);
 
-  return { features, featuresDirty, serviceFailure };
+  return { features, featuresDirty };
 }
 
 export function useAllFeaturesLayer(args: UseAllFeaturesLayerParams) {
@@ -167,6 +165,17 @@ function useBoundariesToggleLayer<
 
   const surroundingsVisible = useLayersSurroundingsVisibilities();
 
+  const { getSignal, abort } = useAbort();
+
+  // Disable layer if there is a data update error
+  const updateDataAndHandleError = useCallback(
+    async (filterType: BoundariesFilterType) => {
+      const updateSuccess = await updateData(filterType, getSignal());
+      // parentLayer.listMode = updateSuccess ? 'hide-children' : 'hide';
+    },
+    [getSignal, parentLayer, updateData],
+  );
+
   // Update data when the mapView updates
   useEffect(() => {
     if (parentLayer.hasHandles(handleGroupKey)) return;
@@ -174,36 +183,75 @@ function useBoundariesToggleLayer<
     // Update data once with HUC boundaries until the mapView is available
     reactiveUtils
       .whenOnce(() => mapView?.ready !== true)
-      .then(() => updateData('huc'));
+      .then(() => updateDataAndHandleError('huc'));
 
-    const handle = reactiveUtils.when(
+    const stationaryHandle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
         if (
           mapView.scale >= minScale ||
           surroundingsVisible[layerId] === false
         ) {
-          updateData('huc');
-        } else updateData('bBox');
+          updateDataAndHandleError('huc');
+        } else updateDataAndHandleError('extent');
       },
       { initial: true },
     );
 
-    parentLayer.addHandles(handle, handleGroupKey);
+    const movingHandle = reactiveUtils.when(
+      () => mapView?.stationary === false,
+      () => abort(),
+    );
+
+    parentLayer.addHandles([stationaryHandle, movingHandle], handleGroupKey);
 
     return function cleanup() {
       parentLayer?.removeHandles(handleGroupKey);
     };
   }, [
+    abort,
     layerId,
     handleGroupKey,
     mapView,
     parentLayer,
     surroundingsVisible,
-    updateData,
+    updateDataAndHandleError,
   ]);
 
   const layersDispatch = useLayersDispatch();
+
+  // Update layer features when new data is available
+  useEffect(() => {
+    updateLayer(baseLayer, features);
+  }, [baseLayer, features, updateLayer]);
+
+  // Add the layer to the Layers context
+  useEffect(() => {
+    layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
+  }, [layerId, layersDispatch, parentLayer]);
+
+  // Manages the surrounding features visibility
+  const toggleSurroundings = useCallback(() => {
+    const surroundingsVisible =
+      surroundingLayer.opacity === surroundingsVisibleOpacity;
+    surroundingLayer.opacity = surroundingsVisible
+      ? surroundingsHiddenOpacity
+      : surroundingsVisibleOpacity;
+    layersDispatch({
+      type: 'surroundingsVibility',
+      id: layerId,
+      payload: !surroundingsVisible,
+    });
+  }, [layerId, layersDispatch, surroundingLayer]);
+
+  // Add the surroundings toggle to the Layers context
+  useEffect(() => {
+    layersDispatch({
+      type: 'boundariesToggle',
+      id: layerId,
+      payload: toggleSurroundings,
+    });
+  }, [layerId, layersDispatch, toggleSurroundings]);
 
   // Resets the base layer's features and hides surrounding features
   const resetLayer = useCallback(async () => {
@@ -227,37 +275,7 @@ function useBoundariesToggleLayer<
     updateLayer,
   ]);
 
-  // Update layer features when new data is available
-  useEffect(() => {
-    updateLayer(baseLayer, features);
-  }, [baseLayer, features, updateLayer]);
-
-  useEffect(() => {
-    layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
-  }, [layerId, layersDispatch, parentLayer]);
-
-  // Manages the surrounding features visibility
-  const toggleSurroundings = useCallback(() => {
-    const surroundingsVisible =
-      surroundingLayer.opacity === surroundingsVisibleOpacity;
-    surroundingLayer.opacity = surroundingsVisible
-      ? surroundingsHiddenOpacity
-      : surroundingsVisibleOpacity;
-    layersDispatch({
-      type: 'surroundingsVibility',
-      id: layerId,
-      payload: !surroundingsVisible,
-    });
-  }, [layerId, layersDispatch, surroundingLayer]);
-
-  useEffect(() => {
-    layersDispatch({
-      type: 'boundariesToggle',
-      id: layerId,
-      payload: toggleSurroundings,
-    });
-  }, [layerId, layersDispatch, toggleSurroundings]);
-
+  // Add the layer reset function to the Layers context
   useEffect(() => {
     layersDispatch({ type: 'reset', id: layerId, payload: resetLayer });
   }, [layerId, layersDispatch, resetLayer]);
@@ -265,6 +283,97 @@ function useBoundariesToggleLayer<
   return parentLayer;
 }
 
+// normalizeData and create features
+export function useCreateFeatures<T>({
+  transformData,
+  buildFeatures,
+}: UseCreateFeaturesParams<T>) {
+  const { huc12, hucBoundaries } = useContext(LocationSearchContext);
+
+  const [allFeatures, setFeatures] = useState<__esri.Graphic[]>([]);
+  const [featuresDirty, setFeaturesDirty] = useState(true);
+
+  const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
+  const [localFeaturesDirty, setLocalFeaturesDirty] = useState(true);
+
+  // Mark local data for updates when HUC changes
+  useEffect(() => {
+    if (huc12) return;
+    setLocalFeaturesDirty(true);
+  }, [huc12]);
+
+  // Update the complete dataset
+  useEffect(() => {
+    setFeaturesDirty(true);
+    const data = transformData();
+    if (data === null) return;
+
+    setFeatures(buildFeatures(data));
+    setFeaturesDirty(false);
+  }, [buildFeatures, transformData]);
+
+  // Update local features only if needed and complete featureset is ready
+  useEffect(() => {
+    if (!localFeaturesDirty || featuresDirty) return;
+    setLocalFeatures(
+      features.filter((feature) => {
+        const hucPolygon = hucBoundaries?.features[0]?.geometry;
+        if (!hucPolygon) return false;
+
+        return geometryEngine.intersects(
+          hucPolygon,
+          projectGeometry(feature.geometry, hucPolygon),
+        );
+      }),
+    );
+    setLocalFeaturesDirty(false);
+  }, [features, featuresDirty, hucBoundaries, localFeaturesDirty]);
+
+  return features;
+}
+
+function useCreateLocalFeatures<T>({
+  transformData,
+  buildFeatures,
+}: UseCreateFeaturesParams<T>) {
+  const { huc12, hucBoundaries } = useContext(LocationSearchContext);
+  const { features, featuresDirty } = useAllFeatures<T>({
+    transformData,
+    buildFeatures,
+    serviceFailure,
+  });
+
+  const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
+  const [localFeaturesDirty, setLocalFeaturesDirty] = useState(true);
+
+  // Mark local data for updates when HUC changes
+  useEffect(() => {
+    if (huc12) return;
+    setLocalFeaturesDirty(true);
+  }, [huc12]);
+
+  // Update local features only if needed and complete featureset is ready
+  useEffect(() => {
+    if (!localFeaturesDirty || featuresDirty) return;
+    setLocalFeatures(
+      features.filter((feature) => {
+        const hucPolygon = hucBoundaries?.features[0]?.geometry;
+        if (!hucPolygon) return false;
+
+        return geometryEngine.intersects(
+          hucPolygon,
+          projectGeometry(feature.geometry, hucPolygon),
+        );
+      }),
+    );
+    setLocalFeaturesDirty(false);
+  }, [features, featuresDirty, hucBoundaries, localFeaturesDirty]);
+
+  return {
+    features: localFeatures,
+    featuresDirty: localFeaturesDirty,
+  };
+}
 function useHucGraphic() {
   const { hucBoundaries } = useContext(LocationSearchContext);
 
@@ -389,7 +498,10 @@ const minScale = 577791;
 /*
 ## Types
 */
-export type BoundariesFilterType = 'huc' | 'bBox';
+
+export type BoundariesFilterType = 'huc' | 'extent';
+
+type FeaturesStatus = 'idle' | 'pending' | 'failure' | 'success';
 
 type UseBoundariesToggleLayerParams<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
@@ -397,14 +509,21 @@ type UseBoundariesToggleLayerParams<
   buildBaseLayer: (baseLayerId: string) => T;
   features: __esri.Graphic[];
   layerId: BoundariesToggleLayerId;
-  updateData: (filterType: BoundariesFilterType) => Promise<void>;
+  updateData: (
+    filterType: BoundariesFilterType,
+    abortSignal: AbortSignal,
+  ) => Promise<boolean>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
+};
+
+type UseCreateFeaturesParams<T> = {
+  transformData: () => T[] | null;
+  buildFeatures: (data: T[]) => Graphic[];
 };
 
 type UseFeaturesParams<T> = {
   transformData: () => T[] | null;
   buildFeatures: (data: T[]) => Graphic[];
-  serviceFailure: boolean;
 };
 
 type UseAllFeaturesLayerParams = Omit<

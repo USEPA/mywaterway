@@ -10,6 +10,7 @@ import type {
   MonitoringLocationsData,
   UsgsDailyAveragesData,
   UsgsPrecipitationData,
+  UsgsStreamgageAttributes,
   UsgsStreamgagesData,
 } from 'types';
 
@@ -20,6 +21,7 @@ const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
 
 const initialState: FetchedDataState = {
   monitoringLocations: { status: 'idle', data: null },
+  usgsStreamgageAttributes: { status: 'idle', data: null },
   usgsStreamgages: { status: 'idle', data: null },
   usgsPrecipitation: { status: 'idle', data: null },
   usgsDailyAverages: { status: 'idle', data: null },
@@ -33,6 +35,7 @@ function reducer(
     case 'reset': {
       return initialState;
     }
+    case 'idle':
     case 'pending':
     case 'failure':
     case 'success': {
@@ -42,7 +45,7 @@ function reducer(
       };
     }
     default: {
-      throw new Error(`Unhandled action type: ${action}`);
+      throw new Error(`Unhandled action type.`);
     }
   }
 }
@@ -91,6 +94,7 @@ export function useFetchedDataDispatch() {
 */
 function buildNewDataState(action: FetchedDataAction) {
   switch (action.type) {
+    case 'idle':
     case 'failure':
     case 'pending': {
       return { status: action.type, data: null };
@@ -111,6 +115,7 @@ type ProviderProps = {
 
 type FetchedData = {
   monitoringLocations: MonitoringLocationsData;
+  usgsStreamgageAttributes: UsgsStreamgageAttributes[];
   usgsStreamgages: UsgsStreamgagesData;
   usgsPrecipitation: UsgsPrecipitationData;
   usgsDailyAverages: UsgsDailyAveragesData;
@@ -130,6 +135,7 @@ type FetchedDataSuccessAction = {
 
 export type FetchedDataAction =
   | { type: 'reset' }
+  | { type: 'idle'; id: keyof FetchedDataState }
   | { type: 'pending'; id: keyof FetchedDataState }
   | { type: 'failure'; id: keyof FetchedDataState }
   | FetchedDataSuccessAction;

@@ -22,6 +22,7 @@ import {
   useAllFeaturesLayer,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
+import { isAbort } from 'utils/utils';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
@@ -56,12 +57,11 @@ export function useStreamgageLayer() {
     [navigate, services],
   );
 
-  const { serviceFailure, transformData, updateData } = useUtils();
+  const { transformData, updateData } = useDataUtils();
 
   const { features } = useAllFeatures<UsgsStreamgageAttributes>({
     transformData,
     buildFeatures,
-    serviceFailure,
   });
 
   // Build a group layer with toggleable boundaries
@@ -74,12 +74,11 @@ export function useStreamgageLayer() {
 }
 
 export function useLocalStreamgageFeatures() {
-  const { serviceFailure, transformData } = useUtils();
+  const { serviceFailure, transformData } = useDataUtils();
 
   const { features, featuresDirty } = useLocalFeatures({
     transformData,
     buildFeatures,
-    serviceFailure,
   });
 
   return {
@@ -89,30 +88,52 @@ export function useLocalStreamgageFeatures() {
   };
 }
 
-function useUtils() {
+function useDataUtils() {
   // Build the data update function
   const { huc12, mapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const [dvFilter, setDvFilter] = useState<string | null>(null);
-  const [thingsFilter, setThingsFilter] = useState<string | null>(null);
+  const hucData = useMemo(async () => {
+    if (!huc12) return null;
+    if (services.status !== 'success') return;
+
+    const hucDvFilter = `huc=${huc12.substring(0, 8)}`;
+    const hucThingsFilter = `$filter=properties/hydrologicUnit eq '${huc12}'`;
+  }, []);
+
+  const [extentDvFilter, setExtentDvFilter] = useState<string | null>(null);
+  const [extentThingsFilter, setExtentThingsFilter] = useState<string | null>(
+    null,
+  );
+
+  const getExtentData = useCallback(async () => {
+    const newExtentDvFilter = await getExtentDvFilter(mapView);
+    const newExtentThingsFilter = await getExtentThingsFilter(mapView);
+    // No updates necessary, return success
+    if (
+      newExtentDvFilter === extentDvFilter &&
+      newExtentThingsFilter === extentThingsFilter
+    )
+      return true;
+    // Could not create filters, return failure
+    if (!newExtentDvFilter || !newExtentThingsFilter) return false;
+
+    setExtentDvFilter(newExtentDvFilter);
+    setExtentThingsFilter(newExtentThingsFilter);
+
+    const updateStatuses = await Promise.all([
+      fetchStreamgages(newExtentThingsFilter, services, abortSignal),
+      fetchPrecipitation(newExtentDvFilter, services, abortSignal),
+      fetchDailyAverages(newExtentDvFilter, services, abortSignal),
+    ]);
+
+    return updateStatuses.every((status) => status === true);
+  }, []);
 
   const updateData = useCallback(
-    async (filterType: BoundariesFilterType) => {
-      const newDvFilter = await getDvFilter(filterType, huc12, mapView);
-      const newThingsFilter = await getThingsFilter(filterType, huc12, mapView);
-      if (newDvFilter === dvFilter || newThingsFilter === thingsFilter) return;
-      if (!newDvFilter || !newThingsFilter) return;
-
-      fetchStreamgages(newThingsFilter, services, fetchedDataDispatch);
-      fetchPrecipitation(newDvFilter, services, fetchedDataDispatch);
-      fetchDailyAverages(newDvFilter, services, fetchedDataDispatch);
-
-      setDvFilter(newDvFilter);
-      setThingsFilter(newThingsFilter);
-    },
+    async (abortSignal) => {},
     [dvFilter, fetchedDataDispatch, huc12, mapView, services, thingsFilter],
   );
 
@@ -212,9 +233,9 @@ function buildLayer(
 }
 
 function transformServiceData(
-  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
-  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
-  usgsStreamgages: FetchState<UsgsStreamgagesData>,
+  usgsDailyAverages: UsgsDailyAveragesData | null,
+  usgsPrecipitation: UsgsPrecipitationData | null,
+  usgsStreamgages: UsgsStreamgagesData | null,
 ) {
   if (
     usgsStreamgages.status !== 'success' ||
@@ -372,8 +393,9 @@ function fetchDailyAverages(
   boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
+  abortSignal: AbortSignal,
 ) {
-  if (services.status !== 'success') return;
+  if (services.status !== 'success') return false;
 
   // https://help.waterdata.usgs.gov/stat_code
   const meanValues = '00003';
@@ -392,9 +414,15 @@ function fetchDailyAverages(
 
   dispatch({ type: 'pending', id: 'usgsDailyAverages' });
 
-  Promise.all([
-    fetchCheck(`${url}&statCd=${meanValues}&parameterCd=${allParams}`),
-    fetchCheck(`${url}&statCd=${sumValues}&parameterCd=${precipitation}`),
+  return Promise.all([
+    fetchCheck(
+      `${url}&statCd=${meanValues}&parameterCd=${allParams}`,
+      abortSignal,
+    ),
+    fetchCheck(
+      `${url}&statCd=${sumValues}&parameterCd=${precipitation}`,
+      abortSignal,
+    ),
   ])
     .then(([allParamsRes, precipitationRes]) => {
       dispatch({
@@ -405,10 +433,16 @@ function fetchDailyAverages(
           precipitationSum: precipitationRes,
         },
       });
+      return true;
     })
     .catch((err) => {
+      if (isAbort(err)) {
+        dispatch({ type: 'idle', id: 'usgsDailyAverages' });
+        return true;
+      }
       console.error(err);
       dispatch({ type: 'failure', id: 'usgsDailyAverages' });
+      return false;
     });
 }
 
@@ -416,9 +450,10 @@ function fetchPrecipitation(
   boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
+  abortSignal: AbortSignal,
 ) {
-  if (services.status !== 'success') return;
-  //
+  if (services.status !== 'success') return false;
+
   // https://help.waterdata.usgs.gov/stat_code
   const sumValues = '00006';
 
@@ -435,17 +470,23 @@ function fetchPrecipitation(
 
   dispatch({ type: 'pending', id: 'usgsPrecipitation' });
 
-  fetchCheck(url)
+  return fetchCheck(url, abortSignal)
     .then((res) => {
       dispatch({
         type: 'success',
         id: 'usgsPrecipitation',
         payload: res,
       });
+      return true;
     })
     .catch((err) => {
+      if (isAbort(err)) {
+        dispatch({ type: 'idle', id: 'usgsPrecipitation' });
+        return true;
+      }
       console.error(err);
       dispatch({ type: 'failure', id: 'usgsPrecipitation' });
+      return false;
     });
 }
 
@@ -453,8 +494,9 @@ function fetchStreamgages(
   boundariesFilter: string,
   services: ServicesState,
   dispatch: Dispatch<FetchedDataAction>,
+  abortSignal: AbortSignal,
 ) {
-  if (services.status !== 'success') return;
+  if (services.status !== 'success') return false;
 
   const url =
     `${services.data.usgsSensorThingsAPI}?` +
@@ -467,64 +509,39 @@ function fetchStreamgages(
 
   dispatch({ type: 'pending', id: 'usgsStreamgages' });
 
-  fetchCheck(url)
+  return fetchCheck(url, abortSignal)
     .then((res) => {
       dispatch({
         type: 'success',
         id: 'usgsStreamgages',
         payload: res,
       });
+      return true;
     })
     .catch((err) => {
+      if (isAbort(err)) {
+        dispatch({ type: 'idle', id: 'usgsStreamgages' });
+        return true;
+      }
       console.error(err);
       dispatch({ type: 'failure', id: 'usgsStreamgages' });
+      return false;
     });
 }
 
-async function getDvFilter(
-  filterType: BoundariesFilterType = 'bBox',
-  huc12: string,
-  mapView: __esri.MapView | '',
-) {
-  const hucFilter = huc12 ? `huc=${huc12.substring(0, 8)}` : null;
-  switch (filterType) {
-    case 'huc': {
-      return hucFilter;
-    }
-    case 'bBox': {
-      const extent = await getGeographicExtent(mapView);
-      // Service requires that area of extent cannot exceed 25 degrees
-      const bBox = getExtentBoundingBox(extent, 25, true);
-      if (bBox) return `bBox=${bBox}`;
-      else return hucFilter;
-    }
-    default:
-      return null;
-  }
+async function getExtentDvFilter(mapView: __esri.MapView | '') {
+  const extent = await getGeographicExtent(mapView);
+  // Service requires that area of extent cannot exceed 25 degrees
+  const bBox = getExtentBoundingBox(extent, 25, true);
+  return bBox ? `bBox=${bBox}` : null;
 }
 
-async function getThingsFilter(
-  filterType: BoundariesFilterType = 'bBox',
-  huc12: string,
-  mapView: __esri.MapView | '',
-) {
-  const hucFilter = huc12
-    ? `$filter=properties/hydrologicUnit eq '${huc12}'`
+async function getExtentThingsFilter(mapView: __esri.MapView | '') {
+  const extent = await getGeographicExtent(mapView);
+  const wkt = getExtentWkt(extent);
+  return wkt
+    ? `$filter=st_within(Location/location,geography'POLYGON(${wkt})')`
     : null;
-  switch (filterType) {
-    case 'huc': {
-      return hucFilter;
-    }
-    case 'bBox': {
-      const extent = await getGeographicExtent(mapView);
-      const wkt = getExtentWkt(extent);
-      if (wkt) {
-        return `$filter=st_within(Location/location,geography'POLYGON(${wkt})')`;
-      } else return hucFilter;
-    }
-    default:
-      return null;
-  }
 }
 
 // Gets a string representation of the view's extent as Well-Known Text
