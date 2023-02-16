@@ -18,17 +18,24 @@ import { useSaveSettings, useWidgetLayerStorage } from 'utils/hooks';
 // styles
 import { colors } from 'styles';
 
-const layersToIgnore = ['protectedAreasHighlightLayer'];
+const layersToIgnore = [
+  'nonprofitsLayer',
+  'protectedAreasHighlightLayer',
+  'surroundingMonitoringLocationsLayer',
+];
 
 const layersRequireFeatureService = [
   'actionsLayer',
   'boundariesLayer',
+  'cyanLayer',
   'dischargersLayer',
+  'issuesLayer',
   'monitoringLocationsLayer',
   'providersLayer',
   'searchIconLayer',
   'usgsStreamgagesLayer',
   'waterbodyLayer',
+  'upstreamWatershed',
 ];
 
 const layerFilterOptions = [
@@ -201,14 +208,72 @@ function SavePanel({ visible }: Props) {
   useEffect(() => {
     if (!mapView || layerWatcher) return;
 
-    console.log('init layers watchers...');
     const watcher = reactiveUtils.watch(
       () => mapView.map.layers.length,
       () => setMapLayerCount(mapView.map.layers.length),
     );
 
+    const layerWatchers: { [id: string]: IHandle } = {};
+
+    function watchLayerVisibility(layer) {
+      const visibilityWatcher = reactiveUtils.watch(
+        () => layer.visible,
+        () => {
+          if (layersToIgnore.includes(layer.id)) return;
+
+          setSaveLayersList((layersList) => {
+            const newLayersList = { ...layersList };
+            newLayersList[layer.id].toggled = layer.visible;
+            return newLayersList;
+          });
+        },
+      );
+      layerWatchers[layer.id] = visibilityWatcher;
+    }
+
+    function watchLayerLoaded(layer) {
+      const loadedWatcher = reactiveUtils.watch(
+        () => layer.loaded,
+        () => {
+          if (!layer.loaded) return;
+
+          loadedWatcher.remove();
+
+          setSaveLayersList((layersList) => {
+            const newLayersList = { ...layersList };
+            newLayersList[layer.id].label = layer.title;
+            return newLayersList;
+          });
+        },
+      );
+    }
+
+    mapView.map.layers.forEach((layer) => watchLayerVisibility(layer));
+
+    mapView.map.layers.on('change', (e) => {
+      if (e.added.length > 0) {
+        e.added.forEach((layer) => {
+          watchLayerVisibility(layer);
+          if (!layer.loaded) watchLayerLoaded(layer);
+        });
+      }
+
+      if (e.removed.length > 0) {
+        e.removed.forEach((layer) => {
+          layerWatchers[layer.id].remove();
+          delete layerWatchers[layer.id];
+
+          setSaveLayersList((layersList) => {
+            const newLayersList = { ...layersList };
+            delete newLayersList[layer.id];
+            return newLayersList;
+          });
+        });
+      }
+    });
+
     setLayerWatcher(watcher);
-  }, [layerWatcher, mapView]);
+  }, [layerWatcher, mapView, setSaveLayersList]);
 
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
@@ -233,9 +298,7 @@ function SavePanel({ visible }: Props) {
   // Build the list of switches
   useEffect(() => {
     if (!mapView || !layersInitialized) return;
-    // if (!mapView) return;
 
-    // console.log('build switches...');
     // get a list of layers that were added as files as these will need
     // be flagged as costing money to store in AGO
     const fileLayerIds = [];
@@ -244,8 +307,6 @@ function SavePanel({ visible }: Props) {
         fileLayerIds.push(layer.layer.id);
       }
     });
-
-    // console.log('saveLayersList: ', saveLayersList);
 
     // build object of switches based on layers on map
     const newSwitches = saveLayersList ? { ...saveLayersList } : {};
@@ -278,8 +339,6 @@ function SavePanel({ visible }: Props) {
 
     Object.keys(newSwitches).forEach((layerId) => {
       if (layersOnMap.includes(layerId)) return;
-
-      console.log('deleting a layer: ', layerId);
       delete newSwitches[layerId];
     });
 
@@ -411,9 +470,8 @@ function SavePanel({ visible }: Props) {
       <div css={listContainerStyles}>
         {saveLayersList &&
           Object.values(saveLayersList)
-            .sort((a, b) => {
-              return a.label.localeCompare(b.label);
-            })
+            .filter((l) => l.label)
+            .sort((a, b) => a.label.localeCompare(b.label))
             .map((value, index) => {
               const key = value.id;
 
