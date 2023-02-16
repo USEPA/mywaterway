@@ -443,7 +443,7 @@ function MapWidgets({
 
     map.removeAll();
     map.addMany(layers);
-    map.addMany(widgetLayers);
+    map.addMany(widgetLayers.map(layer => layer.layer));
 
     // gets a layer type value used for sorting
     function getLayerType(layer: __esri.Layer) {

@@ -14,7 +14,7 @@ import Switch from 'components/shared/Switch';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // utils
-import { useSaveSettings } from 'utils/hooks';
+import { useSaveSettings, useWidgetLayerStorage } from 'utils/hooks';
 // styles
 import { colors } from 'styles';
 
@@ -149,6 +149,7 @@ function SavePanel({ visible }: Props) {
   } = useAddSaveDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
   useSaveSettings();
+  useWidgetLayerStorage();
 
   const [oAuthInfo, setOAuthInfo] = useState(null);
   const [signedIn, setSignedIn] = useState(false);

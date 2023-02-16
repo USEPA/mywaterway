@@ -175,20 +175,20 @@ function AddSaveDataWidget() {
   const layersToDisplay = [];
   widgetLayers.forEach((layer) => {
     // directly add non-group layers
-    if (layer.type !== 'group') {
-      layersToDisplay.push({ layer, title: layer.title });
+    if (layer.layer.type !== 'group') {
+      layersToDisplay.push({ layer: layer.layer, title: layer.layer.title });
       return;
     }
 
     // for group layers, add each child layer separately
-    layer.layers.items
+    layer.layer.layers.items
       .slice()
       .reverse()
       .forEach((childLayer) => {
         // filter out tables as they don't get displayed on the map
         if (childLayer.isTable) return;
 
-        const title = `${layer.title} - ${childLayer.title}`;
+        const title = `${layer.layer.title} - ${childLayer.title}`;
         layersToDisplay.push({ layer: childLayer, title });
       });
   });
@@ -197,7 +197,7 @@ function AddSaveDataWidget() {
     <Fragment>
       <div css={widgetHeaderStyles}>
         <div css={dragHandleStyles} className="drag-handle">
-          <h1>Add Data</h1>
+          <h1>Add & Save Data</h1>
         </div>
         <button
           onClick={() => {
@@ -279,7 +279,7 @@ function AddSaveDataWidget() {
                             setWidgetLayers((currentWidgetLayers) =>
                               currentWidgetLayers.filter(
                                 (widgetLayer) =>
-                                  widgetLayer.id !== item.layer.id,
+                                  widgetLayer.layer.id !== item.layer.id,
                               ),
                             );
                             return;
@@ -294,7 +294,7 @@ function AddSaveDataWidget() {
                             setWidgetLayers((currentWidgetLayers) =>
                               currentWidgetLayers.filter(
                                 (widgetLayer) =>
-                                  widgetLayer.id !== item.layer.parent.id,
+                                  widgetLayer.layer.id !== item.layer.parent.id,
                               ),
                             );
                           }

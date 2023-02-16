@@ -385,9 +385,34 @@ export interface WaterbodyAttributes {
   overallstatus: string;
 }
 
-export interface WidgetLayer extends __esri.Layer {
+interface PortalLayer extends __esri.Layer {
   portalItem?: __esri.PortalItem;
 }
+
+export type WidgetLayer =
+  | {
+      type: 'portal';
+      id: string;
+      layer: PortalLayer;
+    }
+  | {
+      type: 'url';
+      layer: __esri.Layer;
+      url: string;
+      urlType: 'ArcGIS' | 'WCS' | 'WFS' | 'WMS' | 'KML' | 'GeoRSS' | 'CSV';
+    }
+  | {
+      type: 'file';
+      fields: __esri.FieldProperties[];
+      layer: __esri.Layer;
+      layerId: string;
+      objectIdField: string;
+      outFields: string[];
+      popupTemplate: __esri.PopupTemplateProperties;
+      renderer: __esri.RendererProperties;
+      source: __esri.Graphic[];
+      title: string;
+    };
 
 export interface WildScenicRiverAttributes {
   WSR_RIVER_NAME: string;

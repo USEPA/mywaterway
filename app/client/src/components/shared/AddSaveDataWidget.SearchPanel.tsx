@@ -757,7 +757,9 @@ function ResultCard({ result }: ResultCardProps) {
   useEffect(() => {
     setAdded(
       widgetLayers.findIndex(
-        (widgetLayer) => widgetLayer.portalItem?.id === result.id,
+        (widgetLayer) =>
+          widgetLayer.type === 'portal' &&
+          widgetLayer.layer.portalItem?.id === result.id,
       ) !== -1,
     );
   }, [widgetLayers, result]);
@@ -826,7 +828,11 @@ function ResultCard({ result }: ResultCardProps) {
       // add the layer to the map
       setWidgetLayers((currentWidgetLayers: WidgetLayer[]) => [
         ...currentWidgetLayers,
-        layer,
+        {
+          type: 'portal',
+          id: result.id,
+          layer,
+        },
       ]);
     });
   }, [mapView, result.id, setWidgetLayers]);
@@ -847,7 +853,9 @@ function ResultCard({ result }: ResultCardProps) {
     if (layersToRemove.length > 0) {
       setWidgetLayers((currentWidgetLayers) =>
         currentWidgetLayers.filter(
-          (widgetLayer) => widgetLayer?.portalItem?.id !== result.id,
+          (widgetLayer) =>
+            widgetLayer.type === 'portal' &&
+            widgetLayer.layer.portalItem?.id !== result.id,
         ),
       );
     }

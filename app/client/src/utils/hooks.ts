@@ -1,26 +1,36 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import Color from '@arcgis/core/Color';
-import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
+import CSVLayer from '@arcgis/core/layers/CSVLayer';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import Field from '@arcgis/core/layers/support/Field';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import * as geometryJsonUtils from '@arcgis/core/geometry/support/jsonUtils';
+import GeoRSSLayer from '@arcgis/core/layers/GeoRSSLayer';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Handles from '@arcgis/core/core/Handles';
+import KMLLayer from '@arcgis/core/layers/KMLLayer';
+import Layer from '@arcgis/core/layers/Layer';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
-import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
-import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
-import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
+import PortalItem from '@arcgis/core/portal/PortalItem';
 import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
+import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
+import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
+import WCSLayer from '@arcgis/core/layers/WCSLayer';
+import WFSLayer from '@arcgis/core/layers/WFSLayer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -68,6 +78,7 @@ import type {
   UsgsPrecipitationData,
   UsgsStreamgageAttributes,
   UsgsStreamgagesData,
+  WidgetLayer,
 } from 'types';
 
 declare global {
@@ -83,6 +94,37 @@ const allWaterbodiesAlpha = {
   poly: 0.4,
   outline: 1,
 };
+
+// Saves data to session storage
+export async function writeToStorage(
+  key: string,
+  data: string | boolean | object,
+) {
+  const itemSize = Math.round(JSON.stringify(data).length / 1024);
+
+  try {
+    if (typeof data === 'string') sessionStorage.setItem(key, data);
+    else sessionStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    const storageSize = Math.round(
+      JSON.stringify(sessionStorage).length / 1024,
+    );
+    const message = `New storage size would be ${
+      storageSize + itemSize
+    }K up from ${storageSize}K already in storage`;
+    console.error(e);
+
+    window.logToGa('send', 'exception', {
+      exDescription: `sessionKey=${key}:${message}`,
+      exFatal: false,
+    });
+  }
+}
+
+// Reads data from session storage
+export function readFromStorage(key: string) {
+  return sessionStorage.getItem(key);
+}
 
 function updateMonitoringGroups(
   stations: MonitoringLocationAttributes[],
@@ -2162,6 +2204,157 @@ function useMonitoringLocations() {
   ]);
 }
 
+// Hook for storing layers added via the Add & Save Data Widget
+function useWidgetLayerStorage() {
+  const key = 'hmw_widget_layers';
+
+  const {
+    widgetLayers,
+    setWidgetLayers,
+  } = useAddSaveDataWidgetState();
+
+  // Retreives training mode data from browser storage when the app loads
+  const [localWidgetLayersInitialized, setLocalWidgetLayersInitialized] =
+    useState(false);
+  useEffect(() => {
+    if (localWidgetLayersInitialized) return;
+
+    setLocalWidgetLayersInitialized(true);
+
+    const widgetLayersStr = readFromStorage(key);
+    if (!widgetLayersStr) return;
+    const widgetLayers: WidgetLayer[] = JSON.parse(widgetLayersStr);
+
+    type LayerPromises = {
+      key: string;
+      promise: Promise<Layer>;
+    }
+
+    const layersToAdd: WidgetLayer[] = [];
+    const promises: LayerPromises[] = [];
+    widgetLayers.forEach((layer) => {
+      if (layer.type === 'portal') {
+        const promise = Layer.fromPortalItem({
+          portalItem: new PortalItem({
+            id: layer.id,
+          }),
+        });
+        promises.push({ key: layer.id, promise });
+        layersToAdd.push({
+          ...layer,
+        });
+      } 
+      if (layer.type === 'url') {
+        let newLayer: __esri.Layer | Promise<__esri.Layer> | null = null;
+        if(layer.urlType === 'ArcGIS') {
+          const promise = Layer.fromArcGISServerUrl({ url: layer.url });
+          promises.push({ key: layer.url, promise });
+          layersToAdd.push({
+            ...layer,
+          });
+          return;
+        }
+        if (layer.urlType === 'WCS') {
+          newLayer = new WCSLayer({ url: layer.url });
+        }
+        if (layer.urlType === 'WFS') {
+          newLayer = new WFSLayer({ url: layer.url });
+        }
+        if (layer.urlType === 'WMS') {
+          newLayer = new WMSLayer({ url: layer.url });
+        }
+        if (layer.urlType === 'KML') {
+          newLayer = new KMLLayer({ url: layer.url });
+        }
+        if (layer.urlType === 'GeoRSS') {
+          newLayer = new GeoRSSLayer({ url: layer.url });
+        }
+        if (layer.urlType === 'CSV') {
+          newLayer = new CSVLayer({ url: layer.url });
+        }
+
+        if(!newLayer) return;
+        layersToAdd.push({
+          ...layer,
+          layer: newLayer,
+        });
+      }
+      if (layer.type === 'file') {
+        const fields: __esri.Field[] = [];
+        layer.fields.forEach((field) => {
+          fields.push(Field.fromJSON(field));
+        });
+
+        const source: any[] = [];
+        layer.source.forEach((feature: any) => {
+          source.push({
+            attributes: feature.attributes,
+            geometry: geometryJsonUtils.fromJSON(feature.geometry),
+            popupTemplate: feature.popupTemplate,
+            symbol: feature.symbol,
+          });
+        });
+
+        const layerProps = {
+          fields,
+          source,
+          id: layer.layerId,
+          objectIdField: layer.objectIdField,
+          outFields: layer.outFields,
+          title: layer.title,
+          renderer: rendererJsonUtils.fromJSON(layer.renderer),
+          popupTemplate: layer.popupTemplate,
+        };
+
+        layersToAdd.push({
+          ...layer,
+          layer: new FeatureLayer(layerProps),
+        });
+      }
+    });
+
+    if(promises.length === 0) {
+      setWidgetLayers(layersToAdd);
+      return;
+    }
+
+    Promise.all(promises.map(p => p.promise))
+      .then((responses) => {
+        responses.forEach((res, i) => {
+          // find the layer associated with the response
+          const layer = layersToAdd.find(l => 
+            (l.type === 'portal' && l.id === promises[i].key) ||
+            (l.type === 'url' && l.url === promises[i].key)
+          );
+          if (layer) layer.layer = res;
+        });
+
+        setWidgetLayers(layersToAdd);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [
+    localWidgetLayersInitialized,
+    setWidgetLayers,
+  ]);
+
+  useEffect(() => {
+    if(!localWidgetLayersInitialized) return;
+    
+    // set the layer to undefined as we don't want to save that 
+    // to session storage
+    const newWidgetLayers = widgetLayers.map(l => {
+      return {
+        ...l,
+        layer: undefined,
+      };
+    });
+    
+    writeToStorage(key, newWidgetLayers);
+  }, [localWidgetLayersInitialized, widgetLayers]);
+}
+
 // Hook for storing save panel selections to user's session storage
 function useSaveSettings() {
   const key = 'hmw_save_settings';
@@ -2189,7 +2382,7 @@ function useSaveSettings() {
 
     setLocalSaveSettingsInitialized(true);
 
-    const saveSettingsStr = sessionStorage.getItem(key);
+    const saveSettingsStr = readFromStorage(key);
     if (!saveSettingsStr) return;
     const saveSettings = JSON.parse(saveSettingsStr);
 
@@ -2231,18 +2424,7 @@ function useSaveSettings() {
       saveLayersList: newSaveLayerList,
     };
 
-    try {
-      sessionStorage.setItem(key, JSON.stringify(saveSettings));
-    } catch (e) {
-      console.error(e);
-      let message;
-      if (e instanceof Error) message = `${e.message}:${e.stack}`;
-      else message = String(e);
-      window.logToGa('send', 'exception', {
-        exDescription: `sessionKey=${key}:${message}`,
-        exFatal: false,
-      });
-    }
+    writeToStorage(key, saveSettings);
   }, [
     activeTabIndex,
     addSaveDataWidgetVisible,
@@ -2269,4 +2451,5 @@ export {
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
   useWaterbodyHighlight,
+  useWidgetLayerStorage,
 };
