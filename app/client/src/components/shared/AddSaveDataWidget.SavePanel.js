@@ -15,8 +15,6 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // utils
 import { useSaveSettings, useWidgetLayerStorage } from 'utils/hooks';
-// styles
-import { colors } from 'styles';
 
 const layersToIgnore = [
   'nonprofitsLayer',
@@ -92,7 +90,7 @@ const submitSectionStyles = css`
 
 const buttonContainerStyles = css`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
 `;
 
@@ -113,31 +111,6 @@ const saveAsInputStyles = css`
   border-color: hsl(0, 0%, 80%);
 `;
 
-const toolBarButtonStyles = css`
-  height: 40px;
-  margin-bottom: 0;
-  padding: 0.75em 1em;
-  color: white;
-  background-color: ${colors.navyBlue()};
-  border-radius: 0;
-  line-height: 16px;
-  text-decoration: none;
-  font-weight: bold;
-
-  &:hover {
-    background-color: ${colors.navyBlue()};
-  }
-
-  &:visited {
-    color: white;
-  }
-
-  &.tots-button-selected {
-    background-color: #004f83;
-    border-top: 2px solid #8491a1;
-  }
-`;
-
 type Props = {
   visible: Boolean,
 };
@@ -146,7 +119,6 @@ function SavePanel({ visible }: Props) {
   const {
     saveAsName,
     setSaveAsName,
-    saveContinue,
     setSaveContinue,
     saveLayerFilter,
     setSaveLayerFilter,
@@ -159,8 +131,7 @@ function SavePanel({ visible }: Props) {
   useWidgetLayerStorage();
 
   const [oAuthInfo, setOAuthInfo] = useState(null);
-  const [signedIn, setSignedIn] = useState(false);
-  const [portal, setPortal] = useState(null);
+  const [userPortal, setUserPortal] = useState(null);
 
   // Initialize the OAuth
   useEffect(() => {
@@ -168,37 +139,14 @@ function SavePanel({ visible }: Props) {
     console.log('init oauth...');
     const info = new OAuthInfo({
       appId: process.env.REACT_APP_ARCGIS_APP_ID,
-      popup: false,
+      popup: true,
+      flowType: 'authorization-code',
+      popupCallbackUrl: `${window.location.origin}/oauth-callback.html`,
     });
     IdentityManager.registerOAuthInfos([info]);
 
     setOAuthInfo(info);
   }, [setOAuthInfo, oAuthInfo]);
-
-  // Check the user's sign in status
-  const [
-    hasCheckedSignInStatus,
-    setHasCheckedSignInStatus, //
-  ] = useState(false);
-  useEffect(() => {
-    if (!oAuthInfo || hasCheckedSignInStatus) return;
-
-    console.log('check sign in status...');
-    setHasCheckedSignInStatus(true);
-    IdentityManager.checkSignInStatus(`${oAuthInfo.portalUrl}/sharing`)
-      .then(() => {
-        setSignedIn(true);
-
-        const portal = new Portal();
-        portal.authMode = 'immediate';
-        portal.load().then(() => {
-          setPortal(portal);
-        });
-      })
-      .catch(() => {
-        setSignedIn(false);
-      });
-  }, [oAuthInfo, setSignedIn, setPortal, hasCheckedSignInStatus]);
 
   const [errorMessageText, setErrorMessageText] = useState('');
 
@@ -368,41 +316,9 @@ function SavePanel({ visible }: Props) {
     widgetLayers,
   ]);
 
-  // Checks browser storage to determine if the user clicked publish and logged in.
-  const [saveButtonClicked, setSaveButtonClicked] = useState(false);
-  const [continueInitialized, setContinueInitialized] = useState(false);
-  useEffect(() => {
-    if (continueInitialized || !layersInitialized) return;
+  if (!mapView) return null;
 
-    // continue publish is not true, exit early
-    if (!saveContinue) {
-      console.log('continue with saving 1...');
-      setContinueInitialized(true);
-      return;
-    }
-
-    // wait until HMW is signed in before trying to continue the publish
-    if (!portal || !signedIn) return;
-
-    console.log('continue with saving 2...');
-    // continue with publishing
-    setSaveButtonClicked(true);
-    setSaveContinue(false);
-    setContinueInitialized(true);
-  }, [
-    continueInitialized,
-    layersInitialized,
-    portal,
-    saveContinue,
-    setSaveContinue,
-    signedIn,
-  ]);
-
-  // Run the publish
-  useEffect(() => {
-    if (!oAuthInfo || !portal || !signedIn) return;
-    if (!saveButtonClicked) return;
-
+  async function publish(portal) {
     console.log('run the publish...');
     // Gather the layers to be published
     const layersToPublish = [];
@@ -416,35 +332,46 @@ function SavePanel({ visible }: Props) {
 
     // TODO Create publishing logic
     console.log('layersToPublish: ', layersToPublish);
-
-    setSaveButtonClicked(false);
-  }, [
-    oAuthInfo,
-    portal,
-    saveButtonClicked,
-    saveLayerFilter,
-    saveLayersList,
-    signedIn,
-  ]);
-
-  if (!mapView) return null;
+  }
 
   // Saves the data to ArcGIS Online
-  const handleSaveAgo = (ev: MouseEvent<HTMLButtonElement>) => {
+  async function handleSaveAgo(ev: MouseEvent<HTMLButtonElement>) {
     // perform pre-checks
     if (!saveAsName) {
       setErrorMessageText('Please provide a name and try again.');
       return;
     }
 
-    console.log('handle save...');
-
     setErrorMessageText('');
 
     setSaveContinue(true);
 
-    IdentityManager.getCredential(`${oAuthInfo.portalUrl}/sharing`);
-  };
+    // TODO - Add loading spinner here
+
+    if (userPortal) {
+      await publish(userPortal);
+      return;
+    }
+
+    try {
+      // Check the user's sign in status
+      await IdentityManager.getCredential(`${oAuthInfo.portalUrl}/sharing`, {
+        oAuthPopupConfirmation: false,
+      });
+
+      // load portal - credentials auto applied via IdentityManager
+      const portal = new Portal();
+      portal.authMode = 'immediate';
+      await portal.load();
+      setUserPortal(portal);
+
+      // run publish
+      await publish(portal);
+    } catch (err) {
+      console.error(err);
+      setUserPortal(null);
+    }
+  }
 
   return (
     <form
@@ -525,23 +452,6 @@ function SavePanel({ visible }: Props) {
           <button css={addButtonStyles} type="submit" onClick={handleSaveAgo}>
             Save to ArcGIS Online
           </button>
-          {oAuthInfo && (
-            <button
-              css={toolBarButtonStyles}
-              onClick={(ev) => {
-                if (signedIn) {
-                  IdentityManager.destroyCredentials();
-                  window.location.reload();
-                } else {
-                  IdentityManager.getCredential(
-                    `${oAuthInfo.portalUrl}/sharing`,
-                  );
-                }
-              }}
-            >
-              {signedIn ? 'Logout' : 'Login'}
-            </button>
-          )}
         </div>
       </div>
     </form>
