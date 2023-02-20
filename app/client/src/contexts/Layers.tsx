@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useReducer } from 'react';
 // classes
-import { BoundariesToggleLayer } from 'classes/BoundariesToggleLayer';
+import {
+  AllFeaturesLayer,
+  AllGraphicsLayer,
+} from 'classes/BoundariesToggleLayer';
 // types
 import type { Dispatch, ReactNode } from 'react';
 
@@ -10,18 +13,22 @@ const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 const initialState: LayersState = {
   resets: {
     monitoringLocationsLayer: () => Promise.resolve(),
+    placeholderLayer: () => Promise.resolve(),
     usgsStreamgagesLayer: () => Promise.resolve(),
   },
   layers: {
     monitoringLocationsLayer: null,
+    placeholderLayer: null,
     usgsStreamgagesLayer: null,
   },
   boundariesToggles: {
     monitoringLocationsLayer: () => null,
+    placeholderLayer: () => null,
     usgsStreamgagesLayer: () => null,
   },
   surroundingsVibilities: {
     monitoringLocationsLayer: false,
+    placeholderLayer: false,
     usgsStreamgagesLayer: false,
   },
 };
@@ -167,21 +174,21 @@ type Action =
       payload: boolean;
     };
 
-export type BoundariesToggleLayerId =
+export type BoundariesToggleLayerId = AllFeaturesLayerId | AllGraphicsLayerId;
+
+export type AllFeaturesLayerId =
   | 'usgsStreamgagesLayer'
   | 'monitoringLocationsLayer';
 
-// type FeatureLayerId =
-
-// type GraphicsLayerId =
-
-// type GroupLayerId =
+type AllGraphicsLayerId = 'placeholderLayer';
 
 type LayerId = keyof (typeof initialState)['layers'];
 
 export type LayersState = {
   layers: {
-    [B in BoundariesToggleLayerId]: BoundariesToggleLayer | null;
+    [F in AllFeaturesLayerId]: AllFeaturesLayer | null;
+  } & {
+    [G in AllGraphicsLayerId]: AllGraphicsLayer | null;
   };
   resets: {
     [L in LayerId]: () => Promise<void>;

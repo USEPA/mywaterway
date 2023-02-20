@@ -6,12 +6,9 @@ import {
   useReducer,
 } from 'react';
 import type {
-  FetchState,
+  FetchSuccessState,
   MonitoringLocationsData,
-  UsgsDailyAveragesData,
-  UsgsPrecipitationData,
   UsgsStreamgageAttributes,
-  UsgsStreamgagesData,
 } from 'types';
 
 const StateContext = createContext<FetchedDataState | undefined>(undefined);
@@ -21,10 +18,7 @@ const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
 
 const initialState: FetchedDataState = {
   monitoringLocations: { status: 'idle', data: null },
-  usgsStreamgageAttributes: { status: 'idle', data: null },
   usgsStreamgages: { status: 'idle', data: null },
-  usgsPrecipitation: { status: 'idle', data: null },
-  usgsDailyAverages: { status: 'idle', data: null },
 };
 
 function reducer(
@@ -113,19 +107,37 @@ type ProviderProps = {
   children: ReactNode;
 };
 
+type EmptyFetchStatus = Exclude<FetchStatus, 'success'>;
+
+type EmptyFetchState = {
+  status: EmptyFetchStatus;
+  data: null;
+};
+
+export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
+
 type FetchedData = {
   monitoringLocations: MonitoringLocationsData;
-  usgsStreamgageAttributes: UsgsStreamgageAttributes[];
-  usgsStreamgages: UsgsStreamgagesData;
-  usgsPrecipitation: UsgsPrecipitationData;
-  usgsDailyAverages: UsgsDailyAveragesData;
+  usgsStreamgages: UsgsStreamgageAttributes[];
 };
+
+export type FetchedDataAction =
+  | { type: 'reset' }
+  | FetchedDataEmptyAction
+  | FetchedDataSuccessAction;
+
+type FetchedDataEmptyAction = {
+  [E in EmptyFetchStatus]: {
+    type: E;
+    id: keyof FetchedDataState;
+  };
+}[EmptyFetchStatus];
 
 type FetchedDataState = {
   [D in keyof FetchedData]: FetchState<FetchedData[D]>;
 };
 
-type FetchedDataSuccessAction = {
+export type FetchedDataSuccessAction = {
   [D in keyof FetchedDataState]: {
     type: 'success';
     id: D;
@@ -133,9 +145,4 @@ type FetchedDataSuccessAction = {
   };
 }[keyof FetchedDataState];
 
-export type FetchedDataAction =
-  | { type: 'reset' }
-  | { type: 'idle'; id: keyof FetchedDataState }
-  | { type: 'pending'; id: keyof FetchedDataState }
-  | { type: 'failure'; id: keyof FetchedDataState }
-  | FetchedDataSuccessAction;
+export type FetchStatus = 'idle' | 'pending' | 'failure' | 'success';

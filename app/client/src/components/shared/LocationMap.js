@@ -817,21 +817,19 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     newCyanLayer.add(cyanWaterbodies);
     newCyanLayer.add(cyanImages);
 
-    setLayers(
-      [
-        ...getSharedLayers(),
-        providersLayer,
-        boundariesLayer,
-        newCyanLayer,
-        upstreamLayer,
-        monitoringLocationsLayer,
-        usgsStreamgagesLayer,
-        issuesLayer,
-        dischargersLayer,
-        nonprofitsLayer,
-        searchIconLayer,
-      ].filter((layer) => layer !== null),
-    );
+    setLayers([
+      ...getSharedLayers(),
+      providersLayer,
+      boundariesLayer,
+      newCyanLayer,
+      upstreamLayer,
+      monitoringLocationsLayer,
+      usgsStreamgagesLayer,
+      issuesLayer,
+      dischargersLayer,
+      nonprofitsLayer,
+      searchIconLayer,
+    ]);
 
     setLayersInitialized(true);
   }, [

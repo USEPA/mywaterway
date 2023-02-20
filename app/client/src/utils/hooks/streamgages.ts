@@ -3,13 +3,14 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
@@ -17,28 +18,27 @@ import { fetchCheck } from 'utils/fetchUtils';
 import {
   getExtentBoundingBox,
   getGeographicExtent,
-  useAllFeatures,
-  useLocalFeatures,
   useAllFeaturesLayer,
+  useLocalFeatures,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 import { isAbort } from 'utils/utils';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
-import type { FetchedDataAction } from 'contexts/FetchedData';
+import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  ServicesData,
   ServicesState,
   StreamgageMeasurement,
   UsgsDailyAveragesData,
   UsgsPrecipitationData,
   UsgsStreamgageAttributes,
   UsgsStreamgagesData,
-  FetchState,
+  FetchSuccessState,
 } from 'types';
-import type { BoundariesFilterType } from 'utils/hooks';
 
 /*
 ## Hooks
@@ -47,8 +47,8 @@ import type { BoundariesFilterType } from 'utils/hooks';
 export function useStreamgageLayer() {
   // Build the base feature layer
   const services = useServicesContext();
-
   const navigate = useNavigate();
+  const { usgsStreamgages } = useFetchedDataState();
 
   const buildBaseLayer = useCallback(
     (baseLayerId: string) => {
@@ -57,107 +57,104 @@ export function useStreamgageLayer() {
     [navigate, services],
   );
 
-  const { transformData, updateData } = useDataUtils();
-
-  const { features } = useAllFeatures<UsgsStreamgageAttributes>({
-    transformData,
-    buildFeatures,
-  });
+  const updateData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
     layerId,
     buildBaseLayer,
     updateData,
-    features,
+    features: buildFeatures(usgsStreamgages.data),
   });
 }
 
-export function useLocalStreamgageFeatures() {
-  const { serviceFailure, transformData } = useDataUtils();
+export function useLocalStreamgages() {
+  const { usgsStreamgages } = useFetchedDataState();
+  const { usgsStreamgagesLayer } = useLayers();
 
-  const { features, featuresDirty } = useLocalFeatures({
-    transformData,
-    buildFeatures,
-  });
+  const { features: streamgages, status: streamgagesStatus } = useLocalFeatures(
+    usgsStreamgagesLayer,
+    usgsStreamgages.status,
+  );
 
-  return {
-    streamgageFeatures: features,
-    streamgageFeaturesDirty: featuresDirty,
-    streamgageServiceFailure: serviceFailure,
-  };
+  return { streamgages, streamgagesStatus };
 }
 
-function useDataUtils() {
+function useUpdateData() {
   // Build the data update function
   const { huc12, mapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const hucData = useMemo(async () => {
-    if (!huc12) return null;
+  const [hucData, setHucData] = useState<UsgsStreamgageAttributes[]>([]);
+  useEffect(() => {
+    const controller = new AbortController();
+
+    if (!huc12) return;
     if (services.status !== 'success') return;
 
     const hucDvFilter = `huc=${huc12.substring(0, 8)}`;
     const hucThingsFilter = `$filter=properties/hydrologicUnit eq '${huc12}'`;
-  }, []);
+
+    fetchAndTransformData(
+      [
+        fetchDailyAverages(hucDvFilter, services.data, controller.signal),
+        fetchPrecipitation(hucDvFilter, services.data, controller.signal),
+        fetchStreamgages(hucThingsFilter, services.data, controller.signal),
+      ],
+      fetchedDataDispatch,
+    ).then((data) => setHucData(data));
+
+    return function cleanup() {
+      controller.abort();
+    };
+  }, [fetchedDataDispatch, huc12, services]);
 
   const [extentDvFilter, setExtentDvFilter] = useState<string | null>(null);
   const [extentThingsFilter, setExtentThingsFilter] = useState<string | null>(
     null,
   );
 
-  const getExtentData = useCallback(async () => {
-    const newExtentDvFilter = await getExtentDvFilter(mapView);
-    const newExtentThingsFilter = await getExtentThingsFilter(mapView);
-    // No updates necessary, return success
-    if (
-      newExtentDvFilter === extentDvFilter &&
-      newExtentThingsFilter === extentThingsFilter
-    )
-      return true;
-    // Could not create filters, return failure
-    if (!newExtentDvFilter || !newExtentThingsFilter) return false;
-
-    setExtentDvFilter(newExtentDvFilter);
-    setExtentThingsFilter(newExtentThingsFilter);
-
-    const updateStatuses = await Promise.all([
-      fetchStreamgages(newExtentThingsFilter, services, abortSignal),
-      fetchPrecipitation(newExtentDvFilter, services, abortSignal),
-      fetchDailyAverages(newExtentDvFilter, services, abortSignal),
-    ]);
-
-    return updateStatuses.every((status) => status === true);
-  }, []);
-
   const updateData = useCallback(
-    async (abortSignal) => {},
-    [dvFilter, fetchedDataDispatch, huc12, mapView, services, thingsFilter],
+    async (abortSignal) => {
+      const newExtentDvFilter = await getExtentDvFilter(mapView);
+      const newExtentThingsFilter = await getExtentThingsFilter(mapView);
+      // No updates necessary, return success
+      if (
+        newExtentDvFilter === extentDvFilter &&
+        newExtentThingsFilter === extentThingsFilter
+      )
+        return;
+      // Could not create filters, return failure
+      if (!newExtentDvFilter || !newExtentThingsFilter) return;
+
+      setExtentDvFilter(newExtentDvFilter);
+      setExtentThingsFilter(newExtentThingsFilter);
+
+      if (services.status !== 'success') return;
+
+      fetchAndTransformData(
+        [
+          fetchDailyAverages(newExtentDvFilter, services.data, abortSignal),
+          fetchPrecipitation(newExtentDvFilter, services.data, abortSignal),
+          fetchStreamgages(newExtentThingsFilter, services.data, abortSignal),
+        ],
+        fetchedDataDispatch,
+        hucData,
+      );
+    },
+    [
+      extentDvFilter,
+      extentThingsFilter,
+      fetchedDataDispatch,
+      hucData,
+      mapView,
+      services,
+    ],
   );
 
-  // Create the data normalization function
-  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
-    useFetchedDataState();
-
-  const transformData = useCallback(() => {
-    return transformServiceData(
-      usgsDailyAverages,
-      usgsPrecipitation,
-      usgsStreamgages,
-    );
-  }, [usgsDailyAverages, usgsPrecipitation, usgsStreamgages]);
-
-  const serviceFailure = useMemo(() => {
-    return (
-      usgsStreamgages.status === 'failure' ||
-      usgsPrecipitation.status === 'failure' ||
-      usgsDailyAverages.status === 'failure'
-    );
-  }, [usgsDailyAverages, usgsPrecipitation, usgsStreamgages]);
-
-  return { serviceFailure, updateData, transformData };
+  return updateData;
 }
 
 /*
@@ -165,8 +162,9 @@ function useDataUtils() {
 */
 
 // Builds features from streamgage data
-function buildFeatures(transformedData: UsgsStreamgageAttributes[]) {
-  return transformedData.map((datum) => {
+function buildFeatures(data: UsgsStreamgageAttributes[] | null) {
+  if (!data) return [];
+  return data.map((datum) => {
     return new Graphic({
       geometry: new Point({
         longitude: datum.locationLongitude,
@@ -232,20 +230,50 @@ function buildLayer(
   });
 }
 
-function transformServiceData(
-  usgsDailyAverages: UsgsDailyAveragesData | null,
-  usgsPrecipitation: UsgsPrecipitationData | null,
-  usgsStreamgages: UsgsStreamgagesData | null,
+async function fetchAndTransformData(
+  promises: UsgsFetchPromises,
+  dispatch: Dispatch<FetchedDataAction>,
+  additionalData?: UsgsStreamgageAttributes[],
 ) {
-  if (
-    usgsStreamgages.status !== 'success' ||
-    usgsPrecipitation.status !== 'success' ||
-    usgsDailyAverages.status !== 'success'
-  ) {
-    return null;
-  }
+  dispatch({ type: 'pending', id: 'usgsStreamgages' });
 
-  const gages = usgsStreamgages.data.value.map((gage) => {
+  const responses = await Promise.all(promises);
+  if (responses.every((res) => res.status === 'success')) {
+    const usgsStreamgageAttributes = transformServiceData(
+      ...(responses.map((res) => res.data) as UsgsServiceData),
+    );
+    dispatch({
+      type: 'success',
+      id: 'usgsStreamgages',
+      payload: additionalData
+        ? removeDuplicateData(
+            [...usgsStreamgageAttributes, ...additionalData],
+            dataKeys,
+          )
+        : usgsStreamgageAttributes,
+    });
+    return usgsStreamgageAttributes;
+  } else if (responses.some((res) => res.status === 'idle')) {
+    dispatch({ type: 'idle', id: 'usgsStreamgages' });
+  } else if (responses.some((res) => res.status === 'failure')) {
+    dispatch({
+      type: 'failure',
+      id: 'usgsStreamgages',
+    });
+  }
+  return [];
+}
+
+function matchKeys<T>(a: T, b: T, keys: Array<keyof T>) {
+  return keys.every((key) => a[key] === b[key]);
+}
+
+function transformServiceData(
+  usgsDailyAverages: UsgsDailyAveragesData,
+  usgsPrecipitation: UsgsPrecipitationData,
+  usgsStreamgages: UsgsStreamgagesData,
+) {
+  const gages = usgsStreamgages.value.map((gage) => {
     const streamgageMeasurements: {
       primary: StreamgageMeasurement[];
       secondary: StreamgageMeasurement[];
@@ -315,8 +343,8 @@ function transformServiceData(
   const streamgageSiteIds = gages.map((gage) => gage.siteId);
 
   // add precipitation data to each streamgage if it exists for the site
-  if (usgsPrecipitation.data?.value) {
-    usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
+  if (usgsPrecipitation.value) {
+    usgsPrecipitation.value?.timeSeries.forEach((site) => {
       const siteId = site.sourceInfo.siteCode[0].value;
       const observation = site.values[0].value[0];
 
@@ -341,12 +369,12 @@ function transformServiceData(
 
   // add daily average measurements to each streamgage if it exists for the site
   if (
-    usgsDailyAverages.data?.allParamsMean?.value &&
-    usgsDailyAverages.data?.precipitationSum?.value
+    usgsDailyAverages.allParamsMean?.value &&
+    usgsDailyAverages.precipitationSum?.value
   ) {
     const usgsDailyTimeSeriesData = [
-      ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
-      ...(usgsDailyAverages.data.precipitationSum.value?.timeSeries || []),
+      ...(usgsDailyAverages.allParamsMean.value?.timeSeries || []),
+      ...(usgsDailyAverages.precipitationSum.value?.timeSeries || []),
     ];
 
     usgsDailyTimeSeriesData.forEach((site) => {
@@ -391,12 +419,9 @@ function transformServiceData(
 
 function fetchDailyAverages(
   boundariesFilter: string,
-  services: ServicesState,
-  dispatch: Dispatch<FetchedDataAction>,
+  servicesData: ServicesData,
   abortSignal: AbortSignal,
-) {
-  if (services.status !== 'success') return false;
-
+): Promise<FetchState<UsgsDailyAveragesData>> {
   // https://help.waterdata.usgs.gov/stat_code
   const meanValues = '00003';
   const sumValues = '00006';
@@ -406,13 +431,11 @@ function fetchDailyAverages(
   const precipitation = '00045'; // Precipitation, total, inches
 
   const url =
-    services.data.usgsDailyValues +
+    servicesData.usgsDailyValues +
     `?format=json` +
     `&siteStatus=active` +
     `&period=P7D` +
     `&${boundariesFilter}`;
-
-  dispatch({ type: 'pending', id: 'usgsDailyAverages' });
 
   return Promise.all([
     fetchCheck(
@@ -425,35 +448,28 @@ function fetchDailyAverages(
     ),
   ])
     .then(([allParamsRes, precipitationRes]) => {
-      dispatch({
-        type: 'success',
-        id: 'usgsDailyAverages',
-        payload: {
+      return {
+        status: 'success',
+        data: {
           allParamsMean: allParamsRes,
           precipitationSum: precipitationRes,
         },
-      });
-      return true;
+      } as FetchSuccessState<UsgsDailyAveragesData>;
     })
     .catch((err) => {
       if (isAbort(err)) {
-        dispatch({ type: 'idle', id: 'usgsDailyAverages' });
-        return true;
+        return { status: 'idle', data: null };
       }
       console.error(err);
-      dispatch({ type: 'failure', id: 'usgsDailyAverages' });
-      return false;
+      return { status: 'failure', data: null };
     });
 }
 
 function fetchPrecipitation(
   boundariesFilter: string,
-  services: ServicesState,
-  dispatch: Dispatch<FetchedDataAction>,
+  servicesData: ServicesData,
   abortSignal: AbortSignal,
-) {
-  if (services.status !== 'success') return false;
-
+): Promise<FetchState<UsgsPrecipitationData>> {
   // https://help.waterdata.usgs.gov/stat_code
   const sumValues = '00006';
 
@@ -461,45 +477,36 @@ function fetchPrecipitation(
   const precipitation = '00045'; // Precipitation, total, inches
 
   const url =
-    services.data.usgsDailyValues +
+    servicesData.usgsDailyValues +
     `?format=json` +
     `&siteStatus=active` +
     `&statCd=${sumValues}` +
     `&parameterCd=${precipitation}` +
     `&${boundariesFilter}`;
 
-  dispatch({ type: 'pending', id: 'usgsPrecipitation' });
-
   return fetchCheck(url, abortSignal)
     .then((res) => {
-      dispatch({
-        type: 'success',
-        id: 'usgsPrecipitation',
-        payload: res,
-      });
-      return true;
+      return {
+        status: 'success',
+        data: res,
+      } as FetchSuccessState<UsgsPrecipitationData>;
     })
     .catch((err) => {
       if (isAbort(err)) {
-        dispatch({ type: 'idle', id: 'usgsPrecipitation' });
-        return true;
+        return { status: 'idle', data: null };
       }
       console.error(err);
-      dispatch({ type: 'failure', id: 'usgsPrecipitation' });
-      return false;
+      return { status: 'failure', data: null };
     });
 }
 
 function fetchStreamgages(
   boundariesFilter: string,
-  services: ServicesState,
-  dispatch: Dispatch<FetchedDataAction>,
+  servicesData: ServicesData,
   abortSignal: AbortSignal,
-) {
-  if (services.status !== 'success') return false;
-
+): Promise<FetchState<UsgsStreamgagesData>> {
   const url =
-    `${services.data.usgsSensorThingsAPI}?` +
+    `${servicesData.usgsSensorThingsAPI}?` +
     `$select=name,properties/active,properties/agency,properties/agencyCode,properties/monitoringLocationUrl,properties/monitoringLocationName,properties/monitoringLocationType,properties/monitoringLocationNumber,properties/hydrologicUnit&` +
     `$expand=Locations($select=location),Datastreams($select=description,properties/ParameterCode,properties/WebDescription,unitOfMeasurement/name,unitOfMeasurement/symbol;` +
     `$expand=Observations($select=phenomenonTime,result;` +
@@ -507,25 +514,19 @@ function fetchStreamgages(
     `$orderBy=phenomenonTime desc))` +
     `&${boundariesFilter}`;
 
-  dispatch({ type: 'pending', id: 'usgsStreamgages' });
-
   return fetchCheck(url, abortSignal)
     .then((res) => {
-      dispatch({
-        type: 'success',
-        id: 'usgsStreamgages',
-        payload: res,
-      });
-      return true;
+      return {
+        status: 'success',
+        data: res,
+      } as FetchSuccessState<UsgsStreamgagesData>;
     })
     .catch((err) => {
       if (isAbort(err)) {
-        dispatch({ type: 'idle', id: 'usgsStreamgages' });
-        return true;
+        return { status: 'idle', data: null };
       }
       console.error(err);
-      dispatch({ type: 'failure', id: 'usgsStreamgages' });
-      return false;
+      return { status: 'failure', data: null };
     });
 }
 
@@ -551,8 +552,32 @@ function getExtentWkt(extent: __esri.Extent | null) {
   return `(${extent.xmax} ${extent.ymin}, ${extent.xmax} ${extent.ymax}, ${extent.xmin} ${extent.ymax}, ${extent.xmin} ${extent.ymin}, ${extent.xmax} ${extent.ymin})`;
 }
 
+function removeDuplicateData<T>(attributes: T[], keys: Array<keyof T>) {
+  return attributes.reduce<T[]>((unique, next) => {
+    if (unique.find((attribute) => matchKeys(attribute, next, keys)))
+      return unique;
+    return [...unique, next];
+  }, []);
+}
+
 /*
 ## Constants
 */
 
 const layerId = 'usgsStreamgagesLayer';
+const dataKeys = ['orgId', 'siteId'] as Array<keyof UsgsStreamgageAttributes>;
+
+/*
+## Types
+*/
+type UsgsFetchPromises = [
+  ReturnType<typeof fetchDailyAverages>,
+  ReturnType<typeof fetchPrecipitation>,
+  ReturnType<typeof fetchStreamgages>,
+];
+
+type UsgsServiceData = [
+  UsgsDailyAveragesData,
+  UsgsPrecipitationData,
+  UsgsStreamgagesData,
+];

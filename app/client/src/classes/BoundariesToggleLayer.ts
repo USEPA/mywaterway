@@ -25,6 +25,11 @@ export class BoundariesToggleLayer extends GroupLayer {
 
 @subclass('esri.core.layers.AllFeaturesLayer')
 export class AllFeaturesLayer extends BoundariesToggleLayer {
+  @property()
+  get baseLayer(): __esri.FeatureLayer {
+    return this.findLayerById(`${this.id}-features`) as __esri.FeatureLayer;
+  }
+
   constructor(properties: __esri.GroupLayerProperties) {
     super(properties, 'feature');
   }
@@ -32,13 +37,18 @@ export class AllFeaturesLayer extends BoundariesToggleLayer {
 
 @subclass('esri.core.layers.AllGraphicsLayer')
 export class AllGraphicsLayer extends BoundariesToggleLayer {
+  @property()
+  get baseLayer(): __esri.GraphicsLayer {
+    return this.findLayerById(`${this.id}-features`) as __esri.GraphicsLayer;
+  }
+
   constructor(properties: __esri.GroupLayerProperties) {
     super(properties, 'graphics');
   }
 }
 
-export function getBaseLayer(layer: AllFeaturesLayer | AllGraphicsLayer) {
+/* export function getBaseLayer(layer: AllFeaturesLayer | AllGraphicsLayer) {
   return layer.findLayerById(`${layer.id}-features`);
-}
+} */
 
 type BaseLayerType = 'feature' | 'graphics';

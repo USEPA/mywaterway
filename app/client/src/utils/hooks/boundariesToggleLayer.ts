@@ -5,6 +5,7 @@ import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import Query from '@arcgis/core/rest/support/Query';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -26,73 +27,73 @@ import { useAbort } from 'utils/hooks';
 import { isFeatureLayer, isPolygon } from 'utils/mapFunctions';
 import { toFixedFloat } from 'utils/utils';
 // types
+import type { FetchStatus } from 'contexts/FetchedData';
 import type { BoundariesToggleLayerId } from 'contexts/Layers';
 
 /*
 ## Hooks
 */
 
-export function useLocalFeatures<T>({
-  transformData,
-  buildFeatures,
-}: UseFeaturesParams<T>) {
-  const { huc12, hucBoundaries } = useContext(LocationSearchContext);
-  const { features, featuresDirty } = useAllFeatures<T>({
-    transformData,
-    buildFeatures,
-  });
+export function useLocalFeatures(
+  layer: AllFeaturesLayer | null,
+  status: FetchStatus,
+) {
+  const { hucBoundaries, mapView } = useContext(LocationSearchContext);
 
   const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
-  const [localFeaturesDirty, setLocalFeaturesDirty] = useState(true);
+  const [localStatus, setLocalStatus] = useState<FetchStatus | null>(null);
+
+  const queryLocalFeatures = useCallback(
+    async (signal: AbortSignal) => {
+      if (!layer) return;
+
+      const hucPolygon = hucBoundaries?.features?.[0]?.geometry;
+      if (!hucPolygon) return;
+
+      // const projectedHucPolygon = projectGeometry(feature.geometry, hucPolygon),
+
+      const query = new Query({
+        // geometry: hucPolygon,
+        outFields: ['*'],
+        returnGeometry: true,
+      });
+
+      const layerView: __esri.FeatureLayerView = await mapView.whenLayerView(
+        layer,
+      );
+      const featureSet = await layerView.queryFeatures(query, { signal });
+      console.log(featureSet.features);
+      setLocalFeatures(featureSet.features);
+      setLocalStatus('success');
+    },
+    [hucBoundaries, layer, mapView],
+  );
 
   // Mark local data for updates when HUC changes
   useEffect(() => {
-    if (huc12) return;
-    setLocalFeaturesDirty(true);
-  }, [huc12]);
+    const controller = new AbortController();
 
-  // Update local features only if needed and complete featureset is ready
+    reactiveUtils
+      .whenOnce(() => mapView?.ready === true)
+      .then(() => queryLocalFeatures(controller.signal))
+      .catch((err) => console.error(err));
+
+    return function cleanup() {
+      setLocalStatus(null);
+      controller.abort();
+    };
+  }, [mapView, queryLocalFeatures]);
+
   useEffect(() => {
-    if (!localFeaturesDirty || featuresDirty) return;
-    setLocalFeatures(
-      features.filter((feature) => {
-        const hucPolygon = hucBoundaries?.features[0]?.geometry;
-        if (!hucPolygon) return false;
+    if (localStatus) return;
 
-        return geometryEngine.intersects(
-          hucPolygon,
-          projectGeometry(feature.geometry, hucPolygon),
-        );
-      }),
-    );
-    setLocalFeaturesDirty(false);
-  }, [features, featuresDirty, hucBoundaries, localFeaturesDirty]);
+    setLocalStatus(status);
+  }, [localStatus, status]);
 
   return {
     features: localFeatures,
-    featuresDirty: localFeaturesDirty,
+    status: localStatus,
   };
-}
-
-// normalizeData and create features
-export function useAllFeatures<T>({
-  transformData,
-  buildFeatures,
-}: UseFeaturesParams<T>) {
-  const [features, setFeatures] = useState<__esri.Graphic[]>([]);
-  const [featuresDirty, setFeaturesDirty] = useState(true);
-
-  // Update the complete dataset
-  useEffect(() => {
-    setFeaturesDirty(true);
-    const data = transformData();
-    if (data === null) return;
-
-    setFeatures(buildFeatures(data));
-    setFeaturesDirty(false);
-  }, [buildFeatures, transformData]);
-
-  return { features, featuresDirty };
 }
 
 export function useAllFeaturesLayer(args: UseAllFeaturesLayerParams) {
@@ -167,33 +168,22 @@ function useBoundariesToggleLayer<
 
   const { getSignal, abort } = useAbort();
 
-  // Disable layer if there is a data update error
-  const updateDataAndHandleError = useCallback(
-    async (filterType: BoundariesFilterType) => {
-      const updateSuccess = await updateData(filterType, getSignal());
-      // parentLayer.listMode = updateSuccess ? 'hide-children' : 'hide';
-    },
-    [getSignal, parentLayer, updateData],
-  );
-
   // Update data when the mapView updates
   useEffect(() => {
     if (parentLayer.hasHandles(handleGroupKey)) return;
 
     // Update data once with HUC boundaries until the mapView is available
+    // TODO: Might be unnecessary
     reactiveUtils
       .whenOnce(() => mapView?.ready !== true)
-      .then(() => updateDataAndHandleError('huc'));
+      .then(() => updateData(getSignal()));
 
     const stationaryHandle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
-        if (
-          mapView.scale >= minScale ||
-          surroundingsVisible[layerId] === false
-        ) {
-          updateDataAndHandleError('huc');
-        } else updateDataAndHandleError('extent');
+        if (mapView.scale >= minScale || surroundingsVisible[layerId] === false)
+          return;
+        updateData(getSignal());
       },
       { initial: true },
     );
@@ -210,12 +200,13 @@ function useBoundariesToggleLayer<
     };
   }, [
     abort,
+    getSignal,
     layerId,
     handleGroupKey,
     mapView,
     parentLayer,
     surroundingsVisible,
-    updateDataAndHandleError,
+    updateData,
   ]);
 
   const layersDispatch = useLayersDispatch();
@@ -283,97 +274,6 @@ function useBoundariesToggleLayer<
   return parentLayer;
 }
 
-// normalizeData and create features
-export function useCreateFeatures<T>({
-  transformData,
-  buildFeatures,
-}: UseCreateFeaturesParams<T>) {
-  const { huc12, hucBoundaries } = useContext(LocationSearchContext);
-
-  const [allFeatures, setFeatures] = useState<__esri.Graphic[]>([]);
-  const [featuresDirty, setFeaturesDirty] = useState(true);
-
-  const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
-  const [localFeaturesDirty, setLocalFeaturesDirty] = useState(true);
-
-  // Mark local data for updates when HUC changes
-  useEffect(() => {
-    if (huc12) return;
-    setLocalFeaturesDirty(true);
-  }, [huc12]);
-
-  // Update the complete dataset
-  useEffect(() => {
-    setFeaturesDirty(true);
-    const data = transformData();
-    if (data === null) return;
-
-    setFeatures(buildFeatures(data));
-    setFeaturesDirty(false);
-  }, [buildFeatures, transformData]);
-
-  // Update local features only if needed and complete featureset is ready
-  useEffect(() => {
-    if (!localFeaturesDirty || featuresDirty) return;
-    setLocalFeatures(
-      features.filter((feature) => {
-        const hucPolygon = hucBoundaries?.features[0]?.geometry;
-        if (!hucPolygon) return false;
-
-        return geometryEngine.intersects(
-          hucPolygon,
-          projectGeometry(feature.geometry, hucPolygon),
-        );
-      }),
-    );
-    setLocalFeaturesDirty(false);
-  }, [features, featuresDirty, hucBoundaries, localFeaturesDirty]);
-
-  return features;
-}
-
-function useCreateLocalFeatures<T>({
-  transformData,
-  buildFeatures,
-}: UseCreateFeaturesParams<T>) {
-  const { huc12, hucBoundaries } = useContext(LocationSearchContext);
-  const { features, featuresDirty } = useAllFeatures<T>({
-    transformData,
-    buildFeatures,
-    serviceFailure,
-  });
-
-  const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
-  const [localFeaturesDirty, setLocalFeaturesDirty] = useState(true);
-
-  // Mark local data for updates when HUC changes
-  useEffect(() => {
-    if (huc12) return;
-    setLocalFeaturesDirty(true);
-  }, [huc12]);
-
-  // Update local features only if needed and complete featureset is ready
-  useEffect(() => {
-    if (!localFeaturesDirty || featuresDirty) return;
-    setLocalFeatures(
-      features.filter((feature) => {
-        const hucPolygon = hucBoundaries?.features[0]?.geometry;
-        if (!hucPolygon) return false;
-
-        return geometryEngine.intersects(
-          hucPolygon,
-          projectGeometry(feature.geometry, hucPolygon),
-        );
-      }),
-    );
-    setLocalFeaturesDirty(false);
-  }, [features, featuresDirty, hucBoundaries, localFeaturesDirty]);
-
-  return {
-    features: localFeatures,
-    featuresDirty: localFeaturesDirty,
-  };
-}
 function useHucGraphic() {
   const { hucBoundaries } = useContext(LocationSearchContext);
 
@@ -501,29 +401,14 @@ const minScale = 577791;
 
 export type BoundariesFilterType = 'huc' | 'extent';
 
-type FeaturesStatus = 'idle' | 'pending' | 'failure' | 'success';
-
 type UseBoundariesToggleLayerParams<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
 > = {
   buildBaseLayer: (baseLayerId: string) => T;
   features: __esri.Graphic[];
   layerId: BoundariesToggleLayerId;
-  updateData: (
-    filterType: BoundariesFilterType,
-    abortSignal: AbortSignal,
-  ) => Promise<boolean>;
+  updateData: (abortSignal: AbortSignal) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
-};
-
-type UseCreateFeaturesParams<T> = {
-  transformData: () => T[] | null;
-  buildFeatures: (data: T[]) => Graphic[];
-};
-
-type UseFeaturesParams<T> = {
-  transformData: () => T[] | null;
-  buildFeatures: (data: T[]) => Graphic[];
 };
 
 type UseAllFeaturesLayerParams = Omit<

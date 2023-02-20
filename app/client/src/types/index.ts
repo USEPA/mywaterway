@@ -75,7 +75,7 @@ interface FetchEmptyState {
   data: {} | [] | null;
 }
 
-interface FetchSuccessState<Type> {
+export interface FetchSuccessState<Type> {
   status: 'success';
   data: Type;
 }
@@ -195,7 +195,7 @@ export interface ScaledLayer extends __esri.Layer {
   maxScale?: number;
 }
 
-interface ServicesData {
+export interface ServicesData {
   attains: { serviceUrl: string };
   cyan: {
     application: string;
