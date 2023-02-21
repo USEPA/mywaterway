@@ -3,7 +3,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
@@ -59,12 +59,18 @@ export function useStreamgageLayer() {
 
   const updateData = useUpdateData();
 
+  const [features, setFeatures] = useState<__esri.Graphic[]>([]);
+  useEffect(() => {
+    if (usgsStreamgages.status !== 'success') return;
+    setFeatures(buildFeatures(usgsStreamgages.data));
+  }, [usgsStreamgages]);
+
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
     layerId,
     buildBaseLayer,
     updateData,
-    features: buildFeatures(usgsStreamgages.data),
+    features,
   });
 }
 
@@ -120,13 +126,13 @@ function useUpdateData() {
     async (abortSignal) => {
       const newExtentDvFilter = await getExtentDvFilter(mapView);
       const newExtentThingsFilter = await getExtentThingsFilter(mapView);
-      // No updates necessary, return success
+      // No updates necessary
       if (
         newExtentDvFilter === extentDvFilter &&
         newExtentThingsFilter === extentThingsFilter
       )
         return;
-      // Could not create filters, return failure
+      // Could not create filters
       if (!newExtentDvFilter || !newExtentThingsFilter) return;
 
       setExtentDvFilter(newExtentDvFilter);

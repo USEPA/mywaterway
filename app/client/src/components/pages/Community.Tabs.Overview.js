@@ -376,7 +376,7 @@ function Overview() {
           {!monitoringLocationsLayer ||
           !usgsStreamgagesLayer ||
           monitoringLocations.status === 'fetching' ||
-          streamgagesStatus === 'fetching' ? (
+          streamgagesStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
             <>
@@ -731,7 +731,7 @@ function MonitoringAndSensorsTab({
   );
   if (
     monitoringLocations.status === 'fetching' ||
-    streamgagesStatus === 'fetching' ||
+    streamgagesStatus === 'pending' ||
     !monitoringGroups
   ) {
     return <LoadingSpinner />;

@@ -38,12 +38,12 @@ export function useLocalFeatures(
   layer: AllFeaturesLayer | null,
   status: FetchStatus,
 ) {
-  const { hucBoundaries, mapView } = useContext(LocationSearchContext);
+  const { huc12, hucBoundaries, mapView } = useContext(LocationSearchContext);
 
   const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
-  const [localStatus, setLocalStatus] = useState<FetchStatus | null>(null);
+  const [localStatus, setLocalStatus] = useState<FetchStatus>('idle');
 
-  const queryLocalFeatures = useCallback(
+  const getLocalFeatures = useCallback(
     async (signal: AbortSignal) => {
       if (!layer) return;
 
@@ -53,42 +53,42 @@ export function useLocalFeatures(
       // const projectedHucPolygon = projectGeometry(feature.geometry, hucPolygon),
 
       const query = new Query({
-        // geometry: hucPolygon,
+        geometry: hucPolygon,
         outFields: ['*'],
         returnGeometry: true,
       });
 
-      const layerView: __esri.FeatureLayerView = await mapView.whenLayerView(
-        layer,
-      );
-      const featureSet = await layerView.queryFeatures(query, { signal });
-      console.log(featureSet.features);
+      const featureSet = await layer.baseLayer.queryFeatures(query, { signal });
       setLocalFeatures(featureSet.features);
       setLocalStatus('success');
     },
-    [hucBoundaries, layer, mapView],
+    [hucBoundaries, layer],
   );
 
   // Mark local data for updates when HUC changes
   useEffect(() => {
+    if (status !== 'success') {
+      setLocalStatus(status);
+      return;
+    }
+
     const controller = new AbortController();
 
     reactiveUtils
-      .whenOnce(() => mapView?.ready === true)
-      .then(() => queryLocalFeatures(controller.signal))
+      .whenOnce(() => !mapView.updating)
+      .then(() => getLocalFeatures(controller.signal))
       .catch((err) => console.error(err));
 
     return function cleanup() {
-      setLocalStatus(null);
       controller.abort();
     };
-  }, [mapView, queryLocalFeatures]);
+  }, [getLocalFeatures, mapView, localStatus, status]);
 
   useEffect(() => {
-    if (localStatus) return;
+    if (huc12) return;
 
-    setLocalStatus(status);
-  }, [localStatus, status]);
+    setLocalStatus('idle');
+  }, [huc12]);
 
   return {
     features: localFeatures,
