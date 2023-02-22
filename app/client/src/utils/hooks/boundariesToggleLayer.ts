@@ -224,38 +224,16 @@ function useBoundariesToggleLayer<
   // Manages the surrounding features visibility
   const toggleSurroundings = useCallback(
     (showSurroundings: boolean) => {
-      const layerVisibility = visibleLayers[layerId] ?? false;
+      const layerVisible = visibleLayers[layerId] ?? false;
       return function toggle() {
-        switch (layerVisibility) {
-          case true: {
-            setInitialLayerVisibility(true);
-            switch (showSurroundings) {
-              case true: {
-                break;
-              }
-              case false: {
-                setVisibleLayers({
-                  ...visibleLayers,
-                  [layerId]: initialLayerVisibility,
-                });
-                break;
-              }
-            }
-            break;
-          }
-          case false: {
-            setInitialLayerVisibility(false);
-            switch (showSurroundings) {
-              case true: {
-                setVisibleLayers({ ...visibleLayers, [layerId]: true });
-                break;
-              }
-              case false: {
-                break;
-              }
-            }
-            break;
-          }
+        setInitialLayerVisibility(layerVisible);
+        if (layerVisible && !showSurroundings) {
+          setVisibleLayers({
+            ...visibleLayers,
+            [layerId]: initialLayerVisibility,
+          });
+        } else if (!layerVisible && showSurroundings) {
+          setVisibleLayers({ ...visibleLayers, [layerId]: true });
         }
 
         surroundingLayer.opacity = showSurroundings
