@@ -109,7 +109,9 @@ function useBoundariesToggleLayer<
   updateData,
   updateLayer,
 }: UseBoundariesToggleLayerParams<T>) {
-  const { mapView } = useContext(LocationSearchContext);
+  const { mapView, visibleLayers, setVisibleLayers } = useContext(
+    LocationSearchContext,
+  );
 
   const hucGraphic = useHucGraphic();
   const [baseLayer] = useState(buildBaseLayer(`${layerId}-features`));
@@ -172,12 +174,6 @@ function useBoundariesToggleLayer<
   useEffect(() => {
     if (parentLayer.hasHandles(handleGroupKey)) return;
 
-    // Update data once with HUC boundaries until the mapView is available
-    // TODO: Might be unnecessary
-    reactiveUtils
-      .whenOnce(() => mapView?.ready !== true)
-      .then(() => updateData(getSignal()));
-
     const stationaryHandle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
@@ -221,19 +217,67 @@ function useBoundariesToggleLayer<
     layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
   }, [layerId, layersDispatch, parentLayer]);
 
+  const [initialLayerVisibility, setInitialLayerVisibility] = useState<boolean>(
+    visibleLayers[layerId] ?? false,
+  );
+
   // Manages the surrounding features visibility
-  const toggleSurroundings = useCallback(() => {
-    const surroundingsVisible =
-      surroundingLayer.opacity === surroundingsVisibleOpacity;
-    surroundingLayer.opacity = surroundingsVisible
-      ? surroundingsHiddenOpacity
-      : surroundingsVisibleOpacity;
-    layersDispatch({
-      type: 'surroundingsVibility',
-      id: layerId,
-      payload: !surroundingsVisible,
-    });
-  }, [layerId, layersDispatch, surroundingLayer]);
+  const toggleSurroundings = useCallback(
+    (showSurroundings: boolean) => {
+      const layerVisibility = visibleLayers[layerId] ?? false;
+      return function toggle() {
+        switch (layerVisibility) {
+          case true: {
+            setInitialLayerVisibility(true);
+            switch (showSurroundings) {
+              case true: {
+                break;
+              }
+              case false: {
+                setVisibleLayers({
+                  ...visibleLayers,
+                  [layerId]: initialLayerVisibility,
+                });
+                break;
+              }
+            }
+            break;
+          }
+          case false: {
+            setInitialLayerVisibility(false);
+            switch (showSurroundings) {
+              case true: {
+                setVisibleLayers({ ...visibleLayers, [layerId]: true });
+                break;
+              }
+              case false: {
+                break;
+              }
+            }
+            break;
+          }
+        }
+
+        surroundingLayer.opacity = showSurroundings
+          ? surroundingsVisibleOpacity
+          : surroundingsHiddenOpacity;
+
+        layersDispatch({
+          type: 'surroundingsVibility',
+          id: layerId,
+          payload: showSurroundings,
+        });
+      };
+    },
+    [
+      initialLayerVisibility,
+      layerId,
+      layersDispatch,
+      setVisibleLayers,
+      surroundingLayer,
+      visibleLayers,
+    ],
+  );
 
   // Add the surroundings toggle to the Layers context
   useEffect(() => {

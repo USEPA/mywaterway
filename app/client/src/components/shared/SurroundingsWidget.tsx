@@ -80,7 +80,10 @@ function SurroundingsWidgetContent({
               return (
                 <li key={id}>
                   <div>
-                    <div css={listItemContentStyles} onClick={toggles[id]}>
+                    <div
+                      css={listItemContentStyles}
+                      onClick={toggles[id](!surroundings[id])}
+                    >
                       <span
                         className={`esri-icon-${
                           surroundings[id] ? '' : 'non-'

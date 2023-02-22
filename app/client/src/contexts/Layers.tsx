@@ -1,4 +1,10 @@
-import { createContext, useCallback, useContext, useReducer } from 'react';
+import {
+  createContext,
+  MouseEventHandler,
+  useCallback,
+  useContext,
+  useReducer,
+} from 'react';
 // classes
 import {
   AllFeaturesLayer,
@@ -22,9 +28,9 @@ const initialState: LayersState = {
     usgsStreamgagesLayer: null,
   },
   boundariesToggles: {
-    monitoringLocationsLayer: () => null,
-    placeholderLayer: () => null,
-    usgsStreamgagesLayer: () => null,
+    monitoringLocationsLayer: initialBoundariesToggle,
+    placeholderLayer: initialBoundariesToggle,
+    usgsStreamgagesLayer: initialBoundariesToggle,
   },
   surroundingsVibilities: {
     monitoringLocationsLayer: false,
@@ -152,6 +158,13 @@ export function useLayersReset() {
 }
 
 /*
+## Utils
+*/
+function initialBoundariesToggle(_showSurroundings: boolean) {
+  return () => {};
+}
+
+/*
 ## Types
 */
 
@@ -166,7 +179,7 @@ type Action =
   | {
       type: 'boundariesToggle';
       id: BoundariesToggleLayerId;
-      payload: () => void;
+      payload: (showSurroundings: boolean) => MouseEventHandler<HTMLDivElement>;
     }
   | {
       type: 'surroundingsVibility';
@@ -194,7 +207,9 @@ export type LayersState = {
     [L in LayerId]: () => Promise<void>;
   };
   boundariesToggles: {
-    [B in BoundariesToggleLayerId]: () => void;
+    [B in BoundariesToggleLayerId]: (
+      showSurroundings: boolean,
+    ) => MouseEventHandler<HTMLDivElement>;
   };
   surroundingsVibilities: {
     [B in BoundariesToggleLayerId]: boolean;
