@@ -37,8 +37,11 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
-import { plotFacilities } from 'utils/mapFunctions';
-import { useLocalStreamgages, useWaterbodyOnMap } from 'utils/hooks';
+import {
+  useLocalDischargers,
+  useLocalStreamgages,
+  useWaterbodyOnMap,
+} from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
@@ -307,14 +310,10 @@ function filterLocations(groups, timeframe) {
 }
 
 function Monitoring() {
-  const navigate = useNavigate();
-
   const {
     cipSummary,
     cyanWaterbodies,
     monitoringLocations,
-    dischargersLayer,
-    permittedDischargers,
     monitoringLocationsLayer,
     mapView,
     visibleLayers,
@@ -325,6 +324,8 @@ function Monitoring() {
 
   const { streamgages, streamgagesStatus } = useLocalStreamgages();
 
+  const { dischargers, dischargersStatus } = useLocalDischargers();
+
   const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
     useState(true);
 
@@ -334,21 +335,6 @@ function Monitoring() {
     useState(true);
 
   const [monitoringDisplayed, setMonitoringDisplayed] = useState(false);
-
-  // draw the permitted dischargers on the map
-  useEffect(() => {
-    // wait until permitted dischargers data is set in context
-    if (
-      permittedDischargers.data['Results'] &&
-      permittedDischargers.data['Results']['Facilities']
-    ) {
-      plotFacilities({
-        facilities: permittedDischargers.data['Results']['Facilities'],
-        layer: dischargersLayer,
-        navigate,
-      });
-    }
-  }, [permittedDischargers.data, dischargersLayer, navigate]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -386,7 +372,7 @@ function Monitoring() {
             : monitoringDisplayed;
       }
 
-      if (!streamgagesStatus !== 'failure') {
+      if (streamgagesStatus !== 'failure') {
         layers.usgsStreamgagesLayer =
           !usgsStreamgagesLayer || useCurrentValue
             ? visibleLayers.usgsStreamgagesLayer
@@ -401,7 +387,7 @@ function Monitoring() {
             : cyanDisplayed;
       }
 
-      if (permittedDischargers.status !== 'failure') {
+      if (dischargersStatus !== 'failure') {
         layers.dischargersLayer = visibleLayers.dischargersLayer;
       }
 
@@ -418,11 +404,11 @@ function Monitoring() {
       cipSummary,
       cyanWaterbodies,
       cyanDisplayed,
+      dischargersStatus,
       mapView,
       monitoringDisplayed,
       monitoringLocations,
       monitoringLocationsLayer,
-      permittedDischargers,
       setVisibleLayers,
       streamgagesStatus,
       usgsStreamgagesDisplayed,
@@ -436,8 +422,8 @@ function Monitoring() {
     updateVisibleLayers({ useCurrentValue: true });
   }, [
     cipSummary,
+    dischargers,
     monitoringLocations,
-    permittedDischargers,
     streamgages,
     updateVisibleLayers,
     visibleLayers,

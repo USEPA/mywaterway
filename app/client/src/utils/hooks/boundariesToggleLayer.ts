@@ -176,7 +176,11 @@ function useBoundariesToggleLayer<
     const stationaryHandle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
-        if (mapView.scale >= minScale || surroundingsVisible[layerId] === false)
+        if (
+          mapView.scale >= minScale ||
+          visibleLayers[layerId] === false ||
+          surroundingsVisible[layerId] === false
+        )
           return;
         updateData(getSignal());
       },
@@ -202,6 +206,7 @@ function useBoundariesToggleLayer<
     parentLayer,
     surroundingsVisible,
     updateData,
+    visibleLayers,
   ]);
 
   const layersDispatch = useLayersDispatch();

@@ -5,7 +5,6 @@ import type { ReactNode } from 'react';
 import type {
   MonitoringLocationsData,
   MonitoringLocationAttributes,
-  PermittedDischargersData,
 } from 'types';
 
 export const LocationSearchContext = createContext();
@@ -104,7 +103,6 @@ type State = {
   address: string,
   assessmentUnitId: string,
   monitoringLocations: { status: Status, data: MonitoringLocationsData },
-  permittedDischargers: { status: Status, data: PermittedDischargersData },
   grts: Object,
   attainsPlans: Object,
   drinkingWater: Object,
@@ -117,7 +115,6 @@ type State = {
   issuesLayer: Object,
   monitoringLocationsLayer: Object,
   surroundingMonitoringLocationsLayer: Object,
-  dischargersLayer: Object,
   nonprofitsLayer: Object,
   wildScenicRiversLayer: Object,
   protectedAreasLayer: Object,
@@ -193,7 +190,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
     monitoringLocations: { status: 'fetching', data: {} },
-    permittedDischargers: { status: 'fetching', data: {} },
     grts: { status: 'fetching', data: [] },
     attainsPlans: { status: 'fetching', data: {} },
     drinkingWater: { status: 'fetching', data: [] },
@@ -205,7 +201,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     issuesLayer: '',
     monitoringLocationsLayer: '',
     surroundingMonitoringLocationsLayer: '',
-    dischargersLayer: '',
     nonprofitsLayer: '',
     wildScenicRiversLayer: '',
     protectedAreasLayer: '',
@@ -264,9 +259,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setMonitoringLocations: (monitoringLocations) => {
       this.setState({ monitoringLocations });
-    },
-    setPermittedDischargers: (permittedDischargers) => {
-      this.setState({ permittedDischargers });
     },
     setNonprofits: (nonprofits: Object) => {
       this.setState({ nonprofits });
@@ -371,9 +363,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       surroundingMonitoringLocationsLayer,
     ) => {
       this.setState({ surroundingMonitoringLocationsLayer });
-    },
-    setDischargersLayer: (dischargersLayer) => {
-      this.setState({ dischargersLayer });
     },
     setNonprofitsLayer: (nonprofitsLayer) => {
       this.setState({ nonprofitsLayer });
@@ -535,7 +524,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         searchIconLayer,
         monitoringLocationsLayer,
         upstreamLayer,
-        dischargersLayer,
         nonprofitsLayer,
         protectedAreasHighlightLayer,
         mapView,
@@ -599,7 +587,6 @@ export class LocationSearchProvider extends Component<Props, State> {
           });
         });
       }
-      if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
       if (wsioHealthIndexLayer) {
         wsioHealthIndexLayer.visible = false;
@@ -670,7 +657,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         monitoringGroups: null,
         monitoringFeatureUpdates: null,
         monitoringLocations: { status: 'fetching', data: {} },
-        permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },
@@ -700,7 +686,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         waterbodyCountMismatch: null,
         countyBoundaries: '',
         monitoringLocations: { status: 'success', data: {} },
-        permittedDischargers: { status: 'success', data: {} },
         nonprofits: { status: 'success', data: [] },
         grts: { status: 'success', data: [] },
         attainsPlans: { status: 'success', data: {} },
