@@ -1,6 +1,5 @@
 import Color from '@arcgis/core/Color';
 import Extent from '@arcgis/core/geometry/Extent';
-import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -25,9 +24,9 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useAbort } from 'utils/hooks';
 import { isFeatureLayer, isPolygon } from 'utils/mapFunctions';
-import { toFixedFloat } from 'utils/utils';
+import { isAbort, toFixedFloat } from 'utils/utils';
 // types
-import type { FetchStatus } from 'contexts/FetchedData';
+import type { EmptyFetchState, FetchStatus } from 'contexts/FetchedData';
 import type { BoundariesToggleLayerId } from 'contexts/Layers';
 
 /*
@@ -41,7 +40,7 @@ export function useLocalFeatures(
   const { huc12, hucBoundaries, mapView } = useContext(LocationSearchContext);
 
   const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
-  const [localStatus, setLocalStatus] = useState<FetchStatus>('idle');
+  const [localStatus, setLocalStatus] = useState<FetchStatus>('pending');
 
   const getLocalFeatures = useCallback(
     async (signal: AbortSignal) => {
@@ -87,7 +86,7 @@ export function useLocalFeatures(
   useEffect(() => {
     if (huc12) return;
 
-    setLocalStatus('idle');
+    setLocalStatus('pending');
   }, [huc12]);
 
   return {
@@ -377,19 +376,24 @@ function getSurroundingMask() {
   });
 }
 
-function projectGeometry(
-  source: __esri.Geometry,
-  destination: __esri.Geometry,
-) {
-  if (
-    !webMercatorUtils.canProject(
-      source.spatialReference,
-      destination.spatialReference,
-    )
-  )
-    return source;
+export function handleFetchError(err: Error): EmptyFetchState {
+  if (isAbort(err)) {
+    return { status: 'idle', data: null };
+  }
+  console.error(err);
+  return { status: 'failure', data: null };
+}
 
-  return webMercatorUtils.project(source, destination.spatialReference);
+function matchKeys<T>(a: T, b: T, keys: Array<keyof T>) {
+  return keys.every((key) => a[key] === b[key]);
+}
+
+export function removeDuplicateData<T>(attributes: T[], keys: Array<keyof T>) {
+  return attributes.reduce<T[]>((unique, next) => {
+    if (unique.find((attribute) => matchKeys(attribute, next, keys)))
+      return unique;
+    return [...unique, next];
+  }, []);
 }
 
 async function updateFeatureLayer(

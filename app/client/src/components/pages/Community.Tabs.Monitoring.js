@@ -980,6 +980,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   // The currently selected date range
   const [yearsRange, setYearsRange] = useState(null);
   useEffect(() => {
+    if (!monitoringLocationsLayer) return;
     if (monitoringGroups) return;
     // Reset data if the user switches locations
     monitoringLocationsLayer.definitionExpression = '';

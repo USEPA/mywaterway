@@ -49,19 +49,13 @@ export interface CyanAttributes {
 }
 
 export interface Facility {
+  CWPInspectionCount: string | null;
   CWPName: string;
-  CWPNAICSCodes: string | null;
-  E90Exceeds1yr?: string;
+  CWPPermitStatusDesc: string;
+  CWPSNCStatus: string | null;
+  CWPStatus: string;
   FacLat: string;
   FacLong: string;
-  CWPPermitStatusDesc: string;
-  CWPStatus: string;
-  CWPSNCStatus: string | null;
-  CWPQtrsWithNC: string;
-  CWPViolStatus: string;
-  CWPInspectionCount: string | null;
-  CWPFormalEaCnt: string | null;
-  Over80CountUs: string;
   RegistryID: string;
   SourceID: string;
 }
@@ -165,6 +159,34 @@ export interface NonProfitAttributes {
 
 export type ParentLayer = __esri.GroupLayer | SuperLayer;
 
+export type PermittedDischargersData = {
+  Results:
+    | {
+        BadSystemIDs: null;
+        BioCVRows: string;
+        BioV3Rows: string;
+        CVRows: string;
+        FEARows: string;
+        Facilities: Facility[];
+        INSPRows: string;
+        IndianCountryRows: string;
+        InfFEARows: string;
+        Message: string;
+        PageNo: string;
+        QueryID: string;
+        QueryRows: string;
+        SVRows: string;
+        TotalPenalties: string;
+        V3Rows: string;
+        Version: string;
+      }
+    | {
+        Error: {
+          ErrorMessage: string;
+        };
+      };
+};
+
 export type PopupAttributes =
   | ActionAttributes
   | AllotmentAttributes
@@ -204,6 +226,10 @@ export interface ServicesData {
     images: string;
     properties: string;
     waterbodies: string;
+  };
+  echoNPDES: {
+    getFacilities: string;
+    metadata: string;
   };
   upstreamWatershed: string;
   usgsDailyValues: string;

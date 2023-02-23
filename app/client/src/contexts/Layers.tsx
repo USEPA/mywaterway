@@ -16,29 +16,6 @@ import type { Dispatch, ReactNode } from 'react';
 const StateContext = createContext<LayersState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
-const initialState: LayersState = {
-  resets: {
-    monitoringLocationsLayer: () => Promise.resolve(),
-    placeholderLayer: () => Promise.resolve(),
-    usgsStreamgagesLayer: () => Promise.resolve(),
-  },
-  layers: {
-    monitoringLocationsLayer: null,
-    placeholderLayer: null,
-    usgsStreamgagesLayer: null,
-  },
-  boundariesToggles: {
-    monitoringLocationsLayer: initialBoundariesToggle,
-    placeholderLayer: initialBoundariesToggle,
-    usgsStreamgagesLayer: initialBoundariesToggle,
-  },
-  surroundingsVibilities: {
-    monitoringLocationsLayer: false,
-    placeholderLayer: false,
-    usgsStreamgagesLayer: false,
-  },
-};
-
 function reducer(state: LayersState, action: Action): LayersState {
   switch (action.type) {
     case 'resetAll': {
@@ -160,9 +137,47 @@ export function useLayersReset() {
 /*
 ## Utils
 */
+
 function initialBoundariesToggle(_showSurroundings: boolean) {
   return () => {};
 }
+
+/*
+## Constants
+*/
+
+// `placeholderLayer` is only present to keep TypeScript happy
+// until we add an `AllGraphicsLayer` (if we ever do)
+const layerIds = [
+  'monitoringLocationsLayer',
+  'placeholderLayer',
+  'dischargersLayer',
+  'usgsStreamgagesLayer',
+];
+
+const initialState = layerIds.reduce(
+  (state, layerId) => {
+    return {
+      resets: {
+        ...state.resets,
+        [layerId]: () => Promise.resolve(),
+      },
+      layers: {
+        ...state.layers,
+        [layerId]: null,
+      },
+      boundariesToggles: {
+        ...state.boundariesToggles,
+        [layerId]: initialBoundariesToggle,
+      },
+      surroundingsVibilities: {
+        ...state.surroundingsVibilities,
+        [layerId]: false,
+      },
+    };
+  },
+  { resets: {}, layers: {}, boundariesToggles: {}, surroundingsVibilities: {} },
+) as LayersState;
 
 /*
 ## Types
@@ -191,7 +206,8 @@ export type BoundariesToggleLayerId = AllFeaturesLayerId | AllGraphicsLayerId;
 
 export type AllFeaturesLayerId =
   | 'usgsStreamgagesLayer'
-  | 'monitoringLocationsLayer';
+  | 'monitoringLocationsLayer'
+  | 'dischargersLayer';
 
 type AllGraphicsLayerId = 'placeholderLayer';
 

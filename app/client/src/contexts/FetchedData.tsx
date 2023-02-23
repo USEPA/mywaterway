@@ -6,6 +6,7 @@ import {
   useReducer,
 } from 'react';
 import type {
+  Facility,
   FetchSuccessState,
   MonitoringLocationsData,
   UsgsStreamgageAttributes,
@@ -15,11 +16,6 @@ const StateContext = createContext<FetchedDataState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
   undefined,
 );
-
-const initialState: FetchedDataState = {
-  monitoringLocations: { status: 'idle', data: null },
-  usgsStreamgages: { status: 'idle', data: null },
-};
 
 function reducer(
   state: FetchedDataState,
@@ -86,6 +82,7 @@ export function useFetchedDataDispatch() {
 /*
 ## Utils
 */
+
 function buildNewDataState(action: FetchedDataAction) {
   switch (action.type) {
     case 'idle':
@@ -100,6 +97,23 @@ function buildNewDataState(action: FetchedDataAction) {
 }
 
 /*
+## Constants
+*/
+
+const dataKeys = [
+  'monitoringLocations',
+  'permittedDischargers',
+  'usgsStreamgages',
+];
+
+const initialState = dataKeys.reduce((state, key) => {
+  return {
+    ...state,
+    [key]: { status: 'idle', data: null },
+  };
+}, {}) as FetchedDataState;
+
+/*
 ## Types
 */
 
@@ -109,7 +123,7 @@ type ProviderProps = {
 
 type EmptyFetchStatus = Exclude<FetchStatus, 'success'>;
 
-type EmptyFetchState = {
+export type EmptyFetchState = {
   status: EmptyFetchStatus;
   data: null;
 };
@@ -118,6 +132,7 @@ export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
 
 type FetchedData = {
   monitoringLocations: MonitoringLocationsData;
+  permittedDischargers: Facility[];
   usgsStreamgages: UsgsStreamgageAttributes[];
 };
 

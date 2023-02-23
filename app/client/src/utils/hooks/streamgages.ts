@@ -3,7 +3,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
@@ -18,11 +18,12 @@ import { fetchCheck } from 'utils/fetchUtils';
 import {
   getExtentBoundingBox,
   getGeographicExtent,
+  handleFetchError,
+  removeDuplicateData,
   useAllFeaturesLayer,
   useLocalFeatures,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
-import { isAbort } from 'utils/utils';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
@@ -123,7 +124,9 @@ function useUpdateData() {
   );
 
   const updateData = useCallback(
-    async (abortSignal) => {
+    async (abortSignal: AbortSignal) => {
+      if (services.status !== 'success') return;
+
       const newExtentDvFilter = await getExtentDvFilter(mapView);
       const newExtentThingsFilter = await getExtentThingsFilter(mapView);
       // No updates necessary
@@ -137,8 +140,6 @@ function useUpdateData() {
 
       setExtentDvFilter(newExtentDvFilter);
       setExtentThingsFilter(newExtentThingsFilter);
-
-      if (services.status !== 'success') return;
 
       fetchAndTransformData(
         [
@@ -168,8 +169,7 @@ function useUpdateData() {
 */
 
 // Builds features from streamgage data
-function buildFeatures(data: UsgsStreamgageAttributes[] | null) {
-  if (!data) return [];
+function buildFeatures(data: UsgsStreamgageAttributes[]) {
   return data.map((datum) => {
     return new Graphic({
       geometry: new Point({
@@ -248,15 +248,16 @@ async function fetchAndTransformData(
     const usgsStreamgageAttributes = transformServiceData(
       ...(responses.map((res) => res.data) as UsgsServiceData),
     );
+    const payload = additionalData
+      ? removeDuplicateData(
+          [...usgsStreamgageAttributes, ...additionalData],
+          dataKeys,
+        )
+      : usgsStreamgageAttributes;
     dispatch({
       type: 'success',
       id: 'usgsStreamgages',
-      payload: additionalData
-        ? removeDuplicateData(
-            [...usgsStreamgageAttributes, ...additionalData],
-            dataKeys,
-          )
-        : usgsStreamgageAttributes,
+      payload,
     });
     return usgsStreamgageAttributes;
   } else if (responses.some((res) => res.status === 'idle')) {
@@ -268,10 +269,6 @@ async function fetchAndTransformData(
     });
   }
   return [];
-}
-
-function matchKeys<T>(a: T, b: T, keys: Array<keyof T>) {
-  return keys.every((key) => a[key] === b[key]);
 }
 
 function transformServiceData(
@@ -462,13 +459,7 @@ function fetchDailyAverages(
         },
       } as FetchSuccessState<UsgsDailyAveragesData>;
     })
-    .catch((err) => {
-      if (isAbort(err)) {
-        return { status: 'idle', data: null };
-      }
-      console.error(err);
-      return { status: 'failure', data: null };
-    });
+    .catch(handleFetchError);
 }
 
 function fetchPrecipitation(
@@ -497,13 +488,7 @@ function fetchPrecipitation(
         data: res,
       } as FetchSuccessState<UsgsPrecipitationData>;
     })
-    .catch((err) => {
-      if (isAbort(err)) {
-        return { status: 'idle', data: null };
-      }
-      console.error(err);
-      return { status: 'failure', data: null };
-    });
+    .catch(handleFetchError);
 }
 
 function fetchStreamgages(
@@ -527,13 +512,7 @@ function fetchStreamgages(
         data: res,
       } as FetchSuccessState<UsgsStreamgagesData>;
     })
-    .catch((err) => {
-      if (isAbort(err)) {
-        return { status: 'idle', data: null };
-      }
-      console.error(err);
-      return { status: 'failure', data: null };
-    });
+    .catch(handleFetchError);
 }
 
 async function getExtentDvFilter(mapView: __esri.MapView | '') {
@@ -556,14 +535,6 @@ function getExtentWkt(extent: __esri.Extent | null) {
   if (!extent) return null;
 
   return `(${extent.xmax} ${extent.ymin}, ${extent.xmax} ${extent.ymax}, ${extent.xmin} ${extent.ymax}, ${extent.xmin} ${extent.ymin}, ${extent.xmax} ${extent.ymin})`;
-}
-
-function removeDuplicateData<T>(attributes: T[], keys: Array<keyof T>) {
-  return attributes.reduce<T[]>((unique, next) => {
-    if (unique.find((attribute) => matchKeys(attribute, next, keys)))
-      return unique;
-    return [...unique, next];
-  }, []);
 }
 
 /*

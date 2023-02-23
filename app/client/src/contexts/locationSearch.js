@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import type {
   MonitoringLocationsData,
   MonitoringLocationAttributes,
+  PermittedDischargersData,
 } from 'types';
 
 export const LocationSearchContext = createContext();
@@ -21,42 +22,6 @@ type MonitoringLocationGroups = {
     characteristicGroups?: Array<string>,
     stations: MonitoringLocationAttributes[],
     toggled: boolean,
-  },
-};
-
-type PermittedDischargersData = {
-  Results: {
-    BadSystemIDs: null,
-    BioCVRows: string,
-    BioV3Rows: string,
-    CVRows: string,
-    FEARows: string,
-    Facilities: {
-      CWPFormalEaCnt: string,
-      CWPInspectionCount: string,
-      CWPName: string,
-      CWPPermitStatusDesc: string,
-      CWPQtrsWithNC: string,
-      CWPSNCStatus: null,
-      CWPStatus: string,
-      CWPViolStatus: string,
-      E90Exceeds1yr: string,
-      FacLat: string,
-      FacLong: string,
-      RegistryID: string,
-      SourceID: string,
-    }[],
-    INSPRows: string,
-    IndianCountryRows: string,
-    InfFEARows: string,
-    Message: string,
-    PageNo: string,
-    QueryID: string,
-    QueryRows: string,
-    SVRows: string,
-    TotalPenalties: string,
-    V3Rows: string,
-    Version: string,
   },
 };
 
