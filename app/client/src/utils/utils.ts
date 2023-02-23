@@ -37,7 +37,8 @@ function formatNumber(number: number, digits: number = 0) {
   });
 }
 
-function isAbort(error: Error) {
+function isAbort(error: unknown) {
+  if (!error || typeof error !== 'object' || !('name' in error)) return false;
   return error.name === 'AbortError';
 }
 

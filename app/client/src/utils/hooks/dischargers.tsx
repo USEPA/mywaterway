@@ -7,7 +7,6 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
-  EmptyFetchState,
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
@@ -73,13 +72,16 @@ export function useDischargersLayer() {
   });
 }
 
-export function useLocalDischargers() {
+export function useLocalDischargers(
+  filter?: (attributes: Facility) => boolean,
+) {
   const { permittedDischargers } = useFetchedDataState();
   const { dischargersLayer } = useLayers();
 
   const { features: dischargers, status: dischargersStatus } = useLocalFeatures(
     dischargersLayer,
     permittedDischargers.status,
+    filter,
   );
 
   return { dischargers, dischargersStatus };
@@ -147,7 +149,10 @@ function useUpdateData() {
 function buildFeatures(data: Facility[]) {
   return data.map((datum) => {
     return new Graphic({
-      attributes: datum,
+      attributes: {
+        ...datum,
+        uniqueIdKey: 'SourceID',
+      },
       geometry: new Point({
         latitude: parseFloat(datum['FacLat']),
         longitude: parseFloat(datum['FacLong']),
@@ -178,6 +183,7 @@ function buildLayer(
       { name: 'FacLong', type: 'string' },
       { name: 'RegistryID', type: 'string' },
       { name: 'SourceID', type: 'string' },
+      { name: 'uniqueIdKey', type: 'string' },
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
@@ -253,11 +259,12 @@ async function fetchPermittedDischargers(
   servicesData: ServicesData,
   abortSignal: AbortSignal,
 ): Promise<FetchState<PermittedDischargersData>> {
-  const response = await fetchCheck(
-    servicesData.echoNPDES.metadata,
-    abortSignal,
-  ).catch(handleFetchError);
-  if (!('Results' in response)) return response as EmptyFetchState;
+  let response: EchoMetadata;
+  try {
+    response = await fetchCheck(servicesData.echoNPDES.metadata, abortSignal);
+  } catch (err) {
+    return handleFetchError(err);
+  }
 
   // Columns to return from Echo
   const facilityColumns = [
@@ -284,7 +291,15 @@ async function fetchPermittedDischargers(
     `&p_act=Y&p_ptype=NPD&responseset=5000` +
     `&qcolumns=${columnIds.join(',')}&${boundariesFilter}`;
 
-  return await fetchCheck(url, abortSignal).catch(handleFetchError);
+  try {
+    const data = await fetchCheck(url, abortSignal);
+    if (!('Results' in data)) {
+      return { status: 'idle', data: null };
+    }
+    return { status: 'success', data };
+  } catch (err) {
+    return handleFetchError(err);
+  }
 }
 
 async function getExtentFilter(mapView: __esri.MapView | '') {
@@ -303,6 +318,13 @@ const dataKeys = ['SourceID'] as Array<keyof Facility>;
 /*
 ## Types
 */
+
+type EchoMetadata = {
+  Results: {
+    Message: 'Success';
+    ResultColumns: ResultColumn[];
+  };
+};
 
 type ResultColumn = {
   ColumnName: string;

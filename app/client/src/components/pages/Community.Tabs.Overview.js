@@ -3,7 +3,6 @@
 import { useEffect, useCallback, useContext, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
-import { useNavigate } from 'react-router-dom';
 // components
 import {
   AccordionList,
@@ -36,11 +35,12 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
+  useLocalDischargers,
   useLocalStreamgages,
   useWaterbodyFeatures,
   useWaterbodyOnMap,
 } from 'utils/hooks';
-import { plotFacilities, getUniqueWaterbodies } from 'utils/mapFunctions';
+import { getUniqueWaterbodies } from 'utils/mapFunctions';
 // errors
 import {
   echoError,
@@ -109,21 +109,19 @@ const toggleStyles = css`
 `;
 
 function Overview() {
+  const { dischargers, dischargersStatus } = useLocalDischargers();
   const { streamgages, streamgagesStatus } = useLocalStreamgages();
+  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
 
   const {
     cipSummary,
     monitoringLocations,
-    permittedDischargers,
     waterbodyLayer,
     monitoringLocationsLayer,
-    dischargersLayer,
     watershed,
     visibleLayers,
     setVisibleLayers,
   } = useContext(LocationSearchContext);
-
-  const { usgsStreamgagesLayer } = useLayers();
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
@@ -189,7 +187,7 @@ function Overview() {
             : usgsStreamgagesDisplayed;
       }
 
-      if (permittedDischargers.status !== 'failure') {
+      if (dischargersStatus !== 'failure') {
         layers.dischargersLayer =
           !dischargersLayer || useCurrentValue
             ? visibleLayers.dischargersLayer
@@ -208,7 +206,7 @@ function Overview() {
     [
       cipSummary,
       monitoringLocations,
-      permittedDischargers,
+      dischargersStatus,
       streamgagesStatus,
       visibleLayers,
       waterbodyLayer,
@@ -226,14 +224,7 @@ function Overview() {
   // update visible layers based on webservice statuses.
   useEffect(() => {
     updateVisibleLayers({ useCurrentValue: true });
-  }, [
-    cipSummary,
-    monitoringLocations,
-    permittedDischargers,
-    streamgages,
-    visibleLayers,
-    updateVisibleLayers,
-  ]);
+  }, [updateVisibleLayers]);
 
   const handleWaterbodiesToggle = useCallback(
     (checked) => {
@@ -314,8 +305,7 @@ function Overview() {
   const totalMonitoringAndSensors =
     totalMonitoringLocations + totalUsgsStreamgages;
 
-  const totalPermittedDischargers =
-    permittedDischargers.data.Results?.Facilities.length;
+  const totalPermittedDischargers = dischargers.length;
 
   return (
     <div css={containerStyles}>
@@ -333,7 +323,7 @@ function Overview() {
           </div>
         )}
 
-      {permittedDischargers.status === 'failure' && (
+      {dischargersStatus === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
           <p>{echoError}</p>
         </div>
@@ -402,13 +392,12 @@ function Overview() {
         </div>
 
         <div css={keyMetricStyles}>
-          {!dischargersLayer || permittedDischargers.status === 'fetching' ? (
+          {dischargersStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalPermittedDischargers) &&
-                permittedDischargers.status === 'success'
+                {Boolean(totalPermittedDischargers)
                   ? totalPermittedDischargers
                   : 'N/A'}
               </span>
@@ -896,37 +885,25 @@ const complianceRank = {
   Unknown: 3,
 };
 
-function sortDischarchers(discharchers, sortBy) {
+function sortDischarchers(dischargers, sortBy) {
   if (sortBy === 'CWPStatus') {
-    return discharchers.sort((a, b) => {
+    return dischargers.sort(({ attributes: a }, { attributes: b }) => {
       return (
         (complianceRank[a.CWPStatus] ?? complianceRank.Unknown) -
         (complianceRank[b.CWPStatus] ?? complianceRank.Unknown)
       );
     });
   } else {
-    return discharchers.sort((a, b) => {
+    return dischargers.sort(({ attributes: a }, { attributes: b }) => {
       return a[sortBy].localeCompare(b[sortBy]);
     });
   }
 }
 
 function PermittedDischargersTab({ totalPermittedDischargers }) {
-  const navigate = useNavigate();
-  const { permittedDischargers, dischargersLayer, watershed } = useContext(
-    LocationSearchContext,
-  );
+  const { dischargers, dischargersStatus } = useLocalDischargers();
 
-  // draw the permitted dischargers on the map
-  useEffect(() => {
-    if (permittedDischargers.data.Results?.Facilities) {
-      plotFacilities({
-        facilities: permittedDischargers.data.Results.Facilities,
-        layer: dischargersLayer,
-        navigate,
-      });
-    }
-  }, [permittedDischargers.data, dischargersLayer, navigate]);
+  const { watershed } = useContext(LocationSearchContext);
 
   const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
     useState('CWPName');
@@ -936,15 +913,16 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
   }, []);
 
   /* prettier-ignore */
-  const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
-    ? sortDischarchers(permittedDischargers.data.Results.Facilities, permittedDischargersSortedBy)
-    : [];
+  const sortedPermittedDischargers = sortDischarchers(
+    dischargers,
+    permittedDischargersSortedBy,
+  );
 
-  if (permittedDischargers.status === 'fetching') {
+  if (dischargersStatus === 'pending') {
     return <LoadingSpinner />;
   }
 
-  if (permittedDischargers.status === 'failure') {
+  if (dischargersStatus === 'failure') {
     return (
       <div css={modifiedErrorBoxStyles}>
         <p>{echoError}</p>
@@ -952,7 +930,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
     );
   }
 
-  if (permittedDischargers.status === 'success') {
+  if (dischargersStatus === 'success') {
     return (
       <>
         {totalPermittedDischargers === 0 && (
@@ -997,23 +975,17 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
               ]}
             >
               {sortedPermittedDischargers.map((discharger) => {
-                const id = discharger.SourceID;
-                const name = discharger.CWPName;
-                const status = discharger.CWPStatus;
-
-                const feature = {
-                  geometry: {
-                    type: 'point',
-                    longitude: discharger.FacLong,
-                    latitude: discharger.FacLat,
-                  },
-                  attributes: discharger,
-                };
+                const {
+                  SourceID: id,
+                  CWPName: name,
+                  CWPStatus: status,
+                  uniqueIdKey: idKey,
+                } = discharger.attributes;
 
                 return (
                   <AccordionItem
                     icon={diamondIcon({ color: colors.orange })}
-                    key={discharger.SourceID}
+                    key={id}
                     title={<strong>{name || 'Unknown'}</strong>}
                     subTitle={
                       <>
@@ -1022,16 +994,16 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                         Compliance Status: {status}
                       </>
                     }
-                    feature={feature}
-                    idKey="CWPName"
+                    feature={discharger}
+                    idKey={idKey}
                   >
                     <div css={accordionContentStyles}>
                       <WaterbodyInfo
                         type="Permitted Discharger"
-                        feature={feature}
+                        feature={discharger}
                       />
 
-                      <ViewOnMapButton feature={feature} />
+                      <ViewOnMapButton feature={discharger} />
                     </div>
                   </AccordionItem>
                 );

@@ -75,13 +75,16 @@ export function useStreamgageLayer() {
   });
 }
 
-export function useLocalStreamgages() {
+export function useLocalStreamgages(
+  filter?: (attributes: UsgsStreamgageAttributes) => boolean,
+) {
   const { usgsStreamgages } = useFetchedDataState();
   const { usgsStreamgagesLayer } = useLayers();
 
   const { features: streamgages, status: streamgagesStatus } = useLocalFeatures(
     usgsStreamgagesLayer,
     usgsStreamgages.status,
+    filter,
   );
 
   return { streamgages, streamgagesStatus };

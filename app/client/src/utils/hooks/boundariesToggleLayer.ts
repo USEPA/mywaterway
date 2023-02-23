@@ -33,9 +33,10 @@ import type { BoundariesToggleLayerId } from 'contexts/Layers';
 ## Hooks
 */
 
-export function useLocalFeatures(
+export function useLocalFeatures<A>(
   layer: AllFeaturesLayer | null,
   status: FetchStatus,
+  filter?: (attributes: A) => boolean,
 ) {
   const { huc12, hucBoundaries, mapView } = useContext(LocationSearchContext);
 
@@ -49,8 +50,6 @@ export function useLocalFeatures(
       const hucPolygon = hucBoundaries?.features?.[0]?.geometry;
       if (!hucPolygon) return;
 
-      // const projectedHucPolygon = projectGeometry(feature.geometry, hucPolygon),
-
       const query = new Query({
         geometry: hucPolygon,
         outFields: ['*'],
@@ -58,15 +57,21 @@ export function useLocalFeatures(
       });
 
       const featureSet = await layer.baseLayer.queryFeatures(query, { signal });
-      setLocalFeatures(featureSet.features);
+      setLocalFeatures(
+        filter
+          ? featureSet.features.filter((feature) => {
+              return filter(feature.attributes);
+            })
+          : featureSet.features,
+      );
       setLocalStatus('success');
     },
-    [hucBoundaries, layer],
+    [filter, hucBoundaries, layer],
   );
 
   // Mark local data for updates when HUC changes
   useEffect(() => {
-    if (status !== 'success') {
+    if (status === 'failure') {
       setLocalStatus(status);
       return;
     }
@@ -381,9 +386,9 @@ function getSurroundingMask() {
   });
 }
 
-export function handleFetchError(err: Error): EmptyFetchState {
+export function handleFetchError(err: unknown): EmptyFetchState {
   if (isAbort(err)) {
-    return { status: 'idle', data: null };
+    return { status: 'pending', data: null };
   }
   console.error(err);
   return { status: 'failure', data: null };

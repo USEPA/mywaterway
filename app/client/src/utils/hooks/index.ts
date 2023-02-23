@@ -505,7 +505,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasLayer, //part of waterbody group layer
     issuesLayer,
     monitoringLocationsLayer,
-    dischargersLayer,
     nonprofitsLayer,
     upstreamLayer,
     actionsLayer,
@@ -519,7 +518,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasData,
   } = useContext(LocationSearchContext);
 
-  const { usgsStreamgagesLayer } = useLayers();
+  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
 
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -758,32 +757,25 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         (graphicOrgId === selectedGraphicOrgId &&
           graphicAuId === selectedGraphicAuId))
     ) {
-      let key = '';
       let where = '';
 
       if (featureLayerType === 'waterbodyLayer') {
-        key = `${graphicOrgId} - ${graphicAuId}`;
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
-      }
-
-      if (featureLayerType === 'wildScenicRivers') {
-        key = attributes.GlobalID;
-        where = `GlobalID = '${key}'`;
-      }
-
-      if (featureLayerType === 'cyanWaterbodies') {
-        key = `cyan-${attributes.FID}`;
+      } else if (featureLayerType === 'wildScenicRivers') {
+        where = `GlobalID = '${attributes.GlobalID}'`;
+      } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;
-      }
-
-      if (featureLayerType === 'monitoringLocations') {
+      } else if (featureLayerType === 'monitoringLocations') {
         const orgId = graphic?.attributes?.orgId || '';
         const siteId = graphic?.attributes?.siteId || '';
-        key = `${orgId} - ${siteId}`;
         where = `orgId = '${orgId}' And siteId = '${siteId}'`;
+      } else if ('uniqueIdKey' in attributes) {
+        where = `${attributes.uniqueIdKey} = '${
+          attributes[attributes.uniqueIdKey]
+        }'`;
+      } else {
+        return;
       }
-
-      if (!key || !where) return;
 
       const query = new Query({
         returnGeometry: false,
@@ -1995,4 +1987,5 @@ export {
 };
 
 export * from './boundariesToggleLayer';
+export * from './dischargers';
 export * from './streamgages';

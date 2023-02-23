@@ -201,12 +201,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView,
     setMonitoringLocations,
     // setNonprofits,
-    setPermittedDischargers,
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringLocationsLayer,
     setUpstreamLayer,
-    setDischargersLayer,
     setNonprofitsLayer,
     setProvidersLayer,
     setBoundariesLayer,
@@ -233,7 +231,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
   } = useContext(LocationSearchContext);
 
-  const { usgsStreamgagesLayer } = useLayers();
+  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -617,7 +615,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
-    if (!usgsStreamgagesLayer) return;
+    if (!dischargersLayer || !usgsStreamgagesLayer) return;
     if (!getSharedLayers || layersInitialized) return;
 
     if (layers.length > 0) return;
@@ -729,14 +727,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setIssuesLayer(issuesLayer);
 
-    const dischargersLayer = new GraphicsLayer({
-      id: 'dischargersLayer',
-      title: 'Dischargers',
-      listMode: 'hide',
-    });
-
-    setDischargersLayer(dischargersLayer);
-
     const nonprofitsLayer = new GraphicsLayer({
       id: 'nonprofitsLayer',
       title: 'Nonprofits',
@@ -833,12 +823,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
+    dischargersLayer,
     getSharedLayers,
     getTemplate,
     getTitle,
     layers,
     setBoundariesLayer,
-    setDischargersLayer,
     setIssuesLayer,
     setLayers,
     setMonitoringLocationsLayer,
@@ -1146,55 +1136,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // updates the features on the monitoringStationsLayer
   // and the monitoring groups
   useMonitoringLocations();
-
-  const queryPermittedDischargersService = useCallback(
-    (huc12Param) => {
-      fetchCheck(services.data.echoNPDES.metadata)
-        .then((res) => {
-          // Columns to return from Echo
-          const facilityColumns = [
-            'CWPName',
-            'CWPStatus',
-            'CWPViolStatus',
-            'CWPSNCStatus',
-            'CWPPermitStatusDesc',
-            'CWPQtrsWithNC',
-            'CWPInspectionCount',
-            'CWPFormalEaCnt',
-            'RegistryID',
-            'FacLong',
-            'FacLat',
-          ];
-
-          // Loop through the metadata and find the ids of the columns we want
-          const columnIds = [];
-          res.Results.ResultColumns.forEach((column) => {
-            if (facilityColumns.indexOf(column.ObjectName) !== -1) {
-              columnIds.push(column.ColumnID);
-            }
-          });
-
-          const url =
-            `${services.data.echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12Param}` +
-            `&p_act=Y&p_ptype=NPD&responseset=5000` +
-            `&qcolumns=${columnIds.join(',')}`;
-
-          fetchCheck(url)
-            .then((res) => {
-              setPermittedDischargers({ status: 'success', data: res });
-            })
-            .catch((err) => {
-              console.error(err);
-              setPermittedDischargers({ status: 'failure', data: {} });
-            });
-        })
-        .catch((err) => {
-          console.error(err);
-          setPermittedDischargers({ status: 'failure', data: {} });
-        });
-    },
-    [setPermittedDischargers, services],
-  );
 
   const queryGrtsHuc12 = useCallback(
     (huc12Param) => {
@@ -1616,7 +1557,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setHuc12(huc12);
           processBoundariesData(response);
           queryMonitoringStationService(huc12);
-          queryPermittedDischargersService(huc12);
           queryGrtsHuc12(huc12);
           queryAttainsPlans(huc12);
 
@@ -1635,7 +1575,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setHuc12,
       processBoundariesData,
       queryMonitoringStationService,
-      queryPermittedDischargersService,
       queryGrtsHuc12,
       queryAttainsPlans,
       handleNoDataAvailable,

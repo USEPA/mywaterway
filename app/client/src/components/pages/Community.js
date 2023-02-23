@@ -22,7 +22,7 @@ import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 // utils
-import { useStreamgageLayer } from 'utils/hooks';
+import { useDischargersLayer, useStreamgageLayer } from 'utils/hooks';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -113,6 +113,7 @@ function Community() {
 
   const { fullscreenActive } = useFullscreenState();
 
+  useDischargersLayer();
   useStreamgageLayer();
 
   // CommunityIntro is rendered in Outlet when at the '/community' and '/community/' routes

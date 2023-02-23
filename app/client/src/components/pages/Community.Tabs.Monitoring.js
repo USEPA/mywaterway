@@ -3,7 +3,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
-import { useNavigate } from 'react-router-dom';
 // components
 import {
   AccordionList,
