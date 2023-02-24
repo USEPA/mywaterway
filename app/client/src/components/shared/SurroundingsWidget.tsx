@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   BoundariesToggleLayerId,
   useLayers,
@@ -12,7 +19,7 @@ import {
 // styles
 import { fonts } from 'styles';
 // types
-import type { LayersState } from 'contexts/Layers';
+import type { LayerId, LayersState } from 'contexts/Layers';
 import type { MutableRefObject, ReactNode } from 'react';
 
 /*
@@ -20,9 +27,24 @@ import type { MutableRefObject, ReactNode } from 'react';
 */
 
 export function useSurroundingsWidget() {
+  const { visibleLayers } = useContext(LocationSearchContext);
   const toggles = useLayersBoundariesToggles();
   const layers = useLayers();
   const surroundings = useLayersSurroundingsVisibilities();
+
+  const includedLayers = useMemo(() => {
+    return Object.keys(visibleLayers).reduce<Partial<LayersState['layers']>>(
+      (included, key) => {
+        if (layers.hasOwnProperty(key)) {
+          return {
+            ...included,
+            [key]: layers[key as LayerId],
+          };
+        } else return included;
+      },
+      {},
+    );
+  }, [layers, visibleLayers]);
 
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
@@ -30,11 +52,11 @@ export function useSurroundingsWidget() {
       <SurroundingsWidget
         surroundings={surroundings}
         toggles={toggles}
-        layers={layers}
+        layers={includedLayers}
       />,
       container,
     );
-  }, [container, layers, surroundings, toggles]);
+  }, [container, includedLayers, surroundings, toggles]);
 
   return container;
 }
@@ -243,7 +265,7 @@ type SurroundingWidgetContentProps = SurroundingWidgetProps & {
 };
 
 type SurroundingWidgetProps = {
-  layers: LayersState['layers'];
+  layers: Partial<LayersState['layers']>;
   surroundings: LayersState['surroundingsVibilities'];
   toggles: LayersState['boundariesToggles'];
 };

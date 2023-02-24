@@ -211,7 +211,7 @@ export type AllFeaturesLayerId =
 
 type AllGraphicsLayerId = 'placeholderLayer';
 
-type LayerId = keyof (typeof initialState)['layers'];
+export type LayerId = keyof (typeof initialState)['layers'];
 
 export type LayersState = {
   layers: {

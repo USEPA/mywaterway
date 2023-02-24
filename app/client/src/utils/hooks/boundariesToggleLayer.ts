@@ -232,16 +232,20 @@ function useBoundariesToggleLayer<
     layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
   }, [layerId, layersDispatch, parentLayer]);
 
-  const [initialLayerVisibility, setInitialLayerVisibility] = useState<boolean>(
-    visibleLayers[layerId] ?? false,
-  );
+  const [initialLayerVisibility, setInitialLayerVisibility] = useState<
+    boolean | null
+  >(visibleLayers[layerId] ?? null);
 
   // Manages the surrounding features visibility
   const toggleSurroundings = useCallback(
     (showSurroundings: boolean) => {
-      const layerVisible = visibleLayers[layerId] ?? false;
+      const layerVisible = visibleLayers[layerId] ?? null;
       return function toggle() {
         setInitialLayerVisibility(layerVisible);
+        // Key doesn't exist in `visibleLayers` so
+        // the layer shouldn't be toggleable
+        if (layerVisible === null) return;
+
         if (layerVisible && !showSurroundings) {
           setVisibleLayers({
             ...visibleLayers,
