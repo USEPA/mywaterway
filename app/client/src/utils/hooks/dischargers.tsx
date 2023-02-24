@@ -94,7 +94,7 @@ function useUpdateData() {
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const [hucData, setHucData] = useState<Facility[]>([]);
+  const [hucData, setHucData] = useState<Facility[] | null>([]);
   useEffect(() => {
     const controller = new AbortController();
 
@@ -118,8 +118,15 @@ function useUpdateData() {
   const [extentFilter, setExtentFilter] = useState<string | null>(null);
 
   const updateData = useCallback(
-    async (abortSignal: AbortSignal) => {
+    async (abortSignal: AbortSignal, hucOnly = false) => {
       if (services.status !== 'success') return;
+
+      if (hucOnly && hucData)
+        return fetchedDataDispatch({
+          type: 'success',
+          id: 'permittedDischargers',
+          payload: hucData,
+        });
 
       const newExtentFilter = await getExtentFilter(mapView);
       // No updates necessary
@@ -221,8 +228,8 @@ function buildLayer(
 async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
-  additionalData?: Facility[],
-): Promise<Facility[]> {
+  additionalData?: Facility[] | null,
+) {
   dispatch({ type: 'pending', id: 'permittedDischargers' });
 
   const response = await promise;
@@ -242,7 +249,7 @@ async function fetchAndTransformData(
     return payload;
   } else {
     dispatch({ type: response.status, id: 'permittedDischargers' });
-    return [];
+    return null;
   }
 }
 

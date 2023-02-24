@@ -97,7 +97,7 @@ function useUpdateData() {
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const [hucData, setHucData] = useState<UsgsStreamgageAttributes[]>([]);
+  const [hucData, setHucData] = useState<UsgsStreamgageAttributes[] | null>([]);
   useEffect(() => {
     const controller = new AbortController();
 
@@ -127,8 +127,15 @@ function useUpdateData() {
   );
 
   const updateData = useCallback(
-    async (abortSignal: AbortSignal) => {
+    async (abortSignal: AbortSignal, hucOnly = false) => {
       if (services.status !== 'success') return;
+
+      if (hucOnly && hucData)
+        return fetchedDataDispatch({
+          type: 'success',
+          id: 'usgsStreamgages',
+          payload: hucData,
+        });
 
       const newExtentDvFilter = await getExtentDvFilter(mapView);
       const newExtentThingsFilter = await getExtentThingsFilter(mapView);
@@ -242,7 +249,7 @@ function buildLayer(
 async function fetchAndTransformData(
   promises: UsgsFetchPromises,
   dispatch: Dispatch<FetchedDataAction>,
-  additionalData?: UsgsStreamgageAttributes[],
+  additionalData?: UsgsStreamgageAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: 'usgsStreamgages' });
 
@@ -271,7 +278,7 @@ async function fetchAndTransformData(
       id: 'usgsStreamgages',
     });
   }
-  return [];
+  return null;
 }
 
 function transformServiceData(

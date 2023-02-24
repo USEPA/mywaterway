@@ -71,8 +71,9 @@ export function useLocalFeatures<A>(
 
   // Mark local data for updates when HUC changes
   useEffect(() => {
-    if (status === 'failure') {
-      setLocalStatus(status);
+    if (localStatus === 'success') return;
+    if (status !== 'success') {
+      if (status === 'failure') setLocalStatus(status);
       return;
     }
 
@@ -81,7 +82,10 @@ export function useLocalFeatures<A>(
     reactiveUtils
       .whenOnce(() => !mapView.updating)
       .then(() => getLocalFeatures(controller.signal))
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        if (isAbort(err)) return;
+        console.error(err);
+      });
 
     return function cleanup() {
       controller.abort();
@@ -181,12 +185,14 @@ function useBoundariesToggleLayer<
     const stationaryHandle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
-        if (
-          mapView.scale >= minScale ||
-          visibleLayers[layerId] === false ||
-          surroundingsVisible[layerId] === false
-        )
+        if (mapView.scale >= minScale) {
+          return updateData(getSignal(), true);
+        } else if (
+          surroundingsVisible[layerId] === false ||
+          visibleLayers[layerId] === false
+        ) {
           return;
+        }
         updateData(getSignal());
       },
       { initial: true },
@@ -443,7 +449,7 @@ type UseBoundariesToggleLayerParams<
   buildBaseLayer: (baseLayerId: string) => T;
   features: __esri.Graphic[];
   layerId: BoundariesToggleLayerId;
-  updateData: (abortSignal: AbortSignal) => Promise<void>;
+  updateData: (abortSignal: AbortSignal, hucOnly?: boolean) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };
 
