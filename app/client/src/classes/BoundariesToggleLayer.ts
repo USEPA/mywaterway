@@ -3,6 +3,8 @@ import {
   property,
 } from '@arcgis/core/core/accessorSupport/decorators';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
+// types
+import type { FetchedDataState } from 'contexts/FetchedData';
 
 @subclass('esri.core.layers.BoundariesToggleLayer')
 export class BoundariesToggleLayer extends GroupLayer {
@@ -10,15 +12,20 @@ export class BoundariesToggleLayer extends GroupLayer {
   baseLayerType: BaseLayerType;
 
   @property({ constructOnly: true })
+  fetchedDataKey: keyof FetchedDataState;
+
+  @property({ constructOnly: true })
   resetHidesSurroundings: boolean;
 
   constructor(
     properties: __esri.GroupLayerProperties,
     baseLayerType: BaseLayerType,
+    fetchedDataKey: keyof FetchedDataState,
     resetHidesSurroundings?: boolean,
   ) {
     super(properties);
     this.baseLayerType = baseLayerType;
+    this.fetchedDataKey = fetchedDataKey;
     this.resetHidesSurroundings = resetHidesSurroundings ?? false;
   }
 }
@@ -30,8 +37,11 @@ export class AllFeaturesLayer extends BoundariesToggleLayer {
     return this.findLayerById(`${this.id}-features`) as __esri.FeatureLayer;
   }
 
-  constructor(properties: __esri.GroupLayerProperties) {
-    super(properties, 'feature');
+  constructor(
+    properties: __esri.GroupLayerProperties,
+    fetchedDataKey: keyof FetchedDataState,
+  ) {
+    super(properties, 'feature', fetchedDataKey);
   }
 }
 
@@ -42,8 +52,11 @@ export class AllGraphicsLayer extends BoundariesToggleLayer {
     return this.findLayerById(`${this.id}-features`) as __esri.GraphicsLayer;
   }
 
-  constructor(properties: __esri.GroupLayerProperties) {
-    super(properties, 'graphics');
+  constructor(
+    properties: __esri.GroupLayerProperties,
+    fetchedDataKey: keyof FetchedDataState,
+  ) {
+    super(properties, 'graphics', fetchedDataKey);
   }
 }
 

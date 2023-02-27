@@ -69,6 +69,7 @@ export function useStreamgageLayer() {
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
     layerId,
+    fetchedDataKey,
     buildBaseLayer,
     updateData,
     features,
@@ -270,11 +271,14 @@ async function fetchAndTransformData(
       payload,
     });
     return usgsStreamgageAttributes;
-  } else if (responses.some((res) => res.status === 'idle')) {
-    dispatch({ type: 'idle', id: 'usgsStreamgages' });
   } else if (responses.some((res) => res.status === 'failure')) {
     dispatch({
       type: 'failure',
+      id: 'usgsStreamgages',
+    });
+  } else {
+    dispatch({
+      type: 'idle',
       id: 'usgsStreamgages',
     });
   }
@@ -551,6 +555,7 @@ function getExtentWkt(extent: __esri.Extent | null) {
 ## Constants
 */
 
+const fetchedDataKey = 'usgsStreamgages';
 const layerId = 'usgsStreamgagesLayer';
 const dataKeys = ['orgId', 'siteId'] as Array<keyof UsgsStreamgageAttributes>;
 

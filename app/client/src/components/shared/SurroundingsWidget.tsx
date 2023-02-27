@@ -8,13 +8,20 @@ import {
 } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
+// classes
+import { BoundariesToggleLayer } from 'classes/BoundariesToggleLayer';
 // contexts
+import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { BoundariesToggleLayerId, useLayersState } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 // styles
 import { fonts } from 'styles';
 // types
-import type { LayerId, LayersState } from 'contexts/Layers';
+import type {
+  BoundariesToggleLayerId,
+  LayerId,
+  LayersState,
+} from 'contexts/Layers';
 import type { MutableRefObject, ReactNode } from 'react';
 
 /*
@@ -33,7 +40,10 @@ export function useSurroundingsWidget() {
   const includedLayers = useMemo(() => {
     return Object.keys(visibleLayers).reduce<Partial<LayersState['layers']>>(
       (included, key) => {
-        if (layers.hasOwnProperty(key)) {
+        if (
+          layers.hasOwnProperty(key) &&
+          layers[key as LayerId] instanceof BoundariesToggleLayer
+        ) {
           return {
             ...included,
             [key]: layers[key as LayerId],
@@ -44,6 +54,19 @@ export function useSurroundingsWidget() {
     );
   }, [layers, visibleLayers]);
 
+  const fetchedData = useFetchedDataState();
+
+  const layersUpdating = useMemo(() => {
+    return Object.entries(includedLayers).reduce((updating, [key, layer]) => {
+      if (!layer) return updating;
+      return {
+        ...updating,
+        [key]:
+          fetchedData[layer.fetchedDataKey].status === 'pending' ? true : false,
+      };
+    }, {}) as Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
+  }, [fetchedData, includedLayers]);
+
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
     render(
@@ -52,10 +75,18 @@ export function useSurroundingsWidget() {
         toggles={toggles}
         togglesDisabled={togglesDisabled}
         layers={includedLayers}
+        layersUpdating={layersUpdating}
       />,
       container,
     );
-  }, [container, includedLayers, surroundings, toggles, togglesDisabled]);
+  }, [
+    container,
+    includedLayers,
+    layersUpdating,
+    surroundings,
+    toggles,
+    togglesDisabled,
+  ]);
 
   return container;
 }
@@ -65,6 +96,14 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
   const toggleContentVisibility = useCallback(() => {
     setContentVisible(!contentVisible);
   }, [contentVisible]);
+
+  const { layersUpdating } = props;
+  const [updating, setUpdating] = useState(false);
+  useEffect(() => {
+    setUpdating(
+      Object.values(layersUpdating).some((isUpdating) => isUpdating === true),
+    );
+  }, [layersUpdating]);
 
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -78,6 +117,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
       <SurroundingsWidgetTrigger
         onClick={toggleContentVisibility}
         forwardedRef={triggerRef}
+        updating={updating}
       />
     </>
   );
@@ -135,12 +175,15 @@ function Portal({ children, container }: PortalProps) {
 function SurroundingsWidgetTrigger({
   onClick,
   forwardedRef,
+  updating,
 }: SurroundingsWidgetTriggerProps) {
   const [hover, setHover] = useState(false);
 
   let title = 'Toggle Surrounding Features';
 
-  let iconClass = 'esri-icon esri-icon-globe';
+  let iconClass = updating
+    ? 'esri-icon-loading-indicator esri-rotating'
+    : 'esri-icon esri-icon-globe';
 
   return (
     <div
@@ -261,6 +304,7 @@ type PortalProps = {
 type SurroundingsWidgetTriggerProps = {
   onClick: React.MouseEventHandler<HTMLDivElement>;
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
+  updating: boolean;
 };
 
 type SurroundingsWidgetContentProps = SurroundingsWidgetProps & {
@@ -268,7 +312,8 @@ type SurroundingsWidgetContentProps = SurroundingsWidgetProps & {
 };
 
 type SurroundingsWidgetProps = {
-  layers: Partial<LayersState['layers']>;
+  layers: Partial<Pick<LayersState['layers'], BoundariesToggleLayerId>>;
+  layersUpdating: Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
   surroundings: LayersState['surroundingsVisibilities'];
   toggles: LayersState['boundariesToggles'];
   togglesDisabled: LayersState['boundariesTogglesDisabled'];

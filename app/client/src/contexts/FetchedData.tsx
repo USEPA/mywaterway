@@ -148,7 +148,7 @@ type FetchedDataEmptyAction = {
   };
 }[EmptyFetchStatus];
 
-type FetchedDataState = {
+export type FetchedDataState = {
   [D in keyof FetchedData]: FetchState<FetchedData[D]>;
 };
 

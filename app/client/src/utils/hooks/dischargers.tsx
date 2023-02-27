@@ -66,6 +66,7 @@ export function useDischargersLayer() {
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
     layerId,
+    fetchedDataKey,
     buildBaseLayer,
     updateData,
     features,
@@ -319,6 +320,7 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
 ## Constants
 */
 
+const fetchedDataKey = 'permittedDischargers';
 const layerId = 'dischargersLayer';
 const dataKeys = ['SourceID'] as Array<keyof Facility>;
 

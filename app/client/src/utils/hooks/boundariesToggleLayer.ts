@@ -23,7 +23,11 @@ import { useAbort } from 'utils/hooks';
 import { isFeatureLayer, isPolygon } from 'utils/mapFunctions';
 import { isAbort, toFixedFloat } from 'utils/utils';
 // types
-import type { EmptyFetchState, FetchStatus } from 'contexts/FetchedData';
+import type {
+  EmptyFetchState,
+  FetchedDataState,
+  FetchStatus,
+} from 'contexts/FetchedData';
 import type { BoundariesToggleLayerId } from 'contexts/Layers';
 
 /*
@@ -53,6 +57,10 @@ export function useLocalFeatures<A>(
         returnGeometry: true,
       });
 
+      /* const layerView = await mapView?.whenLayerView(layer.baseLayer);
+      const testFeatureSet = await layerView.queryFeatures();
+      console.log(testFeatureSet.features); */
+
       const featureSet = await layer.baseLayer.queryFeatures(query, { signal });
       setLocalFeatures(
         filter
@@ -68,14 +76,23 @@ export function useLocalFeatures<A>(
 
   // Mark local data for updates when HUC changes
   useEffect(() => {
+    if (!layer || !mapView) return;
     if (localStatus === 'success') return;
-    if (status !== 'success') {
-      if (status === 'failure') setLocalStatus(status);
-      return;
-    }
+    if (status === 'failure') return setLocalStatus(status);
 
     const controller = new AbortController();
 
+    /* mapView
+      .whenLayerView(layer.baseLayer)
+      .then((layerView: __esri.FeatureLayerView) => {
+        reactiveUtils
+          .whenOnce(() => !layerView.updating && !mapView.updating)
+          .then(() => getLocalFeatures(layerView, controller.signal))
+          .catch((err) => {
+            if (isAbort(err)) return;
+            console.error(err);
+          });
+      }); */
     reactiveUtils
       .whenOnce(() => !mapView.updating)
       .then(() => getLocalFeatures(controller.signal))
@@ -87,7 +104,7 @@ export function useLocalFeatures<A>(
     return function cleanup() {
       controller.abort();
     };
-  }, [getLocalFeatures, mapView, localStatus, status]);
+  }, [getLocalFeatures, mapView, layer, localStatus, status]);
 
   useEffect(() => {
     if (huc12) return;
@@ -111,6 +128,7 @@ function useBoundariesToggleLayer<
   buildBaseLayer,
   features,
   layerId,
+  fetchedDataKey,
   updateData,
   updateLayer,
 }: UseBoundariesToggleLayerParams<T>) {
@@ -167,9 +185,9 @@ function useBoundariesToggleLayer<
       title: baseLayer.title,
     };
     return isFeatureLayer(baseLayer)
-      ? new AllFeaturesLayer(properties)
-      : new AllGraphicsLayer(properties);
-  }, [baseLayer, layerId, maskLayer]);
+      ? new AllFeaturesLayer(properties, fetchedDataKey)
+      : new AllGraphicsLayer(properties, fetchedDataKey);
+  }, [baseLayer, fetchedDataKey, layerId, maskLayer]);
 
   const {
     boundariesTogglesDisabled,
@@ -257,7 +275,7 @@ function useBoundariesToggleLayer<
   // Update layer features when new data is available
   useEffect(() => {
     updateLayer(baseLayer, features);
-  }, [baseLayer, features, updateLayer]);
+  }, [baseLayer, features, mapView, updateLayer]);
 
   // Add the layer to the Layers context
   useEffect(() => {
@@ -316,6 +334,27 @@ function useBoundariesToggleLayer<
       payload: toggleSurroundings,
     });
   }, [layerId, layersDispatch, toggleSurroundings]);
+
+  // Keep visibility statuses in sync across tabs
+  useEffect(() => {
+    if (
+      visibleLayers[layerId] === false &&
+      surroundingsVisible[layerId] === true
+    ) {
+      surroundingLayer.opacity = surroundingsHiddenOpacity;
+      layersDispatch({
+        type: 'surroundingsVibility',
+        id: layerId,
+        payload: visibleLayers[layerId] ?? false,
+      });
+    }
+  }, [
+    layerId,
+    layersDispatch,
+    surroundingLayer,
+    surroundingsVisible,
+    visibleLayers,
+  ]);
 
   // Resets the base layer's features and hides surrounding features
   const resetLayer = useCallback(async () => {
@@ -440,10 +479,9 @@ function matchKeys<T>(a: T, b: T, keys: Array<keyof T>) {
   return keys.every((key) => a[key] === b[key]);
 }
 
-export function removeDuplicateData<T>(attributes: T[], keys: Array<keyof T>) {
-  return attributes.reduce<T[]>((unique, next) => {
-    if (unique.find((attribute) => matchKeys(attribute, next, keys)))
-      return unique;
+export function removeDuplicateData<T>(data: T[], keys: Array<keyof T>) {
+  return data.reduce<T[]>((unique, next) => {
+    if (unique.find((datum) => matchKeys(datum, next, keys))) return unique;
     return [...unique, next];
   }, []);
 }
@@ -454,7 +492,7 @@ async function updateFeatureLayer(
 ) {
   if (!layer) return;
 
-  const featureSet = await layer?.queryFeatures();
+  const featureSet = await layer.queryFeatures();
   const edits: {
     addFeatures?: __esri.Graphic[];
     deleteFeatures: __esri.Graphic[];
@@ -485,6 +523,7 @@ type UseBoundariesToggleLayerParams<
   buildBaseLayer: (baseLayerId: string) => T;
   features: __esri.Graphic[];
   layerId: BoundariesToggleLayerId;
+  fetchedDataKey: keyof FetchedDataState;
   updateData: (abortSignal: AbortSignal, hucOnly?: boolean) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };
