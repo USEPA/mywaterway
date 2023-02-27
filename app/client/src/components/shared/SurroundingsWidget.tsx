@@ -10,12 +10,7 @@ import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  BoundariesToggleLayerId,
-  useLayers,
-  useLayersBoundariesToggles,
-  useLayersSurroundingsVisibilities,
-} from 'contexts/Layers';
+import { BoundariesToggleLayerId, useLayersState } from 'contexts/Layers';
 // styles
 import { fonts } from 'styles';
 // types
@@ -28,9 +23,12 @@ import type { MutableRefObject, ReactNode } from 'react';
 
 export function useSurroundingsWidget() {
   const { visibleLayers } = useContext(LocationSearchContext);
-  const toggles = useLayersBoundariesToggles();
-  const layers = useLayers();
-  const surroundings = useLayersSurroundingsVisibilities();
+  const {
+    layers,
+    boundariesToggles: toggles,
+    boundariesTogglesDisabled: togglesDisabled,
+    surroundingsVisibilities: surroundings,
+  } = useLayersState();
 
   const includedLayers = useMemo(() => {
     return Object.keys(visibleLayers).reduce<Partial<LayersState['layers']>>(
@@ -52,16 +50,17 @@ export function useSurroundingsWidget() {
       <SurroundingsWidget
         surroundings={surroundings}
         toggles={toggles}
+        togglesDisabled={togglesDisabled}
         layers={includedLayers}
       />,
       container,
     );
-  }, [container, includedLayers, surroundings, toggles]);
+  }, [container, includedLayers, surroundings, toggles, togglesDisabled]);
 
   return container;
 }
 
-function SurroundingsWidget(props: SurroundingWidgetProps) {
+function SurroundingsWidget(props: SurroundingsWidgetProps) {
   const [contentVisible, setContentVisible] = useState(false);
   const toggleContentVisibility = useCallback(() => {
     setContentVisible(!contentVisible);
@@ -88,8 +87,9 @@ function SurroundingsWidgetContent({
   layers,
   surroundings,
   toggles,
+  togglesDisabled,
   visible,
-}: SurroundingWidgetContentProps) {
+}: SurroundingsWidgetContentProps) {
   return (
     <div css={widgetContentStyles(visible)}>
       <div>
@@ -103,12 +103,16 @@ function SurroundingsWidgetContent({
                 <li key={id}>
                   <div>
                     <div
-                      css={listItemContentStyles}
-                      onClick={toggles[id](!surroundings[id])}
+                      css={listItemContentStyles(togglesDisabled[id])}
+                      onClick={
+                        togglesDisabled[id]
+                          ? undefined
+                          : toggles[id](!surroundings[id])
+                      }
                     >
                       <span
                         className={`esri-icon-${
-                          surroundings[id] ? '' : 'non-'
+                          !togglesDisabled[id] && surroundings[id] ? '' : 'non-'
                         }visible`}
                       ></span>
                       <span>{layer.title}</span>
@@ -131,7 +135,7 @@ function Portal({ children, container }: PortalProps) {
 function SurroundingsWidgetTrigger({
   onClick,
   forwardedRef,
-}: ShowSurroundingWidgetProps) {
+}: SurroundingsWidgetTriggerProps) {
   const [hover, setHover] = useState(false);
 
   let title = 'Toggle Surrounding Features';
@@ -172,7 +176,25 @@ const divStyle = (hover: boolean) => css`
   width: 32px;
 `;
 
-const listItemContentStyles = css``;
+const listItemContentStyles = (disabled: boolean) => css`
+  align-items: flex-start;
+  color: ${disabled ? '#6e6e6e' : 'inherit'};
+  cursor: ${disabled ? 'initial' : 'pointer'};
+  display: flex;
+  flex-flow: row;
+  gap: 5px;
+  justify-content: flex-start;
+  padding: 5px;
+
+  span:first-of-type {
+    font-size: 16px;
+  }
+
+  span:last-of-type {
+    font-size: 0.8125em;
+    margin: auto 0;
+  }
+`;
 
 const widgetContentStyles = (visible: boolean) => css`
   background-color: white;
@@ -220,25 +242,6 @@ const widgetContentStyles = (visible: boolean) => css`
           & > div {
             border-left: 3px solid transparent;
             padding: 5px;
-
-            & > div {
-              align-items: flex-start;
-              cursor: pointer;
-              display: flex;
-              flex-flow: row;
-              gap: 5px;
-              justify-content: flex-start;
-              padding: 5px;
-
-              span:first-of-type {
-                font-size: 16px;
-              }
-
-              span:last-of-type {
-                font-size: 0.8125em;
-                margin: auto 0;
-              }
-            }
           }
         }
       }
@@ -255,17 +258,18 @@ type PortalProps = {
   container: HTMLDivElement;
 };
 
-type ShowSurroundingWidgetProps = {
+type SurroundingsWidgetTriggerProps = {
   onClick: React.MouseEventHandler<HTMLDivElement>;
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
 };
 
-type SurroundingWidgetContentProps = SurroundingWidgetProps & {
+type SurroundingsWidgetContentProps = SurroundingsWidgetProps & {
   visible: boolean;
 };
 
-type SurroundingWidgetProps = {
+type SurroundingsWidgetProps = {
   layers: Partial<LayersState['layers']>;
-  surroundings: LayersState['surroundingsVibilities'];
+  surroundings: LayersState['surroundingsVisibilities'];
   toggles: LayersState['boundariesToggles'];
+  togglesDisabled: LayersState['boundariesTogglesDisabled'];
 };

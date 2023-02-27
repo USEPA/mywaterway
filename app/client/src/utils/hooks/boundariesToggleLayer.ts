@@ -16,10 +16,7 @@ import {
   AllGraphicsLayer,
 } from 'classes/BoundariesToggleLayer';
 // contexts
-import {
-  useLayersDispatch,
-  useLayersSurroundingsVisibilities,
-} from 'contexts/Layers';
+import { useLayersDispatch, useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useAbort } from 'utils/hooks';
@@ -150,7 +147,7 @@ function useBoundariesToggleLayer<
   }, [enclosedLayer, hucGraphic]);
 
   // Component layer that manages the always visible
-  // HUC area and the togglable surrounding area
+  // HUC area and the toggleable surrounding area
   const maskLayer = useMemo(() => {
     return new GroupLayer({
       blendMode: 'destination-in',
@@ -174,7 +171,10 @@ function useBoundariesToggleLayer<
       : new AllGraphicsLayer(properties);
   }, [baseLayer, layerId, maskLayer]);
 
-  const surroundingsVisible = useLayersSurroundingsVisibilities();
+  const {
+    boundariesTogglesDisabled,
+    surroundingsVisibilities: surroundingsVisible,
+  } = useLayersState();
 
   const { getSignal, abort } = useAbort();
 
@@ -221,6 +221,38 @@ function useBoundariesToggleLayer<
   ]);
 
   const layersDispatch = useLayersDispatch();
+
+  // Disable the toggles when the map scale is too large
+  useEffect(() => {
+    const mapScaleHandle = reactiveUtils.watch(
+      () => mapView?.scale,
+      () => {
+        if (mapView?.scale >= minScale && !boundariesTogglesDisabled[layerId]) {
+          layersDispatch({
+            type: 'boundariesToggleDisabled',
+            id: layerId,
+            payload: true,
+          });
+        } else if (
+          mapView?.scale < minScale &&
+          boundariesTogglesDisabled[layerId]
+        ) {
+          layersDispatch({
+            type: 'boundariesToggleDisabled',
+            id: layerId,
+            payload: false,
+          });
+        }
+      },
+      {
+        initial: true,
+      },
+    );
+
+    return function cleanup() {
+      mapScaleHandle.remove();
+    };
+  }, [boundariesTogglesDisabled, layerId, layersDispatch, mapView]);
 
   // Update layer features when new data is available
   useEffect(() => {

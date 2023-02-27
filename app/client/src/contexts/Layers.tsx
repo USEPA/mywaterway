@@ -51,11 +51,20 @@ function reducer(state: LayersState, action: Action): LayersState {
         },
       };
     }
+    case 'boundariesToggleDisabled': {
+      return {
+        ...state,
+        boundariesTogglesDisabled: {
+          ...state.boundariesTogglesDisabled,
+          [action.id]: action.payload,
+        },
+      };
+    }
     case 'surroundingsVibility': {
       return {
         ...state,
-        surroundingsVibilities: {
-          ...state.surroundingsVibilities,
+        surroundingsVisibilities: {
+          ...state.surroundingsVisibilities,
           [action.id]: action.payload,
         },
       };
@@ -78,35 +87,23 @@ export function LayersProvider({ children }: ProviderProps) {
   );
 }
 
+/*
+## Hooks
+*/
+
 export function useLayers() {
   const state = useLayersState();
 
   return state.layers;
 }
 
-/*
-## Hooks
-*/
-
 // Returns state stored in `LayersProvider` context component.
-function useLayersState() {
+export function useLayersState() {
   const state = useContext(StateContext);
   if (state === undefined) {
     throw new Error('useLayersState must be called within a LayersProvider');
   }
   return state;
-}
-
-export function useLayersBoundariesToggles() {
-  const state = useLayersState();
-
-  return state.boundariesToggles;
-}
-
-export function useLayersSurroundingsVisibilities() {
-  const state = useLayersState();
-
-  return state.surroundingsVibilities;
 }
 
 export function useLayersDispatch() {
@@ -170,13 +167,23 @@ const initialState = layerIds.reduce(
         ...state.boundariesToggles,
         [layerId]: initialBoundariesToggle,
       },
-      surroundingsVibilities: {
-        ...state.surroundingsVibilities,
+      boundariesTogglesDisabled: {
+        ...state.boundariesTogglesDisabled,
+        [layerId]: false,
+      },
+      surroundingsVisibilities: {
+        ...state.surroundingsVisibilities,
         [layerId]: false,
       },
     };
   },
-  { resets: {}, layers: {}, boundariesToggles: {}, surroundingsVibilities: {} },
+  {
+    resets: {},
+    layers: {},
+    boundariesToggles: {},
+    boundariesTogglesDisabled: {},
+    surroundingsVisibilities: {},
+  },
 ) as LayersState;
 
 /*
@@ -195,6 +202,11 @@ type Action =
       type: 'boundariesToggle';
       id: BoundariesToggleLayerId;
       payload: (showSurroundings: boolean) => MouseEventHandler<HTMLDivElement>;
+    }
+  | {
+      type: 'boundariesToggleDisabled';
+      id: BoundariesToggleLayerId;
+      payload: boolean;
     }
   | {
       type: 'surroundingsVibility';
@@ -227,7 +239,10 @@ export type LayersState = {
       showSurroundings: boolean,
     ) => MouseEventHandler<HTMLDivElement>;
   };
-  surroundingsVibilities: {
+  boundariesTogglesDisabled: {
+    [B in BoundariesToggleLayerId]: boolean;
+  };
+  surroundingsVisibilities: {
     [B in BoundariesToggleLayerId]: boolean;
   };
 };
