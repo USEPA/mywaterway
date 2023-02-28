@@ -774,7 +774,7 @@ function ResultCard({ result }: ResultCardProps) {
   }, [watcher]);
 
   /**
-   * Adds non-tots layers as reference portal layers.
+   * Adds non-hmw layers as reference portal layers.
    */
   const addRefLayer = useCallback(() => {
     if (!mapView?.map) return;

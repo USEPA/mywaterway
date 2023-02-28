@@ -9,7 +9,7 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 
 describe('Add & Save Data Widget', () => {
   const adwId = '#add-save-data-widget';
-  const dropzoneId = 'tots-dropzone';
+  const dropzoneId = 'hmw-dropzone';
 
   function openWidget(path = '/community') {
     cy.visit(path);

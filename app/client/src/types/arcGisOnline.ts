@@ -25,7 +25,7 @@ export type ScenarioEditsType = {
   name: string; // layer/scenario name
   label: string; // layer/scenario label
   value: string; // layer/scenario value for React-Select
-  layerType: LayerTypeName; // type of tots layer (sample, contamination, etc.)
+  layerType: LayerTypeName; // type of hmw layer (sample, contamination, etc.)
   addedFrom: AddedFrom; // how the layer was added (file, url, etc.)
   hasContaminationRan: boolean; // says whether or not contamination hits has been ran
   status: PublishStatus; // publish status
@@ -47,7 +47,7 @@ export type LayerEditsType = {
   portalId: string; // id from portal layer
   name: string; // layer name
   label: string; // layer label
-  layerType: LayerTypeName; // type of tots layer (sample, contamination, etc.)
+  layerType: LayerTypeName; // type of hmw layer (sample, contamination, etc.)
   addedFrom: AddedFrom; // how the layer was added (file, url, etc.)
   hasContaminationRan: boolean; // says whether or not contamination hits has been ran
   status: PublishStatus; // publish status
@@ -92,7 +92,7 @@ export type LayerSelectType = {
   label: LayerTypeName;
 };
 
-export type AddedFrom = 'file' | 'sketch' | 'tots';
+export type AddedFrom = 'file' | 'sketch' | 'hmw';
 
 export type PublishStatus = 'added' | 'edited' | 'published';
 
@@ -120,7 +120,7 @@ export type LayerType = {
 
 export type PortalLayerType = {
   id: string;
-  type: 'arcgis' | 'tots';
+  type: 'arcgis' | 'hmw';
 };
 
 export type UrlLayerType = {

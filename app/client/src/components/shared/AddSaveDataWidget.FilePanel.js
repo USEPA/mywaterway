@@ -640,8 +640,8 @@ function FilePanel() {
             style={{ padding: '10px', position: 'relative' }}
           >
             <input
-              id="tots-dropzone"
-              data-testid="tots-dropzone"
+              id="hmw-dropzone"
+              data-testid="hmw-dropzone"
               {...getInputProps()}
             />
             {isDragActive ? (
@@ -655,7 +655,7 @@ function FilePanel() {
                   <FileIcon label="GPX" />
                   <FileIcon label="Geo JSON" />
                 </div>
-                <label htmlFor="tots-dropzone">Drop or Browse</label>
+                <label htmlFor="hmw-dropzone">Drop or Browse</label>
                 <br />
                 <button onClick={open}>Browse</button>
               </div>
