@@ -3,14 +3,14 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
+import { useLayers, useLayersDispatch } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
@@ -27,7 +27,12 @@ import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
-import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
+import type {
+  FetchedDataAction,
+  FetchedData,
+  FetchedDataState,
+  FetchState,
+} from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
@@ -60,11 +65,13 @@ export function useStreamgageLayer() {
 
   const updateData = useUpdateData();
 
+  const layersDispatch = useLayersDispatch();
+
   const [features, setFeatures] = useState<__esri.Graphic[]>([]);
   useEffect(() => {
     if (usgsStreamgages.status !== 'success') return;
     setFeatures(buildFeatures(usgsStreamgages.data));
-  }, [usgsStreamgages]);
+  }, [layersDispatch, usgsStreamgages]);
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
@@ -76,19 +83,13 @@ export function useStreamgageLayer() {
   });
 }
 
-export function useLocalStreamgages(
-  filter?: (attributes: UsgsStreamgageAttributes) => boolean,
-) {
-  const { usgsStreamgages } = useFetchedDataState();
-  const { usgsStreamgagesLayer } = useLayers();
-
-  const { features: streamgages, status: streamgagesStatus } = useLocalFeatures(
-    usgsStreamgagesLayer,
-    usgsStreamgages.status,
-    filter,
+export function useLocalStreamgages() {
+  const { features, status } = useLocalFeatures(
+    localFetchedDataKey,
+    buildFeatures,
   );
 
-  return { streamgages, streamgagesStatus };
+  return { streamgages: features, streamgagesStatus: status };
 }
 
 function useUpdateData() {
@@ -115,7 +116,18 @@ function useUpdateData() {
         fetchStreamgages(hucThingsFilter, services.data, controller.signal),
       ],
       fetchedDataDispatch,
-    ).then((data) => setHucData(data));
+      localFetchedDataKey,
+    ).then((data) => {
+      setHucData(data);
+      if (data) {
+        // Initially update complete dataset with local data
+        fetchedDataDispatch({
+          type: 'success',
+          id: fetchedDataKey,
+          payload: data,
+        });
+      }
+    });
 
     return function cleanup() {
       controller.abort();
@@ -159,6 +171,7 @@ function useUpdateData() {
           fetchStreamgages(newExtentThingsFilter, services.data, abortSignal),
         ],
         fetchedDataDispatch,
+        fetchedDataKey,
         hucData,
       );
     },
@@ -250,9 +263,10 @@ function buildLayer(
 async function fetchAndTransformData(
   promises: UsgsFetchPromises,
   dispatch: Dispatch<FetchedDataAction>,
+  fetchedDataId: 'usgsStreamgages' | 'localUsgsStreamgages',
   additionalData?: UsgsStreamgageAttributes[] | null,
 ) {
-  dispatch({ type: 'pending', id: 'usgsStreamgages' });
+  dispatch({ type: 'pending', id: fetchedDataId });
 
   const responses = await Promise.all(promises);
   if (responses.every((res) => res.status === 'success')) {
@@ -267,19 +281,19 @@ async function fetchAndTransformData(
       : usgsStreamgageAttributes;
     dispatch({
       type: 'success',
-      id: 'usgsStreamgages',
+      id: fetchedDataId,
       payload,
     });
     return usgsStreamgageAttributes;
   } else if (responses.some((res) => res.status === 'failure')) {
     dispatch({
       type: 'failure',
-      id: 'usgsStreamgages',
+      id: fetchedDataId,
     });
   } else {
     dispatch({
       type: 'idle',
-      id: 'usgsStreamgages',
+      id: fetchedDataId,
     });
   }
   return null;
@@ -555,6 +569,7 @@ function getExtentWkt(extent: __esri.Extent | null) {
 ## Constants
 */
 
+const localFetchedDataKey = 'localUsgsStreamgages';
 const fetchedDataKey = 'usgsStreamgages';
 const layerId = 'usgsStreamgagesLayer';
 const dataKeys = ['orgId', 'siteId'] as Array<keyof UsgsStreamgageAttributes>;

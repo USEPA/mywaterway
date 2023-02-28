@@ -3,14 +3,13 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
@@ -76,16 +75,18 @@ export function useDischargersLayer() {
 export function useLocalDischargers(
   filter?: (attributes: Facility) => boolean,
 ) {
-  const { permittedDischargers } = useFetchedDataState();
-  const { dischargersLayer } = useLayers();
-
-  const { features: dischargers, status: dischargersStatus } = useLocalFeatures(
-    dischargersLayer,
-    permittedDischargers.status,
-    filter,
+  const { features, status } = useLocalFeatures(
+    localFetchedDataKey,
+    buildFeatures,
   );
 
-  return { dischargers, dischargersStatus };
+  const filteredFeatures = useMemo(() => {
+    return filter
+      ? features.filter((feature) => filter(feature.attributes))
+      : features;
+  }, [features, filter]);
+
+  return { dischargers: filteredFeatures, dischargersStatus: status };
 }
 
 function useUpdateData() {
@@ -109,7 +110,18 @@ function useUpdateData() {
         controller.signal,
       ),
       fetchedDataDispatch,
-    ).then((data) => setHucData(data));
+      localFetchedDataKey,
+    ).then((data) => {
+      setHucData(data);
+      if (data) {
+        // Initially update complete dataset with local data
+        fetchedDataDispatch({
+          type: 'success',
+          id: fetchedDataKey,
+          payload: data,
+        });
+      }
+    });
 
     return function cleanup() {
       controller.abort();
@@ -140,6 +152,7 @@ function useUpdateData() {
       fetchAndTransformData(
         fetchPermittedDischargers(newExtentFilter, services.data, abortSignal),
         fetchedDataDispatch,
+        fetchedDataKey,
         hucData,
       );
     },
@@ -211,8 +224,7 @@ function buildLayer(
         style: 'diamond',
         size: 15,
         outline: {
-          // width units differ between FeatureLayers and GraphicsLayers
-          width: 0.65,
+          width: 0.75,
         },
       }),
     }),
@@ -229,9 +241,10 @@ function buildLayer(
 async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
+  fetchedDataId: 'permittedDischargers' | 'localPermittedDischargers',
   additionalData?: Facility[] | null,
 ) {
-  dispatch({ type: 'pending', id: 'permittedDischargers' });
+  dispatch({ type: 'pending', id: fetchedDataId });
 
   const response = await promise;
   if (response.status === 'success') {
@@ -244,12 +257,12 @@ async function fetchAndTransformData(
       : permittedDischargers;
     dispatch({
       type: 'success',
-      id: 'permittedDischargers',
+      id: fetchedDataId,
       payload,
     });
     return payload;
   } else {
-    dispatch({ type: response.status, id: 'permittedDischargers' });
+    dispatch({ type: response.status, id: fetchedDataId });
     return null;
   }
 }
@@ -320,6 +333,7 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
 ## Constants
 */
 
+const localFetchedDataKey = 'localPermittedDischargers';
 const fetchedDataKey = 'permittedDischargers';
 const layerId = 'dischargersLayer';
 const dataKeys = ['SourceID'] as Array<keyof Facility>;

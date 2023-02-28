@@ -42,6 +42,25 @@ function isAbort(error: unknown) {
   return error.name === 'AbortError';
 }
 
+function isEmpty<T>(
+  v: T | null | undefined | [] | {},
+): v is null | undefined | [] | {} {
+  return !isNotEmpty(v);
+}
+
+// Type predicate, negation is used to narrow to type `T`
+function isNotEmpty<T>(v: T | null | undefined | [] | {}): v is T {
+  if (v === null || v === undefined || v === '') return false;
+  if (Array.isArray(v) && v.length === 0) return false;
+  else if (
+    Object.keys(v).length === 0 &&
+    Object.getPrototypeOf(v) === Object.prototype
+  ) {
+    return false;
+  }
+  return true;
+}
+
 // Gets the file extension from a url or path. The backup parameter was added
 // because the state page documents section sometimes has the file extension
 // on the documentFileName and other times its on the documentURL attribute.
@@ -468,6 +487,7 @@ export {
   formatNumber,
   getExtensionFromPath,
   isAbort,
+  isEmpty,
   isHuc12,
   titleCase,
   titleCaseWithExceptions,

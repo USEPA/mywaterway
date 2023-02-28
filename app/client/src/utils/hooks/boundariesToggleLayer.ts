@@ -4,7 +4,6 @@ import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Polygon from '@arcgis/core/geometry/Polygon';
-import Query from '@arcgis/core/rest/support/Query';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -16,6 +15,7 @@ import {
   AllGraphicsLayer,
 } from 'classes/BoundariesToggleLayer';
 // contexts
+import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayersDispatch, useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
@@ -25,8 +25,8 @@ import { isAbort, toFixedFloat } from 'utils/utils';
 // types
 import type {
   EmptyFetchState,
+  FetchedData,
   FetchedDataState,
-  FetchStatus,
 } from 'contexts/FetchedData';
 import type { BoundariesToggleLayerId } from 'contexts/Layers';
 
@@ -34,88 +34,19 @@ import type { BoundariesToggleLayerId } from 'contexts/Layers';
 ## Hooks
 */
 
-export function useLocalFeatures<A>(
-  layer: AllFeaturesLayer | null,
-  status: FetchStatus,
-  filter?: (attributes: A) => boolean,
+export function useLocalFeatures<D extends keyof FetchedData>(
+  fetchedDataKey: D,
+  buildFeatures: (data: FetchedData[D]) => Graphic[],
 ) {
-  const { huc12, hucBoundaries, mapView } = useContext(LocationSearchContext);
+  const fetchedDataState = useFetchedDataState();
+  const fetchedData = fetchedDataState[fetchedDataKey];
 
-  const [localFeatures, setLocalFeatures] = useState<__esri.Graphic[]>([]);
-  const [localStatus, setLocalStatus] = useState<FetchStatus>('pending');
+  const features = useMemo(() => {
+    if (fetchedData.status !== 'success') return [];
+    return buildFeatures(fetchedData.data);
+  }, [buildFeatures, fetchedData]);
 
-  const getLocalFeatures = useCallback(
-    async (signal: AbortSignal) => {
-      if (!layer) return;
-
-      const hucPolygon = hucBoundaries?.features?.[0]?.geometry;
-      if (!hucPolygon) return;
-
-      const query = new Query({
-        geometry: hucPolygon,
-        outFields: ['*'],
-        returnGeometry: true,
-      });
-
-      /* const layerView = await mapView?.whenLayerView(layer.baseLayer);
-      const testFeatureSet = await layerView.queryFeatures();
-      console.log(testFeatureSet.features); */
-
-      const featureSet = await layer.baseLayer.queryFeatures(query, { signal });
-      setLocalFeatures(
-        filter
-          ? featureSet.features.filter((feature) => {
-              return filter(feature.attributes);
-            })
-          : featureSet.features,
-      );
-      setLocalStatus('success');
-    },
-    [filter, hucBoundaries, layer],
-  );
-
-  // Mark local data for updates when HUC changes
-  useEffect(() => {
-    if (!layer || !mapView) return;
-    if (localStatus === 'success') return;
-    if (status === 'failure') return setLocalStatus(status);
-
-    const controller = new AbortController();
-
-    /* mapView
-      .whenLayerView(layer.baseLayer)
-      .then((layerView: __esri.FeatureLayerView) => {
-        reactiveUtils
-          .whenOnce(() => !layerView.updating && !mapView.updating)
-          .then(() => getLocalFeatures(layerView, controller.signal))
-          .catch((err) => {
-            if (isAbort(err)) return;
-            console.error(err);
-          });
-      }); */
-    reactiveUtils
-      .whenOnce(() => !mapView.updating)
-      .then(() => getLocalFeatures(controller.signal))
-      .catch((err) => {
-        if (isAbort(err)) return;
-        console.error(err);
-      });
-
-    return function cleanup() {
-      controller.abort();
-    };
-  }, [getLocalFeatures, mapView, layer, localStatus, status]);
-
-  useEffect(() => {
-    if (huc12) return;
-
-    setLocalStatus('pending');
-  }, [huc12]);
-
-  return {
-    features: localFeatures,
-    status: localStatus,
-  };
+  return { features, status: fetchedData.status };
 }
 
 export function useAllFeaturesLayer(args: UseAllFeaturesLayerParams) {
@@ -189,10 +120,7 @@ function useBoundariesToggleLayer<
       : new AllGraphicsLayer(properties, fetchedDataKey);
   }, [baseLayer, fetchedDataKey, layerId, maskLayer]);
 
-  const {
-    boundariesTogglesDisabled,
-    surroundingsVisibilities: surroundingsVisible,
-  } = useLayersState();
+  const { boundariesTogglesDisabled, surroundingsVisible } = useLayersState();
 
   const { getSignal, abort } = useAbort();
 
@@ -310,7 +238,7 @@ function useBoundariesToggleLayer<
           : surroundingsHiddenOpacity;
 
         layersDispatch({
-          type: 'surroundingsVibility',
+          type: 'surroundingsVisible',
           id: layerId,
           payload: showSurroundings,
         });
@@ -343,7 +271,7 @@ function useBoundariesToggleLayer<
     ) {
       surroundingLayer.opacity = surroundingsHiddenOpacity;
       layersDispatch({
-        type: 'surroundingsVibility',
+        type: 'surroundingsVisible',
         id: layerId,
         payload: visibleLayers[layerId] ?? false,
       });
@@ -363,7 +291,7 @@ function useBoundariesToggleLayer<
     if (parentLayer.resetHidesSurroundings) {
       surroundingLayer.opacity = surroundingsHiddenOpacity;
       layersDispatch({
-        type: 'surroundingsVibility',
+        type: 'surroundingsVisible',
         id: layerId,
         payload: false,
       });

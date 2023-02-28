@@ -14,6 +14,8 @@ import { BoundariesToggleLayer } from 'classes/BoundariesToggleLayer';
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useLayersState } from 'contexts/Layers';
+// utils
+import { isEmpty } from 'utils/utils';
 // styles
 import { fonts } from 'styles';
 // types
@@ -34,7 +36,7 @@ export function useSurroundingsWidget() {
     layers,
     boundariesToggles: toggles,
     boundariesTogglesDisabled: togglesDisabled,
-    surroundingsVisibilities: surroundings,
+    surroundingsVisible,
   } = useLayersState();
 
   const includedLayers = useMemo(() => {
@@ -71,7 +73,7 @@ export function useSurroundingsWidget() {
   useEffect(() => {
     render(
       <SurroundingsWidget
-        surroundings={surroundings}
+        surroundingsVisible={surroundingsVisible}
         toggles={toggles}
         togglesDisabled={togglesDisabled}
         layers={includedLayers}
@@ -83,7 +85,7 @@ export function useSurroundingsWidget() {
     container,
     includedLayers,
     layersUpdating,
-    surroundings,
+    surroundingsVisible,
     toggles,
     togglesDisabled,
   ]);
@@ -97,13 +99,12 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
     setContentVisible(!contentVisible);
   }, [contentVisible]);
 
-  const { layersUpdating } = props;
-  const [updating, setUpdating] = useState(false);
-  useEffect(() => {
-    setUpdating(
-      Object.values(layersUpdating).some((isUpdating) => isUpdating === true),
-    );
-  }, [layersUpdating]);
+  const { layers, layersUpdating } = props;
+  // const [updating, setUpdating] = useState(false); useEffect(() => {
+  //   setUpdating(
+  //     Object.values(layersUpdating).some((isUpdating) => isUpdating === true),
+  //   );
+  // }, [layersUpdating]);
 
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -115,9 +116,12 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
         </Portal>
       )}
       <SurroundingsWidgetTrigger
-        onClick={toggleContentVisibility}
+        disabled={isEmpty(layers)}
         forwardedRef={triggerRef}
-        updating={updating}
+        onClick={toggleContentVisibility}
+        updating={Object.values(layersUpdating).some(
+          (isUpdating) => isUpdating === true,
+        )}
       />
     </>
   );
@@ -125,7 +129,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
 
 function SurroundingsWidgetContent({
   layers,
-  surroundings,
+  surroundingsVisible,
   toggles,
   togglesDisabled,
   visible,
@@ -139,20 +143,28 @@ function SurroundingsWidgetContent({
             {(Object.keys(toggles) as BoundariesToggleLayerId[]).map((id) => {
               const layer = layers[id];
               if (!layer) return null;
+              let title = `Show Surrounding ${layer.title}`;
+              if (togglesDisabled[id]) {
+                title = `Surrounding ${layer.title} Not Available`;
+              } else if (surroundingsVisible[id]) {
+                title = `Hide Surrounding ${layer.title}`;
+              }
               return (
                 <li key={id}>
-                  <div>
+                  <div title={title}>
                     <div
                       css={listItemContentStyles(togglesDisabled[id])}
                       onClick={
                         togglesDisabled[id]
                           ? undefined
-                          : toggles[id](!surroundings[id])
+                          : toggles[id](!surroundingsVisible[id])
                       }
                     >
                       <span
                         className={`esri-icon-${
-                          !togglesDisabled[id] && surroundings[id] ? '' : 'non-'
+                          !togglesDisabled[id] && surroundingsVisible[id]
+                            ? ''
+                            : 'non-'
                         }visible`}
                       ></span>
                       <span>{layer.title}</span>
@@ -173,13 +185,16 @@ function Portal({ children, container }: PortalProps) {
 }
 
 function SurroundingsWidgetTrigger({
-  onClick,
+  disabled,
   forwardedRef,
+  onClick,
   updating,
 }: SurroundingsWidgetTriggerProps) {
   const [hover, setHover] = useState(false);
 
-  let title = 'Toggle Surrounding Features';
+  let title = disabled
+    ? 'Surrounding Features Widget Not Available'
+    : 'Toggle Surrounding Features';
 
   let iconClass = updating
     ? 'esri-icon-loading-indicator esri-rotating'
@@ -188,13 +203,13 @@ function SurroundingsWidgetTrigger({
   return (
     <div
       title={title}
-      css={divStyle(hover)}
+      css={divStyle(disabled, hover)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
       ref={forwardedRef}
     >
-      <span className={iconClass} css={buttonStyle(hover)} />
+      <span className={iconClass} css={buttonStyle(disabled, hover)} />
     </div>
   );
 }
@@ -203,18 +218,19 @@ function SurroundingsWidgetTrigger({
 ## Styles
 */
 
-const buttonStyle = (hover: boolean) => css`
+const buttonStyle = (disabled: boolean, hover: boolean) => css`
   margin: 8.5px;
   fontsize: 15px;
   text-align: center;
   vertical-align: middle;
-  color: ${hover ? 'black' : '#6E6E6E'};
+  color: ${!disabled && hover ? 'black' : '#6E6E6E'};
 `;
 
-const divStyle = (hover: boolean) => css`
-  background-color: ${hover ? '#F0F0F0' : 'white'};
-  cursor: pointer;
+const divStyle = (disabled: boolean, hover: boolean) => css`
+  background-color: ${!disabled && hover ? '#F0F0F0' : 'white'};
+  cursor: ${disabled ? 'default' : 'pointer'};
   height: 32px;
+  opacity: ${disabled ? 0.5 : 1.0};
   position: relative;
   width: 32px;
 `;
@@ -222,7 +238,7 @@ const divStyle = (hover: boolean) => css`
 const listItemContentStyles = (disabled: boolean) => css`
   align-items: flex-start;
   color: ${disabled ? '#6e6e6e' : 'inherit'};
-  cursor: ${disabled ? 'initial' : 'pointer'};
+  cursor: ${disabled ? 'normal' : 'pointer'};
   display: flex;
   flex-flow: row;
   gap: 5px;
@@ -302,8 +318,9 @@ type PortalProps = {
 };
 
 type SurroundingsWidgetTriggerProps = {
-  onClick: React.MouseEventHandler<HTMLDivElement>;
+  disabled: boolean;
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
+  onClick: React.MouseEventHandler<HTMLDivElement>;
   updating: boolean;
 };
 
@@ -314,7 +331,7 @@ type SurroundingsWidgetContentProps = SurroundingsWidgetProps & {
 type SurroundingsWidgetProps = {
   layers: Partial<Pick<LayersState['layers'], BoundariesToggleLayerId>>;
   layersUpdating: Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
-  surroundings: LayersState['surroundingsVisibilities'];
+  surroundingsVisible: LayersState['surroundingsVisible'];
   toggles: LayersState['boundariesToggles'];
   togglesDisabled: LayersState['boundariesTogglesDisabled'];
 };

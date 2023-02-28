@@ -60,11 +60,11 @@ function reducer(state: LayersState, action: Action): LayersState {
         },
       };
     }
-    case 'surroundingsVibility': {
+    case 'surroundingsVisible': {
       return {
         ...state,
-        surroundingsVisibilities: {
-          ...state.surroundingsVisibilities,
+        surroundingsVisible: {
+          ...state.surroundingsVisible,
           [action.id]: action.payload,
         },
       };
@@ -171,8 +171,8 @@ const initialState = layerIds.reduce(
         ...state.boundariesTogglesDisabled,
         [layerId]: false,
       },
-      surroundingsVisibilities: {
-        ...state.surroundingsVisibilities,
+      surroundingsVisible: {
+        ...state.surroundingsVisible,
         [layerId]: false,
       },
     };
@@ -182,7 +182,7 @@ const initialState = layerIds.reduce(
     layers: {},
     boundariesToggles: {},
     boundariesTogglesDisabled: {},
-    surroundingsVisibilities: {},
+    surroundingsVisible: {},
   },
 ) as LayersState;
 
@@ -209,7 +209,7 @@ type Action =
       payload: boolean;
     }
   | {
-      type: 'surroundingsVibility';
+      type: 'surroundingsVisible';
       id: BoundariesToggleLayerId;
       payload: boolean;
     };
@@ -242,7 +242,7 @@ export type LayersState = {
   boundariesTogglesDisabled: {
     [B in BoundariesToggleLayerId]: boolean;
   };
-  surroundingsVisibilities: {
+  surroundingsVisible: {
     [B in BoundariesToggleLayerId]: boolean;
   };
 };

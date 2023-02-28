@@ -8,7 +8,6 @@ import {
 import type {
   Facility,
   FetchSuccessState,
-  MonitoringLocationsData,
   UsgsStreamgageAttributes,
 } from 'types';
 
@@ -101,9 +100,10 @@ function buildNewDataState(action: FetchedDataAction) {
 */
 
 const dataKeys = [
-  'monitoringLocations',
   'permittedDischargers',
   'usgsStreamgages',
+  'localPermittedDischargers',
+  'localUsgsStreamgages',
 ];
 
 const initialState = dataKeys.reduce((state, key) => {
@@ -130,10 +130,11 @@ export type EmptyFetchState = {
 
 export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
 
-type FetchedData = {
-  monitoringLocations: MonitoringLocationsData;
+export type FetchedData = {
   permittedDischargers: Facility[];
   usgsStreamgages: UsgsStreamgageAttributes[];
+  localPermittedDischargers: Facility[];
+  localUsgsStreamgages: UsgsStreamgageAttributes[];
 };
 
 export type FetchedDataAction =
