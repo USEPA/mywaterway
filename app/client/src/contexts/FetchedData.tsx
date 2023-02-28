@@ -109,7 +109,7 @@ const dataKeys = [
 const initialState = dataKeys.reduce((state, key) => {
   return {
     ...state,
-    [key]: { status: 'idle', data: null },
+    [key]: { status: 'pending', data: null },
   };
 }, {}) as FetchedDataState;
 

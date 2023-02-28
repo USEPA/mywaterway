@@ -2183,10 +2183,10 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
     layers,
     mapView,
     monitoringLocationsLayer,
+    resetData,
     setLayers,
     setMonitoringLocationsLayer,
     setVisibleLayers,
-    resetData,
   } = useContext(LocationSearchContext);
 
   useEffect(() => {

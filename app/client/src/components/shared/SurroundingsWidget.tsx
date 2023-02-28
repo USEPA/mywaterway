@@ -100,11 +100,6 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
   }, [contentVisible]);
 
   const { layers, layersUpdating } = props;
-  // const [updating, setUpdating] = useState(false); useEffect(() => {
-  //   setUpdating(
-  //     Object.values(layersUpdating).some((isUpdating) => isUpdating === true),
-  //   );
-  // }, [layersUpdating]);
 
   const triggerRef = useRef<HTMLDivElement>(null);
 

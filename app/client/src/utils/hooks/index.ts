@@ -1952,24 +1952,6 @@ function useMonitoringLocations() {
   ]);
 }
 
-function useReset() {
-  const resetLayers = useLayersReset();
-  const { resetData, setNoDataAvailable } = useContext(LocationSearchContext);
-
-  const wrappedResetData = useCallback(() => {
-    return () => resetData(resetLayers);
-  }, [resetData, resetLayers]);
-
-  const wrappedSetNoDataAvailable = useCallback(() => {
-    return setNoDataAvailable(resetLayers);
-  }, [resetLayers, setNoDataAvailable]);
-
-  return {
-    resetData: wrappedResetData,
-    setNoDataAvailable: wrappedSetNoDataAvailable,
-  };
-}
-
 export {
   useAbort,
   useAbortSignal,
@@ -1978,7 +1960,6 @@ export {
   useKeyPress,
   useMonitoringLocations,
   useOnScreen,
-  useReset,
   useSharedLayers,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,

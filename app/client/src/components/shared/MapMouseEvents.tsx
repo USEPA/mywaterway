@@ -180,8 +180,8 @@ function MapMouseEvents({ view }: Props) {
     monitoringLocations,
     monitoringLocationsLayer,
     protectedAreasLayer,
-    surroundingMonitoringLocationsLayer,
     resetData,
+    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
