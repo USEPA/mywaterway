@@ -13,8 +13,6 @@ import Switch from 'components/shared/Switch';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
-// utils
-import { useSaveSettings, useWidgetLayerStorage } from 'utils/hooks';
 
 const layersToIgnore = [
   'nonprofitsLayer',
@@ -127,9 +125,6 @@ function SavePanel({ visible }: Props) {
     widgetLayers,
   } = useAddSaveDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
-  useSaveSettings();
-  useWidgetLayerStorage();
-
   const [oAuthInfo, setOAuthInfo] = useState(null);
   const [userPortal, setUserPortal] = useState(null);
 
