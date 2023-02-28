@@ -44,7 +44,6 @@ export function useDischargersLayer() {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
-
   const { permittedDischargers } = useFetchedDataState();
 
   const buildBaseLayer = useCallback(
@@ -128,8 +127,6 @@ function useUpdateData() {
     };
   }, [fetchedDataDispatch, huc12, services]);
 
-  const [extentFilter, setExtentFilter] = useState<string | null>(null);
-
   const updateData = useCallback(
     async (abortSignal: AbortSignal, hucOnly = false) => {
       if (services.status !== 'success') return;
@@ -141,22 +138,19 @@ function useUpdateData() {
           payload: hucData,
         });
 
-      const newExtentFilter = await getExtentFilter(mapView);
-      // No updates necessary
-      if (newExtentFilter === extentFilter) return;
-      // Could not create filter
-      if (!newExtentFilter) return;
+      const extentFilter = await getExtentFilter(mapView);
 
-      setExtentFilter(newExtentFilter);
+      // Could not create filter
+      if (!extentFilter) return;
 
       fetchAndTransformData(
-        fetchPermittedDischargers(newExtentFilter, services.data, abortSignal),
+        fetchPermittedDischargers(extentFilter, services.data, abortSignal),
         fetchedDataDispatch,
         fetchedDataKey,
-        hucData,
+        hucData, // Always include HUC data
       );
     },
-    [extentFilter, fetchedDataDispatch, hucData, mapView, services],
+    [fetchedDataDispatch, hucData, mapView, services],
   );
 
   return updateData;

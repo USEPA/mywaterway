@@ -3,14 +3,13 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { useLayers, useLayersDispatch } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
@@ -27,12 +26,7 @@ import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
-import type {
-  FetchedDataAction,
-  FetchedData,
-  FetchedDataState,
-  FetchState,
-} from 'contexts/FetchedData';
+import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
@@ -65,13 +59,11 @@ export function useStreamgageLayer() {
 
   const updateData = useUpdateData();
 
-  const layersDispatch = useLayersDispatch();
-
   const [features, setFeatures] = useState<__esri.Graphic[]>([]);
   useEffect(() => {
     if (usgsStreamgages.status !== 'success') return;
     setFeatures(buildFeatures(usgsStreamgages.data));
-  }, [layersDispatch, usgsStreamgages]);
+  }, [usgsStreamgages]);
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
@@ -134,11 +126,6 @@ function useUpdateData() {
     };
   }, [fetchedDataDispatch, huc12, services]);
 
-  const [extentDvFilter, setExtentDvFilter] = useState<string | null>(null);
-  const [extentThingsFilter, setExtentThingsFilter] = useState<string | null>(
-    null,
-  );
-
   const updateData = useCallback(
     async (abortSignal: AbortSignal, hucOnly = false) => {
       if (services.status !== 'success') return;
@@ -150,39 +137,24 @@ function useUpdateData() {
           payload: hucData,
         });
 
-      const newExtentDvFilter = await getExtentDvFilter(mapView);
-      const newExtentThingsFilter = await getExtentThingsFilter(mapView);
-      // No updates necessary
-      if (
-        newExtentDvFilter === extentDvFilter &&
-        newExtentThingsFilter === extentThingsFilter
-      )
-        return;
-      // Could not create filters
-      if (!newExtentDvFilter || !newExtentThingsFilter) return;
+      const extentDvFilter = await getExtentDvFilter(mapView);
+      const extentThingsFilter = await getExtentThingsFilter(mapView);
 
-      setExtentDvFilter(newExtentDvFilter);
-      setExtentThingsFilter(newExtentThingsFilter);
+      // Could not create filters
+      if (!extentDvFilter || !extentThingsFilter) return;
 
       fetchAndTransformData(
         [
-          fetchDailyAverages(newExtentDvFilter, services.data, abortSignal),
-          fetchPrecipitation(newExtentDvFilter, services.data, abortSignal),
-          fetchStreamgages(newExtentThingsFilter, services.data, abortSignal),
+          fetchDailyAverages(extentDvFilter, services.data, abortSignal),
+          fetchPrecipitation(extentDvFilter, services.data, abortSignal),
+          fetchStreamgages(extentThingsFilter, services.data, abortSignal),
         ],
         fetchedDataDispatch,
         fetchedDataKey,
-        hucData,
+        hucData, // Always include HUC data
       );
     },
-    [
-      extentDvFilter,
-      extentThingsFilter,
-      fetchedDataDispatch,
-      hucData,
-      mapView,
-      services,
-    ],
+    [fetchedDataDispatch, hucData, mapView, services],
   );
 
   return updateData;
