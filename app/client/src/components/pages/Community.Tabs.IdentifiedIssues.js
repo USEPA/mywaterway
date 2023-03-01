@@ -790,11 +790,8 @@ function IdentifiedIssues() {
                       }
                     >
                       {violatingDischargers.map((discharger) => {
-                        const {
-                          SourceID: id,
-                          CWPName: name,
-                          CWPStatus: status,
-                        } = discharger.attributes;
+                        const { SourceID: id, CWPName: name } =
+                          discharger.attributes;
                         return (
                           <AccordionItem
                             key={id}
