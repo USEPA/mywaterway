@@ -1,4 +1,12 @@
 declare namespace __esri {
+  interface FeatureLayer {
+    featureReduction:
+      | __esri.FeatureReductionBinning
+      | __esri.FeatureReductionCluster
+      | __esri.FeatureReductionSelection
+      | null;
+  }
+
   interface GroupLayer {
     addHandles(
       handleOrHandles: __esri.WatchHandle | __esri.WatchHandle[],

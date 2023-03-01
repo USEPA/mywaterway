@@ -124,7 +124,7 @@ export interface MonitoringLocationGroups {
 }
 
 export interface MonitoringLocationsData {
-  features: {
+  features: Array<{
     geometry: {
       coordinates: [number, number];
       type: 'Point';
@@ -148,7 +148,7 @@ export interface MonitoringLocationsData {
       siteUrl: string;
     };
     type: 'Feature';
-  }[];
+  }>;
   type: 'FeatureCollection';
 }
 

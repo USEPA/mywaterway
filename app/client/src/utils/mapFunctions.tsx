@@ -1178,7 +1178,6 @@ export function updateMonitoringLocationsLayer(
 
   if (layer.id !== 'surroundingMonitoringLocationsLayer') {
     // turn off clustering if there are 20 or less stations
-    // @ts-ignore
     layer.featureReduction =
       graphics.length > 20 ? monitoringClusterSettings : null;
   }

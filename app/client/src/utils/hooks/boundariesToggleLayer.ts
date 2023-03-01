@@ -50,7 +50,10 @@ export function useLocalFeatures<D extends keyof FetchedData>(
 }
 
 export function useAllFeaturesLayer(args: UseAllFeaturesLayerParams) {
-  return useBoundariesToggleLayer({ ...args, updateLayer: updateFeatureLayer });
+  return useBoundariesToggleLayer({
+    ...args,
+    updateLayer: updateFeatureLayer,
+  }) as AllFeaturesLayer;
 }
 
 function useBoundariesToggleLayer<

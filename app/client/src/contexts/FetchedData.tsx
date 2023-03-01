@@ -8,6 +8,7 @@ import {
 import type {
   Facility,
   FetchSuccessState,
+  MonitoringLocationAttributes,
   UsgsStreamgageAttributes,
 } from 'types';
 
@@ -131,8 +132,10 @@ export type EmptyFetchState = {
 export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
 
 export type FetchedData = {
+  monitoringLocations: MonitoringLocationAttributes[];
   permittedDischargers: Facility[];
   usgsStreamgages: UsgsStreamgageAttributes[];
+  localMonitoringLocations: MonitoringLocationAttributes[];
   localPermittedDischargers: Facility[];
   localUsgsStreamgages: UsgsStreamgageAttributes[];
 };
