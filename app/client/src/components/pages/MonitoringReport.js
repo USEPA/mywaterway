@@ -50,7 +50,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
-import { parseAttributes } from 'utils/utils';
+import { parseAttributes, toFixedFloat } from 'utils/utils';
 // styles
 import {
   boxStyles,
@@ -1958,6 +1958,13 @@ function InformationSection({ siteId, site, siteStatus }) {
     {
       label: 'Water Type',
       value: site.locationType,
+    },
+    {
+      label: 'Lat/Lon',
+      value: `${toFixedFloat(site.locationLatitude, 7)}, ${toFixedFloat(
+        site.locationLongitude,
+        7,
+      )}`,
     },
     {
       label: 'Total Sample Count',

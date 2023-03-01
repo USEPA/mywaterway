@@ -453,6 +453,13 @@ function removeAccessibiltyHcSvgExport() {
   );
 }
 
+// Rounds a float to a specified precision
+function toFixedFloat(num: number, precision: number = 0) {
+  if (precision < 0) return num;
+  const offset = 10 ** precision;
+  return Math.round((num + Number.EPSILON) * offset) / offset;
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -480,4 +487,5 @@ export {
   indicesOf,
   parseAttributes,
   removeAccessibiltyHcSvgExport,
+  toFixedFloat,
 };
