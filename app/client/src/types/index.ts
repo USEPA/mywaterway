@@ -49,6 +49,7 @@ export interface CyanAttributes {
 }
 
 export interface Facility {
+  CWPFormalEaCnt: string | null;
   CWPInspectionCount: string | null;
   CWPName: string;
   CWPPermitStatusDesc: string;
