@@ -3,7 +3,6 @@
 import { useEffect, useCallback, useContext, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
-import { useNavigate } from 'react-router-dom';
 // components
 import {
   AccordionList,
@@ -31,16 +30,17 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
-  useStreamgageData,
+  useLocalDischargers,
+  useLocalStreamgages,
   useWaterbodyFeatures,
   useWaterbodyOnMap,
 } from 'utils/hooks';
-import { plotFacilities, getUniqueWaterbodies } from 'utils/mapFunctions';
+import { getUniqueWaterbodies } from 'utils/mapFunctions';
 // errors
 import {
   echoError,
@@ -109,16 +109,15 @@ const toggleStyles = css`
 `;
 
 function Overview() {
-  const { usgsStreamgages } = useFetchedDataState();
+  const { dischargers, dischargersStatus } = useLocalDischargers();
+  const { streamgages, streamgagesStatus } = useLocalStreamgages();
+  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
 
   const {
     cipSummary,
     monitoringLocations,
-    permittedDischargers,
     waterbodyLayer,
     monitoringLocationsLayer,
-    usgsStreamgagesLayer,
-    dischargersLayer,
     watershed,
     visibleLayers,
     setVisibleLayers,
@@ -181,14 +180,14 @@ function Overview() {
             : monitoringLocationsDisplayed;
       }
 
-      if (usgsStreamgages.status !== 'failure') {
+      if (streamgagesStatus !== 'failure') {
         layers.usgsStreamgagesLayer =
           !usgsStreamgagesLayer || useCurrentValue
             ? visibleLayers.usgsStreamgagesLayer
             : usgsStreamgagesDisplayed;
       }
 
-      if (permittedDischargers.status !== 'failure') {
+      if (dischargersStatus !== 'failure') {
         layers.dischargersLayer =
           !dischargersLayer || useCurrentValue
             ? visibleLayers.dischargersLayer
@@ -207,17 +206,17 @@ function Overview() {
     [
       cipSummary,
       monitoringLocations,
-      usgsStreamgages,
-      permittedDischargers,
-      waterbodyLayer,
-      monitoringLocationsLayer,
-      usgsStreamgagesLayer,
-      dischargersLayer,
-      waterbodiesDisplayed,
-      monitoringLocationsDisplayed,
-      usgsStreamgagesDisplayed,
-      permittedDischargersDisplayed,
+      dischargersStatus,
+      streamgagesStatus,
       visibleLayers,
+      waterbodyLayer,
+      waterbodiesDisplayed,
+      monitoringLocationsLayer,
+      monitoringLocationsDisplayed,
+      usgsStreamgagesLayer,
+      usgsStreamgagesDisplayed,
+      dischargersLayer,
+      permittedDischargersDisplayed,
       setVisibleLayers,
     ],
   );
@@ -225,14 +224,7 @@ function Overview() {
   // update visible layers based on webservice statuses.
   useEffect(() => {
     updateVisibleLayers({ useCurrentValue: true });
-  }, [
-    cipSummary,
-    monitoringLocations,
-    usgsStreamgages,
-    permittedDischargers,
-    visibleLayers,
-    updateVisibleLayers,
-  ]);
+  }, [updateVisibleLayers]);
 
   const handleWaterbodiesToggle = useCallback(
     (checked) => {
@@ -308,15 +300,12 @@ function Overview() {
   const totalMonitoringLocations =
     monitoringLocations.data.features?.length || 0;
 
-  const totalUsgsStreamgages = usgsStreamgages.data.value?.length || 0;
+  const totalUsgsStreamgages = streamgages.length;
 
   const totalMonitoringAndSensors =
-    monitoringLocations.data.features || usgsStreamgages.data.value
-      ? totalMonitoringLocations + totalUsgsStreamgages
-      : null;
+    totalMonitoringLocations + totalUsgsStreamgages;
 
-  const totalPermittedDischargers =
-    permittedDischargers.data.Results?.Facilities.length;
+  const totalPermittedDischargers = dischargers.length;
 
   return (
     <div css={containerStyles}>
@@ -326,7 +315,7 @@ function Overview() {
         </div>
       )}
 
-      {usgsStreamgages.status === 'failure' &&
+      {streamgagesStatus === 'failure' &&
         monitoringLocations.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
             <p>{streamgagesError}</p>
@@ -334,7 +323,7 @@ function Overview() {
           </div>
         )}
 
-      {permittedDischargers.status === 'failure' && (
+      {dischargersStatus === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
           <p>{echoError}</p>
         </div>
@@ -377,15 +366,12 @@ function Overview() {
           {!monitoringLocationsLayer ||
           !usgsStreamgagesLayer ||
           monitoringLocations.status === 'fetching' ||
-          usgsStreamgages.status === 'idle' ||
-          usgsStreamgages.status === 'pending' ? (
+          streamgagesStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalMonitoringAndSensors) &&
-                (monitoringLocations.status === 'success' ||
-                  usgsStreamgages.status === 'success')
+                {Boolean(totalMonitoringAndSensors)
                   ? totalMonitoringAndSensors
                   : 'N/A'}
               </span>
@@ -406,13 +392,12 @@ function Overview() {
         </div>
 
         <div css={keyMetricStyles}>
-          {!dischargersLayer || permittedDischargers.status === 'fetching' ? (
+          {dischargersStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalPermittedDischargers) &&
-                permittedDischargers.status === 'success'
+                {Boolean(totalPermittedDischargers)
                   ? totalPermittedDischargers
                   : 'N/A'}
               </span>
@@ -510,16 +495,14 @@ function MonitoringAndSensorsTab({
   setUsgsStreamgagesDisplayed,
   updateVisibleLayers,
 }) {
-  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
-    useFetchedDataState();
-
   const {
     monitoringGroups,
     monitoringLocations,
     monitoringLocationsLayer,
-    usgsStreamgagesLayer,
     watershed,
   } = useContext(LocationSearchContext);
+
+  const { usgsStreamgagesLayer } = useLayers();
 
   const services = useServicesContext();
 
@@ -542,11 +525,7 @@ function MonitoringAndSensorsTab({
     setMonitoringAndSensorsDisplayed,
   ]);
 
-  const normalizedUsgsStreamgages = useStreamgageData(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
+  const { streamgages, streamgagesStatus } = useLocalStreamgages();
 
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
@@ -558,7 +537,7 @@ function MonitoringAndSensorsTab({
   }, [monitoringGroups, monitoringLocationsLayer]);
 
   const allMonitoringAndSensors = [
-    ...normalizedUsgsStreamgages,
+    ...streamgages.map((feature) => feature.attributes),
     ...normalizedMonitoringLocations,
   ];
 
@@ -741,8 +720,7 @@ function MonitoringAndSensorsTab({
   );
   if (
     monitoringLocations.status === 'fetching' ||
-    usgsStreamgages.status === 'idle' ||
-    usgsStreamgages.status === 'pending' ||
+    streamgagesStatus === 'pending' ||
     !monitoringGroups
   ) {
     return <LoadingSpinner />;
@@ -750,7 +728,7 @@ function MonitoringAndSensorsTab({
 
   if (
     monitoringLocations.status === 'success' ||
-    usgsStreamgages.status === 'success'
+    streamgagesStatus === 'success'
   ) {
     return (
       <>
@@ -792,7 +770,7 @@ function MonitoringAndSensorsTab({
 
         {allMonitoringAndSensors.length > 0 && (
           <>
-            {usgsStreamgages.status === 'failure' && (
+            {streamgagesStatus === 'failure' && (
               <div css={modifiedErrorBoxStyles}>
                 <p>{streamgagesError}</p>
               </div>
@@ -819,17 +797,16 @@ function MonitoringAndSensorsTab({
                     <div css={toggleStyles}>
                       <Switch
                         checked={
-                          normalizedUsgsStreamgages.length > 0 &&
-                          usgsStreamgagesDisplayed
+                          streamgages.length > 0 && usgsStreamgagesDisplayed
                         }
                         onChange={handleUsgsSensorsToggle}
-                        disabled={normalizedUsgsStreamgages.length === 0}
+                        disabled={streamgages.length === 0}
                         ariaLabel="USGS Sensors"
                       />
                       <span>USGS Sensors</span>
                     </div>
                   </td>
-                  <td>{normalizedUsgsStreamgages.length}</td>
+                  <td>{streamgages.length}</td>
                 </tr>
                 <tr>
                   <td>
@@ -908,37 +885,25 @@ const complianceRank = {
   Unknown: 3,
 };
 
-function sortDischarchers(discharchers, sortBy) {
+function sortDischarchers(dischargers, sortBy) {
   if (sortBy === 'CWPStatus') {
-    return discharchers.sort((a, b) => {
+    return dischargers.sort(({ attributes: a }, { attributes: b }) => {
       return (
         (complianceRank[a.CWPStatus] ?? complianceRank.Unknown) -
         (complianceRank[b.CWPStatus] ?? complianceRank.Unknown)
       );
     });
   } else {
-    return discharchers.sort((a, b) => {
+    return dischargers.sort(({ attributes: a }, { attributes: b }) => {
       return a[sortBy].localeCompare(b[sortBy]);
     });
   }
 }
 
 function PermittedDischargersTab({ totalPermittedDischargers }) {
-  const navigate = useNavigate();
-  const { permittedDischargers, dischargersLayer, watershed } = useContext(
-    LocationSearchContext,
-  );
+  const { dischargers, dischargersStatus } = useLocalDischargers();
 
-  // draw the permitted dischargers on the map
-  useEffect(() => {
-    if (permittedDischargers.data.Results?.Facilities) {
-      plotFacilities({
-        facilities: permittedDischargers.data.Results.Facilities,
-        layer: dischargersLayer,
-        navigate,
-      });
-    }
-  }, [permittedDischargers.data, dischargersLayer, navigate]);
+  const { watershed } = useContext(LocationSearchContext);
 
   const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
     useState('CWPName');
@@ -948,15 +913,16 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
   }, []);
 
   /* prettier-ignore */
-  const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
-    ? sortDischarchers(permittedDischargers.data.Results.Facilities, permittedDischargersSortedBy)
-    : [];
+  const sortedPermittedDischargers = sortDischarchers(
+    dischargers,
+    permittedDischargersSortedBy,
+  );
 
-  if (permittedDischargers.status === 'fetching') {
+  if (dischargersStatus === 'pending') {
     return <LoadingSpinner />;
   }
 
-  if (permittedDischargers.status === 'failure') {
+  if (dischargersStatus === 'failure') {
     return (
       <div css={modifiedErrorBoxStyles}>
         <p>{echoError}</p>
@@ -964,7 +930,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
     );
   }
 
-  if (permittedDischargers.status === 'success') {
+  if (dischargersStatus === 'success') {
     return (
       <>
         {totalPermittedDischargers === 0 && (
@@ -1008,24 +974,18 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 },
               ]}
             >
-              {sortedPermittedDischargers.map((discharger, index) => {
-                const id = discharger.SourceID;
-                const name = discharger.CWPName;
-                const status = discharger.CWPStatus;
-
-                const feature = {
-                  geometry: {
-                    type: 'point',
-                    longitude: discharger.FacLong,
-                    latitude: discharger.FacLat,
-                  },
-                  attributes: discharger,
-                };
+              {sortedPermittedDischargers.map((discharger) => {
+                const {
+                  SourceID: id,
+                  CWPName: name,
+                  CWPStatus: status,
+                  uniqueIdKey: idKey,
+                } = discharger.attributes;
 
                 return (
                   <AccordionItem
                     icon={diamondIcon({ color: colors.orange })}
-                    key={discharger.SourceID}
+                    key={id}
                     title={<strong>{name || 'Unknown'}</strong>}
                     subTitle={
                       <>
@@ -1034,16 +994,16 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                         Compliance Status: {status}
                       </>
                     }
-                    feature={feature}
-                    idKey="CWPName"
+                    feature={discharger}
+                    idKey={idKey}
                   >
                     <div css={accordionContentStyles}>
                       <WaterbodyInfo
                         type="Permitted Discharger"
-                        feature={feature}
+                        feature={discharger}
                       />
 
-                      <ViewOnMapButton feature={feature} />
+                      <ViewOnMapButton feature={discharger} />
                     </div>
                   </AccordionItem>
                 );

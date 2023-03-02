@@ -30,6 +30,7 @@ app/cypress/videos/
 
 # Visual Studio/Code cache/options directory
 .vs/
+.vscode/
 
 # IntelliJ
 .idea

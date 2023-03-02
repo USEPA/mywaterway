@@ -40,10 +40,8 @@ import {
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
-import {
-  useFetchedDataDispatch,
-  useFetchedDataState,
-} from 'contexts/FetchedData';
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -67,7 +65,6 @@ import {
   useGeometryUtils,
   useMonitoringLocations,
   useSharedLayers,
-  useStreamgageData,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
 } from 'utils/hooks';
@@ -161,9 +158,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const abortSignal = useAbortSignal();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
-  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
-    useFetchedDataState();
-
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -207,20 +201,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView,
     setMonitoringLocations,
     // setNonprofits,
-    setPermittedDischargers,
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringLocationsLayer,
-    setUsgsStreamgagesLayer,
     setUpstreamLayer,
-    setDischargersLayer,
     setNonprofitsLayer,
     setProvidersLayer,
     setBoundariesLayer,
     setSearchIconLayer,
     setWatershed,
-    resetData,
-    setNoDataAvailable,
     FIPS,
     setFIPS,
     layers,
@@ -238,8 +227,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-    usgsStreamgagesLayer,
+    resetData,
+    setNoDataAvailable,
   } = useContext(LocationSearchContext);
+
+  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -623,6 +615,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
+    if (!dischargersLayer || !usgsStreamgagesLayer) return;
     if (!getSharedLayers || layersInitialized) return;
 
     if (layers.length > 0) return;
@@ -726,54 +719,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringLocationsLayer(monitoringLocationsLayer);
 
-    const usgsStreamgagesLayer = new FeatureLayer({
-      id: 'usgsStreamgagesLayer',
-      title: 'USGS Sensors',
-      listMode: 'hide',
-      legendEnabled: false,
-      fields: [
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'monitoringType', type: 'string' },
-        { name: 'siteId', type: 'string' },
-        { name: 'orgId', type: 'string' },
-        { name: 'orgName', type: 'string' },
-        { name: 'locationLongitude', type: 'single' },
-        { name: 'locationLatitude', type: 'single' },
-        { name: 'locationName', type: 'string' },
-        { name: 'locationType', type: 'string' },
-        { name: 'locationUrl', type: 'string' },
-        { name: 'streamgageMeasurements', type: 'blob' },
-      ],
-      objectIdField: 'OBJECTID',
-      outFields: ['*'],
-      // NOTE: initial graphic below will be replaced with UGSG streamgages
-      source: [
-        new Graphic({
-          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { OBJECTID: 1 },
-        }),
-      ],
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-marker',
-          style: 'square',
-          color: '#fffe00', // '#989fa2'
-          outline: {
-            width: 0.75,
-          },
-        },
-      },
-      popupTemplate: {
-        outFields: ['*'],
-        title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) =>
-          getPopupContent({ feature: feature.graphic, navigate, services }),
-      },
-    });
-
-    setUsgsStreamgagesLayer(usgsStreamgagesLayer);
-
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
       title: 'Identified Issues',
@@ -781,14 +726,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     });
 
     setIssuesLayer(issuesLayer);
-
-    const dischargersLayer = new GraphicsLayer({
-      id: 'dischargersLayer',
-      title: 'Dischargers',
-      listMode: 'hide',
-    });
-
-    setDischargersLayer(dischargersLayer);
 
     const nonprofitsLayer = new GraphicsLayer({
       id: 'nonprofitsLayer',
@@ -886,16 +823,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
+    dischargersLayer,
     getSharedLayers,
     getTemplate,
     getTitle,
     layers,
     setBoundariesLayer,
-    setDischargersLayer,
     setIssuesLayer,
     setLayers,
     setMonitoringLocationsLayer,
-    setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -903,6 +839,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     layersInitialized,
     services,
     navigate,
+    usgsStreamgagesLayer,
   ]);
 
   // popup template to be used for all waterbody sublayers
@@ -1200,203 +1137,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // and the monitoring groups
   useMonitoringLocations();
 
-  const fetchUsgsStreamgages = useCallback(
-    (huc12) => {
-      const url =
-        `${services.data.usgsSensorThingsAPI}?` +
-        /**/ `$select=name,` +
-        /*  */ `properties/active,` +
-        /*  */ `properties/agency,` +
-        /*  */ `properties/agencyCode,` +
-        /*  */ `properties/monitoringLocationUrl,` +
-        /*  */ `properties/monitoringLocationName,` +
-        /*  */ `properties/monitoringLocationType,` +
-        /*  */ `properties/monitoringLocationNumber,` +
-        /*  */ `properties/hydrologicUnit&` +
-        /**/ `$expand=` +
-        /*  */ `Locations($select=location),` +
-        /*  */ `Datastreams(` +
-        /*    */ `$select=description,` +
-        /*      */ `properties/ParameterCode,` +
-        /*      */ `properties/WebDescription,` +
-        /*      */ `unitOfMeasurement/name,` +
-        /*      */ `unitOfMeasurement/symbol;` +
-        /*    */ `$expand=` +
-        /*      */ `Observations(` +
-        /*        */ `$select=phenomenonTime,result;` +
-        /*        */ `$top=1;` +
-        /*        */ `$orderBy=phenomenonTime desc` +
-        /*      */ `)` +
-        /*  */ `)&` +
-        /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
-
-      fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
-
-      fetchCheck(url)
-        .then((res) => {
-          fetchedDataDispatch({
-            type: 'USGS_STREAMGAGES/FETCH_SUCCESS',
-            payload: res,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_FAILURE' });
-        });
-    },
-    [services, fetchedDataDispatch],
-  );
-
-  const fetchUsgsPrecipitation = useCallback(
-    (huc12) => {
-      // https://help.waterdata.usgs.gov/stat_code
-      const sumValues = '00006';
-
-      // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
-      const precipitation = '00045'; // Precipitation, total, inches
-
-      const url =
-        services.data.usgsDailyValues +
-        `?format=json` +
-        `&siteStatus=active` +
-        `&statCd=${sumValues}` +
-        `&parameterCd=${precipitation}` +
-        `&huc=${huc12.substring(0, 8)}`;
-
-      fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_REQUEST' });
-
-      fetchCheck(url)
-        .then((res) => {
-          fetchedDataDispatch({
-            type: 'USGS_PRECIPITATION/FETCH_SUCCESS',
-            payload: res,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_FAILURE' });
-        });
-    },
-    [services, fetchedDataDispatch],
-  );
-
-  const fetchUsgsDailyAverages = useCallback(
-    (huc12) => {
-      // https://help.waterdata.usgs.gov/stat_code
-      const meanValues = '00003';
-      const sumValues = '00006';
-
-      // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
-      const allParams = 'all';
-      const precipitation = '00045'; // Precipitation, total, inches
-
-      const url =
-        services.data.usgsDailyValues +
-        `?format=json` +
-        `&siteStatus=active` +
-        `&period=P7D` +
-        `&huc=${huc12.substring(0, 8)}`;
-
-      fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
-
-      Promise.all([
-        fetchCheck(`${url}&statCd=${meanValues}&parameterCd=${allParams}`),
-        fetchCheck(`${url}&statCd=${sumValues}&parameterCd=${precipitation}`),
-      ])
-        .then(([allParamsRes, precipitationRes]) => {
-          fetchedDataDispatch({
-            type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS',
-            payload: {
-              allParamsMean: allParamsRes,
-              precipitationSum: precipitationRes,
-            },
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' });
-        });
-    },
-    [services, fetchedDataDispatch],
-  );
-
-  const normalizedUsgsStreamgages = useStreamgageData(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
-
-  useEffect(() => {
-    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
-
-    const graphics = normalizedUsgsStreamgages.map((gage) => {
-      return new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: gage.locationLongitude,
-          latitude: gage.locationLatitude,
-        },
-        attributes: gage,
-      });
-    });
-
-    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-      return usgsStreamgagesLayer.applyEdits({
-        deleteFeatures: featureSet.features,
-        addFeatures: graphics,
-      });
-    });
-  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
-
-  const queryPermittedDischargersService = useCallback(
-    (huc12Param) => {
-      fetchCheck(services.data.echoNPDES.metadata)
-        .then((res) => {
-          // Columns to return from Echo
-          const facilityColumns = [
-            'CWPName',
-            'CWPStatus',
-            'CWPViolStatus',
-            'CWPSNCStatus',
-            'CWPPermitStatusDesc',
-            'CWPQtrsWithNC',
-            'CWPInspectionCount',
-            'CWPFormalEaCnt',
-            'RegistryID',
-            'FacLong',
-            'FacLat',
-          ];
-
-          // Loop through the metadata and find the ids of the columns we want
-          const columnIds = [];
-          res.Results.ResultColumns.forEach((column) => {
-            if (facilityColumns.indexOf(column.ObjectName) !== -1) {
-              columnIds.push(column.ColumnID);
-            }
-          });
-
-          const url =
-            `${services.data.echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12Param}` +
-            `&p_act=Y&p_ptype=NPD&responseset=5000` +
-            `&qcolumns=${columnIds.join(',')}`;
-
-          fetchCheck(url)
-            .then((res) => {
-              setPermittedDischargers({ status: 'success', data: res });
-            })
-            .catch((err) => {
-              console.error(err);
-              setPermittedDischargers({ status: 'failure', data: {} });
-            });
-        })
-        .catch((err) => {
-          console.error(err);
-          setPermittedDischargers({ status: 'failure', data: {} });
-        });
-    },
-    [setPermittedDischargers, services],
-  );
-
   const queryGrtsHuc12 = useCallback(
     (huc12Param) => {
       fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12Param}`)
@@ -1653,24 +1393,25 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .then((res) => {
           // duplicate the objectid to a
           // different field for later reference
-          const features = res.features.map((item) => {
-            return new Graphic({
-              attributes: {
-                ...item.attributes,
-                locationName: item.attributes.GNIS_NAME,
-                monitoringType: 'CyAN',
-                oid: item.attributes.OBJECTID,
-                orgName: 'Cyanobacteria Assessment Network (CyAN)',
-              },
-              geometry: new Polygon({
-                rings: item.geometry.rings,
-                spatialReference: {
-                  wkid: 102100,
+          const features =
+            res.features?.map((item) => {
+              return new Graphic({
+                attributes: {
+                  ...item.attributes,
+                  locationName: item.attributes.GNIS_NAME,
+                  monitoringType: 'CyAN',
+                  oid: item.attributes.OBJECTID,
+                  orgName: 'Cyanobacteria Assessment Network (CyAN)',
                 },
-              }),
-              layer: cyanWaterbodiesLayer,
-            });
-          });
+                geometry: new Polygon({
+                  rings: item.geometry.rings,
+                  spatialReference: {
+                    wkid: 102100,
+                  },
+                }),
+                layer: cyanWaterbodiesLayer,
+              });
+            }) ?? [];
 
           setCyanWaterbodies({ status: 'success', data: features });
 
@@ -1816,10 +1557,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setHuc12(huc12);
           processBoundariesData(response);
           queryMonitoringStationService(huc12);
-          fetchUsgsStreamgages(huc12);
-          fetchUsgsPrecipitation(huc12);
-          fetchUsgsDailyAverages(huc12);
-          queryPermittedDischargersService(huc12);
           queryGrtsHuc12(huc12);
           queryAttainsPlans(huc12);
 
@@ -1835,15 +1572,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
     },
     [
-      processBoundariesData,
-      queryAttainsPlans,
-      queryGrtsHuc12,
-      queryMonitoringStationService,
-      fetchUsgsStreamgages,
-      fetchUsgsPrecipitation,
-      fetchUsgsDailyAverages,
-      queryPermittedDischargersService,
       setHuc12,
+      processBoundariesData,
+      queryMonitoringStationService,
+      queryGrtsHuc12,
+      queryAttainsPlans,
       handleNoDataAvailable,
     ],
   );
@@ -2145,7 +1878,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useEffect(() => {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
-    fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+    fetchedDataDispatch({ type: 'reset' });
     resetData();
     setMapLoading(true);
     setHucResponse(null);

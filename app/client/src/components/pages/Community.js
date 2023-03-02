@@ -21,6 +21,8 @@ import {
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+// utils
+import { useDischargersLayer, useStreamgageLayer } from 'utils/hooks';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -111,6 +113,9 @@ function Community() {
 
   const { fullscreenActive } = useFullscreenState();
 
+  useDischargersLayer();
+  useStreamgageLayer();
+
   // CommunityIntro is rendered in Outlet when at the '/community' and '/community/' routes
   const atCommunityIntroRoute =
     window.location.pathname.replace(/\//g, '') === 'community'; // replace slashes "/" with empty string
@@ -122,12 +127,12 @@ function Community() {
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const { resetData, setSearchText, setLastSearchText, errorMessage } =
+  const { setSearchText, setLastSearchText, errorMessage, resetData } =
     useContext(LocationSearchContext);
 
   useEffect(() => {
     return function cleanup() {
-      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+      fetchedDataDispatch({ type: 'reset' });
       resetData();
       setSearchText('');
       setLastSearchText('');
@@ -148,7 +153,7 @@ function Community() {
   // reset data when navigating back to /community
   useEffect(() => {
     if (window.location.pathname === '/community') {
-      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+      fetchedDataDispatch({ type: 'reset' });
       resetData();
       setSearchText('');
       setLastSearchText('');
