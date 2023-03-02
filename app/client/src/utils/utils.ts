@@ -511,6 +511,32 @@ function escapeForLucene(value: string) {
   return value.replace(r, '\\$1');
 }
 
+/**
+ * Utility for creating an error object from the async catch function
+ * (i.e. something.then().catch()), to be displayed in textareas.
+ *
+ * @param error The error from the catch
+ * @returns An object representing the error
+ */
+function createErrorObject(error: any) {
+  const errorObj = new Error(error);
+
+  let result = {
+    name: errorObj.name,
+    message: errorObj.message,
+    stack: errorObj.stack,
+  };
+
+  if (typeof error === 'object' && Object.keys(error).length > 0) {
+    result = {
+      ...error,
+      ...result,
+    };
+  }
+
+  return result;
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -541,4 +567,5 @@ export {
   parseAttributes,
   removeAccessibiltyHcSvgExport,
   toFixedFloat,
+  createErrorObject,
 };

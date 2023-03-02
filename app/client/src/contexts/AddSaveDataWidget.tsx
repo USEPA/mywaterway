@@ -16,10 +16,6 @@ type State = {
   setPageNumber: Dispatch<SetStateAction<number>>;
   saveAsName: string,
   setSaveAsName: Function,
-  saveContinue: boolean,
-  setSaveContinue: Function,
-  saveLayerFilter: Object,
-  setSaveLayerFilter: Function,
   saveLayersList: any, // TODO Fix usage of any
   setSaveLayersList: Function,
   searchResults: SearchResultsState;
@@ -39,8 +35,6 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
   const [addSaveDataWidgetVisible, setAddSaveDataWidgetVisible] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [saveAsName, setSaveAsName] = useState('');
-  const [saveContinue, setSaveContinue] = useState(false);
-  const [saveLayerFilter, setSaveLayerFilter] = useState({});
   const [saveLayersList, setSaveLayersList] = useState<any>(null); // TODO Fix any usage
   const [searchResults, setSearchResults] = useState<SearchResultsState>({
     status: 'idle',
@@ -54,16 +48,12 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
       addSaveDataWidgetVisible,
       pageNumber,
       saveAsName,
-      saveContinue,
-      saveLayerFilter,
       saveLayersList,
       searchResults,
       setActiveTabIndex,
       setAddSaveDataWidgetVisible,
       setPageNumber,
       setSaveAsName,
-      setSaveContinue,
-      setSaveLayerFilter,
       setSaveLayersList,
       setSearchResults,
       setWidgetLayers,
@@ -74,8 +64,6 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
     addSaveDataWidgetVisible,
     pageNumber,
     saveAsName,
-    saveContinue,
-    saveLayerFilter,
     saveLayersList,
     searchResults,
     widgetLayers

@@ -97,14 +97,18 @@ export type AddedFrom = 'file' | 'sketch' | 'hmw';
 export type PublishStatus = 'added' | 'edited' | 'published';
 
 export type LayerType = {
-  id: number;
+  id: string;
+  label: string;
+  layer: __esri.Layer;
+  requiresFeatureService: boolean;
+  toggled: boolean;
+
   pointsId: number;
   uuid: string;
   layerId: string;
   portalId: string;
   value: string;
   name: string;
-  label: string;
   layerType: LayerTypeName;
   editType: EditType;
   visible: boolean;

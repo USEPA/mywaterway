@@ -8,17 +8,42 @@ import OAuthInfo from '@arcgis/core/identity/OAuthInfo';
 import Portal from '@arcgis/core/portal/Portal';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import {
+  errorBoxStyles,
+  successBoxStyles,
+} from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
 // contexts
-import { LocationSearchContext } from 'contexts/locationSearch';
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
+// utils
+import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
+import { createErrorObject } from 'utils/utils';
+
+type PublishType = {
+  status:
+    | 'idle'
+    | 'pending'
+    | 'success'
+    | 'failure'
+    | 'name-not-provided'
+    | 'name-not-available'
+    | 'layers-not-provided',
+  summary: {
+    success: string,
+    failed: string,
+  },
+};
 
 const layersToIgnore = [
   'nonprofitsLayer',
   'protectedAreasHighlightLayer',
   'surroundingMonitoringLocationsLayer',
 ];
+
+const layerTypesToIgnore = ['wcs', 'wfs'];
 
 const layersRequireFeatureService = [
   'actionsLayer',
@@ -70,6 +95,12 @@ const modifiedErrorBoxStyles = css`
   margin-bottom: 0.625rem;
 `;
 
+const modifiedSuccessBoxStyles = css`
+  ${successBoxStyles};
+  text-align: center;
+  margin-bottom: 0.625rem;
+`;
+
 const listContainerStyles = css`
   margin: 0.625rem 0;
 `;
@@ -109,6 +140,14 @@ const saveAsInputStyles = css`
   border-color: hsl(0, 0%, 80%);
 `;
 
+function errorMessage(text: string) {
+  return (
+    <div css={modifiedErrorBoxStyles}>
+      <p>{text}</p>
+    </div>
+  );
+}
+
 type Props = {
   visible: Boolean,
 };
@@ -117,9 +156,6 @@ function SavePanel({ visible }: Props) {
   const {
     saveAsName,
     setSaveAsName,
-    setSaveContinue,
-    saveLayerFilter,
-    setSaveLayerFilter,
     saveLayersList,
     setSaveLayersList,
     widgetLayers,
@@ -127,11 +163,14 @@ function SavePanel({ visible }: Props) {
   const { mapView } = useContext(LocationSearchContext);
   const [oAuthInfo, setOAuthInfo] = useState(null);
   const [userPortal, setUserPortal] = useState(null);
+  const layerProps = useLayerProps();
+  const services = useServicesContext();
+
+  const [saveLayerFilter, setSaveLayerFilter] = useState(layerFilterOptions[0]);
 
   // Initialize the OAuth
   useEffect(() => {
     if (oAuthInfo) return;
-    console.log('init oauth...');
     const info = new OAuthInfo({
       appId: process.env.REACT_APP_ARCGIS_APP_ID,
       popup: true,
@@ -142,8 +181,6 @@ function SavePanel({ visible }: Props) {
 
     setOAuthInfo(info);
   }, [setOAuthInfo, oAuthInfo]);
-
-  const [errorMessageText, setErrorMessageText] = useState('');
 
   // Watch for when layers are added to the map
   const [mapLayerCount, setMapLayerCount] = useState(mapView.map.layers.length);
@@ -162,7 +199,11 @@ function SavePanel({ visible }: Props) {
       const visibilityWatcher = reactiveUtils.watch(
         () => layer.visible,
         () => {
-          if (layersToIgnore.includes(layer.id)) return;
+          if (
+            layersToIgnore.includes(layer.id) ||
+            layerTypesToIgnore.includes(layer.type)
+          )
+            return;
 
           setSaveLayersList((layersList) => {
             const newLayersList = { ...layersList };
@@ -184,7 +225,8 @@ function SavePanel({ visible }: Props) {
 
           setSaveLayersList((layersList) => {
             const newLayersList = { ...layersList };
-            newLayersList[layer.id].label = layer.title;
+            if (newLayersList[layer.id])
+              newLayersList[layer.id].label = layer.title;
             return newLayersList;
           });
         },
@@ -222,12 +264,15 @@ function SavePanel({ visible }: Props) {
   useEffect(() => {
     if (layersInitialized) return;
 
-    console.log('init layers...');
     if (saveLayersList) {
       // build object of switches based on layers on map
       const newSwitches = { ...saveLayersList };
       mapView.map.layers.items.forEach((layer) => {
-        if (layersToIgnore.includes(layer.id)) return;
+        if (
+          layersToIgnore.includes(layer.id) ||
+          layerTypesToIgnore.includes(layer.type)
+        )
+          return;
 
         if (newSwitches.hasOwnProperty(layer.id)) {
           newSwitches[layer.id].layer = layer;
@@ -256,7 +301,11 @@ function SavePanel({ visible }: Props) {
     const newSwitchesNoLayer = {};
     const layersOnMap = [];
     mapView.map.layers.items.forEach((layer) => {
-      if (layersToIgnore.includes(layer.id)) return;
+      if (
+        layersToIgnore.includes(layer.id) ||
+        layerTypesToIgnore.includes(layer.type)
+      )
+        return;
 
       if (newSwitches.hasOwnProperty(layer.id)) {
         newSwitches[layer.id].layer = layer;
@@ -298,7 +347,6 @@ function SavePanel({ visible }: Props) {
     }
 
     if (!deepEqual(newSwitchesNoLayer, oldSwitches)) {
-      // console.log('something changed...');
       setSaveLayersList(newSwitches);
     }
   }, [
@@ -311,10 +359,75 @@ function SavePanel({ visible }: Props) {
     widgetLayers,
   ]);
 
-  if (!mapView) return null;
+  const [publishResponse, setPublishResponse] = useState<PublishType>({
+    status: 'idle',
+    summary: { success: '', failed: '' },
+  });
 
-  async function publish(portal) {
-    console.log('run the publish...');
+  if (
+    !mapView ||
+    layerProps.status === 'fetching' ||
+    services.status === 'fetching'
+  ) {
+    return <LoadingSpinner />;
+  }
+
+  async function runPublish(
+    portal: __esri.Portal,
+    name: string,
+    layersToPublish: any[],
+  ) {
+    // check if the name is available in the user's org
+    const nameAvailableResponse = await isServiceNameAvailable(portal, name);
+    if (nameAvailableResponse.error) {
+      setPublishResponse({
+        status: 'failure',
+        summary: { success: '', failed: '' },
+        error: {
+          error: createErrorObject(nameAvailableResponse),
+          message: nameAvailableResponse.error.message,
+        },
+      });
+      return;
+    }
+    if (!nameAvailableResponse.available) {
+      setPublishResponse({
+        status: 'name-not-available',
+        summary: { success: '', failed: '' },
+      });
+      return;
+    }
+
+    // TODO Create publishing logic
+    const response = await publish({
+      portal,
+      mapView,
+      services,
+      layers: layersToPublish,
+      serviceMetaData: {
+        description: '',
+        label: name,
+        value: '', // TODO - Not sure if we will need this yet
+      },
+    });
+
+    setPublishResponse({
+      status: 'success',
+      summary: { success: '', failed: '' },
+    });
+  }
+
+  // Saves the data to ArcGIS Online
+  async function handleSaveAgo(ev: MouseEvent<HTMLButtonElement>) {
+    // check if user provided a name
+    if (!saveAsName) {
+      setPublishResponse({
+        status: 'name-not-provided',
+        summary: { success: '', failed: '' },
+      });
+      return;
+    }
+
     // Gather the layers to be published
     const layersToPublish = [];
     Object.values(saveLayersList).forEach((value) => {
@@ -325,26 +438,21 @@ function SavePanel({ visible }: Props) {
       layersToPublish.push(value);
     });
 
-    // TODO Create publishing logic
-    console.log('layersToPublish: ', layersToPublish);
-  }
-
-  // Saves the data to ArcGIS Online
-  async function handleSaveAgo(ev: MouseEvent<HTMLButtonElement>) {
-    // perform pre-checks
-    if (!saveAsName) {
-      setErrorMessageText('Please provide a name and try again.');
+    if (layersToPublish.length === 0) {
+      setPublishResponse({
+        status: 'layers-not-provided',
+        summary: { success: '', failed: '' },
+      });
       return;
     }
 
-    setErrorMessageText('');
-
-    setSaveContinue(true);
-
-    // TODO - Add loading spinner here
+    setPublishResponse({
+      status: 'pending',
+      summary: { success: '', failed: '' },
+    });
 
     if (userPortal) {
-      await publish(userPortal);
+      await runPublish(userPortal, saveAsName, layersToPublish);
       return;
     }
 
@@ -361,7 +469,7 @@ function SavePanel({ visible }: Props) {
       setUserPortal(portal);
 
       // run publish
-      await publish(portal);
+      await runPublish(portal, saveAsName, layersToPublish);
     } catch (err) {
       console.error(err);
       setUserPortal(null);
@@ -438,9 +546,19 @@ function SavePanel({ visible }: Props) {
         />
       </div>
       <div css={submitSectionStyles}>
-        {errorMessageText && (
-          <div css={modifiedErrorBoxStyles}>
-            <p>{errorMessageText}</p>
+        {publishResponse.status === 'pending' && <LoadingSpinner />}
+        {publishResponse.status === 'failure' && errorMessage('General error.')}
+        {publishResponse.status === 'name-not-provided' &&
+          errorMessage('Please provide a name and try again.')}
+        {publishResponse.status === 'name-not-available' &&
+          errorMessage(
+            'Name already used in your account or organization. Please provide a unique name and try again.',
+          )}
+        {publishResponse.status === 'layers-not-provided' &&
+          errorMessage('Please select at least one layer and try again.')}
+        {publishResponse.status === 'success' && (
+          <div css={modifiedSuccessBoxStyles}>
+            <p>Publish succeeded.</p>
           </div>
         )}
         <div css={buttonContainerStyles}>
