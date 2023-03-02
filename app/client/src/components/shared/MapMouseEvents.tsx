@@ -72,7 +72,7 @@ function getGraphicsFromResponse(
       ...additionalLayers,
     ];
     if (!result.graphic.layer?.id) return null;
-    if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
+    if (attr?.name && excludedLayers.indexOf(attr.name) !== -1) return null;
     if (excludedLayers.indexOf(layer.id) !== -1) return null;
     if (
       layer.parent &&
@@ -179,8 +179,8 @@ function MapMouseEvents({ view }: Props) {
     monitoringFeatureUpdates,
     monitoringLocations,
     monitoringLocationsLayer,
-    resetData,
     protectedAreasLayer,
+    resetData,
     surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
@@ -277,7 +277,7 @@ function MapMouseEvents({ view }: Props) {
                     content: getPopupContent({
                       navigate,
                       resetData: () => {
-                        fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+                        fetchedDataDispatch({ type: 'reset' });
                         resetData();
                       },
                       feature: {

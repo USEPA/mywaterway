@@ -38,6 +38,7 @@ import {
   parseAttributes,
   isAbort,
   titleCaseWithExceptions,
+  toFixedFloat,
 } from 'utils/utils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -1288,13 +1289,6 @@ function sum(...nums: number[]) {
 // Calculates the sum of a subarray
 function sumSlice(nums: number[], start: number, end?: number) {
   return sum(...nums.slice(start, end));
-}
-
-// Rounds a float to a specified precision
-function toFixedFloat(num: number, precision: number = 0) {
-  if (precision < 0) return num;
-  const offset = 10 ** precision;
-  return Math.round((num + Number.EPSILON) * offset) / offset;
 }
 
 enum CcIdx {

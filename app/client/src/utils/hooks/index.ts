@@ -22,11 +22,16 @@ import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
 import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
+// components
+import {
+  AllFeaturesLayer,
+  AllGraphicsLayer,
+} from 'classes/BoundariesToggleLayer';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
-import { usgsStaParameters } from 'config/usgsStaParameters';
 // contexts
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -59,14 +64,8 @@ import type {
   ExtendedGraphic,
   ExtendedLayer,
   Feature,
-  FetchState,
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
-  StreamgageMeasurement,
-  UsgsDailyAveragesData,
-  UsgsPrecipitationData,
-  UsgsStreamgageAttributes,
-  UsgsStreamgagesData,
 } from 'types';
 
 declare global {
@@ -282,6 +281,34 @@ function highlightFeature({
         .catch((err) => console.error(err));
     }
   });
+}
+
+// TODO: Migrate to this hook, the other doesn't properly reset
+function useAbort() {
+  const abortController = useRef(new AbortController());
+  const getAbortController = useCallback(() => {
+    if (abortController.current.signal.aborted) {
+      abortController.current = new AbortController();
+    }
+    return abortController.current;
+  }, []);
+
+  const abort = useCallback(() => {
+    getAbortController().abort();
+  }, [getAbortController]);
+
+  useEffect(() => {
+    return function cleanup() {
+      abortController.current.abort();
+    };
+  }, [getAbortController]);
+
+  const getSignal = useCallback(
+    () => getAbortController().signal,
+    [getAbortController],
+  );
+
+  return { abort, getSignal };
 }
 
 function useAbortSignal() {
@@ -515,8 +542,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasLayer, //part of waterbody group layer
     issuesLayer,
     monitoringLocationsLayer,
-    usgsStreamgagesLayer,
-    dischargersLayer,
     nonprofitsLayer,
     upstreamLayer,
     actionsLayer,
@@ -529,6 +554,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     linesData,
     areasData,
   } = useContext(LocationSearchContext);
+
+  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
+
   const services = useServicesContext();
   const navigate = useNavigate();
 
@@ -581,26 +609,19 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     setHandles(new Handles());
   }, [handles]);
 
-  // Clears the cache when users change searches. This is to fix issues
-  // with layer mismatch in ArcGIS API 4.14+
   type HighlightState = {
     currentHighlight: ExtendedGraphic | null;
     currentSelection: ExtendedGraphic | null;
-    cachedHighlights: {
-      [key: string]: ExtendedGraphic[];
-    };
   };
   const [highlightState, setHighlightState] = useState<HighlightState>({
     currentHighlight: null,
     currentSelection: null,
-    cachedHighlights: {},
   });
 
   useEffect(() => {
     setHighlightState({
       currentHighlight: null,
       currentSelection: null,
-      cachedHighlights: {},
     });
   }, [huc12]);
 
@@ -615,8 +636,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     else if (selectedGraphic) graphic = selectedGraphic;
 
     // save the state into separate variables for now
-    let { currentHighlight, currentSelection, cachedHighlights } =
-      highlightState;
+    let { currentHighlight, currentSelection } = highlightState;
 
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
@@ -634,7 +654,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         setHighlightState({
           currentHighlight,
           currentSelection,
-          cachedHighlights,
         });
       }
 
@@ -677,8 +696,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = dischargersLayer;
     } else if (attributes.monitoringType === 'Past Water Conditions') {
       layer = monitoringLocationsLayer;
+      featureLayerType = 'monitoringLocations';
     } else if (attributes.monitoringType === 'USGS Sensors') {
       layer = usgsStreamgagesLayer;
+      featureLayerType = 'monitoringLocations';
     } else if (attributes.monitoringType === 'CyAN') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
       featureLayerType = 'cyanWaterbodies';
@@ -687,6 +708,14 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     }
 
     if (!layer) return;
+
+    if (
+      layer instanceof AllFeaturesLayer ||
+      layer instanceof AllGraphicsLayer
+    ) {
+      layer = layer.baseLayer;
+    }
+
     const parent = (graphic.layer as ExtendedLayer)?.parent;
     if (parent && 'id' in parent && parent.id === 'allWaterbodiesLayer') return;
 
@@ -715,7 +744,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       setHighlightState({
         currentHighlight,
         currentSelection,
-        cachedHighlights,
       });
     }
 
@@ -766,107 +794,68 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         (graphicOrgId === selectedGraphicOrgId &&
           graphicAuId === selectedGraphicAuId))
     ) {
-      let key = '';
       let where = '';
 
       if (featureLayerType === 'waterbodyLayer') {
-        key = `${graphicOrgId} - ${graphicAuId}`;
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
-      }
-
-      if (featureLayerType === 'wildScenicRivers') {
-        key = attributes.GlobalID;
-        where = `GlobalID = '${key}'`;
-      }
-
-      if (featureLayerType === 'cyanWaterbodies') {
-        key = `cyan-${attributes.FID}`;
+      } else if (featureLayerType === 'wildScenicRivers') {
+        where = `GlobalID = '${attributes.GlobalID}'`;
+      } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;
-      }
-
-      if (
-        layer === monitoringLocationsLayer ||
-        layer === usgsStreamgagesLayer
-      ) {
+      } else if (featureLayerType === 'monitoringLocations') {
         const orgId = graphic?.attributes?.orgId || '';
         const siteId = graphic?.attributes?.siteId || '';
-        key = `${orgId} - ${siteId}`;
         where = `orgId = '${orgId}' And siteId = '${siteId}'`;
+      } else if ('uniqueIdKey' in attributes) {
+        where = `${attributes.uniqueIdKey} = '${
+          attributes[attributes.uniqueIdKey]
+        }'`;
+      } else {
+        return;
       }
 
-      if (cachedHighlights[key]) {
-        highlightFeature({
-          mapView,
-          features: cachedHighlights[key],
-          highlightOptions,
-          handles,
-          group,
-        });
+      const query = new Query({
+        returnGeometry: false,
+        where,
+        outFields: ['*'],
+      });
 
-        currentHighlight = graphic;
+      const requests = [];
 
-        setHighlightState({
-          currentHighlight,
-          currentSelection,
-          cachedHighlights,
-        });
+      if (featureLayerType === 'waterbodyLayer') {
+        if (areasLayer && areasLayer !== 'error')
+          requests.push(areasLayer.queryFeatures(query));
+
+        if (linesLayer && linesLayer !== 'error')
+          requests.push(linesLayer.queryFeatures(query));
+
+        if (pointsLayer && pointsLayer !== 'error')
+          requests.push(pointsLayer.queryFeatures(query));
+      } else {
+        requests.push(layer.queryFeatures(query));
       }
 
-      if (!cachedHighlights[key]) {
-        if (!key || !where) return;
+      Promise.all(requests).then((responses) => {
+        responses.forEach((response) => {
+          if (!response || !response.features) return;
 
-        const query = new Query({
-          returnGeometry: false,
-          where,
-          outFields: ['*'],
-        });
+          highlightFeature({
+            mapView,
+            features: response.features,
+            highlightOptions,
+            handles,
+            group,
+          });
 
-        const requests = [];
+          currentHighlight = graphic;
 
-        if (featureLayerType === 'waterbodyLayer') {
-          if (areasLayer && areasLayer !== 'error')
-            requests.push(areasLayer.queryFeatures(query));
-
-          if (linesLayer && linesLayer !== 'error')
-            requests.push(linesLayer.queryFeatures(query));
-
-          if (pointsLayer && pointsLayer !== 'error')
-            requests.push(pointsLayer.queryFeatures(query));
-        } else {
-          requests.push(layer.queryFeatures(query));
-        }
-
-        Promise.all(requests).then((responses) => {
-          const featuresToCache: ExtendedGraphic[] = [];
-          responses.forEach((response) => {
-            if (!response || !response.features) return;
-
-            highlightFeature({
-              mapView,
-              features: response.features,
-              highlightOptions,
-              handles,
-              group,
-              callback: (feature) => featuresToCache.push(feature),
-            });
-
-            // build the new cachedHighlights object
-            const keyToSet: { [key: string]: ExtendedGraphic[] } = {};
-            keyToSet[key] = featuresToCache;
-            cachedHighlights = { ...cachedHighlights, ...keyToSet };
-
-            currentHighlight = graphic;
-            setHighlightState({
-              currentHighlight,
-              currentSelection,
-              cachedHighlights,
-            });
+          setHighlightState({
+            currentHighlight,
+            currentSelection,
           });
         });
-      }
-    }
-    //
-    else {
+      });
+    } else {
       highlightFeature({
         mapView,
         layer,
@@ -1832,195 +1821,6 @@ function useSharedLayers() {
   };
 }
 
-/** Normalizes USGS streamgage data with monitoring stations data. */
-function useStreamgageData(
-  usgsStreamgages: FetchState<UsgsStreamgagesData>,
-  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
-  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
-) {
-  const [normalizedStreamgages, setNormalizedStreamgages] = useState<
-    UsgsStreamgageAttributes[]
-  >([]);
-
-  useEffect(() => {
-    if (
-      usgsStreamgages.status !== 'success' ||
-      usgsPrecipitation.status !== 'success' ||
-      usgsDailyAverages.status !== 'success'
-    ) {
-      return;
-    }
-
-    const gages = usgsStreamgages.data.value.map((gage) => {
-      const streamgageMeasurements: {
-        primary: StreamgageMeasurement[];
-        secondary: StreamgageMeasurement[];
-      } = { primary: [], secondary: [] };
-
-      [...gage.Datastreams]
-        .filter((item) => item.Observations.length > 0)
-        .forEach((item) => {
-          const observation = item.Observations[0];
-          const parameterCode = item.properties.ParameterCode;
-          const parameterDesc = item.description.split(' / USGS-')[0];
-          const parameterUnit = item.unitOfMeasurement;
-
-          let measurement = parseFloat(observation.result) || null;
-          // convert measurements recorded in celsius to fahrenheit
-          if (
-            measurement &&
-            ['00010', '00020', '85583'].includes(parameterCode)
-          ) {
-            measurement = measurement * (9 / 5) + 32;
-
-            // round to 1 decimal place
-            measurement = Math.round(measurement * 10) / 10;
-          }
-
-          const matchedParam = usgsStaParameters.find((p) => {
-            return p.staParameterCode === parameterCode;
-          });
-
-          const data = {
-            parameterCategory: matchedParam?.hmwCategory || 'exclude',
-            parameterOrder: matchedParam?.hmwOrder || 0,
-            parameterName: matchedParam?.hmwName || parameterDesc,
-            parameterUsgsName: matchedParam?.staDescription || parameterDesc,
-            parameterCode,
-            measurement,
-            datetime: new Date(observation.phenomenonTime).toLocaleString(),
-            dailyAverages: [], // NOTE: will be set below
-            unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
-            unitName: parameterUnit.name,
-          };
-
-          if (data.parameterCategory === 'primary') {
-            streamgageMeasurements.primary.push(data);
-          }
-
-          if (data.parameterCategory === 'secondary') {
-            streamgageMeasurements.secondary.push(data);
-          }
-        });
-
-      return {
-        monitoringType: 'USGS Sensors' as const,
-        siteId: gage.properties.monitoringLocationNumber,
-        orgId: gage.properties.agencyCode,
-        orgName: gage.properties.agency,
-        locationLongitude: gage.Locations[0].location.coordinates[0],
-        locationLatitude: gage.Locations[0].location.coordinates[1],
-        locationName: gage.properties.monitoringLocationName,
-        locationType: gage.properties.monitoringLocationType,
-        locationUrl: gage.properties.monitoringLocationUrl,
-        // usgs streamgage specific properties:
-        streamgageMeasurements,
-      };
-    });
-
-    const streamgageSiteIds = gages.map((gage) => gage.siteId);
-
-    // add precipitation data to each streamgage if it exists for the site
-    if (usgsPrecipitation.data?.value) {
-      usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
-        const siteId = site.sourceInfo.siteCode[0].value;
-        const observation = site.values[0].value[0];
-
-        if (streamgageSiteIds.includes(siteId)) {
-          const streamgage = gages.find((gage) => gage.siteId === siteId);
-
-          streamgage?.streamgageMeasurements.primary.push({
-            parameterCategory: 'primary',
-            parameterOrder: 5,
-            parameterName: 'Total Daily Rainfall',
-            parameterUsgsName: 'Precipitation (USGS Daily Value)',
-            parameterCode: '00045',
-            measurement: parseFloat(observation.value) || null,
-            datetime: new Date(observation.dateTime).toLocaleDateString(),
-            dailyAverages: [], // NOTE: will be set below
-            unitAbbr: 'in',
-            unitName: 'inches',
-          });
-        }
-      });
-    }
-
-    // add daily average measurements to each streamgage if it exists for the site
-    if (
-      usgsDailyAverages.data?.allParamsMean?.value &&
-      usgsDailyAverages.data?.precipitationSum?.value
-    ) {
-      const usgsDailyTimeSeriesData = [
-        ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
-        ...(usgsDailyAverages.data.precipitationSum.value?.timeSeries || []),
-      ];
-
-      usgsDailyTimeSeriesData.forEach((site) => {
-        const siteId = site.sourceInfo.siteCode[0].value;
-        const sitesHasObservations = site.values[0].value.length > 0;
-
-        if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
-          const streamgage = gages.find((gage) => gage.siteId === siteId);
-
-          const paramCode = site.variable.variableCode[0].value;
-          const observations = site.values[0].value
-            .filter((observation) => observation.value !== null)
-            .map((observation) => {
-              let measurement = parseFloat(observation.value);
-              // convert measurements recorded in celsius to fahrenheit
-              if (['00010', '00020', '85583'].includes(paramCode)) {
-                measurement = measurement * (9 / 5) + 32;
-
-                // round to 1 decimal place
-                measurement = Math.round(measurement * 10) / 10;
-              }
-
-              return { measurement, date: new Date(observation.dateTime) };
-            });
-
-          const measurements = streamgage?.streamgageMeasurements;
-          if (!measurements) return;
-          // NOTE: 'type' is either 'primary' or 'secondary' – loop over both
-          Object.values(measurements).forEach((measurementType) => {
-            measurementType.forEach((measurement) => {
-              if (measurement.parameterCode === paramCode.toString()) {
-                measurement.dailyAverages = observations;
-              }
-            });
-          });
-        }
-      });
-    }
-
-    setNormalizedStreamgages(gages);
-  }, [usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
-
-  return normalizedStreamgages;
-}
-
-function useStreamgageFeatures(
-  usgsStreamgages: FetchState<UsgsStreamgagesData>,
-  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
-  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
-) {
-  const streamgageData = useStreamgageData(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
-
-  return streamgageData.map((streamgage) => {
-    return {
-      geometry: {
-        type: 'point',
-        longitude: streamgage.locationLongitude,
-        latitude: streamgage.locationLatitude,
-      },
-      attributes: streamgage,
-    };
-  });
-}
-
 // Custom hook that is used for handling key presses. This can be used for
 // navigating lists with a keyboard.
 function useKeyPress(
@@ -2169,10 +1969,7 @@ function useMonitoringLocations() {
 
   useEffect(() => {
     if (!monitoringGroups) {
-      const stations = buildStations(
-        monitoringLocations,
-        monitoringLocationsLayer,
-      );
+      const stations = buildStations(monitoringLocations);
       if (!stations) return;
 
       updateMonitoringLocationsLayer(stations, monitoringLocationsLayer);
@@ -2193,6 +1990,7 @@ function useMonitoringLocations() {
 }
 
 export {
+  useAbort,
   useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
@@ -2200,10 +1998,12 @@ export {
   useMonitoringLocations,
   useOnScreen,
   useSharedLayers,
-  useStreamgageData,
-  useStreamgageFeatures,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
   useWaterbodyHighlight,
 };
+
+export * from './boundariesToggleLayer';
+export * from './dischargers';
+export * from './streamgages';

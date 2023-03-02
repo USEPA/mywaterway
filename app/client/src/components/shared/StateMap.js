@@ -220,7 +220,7 @@ function StateMap({
   useEffect(() => {
     return function cleanup() {
       if (unmounting.current) {
-        fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+        fetchedDataDispatch({ type: 'reset' });
         resetData();
       }
     };

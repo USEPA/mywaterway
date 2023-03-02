@@ -1,7 +1,11 @@
 import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
+// types
 import type { ReactNode } from 'react';
-import type { MonitoringLocationsData } from 'types';
+import type {
+  MonitoringLocationsData,
+  MonitoringLocationAttributes,
+} from 'types';
 
 export const LocationSearchContext = createContext();
 
@@ -15,44 +19,8 @@ type MonitoringLocationGroups = {
   [label: string]: {
     label: string,
     characteristicGroups?: Array<string>,
-    stations: StationData[],
+    stations: MonitoringLocationAttributes[],
     toggled: boolean,
-  },
-};
-
-type PermittedDischargersData = {
-  Results: {
-    BadSystemIDs: null,
-    BioCVRows: string,
-    BioV3Rows: string,
-    CVRows: string,
-    FEARows: string,
-    Facilities: {
-      CWPFormalEaCnt: string,
-      CWPInspectionCount: string,
-      CWPName: string,
-      CWPPermitStatusDesc: string,
-      CWPQtrsWithNC: string,
-      CWPSNCStatus: null,
-      CWPStatus: string,
-      CWPViolStatus: string,
-      E90Exceeds1yr: string,
-      FacLat: string,
-      FacLong: string,
-      RegistryID: string,
-      SourceID: string,
-    }[],
-    INSPRows: string,
-    IndianCountryRows: string,
-    InfFEARows: string,
-    Message: string,
-    PageNo: string,
-    QueryID: string,
-    QueryRows: string,
-    SVRows: string,
-    TotalPenalties: string,
-    V3Rows: string,
-    Version: string,
   },
 };
 
@@ -135,7 +103,6 @@ type State = {
   address: string,
   assessmentUnitId: string,
   monitoringLocations: { status: Status, data: MonitoringLocationsData },
-  permittedDischargers: { status: Status, data: PermittedDischargersData },
   grts: Object,
   attainsPlans: Object,
   drinkingWater: Object,
@@ -148,8 +115,6 @@ type State = {
   issuesLayer: Object,
   monitoringLocationsLayer: Object,
   surroundingMonitoringLocationsLayer: Object,
-  usgsStreamgagesLayer: Object,
-  dischargersLayer: Object,
   nonprofitsLayer: Object,
   wildScenicRiversLayer: Object,
   protectedAreasLayer: Object,
@@ -225,7 +190,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
     monitoringLocations: { status: 'fetching', data: {} },
-    permittedDischargers: { status: 'fetching', data: {} },
     grts: { status: 'fetching', data: [] },
     attainsPlans: { status: 'fetching', data: {} },
     drinkingWater: { status: 'fetching', data: [] },
@@ -237,8 +201,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     issuesLayer: '',
     monitoringLocationsLayer: '',
     surroundingMonitoringLocationsLayer: '',
-    usgsStreamgagesLayer: '',
-    dischargersLayer: '',
     nonprofitsLayer: '',
     wildScenicRiversLayer: '',
     protectedAreasLayer: '',
@@ -295,17 +257,8 @@ export class LocationSearchProvider extends Component<Props, State> {
     setLastSearchText: (lastSearchText) => {
       this.setState({ lastSearchText });
     },
-    setMonitoringLocations: (monitoringLocations: {
-      status: Status,
-      data: MonitoringLocationsData,
-    }) => {
+    setMonitoringLocations: (monitoringLocations) => {
       this.setState({ monitoringLocations });
-    },
-    setPermittedDischargers: (permittedDischargers: {
-      status: Status,
-      data: PermittedDischargersData,
-    }) => {
-      this.setState({ permittedDischargers });
     },
     setNonprofits: (nonprofits: Object) => {
       this.setState({ nonprofits });
@@ -410,12 +363,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       surroundingMonitoringLocationsLayer,
     ) => {
       this.setState({ surroundingMonitoringLocationsLayer });
-    },
-    setUsgsStreamgagesLayer: (usgsStreamgagesLayer) => {
-      this.setState({ usgsStreamgagesLayer });
-    },
-    setDischargersLayer: (dischargersLayer) => {
-      this.setState({ dischargersLayer });
     },
     setNonprofitsLayer: (nonprofitsLayer) => {
       this.setState({ nonprofitsLayer });
@@ -576,9 +523,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         boundariesLayer,
         searchIconLayer,
         monitoringLocationsLayer,
-        usgsStreamgagesLayer,
         upstreamLayer,
-        dischargersLayer,
         nonprofitsLayer,
         protectedAreasHighlightLayer,
         mapView,
@@ -642,14 +587,6 @@ export class LocationSearchProvider extends Component<Props, State> {
           });
         });
       }
-      if (usgsStreamgagesLayer) {
-        usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-          usgsStreamgagesLayer.applyEdits({
-            deleteFeatures: featureSet.features,
-          });
-        });
-      }
-      if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
       if (wsioHealthIndexLayer) {
         wsioHealthIndexLayer.visible = false;
@@ -720,7 +657,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         monitoringGroups: null,
         monitoringFeatureUpdates: null,
         monitoringLocations: { status: 'fetching', data: {} },
-        permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },
@@ -750,7 +686,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         waterbodyCountMismatch: null,
         countyBoundaries: '',
         monitoringLocations: { status: 'success', data: {} },
-        permittedDischargers: { status: 'success', data: {} },
         nonprofits: { status: 'success', data: [] },
         grts: { status: 'success', data: [] },
         attainsPlans: { status: 'success', data: {} },
