@@ -13,18 +13,15 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
-import {
-  useFetchedDataDispatch,
-  useFetchedDataState,
-} from 'contexts/FetchedData';
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   getGeographicExtent,
+  filterData,
   handleFetchError,
-  removeDuplicateData,
   useAllFeaturesLayer,
   useLocalFeatures,
 } from 'utils/hooks/boundariesToggleLayer';
@@ -51,30 +48,24 @@ export function useDischargersLayer() {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
-  const { permittedDischargers } = useFetchedDataState();
 
   const buildBaseLayer = useCallback(
-    (baseLayerId: string) => {
-      return buildLayer(baseLayerId, navigate, services);
+    (baseLayerId: string, initialVisibility?: boolean) => {
+      return buildLayer(baseLayerId, navigate, services, initialVisibility);
     },
     [navigate, services],
   );
 
-  const updateData = useUpdateData();
-
-  const [features, setFeatures] = useState<__esri.Graphic[]>([]);
-  useEffect(() => {
-    if (permittedDischargers.status !== 'success') return;
-    setFeatures(buildFeatures(permittedDischargers.data));
-  }, [permittedDischargers]);
+  const updateSurroundingData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
     layerId,
-    fetchedDataKey,
     buildBaseLayer,
-    updateData,
-    features,
+    buildFeatures,
+    enclosedFetchedDataKey: localFetchedDataKey,
+    surroundingFetchedDataKey,
+    updateSurroundingData,
   });
 }
 
@@ -119,14 +110,6 @@ function useUpdateData() {
       localFetchedDataKey,
     ).then((data) => {
       setHucData(data);
-      if (data) {
-        // Initially update complete dataset with local data
-        fetchedDataDispatch({
-          type: 'success',
-          id: fetchedDataKey,
-          payload: data,
-        });
-      }
     });
 
     return function cleanup() {
@@ -136,16 +119,9 @@ function useUpdateData() {
 
   const extentFilter = useRef<string | null>(null);
 
-  const updateData = useCallback(
-    async (abortSignal: AbortSignal, hucOnly = false) => {
+  const updateSurroundingData = useCallback(
+    async (abortSignal: AbortSignal) => {
       if (services.status !== 'success') return;
-
-      if (hucOnly && hucData)
-        return fetchedDataDispatch({
-          type: 'success',
-          id: 'permittedDischargers',
-          payload: hucData,
-        });
 
       const newExtentFilter = await getExtentFilter(mapView);
 
@@ -156,21 +132,21 @@ function useUpdateData() {
       if (newExtentFilter === extentFilter.current) return;
       extentFilter.current = newExtentFilter;
 
-      fetchAndTransformData(
+      await fetchAndTransformData(
         fetchPermittedDischargers(
           extentFilter.current,
           services.data,
           abortSignal,
         ),
         fetchedDataDispatch,
-        fetchedDataKey,
-        hucData, // Always include HUC data
+        surroundingFetchedDataKey,
+        hucData, // Filter out HUC data
       );
     },
     [fetchedDataDispatch, hucData, mapView, services],
   );
 
-  return updateData;
+  return updateSurroundingData;
 }
 
 /*
@@ -183,7 +159,7 @@ function buildFeatures(data: Facility[]) {
     return new Graphic({
       attributes: {
         ...datum,
-        uniqueIdKey: 'SourceID',
+        uniqueId: datum.SourceID,
       },
       geometry: new Point({
         latitude: parseFloat(datum['FacLat']),
@@ -198,6 +174,7 @@ function buildLayer(
   baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
+  initialVisibility = true,
 ) {
   return new FeatureLayer({
     id: baseLayerId,
@@ -206,6 +183,7 @@ function buildLayer(
     legendEnabled: false,
     fields: [
       { name: 'OBJECTID', type: 'oid' },
+      { name: 'CWPFormalEaCnt', type: 'string' },
       { name: 'CWPInspectionCount', type: 'string' },
       { name: 'CWPName', type: 'string' },
       { name: 'CWPPermitStatusDesc', type: 'string' },
@@ -215,7 +193,7 @@ function buildLayer(
       { name: 'FacLong', type: 'string' },
       { name: 'RegistryID', type: 'string' },
       { name: 'SourceID', type: 'string' },
-      { name: 'uniqueIdKey', type: 'string' },
+      { name: 'uniqueId', type: 'string' },
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
@@ -246,25 +224,25 @@ function buildLayer(
       content: (feature: __esri.Feature) =>
         getPopupContent({ feature: feature.graphic, navigate, services }),
     },
+    visible: initialVisibility,
   });
 }
 
 async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
-  fetchedDataId: 'permittedDischargers' | 'localPermittedDischargers',
-  additionalData?: Facility[] | null,
+  fetchedDataId:
+    | 'localPermittedDischargers'
+    | 'surroundingPermittedDischargers',
+  dataToExclude?: Facility[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
   const response = await promise;
   if (response.status === 'success') {
     const permittedDischargers = transformServiceData(response.data) ?? [];
-    const payload = additionalData
-      ? removeDuplicateData(
-          [...permittedDischargers, ...additionalData],
-          dataKeys,
-        )
+    const payload = dataToExclude
+      ? filterData(permittedDischargers, dataToExclude, dataKeys)
       : permittedDischargers;
     dispatch({
       type: 'success',
@@ -300,6 +278,7 @@ async function fetchPermittedDischargers(
 
   // Columns to return from Echo
   const facilityColumns = [
+    'CWPFormalEaCnt',
     'CWPInspectionCount',
     'CWPName',
     'CWPPermitStatusDesc',
@@ -345,7 +324,7 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
 */
 
 const localFetchedDataKey = 'localPermittedDischargers';
-const fetchedDataKey = 'permittedDischargers';
+const surroundingFetchedDataKey = 'surroundingPermittedDischargers';
 const layerId = 'dischargersLayer';
 const dataKeys = ['SourceID'] as Array<keyof Facility>;
 

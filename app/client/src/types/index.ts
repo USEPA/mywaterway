@@ -111,7 +111,6 @@ export interface MonitoringLocationAttributes {
   stationTotalsByGroup: { [groups: string]: number };
   stationTotalsByLabel: { [label: string]: number } | null;
   timeframe: [number, number] | null;
-  uniqueId: string;
 }
 
 export interface MonitoringLocationGroups {
@@ -293,7 +292,6 @@ export interface UsgsStreamgageAttributes {
     primary: StreamgageMeasurement[];
     secondary: StreamgageMeasurement[];
   };
-  uniqueId: string;
 }
 
 export interface UsgsDailyAveragesData {

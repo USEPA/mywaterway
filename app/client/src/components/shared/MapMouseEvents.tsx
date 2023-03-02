@@ -17,7 +17,11 @@ import {
 } from 'utils/hooks/monitoringLocations';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // utilities
-import { useDynamicPopup } from 'utils/hooks';
+import {
+  getEnclosedLayer,
+  getSurroundingLayer,
+  useDynamicPopup,
+} from 'utils/hooks';
 // types
 import type {
   MonitoringFeatureUpdate,
@@ -110,16 +114,16 @@ function prioritizePopup(graphics: __esri.Graphic[] | null) {
   graphics?.sort((a, b) => {
     if (a.attributes.assessmentunitname) return -1;
     else if (
-      a.layer.id === 'monitoringLocationsLayer' ||
-      a.layer.id === 'surroundingMonitoringLocationsLayer'
+      a.layer.id === 'monitoringLocationsLayer-enclosed' ||
+      a.layer.id === 'monitoringLocationsLayer-surrounding'
     ) {
       if (b.attributes.assessmentunitname) return 1;
       return -1;
     } else if (a.attributes.TRIBE_NAME) {
       if (
         b.attributes.assessmentunitname ||
-        b.layer.id === 'monitoringLocationsLayer' ||
-        b.layer.id === 'surroundingMonitoringLocationsLayer'
+        b.layer.id === 'monitoringLocationsLayer-enclosed' ||
+        b.layer.id === 'monitoringLocationsLayer-surrounding'
       )
         return 1;
       return -1;
@@ -226,11 +230,21 @@ function MapMouseEvents({ view }: Props) {
 
           if (graphic && graphic.attributes) {
             if (
-              monitoringLocationsLayer &&
-              graphic.layer.id === 'monitoringLocationsLayer-features' &&
+              graphic.layer.id === 'monitoringLocationsLayer-enclosed' &&
               graphic.isAggregate
             ) {
-              monitoringLocationsLayer.baseLayer.featureReduction = null;
+              if (!monitoringLocationsLayer) return;
+              getEnclosedLayer(monitoringLocationsLayer).featureReduction =
+                null;
+              return;
+            }
+            if (
+              graphic.layer.id === 'monitoringLocationsLayer-surrounding' &&
+              graphic.isAggregate
+            ) {
+              if (!monitoringLocationsLayer) return;
+              getSurroundingLayer(monitoringLocationsLayer).featureReduction =
+                null;
               return;
             }
 
@@ -414,14 +428,16 @@ function MapMouseEvents({ view }: Props) {
 
   // restores cluster settings on change of location
   useEffect(() => {
+    if (!monitoringLocationsLayer) return;
+
+    const surroundingLayer = getSurroundingLayer(monitoringLocationsLayer);
+    const enclosedLayer = getEnclosedLayer(monitoringLocationsLayer);
+
+    surroundingLayer.featureReduction = monitoringClusterSettings;
+
     if (!locationCount || locationCount <= 20) return;
-    if (
-      !monitoringLocationsLayer ||
-      monitoringLocationsLayer.baseLayer.featureReduction
-    )
-      return;
-    monitoringLocationsLayer.baseLayer.featureReduction =
-      monitoringClusterSettings;
+
+    enclosedLayer.featureReduction = monitoringClusterSettings;
   }, [locationCount, monitoringLocationsLayer]);
 
   // sets an event listener on the home widget, and
@@ -438,15 +454,16 @@ function MapMouseEvents({ view }: Props) {
   useEffect(() => {
     if (!homeWidget) return;
     const handler: IHandle = homeWidget.on('go', (_ev: any) => {
-      if (
-        monitoringLocationsLayer &&
-        !monitoringLocationsLayer.baseLayer.featureReduction &&
-        locationCount &&
-        locationCount > 20
-      ) {
-        monitoringLocationsLayer.baseLayer.featureReduction =
-          monitoringClusterSettings;
-      }
+      if (!monitoringLocationsLayer) return;
+
+      const surroundingLayer = getSurroundingLayer(monitoringLocationsLayer);
+      const enclosedLayer = getEnclosedLayer(monitoringLocationsLayer);
+
+      surroundingLayer.featureReduction = monitoringClusterSettings;
+
+      if (!locationCount || locationCount <= 20) return;
+
+      enclosedLayer.featureReduction = monitoringClusterSettings;
     });
     setHomeClickHandler(handler);
     return function cleanup() {

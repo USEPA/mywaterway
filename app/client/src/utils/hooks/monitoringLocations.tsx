@@ -18,10 +18,11 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  filterData,
+  getEnclosedLayer,
   getExtentBoundingBox,
   getGeographicExtent,
   handleFetchError,
-  removeDuplicateData,
   useAllFeaturesLayer,
   useLocalFeatures,
 } from 'utils/hooks/boundariesToggleLayer';
@@ -55,50 +56,47 @@ export function useMonitoringLocationsLayer() {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
-  const { monitoringLocations } = useFetchedDataState();
 
   const buildBaseLayer = useCallback(
-    (baseLayerId: string) => {
-      return buildLayer(baseLayerId, navigate, services);
+    (baseLayerId: string, initialVisiblity?: boolean) => {
+      return buildLayer(baseLayerId, navigate, services, initialVisiblity);
     },
     [navigate, services],
   );
 
-  const updateData = useUpdateData();
-
-  const [features, setFeatures] = useState<__esri.Graphic[]>([]);
-  useEffect(() => {
-    if (monitoringLocations.status !== 'success') return;
-    setFeatures(buildFeatures(monitoringLocations.data));
-  }, [monitoringLocations]);
+  const updateSurroundingData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
     layerId,
-    fetchedDataKey,
     buildBaseLayer,
-    updateData,
-    features,
+    buildFeatures,
+    enclosedFetchedDataKey: localFetchedDataKey,
     minScale,
+    surroundingFetchedDataKey,
+    updateSurroundingData,
   });
 }
 
 export function useLocalMonitoringLocations() {
-  const { monitoringLocationsLayer } = useLayers();
-
   const { features, status } = useLocalFeatures(
     localFetchedDataKey,
     buildFeatures,
   );
 
+  const { monitoringLocationsLayer } = useLayers();
+
   useEffect(() => {
     if (!monitoringLocationsLayer) return;
 
-    monitoringLocationsLayer.baseLayer.featureReduction =
+    getEnclosedLayer(monitoringLocationsLayer).featureReduction =
       features.length > 20 ? monitoringClusterSettings : null;
   }, [monitoringLocationsLayer, features]);
 
-  return { monitoringLocations: features, monitoringLocationsStatus: status };
+  return {
+    monitoringLocations: features,
+    monitoringLocationsStatus: status,
+  };
 }
 
 export function useMonitoringGroups() {
@@ -147,14 +145,6 @@ function useUpdateData() {
       localFetchedDataKey,
     ).then((data) => {
       setHucData(data);
-      if (data) {
-        // Initially update complete dataset with local data
-        fetchedDataDispatch({
-          type: 'success',
-          id: fetchedDataKey,
-          payload: data,
-        });
-      }
     });
 
     return function cleanup() {
@@ -164,16 +154,9 @@ function useUpdateData() {
 
   const extentFilter = useRef<string | null>(null);
 
-  const updateData = useCallback(
-    async (abortSignal: AbortSignal, hucOnly = false) => {
+  const updateSurroundingData = useCallback(
+    async (abortSignal: AbortSignal) => {
       if (services.status !== 'success') return;
-
-      if (hucOnly && hucData)
-        return fetchedDataDispatch({
-          type: 'success',
-          id: fetchedDataKey,
-          payload: hucData,
-        });
 
       const newExtentFilter = await getExtentFilter(mapView);
 
@@ -184,21 +167,21 @@ function useUpdateData() {
       if (newExtentFilter === extentFilter.current) return;
       extentFilter.current = newExtentFilter;
 
-      fetchAndTransformData(
+      await fetchAndTransformData(
         fetchMonitoringLocations(
           extentFilter.current,
           services.data,
           abortSignal,
         ),
         fetchedDataDispatch,
-        fetchedDataKey,
-        hucData, // Always include HUC data
+        surroundingFetchedDataKey,
+        hucData, // Filter out HUC data
       );
     },
     [fetchedDataDispatch, hucData, mapView, services],
   );
 
-  return updateData;
+  return updateSurroundingData;
 }
 
 /*
@@ -216,7 +199,10 @@ function buildFeatures(locations: MonitoringLocationAttributes[]) {
       }),
       attributes: {
         ...attributes,
-        uniqueIdKey: 'uniqueId',
+        uniqueId:
+          `${attributes.siteId}-` +
+          `${attributes.stationProviderName}-` +
+          `${attributes.orgId}`,
       },
     });
   });
@@ -302,6 +288,7 @@ function buildLayer(
   baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
+  initialVisiblity = true,
 ) {
   return new FeatureLayer({
     id: baseLayerId,
@@ -325,7 +312,6 @@ function buildLayer(
       { name: 'stationTotalMeasurements', type: 'integer' },
       { name: 'timeframe', type: 'string' },
       { name: 'uniqueId', type: 'string' },
-      { name: 'uniqueIdKey', type: 'string' },
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
@@ -364,25 +350,23 @@ function buildLayer(
         });
       },
     },
+    visible: initialVisiblity,
   });
 }
 
 async function fetchAndTransformData(
   promise: ReturnType<typeof fetchMonitoringLocations>,
   dispatch: Dispatch<FetchedDataAction>,
-  fetchedDataId: 'monitoringLocations' | 'localMonitoringLocations',
-  additionalData?: MonitoringLocationAttributes[] | null,
+  fetchedDataId: 'localMonitoringLocations' | 'surroundingMonitoringLocations',
+  dataToExclude?: MonitoringLocationAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
   const response = await promise;
   if (response.status === 'success') {
     const monitoringLocations = transformServiceData(response.data) ?? [];
-    const payload = additionalData
-      ? removeDuplicateData(
-          [...monitoringLocations, ...additionalData],
-          dataKeys,
-        )
+    const payload = dataToExclude
+      ? filterData(monitoringLocations, dataToExclude, dataKeys)
       : monitoringLocations;
     dispatch({
       type: 'success',
@@ -461,10 +445,6 @@ function transformServiceData(
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id
       // isn't universally unique)
-      uniqueId:
-        `${station.properties.MonitoringLocationIdentifier}-` +
-        `${station.properties.ProviderName}-` +
-        `${station.properties.OrganizationIdentifier}`,
     };
   });
 }
@@ -474,9 +454,11 @@ function transformServiceData(
 */
 
 const localFetchedDataKey = 'localMonitoringLocations';
-const fetchedDataKey = 'monitoringLocations';
+const surroundingFetchedDataKey = 'surroundingMonitoringLocations';
 const layerId = 'monitoringLocationsLayer';
-const dataKeys = ['uniqueId'] as Array<keyof MonitoringLocationAttributes>;
+const dataKeys = ['siteId', 'orgId', 'stationProviderName'] as Array<
+  keyof MonitoringLocationAttributes
+>;
 const minScale = 400_000;
 
 export const monitoringClusterSettings = new FeatureReductionCluster({

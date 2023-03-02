@@ -22,19 +22,15 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
-// components
-import {
-  AllFeaturesLayer,
-  AllGraphicsLayer,
-} from 'classes/BoundariesToggleLayer';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // contexts
-import { useLayers } from 'contexts/Layers';
+import { isBoundariesToggleLayerId, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
+import { getEnclosedLayer } from './boundariesToggleLayer';
 import {
   buildStations,
   createWaterbodySymbol,
@@ -666,11 +662,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     if (!layer) return;
 
-    if (
-      layer instanceof AllFeaturesLayer ||
-      layer instanceof AllGraphicsLayer
-    ) {
-      layer = layer.baseLayer;
+    if (isBoundariesToggleLayerId(layer.id)) {
+      layer = getEnclosedLayer(layer);
     }
 
     const parent = (graphic.layer as ExtendedLayer)?.parent;
@@ -759,10 +752,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         where = `GlobalID = '${attributes.GlobalID}'`;
       } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;
-      } else if ('uniqueIdKey' in attributes) {
-        where = `${attributes.uniqueIdKey} = '${
-          attributes[attributes.uniqueIdKey]
-        }'`;
+      } else if ('uniqueId' in attributes) {
+        where = `uniqueId = '${attributes.uniqueId}'`;
       } else {
         return;
       }

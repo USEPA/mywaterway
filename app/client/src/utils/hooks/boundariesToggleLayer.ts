@@ -1,26 +1,15 @@
-import Color from '@arcgis/core/Color';
-import Extent from '@arcgis/core/geometry/Extent';
 import Graphic from '@arcgis/core/Graphic';
-import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
-import Polygon from '@arcgis/core/geometry/Polygon';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
-// components
-import {
-  AllFeaturesLayer,
-  AllGraphicsLayer,
-} from 'classes/BoundariesToggleLayer';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayersDispatch, useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useAbort } from 'utils/hooks';
-import { isFeatureLayer, isPolygon } from 'utils/mapFunctions';
 import { isAbort, toFixedFloat } from 'utils/utils';
 // types
 import type {
@@ -34,97 +23,70 @@ import type { BoundariesToggleLayerId } from 'contexts/Layers';
 ## Hooks
 */
 
-export function useLocalFeatures<D extends keyof FetchedData>(
-  fetchedDataKey: D,
-  buildFeatures: (data: FetchedData[D]) => Graphic[],
+export function useLocalFeatures<E extends keyof FetchedDataState>(
+  localFetchedDataKey: E,
+  buildFeatures: (data: FetchedData[E]) => Graphic[],
 ) {
   const fetchedDataState = useFetchedDataState();
-  const fetchedData = fetchedDataState[fetchedDataKey];
+  const localFetchedDataState = fetchedDataState[localFetchedDataKey];
 
-  const features = useMemo(() => {
-    if (fetchedData.status !== 'success') return [];
-    return buildFeatures(fetchedData.data);
-  }, [buildFeatures, fetchedData]);
+  const [features, setFeatures] = useState<__esri.Graphic[]>([]);
+  useEffect(() => {
+    if (localFetchedDataState.status !== 'success') return;
 
-  return { features, status: fetchedData.status };
+    setFeatures(buildFeatures(localFetchedDataState.data));
+  }, [buildFeatures, localFetchedDataState]);
+
+  return { features, status: localFetchedDataState.status };
 }
 
-export function useAllFeaturesLayer(args: UseAllFeaturesLayerParams) {
+export function useAllFeaturesLayer<
+  E extends keyof FetchedDataState,
+  S extends keyof FetchedDataState,
+>(args: UseAllFeaturesLayerParams<E, S>) {
   return useBoundariesToggleLayer({
     ...args,
     updateLayer: updateFeatureLayer,
-  }) as AllFeaturesLayer;
+  });
 }
 
 function useBoundariesToggleLayer<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
+  E extends keyof FetchedDataState,
+  S extends keyof FetchedDataState,
 >({
   buildBaseLayer,
-  features,
+  buildFeatures,
+  enclosedFetchedDataKey,
   layerId,
   minScale = defaultMinScale,
-  fetchedDataKey,
-  updateData,
+  surroundingFetchedDataKey,
+  updateSurroundingData,
   updateLayer,
-}: UseBoundariesToggleLayerParams<T>) {
+}: UseBoundariesToggleLayerParams<T, E, S>) {
   const { mapView, visibleLayers, setVisibleLayers } = useContext(
     LocationSearchContext,
   );
 
-  const hucGraphic = useHucGraphic();
-  const [baseLayer] = useState(buildBaseLayer(`${layerId}-features`));
-  const [surroundingMask] = useState(getSurroundingMask());
+  const [enclosedLayer] = useState(buildBaseLayer(`${layerId}-enclosed`));
+  const [surroundingLayer] = useState(
+    buildBaseLayer(`${layerId}-surrounding`, false),
+  );
+
   const [handleGroupKey] = useState(uuid());
-
-  // Component layer that manages visibility of surrounding features
-  const surroundingLayer = useMemo(() => {
-    return new GraphicsLayer({
-      graphics: [surroundingMask],
-      id: `${layerId}-surrounding`,
-      opacity: 0,
-    });
-  }, [layerId, surroundingMask]);
-
-  // Component layer that ensures features within HUC remain visible
-  const enclosedLayer = useMemo(() => {
-    return new GraphicsLayer({
-      id: `${layerId}-enclosed`,
-      opacity: 1,
-    });
-  }, [layerId]);
-
-  // Add the graphic that enables constant visibility within the HUC
-  useEffect(() => {
-    enclosedLayer.graphics.removeAll();
-    if (hucGraphic) enclosedLayer.graphics.add(hucGraphic);
-  }, [enclosedLayer, hucGraphic]);
-
-  // Component layer that manages the always visible
-  // HUC area and the toggleable surrounding area
-  const maskLayer = useMemo(() => {
-    return new GroupLayer({
-      blendMode: 'destination-in',
-      id: `${layerId}-mask`,
-      layers: [surroundingLayer, enclosedLayer],
-      opacity: 1,
-    });
-  }, [enclosedLayer, layerId, surroundingLayer]);
 
   // Group layer that contains the base layer and its masks
   const parentLayer = useMemo(() => {
-    const layers = baseLayer ? [baseLayer, maskLayer] : [maskLayer];
-    const properties: __esri.GroupLayerProperties = {
+    return new GroupLayer({
       id: layerId,
-      layers,
+      layers: [enclosedLayer, surroundingLayer],
       listMode: 'hide-children',
-      title: baseLayer.title,
-    };
-    return isFeatureLayer(baseLayer)
-      ? new AllFeaturesLayer(properties, fetchedDataKey)
-      : new AllGraphicsLayer(properties, fetchedDataKey);
-  }, [baseLayer, fetchedDataKey, layerId, maskLayer]);
+      title: enclosedLayer.title,
+    });
+  }, [enclosedLayer, layerId, surroundingLayer]);
 
   const { boundariesTogglesDisabled, surroundingsVisible } = useLayersState();
+  const layersDispatch = useLayersDispatch();
 
   const { getSignal, abort } = useAbort();
 
@@ -135,15 +97,25 @@ function useBoundariesToggleLayer<
     const stationaryHandle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
-        if (mapView.scale >= minScale) {
-          return updateData(getSignal(), true);
-        } else if (
+        if (
+          mapView.scale >= minScale ||
           surroundingsVisible[layerId] === false ||
           visibleLayers[layerId] === false
         ) {
           return;
         }
-        updateData(getSignal());
+        layersDispatch({
+          type: 'surroundingsUpdating',
+          id: layerId,
+          payload: true,
+        });
+        updateSurroundingData(getSignal()).then(() =>
+          layersDispatch({
+            type: 'surroundingsUpdating',
+            id: layerId,
+            payload: false,
+          }),
+        );
       },
       { initial: true },
     );
@@ -161,17 +133,16 @@ function useBoundariesToggleLayer<
   }, [
     abort,
     getSignal,
-    layerId,
     handleGroupKey,
+    layerId,
+    layersDispatch,
     mapView,
     minScale,
     parentLayer,
     surroundingsVisible,
-    updateData,
+    updateSurroundingData,
     visibleLayers,
   ]);
-
-  const layersDispatch = useLayersDispatch();
 
   // Disable the toggles when the map scale is too large
   useEffect(() => {
@@ -179,6 +150,7 @@ function useBoundariesToggleLayer<
       () => mapView?.scale,
       () => {
         if (mapView?.scale >= minScale && !boundariesTogglesDisabled[layerId]) {
+          surroundingLayer.visible = false;
           layersDispatch({
             type: 'boundariesToggleDisabled',
             id: layerId,
@@ -188,6 +160,7 @@ function useBoundariesToggleLayer<
           mapView?.scale < minScale &&
           boundariesTogglesDisabled[layerId]
         ) {
+          surroundingLayer.visible = surroundingsVisible[layerId];
           layersDispatch({
             type: 'boundariesToggleDisabled',
             id: layerId,
@@ -203,12 +176,39 @@ function useBoundariesToggleLayer<
     return function cleanup() {
       mapScaleHandle.remove();
     };
-  }, [boundariesTogglesDisabled, layerId, layersDispatch, mapView, minScale]);
+  }, [
+    boundariesTogglesDisabled,
+    layerId,
+    layersDispatch,
+    mapView,
+    minScale,
+    surroundingLayer,
+    surroundingsVisible,
+  ]);
+
+  const fetchedDataState = useFetchedDataState();
+  const enclosedFetchedDataState = fetchedDataState[enclosedFetchedDataKey];
+  const surroundingFetchedDataState =
+    fetchedDataState[surroundingFetchedDataKey];
 
   // Update layer features when new data is available
   useEffect(() => {
-    updateLayer(baseLayer, features);
-  }, [baseLayer, features, mapView, updateLayer]);
+    if (enclosedFetchedDataState.status !== 'success') return;
+    updateLayer(enclosedLayer, buildFeatures(enclosedFetchedDataState.data));
+  }, [buildFeatures, enclosedFetchedDataState, enclosedLayer, updateLayer]);
+
+  useEffect(() => {
+    if (surroundingFetchedDataState.status !== 'success') return;
+    updateLayer(
+      surroundingLayer,
+      buildFeatures(surroundingFetchedDataState.data),
+    );
+  }, [
+    buildFeatures,
+    surroundingFetchedDataState,
+    surroundingLayer,
+    updateLayer,
+  ]);
 
   // Add the layer to the Layers context
   useEffect(() => {
@@ -238,9 +238,7 @@ function useBoundariesToggleLayer<
           setVisibleLayers({ ...visibleLayers, [layerId]: true });
         }
 
-        surroundingLayer.opacity = showSurroundings
-          ? surroundingsVisibleOpacity
-          : surroundingsHiddenOpacity;
+        surroundingLayer.visible = showSurroundings;
 
         layersDispatch({
           type: 'surroundingsVisible',
@@ -274,11 +272,11 @@ function useBoundariesToggleLayer<
       visibleLayers[layerId] === false &&
       surroundingsVisible[layerId] === true
     ) {
-      surroundingLayer.opacity = surroundingsHiddenOpacity;
+      surroundingLayer.visible = false;
       layersDispatch({
         type: 'surroundingsVisible',
         id: layerId,
-        payload: visibleLayers[layerId] ?? false,
+        payload: false,
       });
     }
   }, [
@@ -291,25 +289,15 @@ function useBoundariesToggleLayer<
 
   // Resets the base layer's features and hides surrounding features
   const resetLayer = useCallback(async () => {
-    if (!baseLayer) return;
-
-    if (parentLayer.resetHidesSurroundings) {
-      surroundingLayer.opacity = surroundingsHiddenOpacity;
-      layersDispatch({
-        type: 'surroundingsVisible',
-        id: layerId,
-        payload: false,
-      });
-    }
-    updateLayer(baseLayer);
-  }, [
-    baseLayer,
-    layersDispatch,
-    layerId,
-    parentLayer,
-    surroundingLayer,
-    updateLayer,
-  ]);
+    surroundingLayer.visible = false;
+    layersDispatch({
+      type: 'surroundingsVisible',
+      id: layerId,
+      payload: false,
+    });
+    updateLayer(enclosedLayer);
+    updateLayer(surroundingLayer);
+  }, [enclosedLayer, layersDispatch, layerId, surroundingLayer, updateLayer]);
 
   // Add the layer reset function to the Layers context
   useEffect(() => {
@@ -319,35 +307,17 @@ function useBoundariesToggleLayer<
   return parentLayer;
 }
 
-function useHucGraphic() {
-  const { hucBoundaries } = useContext(LocationSearchContext);
-
-  const [hucGraphic, setHucGraphic] = useState(new Graphic());
-
-  useEffect(() => {
-    if (!hucBoundaries?.features?.length) return;
-    const geometry = hucBoundaries.features[0].geometry;
-    if (!isPolygon(geometry)) return;
-
-    setHucGraphic(
-      new Graphic({
-        geometry: new Polygon({
-          spatialReference: hucBoundaries.spatialReference,
-          rings: geometry.rings,
-        }),
-        symbol: new SimpleFillSymbol({
-          color: new Color({ r: 255, g: 255, b: 255, a: 1 }),
-        }),
-      }),
-    );
-  }, [hucBoundaries]);
-
-  return hucGraphic;
-}
-
 /*
 ## Utils
 */
+
+export function getEnclosedLayer(parentLayer: __esri.GroupLayer) {
+  return (
+    (parentLayer.findLayerById(
+      `${parentLayer.id}-enclosed`,
+    ) as __esri.FeatureLayer) ?? null
+  );
+}
 
 function getExtentArea(extent: __esri.Extent) {
   return (
@@ -386,18 +356,12 @@ export async function getGeographicExtent(mapView: __esri.MapView | '') {
   ) as __esri.Extent;
 }
 
-function getSurroundingMask() {
-  return new Graphic({
-    geometry: new Extent({
-      xmin: -180,
-      xmax: 180,
-      ymin: -90,
-      ymax: 90,
-    }),
-    symbol: new SimpleFillSymbol({
-      color: new Color('rgba(0, 0, 0, 1)'),
-    }),
-  });
+export function getSurroundingLayer(parentLayer: __esri.GroupLayer) {
+  return (
+    (parentLayer.findLayerById(
+      `${parentLayer.id}-surrounding`,
+    ) as __esri.FeatureLayer) ?? null
+  );
 }
 
 export function handleFetchError(err: unknown): EmptyFetchState {
@@ -410,6 +374,16 @@ export function handleFetchError(err: unknown): EmptyFetchState {
 
 function matchKeys<T>(a: T, b: T, keys: Array<keyof T>) {
   return keys.every((key) => a[key] === b[key]);
+}
+
+export function filterData<T>(
+  data: T[],
+  dataToExclude: T[],
+  keys: Array<keyof T>,
+) {
+  return data.filter((datum) => {
+    return !dataToExclude.find((excluded) => matchKeys(datum, excluded, keys));
+  });
 }
 
 export function removeDuplicateData<T>(data: T[], keys: Array<keyof T>) {
@@ -440,8 +414,6 @@ async function updateFeatureLayer(
 ## Constants
 */
 
-const surroundingsHiddenOpacity = 0;
-const surroundingsVisibleOpacity = 0.8;
 const defaultMinScale = 577791;
 
 /*
@@ -452,17 +424,23 @@ export type BoundariesFilterType = 'huc' | 'extent';
 
 type UseBoundariesToggleLayerParams<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
+  E extends keyof FetchedDataState,
+  S extends keyof FetchedDataState,
 > = {
-  buildBaseLayer: (baseLayerId: string) => T;
-  features: __esri.Graphic[];
-  fetchedDataKey: keyof FetchedDataState;
+  buildBaseLayer: (layerId: string, initialVisibility?: boolean) => T;
+  buildFeatures: (data: FetchedData[E] | FetchedData[S]) => Graphic[];
+  enclosedFetchedDataKey: E;
   layerId: BoundariesToggleLayerId;
   minScale?: number;
-  updateData: (abortSignal: AbortSignal, hucOnly?: boolean) => Promise<void>;
+  surroundingFetchedDataKey: S;
+  updateSurroundingData: (abortSignal: AbortSignal) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };
 
-type UseAllFeaturesLayerParams = Omit<
-  UseBoundariesToggleLayerParams<__esri.FeatureLayer>,
+type UseAllFeaturesLayerParams<
+  E extends keyof FetchedDataState,
+  S extends keyof FetchedDataState,
+> = Omit<
+  UseBoundariesToggleLayerParams<__esri.FeatureLayer, E, S>,
   'updateLayer'
 >;

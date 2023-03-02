@@ -35,6 +35,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
+  getEnclosedLayer,
   useLocalDischargers,
   useLocalMonitoringLocations,
   useLocalStreamgages,
@@ -525,9 +526,10 @@ function MonitoringAndSensorsTab({
   const { monitoringLocations, monitoringLocationsStatus } =
     useLocalMonitoringLocations();
 
+  // TODO: Make sure this runs on tab entry
   useEffect(() => {
     if (!monitoringLocationsLayer) return;
-    monitoringLocationsLayer.baseLayer.definitionExpression = '';
+    getEnclosedLayer(monitoringLocationsLayer).definitionExpression = '';
   }, [monitoringLocationsLayer]);
 
   const allMonitoringAndSensors = [...streamgages, ...monitoringLocations];
@@ -539,15 +541,15 @@ function MonitoringAndSensorsTab({
     ({ attributes: a }, { attributes: b }) => {
       if (monitoringAndSensorsSortedBy === 'stationTotalMeasurements') {
         return (
-          (b.stationTotalMeasurements || 0) - (a.stationTotalMeasurements || 0)
+          (b.stationTotalMeasurements ?? 0) - (a.stationTotalMeasurements ?? 0)
         );
       }
 
       if (monitoringAndSensorsSortedBy === 'siteId') {
-        return a.siteId.localeCompare(b.siteId);
+        return a.siteId?.localeCompare(b.siteId);
       }
 
-      return a[monitoringAndSensorsSortedBy].localeCompare(
+      return a[monitoringAndSensorsSortedBy]?.localeCompare(
         b[monitoringAndSensorsSortedBy],
       );
     },
@@ -638,14 +640,8 @@ function MonitoringAndSensorsTab({
     ({ index }) => {
       const item = filteredMonitoringAndSensors[index];
 
-      const {
-        locationName,
-        locationType,
-        monitoringType,
-        orgName,
-        uniqueId,
-        uniqueIdKey,
-      } = item.attributes;
+      const { locationName, locationType, monitoringType, orgName, uniqueId } =
+        item.attributes;
 
       let icon = circleIcon({ color: colors.lightPurple() });
       if (monitoringType === 'USGS Sensors')
@@ -677,7 +673,7 @@ function MonitoringAndSensorsTab({
             </>
           }
           feature={item}
-          idKey={uniqueIdKey}
+          idKey="uniqueId"
           allExpanded={expandedRows.includes(index)}
           onChange={accordionItemToggleHandlers[index]}
         >
@@ -967,10 +963,9 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
             >
               {sortedPermittedDischargers.map((discharger) => {
                 const {
-                  SourceID: id,
+                  uniqueId: id,
                   CWPName: name,
                   CWPStatus: status,
-                  uniqueIdKey: idKey,
                 } = discharger.attributes;
 
                 return (
@@ -986,7 +981,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                       </>
                     }
                     feature={discharger}
-                    idKey={idKey}
+                    idKey="uniqueId"
                   >
                     <div css={accordionContentStyles}>
                       <WaterbodyInfo

@@ -8,12 +8,9 @@ import {
 } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
-// classes
-import { BoundariesToggleLayer } from 'classes/BoundariesToggleLayer';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useLayersState } from 'contexts/Layers';
+import { isBoundariesToggleLayerId, useLayersState } from 'contexts/Layers';
 // utils
 import { isEmpty } from 'utils/utils';
 // styles
@@ -36,16 +33,14 @@ export function useSurroundingsWidget() {
     layers,
     boundariesToggles: toggles,
     boundariesTogglesDisabled: togglesDisabled,
+    surroundingsUpdating,
     surroundingsVisible,
   } = useLayersState();
 
   const includedLayers = useMemo(() => {
     return Object.keys(visibleLayers).reduce<Partial<LayersState['layers']>>(
       (included, key) => {
-        if (
-          layers.hasOwnProperty(key) &&
-          layers[key as LayerId] instanceof BoundariesToggleLayer
-        ) {
+        if (layers.hasOwnProperty(key) && isBoundariesToggleLayerId(key)) {
           return {
             ...included,
             [key]: layers[key as LayerId],
@@ -56,19 +51,6 @@ export function useSurroundingsWidget() {
     );
   }, [layers, visibleLayers]);
 
-  const fetchedData = useFetchedDataState();
-
-  const layersUpdating = useMemo(() => {
-    return Object.entries(includedLayers).reduce((updating, [key, layer]) => {
-      if (!layer) return updating;
-      return {
-        ...updating,
-        [key]:
-          fetchedData[layer.fetchedDataKey].status === 'pending' ? true : false,
-      };
-    }, {}) as Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
-  }, [fetchedData, includedLayers]);
-
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
     render(
@@ -77,14 +59,14 @@ export function useSurroundingsWidget() {
         toggles={toggles}
         togglesDisabled={togglesDisabled}
         layers={includedLayers}
-        layersUpdating={layersUpdating}
+        layersUpdating={surroundingsUpdating}
       />,
       container,
     );
   }, [
     container,
     includedLayers,
-    layersUpdating,
+    surroundingsUpdating,
     surroundingsVisible,
     toggles,
     togglesDisabled,
