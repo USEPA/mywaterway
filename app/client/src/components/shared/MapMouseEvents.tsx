@@ -7,10 +7,14 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useMapHighlightState } from 'contexts/MapHighlight';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
-import { monitoringClusterSettings } from 'components/shared/LocationMap';
+import {
+  monitoringClusterSettings,
+  useLocalMonitoringLocations,
+} from 'utils/hooks/monitoringLocations';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // utilities
 import { useDynamicPopup } from 'utils/hooks';
@@ -151,7 +155,7 @@ function updateGraphics(
   if (!updates || !graphics) return;
   graphics.forEach((graphic) => {
     if (
-      graphic.layer?.id === 'monitoringLocationsLayer' &&
+      graphic.layer?.id === 'monitoringLocationsLayer-features' &&
       !graphic.isAggregate
     ) {
       updateAttributes(graphic, updates);
@@ -177,12 +181,13 @@ function MapMouseEvents({ view }: Props) {
     getHucBoundaries,
     homeWidget,
     monitoringFeatureUpdates,
-    monitoringLocations,
-    monitoringLocationsLayer,
     protectedAreasLayer,
     resetData,
-    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
+
+  const { monitoringLocationsLayer } = useLayers();
+  const { monitoringLocations, monitoringLocationsStatus } =
+    useLocalMonitoringLocations();
 
   const getDynamicPopup = useDynamicPopup();
   const onTribePage = window.location.pathname.startsWith('/tribe/');
@@ -221,18 +226,11 @@ function MapMouseEvents({ view }: Props) {
 
           if (graphic && graphic.attributes) {
             if (
-              graphic.layer.id === 'monitoringLocationsLayer' &&
+              monitoringLocationsLayer &&
+              graphic.layer.id === 'monitoringLocationsLayer-features' &&
               graphic.isAggregate
             ) {
-              monitoringLocationsLayer.featureReduction = null;
-              return;
-            }
-
-            if (
-              graphic.layer.id === 'surroundingMonitoringLocationsLayer' &&
-              graphic.isAggregate
-            ) {
-              surroundingMonitoringLocationsLayer.featureReduction = null;
+              monitoringLocationsLayer.baseLayer.featureReduction = null;
               return;
             }
 
@@ -336,7 +334,6 @@ function MapMouseEvents({ view }: Props) {
       resetData,
       services,
       setSelectedGraphic,
-      surroundingMonitoringLocationsLayer,
     ],
   );
 
@@ -405,37 +402,27 @@ function MapMouseEvents({ view }: Props) {
   ]);
 
   // recalculates stored total location count on change of location
-  const [locationCount, setLocationCount] = useState(null);
+  const [locationCount, setLocationCount] = useState<number | null>(null);
   useEffect(() => {
-    if (
-      monitoringLocations.status !== 'success' ||
-      !monitoringLocations.data.features
-    )
+    if (monitoringLocationsStatus !== 'success' || !monitoringLocations.length)
       return;
-    setLocationCount(monitoringLocations.data.features.length);
+    setLocationCount(monitoringLocations.length);
     return function cleanup() {
       setLocationCount(null);
     };
-  }, [monitoringLocations]);
+  }, [monitoringLocations, monitoringLocationsStatus]);
 
   // restores cluster settings on change of location
   useEffect(() => {
-    if (
-      surroundingMonitoringLocationsLayer &&
-      !surroundingMonitoringLocationsLayer.featureReduction
-    ) {
-      surroundingMonitoringLocationsLayer.featureReduction =
-        monitoringClusterSettings;
-    }
     if (!locationCount || locationCount <= 20) return;
-    if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
+    if (
+      !monitoringLocationsLayer ||
+      monitoringLocationsLayer.baseLayer.featureReduction
+    )
       return;
-    monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-  }, [
-    locationCount,
-    monitoringLocationsLayer,
-    surroundingMonitoringLocationsLayer,
-  ]);
+    monitoringLocationsLayer.baseLayer.featureReduction =
+      monitoringClusterSettings;
+  }, [locationCount, monitoringLocationsLayer]);
 
   // sets an event listener on the home widget, and
   // restores cluster settings if clicked
@@ -453,18 +440,11 @@ function MapMouseEvents({ view }: Props) {
     const handler: IHandle = homeWidget.on('go', (_ev: any) => {
       if (
         monitoringLocationsLayer &&
-        !monitoringLocationsLayer.featureReduction &&
+        !monitoringLocationsLayer.baseLayer.featureReduction &&
         locationCount &&
         locationCount > 20
       ) {
-        monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-      }
-
-      if (
-        surroundingMonitoringLocationsLayer &&
-        !surroundingMonitoringLocationsLayer.featureReduction
-      ) {
-        surroundingMonitoringLocationsLayer.featureReduction =
+        monitoringLocationsLayer.baseLayer.featureReduction =
           monitoringClusterSettings;
       }
     });
@@ -472,12 +452,7 @@ function MapMouseEvents({ view }: Props) {
     return function cleanup() {
       setHomeClickHandler(null);
     };
-  }, [
-    homeWidget,
-    locationCount,
-    monitoringLocationsLayer,
-    surroundingMonitoringLocationsLayer,
-  ]);
+  }, [homeWidget, locationCount, monitoringLocationsLayer]);
 
   return null;
 }

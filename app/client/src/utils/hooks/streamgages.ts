@@ -3,7 +3,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
@@ -126,6 +126,9 @@ function useUpdateData() {
     };
   }, [fetchedDataDispatch, huc12, services]);
 
+  const extentDvFilter = useRef<string | null>(null);
+  const extentThingsFilter = useRef<string | null>(null);
+
   const updateData = useCallback(
     async (abortSignal: AbortSignal, hucOnly = false) => {
       if (services.status !== 'success') return;
@@ -137,17 +140,38 @@ function useUpdateData() {
           payload: hucData,
         });
 
-      const extentDvFilter = await getExtentDvFilter(mapView);
-      const extentThingsFilter = await getExtentThingsFilter(mapView);
+      const newExtentDvFilter = await getExtentDvFilter(mapView);
+      const newExtentThingsFilter = await getExtentThingsFilter(mapView);
 
       // Could not create filters
-      if (!extentDvFilter || !extentThingsFilter) return;
+      if (!newExtentDvFilter || !newExtentThingsFilter) return;
+
+      // Same extent, no update necessary
+      if (
+        newExtentDvFilter === extentDvFilter.current ||
+        newExtentThingsFilter === extentThingsFilter.current
+      )
+        return;
+      extentDvFilter.current = newExtentDvFilter;
+      extentThingsFilter.current = newExtentThingsFilter;
 
       fetchAndTransformData(
         [
-          fetchDailyAverages(extentDvFilter, services.data, abortSignal),
-          fetchPrecipitation(extentDvFilter, services.data, abortSignal),
-          fetchStreamgages(extentThingsFilter, services.data, abortSignal),
+          fetchDailyAverages(
+            extentDvFilter.current,
+            services.data,
+            abortSignal,
+          ),
+          fetchPrecipitation(
+            extentDvFilter.current,
+            services.data,
+            abortSignal,
+          ),
+          fetchStreamgages(
+            extentThingsFilter.current,
+            services.data,
+            abortSignal,
+          ),
         ],
         fetchedDataDispatch,
         fetchedDataKey,
@@ -172,7 +196,10 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
         longitude: datum.locationLongitude,
         latitude: datum.locationLatitude,
       }),
-      attributes: datum,
+      attributes: {
+        ...datum,
+        uniqueIdKey: 'uniqueId',
+      },
     });
   });
 }
@@ -200,6 +227,8 @@ function buildLayer(
       { name: 'locationType', type: 'string' },
       { name: 'locationUrl', type: 'string' },
       { name: 'streamgageMeasurements', type: 'blob' },
+      { name: 'uniqueId', type: 'string' },
+      { name: 'uniqueIdKey', type: 'string' },
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
@@ -338,6 +367,7 @@ function transformServiceData(
       locationName: gage.properties.monitoringLocationName,
       locationType: gage.properties.monitoringLocationType,
       locationUrl: gage.properties.monitoringLocationUrl,
+      uniqueId: `${gage.properties.monitoringLocationNumber}-${gage.properties.agencyCode}`,
       // usgs streamgage specific properties:
       streamgageMeasurements,
     };

@@ -2,7 +2,7 @@ import Extent from '@arcgis/core/geometry/Extent';
 import ExtentAndRotationGeoreference from '@arcgis/core/layers/support/ExtentAndRotationGeoreference';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
 import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
@@ -2096,14 +2096,16 @@ function MonitoringLocationsContent({
     null,
   );
 
-  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-
   const attributes: MonitoringLocationAttributes = feature.attributes;
   const layer = feature.layer;
-  const parsed = parseAttributes<MonitoringLocationAttributes>(
-    structuredProps,
-    attributes,
-  );
+  const parsed = useMemo(() => {
+    const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+    return parseAttributes<MonitoringLocationAttributes>(
+      structuredProps,
+      attributes,
+    );
+  }, [attributes]);
+
   const {
     locationName,
     locationType,

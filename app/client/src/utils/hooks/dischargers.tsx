@@ -3,7 +3,14 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import {
@@ -127,6 +134,8 @@ function useUpdateData() {
     };
   }, [fetchedDataDispatch, huc12, services]);
 
+  const extentFilter = useRef<string | null>(null);
+
   const updateData = useCallback(
     async (abortSignal: AbortSignal, hucOnly = false) => {
       if (services.status !== 'success') return;
@@ -138,13 +147,21 @@ function useUpdateData() {
           payload: hucData,
         });
 
-      const extentFilter = await getExtentFilter(mapView);
+      const newExtentFilter = await getExtentFilter(mapView);
 
       // Could not create filter
-      if (!extentFilter) return;
+      if (!newExtentFilter) return;
+
+      // Same extent, no update necessary
+      if (newExtentFilter === extentFilter.current) return;
+      extentFilter.current = newExtentFilter;
 
       fetchAndTransformData(
-        fetchPermittedDischargers(extentFilter, services.data, abortSignal),
+        fetchPermittedDischargers(
+          extentFilter.current,
+          services.data,
+          abortSignal,
+        ),
         fetchedDataDispatch,
         fetchedDataKey,
         hucData, // Always include HUC data

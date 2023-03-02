@@ -62,6 +62,7 @@ function useBoundariesToggleLayer<
   buildBaseLayer,
   features,
   layerId,
+  minScale = defaultMinScale,
   fetchedDataKey,
   updateData,
   updateLayer,
@@ -163,6 +164,7 @@ function useBoundariesToggleLayer<
     layerId,
     handleGroupKey,
     mapView,
+    minScale,
     parentLayer,
     surroundingsVisible,
     updateData,
@@ -201,7 +203,7 @@ function useBoundariesToggleLayer<
     return function cleanup() {
       mapScaleHandle.remove();
     };
-  }, [boundariesTogglesDisabled, layerId, layersDispatch, mapView]);
+  }, [boundariesTogglesDisabled, layerId, layersDispatch, mapView, minScale]);
 
   // Update layer features when new data is available
   useEffect(() => {
@@ -440,7 +442,7 @@ async function updateFeatureLayer(
 
 const surroundingsHiddenOpacity = 0;
 const surroundingsVisibleOpacity = 0.8;
-const minScale = 577791;
+const defaultMinScale = 577791;
 
 /*
 ## Types
@@ -453,8 +455,9 @@ type UseBoundariesToggleLayerParams<
 > = {
   buildBaseLayer: (baseLayerId: string) => T;
   features: __esri.Graphic[];
-  layerId: BoundariesToggleLayerId;
   fetchedDataKey: keyof FetchedDataState;
+  layerId: BoundariesToggleLayerId;
+  minScale?: number;
   updateData: (abortSignal: AbortSignal, hucOnly?: boolean) => Promise<void>;
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };

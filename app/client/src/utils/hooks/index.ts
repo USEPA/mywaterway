@@ -29,7 +29,6 @@ import {
 } from 'classes/BoundariesToggleLayer';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
-import { monitoringClusterSettings } from 'components/shared/LocationMap';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -53,9 +52,6 @@ import {
   shallowCompare,
   updateMonitoringLocationsLayer,
 } from 'utils/mapFunctions';
-import { parseAttributes } from 'utils/utils';
-// styles
-import { colors } from 'styles/index.js';
 // types
 import type { CharacteristicGroupMappings } from 'config/characteristicGroupMappings';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
@@ -504,7 +500,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     linesLayer, //part of waterbody group layer
     areasLayer, //part of waterbody group layer
     issuesLayer,
-    monitoringLocationsLayer,
     nonprofitsLayer,
     upstreamLayer,
     actionsLayer,
@@ -518,7 +513,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasData,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
+  const { dischargersLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
+    useLayers();
 
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -659,10 +655,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = dischargersLayer;
     } else if (attributes.monitoringType === 'Past Water Conditions') {
       layer = monitoringLocationsLayer;
-      featureLayerType = 'monitoringLocations';
     } else if (attributes.monitoringType === 'USGS Sensors') {
       layer = usgsStreamgagesLayer;
-      featureLayerType = 'monitoringLocations';
     } else if (attributes.monitoringType === 'CyAN') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
       featureLayerType = 'cyanWaterbodies';
@@ -765,10 +759,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         where = `GlobalID = '${attributes.GlobalID}'`;
       } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;
-      } else if (featureLayerType === 'monitoringLocations') {
-        const orgId = graphic?.attributes?.orgId || '';
-        const siteId = graphic?.attributes?.siteId || '';
-        where = `orgId = '${orgId}' And siteId = '${siteId}'`;
       } else if ('uniqueIdKey' in attributes) {
         where = `${attributes.uniqueIdKey} = '${
           attributes[attributes.uniqueIdKey]
@@ -1013,12 +1003,10 @@ function useSharedLayers() {
     setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
-    setSurroundingMonitoringLocationsLayer,
     setWsioHealthIndexLayer,
     setWildScenicRiversLayer,
   } = useContext(LocationSearchContext);
 
-  const navigate = useNavigate();
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
 
@@ -1653,76 +1641,6 @@ function useSharedLayers() {
     return allWaterbodiesLayer;
   }
 
-  function getSurroundingMonitoringLocationsLayer() {
-    const surroundingMonitoringLocationsLayer = new FeatureLayer({
-      id: 'surroundingMonitoringLocationsLayer',
-      title: 'Surrounding Past Water Conditions',
-      listMode: 'hide',
-      legendEnabled: true,
-      visible: false,
-      fields: [
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'monitoringType', type: 'string' },
-        { name: 'siteId', type: 'string' },
-        { name: 'orgId', type: 'string' },
-        { name: 'orgName', type: 'string' },
-        { name: 'locationLongitude', type: 'double' },
-        { name: 'locationLatitude', type: 'double' },
-        { name: 'locationName', type: 'string' },
-        { name: 'locationType', type: 'string' },
-        { name: 'locationUrl', type: 'string' },
-        { name: 'stationProviderName', type: 'string' },
-        { name: 'stationTotalSamples', type: 'integer' },
-        { name: 'stationTotalsByGroup', type: 'string' },
-        { name: 'stationTotalMeasurements', type: 'integer' },
-        { name: 'timeframe', type: 'string' },
-        { name: 'uniqueId', type: 'string' },
-      ],
-      objectIdField: 'OBJECTID',
-      outFields: ['*'],
-      // NOTE: initial graphic below will be replaced with UGSG streamgages
-      source: [
-        new Graphic({
-          geometry: new Point({ longitude: -98.5795, latitude: 39.8283 }),
-          attributes: { OBJECTID: 1 },
-        }),
-      ],
-      renderer: new SimpleRenderer({
-        symbol: new SimpleMarkerSymbol({
-          style: 'circle',
-          color: new Color(colors.lightPurple(0.3)),
-          outline: {
-            width: 0.75,
-            color: new Color(colors.black(0.5)),
-          },
-        }),
-      }),
-      featureReduction: monitoringClusterSettings,
-      popupTemplate: {
-        outFields: ['*'],
-        title: (feature: __esri.Feature) =>
-          getPopupTitle(feature.graphic.attributes),
-        content: (feature: __esri.Feature) => {
-          // Parse non-scalar variables
-          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-          feature.graphic.attributes = parseAttributes(
-            structuredProps,
-            feature.graphic.attributes,
-          );
-          return getPopupContent({
-            feature: feature.graphic,
-            services,
-            navigate,
-          });
-        },
-      },
-    });
-
-    setSurroundingMonitoringLocationsLayer(surroundingMonitoringLocationsLayer);
-
-    return surroundingMonitoringLocationsLayer;
-  }
-
   function getLandCoverLayer() {
     return new WMSLayer({
       id: 'landCoverLayer',
@@ -1760,9 +1678,6 @@ function useSharedLayers() {
 
     const allWaterbodiesLayer = getAllWaterbodiesLayer();
 
-    const surroundingMonitoringLocationsLayer =
-      getSurroundingMonitoringLocationsLayer();
-
     const landCover = getLandCoverLayer();
 
     return [
@@ -1778,7 +1693,6 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
-      surroundingMonitoringLocationsLayer,
       allWaterbodiesLayer,
     ];
   };
@@ -1969,4 +1883,5 @@ export {
 
 export * from './boundariesToggleLayer';
 export * from './dischargers';
+export * from './monitoringLocations';
 export * from './streamgages';

@@ -101,8 +101,10 @@ function buildNewDataState(action: FetchedDataAction) {
 */
 
 const dataKeys = [
+  'monitoringLocations',
   'permittedDischargers',
   'usgsStreamgages',
+  'localMonitoringLocations',
   'localPermittedDischargers',
   'localUsgsStreamgages',
 ];

@@ -293,6 +293,7 @@ export interface UsgsStreamgageAttributes {
     primary: StreamgageMeasurement[];
     secondary: StreamgageMeasurement[];
   };
+  uniqueId: string;
 }
 
 export interface UsgsDailyAveragesData {

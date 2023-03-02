@@ -4,7 +4,7 @@ import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductio
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { render } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 // contexts
@@ -12,6 +12,7 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
@@ -72,27 +73,30 @@ export function useMonitoringLocationsLayer() {
   }, [monitoringLocations]);
 
   // Build a group layer with toggleable boundaries
-  const allMonitoringLocationsLayer = useAllFeaturesLayer({
+  return useAllFeaturesLayer({
     layerId,
     fetchedDataKey,
     buildBaseLayer,
     updateData,
     features,
+    minScale,
   });
-
-  useEffect(() => {
-    allMonitoringLocationsLayer.baseLayer.featureReduction =
-      features.length > 20 ? monitoringClusterSettings : null;
-  }, [allMonitoringLocationsLayer, features]);
-
-  return allMonitoringLocationsLayer;
 }
 
 export function useLocalMonitoringLocations() {
+  const { monitoringLocationsLayer } = useLayers();
+
   const { features, status } = useLocalFeatures(
     localFetchedDataKey,
     buildFeatures,
   );
+
+  useEffect(() => {
+    if (!monitoringLocationsLayer) return;
+
+    monitoringLocationsLayer.baseLayer.featureReduction =
+      features.length > 20 ? monitoringClusterSettings : null;
+  }, [monitoringLocationsLayer, features]);
 
   return { monitoringLocations: features, monitoringLocationsStatus: status };
 }
@@ -158,6 +162,8 @@ function useUpdateData() {
     };
   }, [fetchedDataDispatch, huc12, services]);
 
+  const extentFilter = useRef<string | null>(null);
+
   const updateData = useCallback(
     async (abortSignal: AbortSignal, hucOnly = false) => {
       if (services.status !== 'success') return;
@@ -169,13 +175,21 @@ function useUpdateData() {
           payload: hucData,
         });
 
-      const extentFilter = await getExtentFilter(mapView);
+      const newExtentFilter = await getExtentFilter(mapView);
 
       // Could not create filter
-      if (!extentFilter) return;
+      if (!newExtentFilter) return;
+
+      // Same extent, no update necessary
+      if (newExtentFilter === extentFilter.current) return;
+      extentFilter.current = newExtentFilter;
 
       fetchAndTransformData(
-        fetchMonitoringLocations(extentFilter, services.data, abortSignal),
+        fetchMonitoringLocations(
+          extentFilter.current,
+          services.data,
+          abortSignal,
+        ),
         fetchedDataDispatch,
         fetchedDataKey,
         hucData, // Always include HUC data
@@ -202,6 +216,7 @@ function buildFeatures(locations: MonitoringLocationAttributes[]) {
       }),
       attributes: {
         ...attributes,
+        uniqueIdKey: 'uniqueId',
       },
     });
   });
@@ -310,6 +325,7 @@ function buildLayer(
       { name: 'stationTotalMeasurements', type: 'integer' },
       { name: 'timeframe', type: 'string' },
       { name: 'uniqueId', type: 'string' },
+      { name: 'uniqueIdKey', type: 'string' },
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
@@ -426,8 +442,6 @@ function transformServiceData(
       locationLatitude: station.geometry.coordinates[1],
       locationName: station.properties.MonitoringLocationName,
       locationType: station.properties.MonitoringLocationTypeName,
-      // TODO: explore if the built up locationUrl below is ever different from
-      // `station.properties.siteUrl`. from a quick test, they seem the same
       locationUrl:
         `/monitoring-report/` +
         `${station.properties.ProviderName}/` +
@@ -463,6 +477,7 @@ const localFetchedDataKey = 'localMonitoringLocations';
 const fetchedDataKey = 'monitoringLocations';
 const layerId = 'monitoringLocationsLayer';
 const dataKeys = ['uniqueId'] as Array<keyof MonitoringLocationAttributes>;
+const minScale = 400_000;
 
 export const monitoringClusterSettings = new FeatureReductionCluster({
   clusterRadius: '100px',
