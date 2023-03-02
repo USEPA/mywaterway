@@ -189,6 +189,7 @@ function buildLayer(
     legendEnabled: false,
     fields: [
       { name: 'OBJECTID', type: 'oid' },
+      { name: 'CWPFormalEaCnt', type: 'string' },
       { name: 'CWPInspectionCount', type: 'string' },
       { name: 'CWPName', type: 'string' },
       { name: 'CWPPermitStatusDesc', type: 'string' },
@@ -283,6 +284,7 @@ async function fetchPermittedDischargers(
 
   // Columns to return from Echo
   const facilityColumns = [
+    'CWPFormalEaCnt',
     'CWPInspectionCount',
     'CWPName',
     'CWPPermitStatusDesc',
