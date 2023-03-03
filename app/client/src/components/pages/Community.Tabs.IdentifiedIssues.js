@@ -33,7 +33,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
 import { plotIssues } from 'utils/mapFunctions';
-import { useLocalDischargers } from 'utils/hooks';
+import { useDischargers } from 'utils/hooks';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
 // styles
@@ -79,7 +79,6 @@ function IdentifiedIssues() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
-    monitoringLocations,
     issuesLayer,
     waterbodyLayer,
     showAllPolluted,
@@ -95,10 +94,10 @@ function IdentifiedIssues() {
 
   const { dischargersLayer } = useLayers();
 
-  const { usgsStreamgages } = useFetchedDataState();
+  const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
 
   const { dischargers: violatingDischargers, dischargersStatus } =
-    useLocalDischargers(filterViolatingFacilities);
+    useDischargers(filterViolatingFacilities);
 
   const [parameterToggleObject, setParameterToggleObject] = useState({});
 
@@ -790,22 +789,31 @@ function IdentifiedIssues() {
                       }
                     >
                       {violatingDischargers.map((discharger) => {
-                        const { SourceID: id, CWPName: name } =
-                          discharger.attributes;
+                        const { uniqueId: id, CWPName: name } = discharger;
+
+                        const feature = {
+                          geometry: {
+                            type: 'point',
+                            longitude: discharger.FacLong,
+                            latitude: discharger.FacLat,
+                          },
+                          attributes: discharger,
+                        };
+
                         return (
                           <AccordionItem
                             key={id}
                             title={<strong>{name || 'Unknown'}</strong>}
                             subTitle={<>NPDES ID: {id}</>}
-                            feature={discharger}
-                            idKey="SourceID"
+                            feature={feature}
+                            idKey="uniqueId"
                           >
                             <div css={accordionContentStyles}>
                               <WaterbodyInfo
                                 type="Permitted Discharger"
-                                feature={discharger}
+                                feature={feature}
                               />
-                              <ViewOnMapButton feature={discharger} />
+                              <ViewOnMapButton feature={feature} />
                             </div>
                           </AccordionItem>
                         );

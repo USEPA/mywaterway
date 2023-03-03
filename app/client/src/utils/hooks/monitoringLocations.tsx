@@ -12,19 +12,17 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   filterData,
-  getEnclosedLayer,
   getExtentBoundingBox,
   getGeographicExtent,
   handleFetchError,
   useAllFeaturesLayer,
-  useLocalFeatures,
+  useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import {
   getPopupContent,
@@ -78,23 +76,11 @@ export function useMonitoringLocationsLayer() {
   });
 }
 
-export function useLocalMonitoringLocations() {
-  const { features, status } = useLocalFeatures(
-    localFetchedDataKey,
-    buildFeatures,
-  );
-
-  const { monitoringLocationsLayer } = useLayers();
-
-  useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-
-    getEnclosedLayer(monitoringLocationsLayer).featureReduction =
-      features.length > 20 ? monitoringClusterSettings : null;
-  }, [monitoringLocationsLayer, features]);
+export function useMonitoringLocations() {
+  const { data, status } = useLocalData(localFetchedDataKey);
 
   return {
-    monitoringLocations: features,
+    monitoringLocations: data,
     monitoringLocationsStatus: status,
   };
 }
@@ -103,18 +89,19 @@ export function useMonitoringGroups() {
   const { monitoringGroups, setMonitoringGroups } = useContext(
     LocationSearchContext,
   );
-  const { localMonitoringLocations } = useFetchedDataState();
+  const { monitoringLocations } = useFetchedDataState();
 
   useEffect(() => {
-    if (localMonitoringLocations.status !== 'success') return;
+    if (monitoringLocations.status !== 'success') return;
+    if (monitoringGroups) return;
 
     setMonitoringGroups(
       buildMonitoringGroups(
-        localMonitoringLocations.data,
+        monitoringLocations.data,
         characteristicGroupMappings,
       ),
     );
-  }, [localMonitoringLocations, setMonitoringGroups]);
+  }, [monitoringGroups, monitoringLocations, setMonitoringGroups]);
 
   return monitoringGroups;
 }
@@ -197,13 +184,7 @@ function buildFeatures(locations: MonitoringLocationAttributes[]) {
         longitude: attributes.locationLongitude,
         latitude: attributes.locationLatitude,
       }),
-      attributes: {
-        ...attributes,
-        uniqueId:
-          `${attributes.siteId}-` +
-          `${attributes.stationProviderName}-` +
-          `${attributes.orgId}`,
-      },
+      attributes,
     });
   });
 }
@@ -357,7 +338,7 @@ function buildLayer(
 async function fetchAndTransformData(
   promise: ReturnType<typeof fetchMonitoringLocations>,
   dispatch: Dispatch<FetchedDataAction>,
-  fetchedDataId: 'localMonitoringLocations' | 'surroundingMonitoringLocations',
+  fetchedDataId: 'monitoringLocations' | 'surroundingMonitoringLocations',
   dataToExclude?: MonitoringLocationAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -445,6 +426,10 @@ function transformServiceData(
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id
       // isn't universally unique)
+      uniqueId:
+        `${station.properties.MonitoringLocationIdentifier}` +
+        `-${station.properties.ProviderName}` +
+        `-${station.properties.OrganizationIdentifier}`,
     };
   });
 }
@@ -453,7 +438,7 @@ function transformServiceData(
 ## Constants
 */
 
-const localFetchedDataKey = 'localMonitoringLocations';
+const localFetchedDataKey = 'monitoringLocations';
 const surroundingFetchedDataKey = 'surroundingMonitoringLocations';
 const layerId = 'monitoringLocationsLayer';
 const dataKeys = ['siteId', 'orgId', 'stationProviderName'] as Array<

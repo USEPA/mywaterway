@@ -22,8 +22,6 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
-// config
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // contexts
 import { isBoundariesToggleLayerId, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -32,7 +30,6 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { getEnclosedLayer } from './boundariesToggleLayer';
 import {
-  buildStations,
   createWaterbodySymbol,
   createUniqueValueInfos,
   createUniqueValueInfosRestore,
@@ -46,18 +43,14 @@ import {
   isPoint,
   openPopup,
   shallowCompare,
-  updateMonitoringLocationsLayer,
 } from 'utils/mapFunctions';
 // types
-import type { CharacteristicGroupMappings } from 'config/characteristicGroupMappings';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
   ClickedHucState,
   ExtendedGraphic,
   ExtendedLayer,
   Feature,
-  MonitoringLocationAttributes,
-  MonitoringLocationGroups,
 } from 'types';
 
 let dynamicPopupFields: __esri.Field[] = [];
@@ -67,82 +60,6 @@ const allWaterbodiesAlpha = {
   poly: 0.4,
   outline: 1,
 };
-
-function updateMonitoringGroups(
-  stations: MonitoringLocationAttributes[],
-  mappings: CharacteristicGroupMappings,
-) {
-  // build up monitoring stations, toggles, and groups
-  let locationGroups: MonitoringLocationGroups = {
-    All: {
-      characteristicGroups: [],
-      label: 'All',
-      stations: [],
-      toggled: true,
-    },
-  };
-
-  stations.forEach((station) => {
-    // add properties that aren't necessary for the layer
-    station.stationDataByYear = {};
-    // counts for each top-tier characteristic group
-    station.stationTotalsByLabel = {};
-    // build up the monitoringLocationToggles and monitoringLocationGroups
-    const subGroupsAdded = new Set();
-    mappings
-      .filter((mapping) => mapping.label !== 'All')
-      .forEach((mapping) => {
-        station.stationTotalsByLabel![mapping.label] = 0;
-        for (const subGroup in station.stationTotalsByGroup) {
-          // if characteristic group exists in switch config object
-          if (!mapping.groupNames.includes(subGroup)) continue;
-          subGroupsAdded.add(subGroup);
-          if (!locationGroups[mapping.label]) {
-            // create the group (w/ label key) and add the station
-            locationGroups[mapping.label] = {
-              characteristicGroups: [subGroup],
-              label: mapping.label,
-              stations: [station],
-              toggled: true,
-            };
-          } else {
-            // switch group (w/ label key) already exists, add the stations to it
-            locationGroups[mapping.label].stations.push(station);
-            locationGroups[mapping.label].characteristicGroups.push(subGroup);
-          }
-          // add the lower-tier group counts to the corresponding top-tier group counts
-          station.stationTotalsByLabel![mapping.label] +=
-            station.stationTotalsByGroup[subGroup];
-        }
-      });
-
-    locationGroups['All'].stations.push(station);
-
-    // add any leftover lower-tier group counts to the 'Other' top-tier group
-    for (const subGroup in station.stationTotalsByGroup) {
-      if (subGroupsAdded.has(subGroup)) continue;
-      if (!locationGroups['Other']) {
-        locationGroups['Other'] = {
-          label: 'Other',
-          stations: [station],
-          toggled: true,
-          characteristicGroups: [subGroup],
-        };
-      } else {
-        locationGroups['Other'].stations.push(station);
-        locationGroups['Other'].characteristicGroups.push(subGroup);
-      }
-      station.stationTotalsByLabel['Other'] +=
-        station.stationTotalsByGroup[subGroup];
-    }
-  });
-  Object.keys(locationGroups).forEach((label) => {
-    locationGroups[label].characteristicGroups = [
-      ...new Set(locationGroups[label].characteristicGroups),
-    ];
-  });
-  return locationGroups;
-}
 
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
@@ -1824,46 +1741,12 @@ function useOnScreen(node: HTMLDivElement | null) {
   return isIntersecting;
 }
 
-// hook that centralizes initialization of the `monitoringLocationsLayer`
-// and the `monitoringGroups` context objects
-function useMonitoringLocations() {
-  const services = useServicesContext();
-  const {
-    monitoringGroups,
-    monitoringLocations,
-    monitoringLocationsLayer,
-    setMonitoringGroups,
-  } = useContext(LocationSearchContext);
-
-  useEffect(() => {
-    if (!monitoringGroups) {
-      const stations = buildStations(monitoringLocations);
-      if (!stations) return;
-
-      updateMonitoringLocationsLayer(stations, monitoringLocationsLayer);
-
-      const locationGroups = updateMonitoringGroups(
-        stations,
-        characteristicGroupMappings,
-      );
-      setMonitoringGroups(locationGroups);
-    }
-  }, [
-    monitoringGroups,
-    monitoringLocations,
-    monitoringLocationsLayer,
-    services,
-    setMonitoringGroups,
-  ]);
-}
-
 export {
   useAbort,
   useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useKeyPress,
-  useMonitoringLocations,
   useOnScreen,
   useSharedLayers,
   useWaterbodyFeatures,

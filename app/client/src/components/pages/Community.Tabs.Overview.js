@@ -36,9 +36,9 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
   getEnclosedLayer,
-  useLocalDischargers,
-  useLocalMonitoringLocations,
-  useLocalStreamgages,
+  useDischargers,
+  useMonitoringLocations,
+  useStreamgages,
   useWaterbodyFeatures,
   useWaterbodyOnMap,
 } from 'utils/hooks';
@@ -111,10 +111,10 @@ const toggleStyles = css`
 `;
 
 function Overview() {
-  const { dischargers, dischargersStatus } = useLocalDischargers();
-  const { streamgages, streamgagesStatus } = useLocalStreamgages();
+  const { dischargers, dischargersStatus } = useDischargers();
+  const { streamgages, streamgagesStatus } = useStreamgages();
   const { monitoringLocations, monitoringLocationsStatus } =
-    useLocalMonitoringLocations();
+    useMonitoringLocations();
   const { dischargersLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
     useLayers();
 
@@ -522,9 +522,9 @@ function MonitoringAndSensorsTab({
     setMonitoringAndSensorsDisplayed,
   ]);
 
-  const { streamgages, streamgagesStatus } = useLocalStreamgages();
+  const { streamgages, streamgagesStatus } = useStreamgages();
   const { monitoringLocations, monitoringLocationsStatus } =
-    useLocalMonitoringLocations();
+    useMonitoringLocations();
 
   // TODO: Make sure this runs on tab entry
   useEffect(() => {
@@ -538,7 +538,7 @@ function MonitoringAndSensorsTab({
     useState('locationName');
 
   const sortedMonitoringAndSensors = [...allMonitoringAndSensors].sort(
-    ({ attributes: a }, { attributes: b }) => {
+    (a, b) => {
       if (monitoringAndSensorsSortedBy === 'stationTotalMeasurements') {
         return (
           (b.stationTotalMeasurements ?? 0) - (a.stationTotalMeasurements ?? 0)
@@ -546,10 +546,10 @@ function MonitoringAndSensorsTab({
       }
 
       if (monitoringAndSensorsSortedBy === 'siteId') {
-        return a.siteId?.localeCompare(b.siteId);
+        return a.siteId.localeCompare(b.siteId);
       }
 
-      return a[monitoringAndSensorsSortedBy]?.localeCompare(
+      return a[monitoringAndSensorsSortedBy].localeCompare(
         b[monitoringAndSensorsSortedBy],
       );
     },
@@ -567,7 +567,7 @@ function MonitoringAndSensorsTab({
         displayedTypes.push('Past Water Conditions');
       }
 
-      return displayedTypes.includes(item.attributes.monitoringType);
+      return displayedTypes.includes(item.monitoringType);
     },
   );
 
@@ -641,11 +641,20 @@ function MonitoringAndSensorsTab({
       const item = filteredMonitoringAndSensors[index];
 
       const { locationName, locationType, monitoringType, orgName, uniqueId } =
-        item.attributes;
+        item;
 
       let icon = circleIcon({ color: colors.lightPurple() });
       if (monitoringType === 'USGS Sensors')
         icon = squareIcon({ color: '#fffe00' });
+
+      const feature = {
+        geometry: {
+          type: 'point',
+          longitude: item.locationLongitude,
+          latitude: item.locationLatitude,
+        },
+        attributes: item,
+      };
 
       return (
         <AccordionItem
@@ -667,12 +676,12 @@ function MonitoringAndSensorsTab({
                 <>
                   <br />
                   <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                  {item.attributes.stationTotalMeasurements}
+                  {item.stationTotalMeasurements}
                 </>
               )}
             </>
           }
-          feature={item}
+          feature={feature}
           idKey="uniqueId"
           allExpanded={expandedRows.includes(index)}
           onChange={accordionItemToggleHandlers[index]}
@@ -681,7 +690,7 @@ function MonitoringAndSensorsTab({
             {monitoringType === 'USGS Sensors' && (
               <WaterbodyInfo
                 type="USGS Sensors"
-                feature={item}
+                feature={feature}
                 services={services}
               />
             )}
@@ -689,12 +698,12 @@ function MonitoringAndSensorsTab({
             {monitoringType === 'Past Water Conditions' && (
               <WaterbodyInfo
                 type="Past Water Conditions"
-                feature={item}
+                feature={feature}
                 services={services}
               />
             )}
 
-            <ViewOnMapButton feature={item} />
+            <ViewOnMapButton feature={feature} />
           </div>
         </AccordionItem>
       );
@@ -874,21 +883,21 @@ const complianceRank = {
 
 function sortDischarchers(dischargers, sortBy) {
   if (sortBy === 'CWPStatus') {
-    return dischargers.sort(({ attributes: a }, { attributes: b }) => {
+    return dischargers.sort((a, b) => {
       return (
         (complianceRank[a.CWPStatus] ?? complianceRank.Unknown) -
         (complianceRank[b.CWPStatus] ?? complianceRank.Unknown)
       );
     });
   } else {
-    return dischargers.sort(({ attributes: a }, { attributes: b }) => {
+    return dischargers.sort((a, b) => {
       return a[sortBy].localeCompare(b[sortBy]);
     });
   }
 }
 
 function PermittedDischargersTab({ totalPermittedDischargers }) {
-  const { dischargers, dischargersStatus } = useLocalDischargers();
+  const { dischargers, dischargersStatus } = useDischargers();
 
   const { watershed } = useContext(LocationSearchContext);
 
@@ -899,7 +908,6 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
     setPermittedDischargersSortedBy(sortBy.value);
   }, []);
 
-  /* prettier-ignore */
   const sortedPermittedDischargers = sortDischarchers(
     dischargers,
     permittedDischargersSortedBy,
@@ -966,7 +974,16 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                   uniqueId: id,
                   CWPName: name,
                   CWPStatus: status,
-                } = discharger.attributes;
+                } = discharger;
+
+                const feature = {
+                  geometry: {
+                    type: 'point',
+                    longitude: discharger.FacLong,
+                    latitude: discharger.FacLat,
+                  },
+                  attributes: discharger,
+                };
 
                 return (
                   <AccordionItem
@@ -980,16 +997,16 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                         Compliance Status: {status}
                       </>
                     }
-                    feature={discharger}
+                    feature={feature}
                     idKey="uniqueId"
                   >
                     <div css={accordionContentStyles}>
                       <WaterbodyInfo
                         type="Permitted Discharger"
-                        feature={discharger}
+                        feature={feature}
                       />
 
-                      <ViewOnMapButton feature={discharger} />
+                      <ViewOnMapButton feature={feature} />
                     </div>
                   </AccordionItem>
                 );

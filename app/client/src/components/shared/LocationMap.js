@@ -1314,7 +1314,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               });
             }) ?? [];
 
-          setCyanWaterbodies({ status: 'success', data: features });
+          const data = features.map((feature) => {
+            return {
+              ...feature.attributes,
+              geometry: feature.geometry,
+            };
+          });
+
+          setCyanWaterbodies({ status: 'success', data });
 
           cyanWaterbodiesLayer.queryFeatures().then((featureSet) => {
             cyanWaterbodiesLayer.applyEdits({

@@ -23,21 +23,20 @@ import type { BoundariesToggleLayerId } from 'contexts/Layers';
 ## Hooks
 */
 
-export function useLocalFeatures<E extends keyof FetchedDataState>(
+export function useLocalData<E extends keyof FetchedDataState>(
   localFetchedDataKey: E,
-  buildFeatures: (data: FetchedData[E]) => Graphic[],
 ) {
   const fetchedDataState = useFetchedDataState();
   const localFetchedDataState = fetchedDataState[localFetchedDataKey];
 
-  const [features, setFeatures] = useState<__esri.Graphic[]>([]);
+  const [data, setData] = useState<FetchedData[E]>([]);
   useEffect(() => {
     if (localFetchedDataState.status !== 'success') return;
 
-    setFeatures(buildFeatures(localFetchedDataState.data));
-  }, [buildFeatures, localFetchedDataState]);
+    setData(localFetchedDataState.data);
+  }, [localFetchedDataState]);
 
-  return { features, status: localFetchedDataState.status };
+  return { data, status: localFetchedDataState.status };
 }
 
 export function useAllFeaturesLayer<

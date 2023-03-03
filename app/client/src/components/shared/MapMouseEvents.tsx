@@ -13,7 +13,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import {
   monitoringClusterSettings,
-  useLocalMonitoringLocations,
+  useMonitoringLocations,
 } from 'utils/hooks/monitoringLocations';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // utilities
@@ -159,7 +159,7 @@ function updateGraphics(
   if (!updates || !graphics) return;
   graphics.forEach((graphic) => {
     if (
-      graphic.layer?.id === 'monitoringLocationsLayer-features' &&
+      graphic.layer?.id === 'monitoringLocationsLayer-enclosed' &&
       !graphic.isAggregate
     ) {
       updateAttributes(graphic, updates);
@@ -191,7 +191,7 @@ function MapMouseEvents({ view }: Props) {
 
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations, monitoringLocationsStatus } =
-    useLocalMonitoringLocations();
+    useMonitoringLocations();
 
   const getDynamicPopup = useDynamicPopup();
   const onTribePage = window.location.pathname.startsWith('/tribe/');
@@ -435,9 +435,10 @@ function MapMouseEvents({ view }: Props) {
 
     surroundingLayer.featureReduction = monitoringClusterSettings;
 
-    if (!locationCount || locationCount <= 20) return;
+    // if (!locationCount || locationCount <= 20) return;
 
-    enclosedLayer.featureReduction = monitoringClusterSettings;
+    enclosedLayer.featureReduction =
+      locationCount && locationCount >= 20 ? monitoringClusterSettings : null;
   }, [locationCount, monitoringLocationsLayer]);
 
   // sets an event listener on the home widget, and

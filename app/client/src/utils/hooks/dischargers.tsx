@@ -23,7 +23,7 @@ import {
   filterData,
   handleFetchError,
   useAllFeaturesLayer,
-  useLocalFeatures,
+  useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 // config
@@ -69,21 +69,14 @@ export function useDischargersLayer() {
   });
 }
 
-export function useLocalDischargers(
-  filter?: (attributes: Facility) => boolean,
-) {
-  const { features, status } = useLocalFeatures(
-    localFetchedDataKey,
-    buildFeatures,
-  );
+export function useDischargers(filter?: (attributes: Facility) => boolean) {
+  const { data, status } = useLocalData(localFetchedDataKey);
 
-  const filteredFeatures = useMemo(() => {
-    return filter
-      ? features.filter((feature) => filter(feature.attributes))
-      : features;
-  }, [features, filter]);
+  const filteredData = useMemo(() => {
+    return filter ? data.filter(filter) : data;
+  }, [data, filter]);
 
-  return { dischargers: filteredFeatures, dischargersStatus: status };
+  return { dischargers: filteredData, dischargersStatus: status };
 }
 
 function useUpdateData() {
@@ -157,10 +150,7 @@ function useUpdateData() {
 function buildFeatures(data: Facility[]) {
   return data.map((datum) => {
     return new Graphic({
-      attributes: {
-        ...datum,
-        uniqueId: datum.SourceID,
-      },
+      attributes: datum,
       geometry: new Point({
         latitude: parseFloat(datum['FacLat']),
         longitude: parseFloat(datum['FacLong']),
@@ -231,9 +221,7 @@ function buildLayer(
 async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
-  fetchedDataId:
-    | 'localPermittedDischargers'
-    | 'surroundingPermittedDischargers',
+  fetchedDataId: 'permittedDischargers' | 'surroundingPermittedDischargers',
   dataToExclude?: Facility[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -261,7 +249,9 @@ function transformServiceData(
 ): Facility[] {
   return 'Error' in permittedDischargers.Results
     ? []
-    : permittedDischargers.Results.Facilities;
+    : permittedDischargers.Results.Facilities.map((facility) => {
+        return { ...facility, uniqueId: facility.SourceID };
+      });
 }
 
 async function fetchPermittedDischargers(
@@ -323,7 +313,7 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
 ## Constants
 */
 
-const localFetchedDataKey = 'localPermittedDischargers';
+const localFetchedDataKey = 'permittedDischargers';
 const surroundingFetchedDataKey = 'surroundingPermittedDischargers';
 const layerId = 'dischargersLayer';
 const dataKeys = ['SourceID'] as Array<keyof Facility>;

@@ -101,9 +101,9 @@ function buildNewDataState(action: FetchedDataAction) {
 */
 
 const dataKeys = [
-  'localMonitoringLocations',
-  'localPermittedDischargers',
-  'localUsgsStreamgages',
+  'monitoringLocations',
+  'permittedDischargers',
+  'usgsStreamgages',
   'surroundingMonitoringLocations',
   'surroundingPermittedDischargers',
   'surroundingUsgsStreamgages',
@@ -134,9 +134,9 @@ export type EmptyFetchState = {
 export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
 
 export type FetchedData = {
-  localMonitoringLocations: MonitoringLocationAttributes[];
-  localPermittedDischargers: Facility[];
-  localUsgsStreamgages: UsgsStreamgageAttributes[];
+  monitoringLocations: MonitoringLocationAttributes[];
+  permittedDischargers: Facility[];
+  usgsStreamgages: UsgsStreamgageAttributes[];
   surroundingMonitoringLocations: MonitoringLocationAttributes[];
   surroundingPermittedDischargers: Facility[];
   surroundingUsgsStreamgages: UsgsStreamgageAttributes[];

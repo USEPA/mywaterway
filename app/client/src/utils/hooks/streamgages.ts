@@ -17,7 +17,7 @@ import {
   handleFetchError,
   removeDuplicateData,
   useAllFeaturesLayer,
-  useLocalFeatures,
+  useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 // config
@@ -66,13 +66,10 @@ export function useStreamgageLayer() {
   });
 }
 
-export function useLocalStreamgages() {
-  const { features, status } = useLocalFeatures(
-    localFetchedDataKey,
-    buildFeatures,
-  );
+export function useStreamgages() {
+  const { data, status } = useLocalData(localFetchedDataKey);
 
-  return { streamgages: features, streamgagesStatus: status };
+  return { streamgages: data, streamgagesStatus: status };
 }
 
 function useUpdateData() {
@@ -172,10 +169,7 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
         longitude: datum.locationLongitude,
         latitude: datum.locationLatitude,
       }),
-      attributes: {
-        ...datum,
-        uniqueId: `${datum.siteId}-${datum.orgId}`,
-      },
+      attributes: datum,
     });
   });
 }
@@ -241,7 +235,7 @@ function buildLayer(
 async function fetchAndTransformData(
   promises: UsgsFetchPromises,
   dispatch: Dispatch<FetchedDataAction>,
-  fetchedDataId: 'localUsgsStreamgages' | 'surroundingUsgsStreamgages',
+  fetchedDataId: 'usgsStreamgages' | 'surroundingUsgsStreamgages',
   additionalData?: UsgsStreamgageAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -344,6 +338,9 @@ function transformServiceData(
       locationName: gage.properties.monitoringLocationName,
       locationType: gage.properties.monitoringLocationType,
       locationUrl: gage.properties.monitoringLocationUrl,
+      uniqueId:
+        `${gage.properties.monitoringLocationNumber}` +
+        `-${gage.properties.agencyCode}`,
       // usgs streamgage specific properties:
       streamgageMeasurements,
     };
@@ -547,7 +544,7 @@ function getExtentWkt(extent: __esri.Extent | null) {
 ## Constants
 */
 
-const localFetchedDataKey = 'localUsgsStreamgages';
+const localFetchedDataKey = 'usgsStreamgages';
 const surroundingFetchedDataKey = 'surroundingUsgsStreamgages';
 const layerId = 'usgsStreamgagesLayer';
 const dataKeys = ['orgId', 'siteId'] as Array<keyof UsgsStreamgageAttributes>;
