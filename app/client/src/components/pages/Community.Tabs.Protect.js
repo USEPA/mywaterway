@@ -205,8 +205,6 @@ function Protect() {
     watershed,
     highlightOptions,
     huc12,
-    monitoringLocations,
-    monitoringLocationsLayer,
     statesData,
     visibleLayers,
     setVisibleLayers,
@@ -220,12 +218,11 @@ function Protect() {
     waterbodyLayer,
     cipSummary,
     allWaterbodiesLayer,
-    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
-  const { usgsStreamgagesLayer } = useLayers();
+  const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayers();
 
-  const { usgsStreamgages } = useFetchedDataState();
+  const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
 
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
@@ -433,23 +430,15 @@ function Protect() {
   function onWsioToggle(newValue) {
     if (newValue) {
       setInitialAllWaterbodiesVisibility(allWaterbodiesLayer.visible);
-      setInitialSurroundingMonitoringVisibility(
-        surroundingMonitoringLocationsLayer.visible,
-      );
       setInitialMonitoringLocationsVisibility(monitoringLocationsLayer.visible);
       setInitialUsgsStreamgagesVisibility(usgsStreamgagesLayer.visible);
 
       if (allWaterbodiesLayer) allWaterbodiesLayer.visible = false;
-      if (surroundingMonitoringLocationsLayer)
-        surroundingMonitoringLocationsLayer.visible = false;
       if (monitoringLocationsLayer) monitoringLocationsLayer.visible = false;
       if (usgsStreamgagesLayer) usgsStreamgagesLayer.visible = false;
     } else {
       if (allWaterbodiesLayer)
         allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
-      if (surroundingMonitoringLocationsLayer)
-        surroundingMonitoringLocationsLayer.visible =
-          initialSurroundingMonitoringVisibility;
       if (monitoringLocationsLayer)
         monitoringLocationsLayer.visible = initialMonitoringLocationsVisibility;
       if (usgsStreamgagesLayer)
@@ -520,18 +509,6 @@ function Protect() {
     setInitialAllWaterbodiesVisibility(allWaterbodiesLayer.visible);
   }, [allWaterbodiesLayer]);
 
-  const [
-    initialSurroundingMonitoringVisibility,
-    setInitialSurroundingMonitoringVisibility,
-  ] = useState(false);
-  useEffect(() => {
-    if (!surroundingMonitoringLocationsLayer) return;
-
-    setInitialSurroundingMonitoringVisibility(
-      surroundingMonitoringLocationsLayer.visible,
-    );
-  }, [surroundingMonitoringLocationsLayer]);
-
   const initialVisibility = tabs.find((tab) => tab.title === 'Protect')?.layers;
 
   const [
@@ -580,19 +557,15 @@ function Protect() {
       if (!componentWillUnmount?.current) return;
 
       allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
-      surroundingMonitoringLocationsLayer.visible =
-        initialSurroundingMonitoringVisibility;
       monitoringLocationsLayer.visible = initialMonitoringLocationsVisibility;
       usgsStreamgagesLayer.visible = initialUsgsStreamgagesVisibility;
     };
   }, [
     allWaterbodiesLayer,
     initialAllWaterbodiesVisibility,
-    initialSurroundingMonitoringVisibility,
     initialMonitoringLocationsVisibility,
     initialUsgsStreamgagesVisibility,
     monitoringLocationsLayer,
-    surroundingMonitoringLocationsLayer,
     usgsStreamgagesLayer,
   ]);
 

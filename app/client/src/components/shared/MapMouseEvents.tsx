@@ -190,6 +190,7 @@ function MapMouseEvents({ view }: Props) {
   } = useContext(LocationSearchContext);
 
   const { monitoringLocationsLayer } = useLayers();
+
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
 
@@ -377,7 +378,7 @@ function MapMouseEvents({ view }: Props) {
           // get the graphic from the hittest
           const extraLayersToIgnore = [
             'allWaterbodiesLayer',
-            'surroundingMonitoringLocationsLayer',
+            'monitoringLocationsLayer-surrounding',
           ];
           let feature = getGraphicFromResponse(res, extraLayersToIgnore);
 
@@ -434,9 +435,6 @@ function MapMouseEvents({ view }: Props) {
     const enclosedLayer = getEnclosedLayer(monitoringLocationsLayer);
 
     surroundingLayer.featureReduction = monitoringClusterSettings;
-
-    // if (!locationCount || locationCount <= 20) return;
-
     enclosedLayer.featureReduction =
       locationCount && locationCount >= 20 ? monitoringClusterSettings : null;
   }, [locationCount, monitoringLocationsLayer]);
@@ -461,10 +459,8 @@ function MapMouseEvents({ view }: Props) {
       const enclosedLayer = getEnclosedLayer(monitoringLocationsLayer);
 
       surroundingLayer.featureReduction = monitoringClusterSettings;
-
-      if (!locationCount || locationCount <= 20) return;
-
-      enclosedLayer.featureReduction = monitoringClusterSettings;
+      enclosedLayer.featureReduction =
+        locationCount && locationCount >= 20 ? monitoringClusterSettings : null;
     });
     setHomeClickHandler(handler);
     return function cleanup() {

@@ -266,7 +266,7 @@ function DrinkingWater() {
       symbol: new SimpleFillSymbol({
         color: [0, 0, 0, 0.15],
         outline: {
-          color: colors.yellow,
+          color: colors.yellow(),
           width: 3,
           style: 'solid',
         },

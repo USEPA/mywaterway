@@ -67,9 +67,11 @@ function useBoundariesToggleLayer<
     LocationSearchContext,
   );
 
-  const [enclosedLayer] = useState(buildBaseLayer(`${layerId}-enclosed`));
+  const [enclosedLayer] = useState(
+    buildBaseLayer(`${layerId}-enclosed`, 'enclosed'),
+  );
   const [surroundingLayer] = useState(
-    buildBaseLayer(`${layerId}-surrounding`, false),
+    buildBaseLayer(`${layerId}-surrounding`, 'surrounding'),
   );
 
   const [handleGroupKey] = useState(uuid());
@@ -419,14 +421,14 @@ const defaultMinScale = 577791;
 ## Types
 */
 
-export type BoundariesFilterType = 'huc' | 'extent';
+export type SublayerType = 'enclosed' | 'surrounding';
 
 type UseBoundariesToggleLayerParams<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer,
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = {
-  buildBaseLayer: (layerId: string, initialVisibility?: boolean) => T;
+  buildBaseLayer: (layerId: string, type: SublayerType) => T;
   buildFeatures: (data: FetchedData[E] | FetchedData[S]) => Graphic[];
   enclosedFetchedDataKey: E;
   layerId: BoundariesToggleLayerId;

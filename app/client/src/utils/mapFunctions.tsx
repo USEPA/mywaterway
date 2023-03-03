@@ -9,7 +9,6 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 // components
-import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 // styles
@@ -23,10 +22,7 @@ import type {
   ClickedHucState,
   Facility,
   Feature,
-  FetchState,
   ExtendedLayer,
-  MonitoringLocationAttributes,
-  MonitoringLocationsData,
   ParentLayer,
   PopupAttributes,
   ScaledLayer,
@@ -530,7 +526,7 @@ export function plotFacilities({
           latitude: parseFloat(facility['FacLat']),
         }),
         symbol: new SimpleMarkerSymbol({
-          color: colors.orange,
+          color: colors.orange(),
           style: 'diamond',
           size: 15,
           outline: {
@@ -1073,18 +1069,6 @@ export function isInScale(
   return inScale;
 }
 
-const editLayer = async (
-  layer: __esri.FeatureLayer,
-  graphics: __esri.Graphic[],
-) => {
-  const featureSet = await layer.queryFeatures();
-  const edits = {
-    deleteFeatures: featureSet.features,
-    addFeatures: graphics,
-  };
-  return layer.applyEdits(edits);
-};
-
 export function stringifyAttributes(
   structuredAttributes: string[],
   attributes: { [property: string]: any },
@@ -1098,87 +1082,4 @@ export function stringifyAttributes(
     }
   }
   return { ...attributes, ...stringified };
-}
-
-export function buildStations(locations: FetchState<MonitoringLocationsData>) {
-  if (locations.status !== 'success' || !locations.data.features?.length) {
-    return;
-  }
-
-  // sort descending order so that smaller graphics show up on top
-  const stationsSorted = [...locations.data.features];
-  stationsSorted.sort((a, b) => {
-    return (
-      parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
-    );
-  });
-
-  // attributes common to both the layer and the context object
-  return stationsSorted.map((station) => {
-    return {
-      monitoringType: 'Past Water Conditions' as const,
-      siteId: station.properties.MonitoringLocationIdentifier,
-      orgId: station.properties.OrganizationIdentifier,
-      orgName: station.properties.OrganizationFormalName,
-      locationLongitude: station.geometry.coordinates[0],
-      locationLatitude: station.geometry.coordinates[1],
-      locationName: station.properties.MonitoringLocationName,
-      locationType: station.properties.MonitoringLocationTypeName,
-      // TODO: explore if the built up locationUrl below is ever different from
-      // `station.properties.siteUrl`. from a quick test, they seem the same
-      locationUrl:
-        `/monitoring-report/` +
-        `${station.properties.ProviderName}/` +
-        `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
-        `${encodeURIComponent(
-          station.properties.MonitoringLocationIdentifier,
-        )}/`,
-      // monitoring station specific properties:
-      stationDataByYear: null,
-      stationProviderName: station.properties.ProviderName,
-      stationTotalSamples: parseInt(station.properties.activityCount),
-      stationTotalMeasurements: parseInt(station.properties.resultCount),
-      // counts for each lower-tier characteristic group
-      stationTotalsByGroup: station.properties.characteristicGroupResultCount,
-      stationTotalsByLabel: null,
-      timeframe: null,
-      // create a unique id, so we can check if the monitoring station has
-      // already been added to the display (since a monitoring station id
-      // isn't universally unique)
-      uniqueId:
-        `${station.properties.MonitoringLocationIdentifier}-` +
-        `${station.properties.ProviderName}-` +
-        `${station.properties.OrganizationIdentifier}`,
-    };
-  });
-}
-
-/*
- * Helpers for passing data to the map layers
- */
-export function updateMonitoringLocationsLayer(
-  stations: MonitoringLocationAttributes[],
-  layer: __esri.FeatureLayer,
-) {
-  if (!layer) return;
-  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-  const graphics = stations.map((station) => {
-    const attributes = stringifyAttributes(structuredProps, station);
-    return new Graphic({
-      geometry: new Point({
-        longitude: attributes.locationLongitude,
-        latitude: attributes.locationLatitude,
-      }),
-      attributes: {
-        ...attributes,
-      },
-    });
-  });
-  editLayer(layer, graphics);
-
-  if (layer.id !== 'surroundingMonitoringLocationsLayer') {
-    // turn off clustering if there are 20 or less stations
-    layer.featureReduction =
-      graphics.length > 20 ? monitoringClusterSettings : null;
-  }
 }

@@ -256,32 +256,31 @@ function usePeriodOfRecordData(filter, param) {
 // Dynamically filter the displayed locations
 function filterStation(station, timeframe) {
   if (!timeframe) return station;
-  const stationRecords = station.stationDataByYear;
+  const stationRecords = station.dataByYear;
   const result = {
     ...station,
-    stationTotalMeasurements: 0,
-    stationTotalsByGroup: {},
-    stationTotalsByLabel: {},
+    totalMeasurements: 0,
+    totalsByGroup: {},
+    totalsByLabel: {},
     timeframe: [...timeframe],
   };
   characteristicGroupMappings.forEach((mapping) => {
-    result.stationTotalsByLabel[mapping.label] = 0;
+    result.totalsByLabel[mapping.label] = 0;
   });
   for (const year in stationRecords) {
     if (parseInt(year) < timeframe[0]) continue;
     if (parseInt(year) > timeframe[1]) return result;
-    result.stationTotalMeasurements +=
-      stationRecords[year].stationTotalMeasurements;
-    const resultGroups = result.stationTotalsByGroup;
-    Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
+    result.totalMeasurements += stationRecords[year].totalMeasurements;
+    const resultGroups = result.totalsByGroup;
+    Object.entries(stationRecords[year].totalsByGroup).forEach(
       ([group, count]) => {
         resultGroups[group] = !resultGroups[group]
           ? count
           : resultGroups[group] + count;
       },
     );
-    Object.entries(stationRecords[year].stationTotalsByLabel).forEach(
-      ([key, value]) => (result.stationTotalsByLabel[key] += value),
+    Object.entries(stationRecords[year].totalsByLabel).forEach(
+      ([key, value]) => (result.totalsByLabel[key] += value),
     );
   }
 
@@ -300,7 +299,7 @@ function filterLocations(groups, timeframe) {
     groups['All'].stations.forEach((station) => {
       const curStation = filterStation(station, timeframe);
       const hasToggledData = toggledGroups.some((group) => {
-        return curStation.stationTotalsByLabel[group] > 0;
+        return curStation.totalsByLabel[group] > 0;
       });
       if (hasToggledData) toggledLocations.push(curStation);
       allLocations.push(curStation);
@@ -897,8 +896,8 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       const stationUpdates = {};
       locations.forEach((location) => {
         stationUpdates[location.uniqueId] = {
-          stationTotalMeasurements: location.stationTotalMeasurements,
-          stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
+          totalMeasurements: location.totalMeasurements,
+          totalsByGroup: JSON.stringify(location.totalsByGroup),
           timeframe: JSON.stringify(location.timeframe),
         };
       });
@@ -1058,7 +1057,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     yearsRange,
   ]);
 
-  // Add the stations historical data to the `stationDataByYear` property,
+  // Add the stations historical data to the `dataByYear` property,
   // then initializes the date slider
   const addAnnualData = useCallback(async () => {
     // if (!monitoringLocationsLayer || !monitoringGroups) return;
@@ -1069,7 +1068,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       for (const station of updatedMonitoringGroups[label].stations) {
         const id = station.uniqueId;
         if (id in annualData) {
-          station.stationDataByYear = annualData[id];
+          station.dataByYear = annualData[id];
         }
       }
     }
@@ -1107,7 +1106,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         .filter((group) => group !== 'All')
         .forEach((group) => {
           if (monitoringGroups[group].toggled) {
-            newTotalMeasurements += station.stationTotalsByLabel[group];
+            newTotalMeasurements += station.totalsByLabel[group];
           }
         });
     });
@@ -1132,8 +1131,8 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const sortedMonitoringLocations = useMemo(() => {
     return displayedLocations
       ? displayedLocations.sort((a, b) => {
-          if (sortBy === 'stationTotalMeasurements') {
-            return b.stationTotalMeasurements - a.stationTotalMeasurements;
+          if (sortBy === 'totalMeasurements') {
+            return b.totalMeasurements - a.totalMeasurements;
           }
 
           if (sortBy === 'siteId') {
@@ -1215,7 +1214,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               {item.locationType}
               <br />
               <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-              {item.stationTotalMeasurements}
+              {item.totalMeasurements}
             </>
           }
           feature={feature}
@@ -1311,9 +1310,8 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     let measurementCount = 0;
                     let locationCount = 0;
                     currentLocations.forEach((station) => {
-                      if (station.stationTotalsByLabel[group.label] > 0) {
-                        measurementCount +=
-                          station.stationTotalsByLabel[group.label];
+                      if (station.totalsByLabel[group.label] > 0) {
+                        measurementCount += station.totalsByLabel[group.label];
                         locationCount++;
                       }
                     });
@@ -1462,7 +1460,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 },
                 {
                   label: 'Monitoring Measurements',
-                  value: 'stationTotalMeasurements',
+                  value: 'totalMeasurements',
                 },
               ]}
             >

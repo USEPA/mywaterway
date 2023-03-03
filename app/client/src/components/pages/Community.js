@@ -117,10 +117,6 @@ function Community() {
 
   const { fullscreenActive } = useFullscreenState();
 
-  useDischargersLayer();
-  useMonitoringLocationsLayer();
-  useStreamgageLayer();
-
   // CommunityIntro is rendered in Outlet when at the '/community' and '/community/' routes
   const atCommunityIntroRoute =
     window.location.pathname.replace(/\//g, '') === 'community'; // replace slashes "/" with empty string
@@ -132,7 +128,7 @@ function Community() {
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const { setSearchText, setLastSearchText, errorMessage, resetData } =
+  const { huc12, setSearchText, setLastSearchText, errorMessage, resetData } =
     useContext(LocationSearchContext);
 
   useEffect(() => {
@@ -170,6 +166,10 @@ function Community() {
     setSearchText,
     setLastSearchText,
   ]);
+
+  useDischargersLayer();
+  useMonitoringLocationsLayer(huc12 ? `huc=${huc12}` : null);
+  useStreamgageLayer();
 
   // jsx
   const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;

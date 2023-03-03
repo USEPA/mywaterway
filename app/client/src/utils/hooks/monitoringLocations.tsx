@@ -43,6 +43,7 @@ import type {
   ServicesData,
   ServicesState,
 } from 'types';
+import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
 // styles
 import { colors } from 'styles';
 
@@ -50,19 +51,19 @@ import { colors } from 'styles';
 ## Hooks
 */
 
-export function useMonitoringLocationsLayer() {
+export function useMonitoringLocationsLayer(localFilter: string | null) {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
 
   const buildBaseLayer = useCallback(
-    (baseLayerId: string, initialVisiblity?: boolean) => {
-      return buildLayer(baseLayerId, navigate, services, initialVisiblity);
+    (baseLayerId: string, type: SublayerType) => {
+      return buildLayer(baseLayerId, navigate, services, type);
     },
     [navigate, services],
   );
 
-  const updateSurroundingData = useUpdateData();
+  const updateSurroundingData = useUpdateData(localFilter);
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
@@ -106,38 +107,39 @@ export function useMonitoringGroups() {
   return monitoringGroups;
 }
 
-function useUpdateData() {
+function useUpdateData(localFilter: string | null) {
   // Build the data update function
-  const { huc12, mapView } = useContext(LocationSearchContext);
+  const { mapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const [hucData, setHucData] = useState<MonitoringLocationAttributes[] | null>(
-    [],
-  );
+  const [localData, setLocalData] = useState<
+    MonitoringLocationAttributes[] | null
+  >([]);
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!huc12) return;
+    if (!localFilter) return;
     if (services.status !== 'success') return;
 
     fetchAndTransformData(
       fetchMonitoringLocations(
-        `huc=${huc12}`,
+        localFilter,
+        // `huc=${huc12}`,
         services.data,
         controller.signal,
       ),
       fetchedDataDispatch,
       localFetchedDataKey,
     ).then((data) => {
-      setHucData(data);
+      setLocalData(data);
     });
 
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, services]);
+  }, [fetchedDataDispatch, localFilter, services]);
 
   const extentFilter = useRef<string | null>(null);
 
@@ -162,10 +164,10 @@ function useUpdateData() {
         ),
         fetchedDataDispatch,
         surroundingFetchedDataKey,
-        hucData, // Filter out HUC data
+        localData, // Filter out HUC data
       );
     },
-    [fetchedDataDispatch, hucData, mapView, services],
+    [fetchedDataDispatch, localData, mapView, services],
   );
 
   return updateSurroundingData;
@@ -176,7 +178,7 @@ function useUpdateData() {
 */
 
 function buildFeatures(locations: MonitoringLocationAttributes[]) {
-  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+  const structuredProps = ['totalsByGroup', 'timeframe'];
   return locations.map((location) => {
     const attributes = stringifyAttributes(structuredProps, location);
     return new Graphic({
@@ -205,16 +207,16 @@ function buildMonitoringGroups(
 
   stations.forEach((station) => {
     // add properties that aren't necessary for the layer
-    station.stationDataByYear = {};
+    station.dataByYear = {};
     // counts for each top-tier characteristic group
-    station.stationTotalsByLabel = {};
+    station.totalsByLabel = {};
     // build up the monitoringLocationToggles and monitoringLocationGroups
     const subGroupsAdded = new Set();
     mappings
       .filter((mapping) => mapping.label !== 'All')
       .forEach((mapping) => {
-        station.stationTotalsByLabel![mapping.label] = 0;
-        for (const subGroup in station.stationTotalsByGroup) {
+        station.totalsByLabel![mapping.label] = 0;
+        for (const subGroup in station.totalsByGroup) {
           // if characteristic group exists in switch config object
           if (!mapping.groupNames.includes(subGroup)) continue;
           subGroupsAdded.add(subGroup);
@@ -232,15 +234,15 @@ function buildMonitoringGroups(
             locationGroups[mapping.label].characteristicGroups.push(subGroup);
           }
           // add the lower-tier group counts to the corresponding top-tier group counts
-          station.stationTotalsByLabel![mapping.label] +=
-            station.stationTotalsByGroup[subGroup];
+          station.totalsByLabel![mapping.label] +=
+            station.totalsByGroup[subGroup];
         }
       });
 
     locationGroups['All'].stations.push(station);
 
     // add any leftover lower-tier group counts to the 'Other' top-tier group
-    for (const subGroup in station.stationTotalsByGroup) {
+    for (const subGroup in station.totalsByGroup) {
       if (subGroupsAdded.has(subGroup)) continue;
       if (!locationGroups['Other']) {
         locationGroups['Other'] = {
@@ -253,8 +255,7 @@ function buildMonitoringGroups(
         locationGroups['Other'].stations.push(station);
         locationGroups['Other'].characteristicGroups.push(subGroup);
       }
-      station.stationTotalsByLabel['Other'] +=
-        station.stationTotalsByGroup[subGroup];
+      station.totalsByLabel['Other'] += station.totalsByGroup[subGroup];
     }
   });
   Object.keys(locationGroups).forEach((label) => {
@@ -269,7 +270,7 @@ function buildLayer(
   baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
-  initialVisiblity = true,
+  type: SublayerType,
 ) {
   return new FeatureLayer({
     id: baseLayerId,
@@ -287,10 +288,10 @@ function buildLayer(
       { name: 'locationName', type: 'string' },
       { name: 'locationType', type: 'string' },
       { name: 'locationUrl', type: 'string' },
-      { name: 'stationProviderName', type: 'string' },
-      { name: 'stationTotalSamples', type: 'integer' },
-      { name: 'stationTotalsByGroup', type: 'string' },
-      { name: 'stationTotalMeasurements', type: 'integer' },
+      { name: 'providerName', type: 'string' },
+      { name: 'totalSamples', type: 'integer' },
+      { name: 'totalsByGroup', type: 'string' },
+      { name: 'totalMeasurements', type: 'integer' },
       { name: 'timeframe', type: 'string' },
       { name: 'uniqueId', type: 'string' },
     ],
@@ -306,9 +307,10 @@ function buildLayer(
     renderer: new SimpleRenderer({
       symbol: new SimpleMarkerSymbol({
         style: 'circle',
-        color: colors.lightPurple(0.5),
+        color: colors.lightPurple(type === 'enclosed' ? 0.5 : 0.3),
         outline: {
           width: 0.75,
+          color: colors.black(type === 'enclosed' ? 1.0 : 0.5),
         },
       }),
     }),
@@ -319,7 +321,7 @@ function buildLayer(
         getPopupTitle(feature.graphic.attributes),
       content: (feature: __esri.Feature) => {
         // Parse non-scalar variables
-        const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+        const structuredProps = ['totalsByGroup', 'timeframe'];
         feature.graphic.attributes = parseAttributes(
           structuredProps,
           feature.graphic.attributes,
@@ -331,7 +333,7 @@ function buildLayer(
         });
       },
     },
-    visible: initialVisiblity,
+    visible: type === 'enclosed',
   });
 }
 
@@ -399,6 +401,7 @@ function transformServiceData(
   // attributes common to both the layer and the context object
   return stationsSorted.map((station) => {
     return {
+      county: station.properties.CountyName,
       monitoringType: 'Past Water Conditions' as const,
       siteId: station.properties.MonitoringLocationIdentifier,
       orgId: station.properties.OrganizationIdentifier,
@@ -415,13 +418,14 @@ function transformServiceData(
           station.properties.MonitoringLocationIdentifier,
         )}/`,
       // monitoring station specific properties:
-      stationDataByYear: null,
-      stationProviderName: station.properties.ProviderName,
-      stationTotalSamples: parseInt(station.properties.activityCount),
-      stationTotalMeasurements: parseInt(station.properties.resultCount),
+      state: station.properties.StateName,
+      dataByYear: null,
+      providerName: station.properties.ProviderName,
+      totalSamples: parseInt(station.properties.activityCount),
+      totalMeasurements: parseInt(station.properties.resultCount),
       // counts for each lower-tier characteristic group
-      stationTotalsByGroup: station.properties.characteristicGroupResultCount,
-      stationTotalsByLabel: null,
+      totalsByGroup: station.properties.characteristicGroupResultCount,
+      totalsByLabel: null,
       timeframe: null,
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id

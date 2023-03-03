@@ -180,7 +180,6 @@ const orderedLayers = [
   'waterbodyLayer',
   'allWaterbodiesLayer',
   'monitoringLocationsLayer',
-  'surroundingMonitoringLocationsLayer',
   'usgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',
@@ -273,8 +272,7 @@ function updateVisibleLayers(
       (layer.visible && layer.listMode !== 'hide') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed') ||
-      (layer.visible && layer.id === 'allWaterbodiesLayer') ||
-      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer')
+      (layer.visible && layer.id === 'allWaterbodiesLayer')
     ) {
       visibleLayers.push(layer);
     }

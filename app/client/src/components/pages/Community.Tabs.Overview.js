@@ -539,10 +539,8 @@ function MonitoringAndSensorsTab({
 
   const sortedMonitoringAndSensors = [...allMonitoringAndSensors].sort(
     (a, b) => {
-      if (monitoringAndSensorsSortedBy === 'stationTotalMeasurements') {
-        return (
-          (b.stationTotalMeasurements ?? 0) - (a.stationTotalMeasurements ?? 0)
-        );
+      if (monitoringAndSensorsSortedBy === 'totalMeasurements') {
+        return (b.totalMeasurements ?? 0) - (a.totalMeasurements ?? 0);
       }
 
       if (monitoringAndSensorsSortedBy === 'siteId') {
@@ -676,7 +674,7 @@ function MonitoringAndSensorsTab({
                 <>
                   <br />
                   <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                  {item.stationTotalMeasurements}
+                  {item.totalMeasurements}
                 </>
               )}
             </>
@@ -852,7 +850,7 @@ function MonitoringAndSensorsTab({
                   ? [
                       {
                         label: 'Monitoring Measurements',
-                        value: 'stationTotalMeasurements',
+                        value: 'totalMeasurements',
                       },
                     ]
                   : [],
@@ -938,7 +936,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
           <>
             <div css={legendItemsStyles}>
               <span>
-                {diamondIcon({ color: colors.orange })}
+                {diamondIcon({ color: colors.orange() })}
                 &nbsp;Permitted Dischargers&nbsp;
               </span>
             </div>
@@ -987,7 +985,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
 
                 return (
                   <AccordionItem
-                    icon={diamondIcon({ color: colors.orange })}
+                    icon={diamondIcon({ color: colors.orange() })}
                     key={id}
                     title={<strong>{name || 'Unknown'}</strong>}
                     subTitle={

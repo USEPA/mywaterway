@@ -374,7 +374,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     <li>
       <div css={legendItemStyles}>
         <div css={imageContainerStyles}>
-          {diamondIcon({ color: colors.orange })}
+          {diamondIcon({ color: colors.orange() })}
         </div>
         <span css={labelStyles}>Permitted Discharger</span>
       </div>

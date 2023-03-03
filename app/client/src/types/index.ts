@@ -10,11 +10,11 @@ export interface AllotmentAttributes {
 
 export interface AnnualStationData {
   uniqueId: string;
-  stationTotalMeasurements: number;
-  stationTotalSamples: number;
-  stationTotalsByCharacteristic: { [characteristic: string]: number };
-  stationTotalsByGroup: { [group: string]: number };
-  stationTotalsByLabel: { [label: string]: number };
+  totalMeasurements: number;
+  totalSamples: number;
+  totalsByCharacteristic: { [characteristic: string]: number };
+  totalsByGroup: { [group: string]: number };
+  totalsByLabel: { [label: string]: number };
 }
 
 export interface ChangeLocationAttributes {
@@ -86,8 +86,8 @@ export interface ExtendedLayer extends __esri.Layer {
 }
 
 export interface MonitoringFeatureUpdate {
-  stationTotalMeasurements: number;
-  stationTotalsByGroup: { [group: string]: number };
+  totalMeasurements: number;
+  totalsByGroup: { [group: string]: number };
   timeframe: [number, number];
 }
 
@@ -96,6 +96,7 @@ export type MonitoringFeatureUpdates = {
 } | null;
 
 export interface MonitoringLocationAttributes {
+  county: string;
   monitoringType: 'Past Water Conditions';
   siteId: string;
   orgId: string;
@@ -105,12 +106,13 @@ export interface MonitoringLocationAttributes {
   locationName: string;
   locationType: string;
   locationUrl: string;
-  stationDataByYear: { [year: string | number]: AnnualStationData } | null;
-  stationProviderName: string;
-  stationTotalSamples: number;
-  stationTotalMeasurements: number;
-  stationTotalsByGroup: { [groups: string]: number };
-  stationTotalsByLabel: { [label: string]: number } | null;
+  state: string;
+  dataByYear: { [year: string | number]: AnnualStationData } | null;
+  providerName: string;
+  totalSamples: number;
+  totalMeasurements: number;
+  totalsByGroup: { [groups: string]: number };
+  totalsByLabel: { [label: string]: number } | null;
   timeframe: [number, number] | null;
   uniqueId: string;
 }

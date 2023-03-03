@@ -788,10 +788,10 @@ function TribalMap({
         { name: 'locationName', type: 'string' },
         { name: 'locationType', type: 'string' },
         { name: 'locationUrl', type: 'string' },
-        { name: 'stationProviderName', type: 'string' },
-        { name: 'stationTotalSamples', type: 'integer' },
-        { name: 'stationTotalsByGroup', type: 'string' },
-        { name: 'stationTotalMeasurements', type: 'integer' },
+        { name: 'providerName', type: 'string' },
+        { name: 'totalSamples', type: 'integer' },
+        { name: 'totalsByGroup', type: 'string' },
+        { name: 'totalMeasurements', type: 'integer' },
         { name: 'timeframe', type: 'string' },
         { name: 'uniqueId', type: 'string' },
       ],
@@ -821,7 +821,7 @@ function TribalMap({
         title: (feature) => getPopupTitle(feature.graphic.attributes),
         content: (feature) => {
           // Parse non-scalar variables
-          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+          const structuredProps = ['totalsByGroup', 'timeframe'];
           feature.graphic.attributes = parseAttributes(
             structuredProps,
             feature.graphic.attributes,
@@ -1067,10 +1067,8 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
     useState('locationName');
   const sortedMonitoringAndSensors = [...normalizedMonitoringLocations].sort(
     (a, b) => {
-      if (monitoringLocationsSortedBy === 'stationTotalMeasurements') {
-        return (
-          (b.stationTotalMeasurements || 0) - (a.stationTotalMeasurements || 0)
-        );
+      if (monitoringLocationsSortedBy === 'totalMeasurements') {
+        return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
       }
 
       if (monitoringLocationsSortedBy === 'siteId') {
@@ -1116,7 +1114,7 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
         },
         {
           label: 'Monitoring Measurements',
-          value: 'stationTotalMeasurements',
+          value: 'totalMeasurements',
         },
       ]}
     >
@@ -1150,7 +1148,7 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
                     <br />
                     <em>Monitoring Measurements:</em>
                     &nbsp;&nbsp;
-                    {item.stationTotalMeasurements}
+                    {item.totalMeasurements}
                   </>
                 )}
               </>

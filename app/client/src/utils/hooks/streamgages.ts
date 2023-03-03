@@ -36,6 +36,9 @@ import type {
   UsgsStreamgagesData,
   FetchSuccessState,
 } from 'types';
+import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+// styles
+import { colors } from 'styles';
 
 /*
 ## Hooks
@@ -47,8 +50,8 @@ export function useStreamgageLayer() {
   const navigate = useNavigate();
 
   const buildBaseLayer = useCallback(
-    (baseLayerId: string, initialVisibility?: boolean) => {
-      return buildLayer(baseLayerId, navigate, services, initialVisibility);
+    (baseLayerId: string, type: SublayerType) => {
+      return buildLayer(baseLayerId, navigate, services, type);
     },
     [navigate, services],
   );
@@ -179,7 +182,7 @@ function buildLayer(
   baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
-  initialVisibility = true,
+  type: SublayerType,
 ) {
   return new FeatureLayer({
     id: baseLayerId,
@@ -215,9 +218,10 @@ function buildLayer(
     renderer: new SimpleRenderer({
       symbol: new SimpleMarkerSymbol({
         style: 'square',
-        color: '#fffe00', // '#989fa2'
+        color: colors.yellow(type === 'enclosed' ? 0.9 : 0.5),
         outline: {
           width: 0.75,
+          color: colors.black(type === 'enclosed' ? 1.0 : 0.5),
         },
       }),
     }),
@@ -228,7 +232,7 @@ function buildLayer(
       content: (feature: __esri.Feature) =>
         getPopupContent({ feature: feature.graphic, navigate, services }),
     },
-    visible: initialVisibility,
+    visible: type === 'enclosed',
   });
 }
 
