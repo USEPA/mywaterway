@@ -404,6 +404,7 @@ function SavePanel({ visible }: Props) {
       mapView,
       services,
       layers: layersToPublish,
+      layerProps,
       serviceMetaData: {
         description: '',
         label: name,

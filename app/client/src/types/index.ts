@@ -85,6 +85,11 @@ export interface ExtendedLayer extends __esri.Layer {
   parent?: __esri.Layer | __esri.Map;
 }
 
+export type LookupFile = {
+  status: 'fetching' | 'success' | 'failure',
+  data: any,
+};
+
 export interface MonitoringFeatureUpdate {
   stationTotalMeasurements: number;
   stationTotalsByGroup: { [group: string]: number };

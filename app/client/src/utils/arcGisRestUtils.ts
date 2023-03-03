@@ -1,3 +1,6 @@
+import { v4 as uuid } from 'uuid';
+// components
+import mapPin from 'images/pin.png';
 // types
 import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
 // utils
@@ -7,6 +10,8 @@ import {
   getEnvironmentString,
 } from 'utils/fetchUtils';
 import { escapeForLucene } from 'utils/utils';
+// types
+import { LookupFile } from 'types/index';
 
 declare global {
   interface Window {
@@ -271,6 +276,277 @@ export async function createFeatureService(
   }
 }
 
+/**
+ * Used for adding a feature layer to a hosted feature service on
+ * ArcGIS Online
+ *
+ * @param portal The portal object to create feature layers on
+ * @param serviceUrl The hosted feature service to save layers to
+ * @param layerMetaData Array of service metadata to be added to the layers of a feature service.
+ * @returns A promise that resolves to the layers that were saved
+ */
+export async function createFeatureLayers(
+  portal: __esri.Portal,
+  serviceUrl: string,
+  layers: LayerType[],
+  serviceMetaData: ServiceMetaDataType,
+  layerProps: LookupFile,
+) {
+  try {
+    const layersParams: any[] = [];
+    if (layers.length === 0) {
+      return {
+        success: true,
+        layers: [],
+        tables: [],
+      };
+    }
+
+    const layerIds: string[] = [];
+    for (const layer of layers) {
+      if (!layer.requiresFeatureService) continue;
+
+      const properties = layerProps.data.layerSpecificSettings[layer.layer.id];
+      layerIds.push(layer.layer.id);
+
+      // get the extent
+      let graphicsExtent: __esri.Extent | null = null;
+      if (layer.layer.type === 'graphics') {
+        const graphicsLayer = layer.layer as __esri.GraphicsLayer;
+        graphicsLayer.graphics.forEach((graphic) => {
+          graphicsExtent === null
+            ? (graphicsExtent = graphic.geometry.extent)
+            : graphicsExtent.union(graphic.geometry.extent);
+        });
+      } else if (layer.layer.type === 'feature') {
+        const featureLayer = layer.layer as __esri.FeatureLayer;
+        graphicsExtent = await featureLayer.queryExtent();
+      } else {
+        graphicsExtent = layer.layer.fullExtent;
+      }
+
+      // add the polygon representation
+      let params = {
+        ...layerProps.data.defaultLayerProps,
+        ...properties,
+        fields: [...layerProps.data.commonFields, ...properties.fields],
+        name: layer.label,
+        extent: graphicsExtent,
+      };
+      if (layer.layer.id === 'searchIconLayer') {
+        params.drawingInfo.renderer.symbol.url = mapPin;
+      }
+
+      layersParams.push(params);
+    }
+
+    // Workaround for esri.Portal not having credential
+    const tempPortal: any = portal;
+    const data = {
+      f: 'json',
+      token: tempPortal.credential.token,
+      addToDefinition: {
+        layers: layersParams,
+        tables: [
+          {
+            ...layerProps.data.defaultTableProps,
+            fields: layerProps.data.defaultReferenceTableFields,
+            type: 'Table',
+            name: `${serviceMetaData.label}-reference-layers`,
+            description: `Links to reference layers for "${serviceMetaData.label}".`,
+          },
+        ],
+      },
+    };
+    appendEnvironmentObjectParam(data);
+
+    if (layersParams.length === 0) {
+      return {
+        success: true,
+        layers: [],
+        tables: [],
+      };
+    }
+
+    // inject /admin into rest/services to be able to call
+    const adminServiceUrl = serviceUrl.replace(
+      'rest/services',
+      'rest/admin/services',
+    );
+    const response = await fetchPostForm(
+      `${adminServiceUrl}/addToDefinition`,
+      data,
+    );
+
+    // add the layer id back into the response
+    response.layers.forEach((l: any, index: number) => {
+      l['layerId'] = layerIds[index];
+    });
+
+    return response;
+  } catch (err) {
+    window.logErrorToGa(err);
+    throw err;
+  }
+}
+
+async function processLayerFeatures(layer: __esri.Layer, adds: any[]) {
+  if (layer.type === 'graphics') {
+    const graphicsLayer = layer as __esri.GraphicsLayer;
+    graphicsLayer.graphics.forEach((graphic, index) => {
+      adds.push({
+        attributes: {
+          ...graphic.attributes,
+          OBJECTID: graphic.attributes.OBJECTID || index,
+          GLOBALID: graphic.attributes.GLOBALID || `{${uuid().toUpperCase()}}`,
+        },
+        geometry: graphic.geometry.toJSON(),
+      });
+    });
+  } else if (layer.type === 'feature') {
+    const featureLayer = layer as __esri.FeatureLayer;
+    const features = await featureLayer.queryFeatures({
+      returnGeometry: true,
+    });
+    features.features.forEach((feature, index) => {
+      adds.push({
+        attributes: {
+          ...feature.attributes,
+          OBJECTID: feature.attributes.OBJECTID || index,
+          GLOBALID: feature.attributes.GLOBALID || `{${uuid().toUpperCase()}}`,
+        },
+        geometry: feature.geometry.toJSON(),
+      });
+    });
+  }
+}
+
+/**
+ * Applys edits to a layer or layers within a hosted feature service
+ * on ArcGIS Online.
+ *
+ * @param portal The portal object to apply edits to
+ * @param serviceUrl The url of the hosted feature service
+ * @param layers The layers that the edits object pertain to
+ * @param edits The edits to be saved to the hosted feature service
+ * @returns A promise that resolves to the successfully saved objects
+ */
+async function applyEdits({
+  portal,
+  serviceUrl,
+  layers,
+  layersRes,
+}: {
+  portal: __esri.Portal;
+  serviceUrl: string;
+  layers: LayerType[];
+  layersRes: any;
+}) {
+  try {
+    const changes: any[] = [];
+    // layersRes.layers.forEach((layerRes: any) => {
+    for (const layerRes of layersRes.layers) {
+      // find the layer
+      const layer = layers.find((l) => l.layer.id === layerRes.layerId);
+      if (!layer)
+        throw new Error(
+          `Could not find layer with the "${layerRes.layerId}" id.`,
+        );
+
+      // TODO need to figure out how to handle layers that need to be split up
+
+      const adds: any[] = [];
+      if (layer.id === 'dischargersLayer') {
+        const dischargersGroupLayer = layer.layer as __esri.GroupLayer;
+        const dischargersLayer = dischargersGroupLayer.findLayerById(
+          `${dischargersGroupLayer.id}-features`,
+        );
+        await processLayerFeatures(dischargersLayer, adds);
+      } else {
+        await processLayerFeatures(layer.layer, adds);
+      }
+
+      changes.push({
+        id: layerRes.id,
+        adds,
+        updates: [],
+        deletes: [],
+      });
+    }
+
+    // let refLayerTableOut: ReferenceLayersTableType | null = null;
+    // const refOutput = buildReferenceLayerTableEdits({
+    //   referenceLayersTable,
+    //   referenceMaterials,
+    // });
+    // changes.push(refOutput.edits);
+    // refLayerTableOut = refOutput.table;
+
+    // Workaround for esri.Portal not having credential
+    const tempPortal: any = portal;
+
+    // run the webserivce call to update ArcGIS Online
+    const data = {
+      f: 'json',
+      token: tempPortal.credential.token,
+      edits: changes,
+      honorSequenceOfEdits: true,
+      useGlobalIds: true,
+    };
+    appendEnvironmentObjectParam(data);
+
+    const res = await fetchPostForm(`${serviceUrl}/applyEdits`, data);
+    return {
+      response: res,
+      // table: refLayerTableOut,
+    };
+  } catch (err) {
+    window.logErrorToGa(err);
+    throw err;
+  }
+}
+
+/**
+ * Builds the edits arrays for publishing the sample types layer of
+ * the sampling plan feature service.
+ *
+ * @param layers LayerType[] - The layers to search for sample types in
+ * @param table any - The table object
+ * @returns An object containing the edits arrays
+ */
+function buildReferenceLayerTableEdits(layers: LayerType[]) {
+  const adds: any[] = [];
+
+  // build the adds, updates, and deletes
+  layers.forEach((refLayer: any) => {
+    if (refLayer.requiresFeatureService) return;
+
+    // build the adds array
+    adds.push({
+      attributes: {
+        LAYERID: refLayer.layer.portalItem?.id || refLayer.id,
+        LABEL: refLayer.label,
+        LAYERTYPE: refLayer.layerType,
+        TYPE: refLayer.type,
+        URL: refLayer.layer.url,
+        URLTYPE: refLayer.type === 'url' ? refLayer.urlType : '',
+      },
+    });
+  });
+
+  // TODO add code to find the id from the feature service
+  const id = 3;
+
+  return {
+    edits: {
+      id,
+      adds,
+      updates: [],
+      deletes: [],
+    },
+  };
+}
+
 type AgoLayerType =
   | 'ArcGISFeatureLayer'
   | 'ArcGISImageServiceLayer'
@@ -340,18 +616,25 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
 export function addWebMap({
   portal,
   mapView,
+  service,
   services,
   serviceMetaData,
   layers,
+  layersRes,
 }: {
   portal: __esri.Portal;
   mapView: __esri.MapView;
+  service: any;
   services: any;
   serviceMetaData: ServiceMetaDataType;
   layers: LayerType[];
+  layersRes: any;
 }) {
   // Workaround for esri.Portal not having credential
   const tempPortal: any = portal;
+
+  const itemId = service?.portalService?.id;
+  const baseUrl = service?.portalService?.url;
 
   const operationalLayers: any[] = [];
   layers
@@ -377,6 +660,16 @@ export function addWebMap({
           title: l.label,
           styleUrl: `${url}/resources/styles/root.json`,
         });
+      } else if (l.requiresFeatureService) {
+        if (!layersRes) return;
+        const lRes = layersRes.layers.find((r: any) => r.layerId === l.id);
+
+        operationalLayers.push({
+          title: lRes.name,
+          url: `${baseUrl}/${lRes.id}`,
+          itemId,
+          layerType: 'ArcGISFeatureLayer',
+        });
       } else {
         operationalLayers.push({
           layerType,
@@ -385,6 +678,8 @@ export function addWebMap({
         });
       }
     });
+
+  // TODO figure out how to organize the operational layers
 
   // run the webserivce call to update ArcGIS Online
   const data = {
@@ -449,12 +744,14 @@ export async function publish({
   mapView,
   services,
   layers,
+  layerProps,
   serviceMetaData,
 }: {
   portal: __esri.Portal;
   mapView: __esri.MapView;
   services: any;
   layers: LayerType[];
+  layerProps: LookupFile;
   serviceMetaData: ServiceMetaDataType;
 }) {
   if (layers.length === 0) throw new Error('No layers to publish.');
@@ -467,14 +764,48 @@ export async function publish({
       const res = await addWebMap({
         portal,
         mapView,
+        service: null,
         services,
         serviceMetaData,
         layers,
+        layersRes: null,
       });
 
       return res;
     } else {
       const service = await getFeatureService(portal, serviceMetaData);
+      const serviceUrl: string = service.portalService.url;
+      const portalId: string = service.portalService.id;
+
+      const layersRes = await createFeatureLayers(
+        portal,
+        serviceUrl,
+        layers,
+        serviceMetaData,
+        layerProps,
+      );
+
+      const editsRes = await applyEdits({
+        portal,
+        serviceUrl,
+        layers,
+        layersRes,
+      });
+
+      await addWebMap({
+        portal,
+        mapView,
+        service,
+        services,
+        serviceMetaData,
+        layers,
+        layersRes,
+      });
+
+      return {
+        portalId,
+        edits: editsRes.response,
+      };
     }
   } catch (ex) {
     window.logErrorToGa(ex);

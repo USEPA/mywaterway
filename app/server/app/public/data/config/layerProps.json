@@ -1,0 +1,374 @@
+{
+  "commonFields": [
+    {
+      "name": "OBJECTID",
+      "type": "esriFieldTypeOID",
+      "actualType": "int",
+      "alias": "OBJECTID",
+      "sqlType": "sqlTypeInteger",
+      "length": 4,
+      "nullable": false,
+      "editable": false,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "GLOBALID",
+      "type": "esriFieldTypeGlobalID",
+      "alias": "GlobalID",
+      "sqlType": "sqlTypeOther",
+      "length": 38,
+      "nullable": false,
+      "editable": false,
+      "domain": null,
+      "defaultValue": "NEWID() WITH VALUES"
+    }
+  ],
+  "layerSpecificSettings": {
+    "boundariesLayer": {
+      "geometryType": "esriGeometryPolygon",
+      "description": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "esriFieldTypeString",
+          "alias": "name",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 15,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        }
+      ],
+      "drawingInfo": {
+        "renderer": {
+          "type": "simple",
+          "symbol": {
+            "type": "esriSFS",
+            "style": "esriSFSSolid",
+            "color": [204, 255, 255, 128],
+            "outline": {
+              "type": "esriSLS",
+              "color": [0, 0, 0],
+              "width": 2,
+              "style": "esriSLSDash"
+            }
+          }
+        }
+      }
+    },
+    "cyanLayer": {},
+    "dischargersLayer": {
+      "geometryType": "esriGeometryPoint",
+      "description": "",
+      "fields": [
+        {
+          "name": "CWPFormalEaCnt",
+          "type": "esriFieldTypeInteger",
+          "alias": "CWPFormalEaCnt",
+          "sqlType": "sqlTypeInteger",
+          "length": 22,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "CWPInspectionCount",
+          "type": "esriFieldTypeInteger",
+          "alias": "CWPInspectionCount",
+          "sqlType": "sqlTypeInteger",
+          "length": 22,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "CWPName",
+          "type": "esriFieldTypeString",
+          "alias": "CWPName",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 200,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "CWPPermitStatusDesc",
+          "type": "esriFieldTypeString",
+          "alias": "CWPPermitStatusDesc",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 20,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "CWPSNCStatus",
+          "type": "esriFieldTypeString",
+          "alias": "CWPSNCStatus",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 50,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "CWPStatus",
+          "type": "esriFieldTypeString",
+          "alias": "CWPStatus",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 120,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "FacLong",
+          "type": "esriFieldTypeDouble",
+          "alias": "FacLong",
+          "sqlType": "sqlTypeDouble",
+          "length": 22,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "FacLat",
+          "type": "esriFieldTypeDouble",
+          "alias": "FacLat",
+          "sqlType": "sqlTypeDouble",
+          "length": 22,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "RegistryID",
+          "type": "esriFieldTypeString",
+          "alias": "RegistryID",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 50,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "SourceID",
+          "type": "esriFieldTypeString",
+          "alias": "SourceID",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 30,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        }
+      ],
+      "drawingInfo": {
+        "renderer": {
+          "type": "simple",
+          "symbol": {
+            "type": "esriSMS",
+            "style": "esriSMSDiamond",
+            "color": [
+                255,
+                165,
+                0,
+                255
+            ],
+            "size": 15,
+            "outline": {
+              "type": "esriSLS",
+              "color": [
+                  0,
+                  0,
+                  0,
+                  255
+              ],
+              "width": 0.75,
+              "style": "esriSLSSolid"
+            }
+          }
+        }
+      }
+    },
+    "searchIconLayer": {
+      "geometryType": "esriGeometryPoint",
+      "description": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "esriFieldTypeString",
+          "alias": "name",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 15,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        }
+      ],
+      "drawingInfo": {
+        "renderer": {
+          "type": "simple",
+          "symbol": {
+            "type": "esriPMS",
+            "width": 25,
+            "height": 25,
+            "yoffset": 9
+          }
+        }
+      }
+    }
+  },
+  "defaultReferenceTableFields": [
+    {
+      "name": "OBJECTID",
+      "type": "esriFieldTypeOID",
+      "actualType": "int",
+      "alias": "OBJECTID",
+      "sqlType": "sqlTypeInteger",
+      "length": 4,
+      "nullable": false,
+      "editable": false,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "GLOBALID",
+      "type": "esriFieldTypeGlobalID",
+      "alias": "GlobalID",
+      "sqlType": "sqlTypeOther",
+      "length": 38,
+      "nullable": false,
+      "editable": false,
+      "domain": null,
+      "defaultValue": "NEWID() WITH VALUES"
+    },
+    {
+      "name": "LAYERID",
+      "type": "esriFieldTypeString",
+      "actualType": "nvarchar",
+      "alias": "LAYERID",
+      "sqlType": "sqlTypeNVarchar",
+      "length": 255,
+      "nullable": true,
+      "editable": true,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "LABEL",
+      "type": "esriFieldTypeString",
+      "actualType": "nvarchar",
+      "alias": "LABEL",
+      "sqlType": "sqlTypeNVarchar",
+      "length": 255,
+      "nullable": true,
+      "editable": true,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "LAYERTYPE",
+      "type": "esriFieldTypeString",
+      "actualType": "nvarchar",
+      "alias": "LAYERTYPE",
+      "sqlType": "sqlTypeNVarchar",
+      "length": 255,
+      "nullable": true,
+      "editable": true,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "TYPE",
+      "type": "esriFieldTypeString",
+      "actualType": "nvarchar",
+      "alias": "TYPE",
+      "sqlType": "sqlTypeNVarchar",
+      "length": 255,
+      "nullable": true,
+      "editable": true,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "URL",
+      "type": "esriFieldTypeString",
+      "actualType": "nvarchar",
+      "alias": "URL",
+      "sqlType": "sqlTypeNVarchar",
+      "length": -1,
+      "nullable": true,
+      "editable": true,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "URLTYPE",
+      "type": "esriFieldTypeString",
+      "actualType": "nvarchar",
+      "alias": "URLTYPE",
+      "sqlType": "sqlTypeNVarchar",
+      "length": -1,
+      "nullable": true,
+      "editable": true,
+      "domain": null,
+      "defaultValue": null
+    }
+  ],
+  "defaultLayerProps": {
+    "type": "Feature Layer",
+    "minScale": 0,
+    "maxScale": 0,
+    "allowGeometryUpdates": true,
+    "hasAttachments": false,
+    "htmlPopupType": "esriServerHTMLPopupTypeNone",
+    "hasM": false,
+    "hasZ": false,
+    "objectIdField": "OBJECTID",
+    "globalIdField": "GLOBALID",
+    "supportedQueryFormats": "JSON",
+    "hasStaticData": false,
+    "maxRecordCount": 4000,
+    "standardMaxRecordCount": 4000,
+    "tileMaxRecordCount": 4000,
+    "maxRecordCountFactor": 1,
+    "capabilities": "Create,Delete,Query,Update,Editing,Extract,Sync",
+    "exceedsLimitFactor": 1
+  },
+  "defaultTableProps": {
+    "type": "Table",
+    "editingInfo": {
+      "lastEditDate": 1455126059440
+    },
+    "minScale": 0,
+    "maxScale": 0,
+    "allowGeometryUpdates": false,
+    "hasAttachments": false,
+    "htmlPopupType": "esriServerHTMLPopupTypeNone",
+    "hasM": false,
+    "hasZ": false,
+    "objectIdField": "OBJECTID",
+    "globalIdField": "GLOBALID",
+    "supportedQueryFormats": "JSON",
+    "hasStaticData": false,
+    "maxRecordCount": 4000,
+    "standardMaxRecordCount": 4000,
+    "tileMaxRecordCount": 4000,
+    "maxRecordCountFactor": 1,
+    "capabilities": "Create,Delete,Query,Update,Editing,Extract,Sync",
+    "exceedsLimitFactor": 1
+  }
+}

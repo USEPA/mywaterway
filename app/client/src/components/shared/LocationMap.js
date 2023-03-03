@@ -1588,6 +1588,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           type: 'point',
           longitude: longitude,
           latitude: latitude,
+          spatialReference: {
+            wkid: 102100,
+          },
         };
         if (!searchIconLayer) return;
 
