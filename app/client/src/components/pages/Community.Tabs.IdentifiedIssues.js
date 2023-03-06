@@ -88,6 +88,7 @@ function IdentifiedIssues() {
     getAllFeatures,
     setVisibleLayers,
     setShowAllPolluted,
+    setViolatingDischargersOnly,
     cipSummary,
     watershed,
   } = useContext(LocationSearchContext);
@@ -97,7 +98,7 @@ function IdentifiedIssues() {
   const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
 
   const { dischargers: violatingDischargers, dischargersStatus } =
-    useDischargers(filterViolatingFacilities);
+    useDischargers();
 
   const [parameterToggleObject, setParameterToggleObject] = useState({});
 
@@ -106,6 +107,14 @@ function IdentifiedIssues() {
   const [showIssuesLayer, setShowIssuesLayer] = useState(true);
 
   const [showDischargersLayer, setShowDischargersLayer] = useState(false);
+
+  // Only show violating facilities on this tab
+  useEffect(() => {
+    setViolatingDischargersOnly(true);
+    return function cleanup() {
+      setViolatingDischargersOnly(false);
+    };
+  }, [setViolatingDischargersOnly]);
 
   // translate scientific parameter names
   const getMappedParameter = (parameterFields: Object, parameter: string) => {
@@ -272,6 +281,7 @@ function IdentifiedIssues() {
       const newVisibleLayers = {};
 
       if (cipSummary.status !== 'failure') {
+        newVisibleLayers['waterbodyLayer'] = visibleLayers['waterbodyLayer'];
         newVisibleLayers['issuesLayer'] =
           !issuesLayer || useCurrentValue
             ? visibleLayers['issuesLayer']
@@ -855,12 +865,4 @@ export default function IdentifiedIssuesContainer() {
       <IdentifiedIssues />
     </TabErrorBoundary>
   );
-}
-
-/*
-##  Utils
-*/
-
-function filterViolatingFacilities(facility) {
-  return facility['CWPSNCStatus']?.toLowerCase().indexOf('effluent') !== -1;
 }

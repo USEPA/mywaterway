@@ -13,6 +13,7 @@ import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   CommunityTabsContext,
@@ -23,6 +24,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 // utils
 import {
+  useAllWaterbodiesLayer,
   useDischargersLayer,
   useMonitoringLocationsLayer,
   useStreamgageLayer,
@@ -167,6 +169,9 @@ function Community() {
     setLastSearchText,
   ]);
 
+  const allWaterbodiesLayerVisible =
+    huc12 && window.location.pathname !== '/community';
+  useAllWaterbodiesLayer(allWaterbodiesLayerVisible);
   useDischargersLayer();
   useMonitoringLocationsLayer(huc12 ? `huc=${huc12}` : null);
   useStreamgageLayer();
@@ -279,13 +284,15 @@ function Community() {
 export default function CommunityContainer() {
   return (
     <EsriMapProvider>
-      <CommunityTabsProvider>
-        <MapHighlightProvider>
-          <FullscreenProvider>
-            <Community />
-          </FullscreenProvider>
-        </MapHighlightProvider>
-      </CommunityTabsProvider>
+      <LayersProvider>
+        <CommunityTabsProvider>
+          <MapHighlightProvider>
+            <FullscreenProvider>
+              <Community />
+            </FullscreenProvider>
+          </MapHighlightProvider>
+        </CommunityTabsProvider>
+      </LayersProvider>
     </EsriMapProvider>
   );
 }

@@ -27,12 +27,12 @@ import type { MutableRefObject, ReactNode } from 'react';
 ## Components
 */
 
-export function useSurroundingsWidget() {
+export function useSurroundingsWidget(visible: boolean) {
   const { visibleLayers } = useContext(LocationSearchContext);
   const {
     layers,
-    boundariesToggles: toggles,
-    boundariesTogglesDisabled: togglesDisabled,
+    boundariesToggles,
+    boundariesTogglesDisabled,
     surroundingsUpdating,
     surroundingsVisible,
   } = useLayersState();
@@ -56,20 +56,22 @@ export function useSurroundingsWidget() {
     render(
       <SurroundingsWidget
         surroundingsVisible={surroundingsVisible}
-        toggles={toggles}
-        togglesDisabled={togglesDisabled}
+        toggles={boundariesToggles}
+        togglesDisabled={boundariesTogglesDisabled}
         layers={includedLayers}
         layersUpdating={surroundingsUpdating}
+        triggerVisible={visible}
       />,
       container,
     );
   }, [
+    boundariesToggles,
+    boundariesTogglesDisabled,
     container,
     includedLayers,
     surroundingsUpdating,
     surroundingsVisible,
-    toggles,
-    togglesDisabled,
+    visible,
   ]);
 
   return container;
@@ -81,6 +83,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
     setContentVisible(!contentVisible);
   }, [contentVisible]);
 
+  const { triggerVisible, ...rest } = props;
   const { layers, layersUpdating } = props;
 
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -89,7 +92,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
     <>
       {triggerRef.current && (
         <Portal container={triggerRef.current}>
-          <SurroundingsWidgetContent {...props} visible={contentVisible} />
+          <SurroundingsWidgetContent {...rest} visible={contentVisible} />
         </Portal>
       )}
       <SurroundingsWidgetTrigger
@@ -99,6 +102,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
         updating={Object.values(layersUpdating).some(
           (isUpdating) => isUpdating === true,
         )}
+        visible={triggerVisible}
       />
     </>
   );
@@ -166,6 +170,7 @@ function SurroundingsWidgetTrigger({
   forwardedRef,
   onClick,
   updating,
+  visible,
 }: SurroundingsWidgetTriggerProps) {
   const [hover, setHover] = useState(false);
 
@@ -176,6 +181,8 @@ function SurroundingsWidgetTrigger({
   let iconClass = updating
     ? 'esri-icon-loading-indicator esri-rotating'
     : 'esri-icon esri-icon-globe';
+
+  if (!visible) return null;
 
   return (
     <div
@@ -299,9 +306,13 @@ type SurroundingsWidgetTriggerProps = {
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
   onClick: React.MouseEventHandler<HTMLDivElement>;
   updating: boolean;
+  visible: boolean;
 };
 
-type SurroundingsWidgetContentProps = SurroundingsWidgetProps & {
+type SurroundingsWidgetContentProps = Omit<
+  SurroundingsWidgetProps,
+  'triggerVisible'
+> & {
   visible: boolean;
 };
 
@@ -311,4 +322,5 @@ type SurroundingsWidgetProps = {
   surroundingsVisible: LayersState['surroundingsVisible'];
   toggles: LayersState['boundariesToggles'];
   togglesDisabled: LayersState['boundariesTogglesDisabled'];
+  triggerVisible: boolean;
 };

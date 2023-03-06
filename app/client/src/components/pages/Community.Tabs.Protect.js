@@ -217,10 +217,13 @@ function Protect() {
     protectedAreasHighlightLayer,
     waterbodyLayer,
     cipSummary,
-    allWaterbodiesLayer,
   } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayers();
+  const {
+    monitoringLocationsLayer,
+    usgsStreamgagesLayer,
+    waterbodyLayer: allWaterbodiesLayer,
+  } = useLayers();
 
   const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
 

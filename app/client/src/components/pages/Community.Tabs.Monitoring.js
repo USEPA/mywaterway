@@ -1018,7 +1018,9 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
     if (!monitoringLocationsLayer || !monitoringGroups) return;
+
     const layer = getEnclosedLayer(monitoringLocationsLayer);
+    if (!layer) return;
 
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,

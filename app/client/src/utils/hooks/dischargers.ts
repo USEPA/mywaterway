@@ -3,14 +3,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
@@ -70,19 +63,17 @@ export function useDischargersLayer() {
   });
 }
 
-export function useDischargers(filter?: (attributes: Facility) => boolean) {
+export function useDischargers() {
   const { data, status } = useLocalData(localFetchedDataKey);
 
-  const filteredData = useMemo(() => {
-    return filter ? data.filter(filter) : data;
-  }, [data, filter]);
-
-  return { dischargers: filteredData, dischargersStatus: status };
+  return { dischargers: data, dischargersStatus: status };
 }
 
 function useUpdateData() {
   // Build the data update function
-  const { huc12, mapView } = useContext(LocationSearchContext);
+  const { huc12, mapView, violatingDischargersOnly } = useContext(
+    LocationSearchContext,
+  );
   const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
@@ -94,14 +85,18 @@ function useUpdateData() {
     if (!huc12) return;
     if (services.status !== 'success') return;
 
+    const fetchPromise = fetchPermittedDischargers(
+      `p_wbd=${huc12}`,
+      services.data,
+      controller.signal,
+    );
+
     fetchAndTransformData(
-      fetchPermittedDischargers(
-        `p_wbd=${huc12}`,
-        services.data,
-        controller.signal,
-      ),
+      fetchPromise,
       fetchedDataDispatch,
       localFetchedDataKey,
+      null,
+      violatingDischargersOnly,
     ).then((data) => {
       setHucData(data);
     });
@@ -109,7 +104,7 @@ function useUpdateData() {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, services]);
+  }, [fetchedDataDispatch, huc12, services, violatingDischargersOnly]);
 
   const extentFilter = useRef<string | null>(null);
 
@@ -225,15 +220,22 @@ async function fetchAndTransformData(
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'permittedDischargers' | 'surroundingPermittedDischargers',
   dataToExclude?: Facility[] | null,
+  violatingOnly = false,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
   const response = await promise;
   if (response.status === 'success') {
     const permittedDischargers = transformServiceData(response.data) ?? [];
-    const payload = dataToExclude
+
+    const includedData = dataToExclude
       ? filterData(permittedDischargers, dataToExclude, dataKeys)
       : permittedDischargers;
+
+    const payload = violatingOnly
+      ? filterViolatingFacilities(includedData)
+      : includedData;
+
     dispatch({
       type: 'success',
       id: fetchedDataId,
@@ -303,6 +305,14 @@ async function fetchPermittedDischargers(
   } catch (err) {
     return handleFetchError(err);
   }
+}
+
+function filterViolatingFacilities(facilities: Facility[]) {
+  return facilities.filter(
+    (facility) =>
+      facility['CWPSNCStatus'] !== null &&
+      facility['CWPSNCStatus']?.toLowerCase().indexOf('effluent') !== -1,
+  );
 }
 
 async function getExtentFilter(mapView: __esri.MapView | '') {

@@ -389,6 +389,7 @@ const tabs = [
       dischargersLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
+      waterbodyLayer: false,
     },
   },
   {

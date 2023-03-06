@@ -23,7 +23,11 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
-import { isBoundariesToggleLayerId, useLayers } from 'contexts/Layers';
+import {
+  isBoundariesToggleLayerId,
+  useLayers,
+  useLayersDispatch,
+} from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -330,8 +334,10 @@ function useWaterbodyOnMap(
   defaultCondition: WaterbodyCondition = 'hidden',
 ) {
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
-  const { allWaterbodiesLayer, pointsLayer, linesLayer, areasLayer, mapView } =
-    useContext(LocationSearchContext);
+  const { pointsLayer, linesLayer, areasLayer, mapView } = useContext(
+    LocationSearchContext,
+  );
+  const { waterbodyLayer: allWaterbodiesLayer } = useLayers();
 
   const setRenderer = useCallback(
     (layer, geometryType, attribute, alpha = null) => {
@@ -384,16 +390,16 @@ function useWaterbodyOnMap(
   }, [attributeName, areasLayer, setRenderer]);
 
   useEffect(() => {
-    if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
+    if (!allWaterbodiesLayer) return;
 
     const layers = allWaterbodiesLayer.layers;
     const attribute = allWaterbodiesAttribute
       ? allWaterbodiesAttribute
       : attributeName;
 
-    setRenderer(layers.items[2], 'point', attribute, allWaterbodiesAlpha);
-    setRenderer(layers.items[1], 'polyline', attribute, allWaterbodiesAlpha);
-    setRenderer(layers.items[0], 'polygon', attribute, allWaterbodiesAlpha);
+    setRenderer(layers.at(2), 'point', attribute, allWaterbodiesAlpha);
+    setRenderer(layers.at(1), 'polyline', attribute, allWaterbodiesAlpha);
+    setRenderer(layers.at(0), 'polygon', attribute, allWaterbodiesAlpha);
   }, [
     allWaterbodiesAttribute,
     attributeName,
@@ -908,12 +914,12 @@ function useDynamicPopup() {
 function useSharedLayers() {
   const services = useServicesContext();
   const {
-    setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
     setWsioHealthIndexLayer,
     setWildScenicRiversLayer,
   } = useContext(LocationSearchContext);
+  const layersDispatch = useLayersDispatch();
 
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
@@ -1539,12 +1545,16 @@ function useSharedLayers() {
       id: 'allWaterbodiesLayer',
       title: 'All Waterbodies',
       listMode: 'hide',
-      visible: true,
+      visible: false,
       minScale,
       opacity: 0.3,
     });
     allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
-    setAllWaterbodiesLayer(allWaterbodiesLayer);
+    layersDispatch({
+      type: 'layer',
+      id: 'waterbodyLayer',
+      payload: allWaterbodiesLayer,
+    });
 
     return allWaterbodiesLayer;
   }
@@ -1755,6 +1765,7 @@ export {
   useWaterbodyHighlight,
 };
 
+export * from './allWaterbodies';
 export * from './boundariesToggleLayer';
 export * from './dischargers';
 export * from './monitoringLocations';

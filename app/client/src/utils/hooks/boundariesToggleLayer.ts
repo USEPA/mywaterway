@@ -99,12 +99,13 @@ function useBoundariesToggleLayer<
       () => mapView?.stationary === true,
       () => {
         if (
-          mapView.scale >= minScale ||
+          boundariesTogglesDisabled[layerId] ||
           surroundingsVisible[layerId] === false ||
           visibleLayers[layerId] === false
         ) {
           return;
         }
+
         layersDispatch({
           type: 'surroundingsUpdating',
           id: layerId,
@@ -133,6 +134,7 @@ function useBoundariesToggleLayer<
     };
   }, [
     abort,
+    boundariesTogglesDisabled,
     getSignal,
     handleGroupKey,
     layerId,

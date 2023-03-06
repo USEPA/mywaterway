@@ -31,6 +31,7 @@ import MapLegend from 'components/shared/MapLegend';
 import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -56,7 +57,7 @@ import type {
   SetStateAction,
 } from 'react';
 import type { Container } from 'react-dom';
-import type { Feature, ScaledLayer, ServicesState } from 'types';
+import type { Feature, ServicesState } from 'types';
 
 /*
 ## Styles
@@ -326,6 +327,7 @@ function MapWidgets({
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
     useAddDataWidgetState();
 
+  const pathname = window.location.pathname;
   const abortSignal = useAbortSignal();
   const watchHandles = useMemo<IHandle[]>(() => [], []);
   const observers = useMemo<MutationObserver[]>(() => [], []);
@@ -360,10 +362,6 @@ function MapWidgets({
     setUpstreamExtent,
     setErrorMessage,
     getWatershed,
-    allWaterbodiesLayer,
-    allWaterbodiesWidgetDisabled,
-    setAllWaterbodiesWidgetDisabled,
-    getAllWaterbodiesWidgetDisabled,
     setMapView,
     getHucBoundaries,
   } = useContext(LocationSearchContext);
@@ -614,8 +612,8 @@ function MapWidgets({
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode, observers]);
 
-  // Create the surrounding locations widget
-  const surroundingsWidget = useSurroundingsWidget();
+  const surroundingsWidgetVisible = !pathname.includes('state');
+  const surroundingsWidget = useSurroundingsWidget(surroundingsWidgetVisible);
   useEffect(() => {
     if (!view?.ui) return;
 
@@ -979,8 +977,8 @@ function MapWidgets({
     if (!upstreamWidget) return;
 
     if (
-      window.location.pathname === '/community' ||
-      (window.location.pathname.includes('/community') && !huc12)
+      pathname === '/community' ||
+      (pathname.includes('/community') && !huc12)
     ) {
       // disable upstream widget on community home or invalid searches
       setUpstreamWidgetDisabled(true);
@@ -989,7 +987,7 @@ function MapWidgets({
 
     // display and enable the upstream widget
     setUpstreamWidgetDisabled(false);
-  }, [huc12, upstreamWidget, setUpstreamWidgetDisabled]);
+  }, [huc12, upstreamWidget, setUpstreamWidgetDisabled, pathname]);
 
   useEffect(() => {
     if (!upstreamWidget) {
@@ -1008,16 +1006,13 @@ function MapWidgets({
   // create upstream widget
   const [upstreamWidgetCreated, setUpstreamWidgetCreated] = useState(false);
   useEffect(() => {
-    if (
-      !window.location.pathname.includes('/community') &&
-      !window.location.pathname.includes('/tribe')
-    )
+    if (!pathname.includes('/community') && !pathname.includes('/tribe'))
       return;
     if (upstreamWidgetCreated || !map || !view?.ui) return;
 
     const node = document.createElement('div');
 
-    const widget = window.location.pathname.includes('/community') ? (
+    const widget = pathname.includes('/community') ? (
       <ShowCurrentUpstreamWatershed
         abortSignal={abortSignal}
         getCurrentExtent={getCurrentExtent}
@@ -1074,6 +1069,7 @@ function MapWidgets({
     getWatershed,
     map,
     mapRef,
+    pathname,
     services,
     setCurrentExtent,
     setErrorMessage,
@@ -1086,104 +1082,8 @@ function MapWidgets({
     view,
   ]);
 
-  const [allWaterbodiesWidget, setAllWaterbodiesWidget] =
-    useState<HTMLDivElement | null>(null);
-  const [allWaterbodiesLayerVisible, setAllWaterbodiesLayerVisible] =
-    useState(true);
+  const { surroundingsVisible } = useLayersState();
 
-  // watch for location changes and disable/enable the all waterbodies widget
-  // accordingly widget should only be displayed on valid Community page location
-  useEffect(() => {
-    if (!allWaterbodiesWidget) return;
-
-    const pathname = window.location.pathname;
-    if (!pathname.includes('/community') && !pathname.includes('/tribe')) {
-      // hide all waterbodies widget on other pages
-      allWaterbodiesWidget.style.display = 'none';
-      allWaterbodiesLayer.visible = false;
-      return;
-    }
-
-    if (!pathname.includes('/tribe') && (!huc12 || pathname === '/community')) {
-      // disable all waterbodies widget on community home or invalid searches
-      setAllWaterbodiesWidgetDisabled(true);
-      allWaterbodiesLayer.visible = false;
-      return;
-    }
-
-    // change the minScale of the waterbodies layer for the tribal page
-    if (pathname.includes('/tribe')) {
-      allWaterbodiesLayer.minScale = 4622350;
-      allWaterbodiesLayer.layers.forEach((layer: ScaledLayer) => {
-        layer.minScale = allWaterbodiesLayer.minScale;
-      });
-
-      // enable the all waterbodies widget but default visibility to off
-      setAllWaterbodiesWidgetDisabled(false);
-      setAllWaterbodiesLayerVisible(false);
-      allWaterbodiesLayer.visible = false;
-      return;
-    }
-
-    // display and enable the all waterbodies widget
-    setAllWaterbodiesWidgetDisabled(false);
-    allWaterbodiesLayer.visible = true;
-  }, [
-    huc12,
-    allWaterbodiesLayer,
-    allWaterbodiesWidget,
-    setAllWaterbodiesWidgetDisabled,
-  ]);
-
-  // disable the all waterbodies widget if on the community home page
-  useEffect(() => {
-    const pathname = window.location.pathname;
-    if (
-      !allWaterbodiesWidget ||
-      (!pathname.includes('/community') && !pathname.includes('/tribe'))
-    ) {
-      return;
-    }
-
-    if (allWaterbodiesWidgetDisabled) {
-      allWaterbodiesWidget.style.opacity = '0.5';
-      allWaterbodiesWidget.style.cursor = 'default';
-    } else {
-      allWaterbodiesWidget.style.opacity = '1';
-      allWaterbodiesWidget.style.cursor = 'pointer';
-    }
-  }, [allWaterbodiesWidget, allWaterbodiesWidgetDisabled]);
-
-  // create all waterbodies widget
-  const [
-    allWaterbodiesWidgetCreated,
-    setAllWaterbodiesWidgetCreated, //
-  ] = useState(false);
-  useEffect(() => {
-    if (allWaterbodiesWidgetCreated || !view || !view.ui) return;
-
-    const node = document.createElement('div');
-    view.ui.add(node, { position: 'top-right', index: 2 });
-    setAllWaterbodiesWidget(node); // store the widget in context so it can be shown or hidden later
-    render(
-      <ShowAllWaterbodies
-        allWaterbodiesLayer={allWaterbodiesLayer}
-        getDisabled={getAllWaterbodiesWidgetDisabled}
-        mapView={view}
-        setAllWaterbodiesLayerVisible={setAllWaterbodiesLayerVisible}
-        setDisabled={setAllWaterbodiesWidgetDisabled}
-      />,
-      node,
-    );
-    setAllWaterbodiesWidgetCreated(true);
-  }, [
-    allWaterbodiesLayer,
-    allWaterbodiesWidgetCreated,
-    getAllWaterbodiesWidgetDisabled,
-    setAllWaterbodiesWidget,
-    setAllWaterbodiesWidgetDisabled,
-    view,
-  ]);
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
   useEffect(() => {
@@ -1195,7 +1095,7 @@ function MapWidgets({
     );
   }, [
     additionalLegendInfo,
-    allWaterbodiesLayerVisible,
+    surroundingsVisible,
     displayEsriLegend,
     hmwLegendNode,
     upstreamLayerVisible,
@@ -1385,96 +1285,6 @@ function ExpandCollapse({
   );
 }
 
-type ShowAllWaterbodiesProps = {
-  allWaterbodiesLayer: __esri.GroupLayer | '';
-  getDisabled: () => boolean;
-  mapView: __esri.MapView;
-  setAllWaterbodiesLayerVisible: (visible: boolean) => void;
-  setDisabled: (disabled: boolean) => void;
-};
-
-// Defines the show all waterbodies widget
-function ShowAllWaterbodies({
-  allWaterbodiesLayer,
-  getDisabled,
-  mapView,
-  setAllWaterbodiesLayerVisible,
-  setDisabled,
-}: ShowAllWaterbodiesProps) {
-  const [firstLoad, setFirstLoad] = useState(true);
-  const [hover, setHover] = useState(false);
-
-  // store loading state to Upstream Watershed map widget icon
-  const [allWaterbodiesLoading, setAllWaterbodiesLoading] = useState(false);
-
-  // create a watcher to control the loading spinner for the widget
-  useEffect(() => {
-    if (!allWaterbodiesLayer) return;
-    if (firstLoad) {
-      setFirstLoad(false);
-
-      reactiveUtils.watch(
-        () => mapView.updating,
-        () => {
-          setAllWaterbodiesLoading(mapView.updating);
-        },
-      );
-
-      reactiveUtils.watch(
-        () => mapView.scale,
-        () => {
-          const newWidgetDisabledVal = allWaterbodiesLayer
-            ? mapView.scale >= allWaterbodiesLayer.minScale
-            : true;
-          if (newWidgetDisabledVal !== getDisabled()) {
-            setDisabled(newWidgetDisabledVal);
-          }
-        },
-      );
-    }
-  }, [
-    allWaterbodiesLayer,
-    firstLoad,
-    getDisabled,
-    mapView.scale,
-    mapView.updating,
-    setDisabled,
-  ]);
-
-  const widgetDisabled = getDisabled();
-
-  // get the layer from the mapView
-  const layer = mapView.map.layers.find((l) => l.id === 'allWaterbodiesLayer');
-
-  let title = 'View Surrounding Waterbodies';
-  if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
-  else if (layer?.visible) title = 'Hide Surrounding Waterbodies';
-
-  return (
-    <div
-      title={title}
-      style={!widgetDisabled && hover ? divHoverStyle : divStyle}
-      onMouseOver={() => setHover(true)}
-      onMouseOut={() => setHover(false)}
-      onClick={(_ev) => {
-        // if widget is disabled do nothing
-        if (widgetDisabled || !layer) return;
-
-        layer.visible = !layer.visible;
-        setAllWaterbodiesLayerVisible(layer.visible);
-      }}
-    >
-      <span
-        className={
-          allWaterbodiesLoading && !widgetDisabled && layer?.visible
-            ? 'esri-icon-loading-indicator esri-rotating'
-            : 'esri-icon-maps'
-        }
-        style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
-      />
-    </div>
-  );
-}
 function retrieveUpstreamWatershed(
   abortSignal: AbortSignal,
   getCurrentExtent: () => __esri.Extent,

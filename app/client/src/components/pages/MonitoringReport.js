@@ -42,7 +42,7 @@ import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-import { useLayers } from 'contexts/Layers';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
@@ -1867,6 +1867,7 @@ function MonitoringReportContent() {
   );
   const { monitoringLocations, monitoringLocationsStatus: siteStatus } =
     useMonitoringLocations();
+
   const site = monitoringLocations[0] ?? {};
 
   const { fullscreenActive } = useFullscreenState();
@@ -2021,7 +2022,9 @@ function MonitoringReport() {
   return (
     <FullscreenProvider>
       <MapHighlightProvider>
-        <MonitoringReportContent />
+        <LayersProvider>
+          <MonitoringReportContent />
+        </LayersProvider>
       </MapHighlightProvider>
     </FullscreenProvider>
   );

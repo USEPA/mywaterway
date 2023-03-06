@@ -44,7 +44,7 @@ import {
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
-import { useLayers } from 'contexts/Layers';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import { useServicesContext } from 'contexts/LookupFiles';
 import {
   useMapHighlightState,
@@ -53,6 +53,7 @@ import {
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import {
+  useAllWaterbodiesLayer,
   useMonitoringLocations,
   useMonitoringLocationsLayer,
   useSharedLayers,
@@ -170,6 +171,8 @@ function TribalMapList({
     waterbodyLayer,
   } = useContext(LocationSearchContext);
 
+  useAllWaterbodiesLayer(false, 4622350);
+
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
@@ -271,6 +274,7 @@ function TribalMapList({
       `organization=${activeState.wqxIds.join('&organization=')}`,
     );
   }, [activeState]);
+
   useMonitoringLocationsLayer(monitoringLocationsFilter);
 
   // scroll to the tribe map when the user switches to full screen mode
@@ -1072,7 +1076,9 @@ export default function TribalMapListContainer({ ...props }: Props) {
     <MapHighlightProvider>
       <MapErrorBoundary>
         <LocationSearchProvider>
-          <TribalMapList {...props} />
+          <LayersProvider>
+            <TribalMapList {...props} />
+          </LayersProvider>
         </LocationSearchProvider>
       </MapErrorBoundary>
     </MapHighlightProvider>
