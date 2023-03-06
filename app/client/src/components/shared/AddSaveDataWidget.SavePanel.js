@@ -398,8 +398,7 @@ function SavePanel({ visible }: Props) {
       return;
     }
 
-    // TODO Create publishing logic
-    const response = await publish({
+    await publish({
       portal,
       mapView,
       services,
@@ -408,7 +407,6 @@ function SavePanel({ visible }: Props) {
       serviceMetaData: {
         description: '',
         label: name,
-        value: '', // TODO - Not sure if we will need this yet
       },
     });
 
@@ -436,7 +434,13 @@ function SavePanel({ visible }: Props) {
       if (saveLayerFilter.value === 'Free' && value.requiresFeatureService) {
         return;
       }
-      layersToPublish.push(value);
+
+      // get the widgetLayer for handling layers added via the Add Data Widget
+      const widgetLayer = widgetLayers.find((l) => l.layerId === value.id);
+      layersToPublish.push({
+        ...value,
+        widgetLayer,
+      });
     });
 
     if (layersToPublish.length === 0) {

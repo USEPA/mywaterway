@@ -164,10 +164,7 @@ async function getFeatureServiceWrapped(
   serviceMetaData: ServiceMetaDataType,
 ) {
   try {
-    let query = `orgid:${escapeForLucene(portal.user.orgId)}`;
-    query += serviceMetaData.value
-      ? ` AND id:${serviceMetaData.value}`
-      : ` AND name:${serviceMetaData.label}`;
+    let query = `orgid:${escapeForLucene(portal.user.orgId)} AND name:${serviceMetaData.label}`;
     const queryRes = await portal.queryItems({ query });
 
     const exactMatch = queryRes.results.find(
@@ -305,6 +302,13 @@ export async function createFeatureLayers(
     const layerIds: string[] = [];
     for (const layer of layers) {
       if (!layer.requiresFeatureService) continue;
+
+      // handle layers added via file upload
+      if(layer.widgetLayer?.type === 'file') {
+        layerIds.push(layer.layer.id);
+        layersParams.push(layer.widgetLayer.rawLayer.layerDefinition);
+        continue;
+      }
 
       const properties = layerProps.data.layerSpecificSettings[layer.layer.id];
       layerIds.push(layer.layer.id);
@@ -455,13 +459,15 @@ async function applyEdits({
 
       // TODO need to figure out how to handle layers that need to be split up
 
-      const adds: any[] = [];
+      let adds: any[] = [];
       if (layer.id === 'dischargersLayer') {
         const dischargersGroupLayer = layer.layer as __esri.GroupLayer;
         const dischargersLayer = dischargersGroupLayer.findLayerById(
           `${dischargersGroupLayer.id}-features`,
         );
         await processLayerFeatures(dischargersLayer, adds);
+      } else if (layer.widgetLayer?.type === 'file') {
+        adds = layer.widgetLayer.rawLayer.featureSet.features;
       } else {
         await processLayerFeatures(layer.layer, adds);
       }

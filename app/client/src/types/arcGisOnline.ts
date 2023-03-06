@@ -1,3 +1,5 @@
+import { WidgetLayer } from 'types/index';
+
 export type EditsType = {
   count: number;
   edits: (ScenarioEditsType | LayerEditsType)[];
@@ -102,24 +104,7 @@ export type LayerType = {
   layer: __esri.Layer;
   requiresFeatureService: boolean;
   toggled: boolean;
-
-  pointsId: number;
-  uuid: string;
-  layerId: string;
-  portalId: string;
-  value: string;
-  name: string;
-  layerType: LayerTypeName;
-  editType: EditType;
-  visible: boolean;
-  listMode: 'hide' | 'hide-children' | 'show';
-  sort: number;
-  geometryType: string;
-  addedFrom: AddedFrom;
-  status: PublishStatus;
-  sketchLayer: __esri.GraphicsLayer | __esri.FeatureLayer;
-  pointsLayer: __esri.GraphicsLayer | null;
-  parentLayer: __esri.GroupLayer | null;
+  widgetLayer?: WidgetLayer;
 };
 
 export type PortalLayerType = {

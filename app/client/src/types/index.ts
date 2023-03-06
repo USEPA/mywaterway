@@ -446,6 +446,7 @@ export type WidgetLayer =
       renderer: __esri.RendererProperties;
       source: __esri.Graphic[];
       title: string;
+      rawLayer: any;
     };
 
 export interface WildScenicRiverAttributes {

@@ -524,6 +524,7 @@ function FilePanel() {
         type: 'file',
         layerId: newLayer.id,
         layer: newLayer,
+        rawLayer: layer,
       };
       featureLayers.push(layerToAdd);
     });
