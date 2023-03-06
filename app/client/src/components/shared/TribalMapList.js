@@ -44,6 +44,7 @@ import {
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
+import { useLayers } from 'contexts/Layers';
 import { useServicesContext } from 'contexts/LookupFiles';
 import {
   useMapHighlightState,
@@ -51,9 +52,9 @@ import {
 } from 'contexts/MapHighlight';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
-import { fetchCheck } from 'utils/fetchUtils';
 import {
   useMonitoringLocations,
+  useMonitoringLocationsLayer,
   useSharedLayers,
   useWaterbodyHighlight,
 } from 'utils/hooks';
@@ -63,9 +64,7 @@ import {
   getPopupTitle,
   getPopupContent,
 } from 'utils/mapFunctions';
-import { browserIsCompatibleWithArcGIS, parseAttributes } from 'utils/utils';
-// config
-import { monitoringClusterSettings } from 'components/shared/LocationMap';
+import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // errors
 import {
   esriMapLoadingFailure,
@@ -75,7 +74,6 @@ import {
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
-import { colors } from 'styles/index.js';
 import { tabsStyles } from 'components/shared/ContentTabs';
 
 const mapPadding = 20;
@@ -166,21 +164,19 @@ function TribalMapList({
     errorMessage,
     linesLayer,
     mapView,
-    setMonitoringGroups,
-    monitoringLocations,
-    setMonitoringLocations,
-    monitoringLocationsLayer,
     pointsLayer,
     visibleLayers,
     setVisibleLayers,
     waterbodyLayer,
   } = useContext(LocationSearchContext);
 
+  const { monitoringLocationsLayer } = useLayers();
+  const { monitoringLocations, monitoringLocationsStatus } =
+    useMonitoringLocations();
+
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
   const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
     useState(true);
-
-  const services = useServicesContext();
 
   // switch the base map to
   useEffect(() => {
@@ -265,29 +261,17 @@ function TribalMapList({
       .catch(handelQueryError);
   }, [pointsLayer, linesLayer, areasLayer, mapView, filter]);
 
+  const [monitoringLocationsFilter, setMonitoringLocationsFilter] =
+    useState(null);
   // get the wqx monitoring locations associated with the selected tribe
   useEffect(() => {
     if (!activeState?.wqxIds) return;
 
-    const url =
-      `${services.data.waterQualityPortal.monitoringLocation}` +
-      `search?mimeType=geojson&zip=no&organization=${activeState.wqxIds.join(
-        '&organization=',
-      )}`;
-
-    fetchCheck(url)
-      .then((res) => {
-        setMonitoringLocations({
-          status: 'success',
-          data: res,
-        });
-        setMonitoringGroups(null);
-      })
-      .catch((err) => {
-        console.error(err);
-        setMonitoringLocations({ status: 'failure', data: {} });
-      });
-  }, [activeState, services, setMonitoringGroups, setMonitoringLocations]);
+    setMonitoringLocationsFilter(
+      `organization=${activeState.wqxIds.join('&organization=')}`,
+    );
+  }, [activeState]);
+  useMonitoringLocationsLayer(monitoringLocationsFilter);
 
   // scroll to the tribe map when the user switches to full screen mode
   useEffect(() => {
@@ -324,7 +308,7 @@ function TribalMapList({
             : waterbodiesDisplayed;
       }
 
-      if (monitoringLocations.status !== 'failure') {
+      if (monitoringLocationsStatus !== 'failure') {
         layers.monitoringLocationsLayer =
           !monitoringLocationsLayer || useCurrentValue
             ? visibleLayers.monitoringLocationsLayer
@@ -341,7 +325,7 @@ function TribalMapList({
       }
     },
     [
-      monitoringLocations,
+      monitoringLocationsStatus,
       waterbodyLayer,
       monitoringLocationsLayer,
       waterbodiesDisplayed,
@@ -431,20 +415,20 @@ function TribalMapList({
 
         <div css={keyMetricStyles}>
           {!monitoringLocationsLayer ||
-          monitoringLocations.status === 'fetching' ? (
+          monitoringLocationsStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(monitoringLocations.data?.features?.length)
-                  ? monitoringLocations.data.features.length
+                {Boolean(monitoringLocations.length)
+                  ? monitoringLocations.length
                   : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Monitoring Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(monitoringLocations.data?.features?.length) &&
+                    Boolean(monitoringLocations.length) &&
                     monitoringLocationsDisplayed
                   }
                   onChange={(_checked) => {
@@ -461,9 +445,7 @@ function TribalMapList({
                       waterbodyLayer: waterbodiesDisplayed,
                     });
                   }}
-                  disabled={
-                    !Boolean(monitoringLocations.data?.features?.length)
-                  }
+                  disabled={!Boolean(monitoringLocations.length)}
                   ariaLabel="Monitoring Stations"
                 />
               </div>
@@ -649,7 +631,6 @@ function TribalMap({
     linesLayer,
     setLinesLayer,
     mapView,
-    setMonitoringLocationsLayer,
     pointsLayer,
     setPointsLayer,
     setVisibleLayers,
@@ -658,13 +639,11 @@ function TribalMap({
     setUpstreamLayer,
   } = useContext(LocationSearchContext);
 
+  const { monitoringLocationsLayer } = useLayers();
+
   const navigate = useNavigate();
   const services = useServicesContext();
   useWaterbodyHighlight();
-
-  // updates the features on the monitoringStationsLayer
-  // and the monitoring groups
-  useMonitoringLocations();
 
   const getSharedLayers = useSharedLayers();
   const [layers, setLayers] = useState(null);
@@ -679,6 +658,7 @@ function TribalMap({
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [selectedTribeLayer, setSelectedTribeLayer] = useState(null);
   useEffect(() => {
+    if (!monitoringLocationsLayer) return;
     if (!activeState?.attainsId || !getSharedLayers || layersInitialized) {
       return;
     }
@@ -771,71 +751,6 @@ function TribalMap({
     });
     setSelectedTribeLayer(selectedTribeLayer);
 
-    const monitoringLocationsLayer = new FeatureLayer({
-      id: 'monitoringLocationsLayer',
-      title: 'Past Water Conditions',
-      listMode: 'hide-children',
-      visible: true,
-      legendEnabled: true,
-      fields: [
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'monitoringType', type: 'string' },
-        { name: 'siteId', type: 'string' },
-        { name: 'orgId', type: 'string' },
-        { name: 'orgName', type: 'string' },
-        { name: 'locationLongitude', type: 'double' },
-        { name: 'locationLatitude', type: 'double' },
-        { name: 'locationName', type: 'string' },
-        { name: 'locationType', type: 'string' },
-        { name: 'locationUrl', type: 'string' },
-        { name: 'providerName', type: 'string' },
-        { name: 'totalSamples', type: 'integer' },
-        { name: 'totalsByGroup', type: 'string' },
-        { name: 'totalMeasurements', type: 'integer' },
-        { name: 'timeframe', type: 'string' },
-        { name: 'uniqueId', type: 'string' },
-      ],
-      objectIdField: 'OBJECTID',
-      outFields: ['*'],
-      // NOTE: initial graphic below will be replaced with UGSG streamgages
-      source: [
-        new Graphic({
-          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { OBJECTID: 1 },
-        }),
-      ],
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-marker',
-          style: 'circle',
-          color: colors.lightPurple(0.5),
-          outline: {
-            width: 0.75,
-          },
-        },
-      },
-      featureReduction: monitoringClusterSettings,
-      popupTemplate: {
-        outFields: ['*'],
-        title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) => {
-          // Parse non-scalar variables
-          const structuredProps = ['totalsByGroup', 'timeframe'];
-          feature.graphic.attributes = parseAttributes(
-            structuredProps,
-            feature.graphic.attributes,
-          );
-          return getPopupContent({
-            feature: feature.graphic,
-            services,
-            navigate,
-          });
-        },
-      },
-    });
-    setMonitoringLocationsLayer(monitoringLocationsLayer);
-
     const upstreamLayer = new GraphicsLayer({
       id: 'upstreamWatershed',
       title: 'Upstream Watershed',
@@ -863,31 +778,22 @@ function TribalMap({
     activeState,
     getSharedLayers,
     layersInitialized,
+    monitoringLocationsLayer,
     navigate,
     services,
     setAreasLayer,
     setLinesLayer,
-    setMonitoringLocationsLayer,
     setPointsLayer,
     setUpstreamLayer,
     setVisibleLayers,
     setWaterbodyLayer,
   ]);
 
-  // get the tribalLayer from the mapView
-  const [tribalLayer, setTribalLayer] = useState(null);
-  useEffect(() => {
-    if (!mapView) return;
-
-    // find the tribal layer
-    const tempTribalLayer = mapView.map.layers.find(
-      (layer) => layer.id === 'tribalLayer',
-    );
-    setTribalLayer(tempTribalLayer);
-  }, [mapView]);
-
   // get gis data for selected tribe
   useEffect(() => {
+    // get the tribalLayer from the mapView
+    const tribalLayer = mapView?.map?.findLayerById('tribalLayer');
+
     if (!selectedTribeLayer || !tribalLayer) return;
 
     selectedTribeLayer.graphics.removeAll();
@@ -943,13 +849,7 @@ function TribalMap({
         console.error(error);
         setTribalBoundaryError(true);
       });
-  }, [
-    activeState,
-    mapView,
-    selectedTribeLayer,
-    setTribalBoundaryError,
-    tribalLayer,
-  ]);
+  }, [activeState, mapView, selectedTribeLayer, setTribalBoundaryError]);
 
   // zoom to graphics on the map, and update the home widget's extent
   const [mapLoading, setMapLoading] = useState(true);
@@ -1048,38 +948,26 @@ type MonitoringTabProps = {
 };
 
 function MonitoringTab({ activeState }: MonitoringTabProps) {
-  const { monitoringGroups, monitoringLocationsLayer } = useContext(
-    LocationSearchContext,
-  );
   const services = useServicesContext();
 
-  // get the monitoring locations from the monitoringGroups variable
-  const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
-    useState([]);
-  useEffect(() => {
-    if (!monitoringGroups) return;
-    setNormalizedMonitoringLocations([...monitoringGroups.All.stations]);
-    monitoringLocationsLayer.definitionExpression = '';
-  }, [monitoringGroups, monitoringLocationsLayer]);
+  const { monitoringLocations } = useMonitoringLocations();
 
   // sort the monitoring locations
   const [monitoringLocationsSortedBy, setMonitoringLocationsSortedBy] =
     useState('locationName');
-  const sortedMonitoringAndSensors = [...normalizedMonitoringLocations].sort(
-    (a, b) => {
-      if (monitoringLocationsSortedBy === 'totalMeasurements') {
-        return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
-      }
+  const sortedMonitoringAndSensors = [...monitoringLocations].sort((a, b) => {
+    if (monitoringLocationsSortedBy === 'totalMeasurements') {
+      return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
+    }
 
-      if (monitoringLocationsSortedBy === 'siteId') {
-        return a.siteId.localeCompare(b.siteId);
-      }
+    if (monitoringLocationsSortedBy === 'siteId') {
+      return a.siteId.localeCompare(b.siteId);
+    }
 
-      return a[monitoringLocationsSortedBy].localeCompare(
-        b[monitoringLocationsSortedBy],
-      );
-    },
-  );
+    return a[monitoringLocationsSortedBy].localeCompare(
+      b[monitoringLocationsSortedBy],
+    );
+  });
 
   const [expandedRows, setExpandedRows] = useState([]);
 

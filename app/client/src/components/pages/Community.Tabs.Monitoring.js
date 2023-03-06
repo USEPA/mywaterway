@@ -876,7 +876,7 @@ function CurrentConditionsTab({
   );
 }
 
-function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
+function PastConditionsTab({ setMonitoringDisplayed }) {
   const services = useServicesContext();
 
   const {
@@ -1047,20 +1047,11 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
     setCurrentLocations(allLocations);
     setDisplayedLocations(toggledLocations);
-    // TODO: Is this necessary?
-    layer.visible = monitoringDisplayed;
-  }, [
-    monitoringDisplayed,
-    monitoringGroups,
-    monitoringLocationsLayer,
-    updateFeatures,
-    yearsRange,
-  ]);
+  }, [monitoringGroups, monitoringLocationsLayer, updateFeatures, yearsRange]);
 
   // Add the stations historical data to the `dataByYear` property,
   // then initializes the date slider
   const addAnnualData = useCallback(async () => {
-    // if (!monitoringLocationsLayer || !monitoringGroups) return;
     if (!monitoringGroups) return;
 
     const updatedMonitoringGroups = { ...monitoringGroups };
