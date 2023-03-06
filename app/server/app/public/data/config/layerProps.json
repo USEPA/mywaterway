@@ -47,10 +47,19 @@
           "symbol": {
             "type": "esriSFS",
             "style": "esriSFSSolid",
-            "color": [204, 255, 255, 128],
+            "color": [
+              204,
+              255,
+              255,
+              128
+            ],
             "outline": {
               "type": "esriSLS",
-              "color": [0, 0, 0],
+              "color": [
+                0,
+                0,
+                0
+              ],
               "width": 2,
               "style": "esriSLSDash"
             }
@@ -181,19 +190,313 @@
             "type": "esriSMS",
             "style": "esriSMSDiamond",
             "color": [
-                255,
-                165,
-                0,
-                255
+              255,
+              165,
+              0,
+              255
             ],
             "size": 15,
             "outline": {
               "type": "esriSLS",
               "color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "width": 0.75,
+              "style": "esriSLSSolid"
+            }
+          }
+        }
+      }
+    },
+    "monitoringLocationsLayer": {
+      "geometryType": "esriGeometryPoint",
+      "description": "",
+      "fields": [
+        {
+          "name": "siteId",
+          "type": "esriFieldTypeString",
+          "alias": "siteId",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 250,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "orgId",
+          "type": "esriFieldTypeString",
+          "alias": "orgId",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 250,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "orgName",
+          "type": "esriFieldTypeString",
+          "alias": "orgName",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 400,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationLongitude",
+          "type": "esriFieldTypeDouble",
+          "alias": "locationLongitude",
+          "sqlType": "sqlTypeDouble",
+          "length": 50,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationLatitude",
+          "type": "esriFieldTypeDouble",
+          "alias": "locationLatitude",
+          "sqlType": "sqlTypeDouble",
+          "length": 50,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationName",
+          "type": "esriFieldTypeString",
+          "alias": "locationName",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 250,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationType",
+          "type": "esriFieldTypeString",
+          "alias": "locationType",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 100,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationUrl",
+          "type": "esriFieldTypeString",
+          "alias": "locationUrl",
+          "sqlType": "sqlTypeNVarchar",
+          "length": -1,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "stationProviderName",
+          "type": "esriFieldTypeString",
+          "alias": "stationProviderName",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 50,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "stationTotalSamples",
+          "type": "esriFieldTypeInteger",
+          "alias": "stationTotalSamples",
+          "sqlType": "sqlTypeInteger",
+          "length": 30,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "stationTotalsByGroup",
+          "type": "esriFieldTypeString",
+          "alias": "stationTotalsByGroup",
+          "sqlType": "sqlTypeNVarchar",
+          "length": -1,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "stationTotalMeasurements",
+          "type": "esriFieldTypeInteger",
+          "alias": "stationTotalMeasurements",
+          "sqlType": "sqlTypeInteger",
+          "length": 30,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        }
+      ],
+      "featureReduction": {
+        "type": "cluster",
+        "clusterRadius": "100px",
+        "clusterMinSize": "24px",
+        "clusterMaxSize": "60px",
+        "popupEnabled": true,
+        "popupInfo": {
+          "popupElements": [
+            {
+              "type": "text",
+              "text": "This cluster represents <b>{cluster_count}</b> stations."
+            }
+          ],
+          "description": "This cluster represents <b>{cluster_count}</b> stations.",
+          "expressionInfos": [],
+          "fieldInfos": [
+            {
+              "fieldName": "cluster_count",
+              "format": {
+                "digitSeparator": true,
+                "places": 0
+              },
+              "label": "Number of stations",
+              "visible": true
+            }
+          ],
+          "title": "Cluster summary"
+        },
+        "drawingInfo": {
+          "renderer": {
+            "authoringInfo": {
+              "isAutoGenerated": true
+            },
+            "type": "simple",
+            "visualVariables": [],
+            "symbol": {
+              "type": "esriSMS",
+              "color": [
+                197,
+                0,
+                255,
+                128
+              ],
+              "style": "esriSMSCircle",
+              "outline": {
+                "type": "esriSLS",
+                "color": [
                   0,
                   0,
                   0,
                   255
+                ],
+                "width": 0.75,
+                "style": "esriSLSSolid"
+              }
+            }
+          },
+          "labelingInfo": [
+            {
+              "deconflictionStrategy": "none",
+              "labelExpressionInfo": {
+                "expression": "\n  $feature[\"cluster_count\"];\n  var value = $feature[\"cluster_count\"];\n  var num = Count(Text(Round(value)));\n  var label = When(\n    num < 4, Text(value, \"#.#\"),\n    num == 4, Text(value / Pow(10, 3), \"#.0k\"),\n    num <= 6, Text(value / Pow(10, 3), \"#k\"),\n    num == 7, Text(value / Pow(10, 6), \"#.0m\"),\n    num > 7, Text(value / Pow(10, 6), \"#m\"),\n    Text(value, \"#,###\")\n  );\n  return label;\n  "
+              },
+              "labelPlacement": "esriServerPointLabelPlacementCenterCenter",
+              "repeatLabel": true,
+              "symbol": {
+                "type": "esriTS",
+                "color": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "font": {
+                  "family": "Noto Sans",
+                  "size": 10.5,
+                  "weight": "bold"
+                },
+                "horizontalAlignment": "center",
+                "kerning": true,
+                "haloColor": [
+                  55,
+                  56,
+                  55,
+                  255
+                ],
+                "haloSize": 0.75,
+                "rotated": false,
+                "text": "",
+                "verticalAlignment": "baseline",
+                "xoffset": 0,
+                "yoffset": 0,
+                "angle": 0
+              }
+            }
+          ]
+        },
+        "showLabels": true,
+        "fields": [
+          {
+            "isAutoGenerated": true,
+            "name": "cluster_count",
+            "statisticType": "count"
+          }
+        ]
+      },
+      "drawingInfo": {
+        "renderer": {
+          "type": "simple",
+          "visualVariables": [
+            {
+              "type": "sizeInfo",
+              "valueExpression": "$view.scale",
+              "stops": [
+                {
+                  "size": 15.148114901256733,
+                  "value": 18055.9548215
+                },
+                {
+                  "size": 12.118491921005386,
+                  "value": 144447.638572
+                },
+                {
+                  "size": 6.059245960502693,
+                  "value": 1155581.1085775
+                },
+                {
+                  "size": 3.0296229802513466,
+                  "value": 9244648.868618
+                }
+              ]
+            }
+          ],
+          "symbol": {
+            "type": "esriSMS",
+            "style": "esriSMSCircle",
+            "color": [
+              197,
+              0,
+              255,
+              128
+            ],
+            "outline": {
+              "type": "esriSLS",
+              "color": [
+                0,
+                0,
+                0,
+                255
               ],
               "width": 0.75,
               "style": "esriSLSSolid"

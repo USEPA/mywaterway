@@ -686,6 +686,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           attributes: { OBJECTID: 1 },
         }),
       ],
+      spatialReference: {
+        wkid: 102100,
+      },
       renderer: {
         type: 'simple',
         symbol: {
