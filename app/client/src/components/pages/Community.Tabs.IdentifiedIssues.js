@@ -116,6 +116,15 @@ function IdentifiedIssues() {
     };
   }, [setViolatingDischargersOnly]);
 
+  // Hide the waterbody layer from the list view on this tab
+  useEffect(() => {
+    if (waterbodyLayer) waterbodyLayer.listMode = 'hide';
+
+    return function cleanup() {
+      if (waterbodyLayer) waterbodyLayer.listMode = 'hide-children';
+    };
+  }, [waterbodyLayer]);
+
   // translate scientific parameter names
   const getMappedParameter = (parameterFields: Object, parameter: string) => {
     const filteredFields = parameterFields.filter(
@@ -282,6 +291,7 @@ function IdentifiedIssues() {
 
       if (cipSummary.status !== 'failure') {
         newVisibleLayers['waterbodyLayer'] = visibleLayers['waterbodyLayer'];
+
         newVisibleLayers['issuesLayer'] =
           !issuesLayer || useCurrentValue
             ? visibleLayers['issuesLayer']
