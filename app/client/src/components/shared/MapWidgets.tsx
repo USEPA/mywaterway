@@ -28,6 +28,7 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
+import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -627,6 +628,21 @@ function MapWidgets({
     observers.push(observer);
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode, observers]);
+
+  // Create the surrounding locations widget
+  const surroundingsWidget = useSurroundingsWidget();
+  useEffect(() => {
+    if (!view?.ui) return;
+
+    view.ui.add({
+      component: surroundingsWidget,
+      position: 'top-right',
+    });
+
+    return function cleanup() {
+      view?.ui.remove(surroundingsWidget);
+    };
+  }, [surroundingsWidget, view]);
 
   // Creates and adds the legend widget to the map
   const rnd = useRef<Rnd | null>(null);
@@ -1518,6 +1534,7 @@ function ShowAllWaterbodies({
 
   // create a watcher to control the loading spinner for the widget
   useEffect(() => {
+    if (!allWaterbodiesLayer) return;
     if (firstLoad) {
       setFirstLoad(false);
 
@@ -1740,10 +1757,7 @@ function ShowSurroundingMonitoringLocations({
         };
         setSurroundingMonitoringLocations(newData);
 
-        const stations = buildStations(
-          newData,
-          surroundingMonitoringLocationsLayer,
-        );
+        const stations = buildStations(newData);
         if (!stations) return;
 
         updateMonitoringLocationsLayer(

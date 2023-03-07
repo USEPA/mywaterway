@@ -44,7 +44,8 @@ const waterbodyStatuses = {
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
 } as const;
 
-type WaterbodyStatus = typeof waterbodyStatuses[keyof typeof waterbodyStatuses];
+type WaterbodyStatus =
+  (typeof waterbodyStatuses)[keyof typeof waterbodyStatuses];
 
 const waterbodyOverallStatuses = {
   ...waterbodyStatuses,
@@ -52,7 +53,7 @@ const waterbodyOverallStatuses = {
 } as const;
 
 type WaterbodyOverallStatus =
-  typeof waterbodyOverallStatuses[keyof typeof waterbodyOverallStatuses];
+  (typeof waterbodyOverallStatuses)[keyof typeof waterbodyOverallStatuses];
 
 // Gets the type of symbol using the shape's attributes.
 export function getTypeFromAttributes(graphic: __esri.Graphic) {
@@ -392,9 +393,9 @@ export function isClassBreaksRenderer(
 }
 
 export function isFeatureLayer(
-  layer: __esri.Layer,
+  layer: __esri.Layer | null,
 ): layer is __esri.FeatureLayer {
-  return (layer as __esri.FeatureLayer).type === 'feature';
+  return layer !== null && (layer as __esri.FeatureLayer).type === 'feature';
 }
 
 export function isGraphicsLayer(
@@ -404,7 +405,7 @@ export function isGraphicsLayer(
 }
 
 export function isGroupLayer(layer: __esri.Layer): layer is __esri.GroupLayer {
-  return (layer as __esri.GroupLayer).type === 'group';
+  return layer.type === 'group';
 }
 
 type HighlightLayerView = __esri.FeatureLayerView | __esri.GraphicsLayerView;
@@ -441,7 +442,7 @@ export function isPoint(geometry: __esri.Geometry): geometry is __esri.Point {
 export function isPolygon(
   geometry: __esri.Geometry,
 ): geometry is __esri.Polygon {
-  return (geometry as __esri.Polygon).type === 'polygon';
+  return geometry.type === 'polygon';
 }
 
 export function isPolyline(
@@ -1084,7 +1085,7 @@ const editLayer = async (
   return layer.applyEdits(edits);
 };
 
-function stringifyAttributes(
+export function stringifyAttributes(
   structuredAttributes: string[],
   attributes: { [property: string]: any },
 ) {
@@ -1099,11 +1100,7 @@ function stringifyAttributes(
   return { ...attributes, ...stringified };
 }
 
-export function buildStations(
-  locations: FetchState<MonitoringLocationsData>,
-  layer: __esri.Layer,
-) {
-  if (!layer) return;
+export function buildStations(locations: FetchState<MonitoringLocationsData>) {
   if (locations.status !== 'success' || !locations.data.features?.length) {
     return;
   }
@@ -1163,6 +1160,7 @@ export function updateMonitoringLocationsLayer(
   stations: MonitoringLocationAttributes[],
   layer: __esri.FeatureLayer,
 ) {
+  if (!layer) return;
   const structuredProps = ['stationTotalsByGroup', 'timeframe'];
   const graphics = stations.map((station) => {
     const attributes = stringifyAttributes(structuredProps, station);

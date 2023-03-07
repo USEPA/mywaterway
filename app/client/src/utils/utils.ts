@@ -37,8 +37,28 @@ function formatNumber(number: number, digits: number = 0) {
   });
 }
 
-function isAbort(error: Error) {
+function isAbort(error: unknown) {
+  if (!error || typeof error !== 'object' || !('name' in error)) return false;
   return error.name === 'AbortError';
+}
+
+function isEmpty<T>(
+  v: T | null | undefined | [] | {},
+): v is null | undefined | [] | {} {
+  return !isNotEmpty(v);
+}
+
+// Type predicate, negation is used to narrow to type `T`
+function isNotEmpty<T>(v: T | null | undefined | [] | {}): v is T {
+  if (v === null || v === undefined || v === '') return false;
+  if (Array.isArray(v) && v.length === 0) return false;
+  else if (
+    Object.keys(v).length === 0 &&
+    Object.getPrototypeOf(v) === Object.prototype
+  ) {
+    return false;
+  }
+  return true;
 }
 
 // Gets the file extension from a url or path. The backup parameter was added
@@ -132,6 +152,13 @@ function titleCaseWithExceptions(string: string) {
     default:
       return titleCase(string);
   }
+}
+
+// Rounds a float to a specified precision
+function toFixedFloat(num: number, precision: number = 0) {
+  if (precision < 0) return num;
+  const offset = 10 ** precision;
+  return Math.round((num + Number.EPSILON) * offset) / offset;
 }
 
 // Determines whether or not the input string is a HUC12 or not.
@@ -467,6 +494,7 @@ export {
   formatNumber,
   getExtensionFromPath,
   isAbort,
+  isEmpty,
   isHuc12,
   titleCase,
   titleCaseWithExceptions,
