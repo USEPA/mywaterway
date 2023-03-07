@@ -470,6 +470,12 @@ async function applyEdits({
           `${dischargersGroupLayer.id}-features`,
         );
         await processLayerFeatures(dischargersLayer, adds);
+      } else if (layer.id === 'usgsStreamgagesLayer') {
+        const streamGagesGroupLayer = layer.layer as __esri.GroupLayer;
+        const streamGagesLayer = streamGagesGroupLayer.findLayerById(
+          `${streamGagesGroupLayer.id}-features`,
+        );
+        await processLayerFeatures(streamGagesLayer, adds);
       } else if (layer.widgetLayer?.type === 'file') {
         adds = layer.widgetLayer.rawLayer.featureSet.features;
       } else {

@@ -213,6 +213,9 @@ function buildLayer(
         attributes: { OBJECTID: 1 },
       }),
     ],
+    spatialReference: {
+      wkid: 102100,
+    },
     renderer: new SimpleRenderer({
       symbol: new SimpleMarkerSymbol({
         style: 'square',

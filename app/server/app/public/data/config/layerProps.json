@@ -532,6 +532,126 @@
           }
         }
       }
+    },
+    "usgsStreamgagesLayer": {
+      "geometryType": "esriGeometryPoint",
+      "description": "",
+      "fields": [
+        {
+          "name": "siteId",
+          "type": "esriFieldTypeString",
+          "alias": "siteId",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 250,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "orgId",
+          "type": "esriFieldTypeString",
+          "alias": "orgId",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 250,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "orgName",
+          "type": "esriFieldTypeString",
+          "alias": "orgName",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 400,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationLongitude",
+          "type": "esriFieldTypeDouble",
+          "alias": "locationLongitude",
+          "sqlType": "sqlTypeDouble",
+          "length": 50,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationLatitude",
+          "type": "esriFieldTypeDouble",
+          "alias": "locationLatitude",
+          "sqlType": "sqlTypeDouble",
+          "length": 50,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationName",
+          "type": "esriFieldTypeString",
+          "alias": "locationName",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 250,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationType",
+          "type": "esriFieldTypeString",
+          "alias": "locationType",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 100,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "locationUrl",
+          "type": "esriFieldTypeString",
+          "alias": "locationUrl",
+          "sqlType": "sqlTypeNVarchar",
+          "length": -1,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        }
+      ],
+      "drawingInfo": {
+        "renderer": {
+          "type": "simple",
+          "symbol": {
+            "type": "esriSMS",
+            "style": "esriSMSSquare",
+            "color": [
+              255,
+              254,
+              0,
+              255
+            ],
+            "outline": {
+              "type": "esriSLS",
+              "color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "width": 0.75,
+              "style": "esriSLSSolid"
+            }
+          }
+        }
+      }
     }
   },
   "defaultReferenceTableFields": [
