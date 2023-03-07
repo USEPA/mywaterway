@@ -66,8 +66,8 @@ function getLayerName(layers, desiredName) {
     const numInParen = getNumberFromParen(layer.layer.title);
     const possibleName =
       numInParen || numInParen === 0
-        ? layer.layer.label.replaceAll(`(${numInParen})`, '').trim()
-        : layer.layer.label;
+        ? layer.layer.title.replaceAll(`(${numInParen})`, '').trim()
+        : layer.layer.title;
 
     if (possibleName === newName) duplicateCount += 1;
   });
