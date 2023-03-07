@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -11,7 +11,6 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
-import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import {
   keyMetricsStyles,
   keyMetricStyles,
@@ -21,7 +20,7 @@ import {
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
-import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
+import { getUrlFromMarkup } from 'components/shared/Regex';
 import { useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import {
@@ -207,49 +206,6 @@ function Restore() {
                         >
                           {sortedGrtsData.map((item, index) => {
                             const url = getUrlFromMarkup(item.project_link);
-                            const documents =
-                              item.watershed_plans &&
-                              // break string into pieces separated by commas and map over them
-                              item.watershed_plans.split(',').map((plan) => {
-                                const markup = plan.split('</a>')[0] + '</a>';
-                                const title = getTitleFromMarkup(markup);
-                                const planUrl = getUrlFromMarkup(markup);
-                                if (!title || !planUrl) return null;
-                                return { url: planUrl, title: title };
-                              });
-                            // remove any documents with missing titles or urls
-                            const filteredDocuments =
-                              documents &&
-                              documents.filter(
-                                (document) =>
-                                  document && document.url && document.title,
-                              );
-                            const documentLinks =
-                              filteredDocuments && filteredDocuments.length > 0
-                                ? filteredDocuments.map((document, index) => {
-                                    if (
-                                      document &&
-                                      document.url &&
-                                      document.title
-                                    ) {
-                                      return (
-                                        <div key={index}>
-                                          <a
-                                            href={document.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                          >
-                                            {document.title}
-                                          </a>
-                                          <DynamicExitDisclaimer
-                                            url={document.url}
-                                          />
-                                        </div>
-                                      );
-                                    }
-                                    return false;
-                                  })
-                                : 'Document not available';
 
                             return (
                               <AccordionItem
@@ -297,10 +253,6 @@ function Restore() {
                                           </small>
                                         </>
                                       ),
-                                    },
-                                    {
-                                      label: 'Documents',
-                                      value: documentLinks,
                                     },
                                   ]}
                                 />

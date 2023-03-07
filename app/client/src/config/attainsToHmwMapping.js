@@ -219,6 +219,13 @@ export const impairmentFields = [
     sentence: null,
   },
   {
+    value: 'pfas',
+    parameterGroup: 'PER- AND POLYFLUOROALKYL SUBSTANCES (PFAS)',
+    label: 'PFAS',
+    term: 'PFAS',
+    sentence: null,
+  },
+  {
     value: 'ph_acidity_caustic_conditions',
     parameterGroup: 'PH/ACIDITY/CAUSTIC CONDITIONS',
     label: 'Acidity',
