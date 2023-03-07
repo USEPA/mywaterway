@@ -301,8 +301,11 @@ export async function createFeatureLayers(
       };
     }
 
+    // reverse sorting of the layers, so they are ordered correctly
+    const layersReversed = [...layers].reverse();
+
     const layerIds: string[] = [];
-    for (const layer of layers) {
+    for (const layer of layersReversed) {
       if (!layer.requiresFeatureService) continue;
 
       // handle layers added via file upload
@@ -680,12 +683,6 @@ export function addWebMap({
 
   const operationalLayers: any[] = [];
   layers
-    .sort((a, b) => {
-      const aIndex = mapView.map.layers.findIndex((l) => l.id === a.id);
-      const bIndex = mapView.map.layers.findIndex((l) => l.id === b.id);
-
-      return aIndex - bIndex;
-    })
     .forEach((l) => {
       const layerType = getAgoLayerType(l);
       const url = getLayerUrl(services, l);
@@ -796,6 +793,15 @@ export async function publish({
 
   // determine if a feature service is needed
   let featureServiceNeeded = layers.some((l) => l.requiresFeatureService);
+
+  // sort the layers based on the order they are on the map
+  layers
+  .sort((a, b) => {
+    const aIndex = mapView.map.layers.findIndex((l) => l.id === a.id);
+    const bIndex = mapView.map.layers.findIndex((l) => l.id === b.id);
+
+    return aIndex - bIndex;
+  });
 
   try {
     if (!featureServiceNeeded) {
