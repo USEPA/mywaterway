@@ -830,12 +830,14 @@ function ResultCard({ result }: ResultCardProps) {
         ...currentWidgetLayers,
         {
           type: 'portal',
+          layerType: result.type,
           id: result.id,
           layer,
+          url: result.url,
         },
       ]);
     });
-  }, [mapView, result.id, setWidgetLayers]);
+  }, [mapView, result, setWidgetLayers]);
 
   /**
    * Removes the reference portal layers.

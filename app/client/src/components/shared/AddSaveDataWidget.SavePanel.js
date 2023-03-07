@@ -436,7 +436,7 @@ function SavePanel({ visible }: Props) {
       }
 
       // get the widgetLayer for handling layers added via the Add Data Widget
-      const widgetLayer = widgetLayers.find((l) => l.layerId === value.id);
+      const widgetLayer = widgetLayers.find((l) => l.layer.id === value.id);
       layersToPublish.push({
         ...value,
         widgetLayer,

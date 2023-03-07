@@ -164,7 +164,9 @@ async function getFeatureServiceWrapped(
   serviceMetaData: ServiceMetaDataType,
 ) {
   try {
-    let query = `orgid:${escapeForLucene(portal.user.orgId)} AND name:${serviceMetaData.label}`;
+    const query = `orgid:${escapeForLucene(portal.user.orgId)} AND name:${
+      serviceMetaData.label
+    }`;
     const queryRes = await portal.queryItems({ query });
 
     const exactMatch = queryRes.results.find(
@@ -304,7 +306,7 @@ export async function createFeatureLayers(
       if (!layer.requiresFeatureService) continue;
 
       // handle layers added via file upload
-      if(layer.widgetLayer?.type === 'file') {
+      if (layer.widgetLayer?.type === 'file') {
         layerIds.push(layer.layer.id);
         layersParams.push(layer.widgetLayer.rawLayer.layerDefinition);
         continue;
@@ -437,11 +439,13 @@ async function processLayerFeatures(layer: __esri.Layer, adds: any[]) {
  */
 async function applyEdits({
   portal,
+  services,
   serviceUrl,
   layers,
   layersRes,
 }: {
   portal: __esri.Portal;
+  services: any;
   serviceUrl: string;
   layers: LayerType[];
   layersRes: any;
@@ -480,13 +484,8 @@ async function applyEdits({
       });
     }
 
-    // let refLayerTableOut: ReferenceLayersTableType | null = null;
-    // const refOutput = buildReferenceLayerTableEdits({
-    //   referenceLayersTable,
-    //   referenceMaterials,
-    // });
-    // changes.push(refOutput.edits);
-    // refLayerTableOut = refOutput.table;
+    const refOutput = buildReferenceLayerTableEdits(services, layers, layersRes);
+    changes.push(refOutput.edits);
 
     // Workaround for esri.Portal not having credential
     const tempPortal: any = portal;
@@ -520,28 +519,36 @@ async function applyEdits({
  * @param table any - The table object
  * @returns An object containing the edits arrays
  */
-function buildReferenceLayerTableEdits(layers: LayerType[]) {
+function buildReferenceLayerTableEdits(services: any, layers: LayerType[], layersRes: any) {
   const adds: any[] = [];
 
   // build the adds, updates, and deletes
-  layers.forEach((refLayer: any) => {
+  layers.forEach((refLayer: any, index) => {
     if (refLayer.requiresFeatureService) return;
 
     // build the adds array
     adds.push({
       attributes: {
+        OBJECTID: index,
+        GLOBALID: `{${uuid().toUpperCase()}}`,
         LAYERID: refLayer.layer.portalItem?.id || refLayer.id,
         LABEL: refLayer.label,
-        LAYERTYPE: refLayer.layerType,
-        TYPE: refLayer.type,
-        URL: refLayer.layer.url,
-        URLTYPE: refLayer.type === 'url' ? refLayer.urlType : '',
+        LAYERTYPE: refLayer.widgetLayer?.layerType,
+        TYPE: refLayer.widgetLayer?.type,
+        URL: getLayerUrl(services, refLayer),
+        URLTYPE: 
+          refLayer.widgetLayer?.type === 'url'
+            ? refLayer.widgetLayer.urlType
+            : '',
       },
     });
   });
 
-  // TODO add code to find the id from the feature service
-  const id = 3;
+  // find the id from the feature service response
+  const refLayersTable = layersRes.tables.find(
+    (t: { id: number; name: string }) => t.name.endsWith('-reference-layers'),
+  );
+  const id = refLayersTable.id;
 
   return {
     edits: {
@@ -577,14 +584,17 @@ type AgoLayerType =
  * @returns AGO Layer type
  */
 function getAgoLayerType(layer: LayerType): AgoLayerType | null {
-  const layerType = layer.layer.type;
+  const layerType = (layer.widgetLayer?.layerType || layer.layer.type).toLowerCase();
 
   let layerTypeOut: AgoLayerType | null = null;
 
   // convert ArcGIS JS types to ArcGIS REST types
+  if (layerType === 'feature service') layerTypeOut = 'ArcGISFeatureLayer';
   if (layerType === 'feature') layerTypeOut = 'ArcGISFeatureLayer';
+  if (layerType === 'map service') layerTypeOut = 'ArcGISMapServiceLayer';
   if (layerType === 'tile') layerTypeOut = 'ArcGISMapServiceLayer';
   if (layerType === 'map-image') layerTypeOut = 'ArcGISMapServiceLayer';
+  if (layerType === 'image service') layerTypeOut = 'ArcGISImageServiceLayer';
   if (layerType === 'imagery') layerTypeOut = 'ArcGISImageServiceLayer';
   if (layerType === 'imagery-tile') layerTypeOut = 'ArcGISImageServiceLayer';
   if (layerType === 'scene') layerTypeOut = 'ArcGISSceneServiceLayer';
@@ -594,6 +604,7 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
   if (layerType === 'csv') layerTypeOut = 'CSV';
   if (layerType === 'geo-rss') layerTypeOut = 'GeoRSS';
   if (layerType === 'kml') layerTypeOut = 'KML';
+  if (layerType === 'vector tile service') layerTypeOut = 'VectorTileLayer';
   if (layerType === 'vector-tile') layerTypeOut = 'VectorTileLayer';
   if (layerType === 'wcs') layerTypeOut = 'WCS';
   if (layerType === 'wfs') layerTypeOut = 'WFS';
@@ -607,6 +618,25 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
   if (layer.id === 'watershedsLayer') layerTypeOut = 'ArcGISMapServiceLayer';
 
   return layerTypeOut;
+}
+
+/**
+ * Gets the url of the provided layer.
+ * 
+ * @param services Web service config for getting urls from HMW layers
+ * @param layer Layer to get the url from
+ * @returns Url of the layer
+ */
+function getLayerUrl(services: any, layer: LayerType): string {
+  let url = (layer.layer as any)?.url;
+  if (layer.widgetLayer?.type === 'portal') url = layer.widgetLayer.url;
+  if (layer.widgetLayer?.type === 'url') url = layer.widgetLayer.url;
+  if (layer.id === 'allWaterbodiesLayer')
+    url = services.data.waterbodyService.base;
+  if (layer.id === 'ejscreenLayer') url = services.data.ejscreen;
+  if (layer.id === 'tribalLayer') url = services.data.tribal;
+
+  return url;
 }
 
 /**
@@ -651,12 +681,8 @@ export function addWebMap({
       return aIndex - bIndex;
     })
     .forEach((l) => {
-      let layerType = getAgoLayerType(l);
-      let url = (l.layer as any)?.url;
-      if (l.id === 'allWaterbodiesLayer')
-        url = services.data.waterbodyService.base;
-      if (l.id === 'ejscreenLayer') url = services.data.ejscreen;
-      if (l.id === 'tribalLayer') url = services.data.tribal;
+      const layerType = getAgoLayerType(l);
+      const url = getLayerUrl(services, l);
 
       // TODO - Consider adding code here to preserve HMW styles in published layers
 
@@ -793,6 +819,7 @@ export async function publish({
 
       const editsRes = await applyEdits({
         portal,
+        services,
         serviceUrl,
         layers,
         layersRes,

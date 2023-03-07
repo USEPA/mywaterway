@@ -149,6 +149,7 @@ function URLPanel() {
             urlType: type,
             url,
             layer: tempLayer,
+            layerType: tempLayer.type,
           });
         })
         .catch((err) => {
@@ -184,6 +185,7 @@ function URLPanel() {
         urlType: type,
         url,
         layer: newLayer,
+        layerType: newLayer.type,
       });
     } else {
       setStatus('unsupported');

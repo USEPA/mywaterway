@@ -423,23 +423,35 @@ interface PortalLayer extends __esri.Layer {
   portalItem?: __esri.PortalItem;
 }
 
+export type PortalLayerTypes =
+  | 'Feature Service'
+  | 'Image Service'
+  | 'KML'
+  | 'Map Service'
+  | 'Vector Tile Service'
+  | 'WMS';
+
 export type WidgetLayer =
   | {
       type: 'portal';
+      layerType: PortalLayerTypes;
       id: string;
       layer: PortalLayer;
+      url: string;
     }
   | {
       type: 'url';
       layer: __esri.Layer;
+      layerType: string;
       url: string;
-      urlType: 'ArcGIS' | 'WCS' | 'WFS' | 'WMS' | 'KML' | 'GeoRSS' | 'CSV';
+      urlType: 'ArcGIS' | 'CSV' | 'GeoRSS' | 'KML' | 'WCS' | 'WFS' | 'WMS';
     }
   | {
       type: 'file';
       fields: __esri.FieldProperties[];
       layer: __esri.Layer;
       layerId: string;
+      layerType?: string;
       objectIdField: string;
       outFields: string[];
       popupTemplate: __esri.PopupTemplateProperties;
