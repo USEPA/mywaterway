@@ -2,7 +2,6 @@ import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
 import Color from '@arcgis/core/Color';
-import Point from '@arcgis/core/geometry/Point';
 import Graphic from '@arcgis/core/Graphic';
 import PopupTemplate from '@arcgis/core/PopupTemplate';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
@@ -11,8 +10,6 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 // components
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-// styles
-import { colors } from 'styles/index.js';
 // utilities
 import { getSelectedCommunityTab } from 'utils/utils';
 // types
@@ -20,7 +17,6 @@ import type { NavigateFunction } from 'react-router-dom';
 import type {
   ChangeLocationAttributes,
   ClickedHucState,
-  Facility,
   Feature,
   ExtendedLayer,
   ParentLayer,
@@ -491,52 +487,6 @@ export function plotIssues(
         },
         popupTemplate: {
           title: getPopupTitle(waterbody.attributes),
-          content: (feature: Feature) =>
-            getPopupContent({
-              feature: feature.graphic,
-              navigate,
-            }),
-        },
-      }),
-    );
-  });
-}
-
-// plot facilities on map
-export function plotFacilities({
-  facilities,
-  layer,
-  navigate,
-}: {
-  facilities: Facility[];
-  layer: any;
-  navigate: NavigateFunction;
-}) {
-  if (!facilities || !layer) return;
-
-  // clear the layer
-  layer.graphics.removeAll();
-
-  // put graphics on the layer
-  facilities.forEach((facility) => {
-    layer.graphics.add(
-      new Graphic({
-        geometry: new Point({
-          longitude: parseFloat(facility['FacLong']),
-          latitude: parseFloat(facility['FacLat']),
-        }),
-        symbol: new SimpleMarkerSymbol({
-          color: colors.orange(),
-          style: 'diamond',
-          size: 15,
-          outline: {
-            // width units differ between FeatureLayers and GraphicsLayers
-            width: 0.65,
-          },
-        }),
-        attributes: facility,
-        popupTemplate: {
-          title: getPopupTitle(facility),
           content: (feature: Feature) =>
             getPopupContent({
               feature: feature.graphic,
