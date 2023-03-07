@@ -16,11 +16,7 @@ import { isEmpty } from 'utils/utils';
 // styles
 import { fonts } from 'styles';
 // types
-import type {
-  BoundariesToggleLayerId,
-  LayerId,
-  LayersState,
-} from 'contexts/Layers';
+import type { BoundariesToggleLayerId, LayersState } from 'contexts/Layers';
 import type { MutableRefObject, ReactNode } from 'react';
 
 /*
@@ -43,7 +39,7 @@ export function useSurroundingsWidget(visible: boolean) {
         if (layers.hasOwnProperty(key) && isBoundariesToggleLayerId(key)) {
           return {
             ...included,
-            [key]: layers[key as LayerId],
+            [key]: layers[key],
           };
         } else return included;
       },
