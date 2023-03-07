@@ -661,7 +661,7 @@
       "actualType": "int",
       "alias": "OBJECTID",
       "sqlType": "sqlTypeInteger",
-      "length": 4,
+      "length": -1,
       "nullable": false,
       "editable": false,
       "domain": null,

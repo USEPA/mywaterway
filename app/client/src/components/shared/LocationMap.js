@@ -907,7 +907,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           };
           const newLinesLayer = new FeatureLayer({
             id: 'waterbodyLines',
-            name: 'Lines',
+            title: 'Waterbody Lines',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -974,7 +974,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           };
           const newAreasLayer = new FeatureLayer({
             id: 'waterbodyAreas',
-            name: 'Areas',
+            title: 'Waterbody Areas',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -1029,7 +1029,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           const newPointsLayer = new FeatureLayer({
             id: 'waterbodyPoints',
-            name: 'Points',
+            title: 'Waterbody Points',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,

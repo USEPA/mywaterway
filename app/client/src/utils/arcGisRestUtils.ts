@@ -314,6 +314,34 @@ export async function createFeatureLayers(
         layersParams.push(layer.widgetLayer.rawLayer.layerDefinition);
         continue;
       }
+      else if (layer.layer.id === 'waterbodyLayer') {
+        const groupLayer = layer.layer as __esri.GroupLayer;
+        const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
+        for(const subLayer of subLayers) {
+          let geometryType = '';
+          if(subLayer.geometryType === 'point') geometryType = 'esriGeometryPoint';
+          if(subLayer.geometryType === 'multipoint') geometryType = 'esriGeometryMultipoint';
+          if(subLayer.geometryType === 'polyline') geometryType = 'esriGeometryPolyline';
+          if(subLayer.geometryType === 'polygon') geometryType = 'esriGeometryPolygon';
+
+          layerIds.push(layer.layer.id);
+          layersParams.push({
+            ...layerProps.data.defaultLayerProps,
+            name: subLayer.title,
+            geometryType,
+            spatialReference: subLayer.spatialReference.toJSON(),
+            fields: [
+              ...subLayer.fields.filter((field) => field.name !== 'OBJECTID' && field.name !== 'GLOBALID').map((field) => {
+                return field.toJSON();
+              }),
+              ...layerProps.data.commonFields,
+            ],
+            drawingInfo: { renderer: subLayer.renderer.toJSON() },
+            popupTemplate: subLayer.popupTemplate.toJSON(),
+          })
+        }
+        continue;
+      }
 
       const properties = layerProps.data.layerSpecificSettings[layer.layer.id];
       layerIds.push(layer.layer.id);
@@ -467,7 +495,13 @@ async function applyEdits({
       // TODO need to figure out how to handle layers that need to be split up
 
       let adds: any[] = [];
-      if (layer.id === 'dischargersLayer') {
+      if (layer.id === 'waterbodyLayer') {
+        const groupLayer = layer.layer as __esri.GroupLayer;
+        const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
+        const subLayer = subLayers.find((s) => s.title === layerRes.name);
+
+        if(subLayer) await processLayerFeatures(subLayer, adds);
+      } else if (layer.id === 'dischargersLayer') {
         const dischargersGroupLayer = layer.layer as __esri.GroupLayer;
         const dischargersLayer = dischargersGroupLayer.findLayerById(
           `${dischargersGroupLayer.id}-features`,
@@ -697,13 +731,14 @@ export function addWebMap({
         });
       } else if (l.requiresFeatureService) {
         if (!layersRes) return;
-        const lRes = layersRes.layers.find((r: any) => r.layerId === l.id);
-
-        operationalLayers.push({
-          title: lRes.name,
-          url: `${baseUrl}/${lRes.id}`,
-          itemId,
-          layerType: 'ArcGISFeatureLayer',
+        const lRes = layersRes.layers.filter((r: any) => r.layerId === l.id);
+        lRes.forEach((lRes: any) => {
+          operationalLayers.push({
+            title: lRes.name,
+            url: `${baseUrl}/${lRes.id}`,
+            itemId,
+            layerType: 'ArcGISFeatureLayer',
+          });
         });
       } else {
         operationalLayers.push({
@@ -713,8 +748,6 @@ export function addWebMap({
         });
       }
     });
-
-  // TODO figure out how to organize the operational layers
 
   // run the webserivce call to update ArcGIS Online
   const data = {
