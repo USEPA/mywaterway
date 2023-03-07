@@ -2273,10 +2273,10 @@ function MonitoringLocationsContent({
               value: locationType,
             },
             {
-              label: 'Lat/Lon',
-              value: `${toFixedFloat(locationLatitude, 7)}, ${toFixedFloat(
+              label: 'Latitude/Longitude',
+              value: `${toFixedFloat(locationLatitude, 5)}, ${toFixedFloat(
                 locationLongitude,
-                7,
+                5,
               )}`,
             },
             {
@@ -2559,10 +2559,10 @@ function UsgsStreamgagesContent({
               value: locationType,
             },
             {
-              label: 'Lat/Lon',
-              value: `${toFixedFloat(locationLatitude, 7)}, ${toFixedFloat(
+              label: 'Latitude/Longitude',
+              value: `${toFixedFloat(locationLatitude, 5)}, ${toFixedFloat(
                 locationLongitude,
-                7,
+                5,
               )}`,
             },
             {

@@ -154,13 +154,6 @@ function titleCaseWithExceptions(string: string) {
   }
 }
 
-// Rounds a float to a specified precision
-function toFixedFloat(num: number, precision: number = 0) {
-  if (precision < 0) return num;
-  const offset = 10 ** precision;
-  return Math.round((num + Number.EPSILON) * offset) / offset;
-}
-
 // Determines whether or not the input string is a HUC12 or not.
 // Returns true if the string is a HUC12 and false if not.
 function isHuc12(string: string) {

@@ -1960,10 +1960,10 @@ function InformationSection({ siteId, site, siteStatus }) {
       value: site.locationType,
     },
     {
-      label: 'Lat/Lon',
-      value: `${toFixedFloat(site.locationLatitude, 7)}, ${toFixedFloat(
+      label: 'Latitude/Longitude',
+      value: `${toFixedFloat(site.locationLatitude, 5)}, ${toFixedFloat(
         site.locationLongitude,
-        7,
+        5,
       )}`,
     },
     {

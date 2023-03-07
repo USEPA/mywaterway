@@ -146,7 +146,6 @@ function initialBoundariesToggle(_showSurroundings: boolean) {
 // `placeholderLayer` is only present to keep TypeScript happy
 // until we add an `AllGraphicsLayer` (if we ever do)
 const layerIds = [
-  'monitoringLocationsLayer',
   'placeholderLayer',
   'dischargersLayer',
   'usgsStreamgagesLayer',
@@ -216,10 +215,7 @@ type Action =
 
 export type BoundariesToggleLayerId = AllFeaturesLayerId | AllGraphicsLayerId;
 
-export type AllFeaturesLayerId =
-  | 'usgsStreamgagesLayer'
-  | 'monitoringLocationsLayer'
-  | 'dischargersLayer';
+export type AllFeaturesLayerId = 'usgsStreamgagesLayer' | 'dischargersLayer';
 
 type AllGraphicsLayerId = 'placeholderLayer';
 
