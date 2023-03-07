@@ -84,7 +84,8 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
   }, [contentVisible]);
 
   const { triggerVisible, ...rest } = props;
-  const { layers, layersUpdating } = props;
+  const { layers, layersUpdating, surroundingsVisible, togglesDisabled } =
+    props;
 
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -99,8 +100,11 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
         disabled={isEmpty(layers)}
         forwardedRef={triggerRef}
         onClick={toggleContentVisibility}
-        updating={Object.values(layersUpdating).some(
-          (isUpdating) => isUpdating === true,
+        updating={Object.entries(layersUpdating).some(
+          ([id, isUpdating]) =>
+            isUpdating === true &&
+            surroundingsVisible[id as BoundariesToggleLayerId] &&
+            !togglesDisabled[id as BoundariesToggleLayerId],
         )}
         visible={triggerVisible}
       />

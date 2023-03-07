@@ -35,7 +35,6 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
-  getEnclosedLayer,
   useDischargers,
   useMonitoringLocations,
   useStreamgages,
@@ -525,12 +524,6 @@ function MonitoringAndSensorsTab({
   const { streamgages, streamgagesStatus } = useStreamgages();
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
-
-  // TODO: Make sure this runs on tab entry
-  useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-    getEnclosedLayer(monitoringLocationsLayer).definitionExpression = '';
-  }, [monitoringLocationsLayer]);
 
   const allMonitoringAndSensors = [...streamgages, ...monitoringLocations];
 

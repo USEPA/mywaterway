@@ -111,7 +111,7 @@ function useBoundariesToggleLayer<
           id: layerId,
           payload: true,
         });
-        updateSurroundingData(getSignal()).then(() =>
+        updateSurroundingData(getSignal()).finally(() =>
           layersDispatch({
             type: 'surroundingsUpdating',
             id: layerId,

@@ -11,12 +11,8 @@ export function useAllWaterbodiesLayer(
   const { mapView } = useContext(LocationSearchContext);
 
   const layersDispatch = useLayersDispatch();
-  const {
-    boundariesTogglesDisabled,
-    layers,
-    surroundingsUpdating,
-    surroundingsVisible,
-  } = useLayersState();
+  const { boundariesTogglesDisabled, layers, surroundingsUpdating } =
+    useLayersState();
   const { waterbodyLayer } = layers;
 
   // Set the minimum scale for the layer and its sublayers
@@ -46,32 +42,21 @@ export function useAllWaterbodiesLayer(
       () => mapView?.updating,
       () => {
         const updating = mapView?.updating ?? false;
-        if (
-          boundariesTogglesDisabled[layerId] ||
-          !surroundingsVisible[layerId] ||
-          updating === surroundingsUpdating[layerId]
-        ) {
-          return;
-        }
+        if (updating === surroundingsUpdating[layerId]) return;
 
         layersDispatch({
           type: 'surroundingsUpdating',
           id: layerId,
-          payload: mapView?.updating ?? false,
+          payload: updating,
         });
       },
+      { initial: true },
     );
 
     return function cleanup() {
       updatingHandle.remove();
     };
-  }, [
-    boundariesTogglesDisabled,
-    layersDispatch,
-    mapView,
-    surroundingsUpdating,
-    surroundingsVisible,
-  ]);
+  }, [layersDispatch, mapView, surroundingsUpdating]);
 
   // Mark the layer as disabled when out of scale
   useEffect(() => {

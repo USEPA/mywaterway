@@ -210,7 +210,7 @@ function usePeriodOfRecordData(filter, param) {
   // Clear the data on change of location
   const resetWorkerData = useCallback(() => {
     setWorkerData(initialWorkerData);
-  }, [setWorkerData]);
+  }, []);
 
   // Craft the URL
   useEffect(() => {
@@ -225,7 +225,7 @@ function usePeriodOfRecordData(filter, param) {
       recordUrl += param === 'huc12' ? `&huc=${filter}` : `&siteid=${filter}`;
       setUrl(recordUrl);
     }
-  }, [filter, param, services.data, services.status]);
+  }, [filter, param, services]);
 
   // Create the worker and assign it a job,
   // then listen for a response
@@ -965,22 +965,24 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   // The data returned by the worker
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
+
   // The currently selected date range
   const [yearsRange, setYearsRange] = useState(null);
+
+  // Reset data if the user switches locations
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-    if (monitoringGroups) return;
-    // Reset data if the user switches locations
-    getEnclosedLayer(monitoringLocationsLayer).definitionExpression = '';
-    resetWorkerData();
-    setYearsRange(null);
-    setAllToggled(true);
-  }, [
-    monitoringGroups,
-    monitoringLocationsLayer,
-    resetWorkerData,
-    setMonitoringDisplayed,
-  ]);
+    if (!huc12) return;
+
+    return function cleanup() {
+      resetWorkerData();
+      setYearsRange(null);
+      setAllToggled(true);
+      if (!monitoringLocationsLayer) return;
+
+      const layer = getEnclosedLayer(monitoringLocationsLayer);
+      if (layer) layer.definitionExpression = '';
+    };
+  }, [huc12, monitoringLocationsLayer, resetWorkerData]);
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
   // create the filter string for download links based on active toggles
@@ -1067,14 +1069,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     }
     setMonitoringGroups(updatedMonitoringGroups);
     setYearsRange([minYear, maxYear]);
-  }, [
-    maxYear,
-    minYear,
-    monitoringGroups,
-    annualData,
-    setMonitoringGroups,
-    setYearsRange,
-  ]);
+  }, [maxYear, minYear, monitoringGroups, annualData, setMonitoringGroups]);
 
   const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
   const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
