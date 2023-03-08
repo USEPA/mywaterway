@@ -21,6 +21,8 @@ import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
 import { createErrorObject } from 'utils/utils';
+// types
+import { ServiceMetaDataType } from 'types/arcGisOnline';
 
 type PublishType = {
   status:
@@ -130,14 +132,26 @@ const addButtonStyles = css`
   font-size: 0.75rem;
 `;
 
-const saveAsInputStyles = css`
-  width: 100%;
-  height: 36px;
-  padding: 2px 8px;
+const sharedInputStyles = `
   border-width: 1px;
   border-style: solid;
   border-radius: 4px;
   border-color: hsl(0, 0%, 80%);
+  margin-bottom: 10px;
+  padding: 2px 8px;
+  width: 100%;
+`;
+
+const saveAsInputStyles = css`
+  ${sharedInputStyles}
+  height: 36px;  
+`;
+
+const descriptionInputStyles = css`
+  ${sharedInputStyles}
+  min-height: 36px;
+  height: 72px;
+  resize: vertical;
 `;
 
 function errorMessage(text: string) {
@@ -156,6 +170,8 @@ function SavePanel({ visible }: Props) {
   const {
     saveAsName,
     setSaveAsName,
+    saveDescription,
+    setSaveDescription,
     saveLayersList,
     setSaveLayersList,
     widgetLayers,
@@ -374,11 +390,11 @@ function SavePanel({ visible }: Props) {
 
   async function runPublish(
     portal: __esri.Portal,
-    name: string,
+    serviceMetaData: ServiceMetaDataType,
     layersToPublish: any[],
   ) {
     // check if the name is available in the user's org
-    const nameAvailableResponse = await isServiceNameAvailable(portal, name);
+    const nameAvailableResponse = await isServiceNameAvailable(portal, serviceMetaData.label);
     if (nameAvailableResponse.error) {
       setPublishResponse({
         status: 'failure',
@@ -404,10 +420,7 @@ function SavePanel({ visible }: Props) {
       services,
       layers: layersToPublish,
       layerProps,
-      serviceMetaData: {
-        description: '',
-        label: name,
-      },
+      serviceMetaData,
     });
 
     setPublishResponse({
@@ -456,8 +469,13 @@ function SavePanel({ visible }: Props) {
       summary: { success: '', failed: '' },
     });
 
+    const serviceMetaData = {
+      label: saveAsName,
+      description: saveDescription,
+    };
+
     if (userPortal) {
-      await runPublish(userPortal, saveAsName, layersToPublish);
+      await runPublish(userPortal, serviceMetaData, layersToPublish);
       return;
     }
 
@@ -474,7 +492,7 @@ function SavePanel({ visible }: Props) {
       setUserPortal(portal);
 
       // run publish
-      await runPublish(portal, saveAsName, layersToPublish);
+      await runPublish(portal, serviceMetaData, layersToPublish);
     } catch (err) {
       console.error(err);
       setUserPortal(null);
@@ -548,6 +566,15 @@ function SavePanel({ visible }: Props) {
           css={saveAsInputStyles}
           value={saveAsName}
           onChange={(ev) => setSaveAsName(ev.target.value)}
+        />
+      </div>
+      <div>
+        <label htmlFor="service-description">Description: </label>
+        <textarea
+          id="service-description"
+          css={descriptionInputStyles}
+          value={saveDescription}
+          onChange={(ev) => setSaveDescription(ev.target.value)}
         />
       </div>
       <div css={submitSectionStyles}>

@@ -75,10 +75,8 @@ export type DeleteFeatureType = {
 };
 
 export type ServiceMetaDataType = {
-  value: string; // sample type uuid
   label: string; // sample type name
   description: string; // sample type description
-  url: string; // url of service
 };
 
 export type LayerTypeName =

@@ -16,6 +16,8 @@ type State = {
   setPageNumber: Dispatch<SetStateAction<number>>;
   saveAsName: string,
   setSaveAsName: Function,
+  saveDescription: string,
+  setSaveDescription: Function,
   saveLayersList: any, // TODO Fix usage of any
   setSaveLayersList: Function,
   searchResults: SearchResultsState;
@@ -35,6 +37,7 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
   const [addSaveDataWidgetVisible, setAddSaveDataWidgetVisible] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [saveAsName, setSaveAsName] = useState('');
+  const [saveDescription, setSaveDescription] = useState('');
   const [saveLayersList, setSaveLayersList] = useState<any>(null); // TODO Fix any usage
   const [searchResults, setSearchResults] = useState<SearchResultsState>({
     status: 'idle',
@@ -48,12 +51,14 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
       addSaveDataWidgetVisible,
       pageNumber,
       saveAsName,
+      saveDescription,
       saveLayersList,
       searchResults,
       setActiveTabIndex,
       setAddSaveDataWidgetVisible,
       setPageNumber,
       setSaveAsName,
+      setSaveDescription,
       setSaveLayersList,
       setSearchResults,
       setWidgetLayers,
@@ -64,6 +69,7 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
     addSaveDataWidgetVisible,
     pageNumber,
     saveAsName,
+    saveDescription,
     saveLayersList,
     searchResults,
     widgetLayers
