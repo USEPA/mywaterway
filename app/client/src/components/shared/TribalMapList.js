@@ -171,8 +171,6 @@ function TribalMapList({
     waterbodyLayer,
   } = useContext(LocationSearchContext);
 
-  useAllWaterbodiesLayer(false, 4622350);
-
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
@@ -263,19 +261,6 @@ function TribalMapList({
       })
       .catch(handelQueryError);
   }, [pointsLayer, linesLayer, areasLayer, mapView, filter]);
-
-  const [monitoringLocationsFilter, setMonitoringLocationsFilter] =
-    useState(null);
-  // get the wqx monitoring locations associated with the selected tribe
-  useEffect(() => {
-    if (!activeState?.wqxIds) return;
-
-    setMonitoringLocationsFilter(
-      `organization=${activeState.wqxIds.join('&organization=')}`,
-    );
-  }, [activeState]);
-
-  useMonitoringLocationsLayer(monitoringLocationsFilter);
 
   // scroll to the tribe map when the user switches to full screen mode
   useEffect(() => {
@@ -643,7 +628,21 @@ function TribalMap({
     setUpstreamLayer,
   } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer } = useLayers();
+  const [monitoringLocationsFilter, setMonitoringLocationsFilter] =
+    useState(null);
+  // get the wqx monitoring locations associated with the selected tribe
+  useEffect(() => {
+    if (!activeState?.wqxIds) return;
+
+    setMonitoringLocationsFilter(
+      `organization=${activeState.wqxIds.join('&organization=')}`,
+    );
+  }, [activeState]);
+
+  useAllWaterbodiesLayer(false, 4622350);
+  const monitoringLocationsLayer = useMonitoringLocationsLayer(
+    monitoringLocationsFilter,
+  );
 
   const navigate = useNavigate();
   const services = useServicesContext();

@@ -29,6 +29,7 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
+import { LayersProvider } from 'contexts/Layers';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -1531,10 +1532,12 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
 
 export default function WaterbodyReportContainer() {
   return (
-    <MapHighlightProvider>
-      <FullscreenProvider>
-        <WaterbodyReport />
-      </FullscreenProvider>
-    </MapHighlightProvider>
+    <LayersProvider>
+      <MapHighlightProvider>
+        <FullscreenProvider>
+          <WaterbodyReport />
+        </FullscreenProvider>
+      </MapHighlightProvider>
+    </LayersProvider>
   );
 }

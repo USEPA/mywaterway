@@ -35,7 +35,6 @@ import {
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -60,6 +59,10 @@ import {
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
+  useAllWaterbodiesLayer,
+  useDischargersLayer,
+  useMonitoringLocationsLayer,
+  useStreamgageLayer,
 } from 'utils/hooks';
 import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
@@ -220,8 +223,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
-    useLayers();
+  const allWaterbodiesLayerVisible =
+    huc12 && window.location.pathname !== '/community';
+  useAllWaterbodiesLayer(allWaterbodiesLayerVisible);
+  const dischargersLayer = useDischargersLayer();
+  const monitoringLocationsLayer = useMonitoringLocationsLayer(
+    huc12 ? `huc=${huc12}` : null,
+  );
+  const usgsStreamgagesLayer = useStreamgageLayer();
 
   const stateNationalUses = useStateNationalUsesContext();
 

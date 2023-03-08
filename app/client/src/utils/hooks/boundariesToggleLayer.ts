@@ -5,7 +5,10 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
+import {
+  useFetchedDataDispatch,
+  useFetchedDataState,
+} from 'contexts/FetchedData';
 import { useLayersDispatch, useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
@@ -306,6 +309,48 @@ function useBoundariesToggleLayer<
   useEffect(() => {
     layersDispatch({ type: 'reset', id: layerId, payload: resetLayer });
   }, [layerId, layersDispatch, resetLayer]);
+
+  const fetchedDataDispatch = useFetchedDataDispatch();
+
+  // Clean up the layer state and fetched data state when finished
+  useEffect(() => {
+    return function cleanup() {
+      layersDispatch({ type: 'layer', id: layerId, payload: null });
+      layersDispatch({
+        type: 'reset',
+        id: layerId,
+        payload: () => Promise.resolve(),
+      });
+      layersDispatch({
+        type: 'boundariesToggle',
+        id: layerId,
+        payload: () => () => {},
+      });
+      layersDispatch({
+        type: 'boundariesToggleDisabled',
+        id: layerId,
+        payload: false,
+      });
+      layersDispatch({
+        type: 'surroundingsVisible',
+        id: layerId,
+        payload: false,
+      });
+      layersDispatch({
+        type: 'surroundingsUpdating',
+        id: layerId,
+        payload: false,
+      });
+      fetchedDataDispatch({ type: 'pending', id: enclosedFetchedDataKey });
+      fetchedDataDispatch({ type: 'pending', id: surroundingFetchedDataKey });
+    };
+  }, [
+    enclosedFetchedDataKey,
+    fetchedDataDispatch,
+    layerId,
+    layersDispatch,
+    surroundingFetchedDataKey,
+  ]);
 
   return parentLayer;
 }

@@ -22,13 +22,6 @@ import {
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-// utils
-import {
-  useAllWaterbodiesLayer,
-  useDischargersLayer,
-  useMonitoringLocationsLayer,
-  useStreamgageLayer,
-} from 'utils/hooks';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -130,7 +123,7 @@ function Community() {
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const { huc12, setSearchText, setLastSearchText, errorMessage, resetData } =
+  const { setSearchText, setLastSearchText, errorMessage, resetData } =
     useContext(LocationSearchContext);
 
   useEffect(() => {
@@ -168,13 +161,6 @@ function Community() {
     setSearchText,
     setLastSearchText,
   ]);
-
-  const allWaterbodiesLayerVisible =
-    huc12 && window.location.pathname !== '/community';
-  useAllWaterbodiesLayer(allWaterbodiesLayerVisible);
-  useDischargersLayer();
-  useMonitoringLocationsLayer(huc12 ? `huc=${huc12}` : null);
-  useStreamgageLayer();
 
   // jsx
   const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;

@@ -42,7 +42,7 @@ import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-import { LayersProvider, useLayers } from 'contexts/Layers';
+import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
@@ -50,10 +50,12 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { fetchPost } from 'utils/fetchUtils';
 import {
   getEnclosedLayer,
+  useAbort,
   useMonitoringLocations,
   useMonitoringLocationsLayer,
   useSharedLayers,
 } from 'utils/hooks';
+import { isAbort } from 'utils/utils';
 // styles
 import {
   boxStyles,
@@ -622,18 +624,6 @@ function getTotalCount(charcs) {
   return totalCount;
 }
 
-async function getZoomParams(layer) {
-  const featureSet = await layer.queryFeatures();
-  const graphics = featureSet.features;
-  if (graphics.length === 1 && graphics[0].geometry.type === 'point') {
-    // handle zooming to a single point graphic
-    return {
-      target: graphics[0],
-      zoom: 16,
-    };
-  }
-}
-
 const initialCheckboxes = {
   all: 0,
   groups: {},
@@ -884,7 +874,7 @@ function useCharacteristics(provider, orgId, siteId) {
 
   useEffect(() => {
     if (services.status !== 'success') return;
-    setStatus('fetching');
+    setStatus('pending');
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
       `&mimeType=csv&zip=no&dataProfile=resultPhysChem` +
@@ -902,6 +892,19 @@ function useCharacteristics(provider, orgId, siteId) {
   }, [orgId, provider, services, siteId, structureRecords]);
 
   return [charcs, status];
+}
+
+async function zoomToStation(layer, mapView, signal) {
+  await reactiveUtils.whenOnce(() => !mapView.updating);
+  const featureSet = await layer.queryFeatures();
+  const graphics = featureSet.features;
+  if (graphics.length) {
+    const targetGraphic = graphics.pop();
+    // handle zooming to a single point graphic
+    const zoomParams = { target: targetGraphic, zoom: 16 };
+    await reactiveUtils.whenOnce(() => mapView.ready);
+    await mapView.goTo(zoomParams, { signal });
+  }
 }
 
 /*
@@ -1105,7 +1108,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         failure={
           <p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>
         }
-        fetching={<LoadingSpinner />}
+        pending={<LoadingSpinner />}
         status={charcsStatus}
       >
         {infoText ? (
@@ -1312,7 +1315,7 @@ function CharacteristicsTableSection({
               <p>{monitoringError}</p>
             </div>
           }
-          fetching={<LoadingSpinner />}
+          pending={<LoadingSpinner />}
           status={charcsStatus}
         >
           <FlexRow
@@ -1592,7 +1595,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         failure={
           <p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>
         }
-        fetching={<LoadingSpinner />}
+        pending={<LoadingSpinner />}
         status={charcsStatus}
       >
         <SliderContainer
@@ -1839,7 +1842,7 @@ function InformationSection({ siteId, site, siteStatus }) {
         <span>
           <small>
             <strong>Location Name: </strong>
-            {siteStatus === 'fetching' && <LoadingSpinner />}
+            {siteStatus === 'pending' && <LoadingSpinner />}
             {siteStatus === 'success' && site.locationName}
           </small>
           <small>
@@ -1860,11 +1863,11 @@ function InformationSection({ siteId, site, siteStatus }) {
 function MonitoringReportContent() {
   const { orgId, provider, siteId } = useParams();
 
-  useMonitoringLocationsLayer(
+  const siteFilter =
     `provider=${encodeURIComponent(provider)}` +
-      `&organization=${encodeURIComponent(orgId)}` +
-      `&siteid=${encodeURIComponent(siteId)}`,
-  );
+    `&organization=${encodeURIComponent(orgId)}` +
+    `&siteid=${encodeURIComponent(siteId)}`;
+
   const { monitoringLocations, monitoringLocationsStatus: siteStatus } =
     useMonitoringLocations();
 
@@ -1901,6 +1904,7 @@ function MonitoringReportContent() {
               layout="narrow"
               site={site}
               siteStatus={siteStatus}
+              siteFilter={siteFilter}
               widthRef={widthRef}
             />
           </div>
@@ -1922,6 +1926,7 @@ function MonitoringReportContent() {
       <SiteMapContainer
         layout="wide"
         site={site}
+        siteFilter={siteFilter}
         siteStatus={siteStatus}
         widthRef={widthRef}
       />
@@ -1950,6 +1955,8 @@ function MonitoringReportContent() {
           <SiteMapContainer
             layout="fullscreen"
             site={site}
+            siteFilter={siteFilter}
+            siteStatus={siteStatus}
             widthRef={widthRef}
           />
         </div>
@@ -2011,7 +2018,7 @@ function MonitoringReportContent() {
     <StatusContent
       empty={noSiteView}
       failure={<p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>}
-      fetching={content}
+      pending={content}
       success={content}
       status={siteStatus}
     />
@@ -2020,13 +2027,13 @@ function MonitoringReportContent() {
 
 function MonitoringReport() {
   return (
-    <FullscreenProvider>
-      <MapHighlightProvider>
-        <LayersProvider>
+    <LayersProvider>
+      <FullscreenProvider>
+        <MapHighlightProvider>
           <MonitoringReportContent />
-        </LayersProvider>
-      </MapHighlightProvider>
-    </FullscreenProvider>
+        </MapHighlightProvider>
+      </FullscreenProvider>
+    </LayersProvider>
   );
 }
 
@@ -2046,7 +2053,7 @@ function SliderContainer({ min, max, disabled = false, onChange }) {
   );
 }
 
-function SiteMap({ layout, site, siteStatus, widthRef }) {
+function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
 
@@ -2061,8 +2068,6 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
     setVisibleLayers,
   } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer } = useLayers();
-
   useEffect(() => {
     if (!mapView) return;
     mapView.map.basemap = new Basemap({
@@ -2075,6 +2080,8 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
       mapView.map.basemap = 'gray-vector';
     };
   }, [mapView]);
+
+  const monitoringLocationsLayer = useMonitoringLocationsLayer(siteFilter);
 
   // Initialize the layers
   useEffect(() => {
@@ -2096,32 +2103,42 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
     siteStatus,
   ]);
 
+  const { getSignal, abort } = useAbort();
+
   // Zoom to the location of the site
   useEffect(() => {
-    if (!mapView || !monitoringLocationsLayer || !homeWidget) return;
+    if (!mapView || !layersInitialized || !homeWidget) return;
     if (siteStatus !== 'success') return;
 
-    mapView
-      .whenLayerView(getEnclosedLayer(monitoringLocationsLayer))
-      .then((layerView) => {
-        reactiveUtils
-          .whenOnce(() => !layerView.updating)
-          .then(() => {
-            getZoomParams(getEnclosedLayer(monitoringLocationsLayer)).then(
-              (zoomParams) => {
-                mapView.goTo(zoomParams).then(() => {
-                  // set map zoom and home widget's viewpoint
-                  mapView.zoom = mapView.zoom - 1;
-                  homeWidget.viewpoint = new Viewpoint({
-                    targetGeometry: mapView.extent,
-                  });
-                  setMapLoading(false);
-                });
-              },
-            );
-          });
+    const stationLayer = getEnclosedLayer(monitoringLocationsLayer);
+    if (!stationLayer) return;
+
+    zoomToStation(stationLayer, mapView, getSignal())
+      .then(() => {
+        // set map zoom and home widget's viewpoint
+        mapView.zoom = mapView.zoom - 1;
+        homeWidget.viewpoint = new Viewpoint({
+          targetGeometry: mapView.extent,
+        });
+        setMapLoading(false);
+      })
+      .catch((err) => {
+        if (isAbort(err)) return;
+        console.error(err);
       });
-  }, [homeWidget, mapView, monitoringLocationsLayer, siteStatus]);
+
+    return function cleanup() {
+      abort();
+    };
+  }, [
+    abort,
+    getSignal,
+    homeWidget,
+    layersInitialized,
+    mapView,
+    monitoringLocationsLayer,
+    siteStatus,
+  ]);
 
   // Function for resetting the LocationSearch context when the map is removed
   useEffect(() => {
@@ -2143,7 +2160,7 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
 
   return (
     <div css={mapContainerStyles} data-testid="hmw-site-map" ref={widthRef}>
-      {siteStatus === 'fetching' ? <LoadingSpinner /> : <Map layers={layers} />}
+      {siteStatus === 'pending' ? <LoadingSpinner /> : <Map layers={layers} />}
       {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
@@ -2162,13 +2179,13 @@ function StatusContent({
   empty,
   idle = null,
   failure,
-  fetching,
+  pending,
   status,
   success = null,
 }) {
   switch (status) {
-    case 'fetching':
-      return fetching;
+    case 'pending':
+      return pending;
     case 'empty':
       return empty;
     case 'failure':

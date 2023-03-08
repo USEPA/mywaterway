@@ -51,7 +51,7 @@ import { colors } from 'styles';
 ## Hooks
 */
 
-export function useMonitoringLocationsLayer(localFilter: string | null) {
+export function useMonitoringLocationsLayer(localFilter: string | null = null) {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
