@@ -61,6 +61,17 @@ const layersRequireFeatureService = [
   'upstreamWatershed',
 ];
 
+const layersMayBeFiltered = [
+  'dischargersLayer',
+  'issuesLayer',
+  'monitoringLocationsLayer',
+];
+
+const layersMayNotHaveLoaded = [
+  'cyanLayer',
+  'upstreamWatershed',
+];
+
 const layerFilterOptions = [
   { value: 'All', label: 'All' },
   { value: 'Free', label: 'Free' },
@@ -553,12 +564,18 @@ function SavePanel({ visible }: Props) {
                     }}
                   />
                   <span>{value.label}</span>
-                  {value.requiresFeatureService && <span> *</span>}
+                  {value.requiresFeatureService && <strong> $</strong>}
+                  {layersMayBeFiltered.includes(key) && <strong> *</strong>}
+                  {layersMayNotHaveLoaded.includes(key) && <strong> +</strong>}
                 </div>
               );
             })}
       </div>
-      <p>* Including this layer may incur storage costs in ArcGIS Online.</p>
+      <p>
+        <strong>$</strong> Including this layer may incur storage costs in ArcGIS Online.<br/>
+        <strong>*</strong> This layer will be saved with your selected filters.<br/>
+        <strong>+</strong> This layer may not have been loaded yet.<br/>
+      </p>
       <div>
         <label htmlFor="save-as-name">Name: </label>
         <input
