@@ -34,16 +34,15 @@ import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { useSurroundingsState } from 'contexts/Surroundings';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import {
-  buildStations,
   hasSublayers,
   isGroupLayer,
   isInScale,
   isPolygon,
   shallowCompare,
-  updateMonitoringLocationsLayer,
 } from 'utils/mapFunctions';
 import { isAbort } from 'utils/utils';
 // helpers
@@ -58,13 +57,7 @@ import type {
   SetStateAction,
 } from 'react';
 import type { Container } from 'react-dom';
-import type {
-  Feature,
-  FetchState,
-  ScaledLayer,
-  ServicesState,
-  MonitoringLocationsData,
-} from 'types';
+import type { Feature, ServicesState } from 'types';
 
 /*
 ## Styles
@@ -188,7 +181,6 @@ const orderedLayers = [
   'waterbodyLayer',
   'allWaterbodiesLayer',
   'monitoringLocationsLayer',
-  'surroundingMonitoringLocationsLayer',
   'usgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',
@@ -281,8 +273,7 @@ function updateVisibleLayers(
       (layer.visible && layer.listMode !== 'hide') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed') ||
-      (layer.visible && layer.id === 'allWaterbodiesLayer') ||
-      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer')
+      (layer.visible && layer.id === 'allWaterbodiesLayer')
     ) {
       visibleLayers.push(layer);
     }
@@ -336,6 +327,7 @@ function MapWidgets({
   const { addSaveDataWidgetVisible, setAddSaveDataWidgetVisible, widgetLayers } =
     useAddSaveDataWidgetState();
 
+  const pathname = window.location.pathname;
   const abortSignal = useAbortSignal();
   const watchHandles = useMemo<IHandle[]>(() => [], []);
   const observers = useMemo<MutationObserver[]>(() => [], []);
@@ -370,17 +362,8 @@ function MapWidgets({
     setUpstreamExtent,
     setErrorMessage,
     getWatershed,
-    allWaterbodiesLayer,
-    allWaterbodiesWidgetDisabled,
-    setAllWaterbodiesWidgetDisabled,
-    getAllWaterbodiesWidgetDisabled,
     setMapView,
     getHucBoundaries,
-    getMonitoringLocations,
-    getSurroundingMonitoringLocationsWidgetDisabled,
-    surroundingMonitoringLocationsLayer,
-    surroundingMonitoringLocationsWidgetDisabled,
-    setSurroundingMonitoringLocationsWidgetDisabled,
   } = useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -629,8 +612,8 @@ function MapWidgets({
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode, observers]);
 
-  // Create the surrounding locations widget
-  const surroundingsWidget = useSurroundingsWidget();
+  const surroundingsWidgetVisible = !pathname.includes('state');
+  const surroundingsWidget = useSurroundingsWidget(surroundingsWidgetVisible);
   useEffect(() => {
     if (!view?.ui) return;
 
@@ -994,8 +977,8 @@ function MapWidgets({
     if (!upstreamWidget) return;
 
     if (
-      window.location.pathname === '/community' ||
-      (window.location.pathname.includes('/community') && !huc12)
+      pathname === '/community' ||
+      (pathname.includes('/community') && !huc12)
     ) {
       // disable upstream widget on community home or invalid searches
       setUpstreamWidgetDisabled(true);
@@ -1004,7 +987,7 @@ function MapWidgets({
 
     // display and enable the upstream widget
     setUpstreamWidgetDisabled(false);
-  }, [huc12, upstreamWidget, setUpstreamWidgetDisabled]);
+  }, [huc12, upstreamWidget, setUpstreamWidgetDisabled, pathname]);
 
   useEffect(() => {
     if (!upstreamWidget) {
@@ -1023,16 +1006,13 @@ function MapWidgets({
   // create upstream widget
   const [upstreamWidgetCreated, setUpstreamWidgetCreated] = useState(false);
   useEffect(() => {
-    if (
-      !window.location.pathname.includes('/community') &&
-      !window.location.pathname.includes('/tribe')
-    )
+    if (!pathname.includes('/community') && !pathname.includes('/tribe'))
       return;
     if (upstreamWidgetCreated || !map || !view?.ui) return;
 
     const node = document.createElement('div');
 
-    const widget = window.location.pathname.includes('/community') ? (
+    const widget = pathname.includes('/community') ? (
       <ShowCurrentUpstreamWatershed
         abortSignal={abortSignal}
         getCurrentExtent={getCurrentExtent}
@@ -1089,6 +1069,7 @@ function MapWidgets({
     getWatershed,
     map,
     mapRef,
+    pathname,
     services,
     setCurrentExtent,
     setErrorMessage,
@@ -1101,212 +1082,7 @@ function MapWidgets({
     view,
   ]);
 
-  const [allWaterbodiesWidget, setAllWaterbodiesWidget] =
-    useState<HTMLDivElement | null>(null);
-  const [allWaterbodiesLayerVisible, setAllWaterbodiesLayerVisible] =
-    useState(true);
-
-  // watch for location changes and disable/enable the all waterbodies widget
-  // accordingly widget should only be displayed on valid Community page location
-  useEffect(() => {
-    if (!allWaterbodiesWidget) return;
-
-    const pathname = window.location.pathname;
-    if (!pathname.includes('/community') && !pathname.includes('/tribe')) {
-      // hide all waterbodies widget on other pages
-      allWaterbodiesWidget.style.display = 'none';
-      allWaterbodiesLayer.visible = false;
-      return;
-    }
-
-    if (!pathname.includes('/tribe') && (!huc12 || pathname === '/community')) {
-      // disable all waterbodies widget on community home or invalid searches
-      setAllWaterbodiesWidgetDisabled(true);
-      allWaterbodiesLayer.visible = false;
-      return;
-    }
-
-    // change the minScale of the waterbodies layer for the tribal page
-    if (pathname.includes('/tribe')) {
-      allWaterbodiesLayer.minScale = 4622350;
-      allWaterbodiesLayer.layers.forEach((layer: ScaledLayer) => {
-        layer.minScale = allWaterbodiesLayer.minScale;
-      });
-
-      // enable the all waterbodies widget but default visibility to off
-      setAllWaterbodiesWidgetDisabled(false);
-      setAllWaterbodiesLayerVisible(false);
-      allWaterbodiesLayer.visible = false;
-      return;
-    }
-
-    // display and enable the all waterbodies widget
-    setAllWaterbodiesWidgetDisabled(false);
-    allWaterbodiesLayer.visible = true;
-  }, [
-    huc12,
-    allWaterbodiesLayer,
-    allWaterbodiesWidget,
-    setAllWaterbodiesWidgetDisabled,
-  ]);
-
-  // disable the all waterbodies widget if on the community home page
-  useEffect(() => {
-    const pathname = window.location.pathname;
-    if (
-      !allWaterbodiesWidget ||
-      (!pathname.includes('/community') && !pathname.includes('/tribe'))
-    ) {
-      return;
-    }
-
-    if (allWaterbodiesWidgetDisabled) {
-      allWaterbodiesWidget.style.opacity = '0.5';
-      allWaterbodiesWidget.style.cursor = 'default';
-    } else {
-      allWaterbodiesWidget.style.opacity = '1';
-      allWaterbodiesWidget.style.cursor = 'pointer';
-    }
-  }, [allWaterbodiesWidget, allWaterbodiesWidgetDisabled]);
-
-  // create all waterbodies widget
-  const [
-    allWaterbodiesWidgetCreated,
-    setAllWaterbodiesWidgetCreated, //
-  ] = useState(false);
-  useEffect(() => {
-    if (allWaterbodiesWidgetCreated || !view || !view.ui) return;
-
-    const node = document.createElement('div');
-    view.ui.add(node, { position: 'top-right', index: 2 });
-    setAllWaterbodiesWidget(node); // store the widget in context so it can be shown or hidden later
-    render(
-      <ShowAllWaterbodies
-        allWaterbodiesLayer={allWaterbodiesLayer}
-        getDisabled={getAllWaterbodiesWidgetDisabled}
-        mapView={view}
-        setAllWaterbodiesLayerVisible={setAllWaterbodiesLayerVisible}
-        setDisabled={setAllWaterbodiesWidgetDisabled}
-      />,
-      node,
-    );
-    setAllWaterbodiesWidgetCreated(true);
-  }, [
-    allWaterbodiesLayer,
-    allWaterbodiesWidgetCreated,
-    getAllWaterbodiesWidgetDisabled,
-    setAllWaterbodiesWidget,
-    setAllWaterbodiesWidgetDisabled,
-    view,
-  ]);
-
-  const [
-    surroundingMonitoringLocationsWidget,
-    setSurroundingMonitoringLocationsWidget,
-  ] = useState<HTMLDivElement | null>(null);
-  const [
-    surroundingMonitoringLocationsLayerVisible,
-    setSurroundingMonitoringLocationsLayerVisible,
-  ] = useState(true);
-
-  // watch for location changes and disable/enable the surrounding past water
-  // conditions widget accordingly widget should only be displayed on valid
-  // Community, waterbody report, and tribal pages
-  useEffect(() => {
-    if (!surroundingMonitoringLocationsWidget) return;
-
-    const pathname = window.location.pathname;
-    if (pathname.includes('/state')) {
-      // hide widget on other pages
-      surroundingMonitoringLocationsWidget.style.display = 'none';
-      surroundingMonitoringLocationsLayer.visible = false;
-      return;
-    }
-
-    if (
-      pathname === '/community' ||
-      (!huc12 && pathname.includes('/community/'))
-    ) {
-      // disable widget on community home or invalid searches
-      setSurroundingMonitoringLocationsWidgetDisabled(true);
-      surroundingMonitoringLocationsLayer.visible = false;
-      return;
-    }
-
-    if (pathname.includes('/tribe')) {
-      // enable the widget but default visibility to off
-      setSurroundingMonitoringLocationsWidgetDisabled(false);
-      setSurroundingMonitoringLocationsLayerVisible(false);
-      surroundingMonitoringLocationsLayer.visible = false;
-      return;
-    }
-
-    // display and enable the all waterbodies widget
-    setSurroundingMonitoringLocationsWidgetDisabled(false);
-    surroundingMonitoringLocationsLayer.visible = false;
-  }, [
-    huc12,
-    setSurroundingMonitoringLocationsWidgetDisabled,
-    surroundingMonitoringLocationsLayer,
-    surroundingMonitoringLocationsWidget,
-  ]);
-
-  // disable the all waterbodies widget if on the community home page
-  useEffect(() => {
-    const pathname = window.location.pathname;
-    if (!surroundingMonitoringLocationsWidget || pathname.includes('/state')) {
-      return;
-    }
-
-    if (surroundingMonitoringLocationsWidgetDisabled) {
-      surroundingMonitoringLocationsWidget.style.opacity = '0.5';
-      surroundingMonitoringLocationsWidget.style.cursor = 'default';
-    } else {
-      surroundingMonitoringLocationsWidget.style.opacity = '1';
-      surroundingMonitoringLocationsWidget.style.cursor = 'pointer';
-    }
-  }, [
-    surroundingMonitoringLocationsWidget,
-    surroundingMonitoringLocationsWidgetDisabled,
-  ]);
-
-  // create surrounding monitoring locations widget
-  const [
-    surroundingMonitoringLocationsWidgetCreated,
-    setSurroundingMonitoringLocationsWidgetCreated,
-  ] = useState(false);
-  useEffect(() => {
-    if (surroundingMonitoringLocationsWidgetCreated || !view?.ui) return;
-
-    const node = document.createElement('div');
-    view.ui.add(node, { position: 'top-right', index: 3 });
-    setSurroundingMonitoringLocationsWidget(node); // store the widget in context so it can be shown or hidden later
-    render(
-      <ShowSurroundingMonitoringLocations
-        getDisabled={getSurroundingMonitoringLocationsWidgetDisabled}
-        getMonitoringLocations={getMonitoringLocations}
-        mapView={view}
-        services={services}
-        setDisabled={setSurroundingMonitoringLocationsWidgetDisabled}
-        setVisible={setSurroundingMonitoringLocationsLayerVisible}
-        surroundingMonitoringLocationsLayer={
-          surroundingMonitoringLocationsLayer
-        }
-      />,
-      node,
-    );
-    setSurroundingMonitoringLocationsWidgetCreated(true);
-  }, [
-    getMonitoringLocations,
-    getSurroundingMonitoringLocationsWidgetDisabled,
-    services,
-    setSurroundingMonitoringLocationsLayerVisible,
-    setSurroundingMonitoringLocationsWidget,
-    setSurroundingMonitoringLocationsWidgetDisabled,
-    surroundingMonitoringLocationsLayer,
-    surroundingMonitoringLocationsWidgetCreated,
-    view,
-  ]);
+  const { visible: surroundingsVisible } = useSurroundingsState();
 
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
@@ -1319,10 +1095,9 @@ function MapWidgets({
     );
   }, [
     additionalLegendInfo,
-    allWaterbodiesLayerVisible,
+    surroundingsVisible,
     displayEsriLegend,
     hmwLegendNode,
-    surroundingMonitoringLocationsLayerVisible,
     upstreamLayerVisible,
     view,
     visibleLayers,
@@ -1505,348 +1280,6 @@ function ExpandCollapse({
             : 'esri-icon esri-icon-zoom-out-fixed'
         }
         style={hover ? buttonHoverStyle : buttonStyle}
-      />
-    </div>
-  );
-}
-
-type ShowAllWaterbodiesProps = {
-  allWaterbodiesLayer: __esri.GroupLayer | '';
-  getDisabled: () => boolean;
-  mapView: __esri.MapView;
-  setAllWaterbodiesLayerVisible: (visible: boolean) => void;
-  setDisabled: (disabled: boolean) => void;
-};
-
-// Defines the show all waterbodies widget
-function ShowAllWaterbodies({
-  allWaterbodiesLayer,
-  getDisabled,
-  mapView,
-  setAllWaterbodiesLayerVisible,
-  setDisabled,
-}: ShowAllWaterbodiesProps) {
-  const [firstLoad, setFirstLoad] = useState(true);
-  const [hover, setHover] = useState(false);
-
-  // store loading state to Upstream Watershed map widget icon
-  const [allWaterbodiesLoading, setAllWaterbodiesLoading] = useState(false);
-
-  // create a watcher to control the loading spinner for the widget
-  useEffect(() => {
-    if (!allWaterbodiesLayer) return;
-    if (firstLoad) {
-      setFirstLoad(false);
-
-      reactiveUtils.watch(
-        () => mapView.updating,
-        () => {
-          setAllWaterbodiesLoading(mapView.updating);
-        },
-      );
-
-      reactiveUtils.watch(
-        () => mapView.scale,
-        () => {
-          const newWidgetDisabledVal = allWaterbodiesLayer
-            ? mapView.scale >= allWaterbodiesLayer.minScale
-            : true;
-          if (newWidgetDisabledVal !== getDisabled()) {
-            setDisabled(newWidgetDisabledVal);
-          }
-        },
-      );
-    }
-  }, [
-    allWaterbodiesLayer,
-    firstLoad,
-    getDisabled,
-    mapView.scale,
-    mapView.updating,
-    setDisabled,
-  ]);
-
-  const widgetDisabled = getDisabled();
-
-  // get the layer from the mapView
-  const layer = mapView.map.layers.find((l) => l.id === 'allWaterbodiesLayer');
-
-  let title = 'View Surrounding Waterbodies';
-  if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
-  else if (layer?.visible) title = 'Hide Surrounding Waterbodies';
-
-  return (
-    <div
-      title={title}
-      style={!widgetDisabled && hover ? divHoverStyle : divStyle}
-      onMouseOver={() => setHover(true)}
-      onMouseOut={() => setHover(false)}
-      onClick={(_ev) => {
-        // if widget is disabled do nothing
-        if (widgetDisabled || !layer) return;
-
-        layer.visible = !layer.visible;
-        setAllWaterbodiesLayerVisible(layer.visible);
-      }}
-    >
-      <span
-        className={
-          allWaterbodiesLoading && !widgetDisabled && layer?.visible
-            ? 'esri-icon-loading-indicator esri-rotating'
-            : 'esri-icon-maps'
-        }
-        style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
-      />
-    </div>
-  );
-}
-
-type ShowSurroundingMonitoringLocationsProps = {
-  getDisabled: () => boolean;
-  getMonitoringLocations: () => FetchState<MonitoringLocationsData>;
-  mapView: __esri.MapView;
-  services: ServicesState;
-  setDisabled: (disabled: boolean) => void;
-  setVisible: (visible: boolean) => void;
-  surroundingMonitoringLocationsLayer: __esri.FeatureLayer | '';
-};
-
-type SimpleExtent = {
-  xmin: number;
-  xmax: number;
-  ymin: number;
-  ymax: number;
-};
-
-// Defines the show all waterbodies widget
-function ShowSurroundingMonitoringLocations({
-  getDisabled,
-  getMonitoringLocations,
-  mapView,
-  services,
-  setDisabled,
-  setVisible,
-  surroundingMonitoringLocationsLayer,
-}: ShowSurroundingMonitoringLocationsProps) {
-  const [hover, setHover] = useState(false);
-
-  const [surroundingMonitoringLocations, setSurroundingMonitoringLocations] =
-    useState<FetchState<MonitoringLocationsData>>({
-      status: 'fetching',
-      data: null,
-    });
-
-  const [layerVisible, setLayerVisible] = useState(false);
-  const [viewReady, setViewReady] = useState(false);
-  const [viewStationary, setViewStationary] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(0);
-
-  // setup watchers
-  const [watcherInitialized, setWatcherInitialized] = useState(false);
-  useEffect(() => {
-    if (!surroundingMonitoringLocationsLayer || watcherInitialized) return;
-
-    // watch for extent changes and query the waterquality portal
-    reactiveUtils.watch(
-      () => mapView.stationary,
-      () => {
-        setViewReady(mapView.ready);
-        setViewStationary(mapView.stationary);
-      },
-    );
-
-    // keep track of layer visibility of surroundingMonitoringLocationsLayer
-    reactiveUtils.watch(
-      () => surroundingMonitoringLocationsLayer.visible,
-      () => {
-        setLayerVisible(surroundingMonitoringLocationsLayer.visible);
-      },
-    );
-
-    // watch for zoom changes
-    reactiveUtils.watch(
-      () => mapView.zoom,
-      () => {
-        setZoomLevel(mapView.zoom);
-      },
-    );
-
-    setWatcherInitialized(true);
-  }, [mapView, surroundingMonitoringLocationsLayer, watcherInitialized]);
-
-  const [lastExtent, setLastExtent] = useState<SimpleExtent | null>(null);
-  const [lastVisible, setLastVisible] = useState(false);
-  const abortController = useRef(new AbortController());
-
-  // fetch the surrounding monitoring locations
-  useEffect(() => {
-    if (services.status !== 'success' || !watcherInitialized) return;
-    if (!layerVisible || !viewReady || !viewStationary) return;
-    if (!surroundingMonitoringLocationsLayer) return;
-    if (getDisabled()) return;
-
-    const newExtent: SimpleExtent = {
-      xmin: mapView.extent.xmin,
-      xmax: mapView.extent.xmax,
-      ymin: mapView.extent.ymin,
-      ymax: mapView.extent.ymax,
-    };
-    if (JSON.stringify(newExtent) === JSON.stringify(lastExtent)) return;
-    setLastExtent(newExtent);
-    abortController.current.abort();
-
-    setSurroundingMonitoringLocations({
-      status: 'fetching',
-      data: null,
-    });
-    abortController.current = new AbortController();
-
-    // convert the extent into northwest and southeast corner points
-    const northwestWM = new Point({
-      x: mapView.extent.xmin,
-      y: mapView.extent.ymax,
-    });
-    const southeastWM = new Point({
-      x: mapView.extent.xmax,
-      y: mapView.extent.ymin,
-    });
-
-    // convert the points to geographic
-    const northwest = webMercatorUtils.webMercatorToGeographic(
-      northwestWM,
-      false,
-    ) as __esri.Point;
-    const southeast = webMercatorUtils.webMercatorToGeographic(
-      southeastWM,
-      false,
-    ) as __esri.Point;
-
-    // get the bbox values from the northwest and southeast corner points
-    const north = northwest.latitude;
-    const south = southeast.latitude;
-    const east = southeast.longitude;
-    const west = northwest.longitude;
-
-    const url =
-      services.data.waterQualityPortal.monitoringLocation +
-      `search?mimeType=geojson&zip=no&bBox=${west},${south},${east},${north}`;
-    fetchCheck(url, abortController.current.signal)
-      .then((res: MonitoringLocationsData) => {
-        const idsToFilterOut: string[] = [];
-        const monitoringLocations = getMonitoringLocations();
-
-        if (monitoringLocations.status === 'success') {
-          monitoringLocations.data.features.forEach((location) => {
-            idsToFilterOut.push(
-              location.properties.MonitoringLocationIdentifier,
-            );
-          });
-        }
-
-        const newData: FetchState<MonitoringLocationsData> = {
-          status: 'success',
-          data: {
-            ...res,
-            features: res.features.filter(
-              (location) =>
-                !idsToFilterOut.includes(
-                  location.properties.MonitoringLocationIdentifier,
-                ),
-            ),
-          },
-        };
-        setSurroundingMonitoringLocations(newData);
-
-        const stations = buildStations(newData);
-        if (!stations) return;
-
-        updateMonitoringLocationsLayer(
-          stations,
-          surroundingMonitoringLocationsLayer,
-        );
-      })
-      .catch((err) => {
-        if (isAbort(err)) return;
-        console.error(err);
-        setSurroundingMonitoringLocations({
-          status: 'failure',
-          data: null,
-        });
-      });
-  }, [
-    getDisabled,
-    getMonitoringLocations,
-    lastExtent,
-    layerVisible,
-    mapView,
-    services,
-    setDisabled,
-    surroundingMonitoringLocationsLayer,
-    viewReady,
-    viewStationary,
-    watcherInitialized,
-    zoomLevel,
-  ]);
-
-  // hide the surroundingMonitoringLocationsLayer when zoomed out too much
-  useEffect(() => {
-    if (!surroundingMonitoringLocationsLayer || !watcherInitialized) return;
-
-    let newDisabledValue = false;
-    if (zoomLevel > 8) {
-      surroundingMonitoringLocationsLayer.listMode = 'hide-children';
-      surroundingMonitoringLocationsLayer.visible = lastVisible;
-    } else {
-      surroundingMonitoringLocationsLayer.listMode = 'hide';
-      surroundingMonitoringLocationsLayer.visible = false;
-      newDisabledValue = true;
-    }
-
-    setDisabled(newDisabledValue);
-  }, [
-    lastVisible,
-    setDisabled,
-    surroundingMonitoringLocationsLayer,
-    watcherInitialized,
-    zoomLevel,
-  ]);
-
-  const widgetDisabled = getDisabled();
-
-  // get the layer from the mapView
-  const layer = mapView.map.layers.find(
-    (l) => l.id === 'surroundingMonitoringLocationsLayer',
-  );
-
-  let title = 'View Surrounding Past Water Conditions';
-  if (widgetDisabled)
-    title = 'Surrounding Past Water Conditions Widget Not Available';
-  else if (layer?.visible) title = 'Hide Surrounding Past Water Conditions';
-
-  return (
-    <div
-      title={title}
-      style={!widgetDisabled && hover ? divHoverStyle : divStyle}
-      onMouseOver={() => setHover(true)}
-      onMouseOut={() => setHover(false)}
-      onClick={(_ev) => {
-        // if widget is disabled do nothing
-        if (widgetDisabled || !layer) return;
-
-        layer.visible = !layer.visible;
-        setVisible(layer.visible);
-        setLastVisible(layer.visible);
-      }}
-    >
-      <span
-        className={
-          surroundingMonitoringLocations.status === 'fetching' &&
-          !widgetDisabled &&
-          layer?.visible
-            ? 'esri-icon-loading-indicator esri-rotating'
-            : 'esri-icon-experimental'
-        }
-        style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
       />
     </div>
   );

@@ -57,10 +57,10 @@
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
   "cyan": {
     "application": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
-    "cellConcentration": "https://qed.epa.gov/waterbody/data",
-    "dataDownload": "https://qed.epa.gov/waterbody/data_download",
-    "images": "https://qed.epa.gov/waterbody/image",
-    "properties": "https://qed.epa.gov/waterbody/properties",
+    "cellConcentration": "https://cyan.epa.gov/waterbody/data",
+    "dataDownload": "https://cyan.epa.gov/waterbody/data_download",
+    "images": "https://cyan.epa.gov/waterbody/image",
+    "properties": "https://cyan.epa.gov/waterbody/properties",
     "waterbodies": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0"
   },
   "googleAnalyticsMapping": [

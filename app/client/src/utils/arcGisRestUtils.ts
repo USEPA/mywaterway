@@ -546,13 +546,19 @@ async function applyEdits({
       } else if (layer.id === 'dischargersLayer') {
         const dischargersGroupLayer = layer.layer as __esri.GroupLayer;
         const dischargersLayer = dischargersGroupLayer.findLayerById(
-          `${dischargersGroupLayer.id}-features`,
+          `${dischargersGroupLayer.id}-enclosed`,
         );
         await processLayerFeatures(dischargersLayer, adds);
+      } else if (layer.id === 'monitoringLocationsLayer') {
+        const monitoringLocationsGroupLayer = layer.layer as __esri.GroupLayer;
+        const monitoringLocationsLayer = monitoringLocationsGroupLayer.findLayerById(
+          `${monitoringLocationsGroupLayer.id}-enclosed`,
+        );
+        await processLayerFeatures(monitoringLocationsLayer, adds);
       } else if (layer.id === 'usgsStreamgagesLayer') {
         const streamGagesGroupLayer = layer.layer as __esri.GroupLayer;
         const streamGagesLayer = streamGagesGroupLayer.findLayerById(
-          `${streamGagesGroupLayer.id}-features`,
+          `${streamGagesGroupLayer.id}-enclosed`,
         );
         await processLayerFeatures(streamGagesLayer, adds);
       } else if (layer.widgetLayer?.type === 'file') {

@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Node } from 'react';
 import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
@@ -41,7 +35,6 @@ import {
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -63,10 +56,13 @@ import {
   useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
-  useMonitoringLocations,
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
+  useAllWaterbodiesLayer,
+  useDischargersLayer,
+  useMonitoringLocationsLayer,
+  useStreamgageLayer,
 } from 'utils/hooks';
 import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
@@ -79,13 +75,12 @@ import {
   browserIsCompatibleWithArcGIS,
   resetCanonicalLink,
   removeJsonLD,
-  parseAttributes,
 } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
-import 'styles/mapStyles.css';
 import { colors } from 'styles/index.js';
+import 'styles/mapStyles.css';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
@@ -200,11 +195,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    setMonitoringLocations,
     // setNonprofits,
     setWaterbodyLayer,
     setIssuesLayer,
-    setMonitoringLocationsLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -232,7 +225,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
+  const allWaterbodiesLayerVisible =
+    huc12 && window.location.pathname !== '/community';
+  useAllWaterbodiesLayer(allWaterbodiesLayerVisible);
+  const dischargersLayer = useDischargersLayer();
+  const monitoringLocationsLayer = useMonitoringLocationsLayer(
+    huc12 ? `huc=${huc12}` : null,
+  );
+  const usgsStreamgagesLayer = useStreamgageLayer();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -616,10 +616,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
-    if (!dischargersLayer || !usgsStreamgagesLayer) return;
+    if (!dischargersLayer || !monitoringLocationsLayer || !usgsStreamgagesLayer)
+      return;
     if (!getSharedLayers || layersInitialized) return;
-
-    if (layers.length > 0) return;
 
     // create the layers for the map
     const providersLayer = new GraphicsLayer({
@@ -655,73 +654,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setUpstreamLayer(upstreamLayer);
 
-    const monitoringLocationsLayer = new FeatureLayer({
-      id: 'monitoringLocationsLayer',
-      title: 'Past Water Conditions',
-      listMode: 'hide',
-      legendEnabled: true,
-      fields: [
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'monitoringType', type: 'string' },
-        { name: 'siteId', type: 'string' },
-        { name: 'orgId', type: 'string' },
-        { name: 'orgName', type: 'string' },
-        { name: 'locationLongitude', type: 'double' },
-        { name: 'locationLatitude', type: 'double' },
-        { name: 'locationName', type: 'string' },
-        { name: 'locationType', type: 'string' },
-        { name: 'locationUrl', type: 'string' },
-        { name: 'stationProviderName', type: 'string' },
-        { name: 'stationTotalSamples', type: 'integer' },
-        { name: 'stationTotalsByGroup', type: 'string' },
-        { name: 'stationTotalMeasurements', type: 'integer' },
-        { name: 'timeframe', type: 'string' },
-        { name: 'uniqueId', type: 'string' },
-      ],
-      objectIdField: 'OBJECTID',
-      outFields: ['*'],
-      // NOTE: initial graphic below will be replaced with UGSG streamgages
-      source: [
-        new Graphic({
-          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { OBJECTID: 1 },
-        }),
-      ],
-      spatialReference: {
-        wkid: 102100,
-      },
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-marker',
-          style: 'circle',
-          color: colors.lightPurple(0.5),
-          outline: {
-            width: 0.75,
-          },
-        },
-      },
-      featureReduction: monitoringClusterSettings,
-      popupTemplate: {
-        outFields: ['*'],
-        title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) => {
-          // Parse non-scalar variables
-          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-          feature.graphic.attributes = parseAttributes(
-            structuredProps,
-            feature.graphic.attributes,
-          );
-          return getPopupContent({
-            feature: feature.graphic,
-            services,
-            navigate,
-          });
-        },
-      },
-    });
-
-    setMonitoringLocationsLayer(monitoringLocationsLayer);
 
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
@@ -769,6 +701,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       legendEnabled: false,
       objectIdField: 'OBJECTID',
       outFields: ['*'],
+      spatialReference: {
+        wkid: 102100,
+      },
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -831,11 +766,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getSharedLayers,
     getTemplate,
     getTitle,
-    layers,
+    monitoringLocationsLayer,
     setBoundariesLayer,
     setIssuesLayer,
     setLayers,
-    setMonitoringLocationsLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -1116,31 +1050,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // query geocode server for every new search
   const [mapLoading, setMapLoading] = useState(true);
 
-  const queryMonitoringStationService = useCallback(
-    (huc12Param) => {
-      const url =
-        `${services.data.waterQualityPortal.monitoringLocation}` +
-        `search?mimeType=geojson&zip=no&huc=${huc12Param}`;
-
-      fetchCheck(url)
-        .then((res) => {
-          setMonitoringLocations({
-            status: 'success',
-            data: res,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          setMonitoringLocations({ status: 'failure', data: {} });
-        });
-    },
-    [setMonitoringLocations, services],
-  );
-
-  // updates the features on the monitoringStationsLayer
-  // and the monitoring groups
-  useMonitoringLocations();
-
   const queryGrtsHuc12 = useCallback(
     (huc12Param) => {
       fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12Param}`)
@@ -1417,7 +1326,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               });
             }) ?? [];
 
-          setCyanWaterbodies({ status: 'success', data: features });
+          const data = features.map((feature) => {
+            return {
+              ...feature.attributes,
+              geometry: feature.geometry,
+            };
+          });
+
+          setCyanWaterbodies({ status: 'success', data });
 
           cyanWaterbodiesLayer.queryFeatures().then((featureSet) => {
             cyanWaterbodiesLayer.applyEdits({
@@ -1560,7 +1476,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           setHuc12(huc12);
           processBoundariesData(response);
-          queryMonitoringStationService(huc12);
           queryGrtsHuc12(huc12);
           queryAttainsPlans(huc12);
 
@@ -1578,7 +1493,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [
       setHuc12,
       processBoundariesData,
-      queryMonitoringStationService,
       queryGrtsHuc12,
       queryAttainsPlans,
       handleNoDataAvailable,
@@ -1785,7 +1699,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                   symbol: new SimpleFillSymbol({
                     color: [0, 0, 0, 0.15],
                     outline: {
-                      color: colors.yellow,
+                      color: colors.yellow(),
                       width: 3,
                       style: 'solid',
                     },

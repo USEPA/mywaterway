@@ -6,7 +6,7 @@ import React from 'react';
 export const echoError =
   'The permitted discharger information is temporarily unavailable, please try again later.';
 
-// qed.epa.gov
+// cyan.epa.gov
 export const cyanError =
   'CyAN data is temporarily unavailable, please try again later.';
 

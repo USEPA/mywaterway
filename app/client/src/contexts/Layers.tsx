@@ -1,15 +1,4 @@
-import {
-  createContext,
-  MouseEventHandler,
-  useCallback,
-  useContext,
-  useReducer,
-} from 'react';
-// classes
-import {
-  AllFeaturesLayer,
-  AllGraphicsLayer,
-} from 'classes/BoundariesToggleLayer';
+import { createContext, useContext, useReducer } from 'react';
 // types
 import type { Dispatch, ReactNode } from 'react';
 
@@ -17,61 +6,13 @@ const StateContext = createContext<LayersState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 function reducer(state: LayersState, action: Action): LayersState {
-  switch (action.type) {
-    case 'resetAll': {
-      return {
-        ...state,
-        layers: action.payload,
-      };
-    }
-    case 'layer': {
-      return {
-        ...state,
-        layers: {
-          ...state.layers,
-          [action.id]: action.payload,
-        },
-      };
-    }
-    case 'reset': {
-      return {
-        ...state,
-        resets: {
-          ...state.resets,
-          [action.id]: action.payload,
-        },
-      };
-    }
-    case 'boundariesToggle': {
-      return {
-        ...state,
-        boundariesToggles: {
-          ...state.boundariesToggles,
-          [action.id]: action.payload,
-        },
-      };
-    }
-    case 'boundariesToggleDisabled': {
-      return {
-        ...state,
-        boundariesTogglesDisabled: {
-          ...state.boundariesTogglesDisabled,
-          [action.id]: action.payload,
-        },
-      };
-    }
-    case 'surroundingsVisible': {
-      return {
-        ...state,
-        surroundingsVisible: {
-          ...state.surroundingsVisible,
-          [action.id]: action.payload,
-        },
-      };
-    }
-    default: {
-      throw new Error(`Unhandled action type: ${action}`);
-    }
+  if (state.hasOwnProperty(action.type)) {
+    return {
+      ...state,
+      [action.type]: action.payload,
+    };
+  } else {
+    throw new Error(`Unhandled action type: ${action}`);
   }
 }
 
@@ -91,12 +32,6 @@ export function LayersProvider({ children }: ProviderProps) {
 ## Hooks
 */
 
-export function useLayers() {
-  const state = useLayersState();
-
-  return state.layers;
-}
-
 // Returns state stored in `LayersProvider` context component.
 export function useLayersState() {
   const state = useContext(StateContext);
@@ -115,136 +50,37 @@ export function useLayersDispatch() {
   return dispatch;
 }
 
-export function useLayersReset() {
-  const state = useLayersState();
-  const dispatch = useLayersDispatch();
-
-  const resetLayers = useCallback(async () => {
-    await Promise.all([
-      ...Object.values(state.resets).map(async (reset) => {
-        await reset();
-      }),
-    ]);
-    dispatch({ type: 'resetAll', payload: state.layers });
-  }, [dispatch, state]);
-
-  return resetLayers;
-}
-
-/*
-## Utils
-*/
-
-function initialBoundariesToggle(_showSurroundings: boolean) {
-  return () => {};
-}
-
 /*
 ## Constants
 */
 
-// `placeholderLayer` is only present to keep TypeScript happy
-// until we add an `AllGraphicsLayer` (if we ever do)
 const layerIds = [
+  'waterbodyLayer',
   'monitoringLocationsLayer',
-  'placeholderLayer',
   'dischargersLayer',
   'usgsStreamgagesLayer',
-];
+] as const;
 
-const initialState = layerIds.reduce(
-  (state, layerId) => {
-    return {
-      resets: {
-        ...state.resets,
-        [layerId]: () => Promise.resolve(),
-      },
-      layers: {
-        ...state.layers,
-        [layerId]: null,
-      },
-      boundariesToggles: {
-        ...state.boundariesToggles,
-        [layerId]: initialBoundariesToggle,
-      },
-      boundariesTogglesDisabled: {
-        ...state.boundariesTogglesDisabled,
-        [layerId]: false,
-      },
-      surroundingsVisible: {
-        ...state.surroundingsVisible,
-        [layerId]: false,
-      },
-    };
-  },
-  {
-    resets: {},
-    layers: {},
-    boundariesToggles: {},
-    boundariesTogglesDisabled: {},
-    surroundingsVisible: {},
-  },
-) as LayersState;
+const initialState = layerIds.reduce((state, layerId) => {
+  return {
+    ...state,
+    [layerId]: null,
+  };
+}, {}) as LayersState;
 
 /*
 ## Types
 */
 
-type Action =
-  | { type: 'resetAll'; payload: LayersState['layers'] }
-  | {
-      type: 'layer';
-      id: LayerId;
-      payload: Exclude<LayersState['layers'][LayerId], 'null'>;
-    }
-  | { type: 'reset'; id: LayerId; payload: () => Promise<void> }
-  | {
-      type: 'boundariesToggle';
-      id: BoundariesToggleLayerId;
-      payload: (showSurroundings: boolean) => MouseEventHandler<HTMLDivElement>;
-    }
-  | {
-      type: 'boundariesToggleDisabled';
-      id: BoundariesToggleLayerId;
-      payload: boolean;
-    }
-  | {
-      type: 'surroundingsVisible';
-      id: BoundariesToggleLayerId;
-      payload: boolean;
-    };
+type Action = {
+  type: LayerId;
+  payload: LayersState[LayerId];
+};
 
-export type BoundariesToggleLayerId = AllFeaturesLayerId | AllGraphicsLayerId;
-
-export type AllFeaturesLayerId =
-  | 'usgsStreamgagesLayer'
-  | 'monitoringLocationsLayer'
-  | 'dischargersLayer';
-
-type AllGraphicsLayerId = 'placeholderLayer';
-
-export type LayerId = keyof (typeof initialState)['layers'];
+export type LayerId = (typeof layerIds)[number];
 
 export type LayersState = {
-  layers: {
-    [F in AllFeaturesLayerId]: AllFeaturesLayer | null;
-  } & {
-    [G in AllGraphicsLayerId]: AllGraphicsLayer | null;
-  };
-  resets: {
-    [L in LayerId]: () => Promise<void>;
-  };
-  boundariesToggles: {
-    [B in BoundariesToggleLayerId]: (
-      showSurroundings: boolean,
-    ) => MouseEventHandler<HTMLDivElement>;
-  };
-  boundariesTogglesDisabled: {
-    [B in BoundariesToggleLayerId]: boolean;
-  };
-  surroundingsVisible: {
-    [B in BoundariesToggleLayerId]: boolean;
-  };
+  [L in LayerId]: __esri.GroupLayer | null;
 };
 
 type ProviderProps = {

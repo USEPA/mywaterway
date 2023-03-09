@@ -626,17 +626,6 @@
       "defaultValue": null
     },
     {
-      "name": "GLOBALID",
-      "type": "esriFieldTypeGlobalID",
-      "alias": "GlobalID",
-      "sqlType": "sqlTypeOther",
-      "length": 38,
-      "nullable": false,
-      "editable": false,
-      "domain": null,
-      "defaultValue": "NEWID() WITH VALUES"
-    },
-    {
       "name": "LAYERID",
       "type": "esriFieldTypeString",
       "actualType": "nvarchar",

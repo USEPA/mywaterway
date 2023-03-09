@@ -19,7 +19,11 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
-import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import {
+  useSharedLayers,
+  useMonitoringLocationsLayer,
+  useWaterbodyHighlight,
+} from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
   createWaterbodySymbol,
@@ -61,9 +65,13 @@ type Props = {
 function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const navigate = useNavigate();
 
-  const { actionsLayer, homeWidget, mapView, setActionsLayer } = useContext(
-    LocationSearchContext,
-  );
+  const {
+    actionsLayer,
+    homeWidget,
+    mapView,
+    setActionsLayer,
+    setVisibleLayers,
+  } = useContext(LocationSearchContext);
 
   const [layers, setLayers] = useState(null);
 
@@ -71,9 +79,12 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
+  const monitoringLocationsLayer = useMonitoringLocationsLayer();
+
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
+    if (!monitoringLocationsLayer) return;
     if (!getSharedLayers || layersInitialized) return;
 
     let localActionsLayer = actionsLayer;
@@ -88,10 +99,21 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       setActionsLayer(localActionsLayer);
     }
 
-    setLayers([...getSharedLayers(), localActionsLayer]);
-
+    setLayers([
+      ...getSharedLayers(),
+      localActionsLayer,
+      monitoringLocationsLayer,
+    ]);
+    setVisibleLayers({ monitoringLocationsLayer: true });
     setLayersInitialized(true);
-  }, [actionsLayer, setActionsLayer, getSharedLayers, layersInitialized]);
+  }, [
+    actionsLayer,
+    monitoringLocationsLayer,
+    setActionsLayer,
+    getSharedLayers,
+    setVisibleLayers,
+    layersInitialized,
+  ]);
 
   const [fetchStatus, setFetchStatus] = useState('');
 
