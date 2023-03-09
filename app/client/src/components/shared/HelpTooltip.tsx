@@ -81,9 +81,10 @@ type HelpTooltipProps = {
   description?: string;
   children?: ReactElement;
   label: ReactNode;
+  iconClass?: string;
 };
 
-function HelpTooltip({ description, children, label }: HelpTooltipProps) {
+function HelpTooltip({ description, children, label, iconClass = 'fas fa-question-circle' }: HelpTooltipProps) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   return (
     <Tooltip label={label} triggerRef={triggerRef}>
@@ -98,7 +99,7 @@ function HelpTooltip({ description, children, label }: HelpTooltipProps) {
           <i
             aria-hidden
             css={helpIconStyles}
-            className="fas fa-question-circle"
+            className={iconClass}
           />
         )}
         <span className="sr-only">{description || 'Information Tooltip'}</span>

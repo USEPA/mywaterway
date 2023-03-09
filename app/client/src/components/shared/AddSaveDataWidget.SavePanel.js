@@ -8,6 +8,7 @@ import OAuthInfo from '@arcgis/core/identity/OAuthInfo';
 import Portal from '@arcgis/core/portal/Portal';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
+import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   errorBoxStyles,
@@ -38,6 +39,10 @@ type PublishType = {
     failed: string,
   },
 };
+
+const tooltipCost = 'Including this layer may require ArcGIS Online credits for storage.';
+const tooltipFiltered = 'This layer will be saved with your selected filters.';
+const tooltipNotLoaded = 'This layer may not have been loaded yet.';
 
 const layersToIgnore = [
   'nonprofitsLayer',
@@ -564,17 +569,17 @@ function SavePanel({ visible }: Props) {
                     }}
                   />
                   <span>{value.label}</span>
-                  {value.requiresFeatureService && <strong> $</strong>}
-                  {layersMayBeFiltered.includes(key) && <strong> *</strong>}
-                  {layersMayNotHaveLoaded.includes(key) && <strong> +</strong>}
+                  {value.requiresFeatureService && <HelpTooltip label={tooltipCost} iconClass='fas fa-dollar-sign' />}
+                  {layersMayBeFiltered.includes(key) && <HelpTooltip label={tooltipFiltered} iconClass='fas fa-asterisk' />}
+                  {layersMayNotHaveLoaded.includes(key) && <HelpTooltip label={tooltipNotLoaded} iconClass='fas fa-plus' />}
                 </div>
               );
             })}
       </div>
       <p>
-        <strong>$</strong> Including this layer may incur storage costs in ArcGIS Online.<br/>
-        <strong>*</strong> This layer will be saved with your selected filters.<br/>
-        <strong>+</strong> This layer may not have been loaded yet.<br/>
+        <i aria-hidden className="fas fa-dollar-sign"/> Including this layer may incur storage costs in ArcGIS Online.<br/>
+        <i aria-hidden className="fas fa-asterisk"/> This layer will be saved with your selected filters.<br/>
+        <i aria-hidden className="fas fa-plus"/> This layer may not have been loaded yet.<br/>
       </p>
       <div>
         <label htmlFor="save-as-name">Name: </label>
