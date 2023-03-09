@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 // components
 import mapPin from 'images/pin.png';
 // types
@@ -276,6 +275,27 @@ export async function createFeatureService(
 }
 
 /**
+ * Converts a field from the ArcGIS JS API object to the ArcGIS REST API json 
+ * version. Handles the special case of OBJECTID fields, which require extra 
+ * parameters that may not be included with the feature layer definitions. 
+ * 
+ * @param field 
+ * @returns 
+ */
+function convertFieldToJSON(field: __esri.Field) {
+  const fieldJson = field.toJSON();
+  if(fieldJson.type !== 'esriFieldTypeOID') return fieldJson;
+  else 
+    return {
+      ...field.toJSON(),
+      actualType: 'int',
+      sqlType: 'sqlTypeInteger',
+      editable: false,
+      nullable: false,
+    };
+}
+
+/**
  * Used for adding a feature layer to a hosted feature service on
  * ArcGIS Online
  *
@@ -286,6 +306,7 @@ export async function createFeatureService(
  */
 export async function createFeatureLayers(
   portal: __esri.Portal,
+  mapView: __esri.MapView,
   serviceUrl: string,
   layers: LayerType[],
   serviceMetaData: ServiceMetaDataType,
@@ -308,42 +329,71 @@ export async function createFeatureLayers(
     for (const layer of layersReversed) {
       if (!layer.requiresFeatureService) continue;
 
+      const properties = layerProps.data.layerSpecificSettings[layer.layer.id];
+
       // handle layers added via file upload
       if (layer.widgetLayer?.type === 'file') {
         layerIds.push(layer.layer.id);
         layersParams.push(layer.widgetLayer.rawLayer.layerDefinition);
         continue;
-      }
-      else if (layer.layer.id === 'waterbodyLayer') {
+      } else if (
+        ['boundariesLayer', 'providersLayer'].includes(layer.layer.id)
+      ) {
+        let refFeatureLayer: __esri.FeatureLayer | null = null;
+        if (layer.layer.id === 'boundariesLayer')
+          refFeatureLayer = mapView.map.findLayerById(
+            'watershedsLayer',
+          ) as __esri.FeatureLayer;
+        if (layer.layer.id === 'providersLayer')
+          refFeatureLayer = mapView.map.findLayerById(
+            'countyLayer',
+          ) as __esri.FeatureLayer;
+        if (!refFeatureLayer) continue;
+
+        layerIds.push(layer.layer.id);
+        layersParams.push({
+          ...layerProps.data.defaultLayerProps,
+          ...properties,
+          name: layer.layer.title,
+          globalIdField: (refFeatureLayer as any).globalIdField,
+          objectIdField: refFeatureLayer.objectIdField,
+          spatialReference: refFeatureLayer.spatialReference.toJSON(),
+          fields: refFeatureLayer.fields
+            .filter((field) => field.name.toUpperCase() !== 'SHAPE')
+            .map(convertFieldToJSON),
+        });
+        continue;
+      } else if (layer.layer.id === 'waterbodyLayer') {
         const groupLayer = layer.layer as __esri.GroupLayer;
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
-        for(const subLayer of subLayers) {
+        for (const subLayer of subLayers) {
           let geometryType = '';
-          if(subLayer.geometryType === 'point') geometryType = 'esriGeometryPoint';
-          if(subLayer.geometryType === 'multipoint') geometryType = 'esriGeometryMultipoint';
-          if(subLayer.geometryType === 'polyline') geometryType = 'esriGeometryPolyline';
-          if(subLayer.geometryType === 'polygon') geometryType = 'esriGeometryPolygon';
+          if (subLayer.geometryType === 'point')
+            geometryType = 'esriGeometryPoint';
+          if (subLayer.geometryType === 'multipoint')
+            geometryType = 'esriGeometryMultipoint';
+          if (subLayer.geometryType === 'polyline')
+            geometryType = 'esriGeometryPolyline';
+          if (subLayer.geometryType === 'polygon')
+            geometryType = 'esriGeometryPolygon';
 
           layerIds.push(layer.layer.id);
           layersParams.push({
             ...layerProps.data.defaultLayerProps,
+            ...properties,
             name: subLayer.title,
             geometryType,
+            globalIdField: (subLayer as any).globalIdField,
+            objectIdField: subLayer.objectIdField,
             spatialReference: subLayer.spatialReference.toJSON(),
-            fields: [
-              ...subLayer.fields.filter((field) => field.name !== 'OBJECTID' && field.name !== 'GLOBALID').map((field) => {
-                return field.toJSON();
-              }),
-              ...layerProps.data.commonFields,
-            ],
+            fields: subLayer.fields.map(convertFieldToJSON),
             drawingInfo: { renderer: subLayer.renderer.toJSON() },
             popupTemplate: subLayer.popupTemplate.toJSON(),
-          })
+          });
         }
         continue;
       }
 
-      const properties = layerProps.data.layerSpecificSettings[layer.layer.id];
       layerIds.push(layer.layer.id);
 
       // get the extent
@@ -366,7 +416,7 @@ export async function createFeatureLayers(
       let params = {
         ...layerProps.data.defaultLayerProps,
         ...properties,
-        fields: [...layerProps.data.commonFields, ...properties.fields],
+        fields: properties.fields,
         name: layer.label,
         extent: graphicsExtent,
       };
@@ -430,13 +480,9 @@ export async function createFeatureLayers(
 async function processLayerFeatures(layer: __esri.Layer, adds: any[]) {
   if (layer.type === 'graphics') {
     const graphicsLayer = layer as __esri.GraphicsLayer;
-    graphicsLayer.graphics.forEach((graphic, index) => {
+    graphicsLayer.graphics.forEach((graphic) => {
       adds.push({
-        attributes: {
-          ...graphic.attributes,
-          OBJECTID: graphic.attributes.OBJECTID || index,
-          GLOBALID: graphic.attributes.GLOBALID || `{${uuid().toUpperCase()}}`,
-        },
+        attributes: graphic.attributes,
         geometry: graphic.geometry.toJSON(),
       });
     });
@@ -445,13 +491,9 @@ async function processLayerFeatures(layer: __esri.Layer, adds: any[]) {
     const features = await featureLayer.queryFeatures({
       returnGeometry: true,
     });
-    features.features.forEach((feature, index) => {
+    features.features.forEach((feature) => {
       adds.push({
-        attributes: {
-          ...feature.attributes,
-          OBJECTID: feature.attributes.OBJECTID || index,
-          GLOBALID: feature.attributes.GLOBALID || `{${uuid().toUpperCase()}}`,
-        },
+        attributes: feature.attributes,
         geometry: feature.geometry.toJSON(),
       });
     });
@@ -500,7 +542,7 @@ async function applyEdits({
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
         const subLayer = subLayers.find((s) => s.title === layerRes.name);
 
-        if(subLayer) await processLayerFeatures(subLayer, adds);
+        if (subLayer) await processLayerFeatures(subLayer, adds);
       } else if (layer.id === 'dischargersLayer') {
         const dischargersGroupLayer = layer.layer as __esri.GroupLayer;
         const dischargersLayer = dischargersGroupLayer.findLayerById(
@@ -527,7 +569,11 @@ async function applyEdits({
       });
     }
 
-    const refOutput = buildReferenceLayerTableEdits(services, layers, layersRes);
+    const refOutput = buildReferenceLayerTableEdits(
+      services,
+      layers,
+      layersRes,
+    );
     changes.push(refOutput.edits);
 
     // Workaround for esri.Portal not having credential
@@ -562,7 +608,11 @@ async function applyEdits({
  * @param table any - The table object
  * @returns An object containing the edits arrays
  */
-function buildReferenceLayerTableEdits(services: any, layers: LayerType[], layersRes: any) {
+function buildReferenceLayerTableEdits(
+  services: any,
+  layers: LayerType[],
+  layersRes: any,
+) {
   const adds: any[] = [];
 
   // build the adds, updates, and deletes
@@ -573,13 +623,12 @@ function buildReferenceLayerTableEdits(services: any, layers: LayerType[], layer
     adds.push({
       attributes: {
         OBJECTID: index,
-        GLOBALID: `{${uuid().toUpperCase()}}`,
         LAYERID: refLayer.layer.portalItem?.id || refLayer.id,
         LABEL: refLayer.label,
         LAYERTYPE: refLayer.widgetLayer?.layerType,
         TYPE: refLayer.widgetLayer?.type,
         URL: getLayerUrl(services, refLayer),
-        URLTYPE: 
+        URLTYPE:
           refLayer.widgetLayer?.type === 'url'
             ? refLayer.widgetLayer.urlType
             : '',
@@ -627,7 +676,9 @@ type AgoLayerType =
  * @returns AGO Layer type
  */
 function getAgoLayerType(layer: LayerType): AgoLayerType | null {
-  const layerType = (layer.widgetLayer?.layerType || layer.layer.type).toLowerCase();
+  const layerType = (
+    layer.widgetLayer?.layerType || layer.layer.type
+  ).toLowerCase();
 
   let layerTypeOut: AgoLayerType | null = null;
 
@@ -665,7 +716,7 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
 
 /**
  * Gets the url of the provided layer.
- * 
+ *
  * @param services Web service config for getting urls from HMW layers
  * @param layer Layer to get the url from
  * @returns Url of the layer
@@ -716,38 +767,35 @@ export function addWebMap({
   const baseUrl = service?.portalService?.url;
 
   const operationalLayers: any[] = [];
-  layers
-    .forEach((l) => {
-      const layerType = getAgoLayerType(l);
-      const url = getLayerUrl(services, l);
+  layers.forEach((l) => {
+    const layerType = getAgoLayerType(l);
+    const url = getLayerUrl(services, l);
 
-      // TODO - Consider adding code here to preserve HMW styles in published layers
-
-      if (layerType === 'VectorTileLayer') {
+    if (layerType === 'VectorTileLayer') {
+      operationalLayers.push({
+        layerType,
+        title: l.label,
+        styleUrl: `${url}/resources/styles/root.json`,
+      });
+    } else if (l.requiresFeatureService) {
+      if (!layersRes) return;
+      const lRes = layersRes.layers.filter((r: any) => r.layerId === l.id);
+      lRes.forEach((lRes: any) => {
         operationalLayers.push({
-          layerType,
-          title: l.label,
-          styleUrl: `${url}/resources/styles/root.json`,
+          title: lRes.name,
+          url: `${baseUrl}/${lRes.id}`,
+          itemId,
+          layerType: 'ArcGISFeatureLayer',
         });
-      } else if (l.requiresFeatureService) {
-        if (!layersRes) return;
-        const lRes = layersRes.layers.filter((r: any) => r.layerId === l.id);
-        lRes.forEach((lRes: any) => {
-          operationalLayers.push({
-            title: lRes.name,
-            url: `${baseUrl}/${lRes.id}`,
-            itemId,
-            layerType: 'ArcGISFeatureLayer',
-          });
-        });
-      } else {
-        operationalLayers.push({
-          layerType,
-          title: l.label,
-          url,
-        });
-      }
-    });
+      });
+    } else {
+      operationalLayers.push({
+        layerType,
+        title: l.label,
+        url,
+      });
+    }
+  });
 
   // run the webserivce call to update ArcGIS Online
   const data = {
@@ -828,8 +876,7 @@ export async function publish({
   let featureServiceNeeded = layers.some((l) => l.requiresFeatureService);
 
   // sort the layers based on the order they are on the map
-  layers
-  .sort((a, b) => {
+  layers.sort((a, b) => {
     const aIndex = mapView.map.layers.findIndex((l) => l.id === a.id);
     const bIndex = mapView.map.layers.findIndex((l) => l.id === b.id);
 
@@ -856,6 +903,7 @@ export async function publish({
 
       const layersRes = await createFeatureLayers(
         portal,
+        mapView,
         serviceUrl,
         layers,
         serviceMetaData,

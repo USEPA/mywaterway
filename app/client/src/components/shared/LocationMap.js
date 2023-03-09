@@ -168,6 +168,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLastSearchText,
     setCurrentExtent,
     boundariesLayer,
+    providersLayer,
     searchIconLayer,
     waterbodyLayer,
     countyBoundaries,
@@ -1586,7 +1587,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const processGeocodeServerResults = useCallback(
     (searchText, hucRes = null) => {
-      const renderMapAndZoomTo = (longitude, latitude, callback) => {
+      const renderMapAndZoomTo = (longitude, latitude, searchText, hucRes, callback) => {
         const location = {
           type: 'point',
           longitude: longitude,
@@ -1596,6 +1597,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           },
         };
         if (!searchIconLayer) return;
+
+        const hucFeature = hucRes?.features?.[0];
 
         searchIconLayer.graphics.removeAll();
         searchIconLayer.visible = true;
@@ -1608,7 +1611,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               height: 25,
               yoffset: 9, // this is a little lower to account for space below pin
             }),
-            attributes: { name: 'map-marker' },
+            attributes: { 
+              OBJECTID: 1,
+              searchText,
+              huc12: hucFeature ? hucFeature.attributes.huc12 : '',
+              huc12Name: hucFeature ? hucFeature.attributes.name : '',
+            },
           }),
         );
 
@@ -1706,6 +1714,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderMapAndZoomTo(
               location.location.longitude,
               location.location.latitude,
+              location.address,
+              hucRes,
               () => handleHUC12(hucRes),
             );
           } else {
@@ -1721,6 +1731,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 renderMapAndZoomTo(
                   location.location.longitude,
                   location.location.latitude,
+                  searchText,
+                  hucRes,
                   () => handleHUC12(hucRes),
                 );
               })
@@ -1755,20 +1767,40 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 countiesRes.features.length > 0 &&
                 countiesRes.features[0].attributes
               ) {
-                const stateCode = countiesRes.features[0].attributes.STATE_FIPS;
-                const countyCode =
-                  countiesRes.features[0].attributes.FIPS.substring(2, 5);
+                const feature = countiesRes.features[0];
+                const stateCode = feature.attributes.STATE_FIPS;
+                const countyCode = feature.attributes.FIPS.substring(2, 5);
                 setFIPS({
                   stateCode: stateCode,
                   countyCode: countyCode,
                   status: 'success',
                 });
+
+                const graphic = new Graphic({
+                  attributes: feature.attributes,
+                  geometry: new Polygon({
+                    spatialReference: countiesRes.spatialReference,
+                    rings: feature.geometry.rings,
+                  }),
+                  symbol: new SimpleFillSymbol({
+                    color: [0, 0, 0, 0.15],
+                    outline: {
+                      color: colors.yellow,
+                      width: 3,
+                      style: 'solid',
+                    },
+                  }),
+                });
+
+                providersLayer.graphics.removeAll();
+                providersLayer.graphics.add(graphic);
               } else {
                 setFIPS({
                   stateCode: '',
                   countyCode: '',
                   status: 'failure',
                 });
+                providersLayer.graphics.removeAll();
               }
 
               setCountyBoundaries(countiesRes);
@@ -1812,7 +1844,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           //   where the address would normally be.
           // Go ahead and zoom to the center of the huc
           const { centermass_x, centermass_y } = hucRes.features[0].attributes;
-          renderMapAndZoomTo(centermass_x, centermass_y, () =>
+          renderMapAndZoomTo(centermass_x, centermass_y, searchText, hucRes, () =>
             handleHUC12(hucRes),
           );
 
@@ -1834,6 +1866,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setFIPS,
       handleNoDataAvailable,
       services,
+      providersLayer,
     ],
   );
 
@@ -1935,7 +1968,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'dash',
         },
       },
-      attributes: { name: 'boundaries' },
+      attributes: hucBoundaries.features[0].attributes,
     });
 
     // clear previously set graphic (from a previous search), and add graphic

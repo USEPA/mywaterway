@@ -58,21 +58,18 @@ function getGraphicsFromResponse(
   const matches = res.results.filter((result) => {
     if (result.type !== 'graphic') return null;
 
-    const { attributes: attr } = result.graphic;
     const layer = result.graphic.layer as ExtendedLayer;
     // ignore huc 12 boundaries, map-marker, highlight and provider graphics
     const excludedLayers = [
       'stateBoundariesLayer',
       'mappedWaterLayer',
       'watershedsLayer',
-      'boundaries',
-      'map-marker',
-      'highlight',
-      'providers',
+      'boundariesLayer',
+      'searchIconLayer',
+      'providersLayer',
       ...additionalLayers,
     ];
     if (!result.graphic.layer?.id) return null;
-    if (attr?.name && excludedLayers.indexOf(attr.name) !== -1) return null;
     if (excludedLayers.indexOf(layer.id) !== -1) return null;
     if (
       layer.parent &&

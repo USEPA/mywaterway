@@ -3,9 +3,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
-import Graphic from '@arcgis/core/Graphic';
-import Polygon from '@arcgis/core/geometry/Polygon';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
 import { ListContent } from 'components/shared/BoxContent';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -28,7 +25,7 @@ import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 // styles
-import { colors, toggleTableStyles } from 'styles/index.js';
+import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -249,33 +246,14 @@ function DrinkingWater() {
   const [countyGraphic, setCountyGraphic] = useState(null);
   useEffect(() => {
     if (
-      !countyBoundaries ||
-      !countyBoundaries.features ||
-      countyBoundaries.features.length === 0
+      !providersLayer?.graphics ||
+      providersLayer.graphics.length === 0
     ) {
       setCountyGraphic(null); // set to null if new search results in no boundaries
       return;
     }
 
-    const graphic = new Graphic({
-      attributes: { name: 'providers' },
-      geometry: new Polygon({
-        spatialReference: countyBoundaries.spatialReference,
-        rings: countyBoundaries.features[0].geometry.rings,
-      }),
-      symbol: new SimpleFillSymbol({
-        color: [0, 0, 0, 0.15],
-        outline: {
-          color: colors.yellow,
-          width: 3,
-          style: 'solid',
-        },
-      }),
-    });
-
-    setCountyGraphic(graphic);
-    providersLayer.graphics.removeAll();
-    providersLayer.graphics.add(graphic);
+    setCountyGraphic(providersLayer.graphics.at(0));
   }, [providersLayer, countyBoundaries]);
 
   // toggle map layers' visibility when a tab changes
