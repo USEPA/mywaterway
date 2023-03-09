@@ -9,8 +9,12 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { useLayersDispatch, useLayersState } from 'contexts/Layers';
+import { useLayersDispatch } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import {
+  useSurroundingsDispatch,
+  useSurroundingsState,
+} from 'contexts/Surroundings';
 // utils
 import { useAbort } from 'utils/hooks';
 import { isAbort, toFixedFloat } from 'utils/utils';
@@ -20,7 +24,7 @@ import type {
   FetchedData,
   FetchedDataState,
 } from 'contexts/FetchedData';
-import type { BoundariesToggleLayerId } from 'contexts/Layers';
+import type { BoundariesToggleLayerId } from 'contexts/Surroundings';
 
 /*
 ## Hooks
@@ -32,14 +36,13 @@ export function useLocalData<E extends keyof FetchedDataState>(
   const fetchedDataState = useFetchedDataState();
   const localFetchedDataState = fetchedDataState[localFetchedDataKey];
 
-  const [data, setData] = useState<FetchedData[E]>([]);
-  useEffect(() => {
-    if (localFetchedDataState.status !== 'success') return;
-
-    setData(localFetchedDataState.data);
+  const localData = useMemo(() => {
+    const status = localFetchedDataState.status;
+    const data = status === 'success' ? localFetchedDataState.data : [];
+    return { data, status };
   }, [localFetchedDataState]);
 
-  return { data, status: localFetchedDataState.status };
+  return localData;
 }
 
 export function useAllFeaturesLayer<
@@ -89,7 +92,9 @@ function useBoundariesToggleLayer<
     });
   }, [enclosedLayer, layerId, surroundingLayer]);
 
-  const { boundariesTogglesDisabled, surroundingsVisible } = useLayersState();
+  const { disabled: surroundingsDisabled, visible: surroundingsVisible } =
+    useSurroundingsState();
+  const surroundingsDispatch = useSurroundingsDispatch();
   const layersDispatch = useLayersDispatch();
 
   const { getSignal, abort } = useAbort();
@@ -102,21 +107,21 @@ function useBoundariesToggleLayer<
       () => mapView?.stationary === true,
       () => {
         if (
-          boundariesTogglesDisabled[layerId] ||
-          surroundingsVisible[layerId] === false ||
+          surroundingsDisabled[layerId] ||
+          !surroundingsVisible[layerId] ||
           visibleLayers[layerId] === false
         ) {
           return;
         }
 
-        layersDispatch({
-          type: 'surroundingsUpdating',
+        surroundingsDispatch({
+          type: 'updating',
           id: layerId,
           payload: true,
         });
         updateSurroundingData(getSignal()).finally(() =>
-          layersDispatch({
-            type: 'surroundingsUpdating',
+          surroundingsDispatch({
+            type: 'updating',
             id: layerId,
             payload: false,
           }),
@@ -137,14 +142,14 @@ function useBoundariesToggleLayer<
     };
   }, [
     abort,
-    boundariesTogglesDisabled,
     getSignal,
     handleGroupKey,
     layerId,
-    layersDispatch,
     mapView,
     minScale,
     parentLayer,
+    surroundingsDisabled,
+    surroundingsDispatch,
     surroundingsVisible,
     updateSurroundingData,
     visibleLayers,
@@ -155,20 +160,17 @@ function useBoundariesToggleLayer<
     const mapScaleHandle = reactiveUtils.watch(
       () => mapView?.scale,
       () => {
-        if (mapView?.scale >= minScale && !boundariesTogglesDisabled[layerId]) {
+        if (mapView?.scale >= minScale && !surroundingsDisabled[layerId]) {
           surroundingLayer.visible = false;
-          layersDispatch({
-            type: 'boundariesToggleDisabled',
+          surroundingsDispatch({
+            type: 'disabled',
             id: layerId,
             payload: true,
           });
-        } else if (
-          mapView?.scale < minScale &&
-          boundariesTogglesDisabled[layerId]
-        ) {
+        } else if (mapView?.scale < minScale && surroundingsDisabled[layerId]) {
           surroundingLayer.visible = surroundingsVisible[layerId];
-          layersDispatch({
-            type: 'boundariesToggleDisabled',
+          surroundingsDispatch({
+            type: 'disabled',
             id: layerId,
             payload: false,
           });
@@ -183,12 +185,12 @@ function useBoundariesToggleLayer<
       mapScaleHandle.remove();
     };
   }, [
-    boundariesTogglesDisabled,
     layerId,
-    layersDispatch,
     mapView,
     minScale,
     surroundingLayer,
+    surroundingsDisabled,
+    surroundingsDispatch,
     surroundingsVisible,
   ]);
 
@@ -246,8 +248,8 @@ function useBoundariesToggleLayer<
 
         surroundingLayer.visible = showSurroundings;
 
-        layersDispatch({
-          type: 'surroundingsVisible',
+        surroundingsDispatch({
+          type: 'visible',
           id: layerId,
           payload: showSurroundings,
         });
@@ -256,21 +258,21 @@ function useBoundariesToggleLayer<
     [
       initialLayerVisibility,
       layerId,
-      layersDispatch,
       setVisibleLayers,
       surroundingLayer,
+      surroundingsDispatch,
       visibleLayers,
     ],
   );
 
   // Add the surroundings toggle to the Layers context
   useEffect(() => {
-    layersDispatch({
-      type: 'boundariesToggle',
+    surroundingsDispatch({
+      type: 'togglers',
       id: layerId,
       payload: toggleSurroundings,
     });
-  }, [layerId, layersDispatch, toggleSurroundings]);
+  }, [layerId, surroundingsDispatch, toggleSurroundings]);
 
   // Keep visibility statuses in sync across tabs
   useEffect(() => {
@@ -279,36 +281,19 @@ function useBoundariesToggleLayer<
       surroundingsVisible[layerId] === true
     ) {
       surroundingLayer.visible = false;
-      layersDispatch({
-        type: 'surroundingsVisible',
+      surroundingsDispatch({
+        type: 'visible',
         id: layerId,
         payload: false,
       });
     }
   }, [
     layerId,
-    layersDispatch,
     surroundingLayer,
+    surroundingsDispatch,
     surroundingsVisible,
     visibleLayers,
   ]);
-
-  // Resets the base layer's features and hides surrounding features
-  const resetLayer = useCallback(async () => {
-    surroundingLayer.visible = false;
-    layersDispatch({
-      type: 'surroundingsVisible',
-      id: layerId,
-      payload: false,
-    });
-    updateLayer(enclosedLayer);
-    updateLayer(surroundingLayer);
-  }, [enclosedLayer, layersDispatch, layerId, surroundingLayer, updateLayer]);
-
-  // Add the layer reset function to the Layers context
-  useEffect(() => {
-    layersDispatch({ type: 'reset', id: layerId, payload: resetLayer });
-  }, [layerId, layersDispatch, resetLayer]);
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
@@ -316,31 +301,7 @@ function useBoundariesToggleLayer<
   useEffect(() => {
     return function cleanup() {
       layersDispatch({ type: 'layer', id: layerId, payload: null });
-      layersDispatch({
-        type: 'reset',
-        id: layerId,
-        payload: () => Promise.resolve(),
-      });
-      layersDispatch({
-        type: 'boundariesToggle',
-        id: layerId,
-        payload: () => () => {},
-      });
-      layersDispatch({
-        type: 'boundariesToggleDisabled',
-        id: layerId,
-        payload: false,
-      });
-      layersDispatch({
-        type: 'surroundingsVisible',
-        id: layerId,
-        payload: false,
-      });
-      layersDispatch({
-        type: 'surroundingsUpdating',
-        id: layerId,
-        payload: false,
-      });
+      surroundingsDispatch({ type: 'reset', id: layerId });
       fetchedDataDispatch({ type: 'pending', id: enclosedFetchedDataKey });
       fetchedDataDispatch({ type: 'pending', id: surroundingFetchedDataKey });
     };
@@ -350,6 +311,7 @@ function useBoundariesToggleLayer<
     layerId,
     layersDispatch,
     surroundingFetchedDataKey,
+    surroundingsDispatch,
   ]);
 
   return parentLayer;

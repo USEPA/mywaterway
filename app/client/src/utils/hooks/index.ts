@@ -23,14 +23,11 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
-import {
-  isBoundariesToggleLayerId,
-  useLayers,
-  useLayersDispatch,
-} from 'contexts/Layers';
+import { useLayers, useLayersDispatch } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { isBoundariesToggleLayerId } from 'contexts/Surroundings';
 // utilities
 import { getEnclosedLayer } from './boundariesToggleLayer';
 import {

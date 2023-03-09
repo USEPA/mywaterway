@@ -1,19 +1,22 @@
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import { useCallback, useContext, useEffect } from 'react';
 // contexts
-import { useLayersDispatch, useLayersState } from 'contexts/Layers';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import {
+  useSurroundingsDispatch,
+  useSurroundingsState,
+} from 'contexts/Surroundings';
 
 export function useAllWaterbodiesLayer(
   initialVisible = false,
   minScale = 577791,
 ) {
   const { mapView } = useContext(LocationSearchContext);
+  const { disabled, updating } = useSurroundingsState();
+  const { waterbodyLayer } = useLayers();
 
-  const layersDispatch = useLayersDispatch();
-  const { boundariesTogglesDisabled, layers, surroundingsUpdating } =
-    useLayersState();
-  const { waterbodyLayer } = layers;
+  const surroudingsDispatch = useSurroundingsDispatch();
 
   // Set the minimum scale for the layer and its sublayers
   useEffect(() => {
@@ -28,26 +31,26 @@ export function useAllWaterbodiesLayer(
   useEffect(() => {
     if (!waterbodyLayer) return;
 
-    layersDispatch({
-      type: 'surroundingsVisible',
+    surroudingsDispatch({
+      type: 'visible',
       id: layerId,
       payload: initialVisible,
     });
     waterbodyLayer.visible = initialVisible;
-  }, [initialVisible, layersDispatch, waterbodyLayer]);
+  }, [initialVisible, surroudingsDispatch, waterbodyLayer]);
 
   // Mark the layer as updating, when necessary
   useEffect(() => {
     const updatingHandle = reactiveUtils.watch(
-      () => mapView?.updating,
+      () => mapView?.navigating,
       () => {
-        const updating = mapView?.updating ?? false;
-        if (updating === surroundingsUpdating[layerId]) return;
+        const isUpdating = mapView?.navigating ?? false;
+        if (isUpdating === updating[layerId]) return;
 
-        layersDispatch({
-          type: 'surroundingsUpdating',
+        surroudingsDispatch({
+          type: 'updating',
           id: layerId,
-          payload: updating,
+          payload: isUpdating,
         });
       },
       { initial: true },
@@ -56,7 +59,7 @@ export function useAllWaterbodiesLayer(
     return function cleanup() {
       updatingHandle.remove();
     };
-  }, [layersDispatch, mapView, surroundingsUpdating]);
+  }, [mapView, surroudingsDispatch, updating]);
 
   // Mark the layer as disabled when out of scale
   useEffect(() => {
@@ -65,12 +68,12 @@ export function useAllWaterbodiesLayer(
       () => {
         if (!mapView) return;
 
-        const disabled = waterbodyLayer
+        const isDisabled = waterbodyLayer
           ? mapView.scale >= waterbodyLayer.minScale
           : true;
-        if (disabled !== boundariesTogglesDisabled[layerId]) {
-          layersDispatch({
-            type: 'boundariesToggleDisabled',
+        if (isDisabled !== disabled[layerId]) {
+          surroudingsDispatch({
+            type: 'disabled',
             id: layerId,
             payload: waterbodyLayer
               ? mapView.scale >= waterbodyLayer.minScale
@@ -83,7 +86,7 @@ export function useAllWaterbodiesLayer(
     return function cleanup() {
       disabledHandle.remove();
     };
-  }, [boundariesTogglesDisabled, layersDispatch, mapView, waterbodyLayer]);
+  }, [disabled, mapView, surroudingsDispatch, waterbodyLayer]);
 
   // Function for controlling layer visibility
   const toggleVisibility = useCallback(
@@ -91,23 +94,23 @@ export function useAllWaterbodiesLayer(
       return function toggle() {
         if (!waterbodyLayer) return;
         waterbodyLayer.visible = showLayer;
-        layersDispatch({
-          type: 'surroundingsVisible',
+        surroudingsDispatch({
+          type: 'visible',
           id: layerId,
           payload: showLayer,
         });
       };
     },
-    [layersDispatch, waterbodyLayer],
+    [surroudingsDispatch, waterbodyLayer],
   );
 
   useEffect(() => {
-    layersDispatch({
-      type: 'boundariesToggle',
+    surroudingsDispatch({
+      type: 'togglers',
       id: layerId,
       payload: toggleVisibility,
     });
-  }, [layersDispatch, toggleVisibility]);
+  }, [surroudingsDispatch, toggleVisibility]);
 }
 
 const layerId = 'waterbodyLayer';

@@ -1072,14 +1072,14 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
 
 export default function TribalMapListContainer({ ...props }: Props) {
   return (
-    <MapHighlightProvider>
-      <MapErrorBoundary>
-        <LocationSearchProvider>
-          <LayersProvider>
+    <LayersProvider>
+      <MapHighlightProvider>
+        <MapErrorBoundary>
+          <LocationSearchProvider>
             <TribalMapList {...props} />
-          </LayersProvider>
-        </LocationSearchProvider>
-      </MapErrorBoundary>
-    </MapHighlightProvider>
+          </LocationSearchProvider>
+        </MapErrorBoundary>
+      </MapHighlightProvider>
+    </LayersProvider>
   );
 }

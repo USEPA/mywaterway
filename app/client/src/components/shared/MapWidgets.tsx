@@ -31,10 +31,10 @@ import MapLegend from 'components/shared/MapLegend';
 import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddDataWidgetState } from 'contexts/AddDataWidget';
-import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { useSurroundingsState } from 'contexts/Surroundings';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -1082,7 +1082,7 @@ function MapWidgets({
     view,
   ]);
 
-  const { surroundingsVisible } = useLayersState();
+  const { visible: surroundingsVisible } = useSurroundingsState();
 
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly

@@ -1224,10 +1224,10 @@ function MenuItem({ index, width, setSize, value }: MenuItemProps) {
 
 export default function AdvancedSearchContainer() {
   return (
-    <MapHighlightProvider>
-      <LayersProvider>
+    <LayersProvider>
+      <MapHighlightProvider>
         <AdvancedSearch />
-      </LayersProvider>
-    </MapHighlightProvider>
+      </MapHighlightProvider>
+    </LayersProvider>
   );
 }

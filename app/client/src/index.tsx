@@ -14,6 +14,7 @@ import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
 import { LookupFilesProvider } from 'contexts/LookupFiles';
 import { FetchedDataProvider } from 'contexts/FetchedData';
+import { SurroundingsProvider } from 'contexts/Surroundings';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 // types
@@ -41,12 +42,14 @@ function Root() {
         <FetchedDataProvider>
           <LocationSearchProvider>
             <GlossaryProvider>
-              <AddDataWidgetProvider>
-                <GlobalStyle />
-                <ErrorBoundary message={defaultErrorBoundaryMessage}>
-                  <AppRoutes />
-                </ErrorBoundary>
-              </AddDataWidgetProvider>
+              <SurroundingsProvider>
+                <AddDataWidgetProvider>
+                  <GlobalStyle />
+                  <ErrorBoundary message={defaultErrorBoundaryMessage}>
+                    <AppRoutes />
+                  </ErrorBoundary>
+                </AddDataWidgetProvider>
+              </SurroundingsProvider>
             </GlossaryProvider>
           </LocationSearchProvider>
         </FetchedDataProvider>
