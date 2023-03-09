@@ -196,12 +196,12 @@
     {
       "urlLookup": "usgsSensorThingsAPI",
       "wildcardUrl": "{urlLookup}*",
-      "name": "usgs â€“ SensorThings API"
+      "name": "usgs - SensorThings API"
     },
     {
       "urlLookup": "usgsDailyValues",
       "wildcardUrl": "{urlLookup}*",
-      "name": "usgs â€“ daily values"
+      "name": "usgs - daily values"
     },
     {
       "urlLookup": "glossaryURL",
