@@ -8,47 +8,41 @@ import {
 } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
-// classes
-import { BoundariesToggleLayer } from 'classes/BoundariesToggleLayer';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useLayersState } from 'contexts/Layers';
+import {
+  isBoundariesToggleLayerId,
+  useSurroundingsState,
+} from 'contexts/Surroundings';
 // utils
 import { isEmpty } from 'utils/utils';
 // styles
 import { fonts } from 'styles';
 // types
+import type { LayersState } from 'contexts/Layers';
 import type {
   BoundariesToggleLayerId,
-  LayerId,
-  LayersState,
-} from 'contexts/Layers';
+  SurroundingsState,
+} from 'contexts/Surroundings';
 import type { MutableRefObject, ReactNode } from 'react';
 
 /*
 ## Components
 */
 
-export function useSurroundingsWidget() {
+export function useSurroundingsWidget(triggerVisible: boolean) {
   const { visibleLayers } = useContext(LocationSearchContext);
-  const {
-    layers,
-    boundariesToggles: toggles,
-    boundariesTogglesDisabled: togglesDisabled,
-    surroundingsVisible,
-  } = useLayersState();
+  const layers = useLayersState();
+  const { togglers, disabled, updating, visible } = useSurroundingsState();
 
   const includedLayers = useMemo(() => {
-    return Object.keys(visibleLayers).reduce<Partial<LayersState['layers']>>(
+    return Object.keys(visibleLayers).reduce<Partial<LayersState>>(
       (included, key) => {
-        if (
-          layers.hasOwnProperty(key) &&
-          layers[key as LayerId] instanceof BoundariesToggleLayer
-        ) {
+        if (layers.hasOwnProperty(key) && isBoundariesToggleLayerId(key)) {
           return {
             ...included,
-            [key]: layers[key as LayerId],
+            [key]: layers[key],
           };
         } else return included;
       },
@@ -56,38 +50,27 @@ export function useSurroundingsWidget() {
     );
   }, [layers, visibleLayers]);
 
-  const fetchedData = useFetchedDataState();
-
-  const layersUpdating = useMemo(() => {
-    return Object.entries(includedLayers).reduce((updating, [key, layer]) => {
-      if (!layer) return updating;
-      return {
-        ...updating,
-        [key]:
-          fetchedData[layer.fetchedDataKey].status === 'pending' ? true : false,
-      };
-    }, {}) as Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
-  }, [fetchedData, includedLayers]);
-
   const [container] = useState(document.createElement('div'));
   useEffect(() => {
     render(
       <SurroundingsWidget
-        surroundingsVisible={surroundingsVisible}
-        toggles={toggles}
-        togglesDisabled={togglesDisabled}
+        surroundingsVisible={visible}
+        toggles={togglers}
+        togglesDisabled={disabled}
         layers={includedLayers}
-        layersUpdating={layersUpdating}
+        layersUpdating={updating}
+        triggerVisible={triggerVisible}
       />,
       container,
     );
   }, [
     container,
+    disabled,
     includedLayers,
-    layersUpdating,
-    surroundingsVisible,
-    toggles,
-    togglesDisabled,
+    togglers,
+    triggerVisible,
+    updating,
+    visible,
   ]);
 
   return container;
@@ -99,7 +82,9 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
     setContentVisible(!contentVisible);
   }, [contentVisible]);
 
-  const { layers, layersUpdating } = props;
+  const { triggerVisible, ...rest } = props;
+  const { layers, layersUpdating, surroundingsVisible, togglesDisabled } =
+    props;
 
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -107,16 +92,20 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
     <>
       {triggerRef.current && (
         <Portal container={triggerRef.current}>
-          <SurroundingsWidgetContent {...props} visible={contentVisible} />
+          <SurroundingsWidgetContent {...rest} visible={contentVisible} />
         </Portal>
       )}
       <SurroundingsWidgetTrigger
         disabled={isEmpty(layers)}
         forwardedRef={triggerRef}
         onClick={toggleContentVisibility}
-        updating={Object.values(layersUpdating).some(
-          (isUpdating) => isUpdating === true,
+        updating={Object.entries(layersUpdating).some(
+          ([id, isUpdating]) =>
+            isUpdating === true &&
+            surroundingsVisible[id as BoundariesToggleLayerId] &&
+            !togglesDisabled[id as BoundariesToggleLayerId],
         )}
+        visible={triggerVisible}
       />
     </>
   );
@@ -184,6 +173,7 @@ function SurroundingsWidgetTrigger({
   forwardedRef,
   onClick,
   updating,
+  visible,
 }: SurroundingsWidgetTriggerProps) {
   const [hover, setHover] = useState(false);
 
@@ -194,6 +184,8 @@ function SurroundingsWidgetTrigger({
   let iconClass = updating
     ? 'esri-icon-loading-indicator esri-rotating'
     : 'esri-icon esri-icon-globe';
+
+  if (!visible) return null;
 
   return (
     <div
@@ -317,16 +309,21 @@ type SurroundingsWidgetTriggerProps = {
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
   onClick: React.MouseEventHandler<HTMLDivElement>;
   updating: boolean;
+  visible: boolean;
 };
 
-type SurroundingsWidgetContentProps = SurroundingsWidgetProps & {
+type SurroundingsWidgetContentProps = Omit<
+  SurroundingsWidgetProps,
+  'triggerVisible'
+> & {
   visible: boolean;
 };
 
 type SurroundingsWidgetProps = {
-  layers: Partial<Pick<LayersState['layers'], BoundariesToggleLayerId>>;
+  layers: Partial<Pick<LayersState, BoundariesToggleLayerId>>;
   layersUpdating: Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
-  surroundingsVisible: LayersState['surroundingsVisible'];
-  toggles: LayersState['boundariesToggles'];
-  togglesDisabled: LayersState['boundariesTogglesDisabled'];
+  surroundingsVisible: SurroundingsState['visible'];
+  toggles: SurroundingsState['togglers'];
+  togglesDisabled: SurroundingsState['disabled'];
+  triggerVisible: boolean;
 };
