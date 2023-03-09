@@ -30,7 +30,7 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
-import { useLayers } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -115,7 +115,7 @@ function Overview() {
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
   const { dischargersLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
-    useLayers();
+    useLayersState();
 
   const {
     cipSummary,
@@ -498,7 +498,7 @@ function MonitoringAndSensorsTab({
 }) {
   const { watershed } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayers();
+  const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayersState();
 
   const services = useServicesContext();
 

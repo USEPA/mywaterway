@@ -7,7 +7,7 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import { useLayers } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
@@ -189,7 +189,7 @@ function MapMouseEvents({ view }: Props) {
     resetData,
   } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer } = useLayers();
+  const { monitoringLocationsLayer } = useLayersState();
 
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();

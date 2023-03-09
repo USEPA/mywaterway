@@ -28,7 +28,7 @@ import {
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useFetchedDataState } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
@@ -93,7 +93,7 @@ function IdentifiedIssues() {
     watershed,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer } = useLayers();
+  const { dischargersLayer } = useLayersState();
 
   const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
 

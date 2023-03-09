@@ -10,7 +10,7 @@ import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useLayers } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 import {
   isBoundariesToggleLayerId,
   useSurroundingsState,
@@ -33,11 +33,11 @@ import type { MutableRefObject, ReactNode } from 'react';
 
 export function useSurroundingsWidget(triggerVisible: boolean) {
   const { visibleLayers } = useContext(LocationSearchContext);
-  const layers = useLayers();
+  const layers = useLayersState();
   const { togglers, disabled, updating, visible } = useSurroundingsState();
 
   const includedLayers = useMemo(() => {
-    return Object.keys(visibleLayers).reduce<Partial<LayersState['layers']>>(
+    return Object.keys(visibleLayers).reduce<Partial<LayersState>>(
       (included, key) => {
         if (layers.hasOwnProperty(key) && isBoundariesToggleLayerId(key)) {
           return {
@@ -320,7 +320,7 @@ type SurroundingsWidgetContentProps = Omit<
 };
 
 type SurroundingsWidgetProps = {
-  layers: Partial<Pick<LayersState['layers'], BoundariesToggleLayerId>>;
+  layers: Partial<Pick<LayersState, BoundariesToggleLayerId>>;
   layersUpdating: Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
   surroundingsVisible: SurroundingsState['visible'];
   toggles: SurroundingsState['togglers'];

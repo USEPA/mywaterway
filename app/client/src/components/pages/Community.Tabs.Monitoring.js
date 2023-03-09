@@ -33,7 +33,7 @@ import VirtualizedList from 'components/shared/VirtualizedList';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -318,7 +318,7 @@ function Monitoring() {
     setVisibleLayers,
   } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayers();
+  const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayersState();
   const { monitoringLocations, permittedDischargers, usgsStreamgages } =
     useFetchedDataState();
 
@@ -887,7 +887,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     watershed,
   } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer } = useLayers();
+  const { monitoringLocationsLayer } = useLayersState();
   const { monitoringLocations } = useFetchedDataState();
   useMonitoringGroups();
 
