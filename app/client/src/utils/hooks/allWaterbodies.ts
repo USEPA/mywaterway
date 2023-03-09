@@ -16,7 +16,7 @@ export function useAllWaterbodiesLayer(
   const { disabled, updating } = useSurroundingsState();
   const { waterbodyLayer } = useLayersState();
 
-  const surroudingsDispatch = useSurroundingsDispatch();
+  const surroundingsDispatch = useSurroundingsDispatch();
 
   // Set the minimum scale for the layer and its sublayers
   useEffect(() => {
@@ -31,13 +31,13 @@ export function useAllWaterbodiesLayer(
   useEffect(() => {
     if (!waterbodyLayer) return;
 
-    surroudingsDispatch({
+    surroundingsDispatch({
       type: 'visible',
       id: layerId,
       payload: initialVisible,
     });
     waterbodyLayer.visible = initialVisible;
-  }, [initialVisible, surroudingsDispatch, waterbodyLayer]);
+  }, [initialVisible, surroundingsDispatch, waterbodyLayer]);
 
   // Mark the layer as updating, when necessary
   useEffect(() => {
@@ -47,7 +47,7 @@ export function useAllWaterbodiesLayer(
         const isUpdating = mapView?.navigating ?? false;
         if (isUpdating === updating[layerId]) return;
 
-        surroudingsDispatch({
+        surroundingsDispatch({
           type: 'updating',
           id: layerId,
           payload: isUpdating,
@@ -59,7 +59,7 @@ export function useAllWaterbodiesLayer(
     return function cleanup() {
       updatingHandle.remove();
     };
-  }, [mapView, surroudingsDispatch, updating]);
+  }, [mapView, surroundingsDispatch, updating]);
 
   // Mark the layer as disabled when out of scale
   useEffect(() => {
@@ -72,7 +72,7 @@ export function useAllWaterbodiesLayer(
           ? mapView.scale >= waterbodyLayer.minScale
           : true;
         if (isDisabled !== disabled[layerId]) {
-          surroudingsDispatch({
+          surroundingsDispatch({
             type: 'disabled',
             id: layerId,
             payload: waterbodyLayer
@@ -86,7 +86,7 @@ export function useAllWaterbodiesLayer(
     return function cleanup() {
       disabledHandle.remove();
     };
-  }, [disabled, mapView, surroudingsDispatch, waterbodyLayer]);
+  }, [disabled, mapView, surroundingsDispatch, waterbodyLayer]);
 
   // Function for controlling layer visibility
   const toggleVisibility = useCallback(
@@ -94,23 +94,23 @@ export function useAllWaterbodiesLayer(
       return function toggle() {
         if (!waterbodyLayer) return;
         waterbodyLayer.visible = showLayer;
-        surroudingsDispatch({
+        surroundingsDispatch({
           type: 'visible',
           id: layerId,
           payload: showLayer,
         });
       };
     },
-    [surroudingsDispatch, waterbodyLayer],
+    [surroundingsDispatch, waterbodyLayer],
   );
 
   useEffect(() => {
-    surroudingsDispatch({
+    surroundingsDispatch({
       type: 'togglers',
       id: layerId,
       payload: toggleVisibility,
     });
-  }, [surroudingsDispatch, toggleVisibility]);
+  }, [surroundingsDispatch, toggleVisibility]);
 }
 
 const layerId = 'waterbodyLayer';

@@ -32,6 +32,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { useSurroundingsDispatch } from 'contexts/Surroundings';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
 import { useWaterbodyOnMap } from 'utils/hooks';
@@ -230,6 +231,8 @@ function Protect() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const [normalizedGrtsProjects, setNormalizedGrtsProjects] = useState([]);
+
+  const surroundingsDispatch = useSurroundingsDispatch();
 
   // normalize grts projects data with attains plans data
   useEffect(() => {
@@ -436,12 +439,25 @@ function Protect() {
       setInitialMonitoringLocationsVisibility(monitoringLocationsLayer.visible);
       setInitialUsgsStreamgagesVisibility(usgsStreamgagesLayer.visible);
 
-      if (allWaterbodiesLayer) allWaterbodiesLayer.visible = false;
+      if (allWaterbodiesLayer) {
+        allWaterbodiesLayer.visible = false;
+        surroundingsDispatch({
+          type: 'visible',
+          id: 'waterbodyLayer',
+          payload: false,
+        });
+      }
       if (monitoringLocationsLayer) monitoringLocationsLayer.visible = false;
       if (usgsStreamgagesLayer) usgsStreamgagesLayer.visible = false;
     } else {
-      if (allWaterbodiesLayer)
+      if (allWaterbodiesLayer) {
         allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
+        surroundingsDispatch({
+          type: 'visible',
+          id: 'waterbodyLayer',
+          payload: initialAllWaterbodiesVisibility,
+        });
+      }
       if (monitoringLocationsLayer)
         monitoringLocationsLayer.visible = initialMonitoringLocationsVisibility;
       if (usgsStreamgagesLayer)
@@ -560,6 +576,11 @@ function Protect() {
       if (!componentWillUnmount?.current) return;
 
       allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
+      surroundingsDispatch({
+        type: 'visible',
+        id: 'waterbodyLayer',
+        payload: initialAllWaterbodiesVisibility,
+      });
       monitoringLocationsLayer.visible = initialMonitoringLocationsVisibility;
       usgsStreamgagesLayer.visible = initialUsgsStreamgagesVisibility;
     };
@@ -569,6 +590,7 @@ function Protect() {
     initialMonitoringLocationsVisibility,
     initialUsgsStreamgagesVisibility,
     monitoringLocationsLayer,
+    surroundingsDispatch,
     usgsStreamgagesLayer,
   ]);
 
