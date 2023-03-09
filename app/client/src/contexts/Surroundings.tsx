@@ -134,7 +134,7 @@ export function isBoundariesToggleLayerId(
 */
 
 const layerIds = [
-  'waterbodyLayer',
+  'allWaterbodiesLayer',
   'monitoringLocationsLayer',
   'dischargersLayer',
   'usgsStreamgagesLayer',

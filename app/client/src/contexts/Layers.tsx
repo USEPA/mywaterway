@@ -55,7 +55,7 @@ export function useLayersDispatch() {
 */
 
 const layerIds = [
-  'waterbodyLayer',
+  'allWaterbodiesLayer',
   'monitoringLocationsLayer',
   'dischargersLayer',
   'usgsStreamgagesLayer',

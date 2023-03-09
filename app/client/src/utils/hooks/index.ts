@@ -334,7 +334,7 @@ function useWaterbodyOnMap(
   const { pointsLayer, linesLayer, areasLayer, mapView } = useContext(
     LocationSearchContext,
   );
-  const { waterbodyLayer: allWaterbodiesLayer } = useLayersState();
+  const { allWaterbodiesLayer } = useLayersState();
 
   const setRenderer = useCallback(
     (layer, geometryType, attribute, alpha = null) => {
@@ -1075,6 +1075,7 @@ function useSharedLayers() {
       title: 'Protected Areas',
       url: services.data.protectedAreasDatabase,
       legendEnabled: false,
+      listMode: 'hide-children',
       sublayers: [
         {
           id: 0,
@@ -1464,6 +1465,7 @@ function useSharedLayers() {
         ejUnderAge5,
         ejDemographicIndex,
       ],
+      minScale: 577791,
     });
   }
 
@@ -1548,7 +1550,7 @@ function useSharedLayers() {
     });
     allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     layersDispatch({
-      type: 'waterbodyLayer',
+      type: 'allWaterbodiesLayer',
       payload: allWaterbodiesLayer,
     });
 

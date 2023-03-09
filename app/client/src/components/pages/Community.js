@@ -23,7 +23,7 @@ import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 // config
-import { tabs } from 'config/communityConfig.js';
+import { defaultVisibleLayers, tabs } from 'config/communityConfig.js';
 // styles
 import { colors, fonts } from 'styles/index.js';
 
@@ -123,8 +123,13 @@ function Community() {
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const { setSearchText, setLastSearchText, errorMessage, resetData } =
-    useContext(LocationSearchContext);
+  const {
+    setSearchText,
+    setLastSearchText,
+    errorMessage,
+    resetData,
+    updateVisibleLayers,
+  } = useContext(LocationSearchContext);
 
   useEffect(() => {
     return function cleanup() {
@@ -135,16 +140,20 @@ function Community() {
     };
   }, [fetchedDataDispatch, resetData, setLastSearchText, setSearchText]);
 
-  const { setVisibleLayers } = useContext(LocationSearchContext);
-
   useEffect(() => {
     // don't show any tab based layers if on community landing page
     if (window.location.pathname === '/community' || activeTabIndex === -1) {
       return;
     }
 
-    setVisibleLayers(tabs[activeTabIndex].layers);
-  }, [activeTabIndex, setVisibleLayers]);
+    updateVisibleLayers(
+      {
+        ...defaultVisibleLayers,
+        ...tabs[activeTabIndex].layers,
+      },
+      false,
+    );
+  }, [activeTabIndex, updateVisibleLayers]);
 
   // reset data when navigating back to /community
   useEffect(() => {

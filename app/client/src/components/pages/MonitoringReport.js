@@ -2065,7 +2065,7 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     mapView,
     resetData,
     setLayers,
-    setVisibleLayers,
+    updateVisibleLayers,
   } = useContext(LocationSearchContext);
 
   useEffect(() => {
@@ -2089,7 +2089,7 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     if (!getSharedLayers || layersInitialized) return;
 
     setLayers([...getSharedLayers(), monitoringLocationsLayer]);
-    setVisibleLayers({ monitoringLocationsLayer: true });
+    updateVisibleLayers({ monitoringLocationsLayer: true });
     setLayersInitialized(true);
   }, [
     getSharedLayers,
@@ -2098,9 +2098,9 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     monitoringLocationsLayer,
     services,
     setLayers,
-    setVisibleLayers,
     site,
     siteStatus,
+    updateVisibleLayers,
   ]);
 
   const { getSignal, abort } = useAbort();

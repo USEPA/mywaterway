@@ -310,17 +310,12 @@ function filterLocations(groups, timeframe) {
 }
 
 function Monitoring() {
-  const {
-    cipSummary,
-    cyanWaterbodies,
-    mapView,
-    visibleLayers,
-    setVisibleLayers,
-  } = useContext(LocationSearchContext);
+  const { cyanWaterbodies, visibleLayers, updateVisibleLayers } = useContext(
+    LocationSearchContext,
+  );
 
   const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayersState();
-  const { monitoringLocations, permittedDischargers, usgsStreamgages } =
-    useFetchedDataState();
+  const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
 
   const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
     useState(true);
@@ -349,75 +344,6 @@ function Monitoring() {
     }
   }, [visibleLayers]);
 
-  /**
-   * Updates the visible layers. This function also takes into account whether
-   * or not the underlying webservices failed.
-   */
-  const updateVisibleLayers = useCallback(
-    ({ key = null, value = null, useCurrentValue = false }) => {
-      const layers = {};
-
-      if (cipSummary.status !== 'failure') {
-        layers.waterbodyLayer = visibleLayers.waterbodyLayer;
-      }
-
-      if (monitoringLocations.status !== 'failure') {
-        layers.monitoringLocationsLayer =
-          !monitoringLocationsLayer || useCurrentValue
-            ? visibleLayers.monitoringLocationsLayer
-            : monitoringDisplayed;
-      }
-
-      if (usgsStreamgages.status !== 'failure') {
-        layers.usgsStreamgagesLayer =
-          !usgsStreamgagesLayer || useCurrentValue
-            ? visibleLayers.usgsStreamgagesLayer
-            : usgsStreamgagesDisplayed;
-      }
-
-      if (cyanWaterbodies.status !== 'failure') {
-        const cyanLayer = mapView?.map.findLayerById('cyanLayer');
-        layers.cyanLayer =
-          !cyanLayer || useCurrentValue
-            ? visibleLayers.cyanLayer
-            : cyanDisplayed;
-      }
-
-      if (permittedDischargers.status !== 'failure') {
-        layers.dischargersLayer = visibleLayers.dischargersLayer;
-      }
-
-      if (key && layers.hasOwnProperty(key)) {
-        layers[key] = value;
-      }
-
-      // set the visible layers if something changed
-      if (JSON.stringify(visibleLayers) !== JSON.stringify(layers)) {
-        setVisibleLayers(layers);
-      }
-    },
-    [
-      cipSummary,
-      cyanWaterbodies,
-      cyanDisplayed,
-      mapView,
-      monitoringDisplayed,
-      monitoringLocations,
-      monitoringLocationsLayer,
-      permittedDischargers,
-      setVisibleLayers,
-      usgsStreamgages,
-      usgsStreamgagesDisplayed,
-      usgsStreamgagesLayer,
-      visibleLayers,
-    ],
-  );
-
-  // update visible layers based on webservice statuses.
-  useEffect(() => {
-    updateVisibleLayers({ useCurrentValue: true });
-  }, [updateVisibleLayers]);
-
   const handleCurrentWaterConditionsToggle = useCallback(
     (checked) => {
       if (!usgsStreamgagesLayer) return;
@@ -426,14 +352,12 @@ function Monitoring() {
       setUsgsStreamgagesDisplayed(checked);
       setCurrentWaterConditionsDisplayed(checked);
 
-      const newVisibleLayers = {
-        ...visibleLayers,
+      updateVisibleLayers({
         cyanLayer: checked,
         usgsStreamgagesLayer: checked,
-      };
-      setVisibleLayers(newVisibleLayers);
+      });
     },
-    [setVisibleLayers, usgsStreamgagesLayer, visibleLayers],
+    [updateVisibleLayers, usgsStreamgagesLayer],
   );
 
   const handlePastWaterConditionsToggle = useCallback(
@@ -442,13 +366,11 @@ function Monitoring() {
 
       setMonitoringDisplayed(checked);
 
-      const newVisibleLayers = {
-        ...visibleLayers,
+      updateVisibleLayers({
         monitoringLocationsLayer: checked,
-      };
-      setVisibleLayers(newVisibleLayers);
+      });
     },
-    [monitoringLocationsLayer, setVisibleLayers, visibleLayers],
+    [monitoringLocationsLayer, updateVisibleLayers],
   );
 
   const handleTabClick = useCallback(
@@ -689,10 +611,7 @@ function CurrentConditionsTab({
   const handleUsgsSensorsToggle = useCallback(
     (checked) => {
       setUsgsStreamgagesDisplayed(checked);
-      updateVisibleLayers({
-        key: 'usgsStreamgagesLayer',
-        value: checked,
-      });
+      updateVisibleLayers({ usgsStreamgagesLayer: checked });
     },
     [setUsgsStreamgagesDisplayed, updateVisibleLayers],
   );
@@ -700,10 +619,7 @@ function CurrentConditionsTab({
   const handleCyanWaterbodiesToggle = useCallback(
     (checked) => {
       setCyanDisplayed(checked);
-      updateVisibleLayers({
-        key: 'cyanLayer',
-        value: checked,
-      });
+      updateVisibleLayers({ cyanLayer: checked });
     },
     [setCyanDisplayed, updateVisibleLayers],
   );

@@ -618,6 +618,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       return;
     if (!getSharedLayers || layersInitialized) return;
 
+    if (layers.length > 0) return;
+
     // create the layers for the map
     const providersLayer = new GraphicsLayer({
       id: 'providersLayer',
@@ -768,6 +770,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNonprofitsLayer,
     setProvidersLayer,
     setSearchIconLayer,
+    layers,
     layersInitialized,
     services,
     navigate,
@@ -1013,7 +1016,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const newWaterbodyLayer = new GroupLayer({
       id: 'waterbodyLayer',
       title: 'Waterbodies',
-      listMode: 'hide',
+      listMode: 'hide-children',
       visible: false,
       legendEnabled: false,
     });
@@ -1023,6 +1026,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     // Build the new set of layers with the waterbody layer at the correct position
     const newLayers = [];
     layers.forEach((layer) => {
+      // if (layer.id === 'waterbodyLayer') return;
+
       newLayers.push(layer);
       if (layer.id === 'boundariesLayer') {
         newLayers.push(newWaterbodyLayer);

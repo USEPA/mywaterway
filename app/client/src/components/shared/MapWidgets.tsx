@@ -40,7 +40,6 @@ import { fetchCheck } from 'utils/fetchUtils';
 import {
   hasSublayers,
   isGroupLayer,
-  isInScale,
   isPolygon,
   shallowCompare,
 } from 'utils/mapFunctions';
@@ -62,6 +61,7 @@ import type { Feature, ServicesState } from 'types';
 /*
 ## Styles
 */
+
 const instructionContainerStyles = (isVisible: boolean) => css`
   display: ${isVisible ? 'flex' : 'none'};
   flex-direction: column;
@@ -168,13 +168,6 @@ const basemapNames = [
   // 'USA Topo Maps',
 ];
 
-const zoomDependentLayers = [
-  'ejscreenLayer',
-  'mappedWaterLayer',
-  'stateBoundariesLayer',
-  'watershedsLayer',
-];
-
 // used to order the layer legends, so the ordering is consistent no matter
 // which layer legends are visible.
 const orderedLayers = [
@@ -211,26 +204,7 @@ const orderedLayers = [
   'searchIconLayer',
 ];
 
-// function called whenever the map's zoom changes
-function handleMapZoomChange(view: __esri.MapView) {
-  // return early if zoom is not set to an integer
-  if (view.zoom % 1 !== 0) return;
-  // set listMode for each layer, when zoom changes (practically, this shows/
-  // hides 'County' or 'Mapped Water (all)' layers, depending on zoom level)
-  view.map.layers.forEach((layer) => {
-    if (zoomDependentLayers.includes(layer.id)) {
-      if (isInScale(layer, view.scale)) {
-        layer.listMode = layer.hasOwnProperty('sublayers')
-          ? 'hide-children'
-          : 'show';
-      } else {
-        layer.listMode = 'hide';
-      }
-    }
-  });
-}
-
-function updateVisibleLayers(
+function updateLegend(
   view: __esri.MapView,
   displayEsriLegend: boolean,
   hmwLegendNode: Container,
@@ -347,7 +321,6 @@ function MapWidgets({
     getUpstreamWidgetDisabled,
     setUpstreamWidget,
     visibleLayers,
-    setVisibleLayers,
     setBasemap,
     basemap,
     upstreamLayerVisible,
@@ -364,6 +337,7 @@ function MapWidgets({
     getWatershed,
     setMapView,
     getHucBoundaries,
+    updateVisibleLayers,
   } = useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -506,17 +480,8 @@ function MapWidgets({
     // exit early if the toggledLayer object is empty
     if (Object.keys(toggledLayer).length === 0) return;
 
-    // make the update of the toggled layer if the visiblity changed
-    if (
-      visibleLayers.hasOwnProperty(toggledLayer.layerId) &&
-      visibleLayers[toggledLayer.layerId] !== toggledLayer.visible
-    ) {
-      // make a copy of the visibleLayers variable
-      const newVisibleLayers = { ...visibleLayers };
-      newVisibleLayers[toggledLayer.layerId] = toggledLayer.visible;
-      setVisibleLayers(newVisibleLayers);
-    }
-  }, [toggledLayer, lastToggledLayer, visibleLayers, setVisibleLayers]);
+    updateVisibleLayers({ [toggledLayer.layerId]: toggledLayer.visible });
+  }, [toggledLayer, lastToggledLayer, updateVisibleLayers]);
 
   // Creates and adds the home widget to the map
   useEffect(() => {
@@ -773,7 +738,7 @@ function MapWidgets({
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);
-          updateVisibleLayers(
+          updateLegend(
             view,
             displayEsriLegendNonState,
             hmwLegendNode,
@@ -782,7 +747,7 @@ function MapWidgets({
 
           watchHandles.push(
             item.watch('visible', function (_ev) {
-              updateVisibleLayers(
+              updateLegend(
                 view,
                 displayEsriLegendNonState,
                 hmwLegendNode,
@@ -854,9 +819,7 @@ function MapWidgets({
     reactiveUtils.watch(
       () => view.zoom,
       () => {
-        handleMapZoomChange(view);
-
-        updateVisibleLayers(
+        updateLegend(
           view,
           displayEsriLegendNonState,
           hmwLegendNode,
@@ -887,42 +850,15 @@ function MapWidgets({
   useEffect(() => {
     if (!layers || layers.length === 0) return;
 
-    //build a list of layers that we care about
-    const layerList = [
-      'cyanLayer',
-      'dischargersLayer',
-      'monitoringLocationsLayer',
-      'usgsStreamgagesLayer',
-      'nonprofitsLayer',
-      'providersLayer',
-      'waterbodyLayer',
-      'issuesLayer',
-      'actionsLayer',
-      'wsioHealthIndexLayer',
-      'wildScenicRiversLayer',
-      'protectedAreasLayer',
-    ];
-
     // hide/show layers based on the provided list of layers to show
-    if (layers) {
-      map.layers.forEach((layer) => {
-        if (layerList.includes(layer.id)) {
-          if (visibleLayers.hasOwnProperty(layer.id)) {
-            layer.visible = visibleLayers[layer.id];
-            layer.listMode = isGroupLayer(layer) ? 'hide-children' : 'show';
-          } else {
-            layer.visible = false;
-            layer.listMode = 'hide';
-          }
-        } else if (layer.id === 'boundariesLayer') {
-          if (visibleLayers.hasOwnProperty('boundariesLayer')) {
-            layer.visible = visibleLayers['boundariesLayer'];
-          } else {
-            layer.visible = true;
-          }
-        }
-      });
-    }
+    map.layers.forEach((layer) => {
+      if (layer.id === 'waterbodyLayer') console.log(layer.id);
+      if (visibleLayers.hasOwnProperty(layer.id)) {
+        layer.visible = visibleLayers[layer.id];
+      } else {
+        layer.visible = false;
+      }
+    });
   }, [layers, visibleLayers, map]);
 
   // This code removes any layers that still have a listMode of hide.
@@ -1087,12 +1023,7 @@ function MapWidgets({
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
   useEffect(() => {
-    updateVisibleLayers(
-      view,
-      displayEsriLegend,
-      hmwLegendNode,
-      additionalLegendInfo,
-    );
+    updateLegend(view, displayEsriLegend, hmwLegendNode, additionalLegendInfo);
   }, [
     additionalLegendInfo,
     surroundingsVisible,

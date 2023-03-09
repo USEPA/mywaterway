@@ -69,7 +69,7 @@ function useBoundariesToggleLayer<
   updateSurroundingData,
   updateLayer,
 }: UseBoundariesToggleLayerParams<T, E, S>) {
-  const { mapView, visibleLayers, setVisibleLayers } = useContext(
+  const { mapView, visibleLayers, updateVisibleLayers } = useContext(
     LocationSearchContext,
   );
 
@@ -238,12 +238,11 @@ function useBoundariesToggleLayer<
         if (layerVisible === null) return;
 
         if (layerVisible && !showSurroundings) {
-          setVisibleLayers({
-            ...visibleLayers,
+          updateVisibleLayers({
             [layerId]: initialLayerVisibility,
           });
         } else if (!layerVisible && showSurroundings) {
-          setVisibleLayers({ ...visibleLayers, [layerId]: true });
+          updateVisibleLayers({ [layerId]: true });
         }
 
         surroundingLayer.visible = showSurroundings;
@@ -258,9 +257,9 @@ function useBoundariesToggleLayer<
     [
       initialLayerVisibility,
       layerId,
-      setVisibleLayers,
       surroundingLayer,
       surroundingsDispatch,
+      updateVisibleLayers,
       visibleLayers,
     ],
   );

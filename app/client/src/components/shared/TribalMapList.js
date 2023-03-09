@@ -166,8 +166,7 @@ function TribalMapList({
     linesLayer,
     mapView,
     pointsLayer,
-    visibleLayers,
-    setVisibleLayers,
+    updateVisibleLayers,
     waterbodyLayer,
   } = useContext(LocationSearchContext);
 
@@ -284,46 +283,6 @@ function TribalMapList({
     setDisplayMode('map');
   }, [selectedGraphic]);
 
-  // Updates the visible layers. This function also takes into account whether
-  // or not the underlying webservices failed.
-  const updateVisibleLayers = useCallback(
-    ({ key = null, value = null, useCurrentValue = false }) => {
-      const layers = {};
-
-      if (waterbodyLayer) {
-        layers.waterbodyLayer =
-          !waterbodyLayer || useCurrentValue
-            ? visibleLayers.waterbodyLayer
-            : waterbodiesDisplayed;
-      }
-
-      if (monitoringLocationsStatus !== 'failure') {
-        layers.monitoringLocationsLayer =
-          !monitoringLocationsLayer || useCurrentValue
-            ? visibleLayers.monitoringLocationsLayer
-            : monitoringLocationsDisplayed;
-      }
-
-      if (key && layers.hasOwnProperty(key)) {
-        layers[key] = value;
-      }
-
-      // set the visible layers if something changed
-      if (JSON.stringify(visibleLayers) !== JSON.stringify(layers)) {
-        setVisibleLayers(layers);
-      }
-    },
-    [
-      monitoringLocationsStatus,
-      waterbodyLayer,
-      monitoringLocationsLayer,
-      waterbodiesDisplayed,
-      monitoringLocationsDisplayed,
-      visibleLayers,
-      setVisibleLayers,
-    ],
-  );
-
   // calculate height of div holding the view mode buttons
   const [viewModeHeight, setViewModeHeight] = useState(0);
   const viewModeRef = useCallback((node) => {
@@ -390,8 +349,7 @@ function TribalMapList({
                     if (!waterbodyLayer) return;
                     setWaterbodiesDisplayed(!waterbodiesDisplayed);
                     updateVisibleLayers({
-                      key: 'waterbodyLayer',
-                      value: !waterbodiesDisplayed,
+                      waterbodyLayer: !waterbodiesDisplayed,
                     });
                   }}
                   disabled={!Boolean(waterbodies.data.length)}
@@ -428,10 +386,8 @@ function TribalMapList({
                     setMonitoringLocationsDisplayed(
                       !monitoringLocationsDisplayed,
                     );
-                    setVisibleLayers({
+                    updateVisibleLayers({
                       monitoringLocationsLayer: !monitoringLocationsDisplayed,
-                      // NOTE: no change for the following layers:
-                      waterbodyLayer: waterbodiesDisplayed,
                     });
                   }}
                   disabled={!Boolean(monitoringLocations.length)}
@@ -774,7 +730,11 @@ function TribalMap({
       waterbodyLayer,
     ]);
 
-    setVisibleLayers({ waterbodyLayer: true, monitoringLocationsLayer: true });
+    setVisibleLayers({
+      selectedTribeLayer: true,
+      waterbodyLayer: true,
+      monitoringLocationsLayer: true,
+    });
 
     setLayersInitialized(true);
   }, [

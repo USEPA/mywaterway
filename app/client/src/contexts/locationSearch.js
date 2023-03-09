@@ -381,6 +381,15 @@ export class LocationSearchProvider extends Component<Props, State> {
     setVisibleLayers: (visibleLayers) => {
       this.setState({ visibleLayers });
     },
+    updateVisibleLayers: (updates = {}, merge = true) => {
+      const newVisibleLayers = {
+        ...(merge && this.state.visibleLayers),
+        ...updates,
+      };
+      if (JSON.stringify(newVisibleLayers) !== this.state.visibleLayers) {
+        this.setState({ visibleLayers: newVisibleLayers });
+      }
+    },
     setBasemap: (basemap) => {
       this.setState({ basemap });
     },

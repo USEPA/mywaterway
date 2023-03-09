@@ -121,8 +121,8 @@ function Overview() {
     cipSummary,
     waterbodyLayer,
     watershed,
+    updateVisibleLayers,
     visibleLayers,
-    setVisibleLayers,
   } = useContext(LocationSearchContext);
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
@@ -160,83 +160,12 @@ function Overview() {
     }
   }, [visibleLayers]);
 
-  /**
-   * Updates the visible layers. This function also takes into account whether
-   * or not the underlying webservices failed.
-   */
-  const updateVisibleLayers = useCallback(
-    ({ key = null, value = null, useCurrentValue = false }) => {
-      const layers = {};
-
-      if (cipSummary.status !== 'failure') {
-        layers.waterbodyLayer =
-          !waterbodyLayer || useCurrentValue
-            ? visibleLayers.waterbodyLayer
-            : waterbodiesDisplayed;
-      }
-
-      if (monitoringLocationsStatus !== 'failure') {
-        layers.monitoringLocationsLayer =
-          !monitoringLocationsLayer || useCurrentValue
-            ? visibleLayers.monitoringLocationsLayer
-            : monitoringLocationsDisplayed;
-      }
-
-      if (streamgagesStatus !== 'failure') {
-        layers.usgsStreamgagesLayer =
-          !usgsStreamgagesLayer || useCurrentValue
-            ? visibleLayers.usgsStreamgagesLayer
-            : usgsStreamgagesDisplayed;
-      }
-
-      if (dischargersStatus !== 'failure') {
-        layers.dischargersLayer =
-          !dischargersLayer || useCurrentValue
-            ? visibleLayers.dischargersLayer
-            : permittedDischargersDisplayed;
-      }
-
-      if (key && layers.hasOwnProperty(key)) {
-        layers[key] = value;
-      }
-
-      // set the visible layers if something changed
-      if (JSON.stringify(visibleLayers) !== JSON.stringify(layers)) {
-        setVisibleLayers(layers);
-      }
-    },
-    [
-      cipSummary,
-      dischargersStatus,
-      monitoringLocationsStatus,
-      streamgagesStatus,
-      visibleLayers,
-      waterbodyLayer,
-      waterbodiesDisplayed,
-      monitoringLocationsLayer,
-      monitoringLocationsDisplayed,
-      usgsStreamgagesLayer,
-      usgsStreamgagesDisplayed,
-      dischargersLayer,
-      permittedDischargersDisplayed,
-      setVisibleLayers,
-    ],
-  );
-
-  // update visible layers based on webservice statuses.
-  useEffect(() => {
-    updateVisibleLayers({ useCurrentValue: true });
-  }, [updateVisibleLayers]);
-
   const handleWaterbodiesToggle = useCallback(
     (checked) => {
       if (!waterbodyLayer) return;
 
       setWaterbodiesDisplayed(checked);
-      updateVisibleLayers({
-        key: 'waterbodyLayer',
-        value: checked,
-      });
+      updateVisibleLayers({ waterbodyLayer: checked });
     },
     [updateVisibleLayers, waterbodyLayer],
   );
@@ -249,7 +178,7 @@ function Overview() {
       setMonitoringAndSensorsDisplayed(checked);
       setUsgsStreamgagesDisplayed(checked);
       setMonitoringLocationsDisplayed(checked);
-      setVisibleLayers({
+      updateVisibleLayers({
         usgsStreamgagesLayer: checked,
         monitoringLocationsLayer: checked,
         // NOTE: no change for the following layers:
@@ -260,7 +189,7 @@ function Overview() {
     [
       monitoringLocationsLayer,
       permittedDischargersDisplayed,
-      setVisibleLayers,
+      updateVisibleLayers,
       usgsStreamgagesLayer,
       waterbodiesDisplayed,
     ],
@@ -270,10 +199,7 @@ function Overview() {
     (checked) => {
       if (!dischargersLayer) return;
       setPermittedDischargersDisplayed(checked);
-      updateVisibleLayers({
-        key: 'dischargersLayer',
-        value: checked,
-      });
+      updateVisibleLayers({ dischargersLayer: checked });
     },
     [dischargersLayer, updateVisibleLayers],
   );
@@ -567,10 +493,7 @@ function MonitoringAndSensorsTab({
       if (!usgsStreamgagesLayer) return;
 
       setUsgsStreamgagesDisplayed(checked);
-      updateVisibleLayers({
-        key: 'usgsStreamgagesLayer',
-        value: checked,
-      });
+      updateVisibleLayers({ usgsStreamgagesLayer: checked });
     },
     [setUsgsStreamgagesDisplayed, updateVisibleLayers, usgsStreamgagesLayer],
   );
@@ -580,10 +503,7 @@ function MonitoringAndSensorsTab({
       if (!monitoringLocationsLayer) return;
 
       setMonitoringLocationsDisplayed(checked);
-      updateVisibleLayers({
-        key: 'monitoringLocationsLayer',
-        value: checked,
-      });
+      updateVisibleLayers({ monitoringLocationsLayer: checked });
     },
     [
       monitoringLocationsLayer,

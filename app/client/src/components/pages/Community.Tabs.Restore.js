@@ -1,6 +1,6 @@
 // @flow
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -43,61 +43,12 @@ const disclaimerStyles = css`
 `;
 
 function Restore() {
-  const {
-    attainsPlans,
-    cipSummary,
-    grts,
-    visibleLayers,
-    setVisibleLayers,
-    watershed,
-    waterbodyLayer,
-  } = useContext(LocationSearchContext);
+  const { attainsPlans, grts, updateVisibleLayers, watershed } = useContext(
+    LocationSearchContext,
+  );
 
   // draw the waterbody on the map
   useWaterbodyOnMap('restoreTab', 'overallstatus');
-
-  const [restoreLayerEnabled, setRestoreLayerEnabled] = useState(true);
-
-  // Syncs the toggles with the visible layers on the map. Mainly
-  // used for when the user toggles layers in full screen mode and then
-  // exist full screen.
-  useEffect(() => {
-    const { waterbodyLayer } = visibleLayers;
-
-    if (typeof waterbodyLayer === 'boolean') {
-      setRestoreLayerEnabled(waterbodyLayer);
-    }
-  }, [visibleLayers]);
-
-  // Updates the visible layers. This function also takes into account whether
-  // or not the underlying webservices failed.
-  const updateVisibleLayers = useCallback(
-    ({ key = null, newValue = null, useCurrentValue = false }) => {
-      const newVisibleLayers = {};
-      if (cipSummary.status !== 'failure') {
-        newVisibleLayers['waterbodyLayer'] =
-          !waterbodyLayer || useCurrentValue
-            ? visibleLayers['waterbodyLayer']
-            : restoreLayerEnabled;
-      }
-
-      if (newVisibleLayers.hasOwnProperty(key)) {
-        newVisibleLayers[key] = newValue;
-      }
-
-      // set the visible layers if something changed
-      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
-        setVisibleLayers(newVisibleLayers);
-      }
-    },
-    [
-      waterbodyLayer,
-      restoreLayerEnabled,
-      cipSummary,
-      visibleLayers,
-      setVisibleLayers,
-    ],
-  );
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
@@ -114,16 +65,6 @@ function Restore() {
           .filter((item) => item.actionTypeCode !== 'Protection Approach')
           .sort((a, b) => a.actionName.localeCompare(b.actionName))
       : [];
-
-  const setRestoreLayerVisibility = (visible) => {
-    setRestoreLayerEnabled(visible);
-
-    // first check if layer exists and is not falsy
-    updateVisibleLayers({
-      key: 'waterbodyLayer',
-      newValue: waterbodyLayer && visible,
-    });
-  };
 
   return (
     <div css={containerStyles}>
@@ -155,7 +96,11 @@ function Restore() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs onChange={(index) => setRestoreLayerVisibility(index === 1)}>
+        <Tabs
+          onChange={(index) =>
+            updateVisibleLayers({ waterbodyLayer: index === 1 })
+          }
+        >
           <TabList>
             <Tab>Clean Water Act Section 319 Projects</Tab>
             <Tab>Restoration Plans</Tab>
