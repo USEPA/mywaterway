@@ -33,18 +33,9 @@ type PublishType = {
     | 'name-not-provided'
     | 'name-not-available'
     | 'layers-not-provided',
-  summary: {
-    success: string,
-    failed: string,
-  },
   error?: {
-    error: {
-      name: string;
-      message: string;
-      stack: string | undefined;
-    }
     message: string;
-    stack: string | undefined;
+    stack?: string | undefined;
   }
 };
 
@@ -401,7 +392,6 @@ function SavePanel({ visible }: Props) {
 
   const [publishResponse, setPublishResponse] = useState<PublishType>({
     status: 'idle',
-    summary: { success: '', failed: '' },
   });
 
   if (
@@ -422,32 +412,75 @@ function SavePanel({ visible }: Props) {
     if (nameAvailableResponse.error) {
       setPublishResponse({
         status: 'failure',
-        summary: { success: '', failed: '' },
-        error: nameAvailableResponse.error.message,
+        error: {
+          message: nameAvailableResponse.error.message,
+        },
       });
       return;
     }
     if (!nameAvailableResponse.available) {
       setPublishResponse({
         status: 'name-not-available',
-        summary: { success: '', failed: '' },
       });
       return;
     }
 
-    await publish({
-      portal,
-      mapView,
-      services,
-      layers: layersToPublish,
-      layerProps,
-      serviceMetaData,
-    });
+    try {
+      const response = await publish({
+        portal,
+        mapView,
+        services,
+        layers: layersToPublish,
+        layerProps,
+        serviceMetaData,
+      });
 
-    setPublishResponse({
-      status: 'success',
-      summary: { success: '', failed: '' },
-    });
+      // parse the publish output
+      const layerSuccess = !response.layersResult 
+        ? true 
+        : response.layersResult.success;
+      
+      let totalFeatures = 0;
+      let featureFailedCount = 0;
+      response.featuresResult?.forEach((l) => {
+        l.addResults?.forEach((r) => {
+          totalFeatures += 1;
+          if(!r.success) featureFailedCount += 1;
+        });
+      });
+
+      const webMapSuccess = response.webMapResult.success;
+      
+      if(layerSuccess && featureFailedCount === 0 && webMapSuccess) {
+        setPublishResponse({
+          status: 'success',
+        });
+      } else {
+        let errorMessage = '';
+
+        if(!layerSuccess) errorMessage += 'Failed to save 1 or more layers. Check console for more information.\n';
+        if(featureFailedCount > 0) errorMessage += `Partial save success. Failed to save ${featureFailedCount} of ${totalFeatures} feature(s).\n`;
+        if(webMapSuccess) errorMessage += 'Failed to save the web map.\n'
+
+        errorMessage += 'Check the console for more details.';
+        
+        setPublishResponse({
+          status: 'failure',
+          error: {
+            message: errorMessage,
+          },
+        });
+      }
+    } catch (ex: any) {
+      console.error(ex);
+      setPublishResponse({
+        status: 'failure',
+        error: {
+          message: ex.toString(),
+          stack: ex,
+        },
+      });
+    }
   }
 
   // Saves the data to ArcGIS Online
@@ -458,7 +491,6 @@ function SavePanel({ visible }: Props) {
     if (!saveAsName) {
       setPublishResponse({
         status: 'name-not-provided',
-        summary: { success: '', failed: '' },
       });
       return;
     }
@@ -482,14 +514,12 @@ function SavePanel({ visible }: Props) {
     if (layersToPublish.length === 0) {
       setPublishResponse({
         status: 'layers-not-provided',
-        summary: { success: '', failed: '' },
       });
       return;
     }
 
     setPublishResponse({
       status: 'pending',
-      summary: { success: '', failed: '' },
     });
 
     const serviceMetaData = {
@@ -610,7 +640,7 @@ function SavePanel({ visible }: Props) {
       </div>
       <div css={submitSectionStyles}>
         {publishResponse.status === 'pending' && <LoadingSpinner />}
-        {publishResponse.status === 'failure' && errorMessage('General error.')}
+        {publishResponse.status === 'failure' && errorMessage(publishResponse.error?.message || 'Unknown error. Check developer tools console.')}
         {publishResponse.status === 'name-not-provided' &&
           errorMessage('Please provide a name and try again.')}
         {publishResponse.status === 'name-not-available' &&
@@ -621,7 +651,7 @@ function SavePanel({ visible }: Props) {
           errorMessage('Please select at least one layer and try again.')}
         {publishResponse.status === 'success' && (
           <div css={modifiedSuccessBoxStyles}>
-            <p>Publish succeeded.</p>
+            <p>Save succeeded.</p>
           </div>
         )}
         <div css={buttonContainerStyles}>

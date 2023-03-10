@@ -523,7 +523,7 @@ async function applyEdits({
   serviceUrl: string;
   layers: LayerType[];
   layersRes: AddToDefinitionResponseType;
-}): Promise<ApplyEditsResponseType> {
+}): Promise<ApplyEditsResponseType[]> {
   try {
     const changes: ApplyEditsParameterType[] = [];
     for (const layerRes of layersRes.layers) {
@@ -968,7 +968,11 @@ export async function publish({
   layers: LayerType[];
   layerProps: LookupFile;
   serviceMetaData: ServiceMetaDataType;
-}) {
+}): Promise<{
+  layersResult?: AddToDefinitionResponseType,
+  featuresResult?: ApplyEditsResponseType[],
+  webMapResult: AddItemResponseType,
+}> {
   if (layers.length === 0) throw new Error('No layers to publish.');
 
   // determine if a feature service is needed
@@ -992,11 +996,12 @@ export async function publish({
         layers,
       });
 
-      return res;
+      return {
+        webMapResult: res,
+      };
     } else {
       const service = await getFeatureService(portal, serviceMetaData);
       const serviceUrl: string = service.portalService.url;
-      const portalId: string = service.portalService.id;
 
       const layersRes = await createFeatureLayers(
         portal,
@@ -1015,7 +1020,7 @@ export async function publish({
         layersRes,
       });
 
-      await addWebMap({
+      const webMapRes = await addWebMap({
         portal,
         mapView,
         service,
@@ -1027,8 +1032,9 @@ export async function publish({
       });
 
       return {
-        portalId,
-        edits: editsRes,
+        layersResult: layersRes,
+        featuresResult: editsRes,
+        webMapResult: webMapRes,
       };
     }
   } catch (ex) {

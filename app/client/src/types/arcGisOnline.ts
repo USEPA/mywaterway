@@ -29,9 +29,10 @@ type ApplyEditsFeatureResultType = {
 };
 
 export type ApplyEditsResponseType = {
-  addResults: ApplyEditsFeatureResultType[];
-  deleteResults: ApplyEditsFeatureResultType[];
-  updateResults: ApplyEditsFeatureResultType[];
+  id: number;
+  addResults?: ApplyEditsFeatureResultType[];
+  deleteResults?: ApplyEditsFeatureResultType[];
+  updateResults?: ApplyEditsFeatureResultType[];
 };
 
 export type AddItemResponseType = {
