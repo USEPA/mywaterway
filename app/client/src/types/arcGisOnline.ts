@@ -1,100 +1,53 @@
+import { IFeature, ILayer, IServiceNameAvailable } from "@esri/arcgis-rest-types";
 import { WidgetLayer } from 'types/index';
 
-export type EditsType = {
-  count: number;
-  edits: (ScenarioEditsType | LayerEditsType)[];
+export type AddToDefinitionResponseType = {
+  layers: {
+    id: number;
+    layerId?: string | null;
+    name: string;
+  }[];
+  success: boolean;
+  tables: {
+    id: number;
+    name: string;
+  }[];
+}
+
+export type ApplyEditsParameterType = {
+  id?: number;
+  adds: IFeature[];
+  updates: IFeature[];
+  deletes: number[] | number | string[] | string;
 };
 
-export type EditType =
-  | 'add'
-  | 'update'
-  | 'delete'
-  | 'arcgis'
-  | 'properties'
-  | 'move';
-
-export type TableType = {
-  id: number; // esri layer id
-  sampleTypes: any; // <sample type name>: { attributes: any };
+type ApplyEditsFeatureResultType = {
+  globalId?: string | null;
+  objectId: number;
+  success: boolean;
+  uniqueId: number;
 };
 
-export type ScenarioEditsType = {
-  type: 'scenario';
-  id: number; // scenario layer id
-  pointsId: number;
-  layerId: string; // id from esri group layer
-  portalId: string; // id from portal layer
-  name: string; // layer/scenario name
-  label: string; // layer/scenario label
-  value: string; // layer/scenario value for React-Select
-  layerType: LayerTypeName; // type of hmw layer (sample, contamination, etc.)
-  addedFrom: AddedFrom; // how the layer was added (file, url, etc.)
-  hasContaminationRan: boolean; // says whether or not contamination hits has been ran
-  status: PublishStatus; // publish status
-  editType: EditType; // edit type
-  visible: boolean; // layer visibility on map
-  listMode: 'hide' | 'hide-children' | 'show'; // layer visiblity in legend widget
-  scenarioName: string; // user defined scenario name
-  scenarioDescription: string; // user defined scenario description  adds: FeatureEditsType[]; // features to add
-  layers: LayerEditsType[];
-  table: TableType | null;
+export type ApplyEditsResponseType = {
+  addResults: ApplyEditsFeatureResultType[];
+  deleteResults: ApplyEditsFeatureResultType[];
+  updateResults: ApplyEditsFeatureResultType[];
 };
 
-export type LayerEditsType = {
-  type: 'layer';
-  id: number; // layer id
-  pointsId: number;
-  uuid: string; // unique id for the layer
-  layerId: string; // id from esri layer
-  portalId: string; // id from portal layer
-  name: string; // layer name
-  label: string; // layer label
-  layerType: LayerTypeName; // type of hmw layer (sample, contamination, etc.)
-  addedFrom: AddedFrom; // how the layer was added (file, url, etc.)
-  hasContaminationRan: boolean; // says whether or not contamination hits has been ran
-  status: PublishStatus; // publish status
-  editType: EditType; // edit type
-  visible: boolean; // layer visibility on map
-  listMode: 'hide' | 'hide-children' | 'show'; // layer visiblity in legend widget
-  sort: number; // sort order for this layer
-  adds: FeatureEditsType[]; // features to add
-  updates: FeatureEditsType[]; // features to update
-  deletes: DeleteFeatureType[]; // features to delete
-  published: FeatureEditsType[]; // features as they are on AGOL
+export type AddItemResponseType = {
+  folder: string;
+  id: string;
+  success: boolean;
 };
 
-export type FeatureEditsType = {
-  attributes: any;
-  geometry: __esri.PolygonProperties;
-};
+export type ILayerExtendedType = Partial<ILayer> & {
+  id?: any;
+  styleUrl?: string;
+} 
 
-export type DeleteFeatureType = {
-  PERMANENT_IDENTIFIER: string;
-  GLOBALID: string;
-  DECISIONUNITUUID: string;
-};
-
-export type ServiceMetaDataType = {
-  label: string; // sample type name
-  description: string; // sample type description
-};
-
-export type LayerTypeName =
-  | 'Contamination Map'
-  | 'Samples'
-  | 'Reference Layer'
-  | 'Area of Interest'
-  | 'VSP'
-  | 'Sampling Mask';
-
-export type LayerSelectType = {
-  value: LayerTypeName;
-  label: LayerTypeName;
-};
-
-export type AddedFrom = 'file' | 'sketch' | 'hmw';
-
-export type PublishStatus = 'added' | 'edited' | 'published';
+export interface IServiceNameAvailableExtended extends IServiceNameAvailable {
+  error?: any;
+}
 
 export type LayerType = {
   id: string;
@@ -105,51 +58,67 @@ export type LayerType = {
   widgetLayer?: WidgetLayer;
 };
 
-export type PortalLayerType = {
+export type PortalService = {
+  access: string;
+  accessInformation: any;
+  apiKey: string | null;
+  applicationProxies: any;
+  avgRating: number;
+  categories: any[];
+  created: Date;
+  culture: string;
+  description: string | null;
+  displayName: string;
+  extent: __esri.Extent | null;
+  groupCategories: any;
+  iconUrl: string;
   id: string;
-  type: 'arcgis' | 'hmw';
-};
-
-export type UrlLayerType = {
-  url: string;
-  type: string;
-  layerId: string;
-};
-
-export type FieldInfos = {
-  fieldName: string;
-  label: string;
-}[];
-
-export type SampleTypeOption = {
-  label: string;
-  value: string | null;
-  serviceId: string;
-  status: 'add' | 'edit' | 'delete' | 'published' | 'published-ago';
-};
-
-export type SampleTypeOptions = SampleTypeOption[];
-
-export type CodedValue = {
-  id: number;
-  label: string | number;
-  value: string | number;
-};
-
-export type Domain = {
-  type: 'range' | 'coded' | 'none';
-  range: null | {
-    min: number;
-    max: number;
-  };
-  codedValues: null | CodedValue[];
-};
-
-export type AttributesType = {
-  id: number;
+  isLayer: boolean;
+  itemControl: any;
+  itemPageUrl: string;
+  itemUrl: string;
+  licenseInfo: any;
+  loadError: any;
+  loadStatus: string;
+  loadWarnings: any[];
+  loaded: boolean;
+  modified: Date;
   name: string;
+  numComments: number;
+  numRatings: number;
+  numViews: number;
+  owner: string;
+  ownerFolder: string | null;
+  portal: __esri.Portal;
+  screenshots: any[];
+  size: number;
+  snippet: any;
+  sourceJSON: Object;
+  spatialReference: __esri.SpatialReference;
+  tags: any[];
+  thumbnail: any;
+  thumbnailUrl: string | null;
+  title: string;
+  type: string;
+  typeKeywords: string[];
+  url: string;
+  userItemUrl: string;
+};
+
+export type SaveLayerListType = {
+  id: string;
   label: string;
-  dataType: 'date' | 'double' | 'integer' | 'string' | 'uuid';
-  length: null | number;
-  domain: null | Domain;
+  layer: __esri.Layer | null;
+  requiresFeatureService: boolean;
+  toggled: boolean;
+  widgetLayer?: WidgetLayer | undefined;
+};
+
+export type SaveLayersListType = {
+  [key: string]: SaveLayerListType;
+}
+
+export type ServiceMetaDataType = {
+  label: string; // sample type name
+  description: string; // sample type description
 };

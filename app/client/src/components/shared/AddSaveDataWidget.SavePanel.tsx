@@ -21,9 +21,8 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
-import { createErrorObject } from 'utils/utils';
 // types
-import { ServiceMetaDataType } from 'types/arcGisOnline';
+import { SaveLayerListType, SaveLayersListType, ServiceMetaDataType } from 'types/arcGisOnline';
 
 type PublishType = {
   status:
@@ -38,6 +37,15 @@ type PublishType = {
     success: string,
     failed: string,
   },
+  error?: {
+    error: {
+      name: string;
+      message: string;
+      stack: string | undefined;
+    }
+    message: string;
+    stack: string | undefined;
+  }
 };
 
 const tooltipCost = 'Including this layer may require ArcGIS Online credits for storage.';
@@ -84,7 +92,7 @@ const layerFilterOptions = [
 
 // Performs a deep comparison of 2 objects. Returns true if they are equal
 // and false otherwise.
-function deepEqual(object1, object2) {
+function deepEqual(object1: any, object2: any) {
   const keys1 = Object.keys(object1);
   const keys2 = Object.keys(object2);
   if (keys1.length !== keys2.length) {
@@ -103,7 +111,7 @@ function deepEqual(object1, object2) {
   }
   return true;
 }
-function isObject(object) {
+function isObject(object: any) {
   return object != null && typeof object === 'object';
 }
 
@@ -192,13 +200,13 @@ function SavePanel({ visible }: Props) {
     setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
-  const { mapView } = useContext(LocationSearchContext);
-  const [oAuthInfo, setOAuthInfo] = useState(null);
-  const [userPortal, setUserPortal] = useState(null);
+  const mapView = useContext(LocationSearchContext).mapView as __esri.MapView;
+  const [oAuthInfo, setOAuthInfo] = useState<__esri.OAuthInfo | null>(null);
+  const [userPortal, setUserPortal] = useState<__esri.Portal | null>(null);
   const layerProps = useLayerProps();
   const services = useServicesContext();
 
-  const [saveLayerFilter, setSaveLayerFilter] = useState(layerFilterOptions[0]);
+  const [saveLayerFilter, setSaveLayerFilter] = useState(layerFilterOptions[0].value);
 
   // Initialize the OAuth
   useEffect(() => {
@@ -216,7 +224,7 @@ function SavePanel({ visible }: Props) {
 
   // Watch for when layers are added to the map
   const [mapLayerCount, setMapLayerCount] = useState(mapView.map.layers.length);
-  const [layerWatcher, setLayerWatcher] = useState(false);
+  const [layerWatcher, setLayerWatcher] = useState<IHandle | null>(null);
   useEffect(() => {
     if (!mapView || layerWatcher) return;
 
@@ -227,7 +235,7 @@ function SavePanel({ visible }: Props) {
 
     const layerWatchers: { [id: string]: IHandle } = {};
 
-    function watchLayerVisibility(layer) {
+    function watchLayerVisibility(layer: __esri.Layer) {
       const visibilityWatcher = reactiveUtils.watch(
         () => layer.visible,
         () => {
@@ -247,7 +255,7 @@ function SavePanel({ visible }: Props) {
       layerWatchers[layer.id] = visibilityWatcher;
     }
 
-    function watchLayerLoaded(layer) {
+    function watchLayerLoaded(layer: __esri.Layer) {
       const loadedWatcher = reactiveUtils.watch(
         () => layer.loaded,
         () => {
@@ -299,7 +307,7 @@ function SavePanel({ visible }: Props) {
     if (saveLayersList) {
       // build object of switches based on layers on map
       const newSwitches = { ...saveLayersList };
-      mapView.map.layers.items.forEach((layer) => {
+      mapView.map.layers.forEach((layer) => {
         if (
           layersToIgnore.includes(layer.id) ||
           layerTypesToIgnore.includes(layer.type)
@@ -321,7 +329,7 @@ function SavePanel({ visible }: Props) {
 
     // get a list of layers that were added as files as these will need
     // be flagged as costing money to store in AGO
-    const fileLayerIds = [];
+    const fileLayerIds: string[] = [];
     widgetLayers.forEach((layer) => {
       if (layer.type === 'file') {
         fileLayerIds.push(layer.layer.id);
@@ -330,9 +338,9 @@ function SavePanel({ visible }: Props) {
 
     // build object of switches based on layers on map
     const newSwitches = saveLayersList ? { ...saveLayersList } : {};
-    const newSwitchesNoLayer = {};
-    const layersOnMap = [];
-    mapView.map.layers.items.forEach((layer) => {
+    const newSwitchesNoLayer: SaveLayersListType = {};
+    const layersOnMap: string[] = [];
+    mapView.map.layers.forEach((layer) => {
       if (
         layersToIgnore.includes(layer.id) ||
         layerTypesToIgnore.includes(layer.type)
@@ -366,7 +374,7 @@ function SavePanel({ visible }: Props) {
       delete newSwitches[layerId];
     });
 
-    const oldSwitches = {};
+    const oldSwitches: SaveLayersListType = {};
     if (saveLayersList) {
       Object.keys(saveLayersList).forEach((key) => {
         const value = saveLayersList[key];
@@ -415,10 +423,7 @@ function SavePanel({ visible }: Props) {
       setPublishResponse({
         status: 'failure',
         summary: { success: '', failed: '' },
-        error: {
-          error: createErrorObject(nameAvailableResponse),
-          message: nameAvailableResponse.error.message,
-        },
+        error: nameAvailableResponse.error.message,
       });
       return;
     }
@@ -447,6 +452,8 @@ function SavePanel({ visible }: Props) {
 
   // Saves the data to ArcGIS Online
   async function handleSaveAgo(ev: MouseEvent<HTMLButtonElement>) {
+    if(!saveLayersList) return;
+
     // check if user provided a name
     if (!saveAsName) {
       setPublishResponse({
@@ -457,10 +464,10 @@ function SavePanel({ visible }: Props) {
     }
 
     // Gather the layers to be published
-    const layersToPublish = [];
+    const layersToPublish: SaveLayerListType[] = [];
     Object.values(saveLayersList).forEach((value) => {
       if (!value.toggled) return;
-      if (saveLayerFilter.value === 'Free' && value.requiresFeatureService) {
+      if (saveLayerFilter === 'Free' && value.requiresFeatureService) {
         return;
       }
 
@@ -497,7 +504,7 @@ function SavePanel({ visible }: Props) {
 
     try {
       // Check the user's sign in status
-      await IdentityManager.getCredential(`${oAuthInfo.portalUrl}/sharing`, {
+      await IdentityManager.getCredential(`${oAuthInfo?.portalUrl}/sharing`, {
         oAuthPopupConfirmation: false,
       });
 
@@ -530,11 +537,11 @@ function SavePanel({ visible }: Props) {
       <Select
         inputId="layer-filter-select"
         isSearchable={false}
-        value={saveLayerFilter}
-        onChange={(ev) => {
-          setSaveLayerFilter(ev);
-        }}
         options={layerFilterOptions}
+        value={layerFilterOptions.find((f) => f.value === saveLayerFilter)}
+        onChange={(ev) => {
+          setSaveLayerFilter(ev?.value || '');
+        }}
       />
       <div css={listContainerStyles}>
         {saveLayersList &&
@@ -545,7 +552,7 @@ function SavePanel({ visible }: Props) {
               const key = value.id;
 
               if (
-                saveLayerFilter?.value === 'Free' &&
+                saveLayerFilter === 'Free' &&
                 value.requiresFeatureService
               ) {
                 return null;
@@ -558,6 +565,8 @@ function SavePanel({ visible }: Props) {
                     checked={value.toggled}
                     onChange={(ev) => {
                       setSaveLayersList((saveLayersList) => {
+                        if(!saveLayersList) return saveLayersList;
+
                         return {
                           ...saveLayersList,
                           [key]: {

@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, useState } from 'react';
 // types
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { WidgetLayer } from 'types';
+import type { SaveLayersListType } from 'types/arcGisOnline';
 
 type SearchResultsState =
   | { status: 'idle' | 'fetching' | 'failure'; data: null }
@@ -9,17 +10,17 @@ type SearchResultsState =
 
 type State = {
   activeTabIndex: number,
-  setActiveTabIndex: Dispatch<SetStateAction<number>>,
+  setActiveTabIndex: Dispatch<SetStateAction<number>>;
   addSaveDataWidgetVisible: boolean;
   setAddSaveDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
   pageNumber: number;
   setPageNumber: Dispatch<SetStateAction<number>>;
-  saveAsName: string,
-  setSaveAsName: Function,
-  saveDescription: string,
-  setSaveDescription: Function,
-  saveLayersList: any, // TODO Fix usage of any
-  setSaveLayersList: Function,
+  saveAsName: string;
+  setSaveAsName: Dispatch<SetStateAction<string>>;
+  saveDescription: string;
+  setSaveDescription: Dispatch<SetStateAction<string>>;
+  saveLayersList: SaveLayersListType | null;
+  setSaveLayersList: Dispatch<SetStateAction<SaveLayersListType | null>>;
   searchResults: SearchResultsState;
   setSearchResults: Dispatch<SetStateAction<SearchResultsState>>;
   widgetLayers: WidgetLayer[];
@@ -38,7 +39,7 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
   const [pageNumber, setPageNumber] = useState(1);
   const [saveAsName, setSaveAsName] = useState('');
   const [saveDescription, setSaveDescription] = useState('');
-  const [saveLayersList, setSaveLayersList] = useState<any>(null); // TODO Fix any usage
+  const [saveLayersList, setSaveLayersList] = useState<SaveLayersListType | null>(null);
   const [searchResults, setSearchResults] = useState<SearchResultsState>({
     status: 'idle',
     data: null,

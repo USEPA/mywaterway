@@ -10,6 +10,20 @@ import {
 } from 'utils/fetchUtils';
 import { escapeForLucene } from 'utils/utils';
 // types
+import {
+  ILayerDefinition,
+  IFeature,
+  IFeatureServiceDefinition,
+} from "@esri/arcgis-rest-types";
+import {
+  AddItemResponseType,
+  AddToDefinitionResponseType,
+  ApplyEditsParameterType,
+  ApplyEditsResponseType,
+  ILayerExtendedType,
+  IServiceNameAvailableExtended,
+  PortalService
+} from 'types/arcGisOnline';
 import { LookupFile } from 'types/index';
 
 declare global {
@@ -49,36 +63,29 @@ export function appendEnvironmentObjectParam(params: any) {
  * @param portal The portal object to check against.
  * @param serviceName The desired feature service name.
  */
-export function isServiceNameAvailable(
+export async function isServiceNameAvailable(
   portal: __esri.Portal,
   serviceName: string,
-) {
-  return new Promise((resolve, reject) => {
-    // Workaround for esri.Portal not having credential
-    const tempPortal: any = portal;
-
+): Promise<IServiceNameAvailableExtended> {
+  try {
     // check if the hmw feature service already exists
-    const params: any = {
+    const params = {
       f: 'json',
-      token: tempPortal.credential.token,
+      token: portal.credential.token,
       name: serviceName,
       type: 'Feature Service',
     };
     appendEnvironmentObjectParam(params);
 
-    fetchPostForm(
+    return await fetchPostForm(
       `${portal.restUrl}/portals/${portal.id}/isServiceNameAvailable`,
       params,
-    )
-      .then((res) => {
-        resolve(res);
-      })
-      .catch((err) => {
-        console.error(err);
-        window.logErrorToGa(err);
-        reject(err);
-      });
-  });
+    );
+  } catch(err) {
+    console.error(err);
+    window.logErrorToGa(err);
+    throw err;
+  };
 }
 
 /**
@@ -93,7 +100,10 @@ export function isServiceNameAvailable(
 export async function getFeatureService(
   portal: __esri.Portal,
   serviceMetaData: ServiceMetaDataType,
-) {
+): Promise<{
+  portalService: PortalService;
+  featureService: IFeatureServiceDefinition;
+}> {
   try {
     // check if the hmw feature service already exists
     let service = await getFeatureServiceWrapped(portal, serviceMetaData);
@@ -118,8 +128,8 @@ async function getFeatureServiceRetry(
   const fetchLookup = async (
     retryCount: number = 0,
   ): Promise<{
-    portalService: any;
-    featureService: any;
+    portalService: PortalService;
+    featureService: IFeatureServiceDefinition;
   }> => {
     try {
       // check if the hmw feature service already exists
@@ -169,17 +179,15 @@ async function getFeatureServiceWrapped(
     const queryRes = await portal.queryItems({ query });
 
     const exactMatch = queryRes.results.find(
-      (layer: any) => layer.name === serviceMetaData.label,
+      (layer) => layer.name === serviceMetaData.label,
     );
 
     if (exactMatch) {
       const portalService = exactMatch;
 
-      // Workaround for esri.Portal not having credential
-      const tempPortal: any = portal;
       const response = await fetchCheck(
         `${portalService.url}?f=json${getEnvironmentStringParam()}&token=${
-          tempPortal.credential.token
+          portal.credential.token
         }`,
       );
       return {
@@ -208,13 +216,10 @@ export async function createFeatureService(
   serviceMetaData: ServiceMetaDataType,
 ) {
   try {
-    // Workaround for esri.Portal not having credential
-    const tempPortal: any = portal;
-
     // feature service creation parameters
     const data = {
       f: 'json',
-      token: tempPortal.credential.token,
+      token: portal.credential.token,
       outputType: 'featureService',
       description: serviceMetaData.description,
       snippet: serviceMetaData.description,
@@ -252,7 +257,7 @@ export async function createFeatureService(
     // call to add metadata (tags in this case).
     const indata = {
       f: 'json',
-      token: tempPortal.credential.token,
+      token: portal.credential.token,
 
       // add metadata for determining whether a feature service has a sample layer vs
       // just being a reference layer.
@@ -313,7 +318,7 @@ export async function createFeatureLayers(
   layerProps: LookupFile,
 ) {
   try {
-    const layersParams: any[] = [];
+    const layersParams: ILayerDefinition[] = [];
     if (layers.length === 0) {
       return {
         success: true,
@@ -355,7 +360,7 @@ export async function createFeatureLayers(
           ...layerProps.data.defaultLayerProps,
           ...properties,
           name: layer.layer.title,
-          globalIdField: (refFeatureLayer as any).globalIdField,
+          globalIdField: refFeatureLayer.globalIdField,
           objectIdField: refFeatureLayer.objectIdField,
           spatialReference: refFeatureLayer.spatialReference.toJSON(),
           fields: refFeatureLayer.fields
@@ -383,7 +388,7 @@ export async function createFeatureLayers(
             ...properties,
             name: subLayer.title,
             geometryType,
-            globalIdField: (subLayer as any).globalIdField,
+            globalIdField: subLayer.globalIdField,
             objectIdField: subLayer.objectIdField,
             spatialReference: subLayer.spatialReference.toJSON(),
             fields: subLayer.fields.map(convertFieldToJSON),
@@ -427,11 +432,9 @@ export async function createFeatureLayers(
       layersParams.push(params);
     }
 
-    // Workaround for esri.Portal not having credential
-    const tempPortal: any = portal;
     const data = {
       f: 'json',
-      token: tempPortal.credential.token,
+      token: portal.credential.token,
       addToDefinition: {
         layers: layersParams,
         tables: [
@@ -463,10 +466,10 @@ export async function createFeatureLayers(
     const response = await fetchPostForm(
       `${adminServiceUrl}/addToDefinition`,
       data,
-    );
+    ) as AddToDefinitionResponseType;
 
     // add the layer id back into the response
-    response.layers.forEach((l: any, index: number) => {
+    response.layers.forEach((l, index: number) => {
       l['layerId'] = layerIds[index];
     });
 
@@ -477,7 +480,7 @@ export async function createFeatureLayers(
   }
 }
 
-async function processLayerFeatures(layer: __esri.Layer, adds: any[]) {
+async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
   if (layer.type === 'graphics') {
     const graphicsLayer = layer as __esri.GraphicsLayer;
     graphicsLayer.graphics.forEach((graphic) => {
@@ -521,11 +524,10 @@ async function applyEdits({
   services: any;
   serviceUrl: string;
   layers: LayerType[];
-  layersRes: any;
-}) {
+  layersRes: AddToDefinitionResponseType;
+}): Promise<ApplyEditsResponseType> {
   try {
-    const changes: any[] = [];
-    // layersRes.layers.forEach((layerRes: any) => {
+    const changes: ApplyEditsParameterType[] = [];
     for (const layerRes of layersRes.layers) {
       // find the layer
       const layer = layers.find((l) => l.layer.id === layerRes.layerId);
@@ -536,7 +538,7 @@ async function applyEdits({
 
       // TODO need to figure out how to handle layers that need to be split up
 
-      let adds: any[] = [];
+      let adds: IFeature[] = [];
       if (layer.id === 'waterbodyLayer') {
         const groupLayer = layer.layer as __esri.GroupLayer;
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
@@ -582,24 +584,17 @@ async function applyEdits({
     );
     changes.push(refOutput.edits);
 
-    // Workaround for esri.Portal not having credential
-    const tempPortal: any = portal;
-
     // run the webserivce call to update ArcGIS Online
     const data = {
       f: 'json',
-      token: tempPortal.credential.token,
+      token: portal.credential.token,
       edits: changes,
       honorSequenceOfEdits: true,
       useGlobalIds: true,
     };
     appendEnvironmentObjectParam(data);
 
-    const res = await fetchPostForm(`${serviceUrl}/applyEdits`, data);
-    return {
-      response: res,
-      // table: refLayerTableOut,
-    };
+    return await fetchPostForm(`${serviceUrl}/applyEdits`, data);
   } catch (err) {
     window.logErrorToGa(err);
     throw err;
@@ -617,12 +612,12 @@ async function applyEdits({
 function buildReferenceLayerTableEdits(
   services: any,
   layers: LayerType[],
-  layersRes: any,
+  layersRes: AddToDefinitionResponseType,
 ) {
-  const adds: any[] = [];
+  const adds: IFeature[] = [];
 
   // build the adds, updates, and deletes
-  layers.forEach((refLayer: any, index) => {
+  layers.forEach((refLayer, index) => {
     if (refLayer.requiresFeatureService) return;
 
     // build the adds array
@@ -646,11 +641,11 @@ function buildReferenceLayerTableEdits(
   const refLayersTable = layersRes.tables.find(
     (t: { id: number; name: string }) => t.name.endsWith('-reference-layers'),
   );
-  const id = refLayersTable.id;
+  if(!refLayersTable) throw new Error(`Table ending with "-reference-layers" not found.`);
 
   return {
     edits: {
-      id,
+      id: refLayersTable.id,
       adds,
       updates: [],
       deletes: [],
@@ -728,7 +723,7 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
  * @returns Url of the layer
  */
 function getLayerUrl(services: any, layer: LayerType): string {
-  let url = (layer.layer as any)?.url;
+  let url = layer.layer?.url || '';
   if (layer.widgetLayer?.type === 'portal') url = layer.widgetLayer.url;
   if (layer.widgetLayer?.type === 'url') url = layer.widgetLayer.url;
   if (layer.id === 'allWaterbodiesLayer')
@@ -752,29 +747,29 @@ function getLayerUrl(services: any, layer: LayerType): string {
 export function addWebMap({
   portal,
   mapView,
-  service,
+  service = null,
   services,
   serviceMetaData,
   layers,
-  layersRes,
+  layersRes = null,
 }: {
   portal: __esri.Portal;
   mapView: __esri.MapView;
-  service: any;
+  service?: {
+    portalService: PortalService;
+    featureService: IFeatureServiceDefinition;
+  } | null;
   services: any;
   serviceMetaData: ServiceMetaDataType;
   layers: LayerType[];
-  layersRes: any;
-}) {
-  // Workaround for esri.Portal not having credential
-  const tempPortal: any = portal;
-
+  layersRes?: AddToDefinitionResponseType | null;
+}): Promise<AddItemResponseType> {
   const itemId = service?.portalService?.id;
   const baseUrl = service?.portalService?.url;
 
-  const operationalLayers: any[] = [];
+  const operationalLayers: ILayerExtendedType[] = [];
   layers.forEach((l) => {
-    const layerType = getAgoLayerType(l);
+    const layerType = getAgoLayerType(l) as string;
     const url = getLayerUrl(services, l);
 
     if (layerType === 'VectorTileLayer') {
@@ -785,8 +780,8 @@ export function addWebMap({
       });
     } else if (l.requiresFeatureService) {
       if (!layersRes) return;
-      const lRes = layersRes.layers.filter((r: any) => r.layerId === l.id);
-      lRes.forEach((lRes: any) => {
+      const lRes = layersRes.layers.filter((r) => r.layerId === l.id);
+      lRes.forEach((lRes) => {
         operationalLayers.push({
           title: lRes.name,
           url: `${baseUrl}/${lRes.id}`,
@@ -806,7 +801,7 @@ export function addWebMap({
   // run the webserivce call to update ArcGIS Online
   const data = {
     f: 'json',
-    token: tempPortal.credential.token,
+    token: portal.credential.token,
     title: serviceMetaData.label,
     description: serviceMetaData.description, // TODO - Test this
     type: 'Web Map',
@@ -894,11 +889,9 @@ export async function publish({
       const res = await addWebMap({
         portal,
         mapView,
-        service: null,
         services,
         serviceMetaData,
         layers,
-        layersRes: null,
       });
 
       return res;
@@ -936,7 +929,7 @@ export async function publish({
 
       return {
         portalId,
-        edits: editsRes.response,
+        edits: editsRes,
       };
     }
   } catch (ex) {
