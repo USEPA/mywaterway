@@ -251,7 +251,8 @@ export async function createFeatureService(
       data,
     );
 
-    // Add metadata to the new feature service.
+    // Add metadata to the new feature service. This is only here to allow us
+    // to bring web maps back into HMW, if that feature is requested.
     // NOTE: It is unfortunate, but we have to do a separate call to update the feature
     // service with metadata. The documentation makes it look like we can add metadata
     // via createService, but this does not work. I looked at the web service requests
@@ -263,7 +264,6 @@ export async function createFeatureService(
 
       // add metadata for determining whether a feature service has a sample layer vs
       // just being a reference layer.
-      // TODO - Not sure if we will need this
       categories: 'contains-epa-hmw-layer',
     };
     appendEnvironmentObjectParam(indata);
@@ -533,8 +533,6 @@ async function applyEdits({
         throw new Error(
           `Could not find layer with the "${layerRes.layerId}" id.`,
         );
-
-      // TODO need to figure out how to handle layers that need to be split up
 
       let adds: IFeature[] = [];
       if (layer.id === 'waterbodyLayer') {
@@ -903,7 +901,7 @@ export function addWebMap({
     f: 'json',
     token: portal.credential.token,
     title: serviceMetaData.label,
-    description: serviceMetaData.description, // TODO - Test this
+    description: serviceMetaData.description,
     type: 'Web Map',
     text: {
       version: '2.27',
