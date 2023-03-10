@@ -23,7 +23,7 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
-import { useLayers, useLayersDispatch } from 'contexts/Layers';
+import { useLayers, useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -916,7 +916,7 @@ function useSharedLayers() {
     setWsioHealthIndexLayer,
     setWildScenicRiversLayer,
   } = useContext(LocationSearchContext);
-  const layersDispatch = useLayersDispatch();
+  const { setLayer } = useLayersState();
 
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
@@ -1549,11 +1549,7 @@ function useSharedLayers() {
       opacity: 0.3,
     });
     allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
-    layersDispatch({
-      type: 'layer',
-      id: 'allWaterbodiesLayer',
-      payload: allWaterbodiesLayer,
-    });
+    setLayer('allWaterbodiesLayer', allWaterbodiesLayer);
 
     return allWaterbodiesLayer;
   }

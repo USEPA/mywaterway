@@ -94,7 +94,6 @@ export function useMonitoringGroups() {
 
   useEffect(() => {
     if (monitoringLocations.status !== 'success') return;
-    if (monitoringGroups) return;
 
     setMonitoringGroups(
       buildMonitoringGroups(
@@ -102,7 +101,7 @@ export function useMonitoringGroups() {
         characteristicGroupMappings,
       ),
     );
-  }, [monitoringGroups, monitoringLocations, setMonitoringGroups]);
+  }, [monitoringLocations, setMonitoringGroups]);
 
   return monitoringGroups;
 }

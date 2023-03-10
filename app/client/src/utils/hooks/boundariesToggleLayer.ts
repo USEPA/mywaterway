@@ -9,7 +9,7 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { useLayersDispatch } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useSurroundingsDispatch,
@@ -95,7 +95,7 @@ function useBoundariesToggleLayer<
   const { disabled: surroundingsDisabled, visible: surroundingsVisible } =
     useSurroundingsState();
   const surroundingsDispatch = useSurroundingsDispatch();
-  const layersDispatch = useLayersDispatch();
+  const { setLayer } = useLayersState();
 
   const { getSignal, abort } = useAbort();
 
@@ -220,8 +220,8 @@ function useBoundariesToggleLayer<
 
   // Add the layer to the Layers context
   useEffect(() => {
-    layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
-  }, [layerId, layersDispatch, parentLayer]);
+    setLayer(layerId, parentLayer);
+  }, [layerId, parentLayer, setLayer]);
 
   const [initialLayerVisibility, setInitialLayerVisibility] = useState<
     boolean | null
@@ -299,7 +299,7 @@ function useBoundariesToggleLayer<
   // Clean up the layer state and fetched data state when finished
   useEffect(() => {
     return function cleanup() {
-      layersDispatch({ type: 'layer', id: layerId, payload: null });
+      setLayer(layerId, null);
       surroundingsDispatch({ type: 'reset', id: layerId });
       fetchedDataDispatch({ type: 'pending', id: enclosedFetchedDataKey });
       fetchedDataDispatch({ type: 'pending', id: surroundingFetchedDataKey });
@@ -308,7 +308,7 @@ function useBoundariesToggleLayer<
     enclosedFetchedDataKey,
     fetchedDataDispatch,
     layerId,
-    layersDispatch,
+    setLayer,
     surroundingFetchedDataKey,
     surroundingsDispatch,
   ]);

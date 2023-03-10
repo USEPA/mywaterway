@@ -386,7 +386,10 @@ export class LocationSearchProvider extends Component<Props, State> {
         ...(merge && this.state.visibleLayers),
         ...updates,
       };
-      if (JSON.stringify(newVisibleLayers) !== this.state.visibleLayers) {
+      if (
+        JSON.stringify(newVisibleLayers) !==
+        JSON.stringify(this.state.visibleLayers)
+      ) {
         this.setState({ visibleLayers: newVisibleLayers });
       }
     },
