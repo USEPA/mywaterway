@@ -33,6 +33,7 @@
     "dischargersLayer": {
       "geometryType": "esriGeometryPoint",
       "description": "",
+      "objectIdField": "OBJECTID",
       "fields": [
         {
           "name": "OBJECTID",
@@ -188,6 +189,7 @@
     "monitoringLocationsLayer": {
       "geometryType": "esriGeometryPoint",
       "description": "",
+      "objectIdField": "OBJECTID",
       "fields": [
         {
           "name": "OBJECTID",
@@ -417,6 +419,7 @@
     "searchIconLayer": {
       "geometryType": "esriGeometryPoint",
       "description": "",
+      "objectIdField": "OBJECTID",
       "fields": [
         {
           "name": "OBJECTID",
@@ -479,6 +482,7 @@
     "usgsStreamgagesLayer": {
       "geometryType": "esriGeometryPoint",
       "description": "",
+      "objectIdField": "OBJECTID",
       "fields": [
         {
           "name": "OBJECTID",

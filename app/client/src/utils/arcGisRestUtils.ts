@@ -8,13 +8,15 @@ import {
   fetchPostForm,
   getEnvironmentString,
 } from 'utils/fetchUtils';
+import { isFeatureLayer, isGraphicsLayer } from 'utils/mapFunctions';
 import { escapeForLucene } from 'utils/utils';
 // types
 import {
   ILayerDefinition,
   IFeature,
   IFeatureServiceDefinition,
-} from "@esri/arcgis-rest-types";
+  IFieldInfo,
+} from '@esri/arcgis-rest-types';
 import {
   AddItemResponseType,
   AddToDefinitionResponseType,
@@ -22,7 +24,7 @@ import {
   ApplyEditsResponseType,
   ILayerExtendedType,
   IServiceNameAvailableExtended,
-  PortalService
+  PortalService,
 } from 'types/arcGisOnline';
 import { LookupFile } from 'types/index';
 
@@ -81,11 +83,11 @@ export async function isServiceNameAvailable(
       `${portal.restUrl}/portals/${portal.id}/isServiceNameAvailable`,
       params,
     );
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     window.logErrorToGa(err);
     throw err;
-  };
+  }
 }
 
 /**
@@ -280,17 +282,17 @@ export async function createFeatureService(
 }
 
 /**
- * Converts a field from the ArcGIS JS API object to the ArcGIS REST API json 
- * version. Handles the special case of OBJECTID fields, which require extra 
- * parameters that may not be included with the feature layer definitions. 
- * 
- * @param field 
- * @returns 
+ * Converts a field from the ArcGIS JS API object to the ArcGIS REST API json
+ * version. Handles the special case of OBJECTID fields, which require extra
+ * parameters that may not be included with the feature layer definitions.
+ *
+ * @param field
+ * @returns
  */
 function convertFieldToJSON(field: __esri.Field) {
   const fieldJson = field.toJSON();
-  if(fieldJson.type !== 'esriFieldTypeOID') return fieldJson;
-  else 
+  if (fieldJson.type !== 'esriFieldTypeOID') return fieldJson;
+  else
     return {
       ...field.toJSON(),
       actualType: 'int',
@@ -403,16 +405,14 @@ export async function createFeatureLayers(
 
       // get the extent
       let graphicsExtent: __esri.Extent | null = null;
-      if (layer.layer.type === 'graphics') {
-        const graphicsLayer = layer.layer as __esri.GraphicsLayer;
-        graphicsLayer.graphics.forEach((graphic) => {
+      if (isGraphicsLayer(layer.layer)) {
+        layer.layer.graphics.forEach((graphic) => {
           graphicsExtent === null
             ? (graphicsExtent = graphic.geometry.extent)
             : graphicsExtent.union(graphic.geometry.extent);
         });
-      } else if (layer.layer.type === 'feature') {
-        const featureLayer = layer.layer as __esri.FeatureLayer;
-        graphicsExtent = await featureLayer.queryExtent();
+      } else if (isFeatureLayer(layer.layer)) {
+        graphicsExtent = await layer.layer.queryExtent();
       } else {
         graphicsExtent = layer.layer.fullExtent;
       }
@@ -463,10 +463,10 @@ export async function createFeatureLayers(
       'rest/services',
       'rest/admin/services',
     );
-    const response = await fetchPostForm(
+    const response = (await fetchPostForm(
       `${adminServiceUrl}/addToDefinition`,
       data,
-    ) as AddToDefinitionResponseType;
+    )) as AddToDefinitionResponseType;
 
     // add the layer id back into the response
     response.layers.forEach((l, index: number) => {
@@ -481,17 +481,15 @@ export async function createFeatureLayers(
 }
 
 async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
-  if (layer.type === 'graphics') {
-    const graphicsLayer = layer as __esri.GraphicsLayer;
-    graphicsLayer.graphics.forEach((graphic) => {
+  if (isGraphicsLayer(layer)) {
+    layer.graphics.forEach((graphic) => {
       adds.push({
         attributes: graphic.attributes,
         geometry: graphic.geometry.toJSON(),
       });
     });
-  } else if (layer.type === 'feature') {
-    const featureLayer = layer as __esri.FeatureLayer;
-    const features = await featureLayer.queryFeatures({
+  } else if (isFeatureLayer(layer)) {
+    const features = await layer.queryFeatures({
       returnGeometry: true,
     });
     features.features.forEach((feature) => {
@@ -553,9 +551,10 @@ async function applyEdits({
         await processLayerFeatures(dischargersLayer, adds);
       } else if (layer.id === 'monitoringLocationsLayer') {
         const monitoringLocationsGroupLayer = layer.layer as __esri.GroupLayer;
-        const monitoringLocationsLayer = monitoringLocationsGroupLayer.findLayerById(
-          `${monitoringLocationsGroupLayer.id}-enclosed`,
-        );
+        const monitoringLocationsLayer =
+          monitoringLocationsGroupLayer.findLayerById(
+            `${monitoringLocationsGroupLayer.id}-enclosed`,
+          );
         await processLayerFeatures(monitoringLocationsLayer, adds);
       } else if (layer.id === 'usgsStreamgagesLayer') {
         const streamGagesGroupLayer = layer.layer as __esri.GroupLayer;
@@ -641,7 +640,8 @@ function buildReferenceLayerTableEdits(
   const refLayersTable = layersRes.tables.find(
     (t: { id: number; name: string }) => t.name.endsWith('-reference-layers'),
   );
-  if(!refLayersTable) throw new Error(`Table ending with "-reference-layers" not found.`);
+  if (!refLayersTable)
+    throw new Error(`Table ending with "-reference-layers" not found.`);
 
   return {
     edits: {
@@ -747,25 +747,43 @@ function getLayerUrl(services: any, layer: LayerType): string {
 export function addWebMap({
   portal,
   mapView,
-  service = null,
+  service,
   services,
   serviceMetaData,
   layers,
-  layersRes = null,
+  layerProps,
+  layersRes,
 }: {
   portal: __esri.Portal;
   mapView: __esri.MapView;
   service?: {
     portalService: PortalService;
     featureService: IFeatureServiceDefinition;
-  } | null;
+  };
   services: any;
   serviceMetaData: ServiceMetaDataType;
   layers: LayerType[];
-  layersRes?: AddToDefinitionResponseType | null;
+  layerProps?: LookupFile;
+  layersRes?: AddToDefinitionResponseType;
 }): Promise<AddItemResponseType> {
   const itemId = service?.portalService?.id;
   const baseUrl = service?.portalService?.url;
+
+  function buildPopupFieldsList(
+    objectIdField: string,
+    globalIdField: string | null,
+    fields: __esri.Field[] | __esri.FieldProperties[],
+  ) {
+    return fields?.map((field) => ({
+      fieldName: field.name,
+      label: field.alias,
+      visible: true,
+      isEditable:
+        field.name === objectIdField || field.name === globalIdField
+          ? false
+          : true,
+    }));
+  }
 
   const operationalLayers: ILayerExtendedType[] = [];
   layers.forEach((l) => {
@@ -779,16 +797,98 @@ export function addWebMap({
         styleUrl: `${url}/resources/styles/root.json`,
       });
     } else if (l.requiresFeatureService) {
-      if (!layersRes) return;
-      const lRes = layersRes.layers.filter((r) => r.layerId === l.id);
-      lRes.forEach((lRes) => {
-        operationalLayers.push({
-          title: lRes.name,
-          url: `${baseUrl}/${lRes.id}`,
-          itemId,
-          layerType: 'ArcGISFeatureLayer',
+      if (!layerProps || !layersRes) return;
+
+      // build fields list
+      let popupFields: IFieldInfo[] = [];
+      if (l.widgetLayer?.type === 'file') {
+        const widgetLayerFile = l.widgetLayer;
+        popupFields = buildPopupFieldsList(
+          widgetLayerFile.objectIdField,
+          widgetLayerFile.rawLayer.layerDefinition?.globalIdField,
+          widgetLayerFile.fields,
+        );
+      } else {
+        // handle boundaries and providers
+        let properties = layerProps.data.layerSpecificSettings[l.layer.id];
+        if (l.layer.id === 'boundariesLayer')
+          properties = mapView.map.findLayerById('watershedsLayer');
+        if (l.layer.id === 'providersLayer')
+          properties = mapView.map.findLayerById('countyLayer');
+
+        // handle everything else
+        popupFields = buildPopupFieldsList(
+          properties.objectIdField,
+          properties.globalIdField,
+          properties.fields,
+        );
+      }
+
+      const lResponses = layersRes.layers.filter((r) => r.layerId === l.id);
+      if (lResponses.length === 1) {
+        lResponses.forEach((lRes) => {
+          operationalLayers.push({
+            title: lRes.name,
+            url: `${baseUrl}/${lRes.id}`,
+            itemId,
+            layerType: 'ArcGISFeatureLayer',
+            disablePopup: false,
+            popupInfo: {
+              popupElements: [
+                {
+                  type: 'fields',
+                  description: '',
+                  fieldInfos: popupFields,
+                  title: '',
+                },
+              ],
+              fieldInfos: popupFields,
+              title: `${lRes.name}: {orgName}`,
+            },
+          });
         });
-      });
+      } else {
+        operationalLayers.push({
+          id: l.layer.id,
+          title: l.layer.title,
+          layerType: 'GroupLayer',
+          layers: lResponses.map((lRes) => {
+            // build fields here
+            const layer = (l.layer as __esri.GroupLayer).layers.find(
+              (l) => l.title === lRes.name,
+            );
+
+            let popupFields: IFieldInfo[] = [];
+            if (isFeatureLayer(layer)) {
+              popupFields = buildPopupFieldsList(
+                layer.objectIdField,
+                layer.globalIdField,
+                layer.fields,
+              );
+            }
+
+            return {
+              title: lRes.name,
+              url: `${baseUrl}/${lRes.id}`,
+              itemId,
+              layerType: 'ArcGISFeatureLayer',
+              disablePopup: false,
+              popupInfo: {
+                popupElements: [
+                  {
+                    type: 'fields',
+                    description: '',
+                    fieldInfos: popupFields,
+                    title: '',
+                  },
+                ],
+                fieldInfos: popupFields,
+                title: `${lRes.name}: {orgName}`,
+              },
+            };
+          }),
+        });
+      }
     } else {
       operationalLayers.push({
         layerType,
@@ -924,6 +1024,7 @@ export async function publish({
         services,
         serviceMetaData,
         layers,
+        layerProps,
         layersRes,
       });
 

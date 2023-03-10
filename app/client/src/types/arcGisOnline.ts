@@ -41,7 +41,10 @@ export type AddItemResponseType = {
 };
 
 export type ILayerExtendedType = Partial<ILayer> & {
+  disablePopup?: boolean;
   id?: any;
+  layers?: ILayerExtendedType[];
+  popupInfo?: any;
   styleUrl?: string;
 } 
 
