@@ -23,7 +23,7 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
-import { useLayersState, useLayersDispatch } from 'contexts/Layers';
+import { useLayers, useLayersDispatch } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -334,7 +334,7 @@ function useWaterbodyOnMap(
   const { pointsLayer, linesLayer, areasLayer, mapView } = useContext(
     LocationSearchContext,
   );
-  const { allWaterbodiesLayer } = useLayersState();
+  const { allWaterbodiesLayer } = useLayers();
 
   const setRenderer = useCallback(
     (layer, geometryType, attribute, alpha = null) => {
@@ -430,7 +430,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   } = useContext(LocationSearchContext);
 
   const { dischargersLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
-    useLayersState();
+    useLayers();
 
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -1550,7 +1550,8 @@ function useSharedLayers() {
     });
     allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     layersDispatch({
-      type: 'allWaterbodiesLayer',
+      type: 'layer',
+      id: 'allWaterbodiesLayer',
       payload: allWaterbodiesLayer,
     });
 

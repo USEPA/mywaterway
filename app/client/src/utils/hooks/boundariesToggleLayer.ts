@@ -220,7 +220,7 @@ function useBoundariesToggleLayer<
 
   // Add the layer to the Layers context
   useEffect(() => {
-    layersDispatch({ type: layerId, payload: parentLayer });
+    layersDispatch({ type: 'layer', id: layerId, payload: parentLayer });
   }, [layerId, layersDispatch, parentLayer]);
 
   const [initialLayerVisibility, setInitialLayerVisibility] = useState<
@@ -299,7 +299,7 @@ function useBoundariesToggleLayer<
   // Clean up the layer state and fetched data state when finished
   useEffect(() => {
     return function cleanup() {
-      layersDispatch({ type: layerId, payload: null });
+      layersDispatch({ type: 'layer', id: layerId, payload: null });
       surroundingsDispatch({ type: 'reset', id: layerId });
       fetchedDataDispatch({ type: 'pending', id: enclosedFetchedDataKey });
       fetchedDataDispatch({ type: 'pending', id: surroundingFetchedDataKey });

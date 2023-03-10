@@ -852,7 +852,6 @@ function MapWidgets({
 
     // hide/show layers based on the provided list of layers to show
     map.layers.forEach((layer) => {
-      if (layer.id === 'waterbodyLayer') console.log(layer.id);
       if (visibleLayers.hasOwnProperty(layer.id)) {
         layer.visible = visibleLayers[layer.id];
       } else {

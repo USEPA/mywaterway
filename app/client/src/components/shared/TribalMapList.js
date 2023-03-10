@@ -44,7 +44,7 @@ import {
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
-import { LayersProvider, useLayersState } from 'contexts/Layers';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import { useServicesContext } from 'contexts/LookupFiles';
 import {
   useMapHighlightState,
@@ -170,7 +170,7 @@ function TribalMapList({
     waterbodyLayer,
   } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer } = useLayersState();
+  const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
 

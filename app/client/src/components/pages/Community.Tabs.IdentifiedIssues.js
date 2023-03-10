@@ -27,7 +27,8 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
-import { useLayersState } from 'contexts/Layers';
+import { useFetchedDataState } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
@@ -92,7 +93,7 @@ function IdentifiedIssues() {
     watershed,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer } = useLayersState();
+  const { dischargersLayer } = useLayers();
 
   const { dischargers: violatingDischargers, dischargersStatus } =
     useDischargers();

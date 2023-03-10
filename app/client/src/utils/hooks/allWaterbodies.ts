@@ -1,7 +1,7 @@
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import { useCallback, useContext, useEffect } from 'react';
 // contexts
-import { useLayersState } from 'contexts/Layers';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useSurroundingsDispatch,
@@ -14,7 +14,7 @@ export function useAllWaterbodiesLayer(
 ) {
   const { mapView } = useContext(LocationSearchContext);
   const { disabled, updating } = useSurroundingsState();
-  const { allWaterbodiesLayer } = useLayersState();
+  const { allWaterbodiesLayer } = useLayers();
 
   const surroundingsDispatch = useSurroundingsDispatch();
 

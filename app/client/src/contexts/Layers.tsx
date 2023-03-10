@@ -6,13 +6,19 @@ const StateContext = createContext<LayersState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 function reducer(state: LayersState, action: Action): LayersState {
-  if (state.hasOwnProperty(action.type)) {
-    return {
-      ...state,
-      [action.type]: action.payload,
-    };
-  } else {
-    throw new Error(`Unhandled action type: ${action}`);
+  switch (action.type) {
+    case 'layer': {
+      return {
+        ...state,
+        layers: {
+          ...state.layers,
+          [action.id]: action.payload,
+        },
+      };
+    }
+    default: {
+      throw new Error(`Unhandled action type: ${action}`);
+    }
   }
 }
 
@@ -31,6 +37,12 @@ export function LayersProvider({ children }: ProviderProps) {
 /*
 ## Hooks
 */
+
+export function useLayers() {
+  const state = useLayersState();
+
+  return state.layers;
+}
 
 // Returns state stored in `LayersProvider` context component.
 export function useLayersState() {
@@ -61,26 +73,36 @@ const layerIds = [
   'usgsStreamgagesLayer',
 ] as const;
 
-const initialState = layerIds.reduce((state, layerId) => {
-  return {
-    ...state,
-    [layerId]: null,
-  };
-}, {}) as LayersState;
+const initialState = layerIds.reduce(
+  (state, layerId) => {
+    return {
+      layers: {
+        ...state.layers,
+        [layerId]: null,
+      },
+    };
+  },
+  {
+    layers: {},
+  },
+) as LayersState;
 
 /*
 ## Types
 */
 
 type Action = {
-  type: LayerId;
-  payload: LayersState[LayerId];
+  type: 'layer';
+  id: LayerId;
+  payload: LayersState['layers'][LayerId];
 };
 
 export type LayerId = (typeof layerIds)[number];
 
 export type LayersState = {
-  [L in LayerId]: __esri.GroupLayer | null;
+  layers: {
+    [L in LayerId]: __esri.GroupLayer | null;
+  };
 };
 
 type ProviderProps = {
