@@ -40,7 +40,7 @@ import { colors } from 'styles/index.js';
  * is not a number NaN is returned.
  *
  * @param str String to get number in last parentheses
- * @returns
+ * @returns number in last set of parentheses or NaN if no parentheses
  */
 function getNumberFromParen(str: string) {
   const splitLabel = str.split('(');
@@ -50,6 +50,10 @@ function getNumberFromParen(str: string) {
 /**
  * Determines if the desired name has already been used. If it has
  * it appends in index to the end (i.e. '<desiredName> (2)').
+ * 
+ * @param layers Layers to search in for determining if name is in use
+ * @param desiredName Name to check if in use 
+ * @returns The desired name with in index value if it is already in use
  */
 function getLayerName(layers, desiredName) {
   const numInDesiredName = getNumberFromParen(desiredName);

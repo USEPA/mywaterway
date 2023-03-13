@@ -64,6 +64,7 @@ export function appendEnvironmentObjectParam(params: any) {
  *
  * @param portal The portal object to check against.
  * @param serviceName The desired feature service name.
+ * @returns Promise with availability
  */
 export async function isServiceNameAvailable(
   portal: __esri.Portal,
@@ -96,7 +97,6 @@ export async function isServiceNameAvailable(
  *
  * @param portal The portal object to retreive the hosted feature service from
  * @param serviceMetaData Metadata to be added to the feature service and layers.
- * @param isTable Determines what category to add.
  * @returns A promise that resolves to the hosted feature service object
  */
 export async function getFeatureService(
@@ -210,7 +210,6 @@ async function getFeatureServiceWrapped(
  *
  * @param portal The portal object to create the hosted feature service on
  * @param serviceMetaData Metadata to be added to the feature service and layers.
- * @param isTable Determines what category to add.
  * @returns A promise that resolves to the hosted feature service object
  */
 export async function createFeatureService(
@@ -286,8 +285,8 @@ export async function createFeatureService(
  * version. Handles the special case of OBJECTID fields, which require extra
  * parameters that may not be included with the feature layer definitions.
  *
- * @param field
- * @returns
+ * @param field Esri field object
+ * @returns JSON representation of the field
  */
 function convertFieldToJSON(field: __esri.Field) {
   const fieldJson = field.toJSON();
@@ -307,8 +306,11 @@ function convertFieldToJSON(field: __esri.Field) {
  * ArcGIS Online
  *
  * @param portal The portal object to create feature layers on
+ * @param mapView Esri mapView object to get related layers
  * @param serviceUrl The hosted feature service to save layers to
- * @param layerMetaData Array of service metadata to be added to the layers of a feature service.
+ * @param layers Array of layers to be published
+ * @param serviceMetaData Array of service metadata to be added to the layers of a feature service.
+ * @param layerProps Properties to be applied to layers
  * @returns A promise that resolves to the layers that were saved
  */
 export async function createFeatureLayers(
@@ -484,6 +486,13 @@ export async function createFeatureLayers(
   }
 }
 
+/**
+ * Converts a provided layer's graphics/features to an adds array
+ * to be passed into the applyEdits service call.
+ * 
+ * @param layer Layer to get graphics/features from
+ * @param adds Array to add graphics/features to
+ */
 async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
   if (isGraphicsLayer(layer)) {
     layer.graphics.forEach((graphic) => {
@@ -510,9 +519,10 @@ async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
  * on ArcGIS Online.
  *
  * @param portal The portal object to apply edits to
+ * @param services Web service config for getting urls from HMW layers
  * @param serviceUrl The url of the hosted feature service
- * @param layers The layers that the edits object pertain to
- * @param edits The edits to be saved to the hosted feature service
+ * @param layers Array of layers to be published
+ * @param layersRes Response of the addToDefinition service call
  * @returns A promise that resolves to the successfully saved objects
  */
 async function applyEdits({
@@ -545,25 +555,12 @@ async function applyEdits({
         const subLayer = subLayers.find((s) => s.title === layerRes.name);
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
-      } else if (layer.id === 'dischargersLayer') {
-        const dischargersGroupLayer = layer.layer as __esri.GroupLayer;
-        const dischargersLayer = dischargersGroupLayer.findLayerById(
-          `${dischargersGroupLayer.id}-enclosed`,
+      } else if (['dischargersLayer', 'monitoringLocationsLayer', 'usgsStreamgagesLayer'].includes(layer.id)) {
+        const groupLayer = layer.layer as __esri.GroupLayer;
+        const enclosedLayer = groupLayer.findLayerById(
+          `${layer.id}-enclosed`,
         );
-        await processLayerFeatures(dischargersLayer, adds);
-      } else if (layer.id === 'monitoringLocationsLayer') {
-        const monitoringLocationsGroupLayer = layer.layer as __esri.GroupLayer;
-        const monitoringLocationsLayer =
-          monitoringLocationsGroupLayer.findLayerById(
-            `${monitoringLocationsGroupLayer.id}-enclosed`,
-          );
-        await processLayerFeatures(monitoringLocationsLayer, adds);
-      } else if (layer.id === 'usgsStreamgagesLayer') {
-        const streamGagesGroupLayer = layer.layer as __esri.GroupLayer;
-        const streamGagesLayer = streamGagesGroupLayer.findLayerById(
-          `${streamGagesGroupLayer.id}-enclosed`,
-        );
-        await processLayerFeatures(streamGagesLayer, adds);
+        await processLayerFeatures(enclosedLayer, adds);
       } else if (layer.widgetLayer?.type === 'file') {
         adds = layer.widgetLayer.rawLayer.featureSet.features;
       } else {
@@ -606,8 +603,9 @@ async function applyEdits({
  * Builds the edits arrays for publishing the sample types layer of
  * the sampling plan feature service.
  *
- * @param layers LayerType[] - The layers to search for sample types in
- * @param table any - The table object
+ * @param services Web service config for getting urls from HMW layers
+ * @param layers Array of layers to be published
+ * @param layersRes Response of the addToDefinition service call
  * @returns An object containing the edits arrays
  */
 function buildReferenceLayerTableEdits(
@@ -675,7 +673,7 @@ type AgoLayerType =
  * Gets the layer type value that the ArcGIS REST API needs from
  * the HMW layer type value.
  *
- * @param refLayer Object of the reference layer being added
+ * @param layer Object of the reference layer being added
  * @returns AGO Layer type
  */
 function getAgoLayerType(layer: LayerType): AgoLayerType | null {
@@ -740,10 +738,13 @@ function getLayerUrl(services: any, layer: LayerType): string {
  * Publishes a web map version of the feature service.
  *
  * @param portal The portal object to apply edits to
+ * @param mapView Esri mapView object to sort layers as they are in HMW
  * @param service The feature service object
- * @param layers The layers that the edits object pertain to
+ * @param services Web service config for getting urls from HMW layers
+ * @param serviceMetaData The name and description of the service to be saved
+ * @param layers Array of layers to be published
+ * @param layerProps Properties to be applied to layers
  * @param layersResponse The response from creating layers
- * @param attributesToInclude The attributes to include with each graphic
  * @returns A promise that resolves to the successfully saved web map
  */
 export function addWebMap({
@@ -953,8 +954,10 @@ export function addWebMap({
  * Publishes a layer or layers to ArcGIS online.
  *
  * @param portal The portal object to apply edits to
- * @param layers The layers that the edits object pertain to
- * @param edits The edits to be saved to the hosted feature service
+ * @param mapView Esri mapView object to sort layers as they are in HMW
+ * @param services Web service config for getting urls from HMW layers
+ * @param layers Array of layers to be published
+ * @param layerProps Properties to be applied to layers
  * @param serviceMetaData The name and description of the service to be saved
  * @returns A promise that resolves to the successfully published data
  */

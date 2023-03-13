@@ -654,7 +654,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setUpstreamLayer(upstreamLayer);
 
-
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
       title: 'Identified Issues',
