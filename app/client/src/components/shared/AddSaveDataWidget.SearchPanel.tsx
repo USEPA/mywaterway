@@ -656,8 +656,8 @@ function SearchPanel() {
           {searchResults.status === 'success' && (
             <Fragment>
               <div>
-                {searchResults.data?.results.map((result, index) => {
-                  return <ResultCard result={result} key={index} />;
+                {searchResults.data?.results.map((result) => {
+                  return <ResultCard result={result} key={result.id} />;
                 })}
               </div>
               {!searchResults.data && (

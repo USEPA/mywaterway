@@ -119,7 +119,7 @@ export type SaveLayerListType = {
   layer: __esri.Layer | null;
   requiresFeatureService: boolean;
   toggled: boolean;
-  widgetLayer?: WidgetLayer | undefined;
+  widgetLayer?: WidgetLayer;
 };
 
 export type SaveLayersListType = {

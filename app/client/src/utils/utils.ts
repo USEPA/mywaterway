@@ -488,7 +488,7 @@ function removeAccessibiltyHcSvgExport() {
  * @returns The escaped version of the username or org id.
  */
 function escapeForLucene(value: string) {
-  var a = [
+  const a = [
     '+',
     '-',
     '&',
@@ -507,7 +507,7 @@ function escapeForLucene(value: string) {
     ':',
     '\\',
   ];
-  var r = new RegExp('(\\' + a.join('|\\') + ')', 'g');
+  const r = new RegExp('(\\' + a.join('|\\') + ')', 'g');
   return value.replace(r, '\\$1');
 }
 

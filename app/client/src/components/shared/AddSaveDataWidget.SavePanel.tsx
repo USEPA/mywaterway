@@ -39,7 +39,7 @@ type PublishType = {
     | 'layers-not-provided';
   error?: {
     message: string;
-    stack?: string | undefined;
+    stack?: string;
   };
 };
 
@@ -185,7 +185,7 @@ function errorMessage(text: string) {
 }
 
 type Props = {
-  visible: Boolean;
+  visible: boolean;
 };
 
 function SavePanel({ visible }: Props) {
@@ -600,7 +600,7 @@ function SavePanel({ visible }: Props) {
           Object.values(saveLayersList)
             .filter((l) => l.label)
             .sort((a, b) => a.label.localeCompare(b.label))
-            .map((value, index) => {
+            .map((value) => {
               const key = value.id;
 
               if (saveLayerFilter === 'Free' && value.requiresFeatureService) {
@@ -608,7 +608,7 @@ function SavePanel({ visible }: Props) {
               }
 
               return (
-                <div key={index} css={switchStyles}>
+                <div key={key} css={switchStyles}>
                   <Switch
                     ariaLabel={`Toggle ${value.label}`}
                     checked={value.toggled}

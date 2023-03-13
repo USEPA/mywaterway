@@ -1,7 +1,5 @@
 // components
 import mapPin from 'images/pin.png';
-// types
-import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
 // utils
 import {
   fetchCheck,
@@ -24,7 +22,9 @@ import {
   ApplyEditsResponseType,
   ILayerExtendedType,
   IServiceNameAvailableExtended,
+  LayerType,
   PortalService,
+  ServiceMetaDataType,
 } from 'types/arcGisOnline';
 import { LookupFile } from 'types/index';
 
@@ -413,9 +413,8 @@ export async function createFeatureLayers(
       let graphicsExtent: __esri.Extent | null = null;
       if (isGraphicsLayer(layer.layer)) {
         layer.layer.graphics.forEach((graphic) => {
-          graphicsExtent === null
-            ? (graphicsExtent = graphic.geometry.extent)
-            : graphicsExtent.union(graphic.geometry.extent);
+          if (graphicsExtent === null) graphicsExtent = graphic.geometry.extent;
+          else graphicsExtent.union(graphic.geometry.extent);
         });
       } else if (isFeatureLayer(layer.layer)) {
         graphicsExtent = await layer.layer.queryExtent();
