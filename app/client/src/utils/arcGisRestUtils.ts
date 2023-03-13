@@ -341,7 +341,11 @@ export async function createFeatureLayers(
       // handle layers added via file upload
       if (layer.widgetLayer?.type === 'file') {
         layerIds.push(layer.layer.id);
-        layersParams.push(layer.widgetLayer.rawLayer.layerDefinition);
+        layersParams.push({
+          ...layer.widgetLayer.rawLayer.layerDefinition,
+          name: layer.label,
+          id: undefined,
+        });
         continue;
       } else if (
         ['boundariesLayer', 'providersLayer'].includes(layer.layer.id)
