@@ -300,33 +300,6 @@ function ProtectUpper() {
   );
 }
 
-const defaultVisibleLayers = {
-  allWaterbodiesLayer: true,
-  boundariesLayer: true,
-  congressionalLayer: false,
-  countyLayer: false,
-  cyanLayer: false,
-  dischargersLayer: false,
-  ejscreenLayer: false,
-  issuesLayer: false,
-  landCoverLayer: false,
-  mappedWaterLayer: false,
-  monitoringLocationsLayer: false,
-  nonprofitsLayer: false,
-  protectedAreasLayer: false,
-  protectedAreasHighlightLayer: false,
-  providersLayer: false,
-  searchIconLayer: true,
-  stateBoundariesLayer: false,
-  tribalLayer: false,
-  upstreamWatershed: false,
-  usgsStreamgagesLayer: false,
-  waterbodyLayer: false,
-  wildScenicRiversLayer: false,
-  wsioHealthIndexLayer: false,
-  watershedsLayer: false,
-};
-
 const tabs = [
   {
     title: 'Overview',
@@ -335,6 +308,9 @@ const tabs = [
     upper: <OverviewUpper />,
     lower: <Overview />,
     layers: {
+      allWaterbodiesLayer: true,
+      boundariesLayer: true,
+      searchIconLayer: true,
       waterbodyLayer: true,
     },
   },
@@ -345,6 +321,9 @@ const tabs = [
     upper: <SwimmingUpper />,
     lower: <Swimming />,
     layers: {
+      allWaterbodiesLayer: true,
+      boundariesLayer: true,
+      searchIconLayer: true,
       waterbodyLayer: true,
     },
   },
@@ -355,6 +334,9 @@ const tabs = [
     upper: <EatingFishUpper />,
     lower: <EatingFish />,
     layers: {
+      allWaterbodiesLayer: true,
+      boundariesLayer: true,
+      searchIconLayer: true,
       waterbodyLayer: true,
     },
   },
@@ -365,6 +347,9 @@ const tabs = [
     upper: <AquaticLifeUpper />,
     lower: <AquaticLife />,
     layers: {
+      allWaterbodiesLayer: true,
+      boundariesLayer: true,
+      searchIconLayer: true,
       waterbodyLayer: true,
     },
   },
@@ -375,7 +360,9 @@ const tabs = [
     upper: <DrinkingWaterUpper />,
     lower: <DrinkingWater />,
     layers: {
+      allWaterbodiesLayer: true,
       boundariesLayer: false,
+      searchIconLayer: true,
       providersLayer: true,
     },
   },
@@ -386,7 +373,10 @@ const tabs = [
     upper: <MonitoringUpper />,
     lower: <Monitoring />,
     layers: {
+      allWaterbodiesLayer: true,
+      boundariesLayer: true,
       cyanLayer: true,
+      searchIconLayer: true,
       usgsStreamgagesLayer: true,
     },
   },
@@ -397,7 +387,10 @@ const tabs = [
     upper: <IdentifiedIssuesUpper />,
     lower: <IdentifiedIssues />,
     layers: {
+      allWaterbodiesLayer: true,
+      boundariesLayer: true,
       issuesLayer: true,
+      searchIconLayer: true,
     },
   },
   {
@@ -406,7 +399,11 @@ const tabs = [
     icon: restoreIcon,
     upper: <RestoreUpper />,
     lower: <Restore />,
-    layers: {},
+    layers: {
+      allWaterbodiesLayer: true,
+      boundariesLayer: true,
+      searchIconLayer: true,
+    },
   },
   {
     title: 'Protect',
@@ -414,8 +411,12 @@ const tabs = [
     icon: protectIcon,
     upper: <ProtectUpper />,
     lower: <Protect />,
-    layers: {},
+    layers: {
+      allWaterbodiesLayer: true,
+      boundariesLayer: true,
+      searchIconLayer: true,
+    },
   },
 ];
 
-export { defaultVisibleLayers, tabs };
+export { tabs };

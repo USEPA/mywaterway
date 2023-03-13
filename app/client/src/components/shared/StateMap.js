@@ -29,6 +29,7 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -84,10 +85,7 @@ function StateMap({
 
   const {
     mapView,
-    setWaterbodyLayer,
-    setVisibleLayers,
 
-    waterbodyLayer,
     pointsLayer,
     linesLayer,
     areasLayer,
@@ -98,6 +96,9 @@ function StateMap({
     homeWidget,
     resetData,
   } = useContext(LocationSearchContext);
+
+  const { resetLayers, setLayer, updateVisibleLayers, waterbodyLayer } =
+    useLayers();
 
   const [layers, setLayers] = useState(null);
 
@@ -189,22 +190,22 @@ function StateMap({
       legendEnabled: false,
     });
     waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
-    setWaterbodyLayer(waterbodyLayer);
+    setLayer('waterbodyLayer', waterbodyLayer);
 
     setLayers([...getSharedLayers(), waterbodyLayer]);
 
-    setVisibleLayers({ waterbodyLayer: true });
+    updateVisibleLayers({ waterbodyLayer: true });
 
     setLayersInitialized(true);
   }, [
     getSharedLayers,
     setAreasLayer,
+    setLayer,
     setLinesLayer,
     setPointsLayer,
-    setVisibleLayers,
-    setWaterbodyLayer,
     layersInitialized,
     services,
+    updateVisibleLayers,
     navigate,
   ]);
 
@@ -222,9 +223,10 @@ function StateMap({
       if (unmounting.current) {
         fetchedDataDispatch({ type: 'reset' });
         resetData();
+        resetLayers();
       }
     };
-  }, [fetchedDataDispatch, resetData]);
+  }, [fetchedDataDispatch, resetData, resetLayers]);
 
   const [lastFilter, setLastFilter] = useState('');
 

@@ -42,7 +42,7 @@ import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-import { LayersProvider } from 'contexts/Layers';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
@@ -2059,14 +2059,11 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
-  const {
-    homeWidget,
-    layers,
-    mapView,
-    resetData,
-    setLayers,
-    updateVisibleLayers,
-  } = useContext(LocationSearchContext);
+  const { homeWidget, layers, mapView, resetData, setLayers } = useContext(
+    LocationSearchContext,
+  );
+
+  const { updateVisibleLayers } = useLayers();
 
   useEffect(() => {
     if (!mapView) return;

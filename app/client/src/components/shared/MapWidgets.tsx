@@ -33,6 +33,7 @@ import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useFullscreenState } from 'contexts/Fullscreen';
+import { useLayers } from 'contexts/Layers';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { useSurroundingsState } from 'contexts/Surroundings';
 // utilities
@@ -49,6 +50,7 @@ import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
+import type { LayerId, LayersState } from 'contexts/Layers';
 import type {
   CSSProperties,
   Dispatch,
@@ -180,7 +182,7 @@ const orderedLayers = [
   'cyanLayer',
   'nonprofitsLayer',
   'providersLayer',
-  'upstreamWatershed',
+  'upstreamLayer',
   'boundariesLayer',
   'actionsWaterbodies',
   'watershedsLayer',
@@ -246,7 +248,7 @@ function updateLegend(
     if (
       (layer.visible && layer.listMode !== 'hide') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
-      (layer.visible && layer.id === 'upstreamWatershed') ||
+      (layer.visible && layer.id === 'upstreamLayer') ||
       (layer.visible && layer.id === 'allWaterbodiesLayer')
     ) {
       visibleLayers.push(layer);
@@ -320,13 +322,8 @@ function MapWidgets({
     setUpstreamWidgetDisabled,
     getUpstreamWidgetDisabled,
     setUpstreamWidget,
-    visibleLayers,
     setBasemap,
     basemap,
-    upstreamLayerVisible,
-    setUpstreamLayerVisible,
-    setUpstreamLayer,
-    getUpstreamLayer,
     getCurrentExtent,
     setCurrentExtent,
     getHuc12,
@@ -337,13 +334,19 @@ function MapWidgets({
     getWatershed,
     setMapView,
     getHucBoundaries,
-    updateVisibleLayers,
   } = useContext(LocationSearchContext);
+
+  const {
+    erroredLayers,
+    updateErroredLayers,
+    updateVisibleLayers,
+    upstreamLayer,
+    visibleLayers,
+  } = useLayers();
 
   const services = useServicesContext();
 
-  const getDynamicPopup = useDynamicPopup();
-  const { getTemplate } = getDynamicPopup();
+  const { getTemplate } = useDynamicPopup();
 
   const {
     fullscreenActive,
@@ -734,6 +737,12 @@ function MapWidgets({
     const uniqueParentItems: string[] = [];
     function defineActions(event: { item: __esri.ListItem }) {
       const item = event.item;
+      // Add an error indicator, but don't show it by default
+      item.panel = {
+        className: 'esri-icon-notice-triangle',
+        disabled: true,
+        visible: false,
+      } as __esri.ListItemPanel;
       if (!item.parent || item.parent.title === 'Demographic Indicators') {
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
@@ -850,10 +859,10 @@ function MapWidgets({
   useEffect(() => {
     if (!layers || layers.length === 0) return;
 
-    // hide/show layers based on the provided list of layers to show
+    // hide/show layers based on the visibleLayers object
     map.layers.forEach((layer) => {
       if (visibleLayers.hasOwnProperty(layer.id)) {
-        layer.visible = visibleLayers[layer.id];
+        layer.visible = visibleLayers[layer.id as LayerId];
       } else {
         layer.visible = false;
       }
@@ -873,7 +882,8 @@ function MapWidgets({
     for (let i = numOperationalItems - 1; i >= 0; i--) {
       const item = layerListWidget.operationalItems.at(i);
       if (item.layer.listMode === 'hide') {
-        layerListWidget.operationalItems.splice(i, 1);
+        // layerListWidget.operationalItems.splice(i, 1);
+        console.log('this is true');
       }
     }
   }, [layerListWidget, visibleLayers]);
@@ -938,12 +948,20 @@ function MapWidgets({
     }
   }, [upstreamWidget, upstreamWidgetDisabled]);
 
+  const setUpstreamLayerErrored = useCallback(
+    (isErrored: boolean) => {
+      updateErroredLayers({ upstreamLayer: isErrored });
+    },
+    [updateErroredLayers],
+  );
+
+  const { upstreamLayer: upstreamLayerErrored } = erroredLayers;
+
   // create upstream widget
-  const [upstreamWidgetCreated, setUpstreamWidgetCreated] = useState(false);
   useEffect(() => {
     if (!pathname.includes('/community') && !pathname.includes('/tribe'))
       return;
-    if (upstreamWidgetCreated || !map || !view?.ui) return;
+    if (!map || !view?.ui) return;
 
     const node = document.createElement('div');
 
@@ -954,15 +972,16 @@ function MapWidgets({
         getHuc12={getHuc12}
         getTemplate={getTemplate}
         getUpstreamExtent={getUpstreamExtent}
-        getUpstreamLayer={getUpstreamLayer}
         getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
         getWatershed={getWatershed}
         services={services}
         setErrorMessage={setErrorMessage}
         setUpstreamExtent={setUpstreamExtent}
-        setUpstreamLayer={setUpstreamLayer}
-        setUpstreamLayerVisible={setUpstreamLayerVisible}
+        setUpstreamLayerErrored={setUpstreamLayerErrored}
         setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
+        updateVisibleLayers={updateVisibleLayers}
+        upstreamLayer={upstreamLayer}
+        upstreamLayerErrored={upstreamLayerErrored}
         view={view}
       />
     ) : (
@@ -972,7 +991,6 @@ function MapWidgets({
         getHuc12={getHuc12}
         getTemplate={getTemplate}
         getUpstreamExtent={getUpstreamExtent}
-        getUpstreamLayer={getUpstreamLayer}
         getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
         getWatershed={getWatershed}
         map={map}
@@ -980,26 +998,30 @@ function MapWidgets({
         services={services}
         setErrorMessage={setErrorMessage}
         setUpstreamExtent={setUpstreamExtent}
-        setUpstreamLayer={setUpstreamLayer}
-        setUpstreamLayerVisible={setUpstreamLayerVisible}
+        setUpstreamLayerErrored={setUpstreamLayerErrored}
         setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
         setCurrentExtent={setCurrentExtent}
+        updateVisibleLayers={updateVisibleLayers}
+        upstreamLayer={upstreamLayer}
+        upstreamLayerErrored={upstreamLayerErrored}
         upstreamWidget={node}
         view={view}
       />
     );
 
-    view.ui.add(node, { position: 'top-right', index: 2 });
-    setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     render(widget, node);
-    setUpstreamWidgetCreated(true);
+    setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
+    view.ui.add(node, { position: 'top-right', index: 2 });
+
+    return function cleanup() {
+      view?.ui.remove(node);
+    };
   }, [
     abortSignal,
     getCurrentExtent,
     getHuc12,
     getTemplate,
     getUpstreamExtent,
-    getUpstreamLayer,
     getUpstreamWidgetDisabled,
     getWatershed,
     map,
@@ -1009,11 +1031,12 @@ function MapWidgets({
     setCurrentExtent,
     setErrorMessage,
     setUpstreamExtent,
-    setUpstreamLayer,
-    setUpstreamLayerVisible,
+    setUpstreamLayerErrored,
     setUpstreamWidget,
     setUpstreamWidgetDisabled,
-    upstreamWidgetCreated,
+    updateVisibleLayers,
+    upstreamLayer,
+    upstreamLayerErrored,
     view,
   ]);
 
@@ -1028,7 +1051,6 @@ function MapWidgets({
     surroundingsVisible,
     displayEsriLegend,
     hmwLegendNode,
-    upstreamLayerVisible,
     view,
     visibleLayers,
   ]);
@@ -1221,7 +1243,7 @@ function retrieveUpstreamWatershed(
   getHuc12: () => string,
   getTemplate: (graphic: Feature) => HTMLDivElement | null,
   getUpstreamExtent: () => __esri.Extent,
-  getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '',
+  upstreamLayer: __esri.GraphicsLayer | null,
   getUpstreamWidgetDisabled: () => boolean,
   getWatershed: () => string,
   lastHuc12: string,
@@ -1229,17 +1251,20 @@ function retrieveUpstreamWatershed(
   setErrorMessage: Dispatch<SetStateAction<string>>,
   setLastHuc12: Dispatch<SetStateAction<string>>,
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>,
-  setUpstreamLayer: Dispatch<SetStateAction<__esri.Layer>>,
-  setUpstreamLayerVisible: Dispatch<SetStateAction<boolean>>,
+  setUpstreamLayerErrored: (isErrored: boolean) => void,
+  updateVisibleLayers: (
+    updates?: Partial<LayersState['visible']>,
+    merge?: boolean,
+  ) => void,
   setUpstreamWidgetDisabled: Dispatch<SetStateAction<boolean>>,
   view: __esri.MapView | null,
   setUpstreamLoading: Dispatch<SetStateAction<boolean>>,
+  upstreamLayerErrored: boolean,
   huc12 = null,
   canDisable = true,
 ) {
   // if widget is disabled do nothing
   if (getUpstreamWidgetDisabled()) return;
-  const upstreamLayer = getUpstreamLayer();
   if (!upstreamLayer) return;
 
   const currentHuc12 = huc12 ?? getHuc12();
@@ -1247,13 +1272,11 @@ function retrieveUpstreamWatershed(
   if (currentHuc12 !== lastHuc12) {
     setLastHuc12(currentHuc12);
     setErrorMessage('');
-    upstreamLayer.error = false;
+    setUpstreamLayerErrored(false);
   }
 
   // already encountered an error for this location - don't retry
-  if (upstreamLayer.error === true) {
-    return;
-  }
+  if (upstreamLayerErrored) return;
 
   // if upstream layer is displayed, zoom to
   // current location extent and hide the upstream layer
@@ -1266,8 +1289,7 @@ function retrieveUpstreamWatershed(
     currentExtent && view?.goTo(currentExtent);
     view?.popup.close();
     upstreamLayer.visible = false;
-    setUpstreamLayerVisible(false);
-    setUpstreamLayer(upstreamLayer);
+    updateVisibleLayers({ upstreamLayer: false });
     return;
   }
 
@@ -1280,8 +1302,7 @@ function retrieveUpstreamWatershed(
   ) {
     view?.goTo(getUpstreamExtent());
     upstreamLayer.visible = true;
-    setUpstreamLayerVisible(true);
-    setUpstreamLayer(upstreamLayer);
+    updateVisibleLayers({ upstreamLayer: true });
     return;
   }
 
@@ -1307,11 +1328,10 @@ function retrieveUpstreamWatershed(
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
       if (!res || !res.features || res.features.length === 0) {
-        upstreamLayer.error = true;
+        setUpstreamLayerErrored(true);
         upstreamLayer.graphics.removeAll();
-        setUpstreamLayer(upstreamLayer);
         canDisable && setUpstreamWidgetDisabled(true);
-        setUpstreamLayerVisible(false);
+        updateVisibleLayers({ upstreamLayer: false });
         setErrorMessage(
           `No upstream watershed data available for ${
             huc12 ? 'the selected' : 'this'
@@ -1357,8 +1377,7 @@ function retrieveUpstreamWatershed(
       setUpstreamExtent(currentViewpoint);
 
       upstreamLayer.visible = true;
-      setUpstreamLayer(upstreamLayer);
-      setUpstreamLayerVisible(true);
+      updateVisibleLayers({ upstreamLayer: true });
 
       // zoom out to full extent
       view?.goTo(upstreamExtent);
@@ -1369,11 +1388,10 @@ function retrieveUpstreamWatershed(
       if (isAbort(err)) return;
       setUpstreamLoading(false);
       canDisable && setUpstreamWidgetDisabled(true);
-      upstreamLayer.error = true;
+      setUpstreamLayerErrored(true);
       upstreamLayer.visible = false;
       upstreamLayer.graphics.removeAll();
-      setUpstreamLayerVisible(false);
-      setUpstreamLayer(upstreamLayer);
+      updateVisibleLayers({ upstreamLayer: false });
       console.error(err);
       setErrorMessage(
         `Error fetching upstream watershed data for ${
@@ -1384,24 +1402,23 @@ function retrieveUpstreamWatershed(
 }
 
 interface ShowUpstreamWatershedProps {
-  getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
   getUpstreamWidgetDisabled: () => boolean;
   onClick: React.MouseEventHandler<HTMLDivElement>;
   selectionActive?: boolean;
+  upstreamLayer: __esri.GraphicsLayer | null;
   upstreamLoading: boolean;
 }
 
 function ShowUpstreamWatershed({
-  getUpstreamLayer,
   getUpstreamWidgetDisabled,
   onClick,
   selectionActive = false,
+  upstreamLayer,
   upstreamLoading,
 }: ShowUpstreamWatershedProps) {
   const [hover, setHover] = useState(false);
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
-  const upstreamLayer = getUpstreamLayer();
 
   if (!upstreamLayer) return null;
 
@@ -1440,15 +1457,19 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   getHuc12: () => string;
   getTemplate: (graphic: Feature) => HTMLDivElement | null;
   getUpstreamExtent: () => __esri.Extent;
-  getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
+  upstreamLayer: __esri.GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;
   getWatershed: () => string;
   services: ServicesState;
   setErrorMessage: Dispatch<SetStateAction<string>>;
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>;
-  setUpstreamLayer: Dispatch<SetStateAction<__esri.Layer>>;
-  setUpstreamLayerVisible: Dispatch<SetStateAction<boolean>>;
+  setUpstreamLayerErrored: (isErrored: boolean) => void;
   setUpstreamWidgetDisabled: Dispatch<SetStateAction<boolean>>;
+  updateVisibleLayers: (
+    updates?: Partial<LayersState['visible']>,
+    merge?: boolean,
+  ) => void;
+  upstreamLayerErrored: boolean;
   view: __esri.MapView | null;
 };
 
@@ -1458,15 +1479,16 @@ function ShowCurrentUpstreamWatershed({
   getHuc12,
   getTemplate,
   getUpstreamExtent,
-  getUpstreamLayer,
+  upstreamLayer,
   getUpstreamWidgetDisabled,
   getWatershed,
   services,
   setErrorMessage,
   setUpstreamExtent,
-  setUpstreamLayer,
-  setUpstreamLayerVisible,
+  setUpstreamLayerErrored,
+  updateVisibleLayers,
   setUpstreamWidgetDisabled,
+  upstreamLayerErrored,
   view,
 }: ShowCurrentUpstreamWatershedProps) {
   const [lastHuc12, setLastHuc12] = useState<string>('');
@@ -1480,7 +1502,7 @@ function ShowCurrentUpstreamWatershed({
         getHuc12,
         getTemplate,
         getUpstreamExtent,
-        getUpstreamLayer,
+        upstreamLayer,
         getUpstreamWidgetDisabled,
         getWatershed,
         lastHuc12,
@@ -1488,11 +1510,12 @@ function ShowCurrentUpstreamWatershed({
         setErrorMessage,
         setLastHuc12,
         setUpstreamExtent,
-        setUpstreamLayer,
-        setUpstreamLayerVisible,
+        setUpstreamLayerErrored,
+        updateVisibleLayers,
         setUpstreamWidgetDisabled,
         view,
         setUpstreamLoading,
+        upstreamLayerErrored,
       );
     },
     [
@@ -1501,24 +1524,25 @@ function ShowCurrentUpstreamWatershed({
       getHuc12,
       getTemplate,
       getUpstreamExtent,
-      getUpstreamLayer,
       getUpstreamWidgetDisabled,
       getWatershed,
       lastHuc12,
       services,
       setErrorMessage,
       setUpstreamExtent,
-      setUpstreamLayer,
-      setUpstreamLayerVisible,
+      setUpstreamLayerErrored,
       setUpstreamWidgetDisabled,
+      updateVisibleLayers,
+      upstreamLayer,
+      upstreamLayerErrored,
       view,
     ],
   );
   return (
     <ShowUpstreamWatershed
-      getUpstreamLayer={getUpstreamLayer}
       getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
       onClick={handleClick}
+      upstreamLayer={upstreamLayer}
       upstreamLoading={upstreamLoading}
     />
   );
@@ -1537,19 +1561,20 @@ function ShowSelectedUpstreamWatershed({
   getHuc12,
   getTemplate,
   getUpstreamExtent,
-  getUpstreamLayer,
   getUpstreamWidgetDisabled,
   getWatershed,
   services,
   setErrorMessage,
   setUpstreamExtent,
-  setUpstreamLayer,
-  setUpstreamLayerVisible,
+  setUpstreamLayerErrored,
   setUpstreamWidgetDisabled,
+  updateVisibleLayers,
+  upstreamLayer,
   view,
   map,
   mapRef,
   setCurrentExtent,
+  upstreamLayerErrored,
   upstreamWidget,
 }: ShowSelectedUpstreamWatershedProps) {
   // Record visibility state of watersheds layer to restore later
@@ -1633,7 +1658,7 @@ function ShowSelectedUpstreamWatershed({
             getHuc12,
             getTemplate,
             getUpstreamExtent,
-            getUpstreamLayer,
+            upstreamLayer,
             getUpstreamWidgetDisabled,
             getWatershed,
             lastHuc12,
@@ -1641,11 +1666,12 @@ function ShowSelectedUpstreamWatershed({
             setErrorMessage,
             setLastHuc12,
             setUpstreamExtent,
-            setUpstreamLayer,
-            setUpstreamLayerVisible,
+            setUpstreamLayerErrored,
+            updateVisibleLayers,
             setUpstreamWidgetDisabled,
             view,
             setUpstreamLoading,
+            upstreamLayerErrored,
             attributes.huc12,
             false,
           );
@@ -1663,7 +1689,6 @@ function ShowSelectedUpstreamWatershed({
       getHuc12,
       getTemplate,
       getUpstreamExtent,
-      getUpstreamLayer,
       getUpstreamWidgetDisabled,
       getWatershed,
       lastHuc12,
@@ -1671,9 +1696,11 @@ function ShowSelectedUpstreamWatershed({
       setCurrentExtent,
       setErrorMessage,
       setUpstreamExtent,
-      setUpstreamLayer,
-      setUpstreamLayerVisible,
+      setUpstreamLayerErrored,
       setUpstreamWidgetDisabled,
+      updateVisibleLayers,
+      upstreamLayer,
+      upstreamLayerErrored,
       view,
     ],
   );
@@ -1717,7 +1744,6 @@ function ShowSelectedUpstreamWatershed({
   // watershed is not visible, otherwise hide the upstream watershed
   const selectUpstream = useCallback(
     (_ev) => {
-      const upstreamLayer = getUpstreamLayer();
       if (!upstreamLayer) return;
 
       if (upstreamLayer.visible) {
@@ -1728,7 +1754,7 @@ function ShowSelectedUpstreamWatershed({
 
         upstreamLayer.visible = false;
         upstreamLayer.graphics.removeAll();
-        setUpstreamLayerVisible(false);
+        updateVisibleLayers({ upstreamLayer: false });
 
         if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
         return;
@@ -1743,8 +1769,8 @@ function ShowSelectedUpstreamWatershed({
     },
     [
       getCurrentExtent,
-      getUpstreamLayer,
-      setUpstreamLayerVisible,
+      updateVisibleLayers,
+      upstreamLayer,
       view,
       watershedsLayer,
       watershedsVisible,
@@ -1773,10 +1799,10 @@ function ShowSelectedUpstreamWatershed({
           mapRef.current,
         )}
       <ShowUpstreamWatershed
-        getUpstreamLayer={getUpstreamLayer}
         getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
         onClick={selectionActive ? cancelSelection : selectUpstream}
         selectionActive={selectionActive}
+        upstreamLayer={upstreamLayer}
         upstreamLoading={upstreamLoading}
       />
     </>

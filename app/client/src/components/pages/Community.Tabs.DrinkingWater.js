@@ -20,6 +20,7 @@ import Switch from 'components/shared/Switch';
 import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -223,9 +224,6 @@ function DrinkingWater() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
-    waterbodyLayer,
-    providersLayer,
-    boundariesLayer,
     countyBoundaries,
     drinkingWater,
     watershed,
@@ -234,8 +232,14 @@ function DrinkingWater() {
     drinkingWaterTabIndex,
     setDrinkingWaterTabIndex,
     currentExtent,
-    updateVisibleLayers,
   } = useContext(LocationSearchContext);
+
+  const {
+    boundariesLayer,
+    providersLayer,
+    updateVisibleLayers,
+    waterbodyLayer,
+  } = useLayers();
 
   // set the waterbody features
   const waterbodies = useWaterbodyFeatures();

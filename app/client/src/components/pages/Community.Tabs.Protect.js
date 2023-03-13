@@ -20,7 +20,6 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // config
 import { tabs } from 'config/communityConfig';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
@@ -201,21 +200,21 @@ function Protect() {
     highlightOptions,
     huc12,
     statesData,
-    visibleLayers,
     wsioHealthIndexData,
-    wildScenicRiversLayer,
     wildScenicRiversData,
-    protectedAreasLayer,
     protectedAreasData,
-    protectedAreasHighlightLayer,
-    updateVisibleLayers,
     cipSummary,
   } = useContext(LocationSearchContext);
 
   const {
-    monitoringLocationsLayer,
-    usgsStreamgagesLayer,
     allWaterbodiesLayer,
+    monitoringLocationsLayer,
+    protectedAreasHighlightLayer,
+    protectedAreasLayer,
+    updateVisibleLayers,
+    usgsStreamgagesLayer,
+    visibleLayers,
+    wildScenicRiversLayer,
   } = useLayers();
 
   const { infoToggleChecked } = useContext(CommunityTabsContext);

@@ -17,11 +17,7 @@ import {
 } from 'utils/hooks/monitoringLocations';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // utilities
-import {
-  getEnclosedLayer,
-  getSurroundingLayer,
-  useDynamicPopup,
-} from 'utils/hooks';
+import { getEnclosedLayer, getSurroundingLayer } from 'utils/hooks';
 // types
 import type {
   MonitoringFeatureUpdate,
@@ -181,20 +177,15 @@ function MapMouseEvents({ view }: Props) {
   const services = useServicesContext();
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
 
-  const {
-    getHucBoundaries,
-    homeWidget,
-    monitoringFeatureUpdates,
-    protectedAreasLayer,
-    resetData,
-  } = useContext(LocationSearchContext);
+  const { getHucBoundaries, homeWidget, monitoringFeatureUpdates, resetData } =
+    useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer } = useLayers();
+  const { monitoringLocationsLayer, protectedAreasLayer, resetLayers } =
+    useLayers();
 
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
 
-  const getDynamicPopup = useDynamicPopup();
   const onTribePage = window.location.pathname.startsWith('/tribe/');
   const onMonitoringPanel = window.location.pathname.endsWith('/monitoring');
   if (onTribePage || onMonitoringPanel) view.popup.autoOpenEnabled = false;
@@ -292,6 +283,7 @@ function MapMouseEvents({ view }: Props) {
                       resetData: () => {
                         fetchedDataDispatch({ type: 'reset' });
                         resetData();
+                        resetLayers();
                       },
                       feature: {
                         attributes: {
@@ -312,7 +304,7 @@ function MapMouseEvents({ view }: Props) {
                 // if the protectedAreasLayer is not visible just open the popup
                 // like normal, otherwise query the protectedAreasLayer to see
                 // if the user clicked on a protected area
-                if (!protectedAreasLayer.visible) {
+                if (!protectedAreasLayer?.visible) {
                   openChangeLocationPopup();
                 } else {
                   // check if protected areas layer was clicked on
@@ -347,6 +339,7 @@ function MapMouseEvents({ view }: Props) {
       navigate,
       protectedAreasLayer,
       resetData,
+      resetLayers,
       services,
       setSelectedGraphic,
     ],
@@ -407,14 +400,7 @@ function MapMouseEvents({ view }: Props) {
     });
 
     setInitialized(true);
-  }, [
-    getDynamicPopup,
-    handleMapClick,
-    initialized,
-    services,
-    setHighlightedGraphic,
-    view,
-  ]);
+  }, [handleMapClick, initialized, services, setHighlightedGraphic, view]);
 
   // recalculates stored total location count on change of location
   const [locationCount, setLocationCount] = useState<number | null>(null);

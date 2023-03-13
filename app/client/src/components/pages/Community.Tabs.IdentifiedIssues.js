@@ -27,7 +27,6 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
-import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -79,21 +78,23 @@ function IdentifiedIssues() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
-    issuesLayer,
-    waterbodyLayer,
     showAllPolluted,
     pollutionParameters,
     setPollutionParameters,
-    visibleLayers,
     getAllFeatures,
     setShowAllPolluted,
     setViolatingDischargersOnly,
     cipSummary,
-    updateVisibleLayers,
     watershed,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer } = useLayers();
+  const {
+    dischargersLayer,
+    issuesLayer,
+    updateVisibleLayers,
+    visibleLayers,
+    waterbodyLayer,
+  } = useLayers();
 
   const { dischargers: violatingDischargers, dischargersStatus } =
     useDischargers();
@@ -117,11 +118,13 @@ function IdentifiedIssues() {
   // Hide the waterbody layer from the list view on this tab
   useEffect(() => {
     if (waterbodyLayer) waterbodyLayer.listMode = 'hide';
+    if (issuesLayer) issuesLayer.listMode = 'show';
 
     return function cleanup() {
       if (waterbodyLayer) waterbodyLayer.listMode = 'hide-children';
+      if (issuesLayer) issuesLayer.listMode = 'hide';
     };
-  }, [waterbodyLayer]);
+  }, [issuesLayer, waterbodyLayer]);
 
   // translate scientific parameter names
   const getMappedParameter = (parameterFields: Object, parameter: string) => {

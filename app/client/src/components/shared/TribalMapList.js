@@ -160,17 +160,17 @@ function TribalMapList({
   windowWidth,
 }: Props) {
   const { currentReportingCycle } = useContext(StateTribalTabsContext);
+  const { errorMessage, mapView } = useContext(LocationSearchContext);
+
   const {
     areasLayer,
-    errorMessage,
     linesLayer,
-    mapView,
+    monitoringLocationsLayer,
     pointsLayer,
     updateVisibleLayers,
     waterbodyLayer,
-  } = useContext(LocationSearchContext);
+  } = useLayers();
 
-  const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
 
@@ -569,20 +569,17 @@ function TribalMap({
   filter,
   setTribalBoundaryError,
 }: TribalMapProps) {
+  const { homeWidget, mapView } = useContext(LocationSearchContext);
+
   const {
     areasLayer,
-    setAreasLayer,
-    homeWidget,
     linesLayer,
-    setLinesLayer,
-    mapView,
     pointsLayer,
-    setPointsLayer,
-    setVisibleLayers,
+    setLayer,
+    setResetHandler,
+    updateVisibleLayers,
     waterbodyLayer,
-    setWaterbodyLayer,
-    setUpstreamLayer,
-  } = useContext(LocationSearchContext);
+  } = useLayers();
 
   const [monitoringLocationsFilter, setMonitoringLocationsFilter] =
     useState(null);
@@ -648,7 +645,7 @@ function TribalMap({
       renderer: pointsRenderer,
       popupTemplate,
     });
-    setPointsLayer(pointsLayer);
+    setLayer('pointsLayer', pointsLayer);
 
     const linesRenderer = {
       type: 'unique-value',
@@ -668,7 +665,7 @@ function TribalMap({
       renderer: linesRenderer,
       popupTemplate,
     });
-    setLinesLayer(linesLayer);
+    setLayer('linesLayer', linesLayer);
 
     const areasRenderer = {
       type: 'unique-value',
@@ -688,7 +685,7 @@ function TribalMap({
       renderer: areasRenderer,
       popupTemplate,
     });
-    setAreasLayer(areasLayer);
+    setLayer('areasLayer', areasLayer);
 
     // Make the waterbody layer into a single layer
     const waterbodyLayer = new GroupLayer({
@@ -699,7 +696,11 @@ function TribalMap({
       legendEnabled: false,
     });
     waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
-    setWaterbodyLayer(waterbodyLayer);
+    setLayer('waterbodyLayer', waterbodyLayer);
+    setResetHandler('waterbodyLayer', () => {
+      waterbodyLayer.layers.removeAll();
+      setLayer('waterbodyLayer', null);
+    });
 
     const selectedTribeLayer = new GraphicsLayer({
       id: 'selectedTribeLayer',
@@ -711,13 +712,12 @@ function TribalMap({
     setSelectedTribeLayer(selectedTribeLayer);
 
     const upstreamLayer = new GraphicsLayer({
-      id: 'upstreamWatershed',
+      id: 'upstreamLayer',
       title: 'Upstream Watershed',
       listMode: 'hide',
       visible: false,
     });
-
-    setUpstreamLayer(upstreamLayer);
+    setLayer('upstreamLayer', upstreamLayer);
 
     // add the shared layers to the map
     const sharedLayers = getSharedLayers();
@@ -730,7 +730,7 @@ function TribalMap({
       waterbodyLayer,
     ]);
 
-    setVisibleLayers({
+    updateVisibleLayers({
       selectedTribeLayer: true,
       waterbodyLayer: true,
       monitoringLocationsLayer: true,
@@ -744,12 +744,9 @@ function TribalMap({
     monitoringLocationsLayer,
     navigate,
     services,
-    setAreasLayer,
-    setLinesLayer,
-    setPointsLayer,
-    setUpstreamLayer,
-    setVisibleLayers,
-    setWaterbodyLayer,
+    setLayer,
+    setResetHandler,
+    updateVisibleLayers,
   ]);
 
   // get gis data for selected tribe

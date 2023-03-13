@@ -114,16 +114,17 @@ function Overview() {
   const { streamgages, streamgagesStatus } = useStreamgages();
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
-  const { dischargersLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
-    useLayers();
 
   const {
-    cipSummary,
-    waterbodyLayer,
-    watershed,
+    dischargersLayer,
+    monitoringLocationsLayer,
     updateVisibleLayers,
+    usgsStreamgagesLayer,
     visibleLayers,
-  } = useContext(LocationSearchContext);
+    waterbodyLayer,
+  } = useLayers();
+
+  const { cipSummary, watershed } = useContext(LocationSearchContext);
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
@@ -143,21 +144,10 @@ function Overview() {
   // used for when the user toggles layers in full screen mode and then
   // exist full screen.
   useEffect(() => {
-    if (typeof visibleLayers.waterbodyLayer === 'boolean') {
-      setWaterbodiesDisplayed(visibleLayers.waterbodyLayer);
-    }
-
-    if (typeof visibleLayers.monitoringLocationsLayer === 'boolean') {
-      setMonitoringLocationsDisplayed(visibleLayers.monitoringLocationsLayer);
-    }
-
-    if (typeof visibleLayers.usgsStreamgagesLayer === 'boolean') {
-      setUsgsStreamgagesDisplayed(visibleLayers.usgsStreamgagesLayer);
-    }
-
-    if (typeof visibleLayers.dischargersLayer === 'boolean') {
-      setPermittedDischargersDisplayed(visibleLayers.dischargersLayer);
-    }
+    setWaterbodiesDisplayed(visibleLayers.waterbodyLayer);
+    setMonitoringLocationsDisplayed(visibleLayers.monitoringLocationsLayer);
+    setUsgsStreamgagesDisplayed(visibleLayers.usgsStreamgagesLayer);
+    setPermittedDischargersDisplayed(visibleLayers.dischargersLayer);
   }, [visibleLayers]);
 
   const handleWaterbodiesToggle = useCallback(
@@ -181,18 +171,9 @@ function Overview() {
       updateVisibleLayers({
         usgsStreamgagesLayer: checked,
         monitoringLocationsLayer: checked,
-        // NOTE: no change for the following layers:
-        waterbodyLayer: waterbodiesDisplayed,
-        dischargersLayer: permittedDischargersDisplayed,
       });
     },
-    [
-      monitoringLocationsLayer,
-      permittedDischargersDisplayed,
-      updateVisibleLayers,
-      usgsStreamgagesLayer,
-      waterbodiesDisplayed,
-    ],
+    [monitoringLocationsLayer, updateVisibleLayers, usgsStreamgagesLayer],
   );
 
   const handlePermittedDischargersToggle = useCallback(

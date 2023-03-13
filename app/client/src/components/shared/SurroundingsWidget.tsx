@@ -1,16 +1,8 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
-import { LocationSearchContext } from 'contexts/locationSearch';
-import { useLayers } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 import {
   isBoundariesToggleLayerId,
   useSurroundingsState,
@@ -32,8 +24,7 @@ import type { MutableRefObject, ReactNode } from 'react';
 */
 
 export function useSurroundingsWidget(triggerVisible: boolean) {
-  const { visibleLayers } = useContext(LocationSearchContext);
-  const layers = useLayers();
+  const { layers, visible: visibleLayers } = useLayersState();
   const { togglers, disabled, updating, visible } = useSurroundingsState();
 
   const includedLayers = useMemo(() => {

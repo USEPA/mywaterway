@@ -880,7 +880,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
   if (layer.id === 'wildScenicRiversLayer') return wildScenicRiversLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
-  if (layer.id === 'upstreamWatershed') return upstreamLegend;
+  if (layer.id === 'upstreamLayer') return upstreamLegend;
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
   if (layer.id === 'protectedAreasLayer') return protectedAreasLegend();
   if (layer.id === 'ejscreenLayer') return ejscreenLegend();

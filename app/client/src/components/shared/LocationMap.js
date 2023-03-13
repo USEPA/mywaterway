@@ -35,6 +35,7 @@ import {
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -161,9 +162,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     lastSearchText,
     setLastSearchText,
     setCurrentExtent,
-    boundariesLayer,
-    searchIconLayer,
-    waterbodyLayer,
     countyBoundaries,
     statesData,
     homeWidget,
@@ -194,24 +192,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setAtHucBoundaries,
     mapView,
     // setNonprofits,
-    setWaterbodyLayer,
-    setIssuesLayer,
-    setUpstreamLayer,
-    setNonprofitsLayer,
-    setProvidersLayer,
-    setBoundariesLayer,
-    setSearchIconLayer,
     setWatershed,
     FIPS,
     setFIPS,
     layers,
     setLayers,
-    pointsLayer,
-    linesLayer,
-    areasLayer,
-    setPointsLayer,
-    setLinesLayer,
-    setAreasLayer,
     setErrorMessage,
     setWsioHealthIndexData,
     setWildScenicRiversData,
@@ -222,6 +207,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     resetData,
     setNoDataAvailable,
   } = useContext(LocationSearchContext);
+
+  const {
+    areasLayer,
+    boundariesLayer,
+    erroredLayers,
+    linesLayer,
+    pointsLayer,
+    resetLayers,
+    searchIconLayer,
+    setLayer,
+    setResetHandler,
+    updateErroredLayers,
+    updateVisibleLayers,
+    waterbodyLayer,
+  } = useLayers();
 
   const allWaterbodiesLayerVisible =
     huc12 && window.location.pathname !== '/community';
@@ -608,8 +608,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const getDynamicPopup = useDynamicPopup();
-  const { getTitle, getTemplate, setDynamicPopupFields } = getDynamicPopup();
+  const { getTitle, getTemplate, setDynamicPopupFields } = useDynamicPopup();
 
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = useState(false);
@@ -627,7 +626,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'hide',
     });
 
-    setProvidersLayer(providersLayer);
+    setLayer('providersLayer', providersLayer);
+    setResetHandler('providersLayer', () =>
+      providersLayer.graphics.removeAll(),
+    );
 
     const boundariesLayer = new GraphicsLayer({
       id: 'boundariesLayer',
@@ -635,7 +637,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'show',
     });
 
-    setBoundariesLayer(boundariesLayer);
+    setLayer('boundariesLayer', boundariesLayer);
+    setResetHandler('boundariesLayer', () => {
+      boundariesLayer.graphics.removeAll();
+    });
 
     const searchIconLayer = new GraphicsLayer({
       id: 'searchIconLayer',
@@ -643,16 +648,26 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'show',
     });
 
-    setSearchIconLayer(searchIconLayer);
+    setLayer('searchIconLayer', searchIconLayer);
+    setResetHandler('searchIconLayer', () => {
+      searchIconLayer.visible = false;
+      searchIconLayer.graphics.removeAll();
+    });
 
     const upstreamLayer = new GraphicsLayer({
-      id: 'upstreamWatershed',
+      id: 'upstreamLayer',
       title: 'Upstream Watershed',
       listMode: 'hide',
       visible: false,
     });
 
-    setUpstreamLayer(upstreamLayer);
+    setLayer('upstreamLayer', upstreamLayer);
+    setResetHandler('upstreamLayer', () => {
+      upstreamLayer.visible = false;
+      upstreamLayer.listMode = 'hide';
+      upstreamLayer.graphics.removeAll();
+      updateVisibleLayers({ upstreamLayer: false });
+    });
 
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
@@ -660,7 +675,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'hide',
     });
 
-    setIssuesLayer(issuesLayer);
+    setLayer('issuesLayer', issuesLayer);
 
     const nonprofitsLayer = new GraphicsLayer({
       id: 'nonprofitsLayer',
@@ -668,7 +683,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'hide',
     });
 
-    setNonprofitsLayer(nonprofitsLayer);
+    setLayer('nonprofitsLayer', nonprofitsLayer);
+    setResetHandler('nonprofitsLayer', () =>
+      nonprofitsLayer.graphics.removeAll(),
+    );
 
     const cyanWaterbodies = new FeatureLayer({
       id: 'cyanWaterbodies',
@@ -763,17 +781,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getTemplate,
     getTitle,
     monitoringLocationsLayer,
-    setBoundariesLayer,
-    setIssuesLayer,
+    setLayer,
     setLayers,
-    setUpstreamLayer,
-    setNonprofitsLayer,
-    setProvidersLayer,
-    setSearchIconLayer,
+    setResetHandler,
     layers,
     layersInitialized,
     services,
     navigate,
+    updateErroredLayers,
+    updateVisibleLayers,
     usgsStreamgagesLayer,
   ]);
 
@@ -793,8 +809,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setMapLoading(false);
       console.error(err);
       setCipSummary({ status: 'failure', data: {} });
+      updateErroredLayers({ waterbodyLayer: true, issuesLayer: true });
     },
-    [setCipSummary],
+    [setCipSummary, updateErroredLayers],
   );
 
   const { cropGeometryToHuc } = useGeometryUtils();
@@ -819,6 +836,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             originalFeatures.push(item);
           });
           setLinesData({ features: originalFeatures });
+          updateErroredLayers({ linesLayer: false });
 
           // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
@@ -838,7 +856,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             uniqueValueInfos: createUniqueValueInfos('polyline'),
           };
           const newLinesLayer = new FeatureLayer({
-            id: 'waterbodyLines',
+            id: 'linesLayer',
             name: 'Lines',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
@@ -848,11 +866,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: linesRenderer,
             popupTemplate,
           });
-          setLinesLayer(newLinesLayer);
+          setLayer('linesLayer', newLinesLayer);
+          setResetHandler('linesLayer', () => {
+            setLayer('linesLayer', null);
+          });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          setLinesLayer('error');
+          updateErroredLayers({ linesLayer: true });
           setLinesData({ features: [] });
         });
     },
@@ -860,9 +881,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
-      setLinesData,
-      setLinesLayer,
       services,
+      setLayer,
+      setLinesData,
+      setResetHandler,
+      updateErroredLayers,
     ],
   );
 
@@ -886,6 +909,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             originalFeatures.push(item);
           });
           setAreasData({ features: originalFeatures });
+          updateErroredLayers({ areasLayer: false });
 
           // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
@@ -905,7 +929,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             uniqueValueInfos: createUniqueValueInfos('polygon'),
           };
           const newAreasLayer = new FeatureLayer({
-            id: 'waterbodyAreas',
+            id: 'areasLayer',
             name: 'Areas',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
@@ -915,11 +939,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: areasRenderer,
             popupTemplate,
           });
-          setAreasLayer(newAreasLayer);
+          setLayer('areasLayer', newAreasLayer);
+          setResetHandler('areasLayer', () => {
+            setLayer('areasLayer', null);
+          });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          setAreasLayer('error');
+          updateErroredLayers({ areasLayer: true });
           setAreasData({ features: [] });
         });
     },
@@ -927,9 +954,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
-      setAreasData,
-      setAreasLayer,
       services,
+      setAreasData,
+      setLayer,
+      setResetHandler,
+      updateErroredLayers,
     ],
   );
 
@@ -946,6 +975,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .executeQueryJSON(url, queryParams)
         .then((res) => {
           setPointsData(res);
+          updateErroredLayers({ pointsLayer: false });
 
           const pointsRenderer = {
             type: 'unique-value',
@@ -960,7 +990,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           };
 
           const newPointsLayer = new FeatureLayer({
-            id: 'waterbodyPoints',
+            id: 'pointsLayer',
             name: 'Points',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
@@ -970,28 +1000,33 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: pointsRenderer,
             popupTemplate,
           });
-          setPointsLayer(newPointsLayer);
+          setLayer('pointsLayer', newPointsLayer);
+          setResetHandler('pointsLayer', () => {
+            setLayer('pointsLayer', null);
+          });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          setPointsLayer('error');
+          updateErroredLayers({ pointsLayer: true });
           setPointsData({ features: [] });
         });
     },
     [
       handleMapServiceError,
       popupTemplate,
-      setPointsData,
-      setPointsLayer,
       services,
+      setLayer,
+      setPointsData,
+      setResetHandler,
+      updateErroredLayers,
     ],
   );
 
   // if any service fails, consider all of them failed and do not show any waterbody data
   const mapServiceFailure =
-    linesLayer === 'error' ||
-    areasLayer === 'error' ||
-    pointsLayer === 'error' ||
+    erroredLayers.linesLayer ||
+    erroredLayers.areasLayer ||
+    erroredLayers.pointsLayer ||
     orphanFeatures.status === 'error';
 
   // Builds the waterbody layer once data has been fetched for all sub layers
@@ -999,6 +1034,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (mapServiceFailure) {
       setMapLoading(false);
       setCipSummary({ status: 'failure', data: {} });
+      updateErroredLayers({ waterbodyLayer: true, issuesLayer: true });
       return;
     }
 
@@ -1021,13 +1057,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       legendEnabled: false,
     });
     newWaterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
-    setWaterbodyLayer(newWaterbodyLayer);
+    setLayer('waterbodyLayer', newWaterbodyLayer);
+    setResetHandler('waterbodyLayer', () => {
+      waterbodyLayer?.layers.removeAll();
+      setLayer('waterbodyLayer', null);
+    });
 
     // Build the new set of layers with the waterbody layer at the correct position
     const newLayers = [];
     layers.forEach((layer) => {
-      // if (layer.id === 'waterbodyLayer') return;
-
       newLayers.push(layer);
       if (layer.id === 'boundariesLayer') {
         newLayers.push(newWaterbodyLayer);
@@ -1041,9 +1079,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     linesLayer,
     pointsLayer,
     mapServiceFailure,
-    setWaterbodyLayer,
+    setLayer,
     setLayers,
     setCipSummary,
+    setResetHandler,
+    updateErroredLayers,
   ]);
 
   // query geocode server for every new search
@@ -1153,6 +1193,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         data: [],
         status: 'fetching',
       });
+      updateErroredLayers({ wsioHealthIndexLayer: false });
 
       fetchCheck(url)
         .then((res) => {
@@ -1174,13 +1215,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .catch((err) => {
           console.error(err);
           setWsioHealthIndexData({ status: 'failure', data: [] });
+          updateErroredLayers({ wsioHealthIndexLayer: true });
         });
     },
-    [setWsioHealthIndexData, services],
+    [setWsioHealthIndexData, services, updateErroredLayers],
   );
 
   const getWildScenicRivers = useCallback(
     (boundaries) => {
+      updateErroredLayers({ wildScenicRiversLayer: false });
       if (
         !boundaries ||
         !boundaries.features ||
@@ -1218,13 +1261,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             data: [],
             status: 'failure',
           });
+          updateErroredLayers({ wildScenicRiversLayer: true });
         });
     },
-    [services, setWildScenicRiversData],
+    [services, setWildScenicRiversData, updateErroredLayers],
   );
 
   const getProtectedAreas = useCallback(
     (boundaries) => {
+      updateErroredLayers({ protectedAreasLayer: false });
       if (
         !boundaries ||
         !boundaries.features ||
@@ -1245,6 +1290,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           fields: [],
           status: 'failure',
         });
+        updateErroredLayers({ protectedAreasLayer: true });
       }
 
       fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
@@ -1283,7 +1329,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         })
         .catch(onError);
     },
-    [services, setProtectedAreasData, setDynamicPopupFields],
+    [
+      services,
+      setProtectedAreasData,
+      setDynamicPopupFields,
+      updateErroredLayers,
+    ],
   );
 
   const getCyanWaterbodies = useCallback(
@@ -1356,6 +1407,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         results.items[0].summaryByParameterImpairments.sort((a, b) =>
           a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1,
         );
+      updateErroredLayers({ waterbodyLayer: false, issuesLayer: false });
       setCipSummary({ status: 'success', data: results });
       setAssessmentUnitCount(results.items[0].assessmentUnits.length);
 
@@ -1378,6 +1430,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       retrievePoints,
       setAssessmentUnitIDs,
       setCipSummary,
+      updateErroredLayers,
     ],
   );
 
@@ -1458,10 +1511,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       navigate('/community');
       setNoDataAvailable();
+      resetLayers();
       setMapLoading(false);
       setErrorMessage(errorMessage);
     },
-    [navigate, setErrorMessage, setNoDataAvailable],
+    [navigate, resetLayers, setErrorMessage, setNoDataAvailable],
   );
 
   const [hucResponse, setHucResponse] = useState(null);
@@ -1797,6 +1851,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     fetchedDataDispatch({ type: 'reset' });
     resetData();
+    resetLayers();
     setMapLoading(true);
     setHucResponse(null);
     setErrorMessage('');
@@ -1808,6 +1863,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     lastSearchText,
     layers,
     resetData,
+    resetLayers,
     setLastSearchText,
     queryGeocodeServer,
     setErrorMessage,

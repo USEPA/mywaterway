@@ -9,7 +9,7 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { useLayersState } from 'contexts/Layers';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useSurroundingsDispatch,
@@ -69,9 +69,7 @@ function useBoundariesToggleLayer<
   updateSurroundingData,
   updateLayer,
 }: UseBoundariesToggleLayerParams<T, E, S>) {
-  const { mapView, visibleLayers, updateVisibleLayers } = useContext(
-    LocationSearchContext,
-  );
+  const { mapView } = useContext(LocationSearchContext);
 
   const [enclosedLayer] = useState(
     buildBaseLayer(`${layerId}-enclosed`, 'enclosed'),
@@ -95,7 +93,8 @@ function useBoundariesToggleLayer<
   const { disabled: surroundingsDisabled, visible: surroundingsVisible } =
     useSurroundingsState();
   const surroundingsDispatch = useSurroundingsDispatch();
-  const { setLayer } = useLayersState();
+  const { setLayer, updateErroredLayers, updateVisibleLayers, visibleLayers } =
+    useLayers();
 
   const { getSignal, abort } = useAbort();
 
@@ -199,6 +198,20 @@ function useBoundariesToggleLayer<
   const surroundingFetchedDataState =
     fetchedDataState[surroundingFetchedDataKey];
 
+  // Synchronize layer error state with data status
+  useEffect(() => {
+    updateErroredLayers({
+      [layerId]: enclosedFetchedDataState.status === 'failure' ? true : false,
+    });
+  }, [enclosedFetchedDataState, layerId, updateErroredLayers]);
+
+  useEffect(() => {
+    updateErroredLayers({
+      [layerId]:
+        surroundingFetchedDataState.status === 'failure' ? true : false,
+    });
+  }, [surroundingFetchedDataState, layerId, updateErroredLayers]);
+
   // Update layer features when new data is available
   useEffect(() => {
     if (enclosedFetchedDataState.status !== 'success') return;
@@ -230,13 +243,9 @@ function useBoundariesToggleLayer<
   // Manages the surrounding features visibility
   const toggleSurroundings = useCallback(
     (showSurroundings: boolean) => {
-      const layerVisible = visibleLayers[layerId] ?? null;
+      const layerVisible = visibleLayers[layerId];
       return function toggle() {
         setInitialLayerVisibility(layerVisible);
-        // Key doesn't exist in `visibleLayers` so
-        // the layer shouldn't be toggleable
-        if (layerVisible === null) return;
-
         if (layerVisible && !showSurroundings) {
           updateVisibleLayers({
             [layerId]: initialLayerVisibility,

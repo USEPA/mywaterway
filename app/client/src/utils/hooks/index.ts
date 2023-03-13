@@ -23,7 +23,7 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
-import { useLayers, useLayersState } from 'contexts/Layers';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -207,15 +207,13 @@ function useAbortSignal() {
 function useWaterbodyFeatures() {
   const {
     linesData,
-    linesLayer,
     areasData,
-    areasLayer,
     pointsData,
-    pointsLayer,
     huc12,
     waterbodyCountMismatch,
     orphanFeatures,
   } = useContext(LocationSearchContext);
+  const { erroredLayers } = useLayers();
 
   const [features, setFeatures] = useState<__esri.Graphic[] | null>(null);
 
@@ -241,9 +239,9 @@ function useWaterbodyFeatures() {
     }
 
     if (
-      linesLayer === 'error' ||
-      areasLayer === 'error' ||
-      pointsLayer === 'error' ||
+      erroredLayers.areasLayer ||
+      erroredLayers.linesLayer ||
+      erroredLayers.pointsLayer ||
       orphanFeatures.status === 'error'
     ) {
       if (!features || features.length !== 0) setFeatures([]);
@@ -274,10 +272,8 @@ function useWaterbodyFeatures() {
   }, [
     linesData,
     areasData,
+    erroredLayers,
     pointsData,
-    linesLayer,
-    areasLayer,
-    pointsLayer,
     features,
     huc12,
     lastHuc12,
@@ -331,10 +327,14 @@ function useWaterbodyOnMap(
   defaultCondition: WaterbodyCondition = 'hidden',
 ) {
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
-  const { pointsLayer, linesLayer, areasLayer, mapView } = useContext(
-    LocationSearchContext,
-  );
-  const { allWaterbodiesLayer } = useLayers();
+  const { mapView } = useContext(LocationSearchContext);
+  const {
+    allWaterbodiesLayer,
+    areasLayer,
+    erroredLayers,
+    linesLayer,
+    pointsLayer,
+  } = useLayers();
 
   const setRenderer = useCallback(
     (layer, geometryType, attribute, alpha = null) => {
@@ -372,19 +372,19 @@ function useWaterbodyOnMap(
   );
 
   useEffect(() => {
-    if (!pointsLayer || pointsLayer === 'error') return;
+    if (!pointsLayer || erroredLayers.pointsLayer) return;
     setRenderer(pointsLayer, 'point', attributeName);
-  }, [attributeName, pointsLayer, setRenderer]);
+  }, [attributeName, erroredLayers, pointsLayer, setRenderer]);
 
   useEffect(() => {
-    if (!linesLayer || linesLayer === 'error') return;
+    if (!linesLayer || erroredLayers.linesLayer) return;
     setRenderer(linesLayer, 'polyline', attributeName);
-  }, [attributeName, linesLayer, setRenderer]);
+  }, [attributeName, erroredLayers, linesLayer, setRenderer]);
 
   useEffect(() => {
-    if (!areasLayer || areasLayer === 'error') return;
+    if (!areasLayer || erroredLayers.areasLayer) return;
     setRenderer(areasLayer, 'polygon', attributeName);
-  }, [attributeName, areasLayer, setRenderer]);
+  }, [attributeName, areasLayer, erroredLayers, setRenderer]);
 
   useEffect(() => {
     if (!allWaterbodiesLayer) return;
@@ -410,27 +410,25 @@ function useWaterbodyOnMap(
 // other layers that have the same organization id and assessment unit id.
 function useWaterbodyHighlight(findOthers: boolean = true) {
   const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
+  const { mapView, huc12, highlightOptions, pointsData, linesData, areasData } =
+    useContext(LocationSearchContext);
+
   const {
-    mapView,
-    pointsLayer, //part of waterbody group layer
-    linesLayer, //part of waterbody group layer
     areasLayer, //part of waterbody group layer
-    issuesLayer,
-    nonprofitsLayer,
-    upstreamLayer,
     actionsLayer,
-    huc12,
-    wildScenicRiversLayer,
+    dischargersLayer,
+    erroredLayers,
+    issuesLayer,
+    linesLayer, //part of waterbody group layer
+    monitoringLocationsLayer,
+    nonprofitsLayer,
+    pointsLayer, //part of waterbody group layer
     protectedAreasLayer,
     protectedAreasHighlightLayer,
-    highlightOptions,
-    pointsData,
-    linesData,
-    areasData,
-  } = useContext(LocationSearchContext);
-
-  const { dischargersLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
-    useLayers();
+    upstreamLayer,
+    usgsStreamgagesLayer,
+    wildScenicRiversLayer,
+  } = useLayers();
 
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -687,13 +685,13 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       const requests = [];
 
       if (featureLayerType === 'waterbodyLayer') {
-        if (areasLayer && areasLayer !== 'error')
+        if (areasLayer && !erroredLayers.areasLayer)
           requests.push(areasLayer.queryFeatures(query));
 
-        if (linesLayer && linesLayer !== 'error')
+        if (linesLayer && !erroredLayers.linesLayer)
           requests.push(linesLayer.queryFeatures(query));
 
-        if (pointsLayer && pointsLayer !== 'error')
+        if (pointsLayer && !erroredLayers.pointsLayer)
           requests.push(pointsLayer.queryFeatures(query));
       } else {
         requests.push(layer.queryFeatures(query));
@@ -731,6 +729,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       });
     }
   }, [
+    erroredLayers,
     mapView,
     highlightedGraphic,
     selectedGraphic,
@@ -773,27 +772,36 @@ function useDynamicPopup() {
   const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
   );
+  const { resetLayers } = useLayers();
+
+  const reset = useCallback(() => {
+    resetData();
+    resetLayers();
+  }, [resetData, resetLayers]);
 
   const setDynamicPopupFields = (fields: __esri.Field[]) => {
     dynamicPopupFields = fields;
   };
 
-  return function getDynamicPopup() {
-    let hucInfo: ClickedHucState = {
-      status: 'none',
-      data: null,
-    };
+  const [hucInfo, setHucInfo] = useState<ClickedHucState>({
+    status: 'none',
+    data: null,
+  });
 
-    const funcs = {
-      getClickedHuc: (_location: __esri.Point) => null,
-      getTemplate: (_graphic: Feature) => null,
-      getTitle: (_graphic: Feature) => null,
-    };
+  const [lastLocation, setLastLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
-    if (!resetData || services.status === 'fetching') return funcs;
+  /* if (!resetData || services.status === 'fetching') return {
+    getClickedHuc: (_location: __esri.Point) => null,
+    getTemplate: (_graphic: Feature) => null,
+    getTitle: (_graphic: Feature) => null,
+  }; */
 
-    let lastLocation: { latitude: number; longitude: number } | null = null;
-    function getClickedHuc(location: __esri.Point) {
+  const getClickedHuc = useCallback(
+    (location: __esri.Point) => {
+      if (services.status !== 'success') return null;
       return new Promise<ClickedHucState>((resolve, reject) => {
         const testLocation = {
           latitude: location.latitude,
@@ -822,11 +830,11 @@ function useDynamicPopup() {
           return;
         }
 
-        lastLocation = testLocation;
-        hucInfo = {
+        setLastLocation(testLocation);
+        setHucInfo({
           status: 'fetching',
           data: null,
-        };
+        });
 
         //get the huc boundaries of where the user clicked
         const queryParams = {
@@ -846,13 +854,13 @@ function useDynamicPopup() {
             }
 
             const { attributes } = boundaries.features[0];
-            hucInfo = {
+            setHucInfo({
               status: 'success',
               data: {
                 huc12: attributes.huc12,
                 watershed: attributes.name,
               },
-            };
+            });
             resolve(hucInfo);
           })
           .catch((err) => {
@@ -860,10 +868,13 @@ function useDynamicPopup() {
             reject(err);
           });
       });
-    }
+    },
+    [hucInfo, lastLocation, services],
+  );
 
-    // Wrapper function for getting the content of the popup
-    function getTemplate(graphic: Feature) {
+  // Wrapper function for getting the content of the popup
+  const getTemplate = useCallback(
+    (graphic: Feature) => {
       // get the currently selected huc boundaries, if applicable
       const hucBoundaries = getHucBoundaries();
       const mapView = getMapView();
@@ -893,33 +904,27 @@ function useDynamicPopup() {
         fields,
         getClickedHuc: getClickedHuc(location),
         mapView,
-        resetData,
+        resetData: reset,
         services,
         navigate,
       });
-    }
+    },
+    [getClickedHuc, getHucBoundaries, getMapView, navigate, reset, services],
+  );
 
-    // Wrapper function for getting the title of the popup
-    function getTitle(graphic: Feature) {
-      return getPopupTitle(graphic.graphic.attributes);
-    }
+  // Wrapper function for getting the title of the popup
+  const getTitle = useCallback((graphic: Feature) => {
+    return getPopupTitle(graphic.graphic.attributes);
+  }, []);
 
-    return { getTitle, getTemplate, setDynamicPopupFields };
-  };
+  return { getTitle, getTemplate, setDynamicPopupFields };
 }
 
 function useSharedLayers() {
   const services = useServicesContext();
-  const {
-    setProtectedAreasLayer,
-    setProtectedAreasHighlightLayer,
-    setWsioHealthIndexLayer,
-    setWildScenicRiversLayer,
-  } = useContext(LocationSearchContext);
-  const { setLayer } = useLayersState();
+  const { setLayer, setResetHandler } = useLayers();
 
-  const getDynamicPopup = useDynamicPopup();
-  const { getTitle, getTemplate } = getDynamicPopup();
+  const { getTitle, getTemplate } = useDynamicPopup();
 
   function getWsioLayer() {
     // shared symbol settings
@@ -1017,36 +1022,41 @@ function useSharedLayers() {
     });
 
     // return the layer properties object
-    const wsioHealthIndexLayer: __esri.FeatureLayer & ExtendedLayer =
-      new FeatureLayer({
-        id: 'wsioHealthIndexLayer',
-        url: services.data.wsio,
-        title: 'State Watershed Health Index',
-        outFields: ['HUC12_TEXT', 'STATES_ALL', 'PHWA_HEALTH_NDX_ST'],
-        renderer: wsioHealthIndexRenderer,
-        listMode: 'show',
-        visible: false,
-        legendEnabled: false,
-        popupTemplate: {
-          title: getTitle,
-          content: getTemplate,
-          outFields: [
-            'PHWA_HEALTH_NDX_ST',
-            'HUC12_TEXT',
-            'NAME_HUC12',
-            'STATES_ALL',
-          ],
-        },
-      });
+    const wsioHealthIndexLayer: __esri.FeatureLayer = new FeatureLayer({
+      id: 'wsioHealthIndexLayer',
+      url: services.data.wsio,
+      title: 'State Watershed Health Index',
+      outFields: ['HUC12_TEXT', 'STATES_ALL', 'PHWA_HEALTH_NDX_ST'],
+      renderer: wsioHealthIndexRenderer,
+      listMode: 'show',
+      visible: false,
+      legendEnabled: false,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: [
+          'PHWA_HEALTH_NDX_ST',
+          'HUC12_TEXT',
+          'NAME_HUC12',
+          'STATES_ALL',
+        ],
+      },
+    });
 
-    setWsioHealthIndexLayer(wsioHealthIndexLayer);
+    setLayer('wsioHealthIndexLayer', wsioHealthIndexLayer);
+    setResetHandler('wsioHealthIndexLayer', () => {
+      wsioHealthIndexLayer.visible = false;
+      wsioHealthIndexLayer.listMode = 'hide';
+    });
 
     // Toggles the shading of the watershed graphic based on
     // whether or not the wsio layer is on or off
     reactiveUtils.watch(
       () => wsioHealthIndexLayer.visible,
       () => {
-        const parent = wsioHealthIndexLayer.parent;
+        const parent = (
+          wsioHealthIndexLayer as __esri.FeatureLayer & ExtendedLayer
+        ).parent;
         if (!parent || (!(parent instanceof Map) && !isGroupLayer(parent)))
           return;
         // find the boundaries layer
@@ -1088,7 +1098,11 @@ function useSharedLayers() {
       ],
     });
 
-    setProtectedAreasLayer(protectedAreasLayer);
+    setLayer('protectedAreasLayer', protectedAreasLayer);
+    setResetHandler('protectedAreasLayer', () => {
+      protectedAreasLayer.visible = false;
+      protectedAreasLayer.listMode = 'hide';
+    });
 
     return protectedAreasLayer;
   }
@@ -1100,7 +1114,10 @@ function useSharedLayers() {
       listMode: 'hide',
     });
 
-    setProtectedAreasHighlightLayer(protectedAreasHighlightLayer);
+    setLayer('protectedAreasHighlightLayer', protectedAreasHighlightLayer);
+    setResetHandler('protectedAreasHighlightLayer', () => {
+      protectedAreasHighlightLayer.graphics.removeAll();
+    });
 
     return protectedAreasHighlightLayer;
   }
@@ -1128,8 +1145,13 @@ function useSharedLayers() {
         outFields: ['*'],
       },
     });
-
-    setWildScenicRiversLayer(wildScenicRiversLayer);
+    setLayer('wildScenicRiversLayer', wildScenicRiversLayer);
+    setResetHandler('wildScenicRiversLayer', () => {
+      setTimeout(() => {
+        wildScenicRiversLayer.visible = false;
+        wildScenicRiversLayer.listMode = 'hide';
+      }, 100);
+    });
 
     return wildScenicRiversLayer;
   }
@@ -1347,7 +1369,7 @@ function useSharedLayers() {
       url: services.data.stateBoundaries,
       title: 'State',
       sublayers: [{ id: 0 }],
-      listMode: 'hide',
+      listMode: 'show',
       visible: false,
       legendEnabled: false,
     });

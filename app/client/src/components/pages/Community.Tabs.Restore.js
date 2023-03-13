@@ -18,6 +18,7 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup } from 'components/shared/Regex';
@@ -43,9 +44,9 @@ const disclaimerStyles = css`
 `;
 
 function Restore() {
-  const { attainsPlans, grts, updateVisibleLayers, watershed } = useContext(
-    LocationSearchContext,
-  );
+  const { attainsPlans, grts, watershed } = useContext(LocationSearchContext);
+
+  const { updateVisibleLayers } = useLayers();
 
   // draw the waterbody on the map
   useWaterbodyOnMap('restoreTab', 'overallstatus');

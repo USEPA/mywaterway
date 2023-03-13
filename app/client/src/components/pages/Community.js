@@ -13,7 +13,7 @@ import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
-import { LayersProvider } from 'contexts/Layers';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   CommunityTabsContext,
@@ -23,7 +23,7 @@ import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 // config
-import { defaultVisibleLayers, tabs } from 'config/communityConfig.js';
+import { tabs } from 'config/communityConfig.js';
 // styles
 import { colors, fonts } from 'styles/index.js';
 
@@ -123,13 +123,10 @@ function Community() {
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const {
-    setSearchText,
-    setLastSearchText,
-    errorMessage,
-    resetData,
-    updateVisibleLayers,
-  } = useContext(LocationSearchContext);
+  const { setSearchText, setLastSearchText, errorMessage, resetData } =
+    useContext(LocationSearchContext);
+
+  const { updateVisibleLayers } = useLayers();
 
   useEffect(() => {
     return function cleanup() {
@@ -148,7 +145,6 @@ function Community() {
 
     updateVisibleLayers(
       {
-        ...defaultVisibleLayers,
         ...tabs[activeTabIndex].layers,
       },
       false,

@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useReducer,
-} from 'react';
+import { createContext, useCallback, useContext, useReducer } from 'react';
 // types
 import type { Dispatch, ReactNode } from 'react';
 
@@ -13,22 +7,29 @@ const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 function reducer(state: LayersState, action: Action): LayersState {
   switch (action.type) {
-    case 'allErrored': {
+    case 'erroredMulti': {
       return {
         ...state,
-        errored: action.payload,
+        errored: {
+          ...state.errored,
+          ...action.payload,
+        },
       };
     }
-    case 'allLayers': {
+    case 'layersMulti': {
       return {
         ...state,
-        layers: action.payload,
+        layers: {
+          ...state.layers,
+          ...action.payload,
+        },
       };
     }
-    case 'allVisible': {
+    case 'visibleMulti': {
       return {
         ...state,
         visible: {
+          ...state.visible,
           ...action.payload,
         },
       };
@@ -93,18 +94,21 @@ export function LayersProvider({ children }: ProviderProps) {
 
 export function useLayers() {
   const state = useLayersState();
+  const dispatch = useLayersDispatch();
 
-  return state.layers;
-}
-
-// Returns state stored in `LayersProvider` context component.
-export function useLayersState() {
-  const state = useContext(StateContext);
-  const dispatch = useContext(DispatchContext);
-
-  if (state === undefined || dispatch === undefined) {
-    throw new Error('useLayersState must be called within a LayersProvider');
-  }
+  const { resetters } = state;
+  const resetLayers = useCallback(
+    (resetVisibility = false) => {
+      Object.values(resetters).forEach((reset) => {
+        reset();
+      });
+      dispatch({ type: 'erroredMulti', payload: initialState.errored });
+      if (resetVisibility) {
+        dispatch({ type: 'visibleMulti', payload: initialState.visible });
+      }
+    },
+    [dispatch, resetters],
+  );
 
   const setLayer = useCallback(
     <L extends LayerId>(layerId: L, layer: LayersState['layers'][L]) => {
@@ -113,59 +117,56 @@ export function useLayersState() {
     [dispatch],
   );
 
-  const flattenedLayers = useMemo(() => {
-    return Object.values(state.layers).reduce<__esri.Layer[]>(
-      (current, next) => {
-        if (next === null) return current;
-        else return [...current, next];
-      },
-      [],
-    );
-  }, [state]);
-
-  const resetLayers = useCallback(async () => {
-    await Promise.all([
-      ...Object.values(state.resetters).map(async (reset) => {
-        await reset();
-      }),
-    ]);
-    dispatch({ type: 'allLayers', payload: state.layers });
-  }, [dispatch, state]);
+  const setResetHandler = useCallback(
+    <L extends LayerId>(layerId: L, handler: LayersState['resetters'][L]) => {
+      dispatch({ type: 'resetters', id: layerId, payload: handler });
+    },
+    [dispatch],
+  );
 
   const updateErroredLayers = useCallback(
     (updates = {}, merge = true) => {
       const newErroredLayers: LayersState['errored'] = {
-        ...(merge ? state.errored : initialState.errored),
+        ...(!merge && initialState.errored),
         ...updates,
       };
-      if (JSON.stringify(newErroredLayers) !== JSON.stringify(state.errored)) {
-        dispatch({ type: 'allErrored', payload: newErroredLayers });
-      }
+      dispatch({ type: 'erroredMulti', payload: newErroredLayers });
     },
-    [dispatch, state],
+    [dispatch],
   );
 
   const updateVisibleLayers = useCallback(
-    (updates = {}, merge = true) => {
-      const newVisibleLayers: LayersState['visible'] = {
-        ...(merge ? state.visible : initialState.visible),
+    (updates: Partial<LayersState['visible']> = {}, merge: boolean = true) => {
+      const newVisibleLayers = {
+        ...(!merge && initialState.visible),
         ...updates,
-      };
-      if (JSON.stringify(newVisibleLayers) !== JSON.stringify(state.visible)) {
-        dispatch({ type: 'allVisible', payload: newVisibleLayers });
-      }
+      } as LayersState['visible'];
+      dispatch({ type: 'visibleMulti', payload: newVisibleLayers });
     },
-    [dispatch, state],
+    [dispatch],
   );
 
   return {
-    ...state,
-    flattenedLayers,
+    ...state.layers,
+    erroredLayers: state.errored,
     resetLayers,
     setLayer,
+    setResetHandler,
     updateErroredLayers,
     updateVisibleLayers,
+    visibleLayers: state.visible,
   };
+}
+
+// Returns state stored in `LayersProvider` context component.
+export function useLayersState() {
+  const state = useContext(StateContext);
+
+  if (state === undefined) {
+    throw new Error('useLayersState must be called within a LayersProvider');
+  }
+
+  return state;
 }
 
 export function useLayersDispatch() {
@@ -181,11 +182,54 @@ export function useLayersDispatch() {
 ## Constants
 */
 
-const layerIds = [
+const featureLayerIds = [
+  'areasLayer',
+  'countyLayer',
+  'congressionalLayer',
+  'ejscreenLayer',
+  'linesLayer',
+  'pointsLayer',
+  'watershedsLayer',
+  'wildScenicRiversLayer',
+  'wsioHealthIndexLayer',
+] as const;
+
+const graphicsLayerIds = [
+  'actionsLayer',
+  'boundariesLayer',
+  'issuesLayer',
+  'nonprofitsLayer',
+  'protectedAreasHighlightLayer',
+  'providersLayer',
+  'searchIconLayer',
+  'selectedTribeLayer',
+  'upstreamLayer',
+] as const;
+
+const groupLayerIds = [
   'allWaterbodiesLayer',
+  'cyanLayer',
   'monitoringLocationsLayer',
   'dischargersLayer',
+  'tribalLayer',
   'usgsStreamgagesLayer',
+  'waterbodyLayer',
+] as const;
+
+const mapImageLayerIds = [
+  'mappedWaterLayer',
+  'protectedAreasLayer',
+  'stateBoundariesLayer',
+] as const;
+
+const wmsLayerIds = ['landCoverLayer'] as const;
+
+const layerIds = [
+  ...featureLayerIds,
+  ...graphicsLayerIds,
+  ...groupLayerIds,
+  ...mapImageLayerIds,
+  ...wmsLayerIds,
 ] as const;
 
 const initialState = layerIds.reduce(
@@ -223,15 +267,15 @@ const initialState = layerIds.reduce(
 
 type Action =
   | {
-      type: 'allErrored';
+      type: 'erroredMulti';
       payload: LayersState['errored'];
     }
   | {
-      type: 'allLayers';
+      type: 'layersMulti';
       payload: LayersState['layers'];
     }
   | {
-      type: 'allVisible';
+      type: 'visibleMulti';
       payload: LayersState['visible'];
     }
   | {
@@ -262,10 +306,18 @@ export type LayersState = {
     [L in LayerId]: boolean;
   };
   layers: {
-    [L in LayerId]: __esri.GroupLayer | null;
+    [F in (typeof featureLayerIds)[number]]: __esri.FeatureLayer | null;
+  } & {
+    [G in (typeof graphicsLayerIds)[number]]: __esri.GraphicsLayer | null;
+  } & {
+    [G in (typeof groupLayerIds)[number]]: __esri.GroupLayer | null;
+  } & {
+    [M in (typeof mapImageLayerIds)[number]]: __esri.MapImageLayer | null;
+  } & {
+    [W in (typeof wmsLayerIds)[number]]: __esri.WMSLayer | null;
   };
   resetters: {
-    [L in LayerId]: (() => Promise<void>) | (() => void);
+    [L in LayerId]: () => void;
   };
   visible: {
     [L in LayerId]: boolean;

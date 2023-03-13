@@ -310,11 +310,15 @@ function filterLocations(groups, timeframe) {
 }
 
 function Monitoring() {
-  const { cyanWaterbodies, visibleLayers, updateVisibleLayers } = useContext(
-    LocationSearchContext,
-  );
+  const { cyanWaterbodies } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayers();
+  const {
+    monitoringLocationsLayer,
+    updateVisibleLayers,
+    usgsStreamgagesLayer,
+    visibleLayers,
+  } = useLayers();
+
   const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
 
   const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
@@ -331,17 +335,9 @@ function Monitoring() {
   // used for when the user toggles layers in full screen mode and then
   // exits full screen.
   useEffect(() => {
-    if (typeof visibleLayers.usgsStreamgagesLayer === 'boolean') {
-      setUsgsStreamgagesDisplayed(visibleLayers.usgsStreamgagesLayer);
-    }
-
-    if (typeof visibleLayers.monitoringLocationsLayer === 'boolean') {
-      setMonitoringDisplayed(visibleLayers.monitoringLocationsLayer);
-    }
-
-    if (typeof visibleLayers.cyanLayer === 'boolean') {
-      setCyanDisplayed(visibleLayers.cyanLayer);
-    }
+    setUsgsStreamgagesDisplayed(visibleLayers.usgsStreamgagesLayer);
+    setMonitoringDisplayed(visibleLayers.monitoringLocationsLayer);
+    setCyanDisplayed(visibleLayers.cyanLayer);
   }, [visibleLayers]);
 
   const handleCurrentWaterConditionsToggle = useCallback(
