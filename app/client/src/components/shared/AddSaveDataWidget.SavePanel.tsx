@@ -47,6 +47,11 @@ const layersToIgnore = [
   'nonprofitsLayer',
   'protectedAreasHighlightLayer',
   'surroundingMonitoringLocationsLayer',
+
+  // TODO layers that still need to be added
+  'issuesLayer',
+  'cyanLayer',
+  'upstreamWatershed',
 ];
 
 const layerTypesToIgnore = ['wcs', 'wfs'];
