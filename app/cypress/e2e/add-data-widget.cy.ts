@@ -158,7 +158,7 @@ describe('Add & Save Data Widget', () => {
         // Some layers don't have titles. If this is the case, skip this test
         if (layerTitle) {
           // verify the layer is visible on the layers panel
-          cy.findByText(layerTitle);
+          cy.findAllByText(layerTitle);
         }
 
         // delete the layer
