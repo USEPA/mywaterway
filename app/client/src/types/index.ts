@@ -87,8 +87,8 @@ export interface ExtendedLayer extends __esri.Layer {
 }
 
 export type LookupFile = {
-  status: 'fetching' | 'success' | 'failure',
-  data: any,
+  status: 'fetching' | 'success' | 'failure';
+  data: any;
 };
 
 export interface MonitoringFeatureUpdate {

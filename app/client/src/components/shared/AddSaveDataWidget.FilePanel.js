@@ -50,9 +50,9 @@ function getNumberFromParen(str: string) {
 /**
  * Determines if the desired name has already been used. If it has
  * it appends in index to the end (i.e. '<desiredName> (2)').
- * 
+ *
  * @param layers Layers to search in for determining if name is in use
- * @param desiredName Name to check if in use 
+ * @param desiredName Name to check if in use
  * @returns The desired name with in index value if it is already in use
  */
 function getLayerName(layers, desiredName) {

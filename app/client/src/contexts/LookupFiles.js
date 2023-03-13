@@ -27,8 +27,8 @@ type LookupFiles = {
   setDocumentOrder: Function,
   educatorMaterials: LookupFile,
   setEducatorMaterials: Function,
-  layerProps: LookupFile;
-  setLayerProps: Function;
+  layerProps: LookupFile,
+  setLayerProps: Function,
   nars: LookupFile,
   setNars: Function,
   notifications: LookupFile,

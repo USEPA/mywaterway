@@ -324,8 +324,11 @@ function MapWidgets({
   layers,
   onHomeWidgetRendered = () => {},
 }: Props) {
-  const { addSaveDataWidgetVisible, setAddSaveDataWidgetVisible, widgetLayers } =
-    useAddSaveDataWidgetState();
+  const {
+    addSaveDataWidgetVisible,
+    setAddSaveDataWidgetVisible,
+    widgetLayers,
+  } = useAddSaveDataWidgetState();
 
   const pathname = window.location.pathname;
   const abortSignal = useAbortSignal();
@@ -427,7 +430,7 @@ function MapWidgets({
 
     map.removeAll();
     map.addMany(layers);
-    map.addMany(widgetLayers.map(layer => layer.layer));
+    map.addMany(widgetLayers.map((layer) => layer.layer));
 
     // gets a layer type value used for sorting
     function getLayerType(layer: __esri.Layer) {
@@ -629,9 +632,8 @@ function MapWidgets({
 
   // Creates and adds the legend widget to the map
   const rnd = useRef<Rnd | null>(null);
-  const [addSaveDataWidget, setAddSaveDataWidget] = useState<HTMLDivElement | null>(
-    null,
-  );
+  const [addSaveDataWidget, setAddSaveDataWidget] =
+    useState<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!view?.ui || addSaveDataWidget) return;
 
@@ -678,7 +680,12 @@ function MapWidgets({
     window.addEventListener('resize', handleResize);
 
     setAddSaveDataWidget(node);
-  }, [view, addSaveDataWidget, addSaveDataWidgetVisible, setAddSaveDataWidgetVisible]);
+  }, [
+    view,
+    addSaveDataWidget,
+    addSaveDataWidgetVisible,
+    setAddSaveDataWidgetVisible,
+  ]);
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
@@ -1181,7 +1188,11 @@ function ShowAddSaveDataWidget({
   return (
     <div
       className="add-save-data-widget"
-      title={widgetHidden ? 'Open Add & Save Data Widget' : 'Close Add & Save Data Widget'}
+      title={
+        widgetHidden
+          ? 'Open Add & Save Data Widget'
+          : 'Close Add & Save Data Widget'
+      }
       style={hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}

@@ -489,7 +489,7 @@ export async function createFeatureLayers(
 /**
  * Converts a provided layer's graphics/features to an adds array
  * to be passed into the applyEdits service call.
- * 
+ *
  * @param layer Layer to get graphics/features from
  * @param adds Array to add graphics/features to
  */
@@ -555,11 +555,15 @@ async function applyEdits({
         const subLayer = subLayers.find((s) => s.title === layerRes.name);
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
-      } else if (['dischargersLayer', 'monitoringLocationsLayer', 'usgsStreamgagesLayer'].includes(layer.id)) {
+      } else if (
+        [
+          'dischargersLayer',
+          'monitoringLocationsLayer',
+          'usgsStreamgagesLayer',
+        ].includes(layer.id)
+      ) {
         const groupLayer = layer.layer as __esri.GroupLayer;
-        const enclosedLayer = groupLayer.findLayerById(
-          `${layer.id}-enclosed`,
-        );
+        const enclosedLayer = groupLayer.findLayerById(`${layer.id}-enclosed`);
         await processLayerFeatures(enclosedLayer, adds);
       } else if (layer.widgetLayer?.type === 'file') {
         adds = layer.widgetLayer.rawLayer.featureSet.features;
@@ -976,9 +980,9 @@ export async function publish({
   layerProps: LookupFile;
   serviceMetaData: ServiceMetaDataType;
 }): Promise<{
-  layersResult?: AddToDefinitionResponseType,
-  featuresResult?: ApplyEditsResponseType[],
-  webMapResult: AddItemResponseType,
+  layersResult?: AddToDefinitionResponseType;
+  featuresResult?: ApplyEditsResponseType[];
+  webMapResult: AddItemResponseType;
 }> {
   if (layers.length === 0) throw new Error('No layers to publish.');
 

@@ -1500,7 +1500,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const processGeocodeServerResults = useCallback(
     (searchText, hucRes = null) => {
-      const renderMapAndZoomTo = (longitude, latitude, searchText, hucRes, callback) => {
+      const renderMapAndZoomTo = (
+        longitude,
+        latitude,
+        searchText,
+        hucRes,
+        callback,
+      ) => {
         const location = {
           type: 'point',
           longitude: longitude,
@@ -1524,7 +1530,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               height: 25,
               yoffset: 9, // this is a little lower to account for space below pin
             }),
-            attributes: { 
+            attributes: {
               OBJECTID: 1,
               searchText,
               huc12: hucFeature ? hucFeature.attributes.huc12 : '',
@@ -1757,8 +1763,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           //   where the address would normally be.
           // Go ahead and zoom to the center of the huc
           const { centermass_x, centermass_y } = hucRes.features[0].attributes;
-          renderMapAndZoomTo(centermass_x, centermass_y, searchText, hucRes, () =>
-            handleHUC12(hucRes),
+          renderMapAndZoomTo(
+            centermass_x,
+            centermass_y,
+            searchText,
+            hucRes,
+            () => handleHUC12(hucRes),
           );
 
           // set drinkingWater to an empty array, since we don't have

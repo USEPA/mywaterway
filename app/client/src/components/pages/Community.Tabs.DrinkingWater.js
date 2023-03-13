@@ -245,10 +245,7 @@ function DrinkingWater() {
   // draw the drinking water providers (county) on the map
   const [countyGraphic, setCountyGraphic] = useState(null);
   useEffect(() => {
-    if (
-      !providersLayer?.graphics ||
-      providersLayer.graphics.length === 0
-    ) {
+    if (!providersLayer?.graphics || providersLayer.graphics.length === 0) {
       setCountyGraphic(null); // set to null if new search results in no boundaries
       return;
     }

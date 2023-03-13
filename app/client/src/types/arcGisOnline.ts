@@ -1,4 +1,8 @@
-import { IFeature, ILayer, IServiceNameAvailable } from "@esri/arcgis-rest-types";
+import {
+  IFeature,
+  ILayer,
+  IServiceNameAvailable,
+} from '@esri/arcgis-rest-types';
 import { WidgetLayer } from 'types/index';
 
 export type AddToDefinitionResponseType = {
@@ -12,7 +16,7 @@ export type AddToDefinitionResponseType = {
     id: number;
     name: string;
   }[];
-}
+};
 
 export type ApplyEditsParameterType = {
   id?: number;
@@ -47,7 +51,7 @@ export type ILayerExtendedType = Partial<ILayer> & {
   layers?: ILayerExtendedType[];
   popupInfo?: any;
   styleUrl?: string;
-} 
+};
 
 export interface IServiceNameAvailableExtended extends IServiceNameAvailable {
   error?: any;
@@ -120,7 +124,7 @@ export type SaveLayerListType = {
 
 export type SaveLayersListType = {
   [key: string]: SaveLayerListType;
-}
+};
 
 export type ServiceMetaDataType = {
   label: string; // sample type name

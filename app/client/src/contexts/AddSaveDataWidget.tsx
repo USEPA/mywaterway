@@ -9,7 +9,7 @@ type SearchResultsState =
   | { status: 'success'; data: __esri.PortalQueryResult | null };
 
 type State = {
-  activeTabIndex: number,
+  activeTabIndex: number;
   setActiveTabIndex: Dispatch<SetStateAction<number>>;
   addSaveDataWidgetVisible: boolean;
   setAddSaveDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
@@ -35,11 +35,13 @@ type Props = {
 
 export function AddSaveDataWidgetProvider({ children }: Props) {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const [addSaveDataWidgetVisible, setAddSaveDataWidgetVisible] = useState(false);
+  const [addSaveDataWidgetVisible, setAddSaveDataWidgetVisible] =
+    useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [saveAsName, setSaveAsName] = useState('');
   const [saveDescription, setSaveDescription] = useState('');
-  const [saveLayersList, setSaveLayersList] = useState<SaveLayersListType | null>(null);
+  const [saveLayersList, setSaveLayersList] =
+    useState<SaveLayersListType | null>(null);
   const [searchResults, setSearchResults] = useState<SearchResultsState>({
     status: 'idle',
     data: null,
@@ -73,7 +75,7 @@ export function AddSaveDataWidgetProvider({ children }: Props) {
     saveDescription,
     saveLayersList,
     searchResults,
-    widgetLayers
+    widgetLayers,
   ]);
 
   return (

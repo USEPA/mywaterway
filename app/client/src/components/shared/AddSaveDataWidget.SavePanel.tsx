@@ -22,7 +22,11 @@ import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
 // types
-import { SaveLayerListType, SaveLayersListType, ServiceMetaDataType } from 'types/arcGisOnline';
+import {
+  SaveLayerListType,
+  SaveLayersListType,
+  ServiceMetaDataType,
+} from 'types/arcGisOnline';
 
 type PublishType = {
   status:
@@ -32,14 +36,15 @@ type PublishType = {
     | 'failure'
     | 'name-not-provided'
     | 'name-not-available'
-    | 'layers-not-provided',
+    | 'layers-not-provided';
   error?: {
     message: string;
     stack?: string | undefined;
-  }
+  };
 };
 
-const tooltipCost = 'Including this layer may require ArcGIS Online credits for storage.';
+const tooltipCost =
+  'Including this layer may require ArcGIS Online credits for storage.';
 const tooltipFiltered = 'This layer will be saved with your selected filters.';
 const tooltipNotLoaded = 'This layer may not have been loaded yet.';
 
@@ -76,10 +81,7 @@ const layersMayBeFiltered = [
   'monitoringLocationsLayer',
 ];
 
-const layersMayNotHaveLoaded = [
-  'cyanLayer',
-  'upstreamWatershed',
-];
+const layersMayNotHaveLoaded = ['cyanLayer', 'upstreamWatershed'];
 
 const layerFilterOptions = [
   { value: 'All', label: 'All' },
@@ -164,7 +166,7 @@ const sharedInputStyles = `
 
 const saveAsInputStyles = css`
   ${sharedInputStyles}
-  height: 36px;  
+  height: 36px;
 `;
 
 const descriptionInputStyles = css`
@@ -183,7 +185,7 @@ function errorMessage(text: string) {
 }
 
 type Props = {
-  visible: Boolean,
+  visible: Boolean;
 };
 
 function SavePanel({ visible }: Props) {
@@ -202,7 +204,9 @@ function SavePanel({ visible }: Props) {
   const layerProps = useLayerProps();
   const services = useServicesContext();
 
-  const [saveLayerFilter, setSaveLayerFilter] = useState(layerFilterOptions[0].value);
+  const [saveLayerFilter, setSaveLayerFilter] = useState(
+    layerFilterOptions[0].value,
+  );
 
   // Initialize the OAuth
   useEffect(() => {
@@ -413,7 +417,10 @@ function SavePanel({ visible }: Props) {
     layersToPublish: any[],
   ) {
     // check if the name is available in the user's org
-    const nameAvailableResponse = await isServiceNameAvailable(portal, serviceMetaData.label);
+    const nameAvailableResponse = await isServiceNameAvailable(
+      portal,
+      serviceMetaData.label,
+    );
     if (nameAvailableResponse.error) {
       setPublishResponse({
         status: 'failure',
@@ -441,34 +448,37 @@ function SavePanel({ visible }: Props) {
       });
 
       // parse the publish output
-      const layerSuccess = !response.layersResult 
-        ? true 
+      const layerSuccess = !response.layersResult
+        ? true
         : response.layersResult.success;
-      
+
       let totalFeatures = 0;
       let featureFailedCount = 0;
       response.featuresResult?.forEach((l) => {
         l.addResults?.forEach((r) => {
           totalFeatures += 1;
-          if(!r.success) featureFailedCount += 1;
+          if (!r.success) featureFailedCount += 1;
         });
       });
 
       const webMapSuccess = response.webMapResult.success;
-      
-      if(layerSuccess && featureFailedCount === 0 && webMapSuccess) {
+
+      if (layerSuccess && featureFailedCount === 0 && webMapSuccess) {
         setPublishResponse({
           status: 'success',
         });
       } else {
         let errorMessage = '';
 
-        if(!layerSuccess) errorMessage += 'Failed to save 1 or more layers. Check console for more information.\n';
-        if(featureFailedCount > 0) errorMessage += `Partial save success. Failed to save ${featureFailedCount} of ${totalFeatures} feature(s).\n`;
-        if(webMapSuccess) errorMessage += 'Failed to save the web map.\n'
+        if (!layerSuccess)
+          errorMessage +=
+            'Failed to save 1 or more layers. Check console for more information.\n';
+        if (featureFailedCount > 0)
+          errorMessage += `Partial save success. Failed to save ${featureFailedCount} of ${totalFeatures} feature(s).\n`;
+        if (webMapSuccess) errorMessage += 'Failed to save the web map.\n';
 
         errorMessage += 'Check the console for more details.';
-        
+
         setPublishResponse({
           status: 'failure',
           error: {
@@ -490,7 +500,7 @@ function SavePanel({ visible }: Props) {
 
   // Saves the data to ArcGIS Online
   async function handleSaveAgo(ev: MouseEvent<HTMLButtonElement>) {
-    if(!saveLayersList) return;
+    if (!saveLayersList) return;
 
     // check if user provided a name
     if (!saveAsName) {
@@ -593,10 +603,7 @@ function SavePanel({ visible }: Props) {
             .map((value, index) => {
               const key = value.id;
 
-              if (
-                saveLayerFilter === 'Free' &&
-                value.requiresFeatureService
-              ) {
+              if (saveLayerFilter === 'Free' && value.requiresFeatureService) {
                 return null;
               }
 
@@ -607,7 +614,7 @@ function SavePanel({ visible }: Props) {
                     checked={value.toggled}
                     onChange={(ev) => {
                       setSaveLayersList((saveLayersList) => {
-                        if(!saveLayersList) return saveLayersList;
+                        if (!saveLayersList) return saveLayersList;
 
                         return {
                           ...saveLayersList,
@@ -620,17 +627,38 @@ function SavePanel({ visible }: Props) {
                     }}
                   />
                   <span>{value.label}</span>
-                  {value.requiresFeatureService && <HelpTooltip label={tooltipCost} iconClass='fas fa-dollar-sign' />}
-                  {layersMayBeFiltered.includes(key) && <HelpTooltip label={tooltipFiltered} iconClass='fas fa-asterisk' />}
-                  {layersMayNotHaveLoaded.includes(key) && <HelpTooltip label={tooltipNotLoaded} iconClass='fas fa-plus' />}
+                  {value.requiresFeatureService && (
+                    <HelpTooltip
+                      label={tooltipCost}
+                      iconClass="fas fa-dollar-sign"
+                    />
+                  )}
+                  {layersMayBeFiltered.includes(key) && (
+                    <HelpTooltip
+                      label={tooltipFiltered}
+                      iconClass="fas fa-asterisk"
+                    />
+                  )}
+                  {layersMayNotHaveLoaded.includes(key) && (
+                    <HelpTooltip
+                      label={tooltipNotLoaded}
+                      iconClass="fas fa-plus"
+                    />
+                  )}
                 </div>
               );
             })}
       </div>
       <p>
-        <i aria-hidden className="fas fa-dollar-sign"/> Including this layer may incur storage costs in ArcGIS Online.<br/>
-        <i aria-hidden className="fas fa-asterisk"/> This layer will be saved with your selected filters.<br/>
-        <i aria-hidden className="fas fa-plus"/> This layer may not have been loaded yet.<br/>
+        <i aria-hidden className="fas fa-dollar-sign" /> Including this layer
+        may incur storage costs in ArcGIS Online.
+        <br />
+        <i aria-hidden className="fas fa-asterisk" /> This layer will be saved
+        with your selected filters.
+        <br />
+        <i aria-hidden className="fas fa-plus" /> This layer may not have been
+        loaded yet.
+        <br />
       </p>
       <div>
         <label htmlFor="save-as-name">Name: </label>
@@ -652,7 +680,11 @@ function SavePanel({ visible }: Props) {
       </div>
       <div css={submitSectionStyles}>
         {publishResponse.status === 'pending' && <LoadingSpinner />}
-        {publishResponse.status === 'failure' && errorMessage(publishResponse.error?.message || 'Unknown error. Check developer tools console.')}
+        {publishResponse.status === 'failure' &&
+          errorMessage(
+            publishResponse.error?.message ||
+              'Unknown error. Check developer tools console.',
+          )}
         {publishResponse.status === 'name-not-provided' &&
           errorMessage('Please provide a name and try again.')}
         {publishResponse.status === 'name-not-available' &&

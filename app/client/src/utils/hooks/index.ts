@@ -68,7 +68,6 @@ const allWaterbodiesAlpha = {
   outline: 1,
 };
 
-
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
 // tab changes) and from the use useWaterbodyOnMap hook (handles sub tab changes
