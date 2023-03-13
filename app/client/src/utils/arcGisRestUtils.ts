@@ -148,7 +148,7 @@ async function getFeatureServiceRetry(
             retryCount + 1
           } of 3)...`,
         );
-        // setTimeout(() => fetchLookup(retryCount + 1), 1000);
+
         await new Promise((resolve) => setTimeout(resolve, 1000));
         return await fetchLookup(retryCount + 1);
       }
