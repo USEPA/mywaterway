@@ -212,7 +212,7 @@ function SavePanel({ visible }: Props) {
   useEffect(() => {
     if (oAuthInfo) return;
     const info = new OAuthInfo({
-      appId: process.env.REACT_APP_ARCGIS_APP_ID,
+      appId: process.env.REACT_APP_ARCGIS_CLIENT_ID,
       popup: true,
       flowType: 'authorization-code',
       popupCallbackUrl: `${window.location.origin}/oauth-callback.html`,
