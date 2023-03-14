@@ -10,7 +10,7 @@ type Props = {
   children: ReactNode,
 };
 
-type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
+export type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
 
 type Huc12SummaryData = {
   count: number,
@@ -127,6 +127,7 @@ type State = {
   areasLayer: Object,
   upstreamLayer: Object,
   upstreamLayerVisible: boolean,
+  upstreamWatershedResponse: { status: Status, data: __esri.FeatureSet | null },
   errorMessage: string,
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
@@ -212,6 +213,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     areasLayer: '',
     upstreamLayer: '',
     upstreamLayerVisible: false,
+    upstreamWatershedResponse: { status: 'idle', data: null },
     errorMessage: '',
     summaryLayerMaxRecordCount: null,
     watershedsLayerMaxRecordCount: null,
@@ -303,6 +305,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     getUpstreamLayer: () => {
       return this.state.upstreamLayer;
     },
+    getUpstreamWatershedResponse: () => {
+      return this.state.upstreamWatershedResponse;
+    },
     getUpstreamWidgetDisabled: () => {
       return this.state.upstreamWidgetDisabled;
     },
@@ -365,6 +370,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setUpstreamLayerVisible: (upstreamLayerVisible) => {
       this.setState({ upstreamLayerVisible });
+    },
+    setUpstreamWatershedResponse: (upstreamWatershedResponse) => {
+      this.setState({ upstreamWatershedResponse });
     },
     setSummaryLayerMaxRecordCount: (summaryLayerMaxRecordCount) => {
       this.setState({ summaryLayerMaxRecordCount });

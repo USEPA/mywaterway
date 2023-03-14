@@ -17,16 +17,12 @@ import {
 import Switch from 'components/shared/Switch';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { LocationSearchContext, Status } from 'contexts/locationSearch';
 import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
 // types
-import {
-  SaveLayerListType,
-  SaveLayersListType,
-  ServiceMetaDataType,
-} from 'types/arcGisOnline';
+import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
 
 type PublishType = {
   status:
@@ -56,7 +52,6 @@ const layersToIgnore = [
   // TODO layers that still need to be added
   'issuesLayer',
   'cyanLayer',
-  'upstreamWatershed',
 ];
 
 const layerTypesToIgnore = ['wcs', 'wfs'];
@@ -199,6 +194,11 @@ function SavePanel({ visible }: Props) {
     widgetLayers,
   } = useAddSaveDataWidgetState();
   const mapView = useContext(LocationSearchContext).mapView as __esri.MapView;
+  const upstreamWatershedResponse = useContext(LocationSearchContext)
+    .upstreamWatershedResponse as {
+    status: Status;
+    data: __esri.FeatureSet | null;
+  };
   const [oAuthInfo, setOAuthInfo] = useState<__esri.OAuthInfo | null>(null);
   const [userPortal, setUserPortal] = useState<__esri.Portal | null>(null);
   const layerProps = useLayerProps();
@@ -338,7 +338,7 @@ function SavePanel({ visible }: Props) {
 
     // build object of switches based on layers on map
     const newSwitches = saveLayersList ? { ...saveLayersList } : {};
-    const newSwitchesNoLayer: SaveLayersListType = {};
+    const newSwitchesNoLayer: any = {};
     const layersOnMap: string[] = [];
     mapView.map.layers.forEach((layer) => {
       if (
@@ -374,7 +374,7 @@ function SavePanel({ visible }: Props) {
       delete newSwitches[layerId];
     });
 
-    const oldSwitches: SaveLayersListType = {};
+    const oldSwitches: any = {};
     if (saveLayersList) {
       Object.keys(saveLayersList).forEach((key) => {
         const value = saveLayersList[key];
@@ -414,7 +414,7 @@ function SavePanel({ visible }: Props) {
   async function runPublish(
     portal: __esri.Portal,
     serviceMetaData: ServiceMetaDataType,
-    layersToPublish: any[],
+    layersToPublish: LayerType[],
   ) {
     // check if the name is available in the user's org
     const nameAvailableResponse = await isServiceNameAvailable(
@@ -511,17 +511,26 @@ function SavePanel({ visible }: Props) {
     }
 
     // Gather the layers to be published
-    const layersToPublish: SaveLayerListType[] = [];
+    const layersToPublish: LayerType[] = [];
     Object.values(saveLayersList).forEach((value) => {
       if (!value.toggled) return;
       if (saveLayerFilter === 'Free' && value.requiresFeatureService) {
         return;
       }
+      if (
+        value.id === 'upstreamWatershed' &&
+        upstreamWatershedResponse.status !== 'success'
+      ) {
+        return;
+      }
 
       // get the widgetLayer for handling layers added via the Add Data Widget
       const widgetLayer = widgetLayers.find((l) => l.layer.id === value.id);
+      const associatedData = upstreamWatershedResponse.data;
+
       layersToPublish.push({
         ...value,
+        associatedData,
         widgetLayer,
       });
     });

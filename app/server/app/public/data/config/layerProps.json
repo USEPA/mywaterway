@@ -479,6 +479,35 @@
         }
       }
     },
+    "upstreamWatershed": {
+      "geometryType": "esriGeometryPolygon",
+      "description": "",
+      "drawingInfo": {
+        "renderer": {
+          "type": "simple",
+          "symbol": {
+            "type": "esriSFS",
+            "style": "esriSFSSolid",
+            "color": [
+              31,
+              184,
+              255,
+              51
+            ],
+            "outline": {
+              "type": "esriSLS",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "width": 1,
+              "style": "esriSLSSolid"
+            }
+          }
+        }
+      }
+    },
     "usgsStreamgagesLayer": {
       "geometryType": "esriGeometryPoint",
       "description": "",

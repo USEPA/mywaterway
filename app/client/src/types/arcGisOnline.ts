@@ -58,12 +58,17 @@ export interface IServiceNameAvailableExtended extends IServiceNameAvailable {
 }
 
 export type LayerType = {
+  associatedData?: __esri.FeatureSet | null;
   id: string;
   label: string;
   layer: __esri.Layer;
   requiresFeatureService: boolean;
   toggled: boolean;
   widgetLayer?: WidgetLayer;
+};
+
+export type LayersType = {
+  [key: string]: LayerType;
 };
 
 export type PortalService = {
@@ -111,19 +116,6 @@ export type PortalService = {
   typeKeywords: string[];
   url: string;
   userItemUrl: string;
-};
-
-export type SaveLayerListType = {
-  id: string;
-  label: string;
-  layer: __esri.Layer | null;
-  requiresFeatureService: boolean;
-  toggled: boolean;
-  widgetLayer?: WidgetLayer;
-};
-
-export type SaveLayersListType = {
-  [key: string]: SaveLayerListType;
 };
 
 export type ServiceMetaDataType = {

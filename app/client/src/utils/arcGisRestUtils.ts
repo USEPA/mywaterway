@@ -375,6 +375,22 @@ export async function createFeatureLayers(
             .map(convertFieldToJSON),
         });
         continue;
+      } else if (layer.layer.id === 'upstreamWatershed' && layer.associatedData) {
+        // find the object id field
+        const objectIdField = layer.associatedData.fields.find((f) => f.type === 'oid');
+
+        layerIds.push(layer.layer.id);
+        layersParams.push({
+          ...layerProps.data.defaultLayerProps,
+          ...properties,
+          name: layer.layer.title,
+          objectIdField: objectIdField?.name,
+          spatialReference: layer.associatedData.spatialReference.toJSON(),
+          fields: layer.associatedData.fields
+            .filter((field) => field.name.toUpperCase() !== 'SHAPE')
+            .map(convertFieldToJSON),
+        });
+        continue;
       } else if (layer.layer.id === 'waterbodyLayer') {
         const groupLayer = layer.layer as __esri.GroupLayer;
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
@@ -820,6 +836,8 @@ export function addWebMap({
           properties = mapView.map.findLayerById('watershedsLayer');
         if (l.layer.id === 'providersLayer')
           properties = mapView.map.findLayerById('countyLayer');
+        if (l.associatedData) 
+          properties = l.associatedData;
 
         // handle everything else
         popupFields = buildPopupFieldsList(

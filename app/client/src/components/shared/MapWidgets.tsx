@@ -31,7 +31,7 @@ import MapLegend from 'components/shared/MapLegend';
 import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { LocationSearchContext, Status } from 'contexts/locationSearch';
 import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { useSurroundingsState } from 'contexts/Surroundings';
@@ -357,6 +357,8 @@ function MapWidgets({
     setUpstreamLayerVisible,
     setUpstreamLayer,
     getUpstreamLayer,
+    getUpstreamWatershedResponse,
+    setUpstreamWatershedResponse,
     getCurrentExtent,
     setCurrentExtent,
     getHuc12,
@@ -1027,6 +1029,7 @@ function MapWidgets({
         getTemplate={getTemplate}
         getUpstreamExtent={getUpstreamExtent}
         getUpstreamLayer={getUpstreamLayer}
+        getUpstreamWatershedResponse={getUpstreamWatershedResponse}
         getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
         getWatershed={getWatershed}
         services={services}
@@ -1034,6 +1037,7 @@ function MapWidgets({
         setUpstreamExtent={setUpstreamExtent}
         setUpstreamLayer={setUpstreamLayer}
         setUpstreamLayerVisible={setUpstreamLayerVisible}
+        setUpstreamWatershedResponse={setUpstreamWatershedResponse}
         setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
         view={view}
       />
@@ -1045,6 +1049,7 @@ function MapWidgets({
         getTemplate={getTemplate}
         getUpstreamExtent={getUpstreamExtent}
         getUpstreamLayer={getUpstreamLayer}
+        getUpstreamWatershedResponse={getUpstreamWatershedResponse}
         getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
         getWatershed={getWatershed}
         map={map}
@@ -1054,6 +1059,7 @@ function MapWidgets({
         setUpstreamExtent={setUpstreamExtent}
         setUpstreamLayer={setUpstreamLayer}
         setUpstreamLayerVisible={setUpstreamLayerVisible}
+        setUpstreamWatershedResponse={setUpstreamWatershedResponse}
         setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
         setCurrentExtent={setCurrentExtent}
         upstreamWidget={node}
@@ -1072,6 +1078,7 @@ function MapWidgets({
     getTemplate,
     getUpstreamExtent,
     getUpstreamLayer,
+    getUpstreamWatershedResponse,
     getUpstreamWidgetDisabled,
     getWatershed,
     map,
@@ -1083,6 +1090,7 @@ function MapWidgets({
     setUpstreamExtent,
     setUpstreamLayer,
     setUpstreamLayerVisible,
+    setUpstreamWatershedResponse,
     setUpstreamWidget,
     setUpstreamWidgetDisabled,
     upstreamWidgetCreated,
@@ -1312,6 +1320,9 @@ function retrieveUpstreamWatershed(
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>,
   setUpstreamLayer: Dispatch<SetStateAction<__esri.Layer>>,
   setUpstreamLayerVisible: Dispatch<SetStateAction<boolean>>,
+  setUpstreamWatershedResponse: Dispatch<
+    SetStateAction<{ status: Status; data: __esri.FeatureSet | null }>
+  >,
   setUpstreamWidgetDisabled: Dispatch<SetStateAction<boolean>>,
   view: __esri.MapView | null,
   setUpstreamLoading: Dispatch<SetStateAction<boolean>>,
@@ -1370,6 +1381,7 @@ function retrieveUpstreamWatershed(
   const filter = `xwalk_huc12='${currentHuc12}'`;
 
   setUpstreamLoading(true);
+  setUpstreamWatershedResponse({ status: 'fetching', data: null });
 
   if (services.status !== 'success') return;
   const url = services.data.upstreamWatershed;
@@ -1384,6 +1396,7 @@ function retrieveUpstreamWatershed(
     .executeQueryJSON(url, queryParams)
     .then((res) => {
       setUpstreamLoading(false);
+      setUpstreamWatershedResponse({ status: 'success', data: res });
       const watershed = getWatershed() || 'Unknown Watershed';
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
@@ -1449,6 +1462,7 @@ function retrieveUpstreamWatershed(
     .catch((err) => {
       if (isAbort(err)) return;
       setUpstreamLoading(false);
+      setUpstreamWatershedResponse({ status: 'failure', data: null });
       canDisable && setUpstreamWidgetDisabled(true);
       upstreamLayer.error = true;
       upstreamLayer.visible = false;
@@ -1522,6 +1536,10 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   getTemplate: (graphic: Feature) => HTMLDivElement | null;
   getUpstreamExtent: () => __esri.Extent;
   getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
+  getUpstreamWatershedResponse: () => {
+    status: Status;
+    data: __esri.FeatureSet | null;
+  };
   getUpstreamWidgetDisabled: () => boolean;
   getWatershed: () => string;
   services: ServicesState;
@@ -1529,6 +1547,9 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>;
   setUpstreamLayer: Dispatch<SetStateAction<__esri.Layer>>;
   setUpstreamLayerVisible: Dispatch<SetStateAction<boolean>>;
+  setUpstreamWatershedResponse: Dispatch<
+    SetStateAction<{ status: Status; data: __esri.FeatureSet | null }>
+  >;
   setUpstreamWidgetDisabled: Dispatch<SetStateAction<boolean>>;
   view: __esri.MapView | null;
 };
@@ -1540,6 +1561,7 @@ function ShowCurrentUpstreamWatershed({
   getTemplate,
   getUpstreamExtent,
   getUpstreamLayer,
+  getUpstreamWatershedResponse,
   getUpstreamWidgetDisabled,
   getWatershed,
   services,
@@ -1547,6 +1569,7 @@ function ShowCurrentUpstreamWatershed({
   setUpstreamExtent,
   setUpstreamLayer,
   setUpstreamLayerVisible,
+  setUpstreamWatershedResponse,
   setUpstreamWidgetDisabled,
   view,
 }: ShowCurrentUpstreamWatershedProps) {
@@ -1571,6 +1594,7 @@ function ShowCurrentUpstreamWatershed({
         setUpstreamExtent,
         setUpstreamLayer,
         setUpstreamLayerVisible,
+        setUpstreamWatershedResponse,
         setUpstreamWidgetDisabled,
         view,
         setUpstreamLoading,
@@ -1591,6 +1615,7 @@ function ShowCurrentUpstreamWatershed({
       setUpstreamExtent,
       setUpstreamLayer,
       setUpstreamLayerVisible,
+      setUpstreamWatershedResponse,
       setUpstreamWidgetDisabled,
       view,
     ],
@@ -1619,6 +1644,7 @@ function ShowSelectedUpstreamWatershed({
   getTemplate,
   getUpstreamExtent,
   getUpstreamLayer,
+  getUpstreamWatershedResponse,
   getUpstreamWidgetDisabled,
   getWatershed,
   services,
@@ -1626,6 +1652,7 @@ function ShowSelectedUpstreamWatershed({
   setUpstreamExtent,
   setUpstreamLayer,
   setUpstreamLayerVisible,
+  setUpstreamWatershedResponse,
   setUpstreamWidgetDisabled,
   view,
   map,
@@ -1724,6 +1751,7 @@ function ShowSelectedUpstreamWatershed({
             setUpstreamExtent,
             setUpstreamLayer,
             setUpstreamLayerVisible,
+            setUpstreamWatershedResponse,
             setUpstreamWidgetDisabled,
             view,
             setUpstreamLoading,
@@ -1754,6 +1782,7 @@ function ShowSelectedUpstreamWatershed({
       setUpstreamExtent,
       setUpstreamLayer,
       setUpstreamLayerVisible,
+      setUpstreamWatershedResponse,
       setUpstreamWidgetDisabled,
       view,
     ],
