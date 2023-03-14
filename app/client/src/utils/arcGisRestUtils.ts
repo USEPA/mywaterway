@@ -345,8 +345,7 @@ export async function createFeatureLayers(
         layerIds.push(layer.layer.id);
         layersParams.push({
           ...layer.widgetLayer.rawLayer.layerDefinition,
-          name: layer.label,
-          id: undefined,
+          name: layer.label.replaceAll('.', ' '), // workaround for .zip causing failure
         });
         continue;
       } else if (
