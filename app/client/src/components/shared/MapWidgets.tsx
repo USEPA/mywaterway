@@ -856,37 +856,17 @@ function MapWidgets({
     view,
   ]);
 
-  useEffect(() => {
-    if (!layers || layers.length === 0) return;
-
-    // hide/show layers based on the visibleLayers object
-    map.layers.forEach((layer) => {
-      if (visibleLayers.hasOwnProperty(layer.id)) {
-        layer.visible = visibleLayers[layer.id as LayerId];
-      } else {
-        layer.visible = false;
-      }
-    });
-  }, [layers, visibleLayers, map]);
-
-  // This code removes any layers that still have a listMode of hide.
-  // This is a workaround for an ESRI bug. The operational items are
-  // updated automatically when the listModes for the layers are changed,
-  // however ESRI always leaves one layer behind that has a listMode equal
-  // to hide. The other part of this bug, is if you build a new collection
-  // of operationalItems then the layer loading indicators no longer work.
+  // Show an error indicator next to the layer list if the layer is in error
   useEffect(() => {
     if (!layerListWidget) return;
 
-    const numOperationalItems = layerListWidget.operationalItems.length;
-    for (let i = numOperationalItems - 1; i >= 0; i--) {
-      const item = layerListWidget.operationalItems.at(i);
-      if (item.layer.listMode === 'hide') {
-        // layerListWidget.operationalItems.splice(i, 1);
-        console.log('this is true');
-      }
-    }
-  }, [layerListWidget, visibleLayers]);
+    layerListWidget.operationalItems.forEach((item) => {
+      const layerId = item.layer.id;
+      item.panel.visible =
+        erroredLayers.hasOwnProperty(layerId) &&
+        erroredLayers[layerId as LayerId];
+    });
+  }, [erroredLayers, layerListWidget]);
 
   // create the home widget, layers widget, and setup map zoom change listener
   const [

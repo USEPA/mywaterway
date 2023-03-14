@@ -592,7 +592,7 @@ function TribalMap({
     );
   }, [activeState]);
 
-  useAllWaterbodiesLayer(false, 4622350);
+  useAllWaterbodiesLayer(4622350);
   const monitoringLocationsLayer = useMonitoringLocationsLayer(
     monitoringLocationsFilter,
   );

@@ -223,9 +223,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     waterbodyLayer,
   } = useLayers();
 
-  const allWaterbodiesLayerVisible =
-    huc12 && window.location.pathname !== '/community';
-  useAllWaterbodiesLayer(allWaterbodiesLayerVisible);
+  useAllWaterbodiesLayer();
   const dischargersLayer = useDischargersLayer();
   const monitoringLocationsLayer = useMonitoringLocationsLayer(
     huc12 ? `huc=${huc12}` : null,

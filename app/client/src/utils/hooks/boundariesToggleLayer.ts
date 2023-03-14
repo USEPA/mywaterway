@@ -201,14 +201,13 @@ function useBoundariesToggleLayer<
   // Synchronize layer error state with data status
   useEffect(() => {
     updateErroredLayers({
-      [layerId]: enclosedFetchedDataState.status === 'failure' ? true : false,
+      [layerId]: enclosedFetchedDataState.status === 'failure',
     });
   }, [enclosedFetchedDataState, layerId, updateErroredLayers]);
 
   useEffect(() => {
     updateErroredLayers({
-      [layerId]:
-        surroundingFetchedDataState.status === 'failure' ? true : false,
+      [layerId]: surroundingFetchedDataState.status === 'failure',
     });
   }, [surroundingFetchedDataState, layerId, updateErroredLayers]);
 

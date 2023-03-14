@@ -8,13 +8,11 @@ import {
   useSurroundingsState,
 } from 'contexts/Surroundings';
 
-export function useAllWaterbodiesLayer(
-  initialVisible = false,
-  minScale = 577791,
-) {
+export function useAllWaterbodiesLayer(minScale = 577791) {
   const { mapView } = useContext(LocationSearchContext);
   const { disabled, updating } = useSurroundingsState();
-  const { allWaterbodiesLayer } = useLayers();
+  const { allWaterbodiesLayer, updateVisibleLayers, visibleLayers } =
+    useLayers();
 
   const surroundingsDispatch = useSurroundingsDispatch();
 
@@ -27,17 +25,14 @@ export function useAllWaterbodiesLayer(
     });
   }, [minScale, allWaterbodiesLayer]);
 
-  // Externally control initial layer visibility
+  // Synchronize layer visibility in widget with actual layer visibility
   useEffect(() => {
-    if (!allWaterbodiesLayer) return;
-
     surroundingsDispatch({
       type: 'visible',
       id: layerId,
-      payload: initialVisible,
+      payload: visibleLayers[layerId],
     });
-    allWaterbodiesLayer.visible = initialVisible;
-  }, [initialVisible, surroundingsDispatch, allWaterbodiesLayer]);
+  }, [surroundingsDispatch, visibleLayers]);
 
   // Mark the layer as updating, when necessary
   useEffect(() => {
@@ -93,15 +88,10 @@ export function useAllWaterbodiesLayer(
     (showLayer: boolean) => {
       return function toggle() {
         if (!allWaterbodiesLayer) return;
-        allWaterbodiesLayer.visible = showLayer;
-        surroundingsDispatch({
-          type: 'visible',
-          id: layerId,
-          payload: showLayer,
-        });
+        updateVisibleLayers({ [layerId]: showLayer });
       };
     },
-    [surroundingsDispatch, allWaterbodiesLayer],
+    [allWaterbodiesLayer, updateVisibleLayers],
   );
 
   useEffect(() => {
