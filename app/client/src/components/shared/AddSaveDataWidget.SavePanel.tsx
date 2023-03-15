@@ -437,7 +437,7 @@ function SavePanel({ visible }: Props) {
         });
       });
 
-      const webMapSuccess = response.webMapResult.success;
+      const webMapSuccess = response?.webMapResult.success ?? false;
 
       if (layerSuccess && featureFailedCount === 0 && webMapSuccess) {
         setPublishResponse({
@@ -451,7 +451,7 @@ function SavePanel({ visible }: Props) {
             'Failed to save 1 or more layers. Check console for more information.\n';
         if (featureFailedCount > 0)
           errorMessage += `Partial save success. Failed to save ${featureFailedCount} of ${totalFeatures} feature(s).\n`;
-        if (webMapSuccess) errorMessage += 'Failed to save the web map.\n';
+        if (!webMapSuccess) errorMessage += 'Failed to save the web map.\n';
 
         errorMessage += 'Check the console for more details.';
 
