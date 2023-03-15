@@ -1326,6 +1326,9 @@ function useSharedLayers() {
   function getMappedWaterLayer() {
     return new MapImageLayer({
       id: 'mappedWaterLayer',
+      // sublayers have minScale of 288896,
+      // but this doesn't match the actual behavior
+      minScale: 144448,
       url: services.data.mappedWater,
       title: 'Mapped Water (all)',
       sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],

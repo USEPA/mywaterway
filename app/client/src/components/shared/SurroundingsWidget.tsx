@@ -24,7 +24,7 @@ import type { MutableRefObject, ReactNode } from 'react';
 */
 
 export function useSurroundingsWidget(triggerVisible: boolean) {
-  const { layers, errored, visible: visibleLayers } = useLayersState();
+  const { layers, visible: visibleLayers } = useLayersState();
   const { togglers, disabled, updating, visible } = useSurroundingsState();
 
   const includedLayers = useMemo(() => {
@@ -46,7 +46,6 @@ export function useSurroundingsWidget(triggerVisible: boolean) {
     render(
       <SurroundingsWidget
         layers={includedLayers}
-        layersErrored={errored}
         layersUpdating={updating}
         surroundingsVisible={visible}
         toggles={togglers}
@@ -58,7 +57,6 @@ export function useSurroundingsWidget(triggerVisible: boolean) {
   }, [
     container,
     disabled,
-    errored,
     includedLayers,
     togglers,
     triggerVisible,
@@ -106,7 +104,6 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
 
 function SurroundingsWidgetContent({
   layers,
-  layersErrored,
   surroundingsVisible,
   toggles,
   togglesDisabled,
@@ -120,10 +117,9 @@ function SurroundingsWidgetContent({
           <ul>
             {(Object.keys(toggles) as BoundariesToggleLayerId[]).map((id) => {
               const layer = layers[id];
-              const layerUnavailable = togglesDisabled[id] || layersErrored[id];
               if (!layer) return null;
               let title = `Show Surrounding ${layer.title}`;
-              if (layerUnavailable) {
+              if (togglesDisabled[id]) {
                 title = `Surrounding ${layer.title} Not Available`;
               } else if (surroundingsVisible[id]) {
                 title = `Hide Surrounding ${layer.title}`;
@@ -132,16 +128,16 @@ function SurroundingsWidgetContent({
                 <li key={id}>
                   <div title={title}>
                     <div
-                      css={listItemContentStyles(layerUnavailable)}
+                      css={listItemContentStyles(togglesDisabled[id])}
                       onClick={
-                        layerUnavailable
+                        togglesDisabled[id]
                           ? undefined
                           : toggles[id](!surroundingsVisible[id])
                       }
                     >
                       <span
                         className={`esri-icon-${
-                          !layerUnavailable && surroundingsVisible[id]
+                          !togglesDisabled[id] && surroundingsVisible[id]
                             ? ''
                             : 'non-'
                         }visible`}
@@ -316,7 +312,6 @@ type SurroundingsWidgetContentProps = Omit<
 
 type SurroundingsWidgetProps = {
   layers: Partial<Pick<LayersState['layers'], BoundariesToggleLayerId>>;
-  layersErrored: LayersState['errored'];
   layersUpdating: Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
   surroundingsVisible: SurroundingsState['visible'];
   toggles: SurroundingsState['togglers'];

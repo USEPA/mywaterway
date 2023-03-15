@@ -1191,7 +1191,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         data: [],
         status: 'fetching',
       });
-      updateErroredLayers({ wsioHealthIndexLayer: false });
 
       fetchCheck(url)
         .then((res) => {
@@ -1213,15 +1212,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .catch((err) => {
           console.error(err);
           setWsioHealthIndexData({ status: 'failure', data: [] });
-          updateErroredLayers({ wsioHealthIndexLayer: true });
         });
     },
-    [setWsioHealthIndexData, services, updateErroredLayers],
+    [setWsioHealthIndexData, services],
   );
 
   const getWildScenicRivers = useCallback(
     (boundaries) => {
-      updateErroredLayers({ wildScenicRiversLayer: false });
       if (
         !boundaries ||
         !boundaries.features ||
@@ -1259,15 +1256,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             data: [],
             status: 'failure',
           });
-          updateErroredLayers({ wildScenicRiversLayer: true });
         });
     },
-    [services, setWildScenicRiversData, updateErroredLayers],
+    [services, setWildScenicRiversData],
   );
 
   const getProtectedAreas = useCallback(
     (boundaries) => {
-      updateErroredLayers({ protectedAreasLayer: false });
       if (
         !boundaries ||
         !boundaries.features ||
@@ -1288,7 +1283,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           fields: [],
           status: 'failure',
         });
-        updateErroredLayers({ protectedAreasLayer: true });
       }
 
       fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
@@ -1327,12 +1321,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         })
         .catch(onError);
     },
-    [
-      services,
-      setProtectedAreasData,
-      setDynamicPopupFields,
-      updateErroredLayers,
-    ],
+    [services, setProtectedAreasData, setDynamicPopupFields],
   );
 
   const getCyanWaterbodies = useCallback(

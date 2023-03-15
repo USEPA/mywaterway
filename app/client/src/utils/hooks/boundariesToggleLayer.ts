@@ -93,8 +93,7 @@ function useBoundariesToggleLayer<
   const { disabled: surroundingsDisabled, visible: surroundingsVisible } =
     useSurroundingsState();
   const surroundingsDispatch = useSurroundingsDispatch();
-  const { setLayer, updateErroredLayers, updateVisibleLayers, visibleLayers } =
-    useLayers();
+  const { setLayer, updateVisibleLayers, visibleLayers } = useLayers();
 
   const { getSignal, abort } = useAbort();
 
@@ -197,19 +196,6 @@ function useBoundariesToggleLayer<
   const enclosedFetchedDataState = fetchedDataState[enclosedFetchedDataKey];
   const surroundingFetchedDataState =
     fetchedDataState[surroundingFetchedDataKey];
-
-  // Synchronize layer error state with data status
-  useEffect(() => {
-    updateErroredLayers({
-      [layerId]: enclosedFetchedDataState.status === 'failure',
-    });
-  }, [enclosedFetchedDataState, layerId, updateErroredLayers]);
-
-  useEffect(() => {
-    updateErroredLayers({
-      [layerId]: surroundingFetchedDataState.status === 'failure',
-    });
-  }, [surroundingFetchedDataState, layerId, updateErroredLayers]);
 
   // Update layer features when new data is available
   useEffect(() => {

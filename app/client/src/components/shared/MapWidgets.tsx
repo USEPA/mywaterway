@@ -50,7 +50,7 @@ import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
-import type { LayerId, LayersState } from 'contexts/Layers';
+import type { LayersState } from 'contexts/Layers';
 import type {
   CSSProperties,
   Dispatch,
@@ -737,12 +737,6 @@ function MapWidgets({
     const uniqueParentItems: string[] = [];
     function defineActions(event: { item: __esri.ListItem }) {
       const item = event.item;
-      // Add an error indicator, but don't show it by default
-      item.panel = {
-        className: 'esri-icon-notice-triangle',
-        disabled: true,
-        visible: false,
-      } as __esri.ListItemPanel;
       if (!item.parent || item.parent.title === 'Demographic Indicators') {
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
@@ -855,18 +849,6 @@ function MapWidgets({
     mapEventHandlersSet,
     view,
   ]);
-
-  // Show an error indicator next to the layer list if the layer is in error
-  useEffect(() => {
-    if (!layerListWidget) return;
-
-    layerListWidget.operationalItems.forEach((item) => {
-      const layerId = item.layer.id;
-      item.panel.visible =
-        erroredLayers.hasOwnProperty(layerId) &&
-        erroredLayers[layerId as LayerId];
-    });
-  }, [erroredLayers, layerListWidget]);
 
   // create the home widget, layers widget, and setup map zoom change listener
   const [
