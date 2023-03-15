@@ -47,7 +47,6 @@ const tooltipNotLoaded = 'This layer may not have been loaded yet.';
 const layersToIgnore = [
   'nonprofitsLayer',
   'protectedAreasHighlightLayer',
-  'surroundingMonitoringLocationsLayer',
 
   // TODO layers that still need to be added
   'cyanLayer',
