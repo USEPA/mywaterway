@@ -6,7 +6,11 @@ import {
   fetchPostForm,
   getEnvironmentString,
 } from 'utils/fetchUtils';
-import { isFeatureLayer, isGraphicsLayer } from 'utils/mapFunctions';
+import {
+  isFeatureLayer,
+  isGraphicsLayer,
+  isGroupLayer,
+} from 'utils/mapFunctions';
 import { escapeForLucene } from 'utils/utils';
 // types
 import {
@@ -302,6 +306,51 @@ function convertFieldToJSON(field: __esri.Field) {
 }
 
 /**
+ * Adds the provided layer to the layersParams to be published.
+ * This is primarily used for layers that are split up based on geometry
+ * (i.e., waterbodyLayer and issuesLayer).
+ *
+ * @param layer Feature layer containing the layer definition
+ * @param layersParams Parameters for layers being published
+ * @param layerProps Properties to be applied to layers
+ * @param properties Properties for a specific layer
+ * @param overrideName Name to override the layer title
+ */
+function addSubLayer({
+  layer,
+  layersParams,
+  layerProps,
+  properties,
+  overrideName,
+}: {
+  layer: __esri.FeatureLayer;
+  layersParams: ILayerDefinition[];
+  layerProps: LookupFile;
+  properties: any;
+  overrideName?: string;
+}) {
+  let geometryType = '';
+  if (layer.geometryType === 'point') geometryType = 'esriGeometryPoint';
+  if (layer.geometryType === 'multipoint')
+    geometryType = 'esriGeometryMultipoint';
+  if (layer.geometryType === 'polyline') geometryType = 'esriGeometryPolyline';
+  if (layer.geometryType === 'polygon') geometryType = 'esriGeometryPolygon';
+
+  layersParams.push({
+    ...layerProps.data.defaultLayerProps,
+    ...properties,
+    name: overrideName || layer.title,
+    geometryType,
+    globalIdField: layer.globalIdField,
+    objectIdField: layer.objectIdField,
+    spatialReference: layer.spatialReference.toJSON(),
+    fields: layer.fields.map(convertFieldToJSON),
+    drawingInfo: { renderer: layer.renderer.toJSON() },
+    popupTemplate: layer.popupTemplate.toJSON(),
+  });
+}
+
+/**
  * Used for adding a feature layer to a hosted feature service on
  * ArcGIS Online
  *
@@ -375,9 +424,14 @@ export async function createFeatureLayers(
             .map(convertFieldToJSON),
         });
         continue;
-      } else if (layer.layer.id === 'upstreamWatershed' && layer.associatedData) {
+      } else if (
+        layer.layer.id === 'upstreamWatershed' &&
+        layer.associatedData
+      ) {
         // find the object id field
-        const objectIdField = layer.associatedData.fields.find((f) => f.type === 'oid');
+        const objectIdField = layer.associatedData.fields.find(
+          (f) => f.type === 'oid',
+        );
 
         layerIds.push(layer.layer.id);
         layersParams.push({
@@ -391,32 +445,64 @@ export async function createFeatureLayers(
             .map(convertFieldToJSON),
         });
         continue;
+      } else if (layer.layer.id === 'issuesLayer') {
+        const graphicsLayer = layer.layer as __esri.GraphicsLayer;
+        const waterbodyLayer = mapView.map.layers.find(
+          (l) => l.id === 'waterbodyLayer',
+        ) as __esri.GroupLayer;
+
+        // add the layer id 3 times to cover splitting this layer into 3
+        layerIds.push(graphicsLayer.id);
+        layerIds.push(graphicsLayer.id);
+        layerIds.push(graphicsLayer.id);
+
+        // add areas layer
+        const areasLayer = waterbodyLayer.findLayerById(
+          'waterbodyAreas',
+        ) as __esri.FeatureLayer;
+        addSubLayer({
+          layer: areasLayer,
+          layersParams,
+          layerProps,
+          properties,
+          overrideName: `${graphicsLayer.title} Areas`,
+        });
+
+        // add lines layer
+        const linesLayer = waterbodyLayer.findLayerById(
+          'waterbodyLines',
+        ) as __esri.FeatureLayer;
+        addSubLayer({
+          layer: linesLayer,
+          layersParams,
+          layerProps,
+          properties,
+          overrideName: `${graphicsLayer.title} Lines`,
+        });
+
+        // add points layer
+        const pointsLayer = waterbodyLayer.findLayerById(
+          'waterbodyPoints',
+        ) as __esri.FeatureLayer;
+        addSubLayer({
+          layer: pointsLayer,
+          layersParams,
+          layerProps,
+          properties,
+          overrideName: `${graphicsLayer.title} Points`,
+        });
+
+        continue;
       } else if (layer.layer.id === 'waterbodyLayer') {
         const groupLayer = layer.layer as __esri.GroupLayer;
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
         for (const subLayer of subLayers) {
-          let geometryType = '';
-          if (subLayer.geometryType === 'point')
-            geometryType = 'esriGeometryPoint';
-          if (subLayer.geometryType === 'multipoint')
-            geometryType = 'esriGeometryMultipoint';
-          if (subLayer.geometryType === 'polyline')
-            geometryType = 'esriGeometryPolyline';
-          if (subLayer.geometryType === 'polygon')
-            geometryType = 'esriGeometryPolygon';
-
           layerIds.push(layer.layer.id);
-          layersParams.push({
-            ...layerProps.data.defaultLayerProps,
-            ...properties,
-            name: subLayer.title,
-            geometryType,
-            globalIdField: subLayer.globalIdField,
-            objectIdField: subLayer.objectIdField,
-            spatialReference: subLayer.spatialReference.toJSON(),
-            fields: subLayer.fields.map(convertFieldToJSON),
-            drawingInfo: { renderer: subLayer.renderer.toJSON() },
-            popupTemplate: subLayer.popupTemplate.toJSON(),
+          addSubLayer({
+            layer: subLayer,
+            layersParams,
+            layerProps,
+            properties,
           });
         }
         continue;
@@ -569,6 +655,26 @@ async function applyEdits({
         const subLayer = subLayers.find((s) => s.title === layerRes.name);
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
+      } else if (layer.id === 'issuesLayer') {
+        const graphicsLayer = layer.layer as __esri.GraphicsLayer;
+
+        // filter features down to just areas, lines, or points
+        // depending on which geometry layer we are adding to
+        graphicsLayer.graphics.forEach((g) => {
+          if (
+            (layerRes.name === `${layer.label} Areas` &&
+              g.geometry.type === 'polygon') ||
+            (layerRes.name === `${layer.label} Lines` &&
+              g.geometry.type === 'polyline') ||
+            (layerRes.name === `${layer.label} Points` &&
+              (g.geometry.type === 'point' || g.geometry.type === 'multipoint'))
+          ) {
+            adds.push({
+              attributes: g.attributes,
+              geometry: g.geometry.toJSON(),
+            });
+          }
+        });
       } else if (
         [
           'dischargersLayer',
@@ -829,6 +935,7 @@ export function addWebMap({
           widgetLayerFile.rawLayer.layerDefinition?.globalIdField,
           widgetLayerFile.fields,
         );
+      } else if (l.id === 'issuesLayer') {
       } else {
         // handle boundaries and providers
         let properties = layerProps.data.layerSpecificSettings[l.layer.id];
@@ -836,8 +943,7 @@ export function addWebMap({
           properties = mapView.map.findLayerById('watershedsLayer');
         if (l.layer.id === 'providersLayer')
           properties = mapView.map.findLayerById('countyLayer');
-        if (l.associatedData) 
-          properties = l.associatedData;
+        if (l.associatedData) properties = l.associatedData;
 
         // handle everything else
         popupFields = buildPopupFieldsList(
@@ -876,13 +982,43 @@ export function addWebMap({
           title: l.layer.title,
           layerType: 'GroupLayer',
           layers: lResponses.map((lRes) => {
-            // build fields here
-            const layer = (l.layer as __esri.GroupLayer).layers.find(
-              (l) => l.title === lRes.name,
-            );
+            const layer = isGroupLayer(l.layer)
+              ? (l.layer as __esri.GroupLayer).layers.find(
+                  (l) => l.title === lRes.name,
+                )
+              : l.layer;
 
+            // build fields here
             let popupFields: IFieldInfo[] = [];
-            if (isFeatureLayer(layer)) {
+            if (layer.id === 'issuesLayer') {
+              const issuesLayer = layer as __esri.GraphicsLayer;
+              const waterbodyLayer = mapView.map.layers.find(
+                (sl) => sl.id === 'waterbodyLayer',
+              ) as __esri.GroupLayer;
+
+              let associatedLayer: __esri.FeatureLayer | null = null;
+              if (lRes.name === `${issuesLayer.title} Areas`) {
+                associatedLayer = waterbodyLayer.findLayerById(
+                  'waterbodyAreas',
+                ) as __esri.FeatureLayer;
+              } else if (lRes.name === `${issuesLayer.title} Lines`) {
+                associatedLayer = waterbodyLayer.findLayerById(
+                  'waterbodyLines',
+                ) as __esri.FeatureLayer;
+              } else if (lRes.name === `${issuesLayer.title} Points`) {
+                associatedLayer = waterbodyLayer.findLayerById(
+                  'waterbodyPoints',
+                ) as __esri.FeatureLayer;
+              }
+
+              if (associatedLayer) {
+                popupFields = buildPopupFieldsList(
+                  associatedLayer.objectIdField,
+                  associatedLayer.globalIdField,
+                  associatedLayer.fields,
+                );
+              }
+            } else if (isFeatureLayer(layer)) {
               popupFields = buildPopupFieldsList(
                 layer.objectIdField,
                 layer.globalIdField,

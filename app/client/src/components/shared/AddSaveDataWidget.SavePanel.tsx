@@ -50,7 +50,6 @@ const layersToIgnore = [
   'surroundingMonitoringLocationsLayer',
 
   // TODO layers that still need to be added
-  'issuesLayer',
   'cyanLayer',
 ];
 
@@ -526,7 +525,10 @@ function SavePanel({ visible }: Props) {
 
       // get the widgetLayer for handling layers added via the Add Data Widget
       const widgetLayer = widgetLayers.find((l) => l.layer.id === value.id);
-      const associatedData = upstreamWatershedResponse.data;
+      const associatedData =
+        value.id === 'upstreamWatershed'
+          ? upstreamWatershedResponse.data
+          : null;
 
       layersToPublish.push({
         ...value,
