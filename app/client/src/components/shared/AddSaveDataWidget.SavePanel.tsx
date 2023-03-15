@@ -191,7 +191,7 @@ function SavePanel({ visible }: Props) {
     setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
-  const mapView = useContext(LocationSearchContext).mapView as __esri.MapView;
+  const mapView = useContext(LocationSearchContext).mapView as __esri.MapView | null;
   const upstreamWatershedResponse = useContext(LocationSearchContext)
     .upstreamWatershedResponse as {
     status: Status;
@@ -221,7 +221,7 @@ function SavePanel({ visible }: Props) {
   }, [setOAuthInfo, oAuthInfo]);
 
   // Watch for when layers are added to the map
-  const [mapLayerCount, setMapLayerCount] = useState(mapView.map.layers.length);
+  const [mapLayerCount, setMapLayerCount] = useState(mapView?.map.layers.length);
   const [layerWatcher, setLayerWatcher] = useState<IHandle | null>(null);
   useEffect(() => {
     if (!mapView || layerWatcher) return;
@@ -300,7 +300,7 @@ function SavePanel({ visible }: Props) {
 
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
-    if (layersInitialized) return;
+    if (layersInitialized || !mapView) return;
 
     if (saveLayersList) {
       // build object of switches based on layers on map
@@ -414,6 +414,8 @@ function SavePanel({ visible }: Props) {
     serviceMetaData: ServiceMetaDataType,
     layersToPublish: LayerType[],
   ) {
+    if (!mapView) return;
+
     // check if the name is available in the user's org
     const nameAvailableResponse = await isServiceNameAvailable(
       portal,
