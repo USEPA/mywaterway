@@ -291,6 +291,7 @@ function buildLayer(
       { name: 'locationName', type: 'string' },
       { name: 'locationType', type: 'string' },
       { name: 'locationUrl', type: 'string' },
+      { name: 'locationUrlPartial', type: 'string' },
       { name: 'providerName', type: 'string' },
       { name: 'totalSamples', type: 'integer' },
       { name: 'totalsByGroup', type: 'string' },
@@ -406,6 +407,13 @@ function transformServiceData(
 
   // attributes common to both the layer and the context object
   return stationsSorted.map((station) => {
+    const locationUrlPartial = 
+      `/monitoring-report/` +
+      `${station.properties.ProviderName}/` +
+      `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
+      `${encodeURIComponent(
+        station.properties.MonitoringLocationIdentifier,
+      )}/`;
     return {
       county: station.properties.CountyName,
       monitoringType: 'Past Water Conditions' as const,
@@ -416,13 +424,8 @@ function transformServiceData(
       locationLatitude: station.geometry.coordinates[1],
       locationName: station.properties.MonitoringLocationName,
       locationType: station.properties.MonitoringLocationTypeName,
-      locationUrl:
-        `/monitoring-report/` +
-        `${station.properties.ProviderName}/` +
-        `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
-        `${encodeURIComponent(
-          station.properties.MonitoringLocationIdentifier,
-        )}/`,
+      locationUrl: `https://mywaterway.epa.gov${locationUrlPartial}`,
+      locationUrlPartial,
       // monitoring station specific properties:
       state: station.properties.StateName,
       dataByYear: null,

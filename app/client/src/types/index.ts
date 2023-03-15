@@ -112,6 +112,7 @@ export interface MonitoringLocationAttributes {
   locationName: string;
   locationType: string;
   locationUrl: string;
+  locationUrlPartial: string;
   state: string;
   dataByYear: { [year: string | number]: AnnualStationData } | null;
   providerName: string;
