@@ -1245,9 +1245,7 @@ function formatDate(epoch: number) {
 function getDayOfYear(day: Date) {
   const firstOfYear = new Date(day.getFullYear(), 0, 0);
   const diff =
-    day.getTime() -
-    firstOfYear.getTime() +
-    (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
+    day.getTime() - firstOfYear.getTime() + getTzOffsetMsecs(firstOfYear, day);
   return Math.floor(diff / oneDay);
 }
 
@@ -1276,6 +1274,12 @@ function getTotalNonLandPixels(
 ) {
   const { belowDetection, measurements, noData } = data;
   return sum(belowDetection, noData, ...measurements);
+}
+
+function getTzOffsetMsecs(previous: Date, current: Date) {
+  return (
+    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
+  );
 }
 
 function squareKmToSquareMi(km: number) {
@@ -1459,7 +1463,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   useEffect(() => {
     if (services?.status !== 'success') return;
 
-    const startDate = new Date(today.getTime() - 7 * oneDay);
+    const startDateRaw = new Date(today.getTime() - 7 * oneDay);
+    const startDate = new Date(
+      startDateRaw.getTime() + getTzOffsetMsecs(startDateRaw, today),
+    );
 
     const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
       attributes.oid ?? attributes.OBJECTID
@@ -1479,15 +1486,21 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       .then((res: { data: { [date: string]: number[] } }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
-        while (currentDate <= today.getTime() - oneDay) {
+        const yesterdayRaw = today.getTime() - oneDay;
+        const yesterday =
+          yesterdayRaw + getTzOffsetMsecs(new Date(yesterdayRaw), today);
+        while (currentDate <= yesterday) {
           newData[currentDate] = null;
-          currentDate += oneDay;
+          const nextDate = currentDate + oneDay;
+          currentDate =
+            nextDate -
+            getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
         }
         Object.entries(res.data).forEach(([date, values]) => {
           if (values.length !== 256) return;
           const epochDate = cyanDateToEpoch(date);
           // Indices 0, 254, & 255 represent indetectable pixels
-          if (epochDate !== null) {
+          if (epochDate !== null && newData.hasOwnProperty(epochDate)) {
             const measurements = values.slice(1, 254);
             newData[epochDate] = {
               belowDetection: values[0],
