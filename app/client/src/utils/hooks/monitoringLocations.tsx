@@ -185,6 +185,9 @@ function buildFeatures(locations: MonitoringLocationAttributes[]) {
       geometry: new Point({
         longitude: attributes.locationLongitude,
         latitude: attributes.locationLatitude,
+        spatialReference: {
+          wkid: 102100,
+        },
       }),
       attributes,
     });
@@ -288,6 +291,7 @@ function buildLayer(
       { name: 'locationName', type: 'string' },
       { name: 'locationType', type: 'string' },
       { name: 'locationUrl', type: 'string' },
+      { name: 'locationUrlPartial', type: 'string' },
       { name: 'providerName', type: 'string' },
       { name: 'totalSamples', type: 'integer' },
       { name: 'totalsByGroup', type: 'string' },
@@ -297,6 +301,9 @@ function buildLayer(
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
+    spatialReference: {
+      wkid: 102100,
+    },
     // NOTE: initial graphic below will be replaced with UGSG streamgages
     source: [
       new Graphic({
@@ -400,6 +407,13 @@ function transformServiceData(
 
   // attributes common to both the layer and the context object
   return stationsSorted.map((station) => {
+    const locationUrlPartial = 
+      `/monitoring-report/` +
+      `${station.properties.ProviderName}/` +
+      `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
+      `${encodeURIComponent(
+        station.properties.MonitoringLocationIdentifier,
+      )}/`;
     return {
       county: station.properties.CountyName,
       monitoringType: 'Past Water Conditions' as const,
@@ -410,13 +424,8 @@ function transformServiceData(
       locationLatitude: station.geometry.coordinates[1],
       locationName: station.properties.MonitoringLocationName,
       locationType: station.properties.MonitoringLocationTypeName,
-      locationUrl:
-        `/monitoring-report/` +
-        `${station.properties.ProviderName}/` +
-        `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
-        `${encodeURIComponent(
-          station.properties.MonitoringLocationIdentifier,
-        )}/`,
+      locationUrl: `https://mywaterway.epa.gov${locationUrlPartial}`,
+      locationUrlPartial,
       // monitoring station specific properties:
       state: station.properties.StateName,
       dataByYear: null,

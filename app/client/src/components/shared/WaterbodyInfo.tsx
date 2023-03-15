@@ -2101,7 +2101,7 @@ function MonitoringLocationsContent({
   const {
     locationName,
     locationType,
-    locationUrl,
+    locationUrlPartial,
     orgId,
     orgName,
     siteId,
@@ -2429,7 +2429,7 @@ function MonitoringLocationsContent({
       {(!onMonitoringReportPage ||
         layer.id === 'monitoringLocationsLayer-surrounding') && (
         <p css={paragraphStyles}>
-          <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+          <a rel="noopener noreferrer" target="_blank" href={locationUrlPartial}>
             <i
               css={iconStyles}
               className="fas fa-info-circle"

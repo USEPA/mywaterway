@@ -22,7 +22,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // config
 import {
   unsupportedLayerMessage,
@@ -98,7 +98,7 @@ const modifiedLinkButtonStyles = css`
 
 // --- components (URLPanel) ---
 function URLPanel() {
-  const { widgetLayers, setWidgetLayers } = useAddDataWidgetState();
+  const { widgetLayers, setWidgetLayers } = useAddSaveDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
 
   // filters
@@ -128,7 +128,7 @@ function URLPanel() {
   const handleAdd = (ev: MouseEvent<HTMLButtonElement>) => {
     // make sure the url hasn't already been added
     const index = widgetLayers.findIndex(
-      (tempLayer) => tempLayer.url?.toLowerCase() === url.toLowerCase(),
+      (tempLayer) => tempLayer.layer.url?.toLowerCase() === url.toLowerCase(),
     );
     if (index > -1) {
       setStatus('already-added');
@@ -144,7 +144,13 @@ function URLPanel() {
       // add this layer to the url layers
       Layer.fromArcGISServerUrl({ url })
         .then((tempLayer) => {
-          setLayer(tempLayer);
+          setLayer({
+            type: 'url',
+            urlType: type,
+            url,
+            layer: tempLayer,
+            layerType: tempLayer.type,
+          });
         })
         .catch((err) => {
           console.error(err);
@@ -174,7 +180,13 @@ function URLPanel() {
     // unsupported layer type
     if (newLayer) {
       // add this layer to the url layers
-      setLayer(newLayer);
+      setLayer({
+        type: 'url',
+        urlType: type,
+        url,
+        layer: newLayer,
+        layerType: newLayer.type,
+      });
     } else {
       setStatus('unsupported');
     }

@@ -171,6 +171,9 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
       geometry: new Point({
         longitude: datum.locationLongitude,
         latitude: datum.locationLatitude,
+        spatialReference: {
+          wkid: 102100,
+        },
       }),
       attributes: datum,
     });
@@ -205,6 +208,9 @@ function buildLayer(
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
+    spatialReference: {
+      wkid: 102100,
+    },
     // NOTE: initial graphic below will be replaced with UGSG streamgages
     source: [
       new Graphic({

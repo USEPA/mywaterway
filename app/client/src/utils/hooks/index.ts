@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import Color from '@arcgis/core/Color';
-import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
@@ -12,15 +12,15 @@ import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
-import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
-import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
-import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
 import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
+import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
 import { useLayersState, useLayersDispatch } from 'contexts/Layers';
@@ -53,6 +53,12 @@ import type {
   ExtendedLayer,
   Feature,
 } from 'types';
+
+declare global {
+  interface Window {
+    logToGa: Function;
+  }
+}
 
 let dynamicPopupFields: __esri.Field[] = [];
 

@@ -150,6 +150,9 @@ function buildFeatures(data: Facility[]) {
       geometry: new Point({
         latitude: parseFloat(datum['FacLat']),
         longitude: parseFloat(datum['FacLong']),
+        spatialReference: {
+          wkid: 102100,
+        },
       }),
     });
   });
@@ -183,6 +186,9 @@ function buildLayer(
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
+    spatialReference: {
+      wkid: 102100,
+    },
     // NOTE: initial graphic below will be replaced with dischargers
     source: [
       new Graphic({

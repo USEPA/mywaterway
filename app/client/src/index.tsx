@@ -9,7 +9,7 @@ import reportWebVitals from './reportWebVitals';
 import AppRoutes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
-import { AddDataWidgetProvider } from 'contexts/AddDataWidget';
+import { AddSaveDataWidgetProvider } from 'contexts/AddSaveDataWidget';
 import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
 import { LookupFilesProvider } from 'contexts/LookupFiles';
@@ -43,12 +43,12 @@ function Root() {
           <LocationSearchProvider>
             <GlossaryProvider>
               <SurroundingsProvider>
-                <AddDataWidgetProvider>
+                <AddSaveDataWidgetProvider>
                   <GlobalStyle />
                   <ErrorBoundary message={defaultErrorBoundaryMessage}>
                     <AppRoutes />
                   </ErrorBoundary>
-                </AddDataWidgetProvider>
+                </AddSaveDataWidgetProvider>
               </SurroundingsProvider>
             </GlossaryProvider>
           </LocationSearchProvider>
