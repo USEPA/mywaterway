@@ -8,12 +8,13 @@ export function fetchCheck(
   apiUrl: string,
   signal: ?AbortSignal = null,
   timeout: number = defaultTimeout,
+  responseType: string = 'json',
 ) {
   const startTime = performance.now();
   return timeoutPromise(timeout, fetch(apiUrl, { signal }))
     .then((response) => {
       logCallToGoogleAnalytics(apiUrl, response.status, startTime);
-      return checkResponse(response);
+      return checkResponse(response, responseType);
     })
     .catch((err) => {
       if (isAbort(err)) return Promise.reject(err);
@@ -30,13 +31,14 @@ export function proxyFetch(
   apiUrl: string,
   signal: ?AbortSignal = null,
   timeout: number = defaultTimeout,
+  responseType: string = 'json',
 ) {
   const { REACT_APP_PROXY_URL } = process.env;
   // if environment variable is not set, default to use the current site origin
   const proxyUrl = REACT_APP_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
-  return fetchCheck(url, signal, timeout);
+  return fetchCheck(url, signal, timeout, responseType);
 }
 
 export function lookupFetch(

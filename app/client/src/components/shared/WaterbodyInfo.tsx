@@ -29,7 +29,7 @@ import {
   isMediaLayer,
   isUniqueValueRenderer,
 } from 'utils/mapFunctions';
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
   convertDomainCode,
@@ -1479,7 +1479,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       data: null,
     });
 
-    fetchCheck(dataUrl, abortSignal)
+    // workaround for needing to proxy cyan from localhost
+    const fetcher = window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
+
+    fetcher(dataUrl, abortSignal)
       .then((res: { data: { [date: string]: number[] } }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
@@ -1573,33 +1576,30 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
     cyanImageLayer.source.elements.removeAll();
     setImageStatus('pending');
-    const imagePromise = fetch(imageUrl, { signal: abortController.signal });
-    const propsPromise = fetchCheck(propertiesUrl, abortController.signal);
-    Promise.all([imagePromise, propsPromise])
-      .then(([imageRes, propsRes]) => {
-        if (imageRes.headers.get('Content-Type') !== 'image/png') {
-          setImageStatus('idle');
-          return;
-        }
 
-        imageRes.blob().then((blob) => {
-          const image = new Image();
-          image.src = URL.createObjectURL(blob);
-          image.onload = () => setImageStatus('success');
-          const imageElement = new ImageElement({
-            image,
-            georeference: new ExtentAndRotationGeoreference({
-              extent: new Extent({
-                spatialReference: SpatialReference.WGS84,
-                xmin: propsRes.properties.x_min,
-                xmax: propsRes.properties.x_max,
-                ymin: propsRes.properties.y_min,
-                ymax: propsRes.properties.y_max,
-              }),
+    // workaround for needing to proxy cyan from localhost
+    const fetcher = window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
+
+    const imagePromise = fetcher(imageUrl, abortController.signal, undefined, 'blob');
+    const propsPromise = fetcher(propertiesUrl, abortController.signal);
+    Promise.all([imagePromise, propsPromise])
+      .then(([blob, propsRes]) => {
+        const image = new Image();
+        image.src = URL.createObjectURL(blob);
+        image.onload = () => setImageStatus('success');
+        const imageElement = new ImageElement({
+          image,
+          georeference: new ExtentAndRotationGeoreference({
+            extent: new Extent({
+              spatialReference: SpatialReference.WGS84,
+              xmin: propsRes.properties.x_min,
+              xmax: propsRes.properties.x_max,
+              ymin: propsRes.properties.y_min,
+              ymax: propsRes.properties.y_max,
             }),
-          });
-          cyanImageLayer.source.elements.add(imageElement);
+          }),
         });
+        cyanImageLayer.source.elements.add(imageElement);
       })
       .catch((err) => {
         setImageStatus('failure');
