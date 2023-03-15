@@ -298,32 +298,9 @@ function SavePanel({ visible }: Props) {
     setLayerWatcher(watcher);
   }, [layerWatcher, mapView, setSaveLayersList]);
 
-  const [layersInitialized, setLayersInitialized] = useState(false);
-  useEffect(() => {
-    if (layersInitialized || !mapView) return;
-
-    if (saveLayersList) {
-      // build object of switches based on layers on map
-      const newSwitches = { ...saveLayersList };
-      mapView.map.layers.forEach((layer) => {
-        if (
-          layersToIgnore.includes(layer.id) ||
-          layerTypesToIgnore.includes(layer.type)
-        )
-          return;
-
-        if (newSwitches.hasOwnProperty(layer.id)) {
-          newSwitches[layer.id].layer = layer;
-        }
-      });
-    }
-
-    setLayersInitialized(true);
-  }, [layersInitialized, mapView, saveLayersList]);
-
   // Build the list of switches
   useEffect(() => {
-    if (!mapView || !layersInitialized) return;
+    if (!mapView) return;
 
     // get a list of layers that were added as files as these will need
     // be flagged as costing money to store in AGO
@@ -388,7 +365,6 @@ function SavePanel({ visible }: Props) {
       setSaveLayersList(newSwitches);
     }
   }, [
-    layersInitialized,
     mapLayerCount,
     mapView,
     saveLayersList,
