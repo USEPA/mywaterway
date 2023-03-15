@@ -1277,7 +1277,9 @@ function getTotalNonLandPixels(
 }
 
 function getTzOffsetMsecs(previous: Date, current: Date) {
-  return previous.getTimezoneOffset() - current.getTimezoneOffset() * 60 * 1000;
+  return (
+    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
+  );
 }
 
 function squareKmToSquareMi(km: number) {
@@ -1481,12 +1483,15 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       .then((res: { data: { [date: string]: number[] } }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
-        while (
-          currentDate <=
-          today.getTime() - oneDay + getTzOffsetMsecs(startDate, today)
-        ) {
+        const yesterdayRaw = today.getTime() - oneDay;
+        const yesterday =
+          yesterdayRaw + getTzOffsetMsecs(new Date(yesterdayRaw), today);
+        while (currentDate <= yesterday) {
           newData[currentDate] = null;
-          currentDate += oneDay;
+          const nextDate = currentDate + oneDay;
+          currentDate =
+            nextDate -
+            getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
         }
         Object.entries(res.data).forEach(([date, values]) => {
           if (values.length !== 256) return;
