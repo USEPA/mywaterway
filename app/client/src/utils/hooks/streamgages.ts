@@ -539,7 +539,7 @@ async function getExtentThingsFilter(mapView: __esri.MapView | '') {
   const extent = await getGeographicExtent(mapView);
   const wkt = getExtentWkt(extent);
   return wkt
-    ? `$filter=st_within(Location/location,geography'POLYGON(${wkt})')`
+    ? `$filter=st_within(Locations/location,geography'POLYGON(${wkt})')`
     : null;
 }
 
