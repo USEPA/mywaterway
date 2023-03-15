@@ -936,6 +936,7 @@ export function addWebMap({
           widgetLayerFile.fields,
         );
       } else if (l.id === 'issuesLayer') {
+        // don't do anything for issuesLayer, it will be handeled below
       } else {
         // handle boundaries and providers
         let properties = layerProps.data.layerSpecificSettings[l.layer.id];
