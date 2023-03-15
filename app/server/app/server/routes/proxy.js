@@ -51,8 +51,11 @@ module.exports = function (app) {
 
     try {
       let headers = {};
+      let responseType;
       if (lowerCaseUrl.includes('etss.epa.gov')) {
         headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
+      } else if (lowerCaseUrl.includes('cyan.epa.gov/waterbody/image/')) {
+        responseType = 'stream';
       } else {
         if (
           !app.enabled('isLocal') &&
@@ -95,6 +98,7 @@ module.exports = function (app) {
         url: parsedUrl,
         headers,
         timeout: 10000,
+        responseType,
       })
         .then((response) => {
           if (response.status !== 200) {
@@ -106,10 +110,15 @@ module.exports = function (app) {
           }
 
           deleteTSHeaders(response);
-          res
-            .status(response.status)
-            .header(response.headers)
-            .send(response.data);
+          if (responseType === 'stream') {
+            res.set(response.headers);
+            response.data.pipe(res);
+          } else {
+            res
+              .status(response.status)
+              .header(response.headers)
+              .send(response.data);
+          }
         })
         .catch((err) => {
           messageWithUrl = `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`;
