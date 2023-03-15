@@ -292,9 +292,9 @@
           "defaultValue": ""
         },
         {
-          "name": "stationProviderName",
+          "name": "providerName",
           "type": "esriFieldTypeString",
-          "alias": "stationProviderName",
+          "alias": "providerName",
           "sqlType": "sqlTypeNVarchar",
           "length": 50,
           "nullable": true,
@@ -303,9 +303,9 @@
           "defaultValue": ""
         },
         {
-          "name": "stationTotalSamples",
+          "name": "totalSamples",
           "type": "esriFieldTypeInteger",
-          "alias": "stationTotalSamples",
+          "alias": "totalSamples",
           "sqlType": "sqlTypeInteger",
           "length": 30,
           "nullable": true,
@@ -314,9 +314,9 @@
           "defaultValue": ""
         },
         {
-          "name": "stationTotalsByGroup",
+          "name": "totalsByGroup",
           "type": "esriFieldTypeString",
-          "alias": "stationTotalsByGroup",
+          "alias": "totalsByGroup",
           "sqlType": "sqlTypeNVarchar",
           "length": -1,
           "nullable": true,
@@ -325,9 +325,9 @@
           "defaultValue": ""
         },
         {
-          "name": "stationTotalMeasurements",
+          "name": "totalMeasurements",
           "type": "esriFieldTypeInteger",
-          "alias": "stationTotalMeasurements",
+          "alias": "totalMeasurements",
           "sqlType": "sqlTypeInteger",
           "length": 30,
           "nullable": true,
