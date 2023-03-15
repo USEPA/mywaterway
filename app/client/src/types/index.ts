@@ -10,11 +10,11 @@ export interface AllotmentAttributes {
 
 export interface AnnualStationData {
   uniqueId: string;
-  stationTotalMeasurements: number;
-  stationTotalSamples: number;
-  stationTotalsByCharacteristic: { [characteristic: string]: number };
-  stationTotalsByGroup: { [group: string]: number };
-  stationTotalsByLabel: { [label: string]: number };
+  totalMeasurements: number;
+  totalSamples: number;
+  totalsByCharacteristic: { [characteristic: string]: number };
+  totalsByGroup: { [group: string]: number };
+  totalsByLabel: { [label: string]: number };
 }
 
 export interface ChangeLocationAttributes {
@@ -59,6 +59,7 @@ export interface Facility {
   FacLong: string;
   RegistryID: string;
   SourceID: string;
+  uniqueId: string;
 }
 
 export interface Feature {
@@ -85,9 +86,14 @@ export interface ExtendedLayer extends __esri.Layer {
   parent?: __esri.Layer | __esri.Map;
 }
 
+export type LookupFile = {
+  status: 'fetching' | 'success' | 'failure';
+  data: any;
+};
+
 export interface MonitoringFeatureUpdate {
-  stationTotalMeasurements: number;
-  stationTotalsByGroup: { [group: string]: number };
+  totalMeasurements: number;
+  totalsByGroup: { [group: string]: number };
   timeframe: [number, number];
 }
 
@@ -96,6 +102,7 @@ export type MonitoringFeatureUpdates = {
 } | null;
 
 export interface MonitoringLocationAttributes {
+  county: string;
   monitoringType: 'Past Water Conditions';
   siteId: string;
   orgId: string;
@@ -105,12 +112,14 @@ export interface MonitoringLocationAttributes {
   locationName: string;
   locationType: string;
   locationUrl: string;
-  stationDataByYear: { [year: string | number]: AnnualStationData } | null;
-  stationProviderName: string;
-  stationTotalSamples: number;
-  stationTotalMeasurements: number;
-  stationTotalsByGroup: { [groups: string]: number };
-  stationTotalsByLabel: { [label: string]: number } | null;
+  locationUrlPartial: string;
+  state: string;
+  dataByYear: { [year: string | number]: AnnualStationData } | null;
+  providerName: string;
+  totalSamples: number;
+  totalMeasurements: number;
+  totalsByGroup: { [groups: string]: number };
+  totalsByLabel: { [label: string]: number } | null;
   timeframe: [number, number] | null;
   uniqueId: string;
 }
@@ -125,7 +134,7 @@ export interface MonitoringLocationGroups {
 }
 
 export interface MonitoringLocationsData {
-  features: {
+  features: Array<{
     geometry: {
       coordinates: [number, number];
       type: 'Point';
@@ -149,7 +158,7 @@ export interface MonitoringLocationsData {
       siteUrl: string;
     };
     type: 'Feature';
-  }[];
+  }>;
   type: 'FeatureCollection';
 }
 
@@ -294,6 +303,7 @@ export interface UsgsStreamgageAttributes {
     primary: StreamgageMeasurement[];
     secondary: StreamgageMeasurement[];
   };
+  uniqueId: string;
 }
 
 export interface UsgsDailyAveragesData {
@@ -414,9 +424,47 @@ export interface WaterbodyAttributes {
   overallstatus: string;
 }
 
-export interface WidgetLayer extends __esri.Layer {
+interface PortalLayer extends __esri.Layer {
   portalItem?: __esri.PortalItem;
 }
+
+export type PortalLayerTypes =
+  | 'Feature Service'
+  | 'Image Service'
+  | 'KML'
+  | 'Map Service'
+  | 'Vector Tile Service'
+  | 'WMS';
+
+export type WidgetLayer =
+  | {
+      type: 'portal';
+      layerType: PortalLayerTypes;
+      id: string;
+      layer: PortalLayer;
+      url: string;
+    }
+  | {
+      type: 'url';
+      layer: __esri.Layer;
+      layerType: string;
+      url: string;
+      urlType: 'ArcGIS' | 'CSV' | 'GeoRSS' | 'KML' | 'WCS' | 'WFS' | 'WMS';
+    }
+  | {
+      type: 'file';
+      fields: __esri.FieldProperties[];
+      layer: __esri.Layer;
+      layerId: string;
+      layerType?: string;
+      objectIdField: string;
+      outFields: string[];
+      popupTemplate: __esri.PopupTemplateProperties;
+      renderer: __esri.RendererProperties;
+      source: __esri.Graphic[];
+      title: string;
+      rawLayer: any;
+    };
 
 export interface WildScenicRiverAttributes {
   WSR_RIVER_NAME: string;

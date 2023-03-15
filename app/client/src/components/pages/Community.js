@@ -13,6 +13,7 @@ import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   CommunityTabsContext,
@@ -21,8 +22,6 @@ import {
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-// utils
-import { useDischargersLayer, useStreamgageLayer } from 'utils/hooks';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -112,9 +111,6 @@ function Community() {
   const { activeTabIndex } = useContext(CommunityTabsContext);
 
   const { fullscreenActive } = useFullscreenState();
-
-  useDischargersLayer();
-  useStreamgageLayer();
 
   // CommunityIntro is rendered in Outlet when at the '/community' and '/community/' routes
   const atCommunityIntroRoute =
@@ -274,13 +270,15 @@ function Community() {
 export default function CommunityContainer() {
   return (
     <EsriMapProvider>
-      <CommunityTabsProvider>
-        <MapHighlightProvider>
-          <FullscreenProvider>
-            <Community />
-          </FullscreenProvider>
-        </MapHighlightProvider>
-      </CommunityTabsProvider>
+      <LayersProvider>
+        <CommunityTabsProvider>
+          <MapHighlightProvider>
+            <FullscreenProvider>
+              <Community />
+            </FullscreenProvider>
+          </MapHighlightProvider>
+        </CommunityTabsProvider>
+      </LayersProvider>
     </EsriMapProvider>
   );
 }

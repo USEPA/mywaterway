@@ -10,11 +10,12 @@
   "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_116th_Congressional_Districts_all/FeatureServer",
   "wsio": "https://gispub.epa.gov/arcgis/rest/services/r4/wsio/MapServer/0",
   "waterbodyService": {
-    "points": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/0",
-    "lines": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1",
-    "areas": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2",
-    "summary": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4",
-    "controlTable": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/5"
+    "base": "https://inlandwaters.geoplatform.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer",
+    "points": "https://inlandwaters.geoplatform.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/0",
+    "lines": "https://inlandwaters.geoplatform.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1",
+    "areas": "https://inlandwaters.geoplatform.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2",
+    "summary": "https://inlandwaters.geoplatform.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4",
+    "controlTable": "https://inlandwaters.geoplatform.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/5"
   },
   "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/savedreport/terms/HMWGlossary",
   "waterQualityPortal": {
@@ -42,7 +43,7 @@
   },
   "attains": {
     "serviceUrlDev": "http://54.209.48.156/attains-public/api/",
-    "serviceUrl": "https://attainsstage.rtpnc.epa.gov/attains-public/api/"
+    "serviceUrl": "https://attains.epa.gov/attains-public/api/"
   },
   "fishingInformationService": {
     "serviceUrl": "https://watersgeo.epa.gov/arcgis/rest/services/NLFA/FISH_GEN/MapServer/13/",
@@ -55,11 +56,11 @@
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
   "cyan": {
-    "application": "https://qed.epa.gov/cyanweb",
-    "cellConcentration": "https://qed.epa.gov/waterbody/data",
-    "dataDownload": "https://qed.epa.gov/waterbody/data_download",
-    "images": "https://qed.epa.gov/waterbody/image",
-    "properties": "https://qed.epa.gov/waterbody/properties",
+    "application": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
+    "cellConcentration": "https://cyan.epa.gov/waterbody/data",
+    "dataDownload": "https://cyan.epa.gov/waterbody/data_download",
+    "images": "https://cyan.epa.gov/waterbody/image",
+    "properties": "https://cyan.epa.gov/waterbody/properties",
     "waterbodies": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0"
   },
   "googleAnalyticsMapping": [

@@ -2,7 +2,7 @@ import Extent from '@arcgis/core/geometry/Extent';
 import ExtentAndRotationGeoreference from '@arcgis/core/layers/support/ExtentAndRotationGeoreference';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
 import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
@@ -29,7 +29,7 @@ import {
   isMediaLayer,
   isUniqueValueRenderer,
 } from 'utils/mapFunctions';
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
   convertDomainCode,
@@ -62,6 +62,7 @@ import type {
   ChangeLocationAttributes,
   ClickedHucState,
   FetchState,
+  MonitoringLocationAttributes,
   ServicesState,
   StreamgageMeasurement,
   UsgsStreamgageAttributes,
@@ -1244,9 +1245,7 @@ function formatDate(epoch: number) {
 function getDayOfYear(day: Date) {
   const firstOfYear = new Date(day.getFullYear(), 0, 0);
   const diff =
-    day.getTime() -
-    firstOfYear.getTime() +
-    (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
+    day.getTime() - firstOfYear.getTime() + getTzOffsetMsecs(firstOfYear, day);
   return Math.floor(diff / oneDay);
 }
 
@@ -1275,6 +1274,12 @@ function getTotalNonLandPixels(
 ) {
   const { belowDetection, measurements, noData } = data;
   return sum(belowDetection, noData, ...measurements);
+}
+
+function getTzOffsetMsecs(previous: Date, current: Date) {
+  return (
+    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
+  );
 }
 
 function squareKmToSquareMi(km: number) {
@@ -1458,7 +1463,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   useEffect(() => {
     if (services?.status !== 'success') return;
 
-    const startDate = new Date(today.getTime() - 7 * oneDay);
+    const startDateRaw = new Date(today.getTime() - 7 * oneDay);
+    const startDate = new Date(
+      startDateRaw.getTime() + getTzOffsetMsecs(startDateRaw, today),
+    );
 
     const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
       attributes.oid ?? attributes.OBJECTID
@@ -1471,19 +1479,28 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       data: null,
     });
 
-    fetchCheck(dataUrl, abortSignal)
+    // workaround for needing to proxy cyan from localhost
+    const fetcher = window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
+
+    fetcher(dataUrl, abortSignal)
       .then((res: { data: { [date: string]: number[] } }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
-        while (currentDate <= today.getTime() - oneDay) {
+        const yesterdayRaw = today.getTime() - oneDay;
+        const yesterday =
+          yesterdayRaw + getTzOffsetMsecs(new Date(yesterdayRaw), today);
+        while (currentDate <= yesterday) {
           newData[currentDate] = null;
-          currentDate += oneDay;
+          const nextDate = currentDate + oneDay;
+          currentDate =
+            nextDate -
+            getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
         }
         Object.entries(res.data).forEach(([date, values]) => {
           if (values.length !== 256) return;
           const epochDate = cyanDateToEpoch(date);
           // Indices 0, 254, & 255 represent indetectable pixels
-          if (epochDate !== null) {
+          if (epochDate !== null && newData.hasOwnProperty(epochDate)) {
             const measurements = values.slice(1, 254);
             newData[epochDate] = {
               belowDetection: values[0],
@@ -1559,33 +1576,30 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
     cyanImageLayer.source.elements.removeAll();
     setImageStatus('pending');
-    const imagePromise = fetch(imageUrl, { signal: abortController.signal });
-    const propsPromise = fetchCheck(propertiesUrl, abortController.signal);
-    Promise.all([imagePromise, propsPromise])
-      .then(([imageRes, propsRes]) => {
-        if (imageRes.headers.get('Content-Type') !== 'image/png') {
-          setImageStatus('idle');
-          return;
-        }
 
-        imageRes.blob().then((blob) => {
-          const image = new Image();
-          image.src = URL.createObjectURL(blob);
-          image.onload = () => setImageStatus('success');
-          const imageElement = new ImageElement({
-            image,
-            georeference: new ExtentAndRotationGeoreference({
-              extent: new Extent({
-                spatialReference: SpatialReference.WGS84,
-                xmin: propsRes.properties.x_min,
-                xmax: propsRes.properties.x_max,
-                ymin: propsRes.properties.y_min,
-                ymax: propsRes.properties.y_max,
-              }),
+    // workaround for needing to proxy cyan from localhost
+    const fetcher = window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
+
+    const imagePromise = fetcher(imageUrl, abortController.signal, undefined, 'blob');
+    const propsPromise = fetcher(propertiesUrl, abortController.signal);
+    Promise.all([imagePromise, propsPromise])
+      .then(([blob, propsRes]) => {
+        const image = new Image();
+        image.src = URL.createObjectURL(blob);
+        image.onload = () => setImageStatus('success');
+        const imageElement = new ImageElement({
+          image,
+          georeference: new ExtentAndRotationGeoreference({
+            extent: new Extent({
+              spatialReference: SpatialReference.WGS84,
+              xmin: propsRes.properties.x_min,
+              xmax: propsRes.properties.x_max,
+              ymin: propsRes.properties.y_min,
+              ymax: propsRes.properties.y_max,
             }),
-          });
-          cyanImageLayer.source.elements.add(imageElement);
+          }),
         });
+        cyanImageLayer.source.elements.add(imageElement);
       })
       .catch((err) => {
         setImageStatus('failure');
@@ -1994,28 +2008,6 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   );
 }
 
-interface MonitoringLocationAttributes {
-  monitoringType: 'Past Water Conditions';
-  siteId: string;
-  orgId: string;
-  orgName: string;
-  locationLongitude: number;
-  locationLatitude: number;
-  locationName: string;
-  locationType: string;
-  locationUrl: string;
-  stationProviderName: string;
-  stationTotalSamples: number;
-  stationTotalsByGroup:
-    | string
-    | {
-        [groupName: string]: number;
-      };
-  stationTotalMeasurements: number;
-  timeframe: string | [number, number] | null;
-  uniqueId: string;
-}
-
 interface MappedGroups {
   [groupLabel: string]: {
     characteristicGroups: string[];
@@ -2092,39 +2084,38 @@ function MonitoringLocationsContent({
 }: MonitoringLocationsContentProps) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selectAll, setSelectAll] = useState(1);
-  const [totalMeasurements, setTotalMeasurements] = useState<number | null>(
-    null,
-  );
-
-  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+  const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] = useState<
+    number | null
+  >(null);
 
   const attributes: MonitoringLocationAttributes = feature.attributes;
   const layer = feature.layer;
-  const parsed = parseAttributes<MonitoringLocationAttributes>(
-    structuredProps,
-    attributes,
-  );
+  const parsed = useMemo(() => {
+    const structuredProps = ['totalsByGroup', 'timeframe'];
+    return parseAttributes<MonitoringLocationAttributes>(
+      structuredProps,
+      attributes,
+    );
+  }, [attributes]);
+
   const {
     locationLatitude,
     locationLongitude,
     locationName,
     locationType,
-    locationUrl,
+    locationUrlPartial,
     orgId,
     orgName,
     siteId,
-    stationProviderName,
-    stationTotalSamples,
-    stationTotalsByGroup,
-    stationTotalMeasurements,
+    providerName,
+    totalSamples,
+    totalsByGroup,
+    totalMeasurements,
     timeframe,
   } = parsed;
 
   const [groups, setGroups] = useState(() => {
-    const { newGroups } = buildGroups(
-      checkIfGroupInMapping,
-      stationTotalsByGroup,
-    );
+    const { newGroups } = buildGroups(checkIfGroupInMapping, totalsByGroup);
     return newGroups;
   });
   const [selected, setSelected] = useState(() => {
@@ -2138,12 +2129,12 @@ function MonitoringLocationsContent({
   useEffect(() => {
     const { newGroups, newSelected } = buildGroups(
       checkIfGroupInMapping,
-      stationTotalsByGroup,
+      totalsByGroup,
     );
     setGroups(newGroups);
     setSelected(newSelected);
     setSelectAll(1);
-  }, [stationTotalsByGroup]);
+  }, [totalsByGroup]);
 
   const buildFilter = useCallback(
     (selectedNames, monitoringLocationData) => {
@@ -2175,8 +2166,8 @@ function MonitoringLocationsContent({
   }, [buildFilter, groups, selected]);
 
   useEffect(() => {
-    setTotalMeasurements(stationTotalMeasurements);
-  }, [stationTotalMeasurements]);
+    setTotalDisplayedMeasurements(totalMeasurements);
+  }, [totalMeasurements]);
 
   //Toggle an individual row and call the provided onChange event handler
   const toggleRow = (groupLabel: string, allGroups: Object) => {
@@ -2197,12 +2188,12 @@ function MonitoringLocationsContent({
     // if all selected
     if (numberSelected === totalSelections) {
       setSelectAll(1);
-      setTotalMeasurements(stationTotalMeasurements);
+      setTotalDisplayedMeasurements(totalMeasurements);
     }
     // if none selected
     else if (numberSelected === 0) {
       setSelectAll(0);
-      setTotalMeasurements(0);
+      setTotalDisplayedMeasurements(0);
     }
     // if some selected
     else {
@@ -2213,7 +2204,7 @@ function MonitoringLocationsContent({
           newTotalMeasurementCount += groups[group].resultCount;
         }
       });
-      setTotalMeasurements(newTotalMeasurementCount);
+      setTotalDisplayedMeasurements(newTotalMeasurementCount);
     }
   };
 
@@ -2231,7 +2222,7 @@ function MonitoringLocationsContent({
 
     setSelected(selectedGroups);
     setSelectAll(selectAll === 0 ? 1 : 0);
-    setTotalMeasurements(selectAll === 0 ? stationTotalMeasurements : 0);
+    setTotalDisplayedMeasurements(selectAll === 0 ? totalMeasurements : 0);
   };
 
   // if a user has filtered out certain characteristic groups for
@@ -2241,7 +2232,7 @@ function MonitoringLocationsContent({
   const downloadUrl =
     services?.status === 'success'
       ? `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
-        `${siteId}&providers=${stationProviderName}` +
+        `${siteId}&providers=${providerName}` +
         `${charGroupFilters}`
       : null;
   const portalUrl =
@@ -2295,7 +2286,7 @@ function MonitoringLocationsContent({
               ),
               value: (
                 <>
-                  {Number(stationTotalSamples).toLocaleString()}
+                  {Number(totalSamples).toLocaleString()}
                   {timeframe ? <small>(all time)</small> : null}
                 </>
               ),
@@ -2308,7 +2299,7 @@ function MonitoringLocationsContent({
               ),
               value: (
                 <>
-                  {Number(stationTotalMeasurements).toLocaleString()}
+                  {Number(totalMeasurements).toLocaleString()}
                   {timeframe && (
                     <small>
                       ({timeframe[0]} - {timeframe[1]})
@@ -2382,7 +2373,7 @@ function MonitoringLocationsContent({
             <tr>
               <td></td>
               <td>Total</td>
-              <td>{Number(totalMeasurements).toLocaleString()}</td>
+              <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
             </tr>
           </tbody>
 
@@ -2445,9 +2436,9 @@ function MonitoringLocationsContent({
       )}
 
       {(!onMonitoringReportPage ||
-        layer.id === 'surroundingMonitoringLocationsLayer') && (
+        layer.id === 'monitoringLocationsLayer-surrounding') && (
         <p css={paragraphStyles}>
-          <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+          <a rel="noopener noreferrer" target="_blank" href={locationUrlPartial}>
             <i
               css={iconStyles}
               className="fas fa-info-circle"

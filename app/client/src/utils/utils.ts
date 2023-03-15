@@ -480,9 +480,41 @@ function toFixedFloat(num: number, precision: number = 0) {
   return Math.round((num + Number.EPSILON) * offset) / offset;
 }
 
+/**
+ * Script from ESRI for escaping a ArcGIS Online usernames and
+ * organization ids.
+ *
+ * @param value The ArcGIS Online username or organization id
+ * @returns The escaped version of the username or org id.
+ */
+function escapeForLucene(value: string) {
+  const a = [
+    '+',
+    '-',
+    '&',
+    '!',
+    '(',
+    ')',
+    '{',
+    '}',
+    '[',
+    ']',
+    '^',
+    '"',
+    '~',
+    '*',
+    '?',
+    ':',
+    '\\',
+  ];
+  const r = new RegExp('(\\' + a.join('|\\') + ')', 'g');
+  return value.replace(r, '\\$1');
+}
+
 export {
   chunkArray,
   containsScriptTag,
+  escapeForLucene,
   escapeRegex,
   formatNumber,
   getExtensionFromPath,

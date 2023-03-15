@@ -34,6 +34,7 @@ import {
 } from 'components/shared/Box';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+import { LayersProvider } from 'contexts/Layers';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -809,10 +810,12 @@ function Actions() {
 
 export default function ActionsContainer() {
   return (
-    <MapHighlightProvider>
-      <FullscreenProvider>
-        <Actions />
-      </FullscreenProvider>
-    </MapHighlightProvider>
+    <LayersProvider>
+      <MapHighlightProvider>
+        <FullscreenProvider>
+          <Actions />
+        </FullscreenProvider>
+      </MapHighlightProvider>
+    </LayersProvider>
   );
 }

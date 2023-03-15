@@ -3,13 +3,10 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
-import {
-  useFetchedDataDispatch,
-  useFetchedDataState,
-} from 'contexts/FetchedData';
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
@@ -20,7 +17,7 @@ import {
   handleFetchError,
   removeDuplicateData,
   useAllFeaturesLayer,
-  useLocalFeatures,
+  useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 // config
@@ -39,6 +36,9 @@ import type {
   UsgsStreamgagesData,
   FetchSuccessState,
 } from 'types';
+import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+// styles
+import { colors } from 'styles';
 
 /*
 ## Hooks
@@ -48,40 +48,31 @@ export function useStreamgageLayer() {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
-  const { usgsStreamgages } = useFetchedDataState();
 
   const buildBaseLayer = useCallback(
-    (baseLayerId: string) => {
-      return buildLayer(baseLayerId, navigate, services);
+    (baseLayerId: string, type: SublayerType) => {
+      return buildLayer(baseLayerId, navigate, services, type);
     },
     [navigate, services],
   );
 
-  const updateData = useUpdateData();
-
-  const [features, setFeatures] = useState<__esri.Graphic[]>([]);
-  useEffect(() => {
-    if (usgsStreamgages.status !== 'success') return;
-    setFeatures(buildFeatures(usgsStreamgages.data));
-  }, [usgsStreamgages]);
+  const updateSurroundingData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
   return useAllFeaturesLayer({
+    buildFeatures,
+    enclosedFetchedDataKey: localFetchedDataKey,
     layerId,
-    fetchedDataKey,
     buildBaseLayer,
-    updateData,
-    features,
+    surroundingFetchedDataKey,
+    updateSurroundingData,
   });
 }
 
-export function useLocalStreamgages() {
-  const { features, status } = useLocalFeatures(
-    localFetchedDataKey,
-    buildFeatures,
-  );
+export function useStreamgages() {
+  const { data, status } = useLocalData(localFetchedDataKey);
 
-  return { streamgages: features, streamgagesStatus: status };
+  return { streamgages: data, streamgagesStatus: status };
 }
 
 function useUpdateData() {
@@ -111,14 +102,6 @@ function useUpdateData() {
       localFetchedDataKey,
     ).then((data) => {
       setHucData(data);
-      if (data) {
-        // Initially update complete dataset with local data
-        fetchedDataDispatch({
-          type: 'success',
-          id: fetchedDataKey,
-          payload: data,
-        });
-      }
     });
 
     return function cleanup() {
@@ -126,38 +109,55 @@ function useUpdateData() {
     };
   }, [fetchedDataDispatch, huc12, services]);
 
-  const updateData = useCallback(
-    async (abortSignal: AbortSignal, hucOnly = false) => {
+  const extentDvFilter = useRef<string | null>(null);
+  const extentThingsFilter = useRef<string | null>(null);
+
+  const updateSurroundingData = useCallback(
+    async (abortSignal: AbortSignal) => {
       if (services.status !== 'success') return;
 
-      if (hucOnly && hucData)
-        return fetchedDataDispatch({
-          type: 'success',
-          id: 'usgsStreamgages',
-          payload: hucData,
-        });
-
-      const extentDvFilter = await getExtentDvFilter(mapView);
-      const extentThingsFilter = await getExtentThingsFilter(mapView);
+      const newExtentDvFilter = await getExtentDvFilter(mapView);
+      const newExtentThingsFilter = await getExtentThingsFilter(mapView);
 
       // Could not create filters
-      if (!extentDvFilter || !extentThingsFilter) return;
+      if (!newExtentDvFilter || !newExtentThingsFilter) return;
 
-      fetchAndTransformData(
+      // Same extent, no update necessary
+      if (
+        newExtentDvFilter === extentDvFilter.current ||
+        newExtentThingsFilter === extentThingsFilter.current
+      )
+        return;
+      extentDvFilter.current = newExtentDvFilter;
+      extentThingsFilter.current = newExtentThingsFilter;
+
+      await fetchAndTransformData(
         [
-          fetchDailyAverages(extentDvFilter, services.data, abortSignal),
-          fetchPrecipitation(extentDvFilter, services.data, abortSignal),
-          fetchStreamgages(extentThingsFilter, services.data, abortSignal),
+          fetchDailyAverages(
+            extentDvFilter.current,
+            services.data,
+            abortSignal,
+          ),
+          fetchPrecipitation(
+            extentDvFilter.current,
+            services.data,
+            abortSignal,
+          ),
+          fetchStreamgages(
+            extentThingsFilter.current,
+            services.data,
+            abortSignal,
+          ),
         ],
         fetchedDataDispatch,
-        fetchedDataKey,
-        hucData, // Always include HUC data
+        surroundingFetchedDataKey,
+        hucData, // Filter out HUC data
       );
     },
     [fetchedDataDispatch, hucData, mapView, services],
   );
 
-  return updateData;
+  return updateSurroundingData;
 }
 
 /*
@@ -171,6 +171,9 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
       geometry: new Point({
         longitude: datum.locationLongitude,
         latitude: datum.locationLatitude,
+        spatialReference: {
+          wkid: 102100,
+        },
       }),
       attributes: datum,
     });
@@ -182,6 +185,7 @@ function buildLayer(
   baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
+  type: SublayerType,
 ) {
   return new FeatureLayer({
     id: baseLayerId,
@@ -200,9 +204,13 @@ function buildLayer(
       { name: 'locationType', type: 'string' },
       { name: 'locationUrl', type: 'string' },
       { name: 'streamgageMeasurements', type: 'blob' },
+      { name: 'uniqueId', type: 'string' },
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
+    spatialReference: {
+      wkid: 102100,
+    },
     // NOTE: initial graphic below will be replaced with UGSG streamgages
     source: [
       new Graphic({
@@ -216,9 +224,10 @@ function buildLayer(
     renderer: new SimpleRenderer({
       symbol: new SimpleMarkerSymbol({
         style: 'square',
-        color: '#fffe00', // '#989fa2'
+        color: colors.yellow(type === 'enclosed' ? 0.9 : 0.5),
         outline: {
           width: 0.75,
+          color: colors.black(type === 'enclosed' ? 1.0 : 0.5),
         },
       }),
     }),
@@ -229,13 +238,14 @@ function buildLayer(
       content: (feature: __esri.Feature) =>
         getPopupContent({ feature: feature.graphic, navigate, services }),
     },
+    visible: type === 'enclosed',
   });
 }
 
 async function fetchAndTransformData(
   promises: UsgsFetchPromises,
   dispatch: Dispatch<FetchedDataAction>,
-  fetchedDataId: 'usgsStreamgages' | 'localUsgsStreamgages',
+  fetchedDataId: 'usgsStreamgages' | 'surroundingUsgsStreamgages',
   additionalData?: UsgsStreamgageAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -338,6 +348,9 @@ function transformServiceData(
       locationName: gage.properties.monitoringLocationName,
       locationType: gage.properties.monitoringLocationType,
       locationUrl: gage.properties.monitoringLocationUrl,
+      uniqueId:
+        `${gage.properties.monitoringLocationNumber}` +
+        `-${gage.properties.agencyCode}`,
       // usgs streamgage specific properties:
       streamgageMeasurements,
     };
@@ -541,8 +554,8 @@ function getExtentWkt(extent: __esri.Extent | null) {
 ## Constants
 */
 
-const localFetchedDataKey = 'localUsgsStreamgages';
-const fetchedDataKey = 'usgsStreamgages';
+const localFetchedDataKey = 'usgsStreamgages';
+const surroundingFetchedDataKey = 'surroundingUsgsStreamgages';
 const layerId = 'usgsStreamgagesLayer';
 const dataKeys = ['orgId', 'siteId'] as Array<keyof UsgsStreamgageAttributes>;
 

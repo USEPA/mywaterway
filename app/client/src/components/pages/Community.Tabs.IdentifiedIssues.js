@@ -28,12 +28,12 @@ import {
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useFetchedDataState } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
+import { useLayersState } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
 import { plotIssues } from 'utils/mapFunctions';
-import { useLocalDischargers } from 'utils/hooks';
+import { useDischargers } from 'utils/hooks';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
 // styles
@@ -79,7 +79,6 @@ function IdentifiedIssues() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
-    monitoringLocations,
     issuesLayer,
     waterbodyLayer,
     showAllPolluted,
@@ -89,16 +88,17 @@ function IdentifiedIssues() {
     getAllFeatures,
     setVisibleLayers,
     setShowAllPolluted,
+    setViolatingDischargersOnly,
     cipSummary,
     watershed,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer } = useLayers();
+  const { dischargersLayer } = useLayersState();
 
-  const { usgsStreamgages } = useFetchedDataState();
+  const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
 
   const { dischargers: violatingDischargers, dischargersStatus } =
-    useLocalDischargers(filterViolatingFacilities);
+    useDischargers();
 
   const [parameterToggleObject, setParameterToggleObject] = useState({});
 
@@ -107,6 +107,23 @@ function IdentifiedIssues() {
   const [showIssuesLayer, setShowIssuesLayer] = useState(true);
 
   const [showDischargersLayer, setShowDischargersLayer] = useState(false);
+
+  // Only show violating facilities on this tab
+  useEffect(() => {
+    setViolatingDischargersOnly(true);
+    return function cleanup() {
+      setViolatingDischargersOnly(false);
+    };
+  }, [setViolatingDischargersOnly]);
+
+  // Hide the waterbody layer from the list view on this tab
+  useEffect(() => {
+    if (waterbodyLayer) waterbodyLayer.listMode = 'hide';
+
+    return function cleanup() {
+      if (waterbodyLayer) waterbodyLayer.listMode = 'hide-children';
+    };
+  }, [waterbodyLayer]);
 
   // translate scientific parameter names
   const getMappedParameter = (parameterFields: Object, parameter: string) => {
@@ -273,6 +290,8 @@ function IdentifiedIssues() {
       const newVisibleLayers = {};
 
       if (cipSummary.status !== 'failure') {
+        newVisibleLayers['waterbodyLayer'] = visibleLayers['waterbodyLayer'];
+
         newVisibleLayers['issuesLayer'] =
           !issuesLayer || useCurrentValue
             ? visibleLayers['issuesLayer']
@@ -790,22 +809,31 @@ function IdentifiedIssues() {
                       }
                     >
                       {violatingDischargers.map((discharger) => {
-                        const { SourceID: id, CWPName: name } =
-                          discharger.attributes;
+                        const { uniqueId: id, CWPName: name } = discharger;
+
+                        const feature = {
+                          geometry: {
+                            type: 'point',
+                            longitude: discharger.FacLong,
+                            latitude: discharger.FacLat,
+                          },
+                          attributes: discharger,
+                        };
+
                         return (
                           <AccordionItem
                             key={id}
                             title={<strong>{name || 'Unknown'}</strong>}
                             subTitle={<>NPDES ID: {id}</>}
-                            feature={discharger}
-                            idKey="SourceID"
+                            feature={feature}
+                            idKey="uniqueId"
                           >
                             <div css={accordionContentStyles}>
                               <WaterbodyInfo
                                 type="Permitted Discharger"
-                                feature={discharger}
+                                feature={feature}
                               />
-                              <ViewOnMapButton feature={discharger} />
+                              <ViewOnMapButton feature={feature} />
                             </div>
                           </AccordionItem>
                         );
@@ -847,12 +875,4 @@ export default function IdentifiedIssuesContainer() {
       <IdentifiedIssues />
     </TabErrorBoundary>
   );
-}
-
-/*
-##  Utils
-*/
-
-function filterViolatingFacilities(facility) {
-  return facility['CWPSNCStatus']?.toLowerCase().indexOf('effluent') !== -1;
 }

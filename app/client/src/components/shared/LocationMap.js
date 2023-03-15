@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Node } from 'react';
 import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
@@ -41,7 +35,6 @@ import {
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
-import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -63,10 +56,13 @@ import {
   useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
-  useMonitoringLocations,
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
+  useAllWaterbodiesLayer,
+  useDischargersLayer,
+  useMonitoringLocationsLayer,
+  useStreamgageLayer,
 } from 'utils/hooks';
 import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
@@ -79,13 +75,12 @@ import {
   browserIsCompatibleWithArcGIS,
   resetCanonicalLink,
   removeJsonLD,
-  parseAttributes,
 } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
-import 'styles/mapStyles.css';
 import { colors } from 'styles/index.js';
+import 'styles/mapStyles.css';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
@@ -168,6 +163,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLastSearchText,
     setCurrentExtent,
     boundariesLayer,
+    providersLayer,
     searchIconLayer,
     waterbodyLayer,
     countyBoundaries,
@@ -199,11 +195,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    setMonitoringLocations,
     // setNonprofits,
     setWaterbodyLayer,
     setIssuesLayer,
-    setMonitoringLocationsLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -231,7 +225,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer, usgsStreamgagesLayer } = useLayers();
+  const allWaterbodiesLayerVisible =
+    huc12 && window.location.pathname !== '/community';
+  useAllWaterbodiesLayer(allWaterbodiesLayerVisible);
+  const dischargersLayer = useDischargersLayer();
+  const monitoringLocationsLayer = useMonitoringLocationsLayer(
+    huc12 ? `huc=${huc12}` : null,
+  );
+  const usgsStreamgagesLayer = useStreamgageLayer();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -615,10 +616,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
-    if (!dischargersLayer || !usgsStreamgagesLayer) return;
+    if (!dischargersLayer || !monitoringLocationsLayer || !usgsStreamgagesLayer)
+      return;
     if (!getSharedLayers || layersInitialized) return;
-
-    if (layers.length > 0) return;
 
     // create the layers for the map
     const providersLayer = new GraphicsLayer({
@@ -653,71 +653,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     });
 
     setUpstreamLayer(upstreamLayer);
-
-    const monitoringLocationsLayer = new FeatureLayer({
-      id: 'monitoringLocationsLayer',
-      title: 'Past Water Conditions',
-      listMode: 'hide',
-      legendEnabled: true,
-      fields: [
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'monitoringType', type: 'string' },
-        { name: 'siteId', type: 'string' },
-        { name: 'orgId', type: 'string' },
-        { name: 'orgName', type: 'string' },
-        { name: 'locationLongitude', type: 'double' },
-        { name: 'locationLatitude', type: 'double' },
-        { name: 'locationName', type: 'string' },
-        { name: 'locationType', type: 'string' },
-        { name: 'locationUrl', type: 'string' },
-        { name: 'stationProviderName', type: 'string' },
-        { name: 'stationTotalSamples', type: 'integer' },
-        { name: 'stationTotalsByGroup', type: 'string' },
-        { name: 'stationTotalMeasurements', type: 'integer' },
-        { name: 'timeframe', type: 'string' },
-        { name: 'uniqueId', type: 'string' },
-      ],
-      objectIdField: 'OBJECTID',
-      outFields: ['*'],
-      // NOTE: initial graphic below will be replaced with UGSG streamgages
-      source: [
-        new Graphic({
-          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { OBJECTID: 1 },
-        }),
-      ],
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-marker',
-          style: 'circle',
-          color: colors.lightPurple(0.5),
-          outline: {
-            width: 0.75,
-          },
-        },
-      },
-      featureReduction: monitoringClusterSettings,
-      popupTemplate: {
-        outFields: ['*'],
-        title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) => {
-          // Parse non-scalar variables
-          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-          feature.graphic.attributes = parseAttributes(
-            structuredProps,
-            feature.graphic.attributes,
-          );
-          return getPopupContent({
-            feature: feature.graphic,
-            services,
-            navigate,
-          });
-        },
-      },
-    });
-
-    setMonitoringLocationsLayer(monitoringLocationsLayer);
 
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
@@ -765,6 +700,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       legendEnabled: false,
       objectIdField: 'OBJECTID',
       outFields: ['*'],
+      spatialReference: {
+        wkid: 102100,
+      },
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -827,11 +765,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getSharedLayers,
     getTemplate,
     getTitle,
-    layers,
+    monitoringLocationsLayer,
     setBoundariesLayer,
     setIssuesLayer,
     setLayers,
-    setMonitoringLocationsLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -904,7 +841,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           };
           const newLinesLayer = new FeatureLayer({
             id: 'waterbodyLines',
-            name: 'Lines',
+            title: 'Waterbody Lines',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -971,7 +908,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           };
           const newAreasLayer = new FeatureLayer({
             id: 'waterbodyAreas',
-            name: 'Areas',
+            title: 'Waterbody Areas',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -1026,7 +963,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           const newPointsLayer = new FeatureLayer({
             id: 'waterbodyPoints',
-            name: 'Points',
+            title: 'Waterbody Points',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -1111,31 +1048,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // query geocode server for every new search
   const [mapLoading, setMapLoading] = useState(true);
-
-  const queryMonitoringStationService = useCallback(
-    (huc12Param) => {
-      const url =
-        `${services.data.waterQualityPortal.monitoringLocation}` +
-        `search?mimeType=geojson&zip=no&huc=${huc12Param}`;
-
-      fetchCheck(url)
-        .then((res) => {
-          setMonitoringLocations({
-            status: 'success',
-            data: res,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          setMonitoringLocations({ status: 'failure', data: {} });
-        });
-    },
-    [setMonitoringLocations, services],
-  );
-
-  // updates the features on the monitoringStationsLayer
-  // and the monitoring groups
-  useMonitoringLocations();
 
   const queryGrtsHuc12 = useCallback(
     (huc12Param) => {
@@ -1413,7 +1325,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               });
             }) ?? [];
 
-          setCyanWaterbodies({ status: 'success', data: features });
+          const data = features.map((feature) => {
+            return {
+              ...feature.attributes,
+              geometry: feature.geometry,
+            };
+          });
+
+          setCyanWaterbodies({ status: 'success', data });
 
           cyanWaterbodiesLayer.queryFeatures().then((featureSet) => {
             cyanWaterbodiesLayer.applyEdits({
@@ -1556,7 +1475,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           setHuc12(huc12);
           processBoundariesData(response);
-          queryMonitoringStationService(huc12);
           queryGrtsHuc12(huc12);
           queryAttainsPlans(huc12);
 
@@ -1574,7 +1492,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [
       setHuc12,
       processBoundariesData,
-      queryMonitoringStationService,
       queryGrtsHuc12,
       queryAttainsPlans,
       handleNoDataAvailable,
@@ -1583,13 +1500,24 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const processGeocodeServerResults = useCallback(
     (searchText, hucRes = null) => {
-      const renderMapAndZoomTo = (longitude, latitude, callback) => {
+      const renderMapAndZoomTo = (
+        longitude,
+        latitude,
+        searchText,
+        hucRes,
+        callback,
+      ) => {
         const location = {
           type: 'point',
           longitude: longitude,
           latitude: latitude,
+          spatialReference: {
+            wkid: 102100,
+          },
         };
         if (!searchIconLayer) return;
+
+        const hucFeature = hucRes?.features?.[0];
 
         searchIconLayer.graphics.removeAll();
         searchIconLayer.visible = true;
@@ -1602,7 +1530,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               height: 25,
               yoffset: 9, // this is a little lower to account for space below pin
             }),
-            attributes: { name: 'map-marker' },
+            attributes: {
+              OBJECTID: 1,
+              searchText,
+              huc12: hucFeature ? hucFeature.attributes.huc12 : '',
+              huc12Name: hucFeature ? hucFeature.attributes.name : '',
+            },
           }),
         );
 
@@ -1700,6 +1633,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderMapAndZoomTo(
               location.location.longitude,
               location.location.latitude,
+              location.address,
+              hucRes,
               () => handleHUC12(hucRes),
             );
           } else {
@@ -1715,6 +1650,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 renderMapAndZoomTo(
                   location.location.longitude,
                   location.location.latitude,
+                  searchText,
+                  hucRes,
                   () => handleHUC12(hucRes),
                 );
               })
@@ -1749,20 +1686,40 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 countiesRes.features.length > 0 &&
                 countiesRes.features[0].attributes
               ) {
-                const stateCode = countiesRes.features[0].attributes.STATE_FIPS;
-                const countyCode =
-                  countiesRes.features[0].attributes.FIPS.substring(2, 5);
+                const feature = countiesRes.features[0];
+                const stateCode = feature.attributes.STATE_FIPS;
+                const countyCode = feature.attributes.FIPS.substring(2, 5);
                 setFIPS({
                   stateCode: stateCode,
                   countyCode: countyCode,
                   status: 'success',
                 });
+
+                const graphic = new Graphic({
+                  attributes: feature.attributes,
+                  geometry: new Polygon({
+                    spatialReference: countiesRes.spatialReference,
+                    rings: feature.geometry.rings,
+                  }),
+                  symbol: new SimpleFillSymbol({
+                    color: [0, 0, 0, 0.15],
+                    outline: {
+                      color: colors.yellow(),
+                      width: 3,
+                      style: 'solid',
+                    },
+                  }),
+                });
+
+                providersLayer.graphics.removeAll();
+                providersLayer.graphics.add(graphic);
               } else {
                 setFIPS({
                   stateCode: '',
                   countyCode: '',
                   status: 'failure',
                 });
+                providersLayer.graphics.removeAll();
               }
 
               setCountyBoundaries(countiesRes);
@@ -1806,8 +1763,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           //   where the address would normally be.
           // Go ahead and zoom to the center of the huc
           const { centermass_x, centermass_y } = hucRes.features[0].attributes;
-          renderMapAndZoomTo(centermass_x, centermass_y, () =>
-            handleHUC12(hucRes),
+          renderMapAndZoomTo(
+            centermass_x,
+            centermass_y,
+            searchText,
+            hucRes,
+            () => handleHUC12(hucRes),
           );
 
           // set drinkingWater to an empty array, since we don't have
@@ -1828,6 +1789,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setFIPS,
       handleNoDataAvailable,
       services,
+      providersLayer,
     ],
   );
 
@@ -1929,7 +1891,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'dash',
         },
       },
-      attributes: { name: 'boundaries' },
+      attributes: hucBoundaries.features[0].attributes,
     });
 
     // clear previously set graphic (from a previous search), and add graphic
