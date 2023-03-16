@@ -48,6 +48,7 @@ export function Sparkline({ data }: { data: Observation[] }) {
       <XYChart
         margin={{ top: 4, right: 4, bottom: 4, left: 4 }}
         height={32}
+        width={120}
         xScale={{ type: 'band', paddingInner: 0.875 }}
         yScale={{
           type: 'linear',
