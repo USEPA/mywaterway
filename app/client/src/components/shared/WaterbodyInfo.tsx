@@ -585,6 +585,13 @@ function WaterbodyInfo({
             value: bool(attributes.CWPFormalEaCnt),
           },
           {
+            label: 'Latitude/Longitude',
+            value: `${toFixedFloat(parseFloat(attributes.FacLat), 5)}, ${toFixedFloat(
+              parseFloat(attributes.FacLong),
+              5,
+            )}`,
+          },
+          {
             label: 'NPDES ID',
             value: attributes.SourceID,
           },
