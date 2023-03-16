@@ -55,7 +55,7 @@ import {
   useMonitoringLocationsLayer,
   useSharedLayers,
 } from 'utils/hooks';
-import { isAbort } from 'utils/utils';
+import { isAbort, toFixedFloat } from 'utils/utils';
 // styles
 import {
   boxStyles,
@@ -1824,6 +1824,13 @@ function InformationSection({ siteId, site, siteStatus }) {
     {
       label: 'Water Type',
       value: site.locationType,
+    },
+    {
+      label: 'Latitude/Longitude',
+      value: `${toFixedFloat(site.locationLatitude, 5)}, ${toFixedFloat(
+        site.locationLongitude,
+        5,
+      )}`,
     },
     {
       label: 'Total Sample Count',

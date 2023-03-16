@@ -585,6 +585,13 @@ function WaterbodyInfo({
             value: bool(attributes.CWPFormalEaCnt),
           },
           {
+            label: 'Latitude/Longitude',
+            value: `${toFixedFloat(
+              parseFloat(attributes.FacLat),
+              5,
+            )}, ${toFixedFloat(parseFloat(attributes.FacLong), 5)}`,
+          },
+          {
             label: 'NPDES ID',
             value: attributes.SourceID,
           },
@@ -1480,7 +1487,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     });
 
     // workaround for needing to proxy cyan from localhost
-    const fetcher = window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
+    const fetcher =
+      window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
 
     fetcher(dataUrl, abortSignal)
       .then((res: { data: { [date: string]: number[] } }) => {
@@ -1578,9 +1586,15 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     setImageStatus('pending');
 
     // workaround for needing to proxy cyan from localhost
-    const fetcher = window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
+    const fetcher =
+      window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
 
-    const imagePromise = fetcher(imageUrl, abortController.signal, undefined, 'blob');
+    const imagePromise = fetcher(
+      imageUrl,
+      abortController.signal,
+      undefined,
+      'blob',
+    );
     const propsPromise = fetcher(propertiesUrl, abortController.signal);
     Promise.all([imagePromise, propsPromise])
       .then(([blob, propsRes]) => {
@@ -2099,6 +2113,8 @@ function MonitoringLocationsContent({
   }, [attributes]);
 
   const {
+    locationLatitude,
+    locationLongitude,
     locationName,
     locationType,
     locationUrlPartial,
@@ -2260,6 +2276,13 @@ function MonitoringLocationsContent({
             {
               label: 'Water Type',
               value: locationType,
+            },
+            {
+              label: 'Latitude/Longitude',
+              value: `${toFixedFloat(locationLatitude, 5)}, ${toFixedFloat(
+                locationLongitude,
+                5,
+              )}`,
             },
             {
               label: 'Organization ID',
@@ -2429,7 +2452,11 @@ function MonitoringLocationsContent({
       {(!onMonitoringReportPage ||
         layer.id === 'monitoringLocationsLayer-surrounding') && (
         <p css={paragraphStyles}>
-          <a rel="noopener noreferrer" target="_blank" href={locationUrlPartial}>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href={locationUrlPartial}
+          >
             <i
               css={iconStyles}
               className="fas fa-info-circle"
@@ -2461,6 +2488,8 @@ function UsgsStreamgagesContent({
     locationType,
     siteId,
     orgId,
+    locationLatitude,
+    locationLongitude,
     locationUrl,
   }: UsgsStreamgageAttributes = feature.attributes;
 
@@ -2537,6 +2566,13 @@ function UsgsStreamgagesContent({
             {
               label: 'Water Type',
               value: locationType,
+            },
+            {
+              label: 'Latitude/Longitude',
+              value: `${toFixedFloat(locationLatitude, 5)}, ${toFixedFloat(
+                locationLongitude,
+                5,
+              )}`,
             },
             {
               label: 'Organization ID',
