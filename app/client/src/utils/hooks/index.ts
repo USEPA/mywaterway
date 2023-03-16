@@ -799,12 +799,6 @@ function useDynamicPopup() {
     longitude: number;
   } | null>(null);
 
-  /* if (!resetData || services.status === 'fetching') return {
-    getClickedHuc: (_location: __esri.Point) => null,
-    getTemplate: (_graphic: Feature) => null,
-    getTitle: (_graphic: Feature) => null,
-  }; */
-
   const getClickedHuc = useCallback(
     (location: __esri.Point) => {
       if (services.status !== 'success') return null;
