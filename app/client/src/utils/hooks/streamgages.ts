@@ -180,6 +180,9 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
       geometry: new Point({
         longitude: datum.locationLongitude,
         latitude: datum.locationLatitude,
+        spatialReference: {
+          wkid: 102100,
+        },
       }),
       attributes: datum,
     });
@@ -214,6 +217,9 @@ function buildLayer(
     ],
     objectIdField: 'OBJECTID',
     outFields: ['*'],
+    spatialReference: {
+      wkid: 102100,
+    },
     // NOTE: initial graphic below will be replaced with UGSG streamgages
     source: [
       new Graphic({
@@ -542,7 +548,7 @@ async function getExtentThingsFilter(mapView: __esri.MapView | '') {
   const extent = await getGeographicExtent(mapView);
   const wkt = getExtentWkt(extent);
   return wkt
-    ? `$filter=st_within(Location/location,geography'POLYGON(${wkt})')`
+    ? `$filter=st_within(Locations/location,geography'POLYGON(${wkt})')`
     : null;
 }
 

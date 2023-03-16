@@ -83,22 +83,17 @@ function StateMap({
 
   const { selectedGraphic } = useMapHighlightState();
 
+  const { homeWidget, mapView, resetData } = useContext(LocationSearchContext);
+
   const {
-    mapView,
-
-    pointsLayer,
-    linesLayer,
-    areasLayer,
-    setPointsLayer,
-    setLinesLayer,
-    setAreasLayer,
-
-    homeWidget,
-    resetData,
-  } = useContext(LocationSearchContext);
-
-  const { resetLayers, setLayer, updateVisibleLayers, waterbodyLayer } =
-    useLayers();
+    resetLayers,
+    setLayer,
+    updateVisibleLayers,
+    waterbodyAreas,
+    waterbodyLayer,
+    waterbodyLines,
+    waterbodyPoints,
+  } = useLayers();
 
   const [layers, setLayers] = useState(null);
 
@@ -132,14 +127,14 @@ function StateMap({
       }),
       uniqueValueInfos: createUniqueValueInfos('point'),
     };
-    const pointsLayer = new FeatureLayer({
+    const waterbodyPoints = new FeatureLayer({
       url: services.data.waterbodyService.points,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: pointsRenderer,
       popupTemplate,
     });
-    setPointsLayer(pointsLayer);
+    setLayer('waterbodyPoints', waterbodyPoints);
 
     const linesRenderer = {
       type: 'unique-value',
@@ -152,14 +147,14 @@ function StateMap({
       }),
       uniqueValueInfos: createUniqueValueInfos('polyline'),
     };
-    const linesLayer = new FeatureLayer({
+    const waterbodyLines = new FeatureLayer({
       url: services.data.waterbodyService.lines,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: linesRenderer,
       popupTemplate,
     });
-    setLinesLayer(linesLayer);
+    setLayer('waterbodyLines', waterbodyLines);
 
     const areasRenderer = {
       type: 'unique-value',
@@ -172,14 +167,14 @@ function StateMap({
       }),
       uniqueValueInfos: createUniqueValueInfos('polygon'),
     };
-    const areasLayer = new FeatureLayer({
+    const waterbodyAreas = new FeatureLayer({
       url: services.data.waterbodyService.areas,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: areasRenderer,
       popupTemplate,
     });
-    setAreasLayer(areasLayer);
+    setLayer('waterbodyAreas', waterbodyAreas);
 
     // Make the waterbody layer into a single layer
     const waterbodyLayer = new GroupLayer({
@@ -189,7 +184,7 @@ function StateMap({
       visible: false,
       legendEnabled: false,
     });
-    waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
+    waterbodyLayer.addMany([waterbodyAreas, waterbodyLines, waterbodyPoints]);
     setLayer('waterbodyLayer', waterbodyLayer);
 
     setLayers([...getSharedLayers(), waterbodyLayer]);
@@ -199,10 +194,7 @@ function StateMap({
     setLayersInitialized(true);
   }, [
     getSharedLayers,
-    setAreasLayer,
     setLayer,
-    setLinesLayer,
-    setPointsLayer,
     layersInitialized,
     services,
     updateVisibleLayers,
@@ -244,9 +236,9 @@ function StateMap({
     if (
       filter !== lastFilter &&
       mapView &&
-      pointsLayer &&
-      linesLayer &&
-      areasLayer &&
+      waterbodyPoints &&
+      waterbodyLines &&
+      waterbodyAreas &&
       homeWidget &&
       numberOfRecords
     ) {
@@ -257,9 +249,9 @@ function StateMap({
       // change the where clause of the feature layers
       if (!filter) return;
       if (filter) {
-        pointsLayer.definitionExpression = filter;
-        linesLayer.definitionExpression = filter;
-        areasLayer.definitionExpression = filter;
+        waterbodyPoints.definitionExpression = filter;
+        waterbodyLines.definitionExpression = filter;
+        waterbodyAreas.definitionExpression = filter;
       }
 
       function handleError(err) {
@@ -286,13 +278,13 @@ function StateMap({
       // zoom and set the home widget viewpoint
       let fullExtent = null;
       // get the points layer extent
-      queryExtent(pointsLayer)
+      queryExtent(waterbodyPoints)
         .then((pointsExtent) => {
           // set the extent if 1 or more features
           if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
 
           // get the lines layer extent
-          queryExtent(linesLayer)
+          queryExtent(waterbodyLines)
             .then((linesExtent) => {
               // set the extent or union the extent if 1 or more features
               if (linesExtent.count > 0) {
@@ -301,7 +293,7 @@ function StateMap({
               }
 
               // get the areas layer extent
-              queryExtent(areasLayer)
+              queryExtent(waterbodyAreas)
                 .then((areasExtent) => {
                   // set the extent or union the extent if 1 or more features
                   if (areasExtent.count > 0) {
@@ -353,15 +345,15 @@ function StateMap({
         .catch(handleError);
     }
   }, [
-    areasLayer,
+    waterbodyAreas,
     filter,
     homeWidget,
     homeWidgetSet,
     lastFilter,
-    linesLayer,
+    waterbodyLines,
     mapView,
     numberOfRecords,
-    pointsLayer,
+    waterbodyPoints,
     stateMapLoadError,
     waterbodyLayer,
   ]);

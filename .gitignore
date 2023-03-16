@@ -26,6 +26,7 @@ app/cypress/videos/
 .env.local
 .env.development.local
 .env.test.local
+.env.production
 .env.production.local
 
 # Visual Studio/Code cache/options directory

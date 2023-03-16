@@ -163,10 +163,10 @@ function TribalMapList({
   const { errorMessage, mapView } = useContext(LocationSearchContext);
 
   const {
-    areasLayer,
-    linesLayer,
+    waterbodyAreas,
+    waterbodyLines,
     monitoringLocationsLayer,
-    pointsLayer,
+    waterbodyPoints,
     updateVisibleLayers,
     waterbodyLayer,
   } = useLayers();
@@ -200,26 +200,37 @@ function TribalMapList({
   // set the filter on each waterbody layer
   const [filter, setFilter] = useState('');
   useEffect(() => {
-    if (!activeState?.attainsId || !pointsLayer || !linesLayer || !areasLayer)
+    if (
+      !activeState?.attainsId ||
+      !waterbodyPoints ||
+      !waterbodyLines ||
+      !waterbodyAreas
+    )
       return;
 
     // change the where clause of the feature layers
     const filter = `organizationid = '${activeState.attainsId}'`;
     if (filter) {
-      pointsLayer.definitionExpression = filter;
-      linesLayer.definitionExpression = filter;
-      areasLayer.definitionExpression = filter;
+      waterbodyPoints.definitionExpression = filter;
+      waterbodyLines.definitionExpression = filter;
+      waterbodyAreas.definitionExpression = filter;
     }
 
     setFilter(filter);
     setTribalBoundaryError(false);
     setWaterbodies({ status: 'pending', data: [] });
-  }, [activeState, areasLayer, linesLayer, pointsLayer]);
+  }, [activeState, waterbodyAreas, waterbodyLines, waterbodyPoints]);
 
   // get the full list of waterbodies across the points, lines, and areas layers
   const [waterbodies, setWaterbodies] = useState({ status: 'idle', data: [] });
   useEffect(() => {
-    if (!filter || !mapView || !pointsLayer || !linesLayer || !areasLayer) {
+    if (
+      !filter ||
+      !mapView ||
+      !waterbodyPoints ||
+      !waterbodyLines ||
+      !waterbodyAreas
+    ) {
       return;
     }
 
@@ -230,25 +241,25 @@ function TribalMapList({
 
     const features = [];
     // get the waterbodies from the points layer
-    const pointsQuery = pointsLayer.createQuery();
+    const pointsQuery = waterbodyPoints.createQuery();
     pointsQuery.outSpatialReference = { wkid: 3857 };
-    pointsLayer
+    waterbodyPoints
       .queryFeatures(pointsQuery)
       .then((pointFeatures) => {
         features.push(...pointFeatures.features);
 
         // get the waterbodies from the lines layer
-        const linesQuery = linesLayer.createQuery();
+        const linesQuery = waterbodyLines.createQuery();
         linesQuery.outSpatialReference = { wkid: 3857 };
-        linesLayer
+        waterbodyLines
           .queryFeatures(linesQuery)
           .then((lineFeatures) => {
             features.push(...lineFeatures.features);
 
             // get the waterbodies from the areas layer
-            const areasQuery = areasLayer.createQuery();
+            const areasQuery = waterbodyAreas.createQuery();
             areasQuery.outSpatialReference = { wkid: 3857 };
-            areasLayer
+            waterbodyAreas
               .queryFeatures(areasQuery)
               .then((areaFeatures) => {
                 features.push(...areaFeatures.features);
@@ -259,7 +270,7 @@ function TribalMapList({
           .catch(handelQueryError);
       })
       .catch(handelQueryError);
-  }, [pointsLayer, linesLayer, areasLayer, mapView, filter]);
+  }, [waterbodyPoints, waterbodyLines, waterbodyAreas, mapView, filter]);
 
   // scroll to the tribe map when the user switches to full screen mode
   useEffect(() => {
@@ -572,9 +583,9 @@ function TribalMap({
   const { homeWidget, mapView } = useContext(LocationSearchContext);
 
   const {
-    areasLayer,
-    linesLayer,
-    pointsLayer,
+    waterbodyAreas,
+    waterbodyLines,
+    waterbodyPoints,
     setLayer,
     setResetHandler,
     updateVisibleLayers,
@@ -638,14 +649,14 @@ function TribalMap({
       }),
       uniqueValueInfos: createUniqueValueInfos('point'),
     };
-    const pointsLayer = new FeatureLayer({
+    const waterbodyPoints = new FeatureLayer({
       url: services.data.waterbodyService.points,
       definitionExpression: `organizationid = '${activeState.attainsId}'`,
       outFields: ['*'],
       renderer: pointsRenderer,
       popupTemplate,
     });
-    setLayer('pointsLayer', pointsLayer);
+    setLayer('waterbodyPoints', waterbodyPoints);
 
     const linesRenderer = {
       type: 'unique-value',
@@ -658,14 +669,14 @@ function TribalMap({
       }),
       uniqueValueInfos: createUniqueValueInfos('polyline'),
     };
-    const linesLayer = new FeatureLayer({
+    const waterbodyLines = new FeatureLayer({
       url: services.data.waterbodyService.lines,
       definitionExpression: `organizationid = '${activeState.attainsId}'`,
       outFields: ['*'],
       renderer: linesRenderer,
       popupTemplate,
     });
-    setLayer('linesLayer', linesLayer);
+    setLayer('waterbodyLines', waterbodyLines);
 
     const areasRenderer = {
       type: 'unique-value',
@@ -678,14 +689,14 @@ function TribalMap({
       }),
       uniqueValueInfos: createUniqueValueInfos('polygon'),
     };
-    const areasLayer = new FeatureLayer({
+    const waterbodyAreas = new FeatureLayer({
       url: services.data.waterbodyService.areas,
       definitionExpression: `organizationid = '${activeState.attainsId}'`,
       outFields: ['*'],
       renderer: areasRenderer,
       popupTemplate,
     });
-    setLayer('areasLayer', areasLayer);
+    setLayer('waterbodyAreas', waterbodyAreas);
 
     // Make the waterbody layer into a single layer
     const waterbodyLayer = new GroupLayer({
@@ -695,7 +706,7 @@ function TribalMap({
       visible: true,
       legendEnabled: false,
     });
-    waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
+    waterbodyLayer.addMany([waterbodyAreas, waterbodyLines, waterbodyPoints]);
     setLayer('waterbodyLayer', waterbodyLayer);
     setResetHandler('waterbodyLayer', () => {
       waterbodyLayer.layers.removeAll();
@@ -817,9 +828,9 @@ function TribalMap({
     if (
       !filter ||
       !mapView ||
-      !pointsLayer ||
-      !linesLayer ||
-      !areasLayer ||
+      !waterbodyPoints ||
+      !waterbodyLines ||
+      !waterbodyAreas ||
       !selectedTribeLayer ||
       !homeWidget
     ) {
@@ -829,12 +840,12 @@ function TribalMap({
     // zoom and set the home widget viewpoint
     let fullExtent = null;
     // get the points layer extent
-    pointsLayer.queryExtent().then((pointsExtent) => {
+    waterbodyPoints.queryExtent().then((pointsExtent) => {
       // set the extent if 1 or more features
       if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
 
       // get the lines layer extent
-      linesLayer.queryExtent().then((linesExtent) => {
+      waterbodyLines.queryExtent().then((linesExtent) => {
         // set the extent or union the extent if 1 or more features
         if (linesExtent.count > 0) {
           if (fullExtent) fullExtent.union(linesExtent.extent);
@@ -842,7 +853,7 @@ function TribalMap({
         }
 
         // get the areas layer extent
-        areasLayer.queryExtent().then((areasExtent) => {
+        waterbodyAreas.queryExtent().then((areasExtent) => {
           // set the extent or union the extent if 1 or more features
           if (areasExtent.count > 0) {
             if (fullExtent) fullExtent.union(areasExtent.extent);
@@ -884,13 +895,13 @@ function TribalMap({
       });
     });
   }, [
-    areasLayer,
+    waterbodyAreas,
     filter,
     homeWidget,
     homeWidgetSet,
-    linesLayer,
+    waterbodyLines,
     mapView,
-    pointsLayer,
+    waterbodyPoints,
     selectedTribeLayer,
     waterbodyLayer,
   ]);

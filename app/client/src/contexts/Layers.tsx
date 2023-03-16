@@ -183,12 +183,12 @@ export function useLayersDispatch() {
 */
 
 const featureLayerIds = [
-  'areasLayer',
+  'waterbodyAreas',
   'countyLayer',
   'congressionalLayer',
   'ejscreenLayer',
-  'linesLayer',
-  'pointsLayer',
+  'waterbodyLines',
+  'waterbodyPoints',
   'watershedsLayer',
   'wildScenicRiversLayer',
   'wsioHealthIndexLayer',

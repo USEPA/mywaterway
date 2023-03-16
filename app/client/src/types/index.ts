@@ -152,6 +152,11 @@ export interface Huc12SummaryData {
   }[];
 }
 
+export type LookupFile = {
+  status: 'fetching' | 'success' | 'failure';
+  data: any;
+};
+
 export interface MonitoringFeatureUpdate {
   totalMeasurements: number;
   totalsByGroup: { [group: string]: number };
@@ -173,6 +178,7 @@ export interface MonitoringLocationAttributes {
   locationName: string;
   locationType: string;
   locationUrl: string;
+  locationUrlPartial: string;
   state: string;
   dataByYear: { [year: string | number]: AnnualStationData } | null;
   providerName: string;
@@ -484,9 +490,47 @@ export interface WaterbodyAttributes {
   overallstatus: string;
 }
 
-export interface WidgetLayer extends __esri.Layer {
+interface PortalLayer extends __esri.Layer {
   portalItem?: __esri.PortalItem;
 }
+
+export type PortalLayerTypes =
+  | 'Feature Service'
+  | 'Image Service'
+  | 'KML'
+  | 'Map Service'
+  | 'Vector Tile Service'
+  | 'WMS';
+
+export type WidgetLayer =
+  | {
+      type: 'portal';
+      layerType: PortalLayerTypes;
+      id: string;
+      layer: PortalLayer;
+      url: string;
+    }
+  | {
+      type: 'url';
+      layer: __esri.Layer;
+      layerType: string;
+      url: string;
+      urlType: 'ArcGIS' | 'CSV' | 'GeoRSS' | 'KML' | 'WCS' | 'WFS' | 'WMS';
+    }
+  | {
+      type: 'file';
+      fields: __esri.FieldProperties[];
+      layer: __esri.Layer;
+      layerId: string;
+      layerType?: string;
+      objectIdField: string;
+      outFields: string[];
+      popupTemplate: __esri.PopupTemplateProperties;
+      renderer: __esri.RendererProperties;
+      source: __esri.Graphic[];
+      title: string;
+      rawLayer: any;
+    };
 
 export interface WildScenicRiverAttributes {
   WSR_RIVER_NAME: string;

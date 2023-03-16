@@ -29,7 +29,7 @@ import {
   isMediaLayer,
   isUniqueValueRenderer,
 } from 'utils/mapFunctions';
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
   convertDomainCode,
@@ -583,6 +583,13 @@ function WaterbodyInfo({
           {
             label: 'Formal Enforcement Action in the last 5 years',
             value: bool(attributes.CWPFormalEaCnt),
+          },
+          {
+            label: 'Latitude/Longitude',
+            value: `${toFixedFloat(
+              parseFloat(attributes.FacLat),
+              5,
+            )}, ${toFixedFloat(parseFloat(attributes.FacLong), 5)}`,
           },
           {
             label: 'NPDES ID',
@@ -1245,9 +1252,7 @@ function formatDate(epoch: number) {
 function getDayOfYear(day: Date) {
   const firstOfYear = new Date(day.getFullYear(), 0, 0);
   const diff =
-    day.getTime() -
-    firstOfYear.getTime() +
-    (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
+    day.getTime() - firstOfYear.getTime() + getTzOffsetMsecs(firstOfYear, day);
   return Math.floor(diff / oneDay);
 }
 
@@ -1276,6 +1281,12 @@ function getTotalNonLandPixels(
 ) {
   const { belowDetection, measurements, noData } = data;
   return sum(belowDetection, noData, ...measurements);
+}
+
+function getTzOffsetMsecs(previous: Date, current: Date) {
+  return (
+    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
+  );
 }
 
 function squareKmToSquareMi(km: number) {
@@ -1459,7 +1470,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   useEffect(() => {
     if (services?.status !== 'success') return;
 
-    const startDate = new Date(today.getTime() - 7 * oneDay);
+    const startDateRaw = new Date(today.getTime() - 7 * oneDay);
+    const startDate = new Date(
+      startDateRaw.getTime() + getTzOffsetMsecs(startDateRaw, today),
+    );
 
     const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
       attributes.oid ?? attributes.OBJECTID
@@ -1472,19 +1486,29 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       data: null,
     });
 
-    fetchCheck(dataUrl, abortSignal)
+    // workaround for needing to proxy cyan from localhost
+    const fetcher =
+      window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
+
+    fetcher(dataUrl, abortSignal)
       .then((res: { data: { [date: string]: number[] } }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
-        while (currentDate <= today.getTime() - oneDay) {
+        const yesterdayRaw = today.getTime() - oneDay;
+        const yesterday =
+          yesterdayRaw + getTzOffsetMsecs(new Date(yesterdayRaw), today);
+        while (currentDate <= yesterday) {
           newData[currentDate] = null;
-          currentDate += oneDay;
+          const nextDate = currentDate + oneDay;
+          currentDate =
+            nextDate -
+            getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
         }
         Object.entries(res.data).forEach(([date, values]) => {
           if (values.length !== 256) return;
           const epochDate = cyanDateToEpoch(date);
           // Indices 0, 254, & 255 represent indetectable pixels
-          if (epochDate !== null) {
+          if (epochDate !== null && newData.hasOwnProperty(epochDate)) {
             const measurements = values.slice(1, 254);
             newData[epochDate] = {
               belowDetection: values[0],
@@ -1560,33 +1584,36 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
     cyanImageLayer.source.elements.removeAll();
     setImageStatus('pending');
-    const imagePromise = fetch(imageUrl, { signal: abortController.signal });
-    const propsPromise = fetchCheck(propertiesUrl, abortController.signal);
-    Promise.all([imagePromise, propsPromise])
-      .then(([imageRes, propsRes]) => {
-        if (imageRes.headers.get('Content-Type') !== 'image/png') {
-          setImageStatus('idle');
-          return;
-        }
 
-        imageRes.blob().then((blob) => {
-          const image = new Image();
-          image.src = URL.createObjectURL(blob);
-          image.onload = () => setImageStatus('success');
-          const imageElement = new ImageElement({
-            image,
-            georeference: new ExtentAndRotationGeoreference({
-              extent: new Extent({
-                spatialReference: SpatialReference.WGS84,
-                xmin: propsRes.properties.x_min,
-                xmax: propsRes.properties.x_max,
-                ymin: propsRes.properties.y_min,
-                ymax: propsRes.properties.y_max,
-              }),
+    // workaround for needing to proxy cyan from localhost
+    const fetcher =
+      window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
+
+    const imagePromise = fetcher(
+      imageUrl,
+      abortController.signal,
+      undefined,
+      'blob',
+    );
+    const propsPromise = fetcher(propertiesUrl, abortController.signal);
+    Promise.all([imagePromise, propsPromise])
+      .then(([blob, propsRes]) => {
+        const image = new Image();
+        image.src = URL.createObjectURL(blob);
+        image.onload = () => setImageStatus('success');
+        const imageElement = new ImageElement({
+          image,
+          georeference: new ExtentAndRotationGeoreference({
+            extent: new Extent({
+              spatialReference: SpatialReference.WGS84,
+              xmin: propsRes.properties.x_min,
+              xmax: propsRes.properties.x_max,
+              ymin: propsRes.properties.y_min,
+              ymax: propsRes.properties.y_max,
             }),
-          });
-          cyanImageLayer.source.elements.add(imageElement);
+          }),
         });
+        cyanImageLayer.source.elements.add(imageElement);
       })
       .catch((err) => {
         setImageStatus('failure');
@@ -2086,9 +2113,11 @@ function MonitoringLocationsContent({
   }, [attributes]);
 
   const {
+    locationLatitude,
+    locationLongitude,
     locationName,
     locationType,
-    locationUrl,
+    locationUrlPartial,
     orgId,
     orgName,
     siteId,
@@ -2247,6 +2276,13 @@ function MonitoringLocationsContent({
             {
               label: 'Water Type',
               value: locationType,
+            },
+            {
+              label: 'Latitude/Longitude',
+              value: `${toFixedFloat(locationLatitude, 5)}, ${toFixedFloat(
+                locationLongitude,
+                5,
+              )}`,
             },
             {
               label: 'Organization ID',
@@ -2416,7 +2452,11 @@ function MonitoringLocationsContent({
       {(!onMonitoringReportPage ||
         layer.id === 'monitoringLocationsLayer-surrounding') && (
         <p css={paragraphStyles}>
-          <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href={locationUrlPartial}
+          >
             <i
               css={iconStyles}
               className="fas fa-info-circle"
@@ -2448,6 +2488,8 @@ function UsgsStreamgagesContent({
     locationType,
     siteId,
     orgId,
+    locationLatitude,
+    locationLongitude,
     locationUrl,
   }: UsgsStreamgageAttributes = feature.attributes;
 
@@ -2524,6 +2566,13 @@ function UsgsStreamgagesContent({
             {
               label: 'Water Type',
               value: locationType,
+            },
+            {
+              label: 'Latitude/Longitude',
+              value: `${toFixedFloat(locationLatitude, 5)}, ${toFixedFloat(
+                locationLongitude,
+                5,
+              )}`,
             },
             {
               label: 'Organization ID',

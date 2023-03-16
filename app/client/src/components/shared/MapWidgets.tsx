@@ -26,12 +26,12 @@ import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
-import AddDataWidget from 'components/shared/AddDataWidget';
+import AddSaveDataWidget from 'components/shared/AddSaveDataWidget';
 import MapLegend from 'components/shared/MapLegend';
 import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { LocationSearchContext, Status } from 'contexts/locationSearch';
 import { useFullscreenState } from 'contexts/Fullscreen';
 import { useLayers } from 'contexts/Layers';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -300,8 +300,11 @@ function MapWidgets({
   layers,
   onHomeWidgetRendered = () => {},
 }: Props) {
-  const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
-    useAddDataWidgetState();
+  const {
+    addSaveDataWidgetVisible,
+    setAddSaveDataWidgetVisible,
+    widgetLayers,
+  } = useAddSaveDataWidgetState();
 
   const pathname = window.location.pathname;
   const abortSignal = useAbortSignal();
@@ -324,6 +327,7 @@ function MapWidgets({
     setUpstreamWidget,
     setBasemap,
     basemap,
+    setUpstreamWatershedResponse,
     getCurrentExtent,
     setCurrentExtent,
     getHuc12,
@@ -404,7 +408,7 @@ function MapWidgets({
 
     map.removeAll();
     map.addMany(layers);
-    map.addMany(widgetLayers);
+    map.addMany(widgetLayers.map((layer) => layer.layer));
 
     // gets a layer type value used for sorting
     function getLayerType(layer: __esri.Layer) {
@@ -597,18 +601,17 @@ function MapWidgets({
 
   // Creates and adds the legend widget to the map
   const rnd = useRef<Rnd | null>(null);
-  const [addDataWidget, setAddDataWidget] = useState<HTMLDivElement | null>(
-    null,
-  );
+  const [addSaveDataWidget, setAddSaveDataWidget] =
+    useState<HTMLDivElement | null>(null);
   useEffect(() => {
-    if (!view?.ui || addDataWidget) return;
+    if (!view?.ui || addSaveDataWidget) return;
 
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 1 });
 
     render(
-      <ShowAddDataWidget
-        setAddDataWidgetVisibleParam={setAddDataWidgetVisible}
+      <ShowAddSaveDataWidget
+        setAddSaveDataWidgetVisibleParam={setAddSaveDataWidgetVisible}
       />,
       node,
     );
@@ -624,7 +627,7 @@ function MapWidgets({
         .getElementById('hmw-map-container')
         ?.getBoundingClientRect();
       let awdRect = document
-        .getElementById('add-data-widget')
+        .getElementById('add-save-data-widget')
         ?.getBoundingClientRect();
 
       if (!mapRect || !awdRect) return;
@@ -632,7 +635,7 @@ function MapWidgets({
       const maxLeft = mapRect.width - awdRect.width;
       const curLeft = awdRect.left - mapRect.left;
 
-      // update the position of the add data widget
+      // update the position of the add save data widget
       const newPosition =
         curLeft > maxLeft
           ? maxLeft
@@ -645,8 +648,13 @@ function MapWidgets({
 
     window.addEventListener('resize', handleResize);
 
-    setAddDataWidget(node);
-  }, [view, addDataWidget, addDataWidgetVisible, setAddDataWidgetVisible]);
+    setAddSaveDataWidget(node);
+  }, [
+    view,
+    addSaveDataWidget,
+    addSaveDataWidgetVisible,
+    setAddSaveDataWidgetVisible,
+  ]);
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
@@ -940,6 +948,7 @@ function MapWidgets({
         setErrorMessage={setErrorMessage}
         setUpstreamExtent={setUpstreamExtent}
         setUpstreamLayerErrored={setUpstreamLayerErrored}
+        setUpstreamWatershedResponse={setUpstreamWatershedResponse}
         setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
         updateVisibleLayers={updateVisibleLayers}
         upstreamLayer={upstreamLayer}
@@ -961,6 +970,7 @@ function MapWidgets({
         setErrorMessage={setErrorMessage}
         setUpstreamExtent={setUpstreamExtent}
         setUpstreamLayerErrored={setUpstreamLayerErrored}
+        setUpstreamWatershedResponse={setUpstreamWatershedResponse}
         setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
         setCurrentExtent={setCurrentExtent}
         updateVisibleLayers={updateVisibleLayers}
@@ -994,6 +1004,7 @@ function MapWidgets({
     setErrorMessage,
     setUpstreamExtent,
     setUpstreamLayerErrored,
+    setUpstreamWatershedResponse,
     setUpstreamWidget,
     setUpstreamWidgetDisabled,
     updateVisibleLayers,
@@ -1017,7 +1028,7 @@ function MapWidgets({
     visibleLayers,
   ]);
 
-  if (!addDataWidget) return null;
+  if (!addSaveDataWidget) return null;
 
   const mapWidth = document
     .getElementById('hmw-map-container')
@@ -1029,7 +1040,7 @@ function MapWidgets({
   return (
     <div
       style={{
-        display: addDataWidgetVisible ? 'block' : 'none',
+        display: addSaveDataWidgetVisible ? 'block' : 'none',
         position: 'absolute',
         top: '0',
         width: '100%',
@@ -1039,8 +1050,8 @@ function MapWidgets({
     >
       {viewportWidth < 960 ? (
         <div
-          id="add-data-widget"
-          className={addDataWidgetVisible ? '' : 'hidden'}
+          id="add-save-data-widget"
+          className={addSaveDataWidgetVisible ? '' : 'hidden'}
           style={{
             backgroundColor: 'white',
             pointerEvents: 'all',
@@ -1050,12 +1061,12 @@ function MapWidgets({
             bottom: 0,
           }}
         >
-          <AddDataWidget />
+          <AddSaveDataWidget />
         </div>
       ) : (
         <Rnd
-          id="add-data-widget"
-          className={addDataWidgetVisible ? '' : 'hidden'}
+          id="add-save-data-widget"
+          className={addSaveDataWidgetVisible ? '' : 'hidden'}
           style={{ backgroundColor: 'white', pointerEvents: 'all' }}
           ref={rnd}
           default={{
@@ -1072,7 +1083,7 @@ function MapWidgets({
           }}
           dragHandleClassName="drag-handle"
         >
-          <AddDataWidget />
+          <AddSaveDataWidget />
           <div css={resizeHandleStyles}>
             <img src={resizeIcon} alt="Resize Handle"></img>
           </div>
@@ -1082,20 +1093,24 @@ function MapWidgets({
   );
 }
 
-function ShowAddDataWidget({
-  setAddDataWidgetVisibleParam,
+function ShowAddSaveDataWidget({
+  setAddSaveDataWidgetVisibleParam,
 }: {
-  setAddDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
+  setAddSaveDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
 }) {
   const [hover, setHover] = useState(false);
 
-  const widget = document.getElementById('add-data-widget');
+  const widget = document.getElementById('add-save-data-widget');
   const widgetHidden = widget?.classList.contains('hidden');
 
   return (
     <div
-      className="add-data-widget"
-      title={widgetHidden ? 'Open Add Data Widget' : 'Close Add Data Widget'}
+      className="add-save-data-widget"
+      title={
+        widgetHidden
+          ? 'Open Add & Save Data Widget'
+          : 'Close Add & Save Data Widget'
+      }
       style={hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
@@ -1103,10 +1118,10 @@ function ShowAddDataWidget({
         if (!widget) return;
         if (widgetHidden) {
           widget.classList.remove('hidden');
-          setAddDataWidgetVisibleParam(true);
+          setAddSaveDataWidgetVisibleParam(true);
         } else {
           widget.classList.add('hidden');
-          setAddDataWidgetVisibleParam(false);
+          setAddSaveDataWidgetVisibleParam(false);
         }
       }}
     >
@@ -1218,6 +1233,9 @@ function retrieveUpstreamWatershed(
     updates?: Partial<LayersState['visible']>,
     merge?: boolean,
   ) => void,
+  setUpstreamWatershedResponse: Dispatch<
+    SetStateAction<{ status: Status; data: __esri.FeatureSet | null }>
+  >,
   setUpstreamWidgetDisabled: Dispatch<SetStateAction<boolean>>,
   view: __esri.MapView | null,
   setUpstreamLoading: Dispatch<SetStateAction<boolean>>,
@@ -1272,6 +1290,7 @@ function retrieveUpstreamWatershed(
   const filter = `xwalk_huc12='${currentHuc12}'`;
 
   setUpstreamLoading(true);
+  setUpstreamWatershedResponse({ status: 'fetching', data: null });
 
   if (services.status !== 'success') return;
   const url = services.data.upstreamWatershed;
@@ -1286,6 +1305,7 @@ function retrieveUpstreamWatershed(
     .executeQueryJSON(url, queryParams)
     .then((res) => {
       setUpstreamLoading(false);
+      setUpstreamWatershedResponse({ status: 'success', data: res });
       const watershed = getWatershed() || 'Unknown Watershed';
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
@@ -1349,6 +1369,7 @@ function retrieveUpstreamWatershed(
     .catch((err) => {
       if (isAbort(err)) return;
       setUpstreamLoading(false);
+      setUpstreamWatershedResponse({ status: 'failure', data: null });
       canDisable && setUpstreamWidgetDisabled(true);
       setUpstreamLayerErrored(true);
       upstreamLayer.visible = false;
@@ -1426,6 +1447,9 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   setErrorMessage: Dispatch<SetStateAction<string>>;
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>;
   setUpstreamLayerErrored: (isErrored: boolean) => void;
+  setUpstreamWatershedResponse: Dispatch<
+    SetStateAction<{ status: Status; data: __esri.FeatureSet | null }>
+  >;
   setUpstreamWidgetDisabled: Dispatch<SetStateAction<boolean>>;
   updateVisibleLayers: (
     updates?: Partial<LayersState['visible']>,
@@ -1449,6 +1473,7 @@ function ShowCurrentUpstreamWatershed({
   setUpstreamExtent,
   setUpstreamLayerErrored,
   updateVisibleLayers,
+  setUpstreamWatershedResponse,
   setUpstreamWidgetDisabled,
   upstreamLayerErrored,
   view,
@@ -1474,6 +1499,7 @@ function ShowCurrentUpstreamWatershed({
         setUpstreamExtent,
         setUpstreamLayerErrored,
         updateVisibleLayers,
+        setUpstreamWatershedResponse,
         setUpstreamWidgetDisabled,
         view,
         setUpstreamLoading,
@@ -1493,6 +1519,7 @@ function ShowCurrentUpstreamWatershed({
       setErrorMessage,
       setUpstreamExtent,
       setUpstreamLayerErrored,
+      setUpstreamWatershedResponse,
       setUpstreamWidgetDisabled,
       updateVisibleLayers,
       upstreamLayer,
@@ -1529,6 +1556,7 @@ function ShowSelectedUpstreamWatershed({
   setErrorMessage,
   setUpstreamExtent,
   setUpstreamLayerErrored,
+  setUpstreamWatershedResponse,
   setUpstreamWidgetDisabled,
   updateVisibleLayers,
   upstreamLayer,
@@ -1630,6 +1658,7 @@ function ShowSelectedUpstreamWatershed({
             setUpstreamExtent,
             setUpstreamLayerErrored,
             updateVisibleLayers,
+            setUpstreamWatershedResponse,
             setUpstreamWidgetDisabled,
             view,
             setUpstreamLoading,
@@ -1659,6 +1688,7 @@ function ShowSelectedUpstreamWatershed({
       setErrorMessage,
       setUpstreamExtent,
       setUpstreamLayerErrored,
+      setUpstreamWatershedResponse,
       setUpstreamWidgetDisabled,
       updateVisibleLayers,
       upstreamLayer,

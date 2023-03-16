@@ -10,7 +10,7 @@ type Props = {
   children: ReactNode,
 };
 
-type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
+export type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
 
 type State = {
   initialExtent: Object,
@@ -29,7 +29,7 @@ type State = {
   drinkingWater: Object,
   cipSummary: { status: Status, data: Huc12SummaryData },
   nonprofits: Object,
-  mapView: Object,
+  mapView: __esri.MapView | null,
   layers: Object[],
   basemap: Object,
   homeWidget: Object,
@@ -45,9 +45,7 @@ type State = {
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
-  pointsLayer: Object,
-  linesLayer: Object,
-  areasLayer: Object,
+  upstreamWatershedResponse: { status: Status, data: __esri.FeatureSet | null },
   errorMessage: string,
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
@@ -97,7 +95,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     drinkingWater: { status: 'fetching', data: [] },
     cipSummary: { status: 'fetching', data: {} },
     nonprofits: { status: 'fetching', data: [] },
-    mapView: '',
+    mapView: null,
     layers: [],
     homeWidget: null,
     upstreamWidget: null,
@@ -115,6 +113,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
 
+    upstreamWatershedResponse: { status: 'idle', data: null },
     errorMessage: '',
     summaryLayerMaxRecordCount: null,
     watershedsLayerMaxRecordCount: null,
@@ -203,6 +202,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     getWatershed: () => {
       return this.state.watershed;
     },
+    getUpstreamWatershedResponse: () => {
+      return this.state.upstreamWatershedResponse;
+    },
     getUpstreamWidgetDisabled: () => {
       return this.state.upstreamWidgetDisabled;
     },
@@ -214,6 +216,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setLayers: (layers) => {
       this.setState({ layers });
+    },
+    setUpstreamWatershedResponse: (upstreamWatershedResponse) => {
+      this.setState({ upstreamWatershedResponse });
     },
     setSummaryLayerMaxRecordCount: (summaryLayerMaxRecordCount) => {
       this.setState({ summaryLayerMaxRecordCount });
@@ -314,9 +319,9 @@ export class LocationSearchProvider extends Component<Props, State> {
       let newState = {};
 
       const layersToRemove = [
-        'pointsLayer',
-        'linesLayer',
-        'areasLayer',
+        'waterbodyPoints',
+        'waterbodyLines',
+        'waterbodyAreas',
         'waterbodyLayer',
       ];
 

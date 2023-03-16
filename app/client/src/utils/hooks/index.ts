@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import Color from '@arcgis/core/Color';
-import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
@@ -12,15 +12,15 @@ import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
-import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
-import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
-import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
-import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
 import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
+import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
 import { useLayers } from 'contexts/Layers';
@@ -53,6 +53,12 @@ import type {
   ExtendedLayer,
   Feature,
 } from 'types';
+
+declare global {
+  interface Window {
+    logToGa: Function;
+  }
+}
 
 let dynamicPopupFields: __esri.Field[] = [];
 
@@ -239,9 +245,9 @@ function useWaterbodyFeatures() {
     }
 
     if (
-      erroredLayers.areasLayer ||
-      erroredLayers.linesLayer ||
-      erroredLayers.pointsLayer ||
+      erroredLayers.waterbodyAreas ||
+      erroredLayers.waterbodyLines ||
+      erroredLayers.waterbodyPoints ||
       orphanFeatures.status === 'error'
     ) {
       if (!features || features.length !== 0) setFeatures([]);
@@ -330,10 +336,10 @@ function useWaterbodyOnMap(
   const { mapView } = useContext(LocationSearchContext);
   const {
     allWaterbodiesLayer,
-    areasLayer,
+    waterbodyAreas,
     erroredLayers,
-    linesLayer,
-    pointsLayer,
+    waterbodyLines,
+    waterbodyPoints,
   } = useLayers();
 
   const setRenderer = useCallback(
@@ -372,19 +378,19 @@ function useWaterbodyOnMap(
   );
 
   useEffect(() => {
-    if (!pointsLayer || erroredLayers.pointsLayer) return;
-    setRenderer(pointsLayer, 'point', attributeName);
-  }, [attributeName, erroredLayers, pointsLayer, setRenderer]);
+    if (!waterbodyPoints || erroredLayers.waterbodyPoints) return;
+    setRenderer(waterbodyPoints, 'point', attributeName);
+  }, [attributeName, erroredLayers, waterbodyPoints, setRenderer]);
 
   useEffect(() => {
-    if (!linesLayer || erroredLayers.linesLayer) return;
-    setRenderer(linesLayer, 'polyline', attributeName);
-  }, [attributeName, erroredLayers, linesLayer, setRenderer]);
+    if (!waterbodyLines || erroredLayers.waterbodyLines) return;
+    setRenderer(waterbodyLines, 'polyline', attributeName);
+  }, [attributeName, erroredLayers, waterbodyLines, setRenderer]);
 
   useEffect(() => {
-    if (!areasLayer || erroredLayers.areasLayer) return;
-    setRenderer(areasLayer, 'polygon', attributeName);
-  }, [attributeName, areasLayer, erroredLayers, setRenderer]);
+    if (!waterbodyAreas || erroredLayers.waterbodyAreas) return;
+    setRenderer(waterbodyAreas, 'polygon', attributeName);
+  }, [attributeName, waterbodyAreas, erroredLayers, setRenderer]);
 
   useEffect(() => {
     if (!allWaterbodiesLayer) return;
@@ -414,15 +420,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     useContext(LocationSearchContext);
 
   const {
-    areasLayer, //part of waterbody group layer
+    waterbodyAreas, //part of waterbody group layer
     actionsLayer,
     dischargersLayer,
     erroredLayers,
     issuesLayer,
-    linesLayer, //part of waterbody group layer
+    waterbodyLines, //part of waterbody group layer
     monitoringLocationsLayer,
     nonprofitsLayer,
-    pointsLayer, //part of waterbody group layer
+    waterbodyPoints, //part of waterbody group layer
     protectedAreasLayer,
     protectedAreasHighlightLayer,
     upstreamLayer,
@@ -557,13 +563,13 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     } else if (attributes.xwalk_huc12) {
       layer = upstreamLayer;
     } else if (attributes.Shape_Length && attributes.Shape_Area) {
-      layer = areasLayer;
+      layer = waterbodyAreas;
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.Shape_Length) {
-      layer = linesLayer;
+      layer = waterbodyLines;
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.assessmentunitidentifier) {
-      layer = pointsLayer;
+      layer = waterbodyPoints;
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
@@ -685,14 +691,14 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       const requests = [];
 
       if (featureLayerType === 'waterbodyLayer') {
-        if (areasLayer && !erroredLayers.areasLayer)
-          requests.push(areasLayer.queryFeatures(query));
+        if (waterbodyAreas && !erroredLayers.waterbodyAreas)
+          requests.push(waterbodyAreas.queryFeatures(query));
 
-        if (linesLayer && !erroredLayers.linesLayer)
-          requests.push(linesLayer.queryFeatures(query));
+        if (waterbodyLines && !erroredLayers.waterbodyLines)
+          requests.push(waterbodyLines.queryFeatures(query));
 
-        if (pointsLayer && !erroredLayers.pointsLayer)
-          requests.push(pointsLayer.queryFeatures(query));
+        if (waterbodyPoints && !erroredLayers.waterbodyPoints)
+          requests.push(waterbodyPoints.queryFeatures(query));
       } else {
         requests.push(layer.queryFeatures(query));
       }
@@ -735,9 +741,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     selectedGraphic,
     highlightOptions,
     highlightState,
-    areasLayer,
-    linesLayer,
-    pointsLayer,
+    waterbodyAreas,
+    waterbodyLines,
+    waterbodyPoints,
     dischargersLayer,
     monitoringLocationsLayer,
     usgsStreamgagesLayer,
@@ -1515,7 +1521,7 @@ function useSharedLayers() {
       }),
       uniqueValueInfos: createUniqueValueInfos('point', allWaterbodiesAlpha),
     });
-    const pointsLayer = new FeatureLayer({
+    const waterbodyPoints = new FeatureLayer({
       url: services.data.waterbodyService.points,
       outFields: ['*'],
       renderer: pointsRenderer,
@@ -1535,7 +1541,7 @@ function useSharedLayers() {
       }),
       uniqueValueInfos: createUniqueValueInfos('polyline', allWaterbodiesAlpha),
     });
-    const linesLayer = new FeatureLayer({
+    const waterbodyLines = new FeatureLayer({
       url: services.data.waterbodyService.lines,
       outFields: ['*'],
       renderer: linesRenderer,
@@ -1555,7 +1561,7 @@ function useSharedLayers() {
       }),
       uniqueValueInfos: createUniqueValueInfos('polygon', allWaterbodiesAlpha),
     });
-    const areasLayer = new FeatureLayer({
+    const waterbodyAreas = new FeatureLayer({
       url: services.data.waterbodyService.areas,
       outFields: ['*'],
       renderer: areasRenderer,
@@ -1573,7 +1579,11 @@ function useSharedLayers() {
       minScale,
       opacity: 0.3,
     });
-    allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
+    allWaterbodiesLayer.addMany([
+      waterbodyAreas,
+      waterbodyLines,
+      waterbodyPoints,
+    ]);
     setLayer('allWaterbodiesLayer', allWaterbodiesLayer);
 
     return allWaterbodiesLayer;

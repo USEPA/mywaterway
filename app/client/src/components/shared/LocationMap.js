@@ -80,6 +80,7 @@ import {
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
+import { colors } from 'styles/index.js';
 import 'styles/mapStyles.css';
 
 // turns an array into a string for the service queries
@@ -209,11 +210,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   } = useContext(LocationSearchContext);
 
   const {
-    areasLayer,
+    waterbodyAreas,
     boundariesLayer,
     erroredLayers,
-    linesLayer,
-    pointsLayer,
+    waterbodyLines,
+    waterbodyPoints,
+    providersLayer,
     resetLayers,
     searchIconLayer,
     setLayer,
@@ -716,6 +718,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       legendEnabled: false,
       objectIdField: 'OBJECTID',
       outFields: ['*'],
+      spatialReference: {
+        wkid: 102100,
+      },
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -834,7 +839,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             originalFeatures.push(item);
           });
           setLinesData({ features: originalFeatures });
-          updateErroredLayers({ linesLayer: false });
+          updateErroredLayers({ waterbodyLines: false });
 
           // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
@@ -854,8 +859,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             uniqueValueInfos: createUniqueValueInfos('polyline'),
           };
           const newLinesLayer = new FeatureLayer({
-            id: 'linesLayer',
-            name: 'Lines',
+            id: 'waterbodyLines',
+            title: 'Waterbody Lines',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -864,14 +869,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: linesRenderer,
             popupTemplate,
           });
-          setLayer('linesLayer', newLinesLayer);
-          setResetHandler('linesLayer', () => {
-            setLayer('linesLayer', null);
+          setLayer('waterbodyLines', newLinesLayer);
+          setResetHandler('waterbodyLines', () => {
+            setLayer('waterbodyLines', null);
           });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          updateErroredLayers({ linesLayer: true });
+          updateErroredLayers({ waterbodyLines: true });
           setLinesData({ features: [] });
         });
     },
@@ -907,7 +912,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             originalFeatures.push(item);
           });
           setAreasData({ features: originalFeatures });
-          updateErroredLayers({ areasLayer: false });
+          updateErroredLayers({ waterbodyAreas: false });
 
           // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
@@ -927,8 +932,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             uniqueValueInfos: createUniqueValueInfos('polygon'),
           };
           const newAreasLayer = new FeatureLayer({
-            id: 'areasLayer',
-            name: 'Areas',
+            id: 'waterbodyAreas',
+            title: 'Waterbody Areas',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -937,14 +942,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: areasRenderer,
             popupTemplate,
           });
-          setLayer('areasLayer', newAreasLayer);
-          setResetHandler('areasLayer', () => {
-            setLayer('areasLayer', null);
+          setLayer('waterbodyAreas', newAreasLayer);
+          setResetHandler('waterbodyAreas', () => {
+            setLayer('waterbodyAreas', null);
           });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          updateErroredLayers({ areasLayer: true });
+          updateErroredLayers({ waterbodyAreas: true });
           setAreasData({ features: [] });
         });
     },
@@ -973,7 +978,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .executeQueryJSON(url, queryParams)
         .then((res) => {
           setPointsData(res);
-          updateErroredLayers({ pointsLayer: false });
+          updateErroredLayers({ waterbodyPoints: false });
 
           const pointsRenderer = {
             type: 'unique-value',
@@ -988,8 +993,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           };
 
           const newPointsLayer = new FeatureLayer({
-            id: 'pointsLayer',
-            name: 'Points',
+            id: 'waterbodyPoints',
+            title: 'Waterbody Points',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -998,14 +1003,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: pointsRenderer,
             popupTemplate,
           });
-          setLayer('pointsLayer', newPointsLayer);
-          setResetHandler('pointsLayer', () => {
-            setLayer('pointsLayer', null);
+          setLayer('waterbodyPoints', newPointsLayer);
+          setResetHandler('waterbodyPoints', () => {
+            setLayer('waterbodyPoints', null);
           });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          updateErroredLayers({ pointsLayer: true });
+          updateErroredLayers({ waterbodyPoints: true });
           setPointsData({ features: [] });
         });
     },
@@ -1022,9 +1027,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // if any service fails, consider all of them failed and do not show any waterbody data
   const mapServiceFailure =
-    erroredLayers.linesLayer ||
-    erroredLayers.areasLayer ||
-    erroredLayers.pointsLayer ||
+    erroredLayers.waterbodyLines ||
+    erroredLayers.waterbodyAreas ||
+    erroredLayers.waterbodyPoints ||
     orphanFeatures.status === 'error';
 
   // Builds the waterbody layer once data has been fetched for all sub layers
@@ -1039,9 +1044,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (
       waterbodyLayer ||
       layers.length === 0 ||
-      !areasLayer ||
-      !linesLayer ||
-      !pointsLayer
+      !waterbodyAreas ||
+      !waterbodyLines ||
+      !waterbodyPoints
     ) {
       return;
     }
@@ -1054,7 +1059,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       visible: false,
       legendEnabled: false,
     });
-    newWaterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
+    newWaterbodyLayer.addMany([
+      waterbodyAreas,
+      waterbodyLines,
+      waterbodyPoints,
+    ]);
     setLayer('waterbodyLayer', newWaterbodyLayer);
     setResetHandler('waterbodyLayer', () => {
       waterbodyLayer?.layers.removeAll();
@@ -1073,9 +1082,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [
     layers,
     waterbodyLayer,
-    areasLayer,
-    linesLayer,
-    pointsLayer,
+    waterbodyAreas,
+    waterbodyLines,
+    waterbodyPoints,
     mapServiceFailure,
     setLayer,
     setLayers,
@@ -1541,13 +1550,24 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const processGeocodeServerResults = useCallback(
     (searchText, hucRes = null) => {
-      const renderMapAndZoomTo = (longitude, latitude, callback) => {
+      const renderMapAndZoomTo = (
+        longitude,
+        latitude,
+        searchText,
+        hucRes,
+        callback,
+      ) => {
         const location = {
           type: 'point',
           longitude: longitude,
           latitude: latitude,
+          spatialReference: {
+            wkid: 102100,
+          },
         };
         if (!searchIconLayer) return;
+
+        const hucFeature = hucRes?.features?.[0];
 
         searchIconLayer.graphics.removeAll();
         searchIconLayer.visible = true;
@@ -1560,7 +1580,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               height: 25,
               yoffset: 9, // this is a little lower to account for space below pin
             }),
-            attributes: { name: 'map-marker' },
+            attributes: {
+              OBJECTID: 1,
+              searchText,
+              huc12: hucFeature ? hucFeature.attributes.huc12 : '',
+              huc12Name: hucFeature ? hucFeature.attributes.name : '',
+            },
           }),
         );
 
@@ -1658,6 +1683,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderMapAndZoomTo(
               location.location.longitude,
               location.location.latitude,
+              location.address,
+              hucRes,
               () => handleHUC12(hucRes),
             );
           } else {
@@ -1673,6 +1700,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 renderMapAndZoomTo(
                   location.location.longitude,
                   location.location.latitude,
+                  searchText,
+                  hucRes,
                   () => handleHUC12(hucRes),
                 );
               })
@@ -1701,26 +1730,48 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           query
             .executeQueryJSON(url, countiesQuery)
             .then((countiesRes) => {
+              if (!providersLayer) return;
+
               // not all locations have a State and County code, check for it
               if (
                 countiesRes.features &&
                 countiesRes.features.length > 0 &&
                 countiesRes.features[0].attributes
               ) {
-                const stateCode = countiesRes.features[0].attributes.STATE_FIPS;
-                const countyCode =
-                  countiesRes.features[0].attributes.FIPS.substring(2, 5);
+                const feature = countiesRes.features[0];
+                const stateCode = feature.attributes.STATE_FIPS;
+                const countyCode = feature.attributes.FIPS.substring(2, 5);
                 setFIPS({
                   stateCode: stateCode,
                   countyCode: countyCode,
                   status: 'success',
                 });
+
+                const graphic = new Graphic({
+                  attributes: feature.attributes,
+                  geometry: new Polygon({
+                    spatialReference: countiesRes.spatialReference,
+                    rings: feature.geometry.rings,
+                  }),
+                  symbol: new SimpleFillSymbol({
+                    color: [0, 0, 0, 0.15],
+                    outline: {
+                      color: colors.yellow(),
+                      width: 3,
+                      style: 'solid',
+                    },
+                  }),
+                });
+
+                providersLayer.graphics.removeAll();
+                providersLayer.graphics.add(graphic);
               } else {
                 setFIPS({
                   stateCode: '',
                   countyCode: '',
                   status: 'failure',
                 });
+                providersLayer.graphics.removeAll();
               }
 
               setCountyBoundaries(countiesRes);
@@ -1764,8 +1815,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           //   where the address would normally be.
           // Go ahead and zoom to the center of the huc
           const { centermass_x, centermass_y } = hucRes.features[0].attributes;
-          renderMapAndZoomTo(centermass_x, centermass_y, () =>
-            handleHUC12(hucRes),
+          renderMapAndZoomTo(
+            centermass_x,
+            centermass_y,
+            searchText,
+            hucRes,
+            () => handleHUC12(hucRes),
           );
 
           // set drinkingWater to an empty array, since we don't have
@@ -1786,6 +1841,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setFIPS,
       handleNoDataAvailable,
       services,
+      providersLayer,
     ],
   );
 
@@ -1889,7 +1945,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'dash',
         },
       },
-      attributes: { name: 'boundaries' },
+      attributes: hucBoundaries.features[0].attributes,
     });
 
     // clear previously set graphic (from a previous search), and add graphic

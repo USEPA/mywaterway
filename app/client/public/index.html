@@ -269,6 +269,14 @@
         ga(`${window.gaTarget}.${command}`, ...props);
       }
 
+      function logErrorToGa(err, fatal = false) {
+        const error = new Error(err);
+        window.logToGa('send', 'exception', {
+          exDescription: `${error.name}:${error.message}:${error.stack}`,
+          exFatal: fatal,
+        });
+      }
+
       // get origin for mapping proxy calls
       const loc = window.location;
       const origin =
