@@ -18,10 +18,6 @@
   height: 24px;
 }
 
-.esri-disabled-element {
-  cursor: default;
-}
-
 .esri-basemap-gallery {
   overflow: visible !important;
   max-height: 100% !important;
@@ -32,10 +28,6 @@
   background-color: inherit;
   overflow: visible !important;
   max-height: 100% !important;
-}
-
-.esri-layer-list__item-actions-menu-item:hover {
-  background-color: white;
 }
 
 .esri-layer-list__item-container {
