@@ -90,12 +90,15 @@ function useBoundariesToggleLayer<
     });
   }, [enclosedLayer, layerId, surroundingLayer]);
 
-  const { disabled: surroundingsDisabled, visible: surroundingsVisible } =
-    useSurroundingsState();
+  const { disabled, visible } = useSurroundingsState();
   const surroundingsDispatch = useSurroundingsDispatch();
   const { setLayer, updateVisibleLayers, visibleLayers } = useLayers();
 
   const { getSignal, abort } = useAbort();
+
+  const surroundingsDisabled = disabled[layerId];
+  const surroundingsVisible = visible[layerId];
+  const layerVisible = visibleLayers[layerId];
 
   // Update data when the mapView updates
   useEffect(() => {
@@ -105,9 +108,9 @@ function useBoundariesToggleLayer<
       () => mapView?.stationary === true,
       () => {
         if (
-          surroundingsDisabled[layerId] ||
-          !surroundingsVisible[layerId] ||
-          visibleLayers[layerId] === false
+          surroundingsDisabled ||
+          !surroundingsVisible ||
+          layerVisible === false
         ) {
           return;
         }
@@ -143,6 +146,7 @@ function useBoundariesToggleLayer<
     getSignal,
     handleGroupKey,
     layerId,
+    layerVisible,
     mapView,
     minScale,
     parentLayer,
@@ -150,7 +154,6 @@ function useBoundariesToggleLayer<
     surroundingsDispatch,
     surroundingsVisible,
     updateSurroundingData,
-    visibleLayers,
   ]);
 
   // Disable the toggles when the map scale is too large
@@ -158,15 +161,15 @@ function useBoundariesToggleLayer<
     const mapScaleHandle = reactiveUtils.watch(
       () => mapView?.scale,
       () => {
-        if (mapView?.scale >= minScale && !surroundingsDisabled[layerId]) {
+        if (mapView?.scale >= minScale && !surroundingsDisabled) {
           surroundingLayer.visible = false;
           surroundingsDispatch({
             type: 'disabled',
             id: layerId,
             payload: true,
           });
-        } else if (mapView?.scale < minScale && surroundingsDisabled[layerId]) {
-          surroundingLayer.visible = surroundingsVisible[layerId];
+        } else if (mapView?.scale < minScale && surroundingsDisabled) {
+          surroundingLayer.visible = surroundingsVisible;
           surroundingsDispatch({
             type: 'disabled',
             id: layerId,
@@ -223,12 +226,11 @@ function useBoundariesToggleLayer<
 
   const [initialLayerVisibility, setInitialLayerVisibility] = useState<
     boolean | null
-  >(visibleLayers[layerId] ?? null);
+  >(layerVisible);
 
   // Manages the surrounding features visibility
   const toggleSurroundings = useCallback(
     (showSurroundings: boolean) => {
-      const layerVisible = visibleLayers[layerId];
       return function toggle() {
         setInitialLayerVisibility(layerVisible);
         if (layerVisible && !showSurroundings) {
@@ -251,10 +253,10 @@ function useBoundariesToggleLayer<
     [
       initialLayerVisibility,
       layerId,
+      layerVisible,
       surroundingLayer,
       surroundingsDispatch,
       updateVisibleLayers,
-      visibleLayers,
     ],
   );
 
@@ -269,10 +271,7 @@ function useBoundariesToggleLayer<
 
   // Keep visibility statuses in sync across tabs
   useEffect(() => {
-    if (
-      visibleLayers[layerId] === false &&
-      surroundingsVisible[layerId] === true
-    ) {
+    if (!layerVisible && surroundingsVisible) {
       surroundingLayer.visible = false;
       surroundingsDispatch({
         type: 'visible',
@@ -282,10 +281,10 @@ function useBoundariesToggleLayer<
     }
   }, [
     layerId,
+    layerVisible,
     surroundingLayer,
     surroundingsDispatch,
     surroundingsVisible,
-    visibleLayers,
   ]);
 
   const fetchedDataDispatch = useFetchedDataDispatch();
