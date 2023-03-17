@@ -726,6 +726,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           attributes: { OBJECTID: 1 },
         }),
       ],
+      title: 'CyAN Waterbodies'
     });
 
     const cyanImages = new MediaLayer({
@@ -734,6 +735,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       effect: 'saturate(150%) contrast(150%)',
       id: 'cyanImages',
       opacity: 1,
+      spatialReference: {
+        wkid: 102100,
+      },
+      title: 'CyAN Images',
     });
 
     const newCyanLayer = new GroupLayer({
