@@ -65,7 +65,7 @@ const layersRequireFeatureService = [
   'searchIconLayer',
   'usgsStreamgagesLayer',
   'waterbodyLayer',
-  'upstreamWatershed',
+  'upstreamLayer',
 ];
 
 const layersMayBeFiltered = [
@@ -74,7 +74,7 @@ const layersMayBeFiltered = [
   'monitoringLocationsLayer',
 ];
 
-const layersMayNotHaveLoaded = ['cyanLayer', 'upstreamWatershed'];
+const layersMayNotHaveLoaded = ['cyanLayer', 'upstreamLayer'];
 
 const layerFilterOptions = [
   { value: 'All', label: 'All' },
@@ -494,7 +494,7 @@ function SavePanel({ visible }: Props) {
         return;
       }
       if (
-        value.id === 'upstreamWatershed' &&
+        value.id === 'upstreamLayer' &&
         upstreamWatershedResponse.status !== 'success'
       ) {
         return;
@@ -503,7 +503,7 @@ function SavePanel({ visible }: Props) {
       // get the widgetLayer for handling layers added via the Add Data Widget
       const widgetLayer = widgetLayers.find((l) => l.layer.id === value.id);
       const associatedData =
-        value.id === 'upstreamWatershed'
+        value.id === 'upstreamLayer'
           ? upstreamWatershedResponse.data
           : null;
 

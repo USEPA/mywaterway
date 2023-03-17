@@ -425,7 +425,7 @@ export async function createFeatureLayers(
         });
         continue;
       } else if (
-        layer.layer.id === 'upstreamWatershed' &&
+        layer.layer.id === 'upstreamLayer' &&
         layer.associatedData
       ) {
         // find the object id field
