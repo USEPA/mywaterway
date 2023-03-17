@@ -1,5 +1,4 @@
 import { render } from 'react-dom';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
@@ -9,7 +8,6 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 // components
 import { MapPopup } from 'components/shared/WaterbodyInfo';
-import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 // utilities
 import { getSelectedCommunityTab } from 'utils/utils';
 // types
@@ -257,27 +255,6 @@ export function createUniqueValueInfosRestore(
   ];
 }
 
-// utility function to create an ESRI MarkerSymbol for a Waterbody
-export function createWaterbodySymbolSvg({
-  condition,
-  selected,
-}: {
-  condition: 'good' | 'polluted' | 'unassessed';
-  selected: boolean;
-}) {
-  const markup = renderToStaticMarkup(
-    <WaterbodyIcon condition={condition} selected={selected} />,
-  );
-
-  return {
-    type: 'picture-marker', // autocasts as new PictureMarkerSymbol()
-    url: `data:image/svg+xml;base64,${encode(markup)}`,
-    width: '26px',
-    height: '26px',
-    condition: condition,
-  };
-}
-
 export function createWaterbodySymbol({
   condition,
   selected,
@@ -367,10 +344,6 @@ export function createWaterbodySymbol({
       outline: polyOutline,
     });
   }
-}
-
-function encode(str: string): string {
-  return Buffer.from(str, 'binary').toString('base64');
 }
 
 // Functions used for narrowing types
