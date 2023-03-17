@@ -17,6 +17,7 @@ import Switch from 'components/shared/Switch';
 import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -220,19 +221,22 @@ function DrinkingWater() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
-    waterbodyLayer,
-    providersLayer,
-    boundariesLayer,
     countyBoundaries,
     drinkingWater,
     watershed,
     mapView,
     atHucBoundaries,
-    setVisibleLayers,
     drinkingWaterTabIndex,
     setDrinkingWaterTabIndex,
     currentExtent,
   } = useContext(LocationSearchContext);
+
+  const {
+    boundariesLayer,
+    providersLayer,
+    updateVisibleLayers,
+    waterbodyLayer,
+  } = useLayers();
 
   // set the waterbody features
   const waterbodies = useWaterbodyFeatures();
@@ -258,7 +262,7 @@ function DrinkingWater() {
     if (!boundariesLayer || !waterbodyLayer || !providersLayer) return;
 
     if (drinkingWaterTabIndex === 0) {
-      setVisibleLayers({
+      updateVisibleLayers({
         boundariesLayer: false,
         waterbodyLayer: false,
         providersLayer: true,
@@ -266,7 +270,7 @@ function DrinkingWater() {
     }
 
     if (drinkingWaterTabIndex === 1) {
-      setVisibleLayers({
+      updateVisibleLayers({
         boundariesLayer: true,
         waterbodyLayer: false,
         providersLayer: false,
@@ -274,7 +278,7 @@ function DrinkingWater() {
     }
 
     if (drinkingWaterTabIndex === 2) {
-      setVisibleLayers({
+      updateVisibleLayers({
         boundariesLayer: true,
         waterbodyLayer: true,
         providersLayer: false,
@@ -285,7 +289,7 @@ function DrinkingWater() {
     boundariesLayer,
     waterbodyLayer,
     providersLayer,
-    setVisibleLayers,
+    updateVisibleLayers,
   ]);
 
   // set map zoom when switching to or from providers subtab

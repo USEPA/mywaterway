@@ -42,7 +42,7 @@ import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-import { LayersProvider } from 'contexts/Layers';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
@@ -51,6 +51,7 @@ import { fetchPost } from 'utils/fetchUtils';
 import {
   getEnclosedLayer,
   useAbort,
+  useAllWaterbodiesLayer,
   useMonitoringLocations,
   useMonitoringLocationsLayer,
   useSharedLayers,
@@ -2066,14 +2067,11 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
-  const {
-    homeWidget,
-    layers,
-    mapView,
-    resetData,
-    setLayers,
-    setVisibleLayers,
-  } = useContext(LocationSearchContext);
+  const { homeWidget, layers, mapView, resetData, setLayers } = useContext(
+    LocationSearchContext,
+  );
+
+  const { updateVisibleLayers } = useLayers();
 
   useEffect(() => {
     if (!mapView) return;
@@ -2088,6 +2086,8 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     };
   }, [mapView]);
 
+  useAllWaterbodiesLayer();
+
   const monitoringLocationsLayer = useMonitoringLocationsLayer(siteFilter);
 
   // Initialize the layers
@@ -2096,7 +2096,7 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     if (!getSharedLayers || layersInitialized) return;
 
     setLayers([...getSharedLayers(), monitoringLocationsLayer]);
-    setVisibleLayers({ monitoringLocationsLayer: true });
+    updateVisibleLayers({ monitoringLocationsLayer: true });
     setLayersInitialized(true);
   }, [
     getSharedLayers,
@@ -2105,9 +2105,9 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     monitoringLocationsLayer,
     services,
     setLayers,
-    setVisibleLayers,
     site,
     siteStatus,
+    updateVisibleLayers,
   ]);
 
   const { getSignal, abort } = useAbort();

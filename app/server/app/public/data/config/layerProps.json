@@ -481,7 +481,7 @@
         }
       }
     },
-    "upstreamWatershed": {
+    "upstreamLayer": {
       "geometryType": "esriGeometryPolygon",
       "description": "",
       "drawingInfo": {

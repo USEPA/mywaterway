@@ -27,8 +27,7 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
-import { useFetchedDataState } from 'contexts/FetchedData';
-import { useLayersState } from 'contexts/Layers';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
@@ -81,23 +80,23 @@ function IdentifiedIssues() {
   useWaterbodyOnMap('isimpaired');
 
   const {
-    issuesLayer,
-    waterbodyLayer,
     showAllPolluted,
     pollutionParameters,
     setPollutionParameters,
-    visibleLayers,
     getAllFeatures,
-    setVisibleLayers,
     setShowAllPolluted,
     setViolatingDischargersOnly,
     cipSummary,
     watershed,
   } = useContext(LocationSearchContext);
 
-  const { dischargersLayer } = useLayersState();
-
-  const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
+  const {
+    dischargersLayer,
+    issuesLayer,
+    updateVisibleLayers,
+    visibleLayers,
+    waterbodyLayer,
+  } = useLayers();
 
   const { dischargers: violatingDischargers, dischargersStatus } =
     useDischargers();
@@ -121,11 +120,13 @@ function IdentifiedIssues() {
   // Hide the waterbody layer from the list view on this tab
   useEffect(() => {
     if (waterbodyLayer) waterbodyLayer.listMode = 'hide';
+    if (issuesLayer) issuesLayer.listMode = 'show';
 
     return function cleanup() {
       if (waterbodyLayer) waterbodyLayer.listMode = 'hide-children';
+      if (issuesLayer) issuesLayer.listMode = 'hide';
     };
-  }, [waterbodyLayer]);
+  }, [issuesLayer, waterbodyLayer]);
 
   // translate scientific parameter names
   const getMappedParameter = (parameterFields: Object, parameter: string) => {
@@ -285,65 +286,6 @@ function IdentifiedIssues() {
     setNullPollutedWaterbodies(nullPollutedWaterbodies);
   }, [cipSummary]);
 
-  // Updates the visible layers. This function also takes into account whether
-  // or not the underlying webservices failed.
-  const updateVisibleLayers = useCallback(
-    ({ key = null, newValue = null, useCurrentValue = false }) => {
-      const newVisibleLayers = {};
-
-      if (cipSummary.status !== 'failure') {
-        newVisibleLayers['waterbodyLayer'] = visibleLayers['waterbodyLayer'];
-
-        newVisibleLayers['issuesLayer'] =
-          !issuesLayer || useCurrentValue
-            ? visibleLayers['issuesLayer']
-            : showIssuesLayer;
-      }
-      if (dischargersStatus !== 'failure') {
-        newVisibleLayers['dischargersLayer'] =
-          !dischargersLayer || useCurrentValue
-            ? visibleLayers['dischargersLayer']
-            : showDischargersLayer;
-      }
-
-      if (monitoringLocations.status !== 'failure') {
-        newVisibleLayers['monitoringLocationsLayer'] =
-          visibleLayers['monitoringLocationsLayer'];
-      }
-
-      if (usgsStreamgages.status !== 'failure') {
-        newVisibleLayers['usgsStreamgagesLayer'] =
-          visibleLayers['usgsStreamgagesLayer'];
-      }
-
-      if (newVisibleLayers.hasOwnProperty(key)) {
-        newVisibleLayers[key] = newValue;
-      }
-
-      // set the visible layers if something changed
-      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
-        setVisibleLayers(newVisibleLayers);
-      }
-    },
-    [
-      cipSummary,
-      dischargersStatus,
-      monitoringLocations,
-      usgsStreamgages,
-      visibleLayers,
-      issuesLayer,
-      showIssuesLayer,
-      dischargersLayer,
-      showDischargersLayer,
-      setVisibleLayers,
-    ],
-  );
-
-  // Updates visible layers based on webservice statuses.
-  useEffect(() => {
-    updateVisibleLayers({ useCurrentValue: true });
-  }, [updateVisibleLayers]);
-
   const checkIfAllSwitchesToggled = (
     cipSummaryData: Object,
     tempParameterToggleObject: Object,
@@ -374,10 +316,10 @@ function IdentifiedIssues() {
     if (!parameters.some(checkAnyCheckedParameters)) {
       setShowIssuesLayer(false);
 
-      updateVisibleLayers({ key: 'issuesLayer', newValue: false });
+      updateVisibleLayers({ issuesLayer: false });
     } else {
       setShowIssuesLayer(true);
-      updateVisibleLayers({ key: 'issuesLayer', newValue: true });
+      updateVisibleLayers({ issuesLayer: true });
     }
 
     // check if any parameters are not checked. if all parameters are checked, set the showAllParameters switch to true
@@ -405,7 +347,7 @@ function IdentifiedIssues() {
       }
 
       setShowAllPolluted(true);
-      updateVisibleLayers({ key: 'issuesLayer', newValue: true });
+      updateVisibleLayers({ issuesLayer: true });
     };
 
     // set all parameters to Off and hide the issuesLayer
@@ -418,7 +360,7 @@ function IdentifiedIssues() {
       }
 
       setShowAllPolluted(false);
-      updateVisibleLayers({ key: 'issuesLayer', newValue: false });
+      updateVisibleLayers({ issuesLayer: false });
     };
 
     // if switch at top of table is switched
@@ -445,10 +387,7 @@ function IdentifiedIssues() {
     else if (checkedSwitch === 'Toggle Dischargers Layer') {
       setShowDischargersLayer(!showDischargersLayer);
 
-      updateVisibleLayers({
-        key: 'dischargersLayer',
-        newValue: dischargersLayer && !showDischargersLayer,
-      });
+      updateVisibleLayers({ dischargersLayer: !showDischargersLayer });
     }
     // one of the parameters is switched
     else {

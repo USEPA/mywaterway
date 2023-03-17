@@ -15,6 +15,7 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
@@ -65,13 +66,9 @@ type Props = {
 function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const navigate = useNavigate();
 
-  const {
-    actionsLayer,
-    homeWidget,
-    mapView,
-    setActionsLayer,
-    setVisibleLayers,
-  } = useContext(LocationSearchContext);
+  const { homeWidget, mapView } = useContext(LocationSearchContext);
+
+  const { actionsLayer, setLayer, updateVisibleLayers } = useLayers();
 
   const [layers, setLayers] = useState(null);
 
@@ -96,7 +93,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
         visible: true,
         legendEnabled: false,
       });
-      setActionsLayer(localActionsLayer);
+      setLayer('actionsLayer', localActionsLayer);
     }
 
     setLayers([
@@ -104,15 +101,15 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       localActionsLayer,
       monitoringLocationsLayer,
     ]);
-    setVisibleLayers({ monitoringLocationsLayer: true });
+    updateVisibleLayers({ monitoringLocationsLayer: true });
     setLayersInitialized(true);
   }, [
     actionsLayer,
-    monitoringLocationsLayer,
-    setActionsLayer,
     getSharedLayers,
-    setVisibleLayers,
     layersInitialized,
+    monitoringLocationsLayer,
+    setLayer,
+    updateVisibleLayers,
   ]);
 
   const [fetchStatus, setFetchStatus] = useState('');

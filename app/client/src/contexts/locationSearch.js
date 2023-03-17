@@ -2,7 +2,7 @@ import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
 // types
 import type { ReactNode } from 'react';
-import type { MonitoringLocationGroups } from 'types';
+import type { Huc12SummaryData, MonitoringLocationGroups } from 'types';
 
 export const LocationSearchContext = createContext();
 
@@ -11,72 +11,6 @@ type Props = {
 };
 
 export type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
-
-type Huc12SummaryData = {
-  count: number,
-  items: {
-    assessedCatchmentAreaPercent: number,
-    assessedCatchmentAreaSqMi: number,
-    assessedGoodCatchmentAreaPercent: number,
-    assessedGoodCatchmentAreaSqMi: number,
-    assessedUnknownCatchmentAreaPercent: number,
-    assessedUnknownCatchmentAreaSqMi: number,
-    assessmentUnitCount: number,
-    assessmentUnits: {
-      assessmentUnitId: string,
-    }[],
-    containImpairedWatersCatchmentAreaPercent: number,
-    containImpairedWatersCatchmentAreaSqMi: number,
-    containRestorationCatchmentAreaPercent: number,
-    containRestorationCatchmentAreaSqMi: number,
-    huc12: string,
-    summaryByIRCategory: {
-      assessmentUnitCount: number,
-      catchmentSizePercent: number,
-      catchmentSizeSqMi: number,
-      epaIRCategoryName: string,
-    }[],
-    summaryByParameterImpairments: {
-      assessmentUnitCount: number,
-      catchmentSizePercent: number,
-      catchmentSizeSqMi: number,
-      parameterGroupName: string,
-    }[],
-    summaryByUse: {
-      useAttainmentSummary: {
-        assessmentUnitCount: number,
-        catchmentSizePercent: number,
-        catchmentSizeSqMi: number,
-        useAttainment: string,
-      }[],
-      useGroupName: string,
-      useName: string,
-    }[],
-    summaryByUseGroup: {
-      useAttainmentSummary: {
-        assessmentUnitCount: number,
-        catchmentSizePercent: number,
-        catchmentSizeSqMi: number,
-        useAttainment: string,
-      }[],
-      useGroupName: string,
-    }[],
-    summaryRestorationPlans: {
-      assessmentUnitCount: number,
-      catchmentSizePercent: number,
-      catchmentSizeSqMi: number,
-      summaryTypeName: string,
-    }[],
-    summaryVisionRestorationPlans: {
-      assessmentUnitCount: number,
-      catchmentSizePercent: number,
-      catchmentSizeSqMi: number,
-      summaryTypeName: string,
-    }[],
-    totalCatchmentAreaSqMi: number,
-    totalHucAreaSqMi: number,
-  }[],
-};
 
 type State = {
   initialExtent: Object,
@@ -98,17 +32,6 @@ type State = {
   mapView: __esri.MapView | null,
   layers: Object[],
   basemap: Object,
-  waterbodyLayer: Object,
-  issuesLayer: Object,
-  nonprofitsLayer: Object,
-  wildScenicRiversLayer: Object,
-  protectedAreasLayer: Object,
-  providersLayer: Object,
-  boundariesLayer: Object,
-  searchIconLayer: Object,
-  actionsLayer: Object,
-  selWaterBodyLayer: Object,
-  wsioHealthIndexLayer: Object,
   homeWidget: Object,
   upstreamWidget: Object,
   upstreamWidgetDisabled: boolean,
@@ -122,11 +45,6 @@ type State = {
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
-  pointsLayer: Object,
-  linesLayer: Object,
-  areasLayer: Object,
-  upstreamLayer: Object,
-  upstreamLayerVisible: boolean,
   upstreamWatershedResponse: { status: Status, data: __esri.FeatureSet | null },
   errorMessage: string,
   summaryLayerMaxRecordCount: ?number,
@@ -179,22 +97,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     nonprofits: { status: 'fetching', data: [] },
     mapView: null,
     layers: [],
-    waterbodyLayer: '',
-    issuesLayer: '',
-    nonprofitsLayer: '',
-    wildScenicRiversLayer: '',
-    protectedAreasLayer: '',
-    protectedAreasHighlightLayer: '',
-    providersLayer: '',
-    boundariesLayer: '',
-    searchIconLayer: '',
-    actionsLayer: '',
-    selWaterBodyLayer: '',
-    wsioHealthIndexLayer: '',
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
-    visibleLayers: {},
     basemap: 'gray-vector',
     hucBoundaries: '',
     atHucBoundaries: false,
@@ -208,11 +113,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
 
-    pointsLayer: '',
-    linesLayer: '',
-    areasLayer: '',
-    upstreamLayer: '',
-    upstreamLayerVisible: false,
     upstreamWatershedResponse: { status: 'idle', data: null },
     errorMessage: '',
     summaryLayerMaxRecordCount: null,
@@ -302,9 +202,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     getWatershed: () => {
       return this.state.watershed;
     },
-    getUpstreamLayer: () => {
-      return this.state.upstreamLayer;
-    },
     getUpstreamWatershedResponse: () => {
       return this.state.upstreamWatershedResponse;
     },
@@ -320,57 +217,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     setLayers: (layers) => {
       this.setState({ layers });
     },
-    setWaterbodyLayer: (waterbodyLayer) => {
-      this.setState({ waterbodyLayer });
-    },
-    setIssuesLayer: (issuesLayer) => {
-      this.setState({ issuesLayer });
-    },
-    setNonprofitsLayer: (nonprofitsLayer) => {
-      this.setState({ nonprofitsLayer });
-    },
-    setWildScenicRiversLayer: (wildScenicRiversLayer) => {
-      this.setState({ wildScenicRiversLayer });
-    },
-    setProtectedAreasLayer: (protectedAreasLayer) => {
-      this.setState({ protectedAreasLayer });
-    },
-    setProtectedAreasHighlightLayer: (protectedAreasHighlightLayer) => {
-      this.setState({ protectedAreasHighlightLayer });
-    },
-    setProvidersLayer: (providersLayer) => {
-      this.setState({ providersLayer });
-    },
-    setBoundariesLayer: (boundariesLayer) => {
-      this.setState({ boundariesLayer });
-    },
-    setSearchIconLayer: (searchIconLayer) => {
-      this.setState({ searchIconLayer });
-    },
-    setActionsLayer: (actionsLayer) => {
-      this.setState({ actionsLayer });
-    },
-    setSelWaterbodyLayer: (selWaterbodyLayer) => {
-      this.setState({ selWaterbodyLayer });
-    },
-    setWsioHealthIndexLayer: (wsioHealthIndexLayer) => {
-      this.setState({ wsioHealthIndexLayer });
-    },
-    setPointsLayer: (pointsLayer) => {
-      this.setState({ pointsLayer });
-    },
-    setLinesLayer: (linesLayer) => {
-      this.setState({ linesLayer });
-    },
-    setAreasLayer: (areasLayer) => {
-      this.setState({ areasLayer });
-    },
-    setUpstreamLayer: (upstreamLayer) => {
-      this.setState({ upstreamLayer });
-    },
-    setUpstreamLayerVisible: (upstreamLayerVisible) => {
-      this.setState({ upstreamLayerVisible });
-    },
     setUpstreamWatershedResponse: (upstreamWatershedResponse) => {
       this.setState({ upstreamWatershedResponse });
     },
@@ -385,9 +231,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setUpstreamWidget: (upstreamWidget) => {
       this.setState({ upstreamWidget });
-    },
-    setVisibleLayers: (visibleLayers) => {
-      this.setState({ visibleLayers });
     },
     setBasemap: (basemap) => {
       this.setState({ basemap });
@@ -470,37 +313,15 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
 
     resetMap: (useDefaultZoom = false) => {
-      const {
-        initialExtent,
-        layers,
-        pointsLayer,
-        linesLayer,
-        areasLayer,
-        providersLayer,
-        boundariesLayer,
-        searchIconLayer,
-        upstreamLayer,
-        nonprofitsLayer,
-        protectedAreasHighlightLayer,
-        mapView,
-        homeWidget,
-        waterbodyLayer,
-        wsioHealthIndexLayer,
-        wildScenicRiversLayer,
-        protectedAreasLayer,
-      } = this.state;
+      const { initialExtent, layers, mapView, homeWidget } = this.state;
 
       // Clear waterbody layers from state
       let newState = {};
-      if (pointsLayer) newState['pointsLayer'] = null;
-      if (linesLayer) newState['linesLayer'] = null;
-      if (areasLayer) newState['areasLayer'] = null;
-      if (waterbodyLayer) newState['waterbodyLayer'] = null;
 
       const layersToRemove = [
-        'pointsLayer',
-        'linesLayer',
-        'areasLayer',
+        'waterbodyPoints',
+        'waterbodyLines',
+        'waterbodyAreas',
         'waterbodyLayer',
       ];
 
@@ -518,45 +339,6 @@ export class LocationSearchProvider extends Component<Props, State> {
 
       this.setState(newState);
 
-      // hide and remove upstream layer graphics when switching locations
-      if (upstreamLayer) {
-        newState['upstreamLayerVisible'] = false;
-        upstreamLayer.visible = false;
-        upstreamLayer.listMode = 'hide';
-        upstreamLayer.graphics.removeAll();
-        upstreamLayer.error = false;
-      }
-
-      // remove all map content defined in this file
-      if (providersLayer) providersLayer.graphics.removeAll();
-      if (boundariesLayer) boundariesLayer.graphics.removeAll();
-      if (searchIconLayer) {
-        searchIconLayer.visible = false;
-        searchIconLayer.graphics.removeAll();
-      }
-      if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
-      if (wsioHealthIndexLayer) {
-        wsioHealthIndexLayer.visible = false;
-        wsioHealthIndexLayer.listMode = 'hide';
-      }
-      if (protectedAreasLayer) {
-        protectedAreasLayer.visible = false;
-        protectedAreasLayer.listMode = 'hide';
-      }
-      if (protectedAreasHighlightLayer) {
-        protectedAreasHighlightLayer.graphics.removeAll();
-      }
-      if (wildScenicRiversLayer) {
-        // This timeout is to workaround an issue with the wild and scenic rivers
-        // layer. When turning visibility off for multiple layers with this one
-        // included, the app would crash. This timeout prevents the app from
-        // crashing. Similarly setting visibleLayers to {} would crash the app.
-        setTimeout(() => {
-          wildScenicRiversLayer.visible = false;
-          wildScenicRiversLayer.listMode = 'hide';
-        }, 100);
-      }
-
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
         mapView.extent = initialExtent;
@@ -564,15 +346,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         if (homeWidget) {
           homeWidget.viewpoint = mapView.viewpoint;
         }
-      }
-
-      // reset lines, points, and areas layers
-      if (
-        waterbodyLayer &&
-        waterbodyLayer.layers &&
-        waterbodyLayer.layers.items
-      ) {
-        waterbodyLayer.layers.items = [];
       }
     },
 
@@ -626,7 +399,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         attainsPlans: { status: 'success', data: {} },
         cipSummary: { status: 'success', data: {} },
         drinkingWater: { status: 'success', data: [] },
-        visibleLayers: {},
       });
 
       // remove map content
