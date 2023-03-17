@@ -29,7 +29,9 @@
         }
       }
     },
-    "cyanLayer": {},
+    "cyanLayer": {
+      "description": ""
+    },
     "dischargersLayer": {
       "geometryType": "esriGeometryPoint",
       "description": "",
