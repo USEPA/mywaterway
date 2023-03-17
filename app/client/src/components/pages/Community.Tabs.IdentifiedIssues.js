@@ -33,7 +33,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
 import { plotIssues } from 'utils/mapFunctions';
-import { useDischargers } from 'utils/hooks';
+import { useDischargers, useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
 // styles
@@ -77,6 +77,8 @@ const headingStyles = css`
 function IdentifiedIssues() {
   const navigate = useNavigate();
   const { infoToggleChecked } = useContext(CommunityTabsContext);
+
+  useWaterbodyOnMap('isimpaired');
 
   const {
     issuesLayer,

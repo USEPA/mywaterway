@@ -173,6 +173,36 @@ export function createUniqueValueInfos(
   ];
 }
 
+export function createUniqueValueInfosIssues(
+  geometryType: string,
+  alpha: {
+    base: number;
+    poly: number;
+    outline: number;
+  } | null,
+) {
+  return [
+    {
+      value: `Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'polluted',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+  ];
+}
+
 export function createUniqueValueInfosRestore(
   geometryType: string,
   alpha: {
