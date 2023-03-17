@@ -70,12 +70,11 @@ export function useAllWaterbodiesLayer(minScale = 577791) {
           surroundingsDispatch({
             type: 'disabled',
             id: layerId,
-            payload: allWaterbodiesLayer
-              ? mapView.scale >= allWaterbodiesLayer.minScale
-              : true,
+            payload: isDisabled,
           });
         }
       },
+      { initial: true },
     );
 
     return function cleanup() {

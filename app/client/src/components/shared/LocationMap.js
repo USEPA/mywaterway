@@ -664,7 +664,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLayer('upstreamLayer', upstreamLayer);
     setResetHandler('upstreamLayer', () => {
       upstreamLayer.visible = false;
-      upstreamLayer.listMode = 'hide';
       upstreamLayer.graphics.removeAll();
       updateVisibleLayers({ upstreamLayer: false });
     });

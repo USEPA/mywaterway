@@ -1046,7 +1046,6 @@ function useSharedLayers() {
     setLayer('wsioHealthIndexLayer', wsioHealthIndexLayer);
     setResetHandler('wsioHealthIndexLayer', () => {
       wsioHealthIndexLayer.visible = false;
-      wsioHealthIndexLayer.listMode = 'hide';
     });
 
     // Toggles the shading of the watershed graphic based on
@@ -1101,7 +1100,6 @@ function useSharedLayers() {
     setLayer('protectedAreasLayer', protectedAreasLayer);
     setResetHandler('protectedAreasLayer', () => {
       protectedAreasLayer.visible = false;
-      protectedAreasLayer.listMode = 'hide';
     });
 
     return protectedAreasLayer;
@@ -1149,7 +1147,6 @@ function useSharedLayers() {
     setResetHandler('wildScenicRiversLayer', () => {
       setTimeout(() => {
         wildScenicRiversLayer.visible = false;
-        wildScenicRiversLayer.listMode = 'hide';
       }, 100);
     });
 
@@ -1372,7 +1369,7 @@ function useSharedLayers() {
       url: services.data.stateBoundaries,
       title: 'State',
       sublayers: [{ id: 0 }],
-      listMode: 'show',
+      listMode: 'hide-children',
       visible: false,
       legendEnabled: false,
     });
