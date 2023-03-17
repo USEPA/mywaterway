@@ -623,7 +623,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const providersLayer = new GraphicsLayer({
       id: 'providersLayer',
       title: 'Who provides the drinking water here?',
-      listMode: 'hide',
+      listMode: 'show',
     });
 
     setLayer('providersLayer', providersLayer);

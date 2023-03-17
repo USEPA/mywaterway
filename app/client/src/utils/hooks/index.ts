@@ -1134,7 +1134,7 @@ function useSharedLayers() {
       title: 'Wild and Scenic Rivers',
       outFields: ['*'],
       renderer: wildScenicRiversRenderer,
-      listMode: 'hide',
+      listMode: 'show',
       visible: false,
       legendEnabled: false,
       popupTemplate: {
