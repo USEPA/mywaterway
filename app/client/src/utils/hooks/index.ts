@@ -33,6 +33,7 @@ import { getEnclosedLayer } from './boundariesToggleLayer';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
+  createUniqueValueInfosIssues,
   createUniqueValueInfosRestore,
   getPopupContent,
   getPopupTitle,
@@ -357,6 +358,14 @@ function useWaterbodyOnMap(
           (info) => new UniqueValueInfo(info),
         ),
       });
+
+      if (attribute === 'isimpaired') {
+        renderer.field = 'isimpaired';
+        renderer.uniqueValueInfos = createUniqueValueInfosIssues(
+          geometryType,
+          alpha,
+        ).map((info) => new UniqueValueInfo(info));
+      }
 
       // for the restore tab use 3 fields for the unique value renderer
       if (attribute === 'restoreTab') {

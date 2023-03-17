@@ -1,8 +1,11 @@
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import { v4 as uuid } from 'uuid';
 // components
 import mapPin from 'images/pin.png';
 // utils
 import {
   fetchCheck,
+  fetchPostFile,
   fetchPostForm,
   getEnvironmentString,
 } from 'utils/fetchUtils';
@@ -493,6 +496,21 @@ export async function createFeatureLayers(
         });
 
         continue;
+      } else if (layer.layer.id === 'cyanLayer') {
+        const groupLayer = layer.layer as __esri.GroupLayer;
+        const waterbodiesLayer = groupLayer.findLayerById(
+          'cyanWaterbodies',
+        ) as __esri.FeatureLayer;
+
+        layerIds.push(groupLayer.id);
+        addSubLayer({
+          layer: waterbodiesLayer,
+          layersParams,
+          layerProps,
+          properties,
+        });
+
+        continue;
       } else if (layer.layer.id === 'waterbodyLayer') {
         const groupLayer = layer.layer as __esri.GroupLayer;
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
@@ -661,6 +679,7 @@ async function applyEdits({
         // filter features down to just areas, lines, or points
         // depending on which geometry layer we are adding to
         graphicsLayer.graphics.forEach((g) => {
+          if (!g.geometry) return;
           if (
             (layerRes.name === `${layer.label} Areas` &&
               g.geometry.type === 'polygon') ||
@@ -675,6 +694,13 @@ async function applyEdits({
             });
           }
         });
+      } else if (layer.id === 'cyanLayer') {
+        const groupLayer = layer.layer as __esri.GroupLayer;
+        const subLayer = groupLayer.findLayerById(
+          'cyanWaterbodies',
+        ) as __esri.FeatureLayer;
+
+        if (subLayer) await processLayerFeatures(subLayer, adds);
       } else if (
         [
           'dischargersLayer',
@@ -871,7 +897,7 @@ function getLayerUrl(services: any, layer: LayerType): string {
  * @param layersResponse The response from creating layers
  * @returns A promise that resolves to the successfully saved web map
  */
-export function addWebMap({
+export async function addWebMap({
   portal,
   mapView,
   service,
@@ -913,6 +939,7 @@ export function addWebMap({
   }
 
   const operationalLayers: ILayerExtendedType[] = [];
+  const resourcesParams: any[] = [];
   layers.forEach((l) => {
     const layerType = getAgoLayerType(l) as string;
     const url = getLayerUrl(services, l);
@@ -935,8 +962,8 @@ export function addWebMap({
           widgetLayerFile.rawLayer.layerDefinition?.globalIdField,
           widgetLayerFile.fields,
         );
-      } else if (l.id === 'issuesLayer') {
-        // don't do anything for issuesLayer, it will be handeled below
+      } else if (['cyanLayer', 'issuesLayer'].includes(l.id)) {
+        // don't do anything for these layers, they will be handeled below
       } else {
         // handle boundaries and providers
         let properties = layerProps.data.layerSpecificSettings[l.layer.id];
@@ -955,7 +982,94 @@ export function addWebMap({
       }
 
       const lResponses = layersRes.layers.filter((r) => r.layerId === l.id);
-      if (lResponses.length === 1) {
+      if (l.id === 'cyanLayer' && lResponses.length > 0) {
+        const lRes = lResponses[0];
+
+        const groupLayer = mapView.map.layers.find(
+          (sl) => sl.id === 'cyanLayer',
+        ) as __esri.GroupLayer;
+        const waterbodiesLayer = groupLayer.findLayerById(
+          'cyanWaterbodies',
+        ) as __esri.FeatureLayer;
+        const imagesLayer = groupLayer.findLayerById(
+          'cyanImages',
+        ) as __esri.MediaLayer;
+
+        const layers: any[] = [];
+
+        // build fields here
+        let popupFields: IFieldInfo[] = [];
+        if (waterbodiesLayer) {
+          popupFields = buildPopupFieldsList(
+            waterbodiesLayer.objectIdField,
+            waterbodiesLayer.globalIdField,
+            waterbodiesLayer.fields,
+          );
+        }
+
+        layers.push({
+          title: lRes.name,
+          url: `${baseUrl}/${lRes.id}`,
+          itemId,
+          layerType: 'ArcGISFeatureLayer',
+          disablePopup: false,
+          popupInfo: {
+            popupElements: [
+              {
+                type: 'fields',
+                description: '',
+                fieldInfos: popupFields,
+                title: '',
+              },
+            ],
+            fieldInfos: popupFields,
+            title: `${lRes.name}: {orgName}`,
+          },
+        });
+
+        if (imagesLayer.source.elements.length > 0) {
+          const element = imagesLayer.source.elements.getItemAt(0);
+          const georeference =
+            element.georeference as __esri.ControlPointsGeoreference;
+
+          // get the extension from the base64 image and generate a unique filename
+          const extension = element.content.src.split(';')[0].split('/')[1];
+          const fileName = `${uuid()}.${extension}`;
+
+          layers.push({
+            id: imagesLayer.id,
+            title: imagesLayer.title,
+            layerType: 'MediaLayer',
+            mediaType: element.type,
+            url: `./resources/media/${fileName}`,
+            georeference: {
+              controlPoints: georeference.controlPoints.map((p) => {
+                return {
+                  x: p.mapPoint?.x,
+                  y: p.mapPoint?.y,
+                };
+              }),
+              spatialReference: SpatialReference.WebMercator.toJSON(),
+              coefficients: (georeference as any).transform,
+              height: element.content.height,
+              width: element.content.width,
+            },
+          });
+
+          resourcesParams.push({
+            resourcesPrefix: 'media',
+            fileName,
+            file: element.content.src,
+          });
+        }
+
+        operationalLayers.push({
+          id: l.layer.id,
+          title: l.layer.title,
+          layerType: 'GroupLayer',
+          layers: layers,
+        });
+      } else if (lResponses.length === 1) {
         lResponses.forEach((lRes) => {
           operationalLayers.push({
             title: lRes.name,
@@ -1104,7 +1218,34 @@ export function addWebMap({
   };
   appendEnvironmentObjectParam(data);
 
-  return fetchPostForm(`${portal.user.userContentUrl}/addItem`, data);
+  const webMapRes = await fetchPostForm(
+    `${portal.user.userContentUrl}/addItem`,
+    data,
+  );
+
+  const resourcesPromises: Promise<any>[] = [];
+  for (const p of resourcesParams) {
+    // convert file from base64 to blob
+    const base64Response = await fetch(p.file);
+    const fileBlob = await base64Response.blob();
+
+    resourcesPromises.push(
+      fetchPostFile(
+        `${portal.user.userContentUrl}/items/${webMapRes.id}/addResources`,
+        {
+          f: 'json',
+          token: portal.credential.token,
+          resourcesPrefix: p.resourcesPrefix,
+          fileName: p.fileName,
+        },
+        fileBlob,
+        p.fileName,
+      ),
+    );
+  }
+  await Promise.all(resourcesPromises);
+
+  return webMapRes;
 }
 
 /**

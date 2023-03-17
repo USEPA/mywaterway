@@ -44,13 +44,7 @@ const tooltipCost =
 const tooltipFiltered = 'This layer will be saved with your selected filters.';
 const tooltipNotLoaded = 'This layer may not have been loaded yet.';
 
-const layersToIgnore = [
-  'nonprofitsLayer',
-  'protectedAreasHighlightLayer',
-
-  // TODO layers that still need to be added
-  'cyanLayer',
-];
+const layersToIgnore = ['nonprofitsLayer', 'protectedAreasHighlightLayer'];
 
 const layerTypesToIgnore = ['wcs', 'wfs'];
 
@@ -191,7 +185,8 @@ function SavePanel({ visible }: Props) {
     setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
-  const mapView = useContext(LocationSearchContext).mapView as __esri.MapView | null;
+  const mapView = useContext(LocationSearchContext)
+    .mapView as __esri.MapView | null;
   const upstreamWatershedResponse = useContext(LocationSearchContext)
     .upstreamWatershedResponse as {
     status: Status;
@@ -221,7 +216,9 @@ function SavePanel({ visible }: Props) {
   }, [setOAuthInfo, oAuthInfo]);
 
   // Watch for when layers are added to the map
-  const [mapLayerCount, setMapLayerCount] = useState(mapView?.map.layers.length);
+  const [mapLayerCount, setMapLayerCount] = useState(
+    mapView?.map.layers.length,
+  );
   const [layerWatcher, setLayerWatcher] = useState<IHandle | null>(null);
   useEffect(() => {
     if (!mapView || layerWatcher) return;
