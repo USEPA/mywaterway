@@ -986,7 +986,8 @@ export async function addWebMap({
           widgetLayerFile.fields,
         );
       } else if (['actionsWaterbodies', 'cyanLayer', 'issuesLayer'].includes(l.id)) {
-        // don't do anything for these layers, they will be handeled below      } else {
+        // don't do anything for these layers, they will be handeled below
+      } else {
         // handle boundaries and providers
         let properties = layerProps.data.layerSpecificSettings[l.layer.id];
         if (l.layer.id === 'boundariesLayer')
