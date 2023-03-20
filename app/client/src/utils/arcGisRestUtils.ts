@@ -1,6 +1,7 @@
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
-import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
-import { v4 as uuid } from 'uuid';// components
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
+import { v4 as uuid } from 'uuid';
+// components
 import mapPin from 'images/pin.png';
 // utils
 import {
@@ -343,7 +344,10 @@ function addSubLayer({
   if (layer.geometryType === 'polygon') geometryType = 'esriGeometryPolygon';
 
   // build the renderer
-  const rendererGeometryType = layer.geometryType.replace('multipoint', 'point');
+  const rendererGeometryType = layer.geometryType.replace(
+    'multipoint',
+    'point',
+  );
   const renderer = new UniqueValueRenderer({
     field: 'overallstatus',
     fieldDelimiter: ', ',
@@ -445,10 +449,7 @@ export async function createFeatureLayers(
             .map(convertFieldToJSON),
         });
         continue;
-      } else if (
-        layer.layer.id === 'upstreamLayer' &&
-        layer.associatedData
-      ) {
+      } else if (layer.layer.id === 'upstreamLayer' && layer.associatedData) {
         // find the object id field
         const objectIdField = layer.associatedData.fields.find(
           (f) => f.type === 'oid',
@@ -466,7 +467,9 @@ export async function createFeatureLayers(
             .map(convertFieldToJSON),
         });
         continue;
-      } else if (['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)) {
+      } else if (
+        ['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)
+      ) {
         const graphicsLayer = layer.layer as __esri.GraphicsLayer;
         const allWaterbodiesLayer = mapView.map.layers.find(
           (l) => l.id === 'allWaterbodiesLayer',
@@ -530,10 +533,10 @@ export async function createFeatureLayers(
 
         continue;
       } else if (layer.layer.id === 'waterbodyLayer') {
-        // Treat definitionExpression layers (i.e. tribe and state) differently. 
+        // Treat definitionExpression layers (i.e. tribe and state) differently.
         // These will not use hosted feature services, but instead
         // be published directly to the web map with a definitionExpression applied
-        if(hasDefinitionExpression(layer.layer)) continue;
+        if (hasDefinitionExpression(layer.layer)) continue;
 
         const groupLayer = layer.layer as __esri.GroupLayer;
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
@@ -696,7 +699,9 @@ async function applyEdits({
         const subLayer = subLayers.find((s) => s.title === layerRes.name);
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
-      } else if (['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)) {
+      } else if (
+        ['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)
+      ) {
         const graphicsLayer = layer.layer as __esri.GraphicsLayer;
 
         // filter features down to just areas, lines, or points
@@ -985,7 +990,9 @@ export async function addWebMap({
           widgetLayerFile.rawLayer.layerDefinition?.globalIdField,
           widgetLayerFile.fields,
         );
-      } else if (['actionsWaterbodies', 'cyanLayer', 'issuesLayer'].includes(l.id)) {
+      } else if (
+        ['actionsWaterbodies', 'cyanLayer', 'issuesLayer'].includes(l.id)
+      ) {
         // don't do anything for these layers, they will be handeled below
       } else {
         // handle boundaries and providers
@@ -1188,18 +1195,18 @@ export async function addWebMap({
       }
     } else {
       // handle waterbodies layer on the state and tribe pages
-      if(l.id === 'waterbodyLayer' && isGroupLayer(l.layer)) {
+      if (l.id === 'waterbodyLayer' && isGroupLayer(l.layer)) {
         const subLayers: ILayerExtendedType[] = [];
         l.layer.layers.forEach((subLayer) => {
-          if(!isFeatureLayer(subLayer)) return;
+          if (!isFeatureLayer(subLayer)) return;
 
           const popupFields = buildPopupFieldsList(
             subLayer.objectIdField,
             subLayer.globalIdField,
             subLayer.fields,
           );
-          
-          if(subLayer.definitionExpression) {
+
+          if (subLayer.definitionExpression) {
             subLayers.push({
               id: subLayer.layerId,
               layerDefinition: {

@@ -514,9 +514,7 @@ function SavePanel({ visible }: Props) {
       // get the widgetLayer for handling layers added via the Add Data Widget
       const widgetLayer = widgetLayers.find((l) => l.layer.id === value.id);
       const associatedData =
-        value.id === 'upstreamLayer'
-          ? upstreamWatershedResponse.data
-          : null;
+        value.id === 'upstreamLayer' ? upstreamWatershedResponse.data : null;
 
       layersToPublish.push({
         ...value,

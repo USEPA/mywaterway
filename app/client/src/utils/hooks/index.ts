@@ -799,8 +799,8 @@ function useDynamicPopup() {
   };
 
   const [hucInfo, setHucInfo] = useState<ClickedHucState>({
-      status: 'none',
-      data: null,
+    status: 'none',
+    data: null,
   });
 
   const [lastLocation, setLastLocation] = useState<{
@@ -881,7 +881,7 @@ function useDynamicPopup() {
     [hucInfo, lastLocation, services],
   );
 
-    // Wrapper function for getting the content of the popup
+  // Wrapper function for getting the content of the popup
   const getTemplate = useCallback(
     (graphic: Feature) => {
       // get the currently selected huc boundaries, if applicable
@@ -921,12 +921,12 @@ function useDynamicPopup() {
     [getClickedHuc, getHucBoundaries, getMapView, navigate, reset, services],
   );
 
-    // Wrapper function for getting the title of the popup
+  // Wrapper function for getting the title of the popup
   const getTitle = useCallback((graphic: Feature) => {
-      return getPopupTitle(graphic.graphic.attributes);
+    return getPopupTitle(graphic.graphic.attributes);
   }, []);
 
-    return { getTitle, getTemplate, setDynamicPopupFields };
+  return { getTitle, getTemplate, setDynamicPopupFields };
 }
 
 function useSharedLayers() {
@@ -1032,25 +1032,25 @@ function useSharedLayers() {
 
     // return the layer properties object
     const wsioHealthIndexLayer: __esri.FeatureLayer = new FeatureLayer({
-        id: 'wsioHealthIndexLayer',
-        url: services.data.wsio,
-        title: 'State Watershed Health Index',
-        outFields: ['HUC12_TEXT', 'STATES_ALL', 'PHWA_HEALTH_NDX_ST'],
-        renderer: wsioHealthIndexRenderer,
-        listMode: 'show',
-        visible: false,
-        legendEnabled: false,
-        popupTemplate: {
-          title: getTitle,
-          content: getTemplate,
-          outFields: [
-            'PHWA_HEALTH_NDX_ST',
-            'HUC12_TEXT',
-            'NAME_HUC12',
-            'STATES_ALL',
-          ],
-        },
-      });
+      id: 'wsioHealthIndexLayer',
+      url: services.data.wsio,
+      title: 'State Watershed Health Index',
+      outFields: ['HUC12_TEXT', 'STATES_ALL', 'PHWA_HEALTH_NDX_ST'],
+      renderer: wsioHealthIndexRenderer,
+      listMode: 'show',
+      visible: false,
+      legendEnabled: false,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: [
+          'PHWA_HEALTH_NDX_ST',
+          'HUC12_TEXT',
+          'NAME_HUC12',
+          'STATES_ALL',
+        ],
+      },
+    });
 
     setLayer('wsioHealthIndexLayer', wsioHealthIndexLayer);
     setResetHandler('wsioHealthIndexLayer', () => {
