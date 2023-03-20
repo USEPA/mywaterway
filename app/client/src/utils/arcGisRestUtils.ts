@@ -1,3 +1,4 @@
+import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 // components
 import mapPin from 'images/pin.png';
 // utils
@@ -7,6 +8,8 @@ import {
   getEnvironmentString,
 } from 'utils/fetchUtils';
 import {
+  createWaterbodySymbol,
+  createUniqueValueInfos,
   hasDefinitionExpression,
   isFeatureLayer,
   isGraphicsLayer,
@@ -337,6 +340,19 @@ function addSubLayer({
   if (layer.geometryType === 'polyline') geometryType = 'esriGeometryPolyline';
   if (layer.geometryType === 'polygon') geometryType = 'esriGeometryPolygon';
 
+  // build the renderer
+  const rendererGeometryType = layer.geometryType.replace('multipoint', 'point');
+  const renderer = new UniqueValueRenderer({
+    field: 'overallstatus',
+    fieldDelimiter: ', ',
+    defaultSymbol: createWaterbodySymbol({
+      condition: 'unassessed',
+      selected: false,
+      geometryType: rendererGeometryType,
+    }),
+    uniqueValueInfos: createUniqueValueInfos(rendererGeometryType),
+  });
+
   layersParams.push({
     ...layerProps.data.defaultLayerProps,
     ...properties,
@@ -345,8 +361,10 @@ function addSubLayer({
     globalIdField: layer.globalIdField,
     objectIdField: layer.objectIdField,
     spatialReference: layer.spatialReference.toJSON(),
-    fields: layer.fields.map(convertFieldToJSON),
-    drawingInfo: { renderer: layer.renderer.toJSON() },
+    fields: layer.fields
+      .filter((field) => field.name.toUpperCase() !== 'SHAPE')
+      .map(convertFieldToJSON),
+    drawingInfo: { renderer: renderer.toJSON() },
     popupTemplate: layer.popupTemplate.toJSON(),
   });
 }
@@ -446,10 +464,10 @@ export async function createFeatureLayers(
             .map(convertFieldToJSON),
         });
         continue;
-      } else if (layer.layer.id === 'issuesLayer') {
+      } else if (['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)) {
         const graphicsLayer = layer.layer as __esri.GraphicsLayer;
-        const waterbodyLayer = mapView.map.layers.find(
-          (l) => l.id === 'waterbodyLayer',
+        const allWaterbodiesLayer = mapView.map.layers.find(
+          (l) => l.id === 'allWaterbodiesLayer',
         ) as __esri.GroupLayer;
 
         // add the layer id 3 times to cover splitting this layer into 3
@@ -458,8 +476,8 @@ export async function createFeatureLayers(
         layerIds.push(graphicsLayer.id);
 
         // add areas layer
-        const areasLayer = waterbodyLayer.findLayerById(
-          'waterbodyAreas',
+        const areasLayer = allWaterbodiesLayer.findLayerById(
+          'allWaterbodyAreas',
         ) as __esri.FeatureLayer;
         addSubLayer({
           layer: areasLayer,
@@ -470,8 +488,8 @@ export async function createFeatureLayers(
         });
 
         // add lines layer
-        const linesLayer = waterbodyLayer.findLayerById(
-          'waterbodyLines',
+        const linesLayer = allWaterbodiesLayer.findLayerById(
+          'allWaterbodyLines',
         ) as __esri.FeatureLayer;
         addSubLayer({
           layer: linesLayer,
@@ -482,8 +500,8 @@ export async function createFeatureLayers(
         });
 
         // add points layer
-        const pointsLayer = waterbodyLayer.findLayerById(
-          'waterbodyPoints',
+        const pointsLayer = allWaterbodiesLayer.findLayerById(
+          'allWaterbodyPoints',
         ) as __esri.FeatureLayer;
         addSubLayer({
           layer: pointsLayer,
@@ -661,7 +679,7 @@ async function applyEdits({
         const subLayer = subLayers.find((s) => s.title === layerRes.name);
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
-      } else if (layer.id === 'issuesLayer') {
+      } else if (['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)) {
         const graphicsLayer = layer.layer as __esri.GraphicsLayer;
 
         // filter features down to just areas, lines, or points
@@ -941,8 +959,8 @@ export function addWebMap({
           widgetLayerFile.rawLayer.layerDefinition?.globalIdField,
           widgetLayerFile.fields,
         );
-      } else if (l.id === 'issuesLayer') {
-        // don't do anything for issuesLayer, it will be handeled below
+      } else if (['actionsWaterbodies', 'issuesLayer'].includes(l.id)) {
+        // don't do anything for these layers, they will be handeled below
       } else {
         // handle boundaries and providers
         let properties = layerProps.data.layerSpecificSettings[l.layer.id];
@@ -997,24 +1015,24 @@ export function addWebMap({
 
             // build fields here
             let popupFields: IFieldInfo[] = [];
-            if (layer.id === 'issuesLayer') {
-              const issuesLayer = layer as __esri.GraphicsLayer;
-              const waterbodyLayer = mapView.map.layers.find(
-                (sl) => sl.id === 'waterbodyLayer',
+            if (['actionsWaterbodies', 'issuesLayer'].includes(layer.id)) {
+              const graphicsLayer = layer as __esri.GraphicsLayer;
+              const allWaterbodiesLayer = mapView.map.layers.find(
+                (sl) => sl.id === 'allWaterbodiesLayer',
               ) as __esri.GroupLayer;
 
               let associatedLayer: __esri.FeatureLayer | null = null;
-              if (lRes.name === `${issuesLayer.title} Areas`) {
-                associatedLayer = waterbodyLayer.findLayerById(
-                  'waterbodyAreas',
+              if (lRes.name === `${graphicsLayer.title} Areas`) {
+                associatedLayer = allWaterbodiesLayer.findLayerById(
+                  'allWaterbodyAreas',
                 ) as __esri.FeatureLayer;
-              } else if (lRes.name === `${issuesLayer.title} Lines`) {
-                associatedLayer = waterbodyLayer.findLayerById(
-                  'waterbodyLines',
+              } else if (lRes.name === `${graphicsLayer.title} Lines`) {
+                associatedLayer = allWaterbodiesLayer.findLayerById(
+                  'allWaterbodyLines',
                 ) as __esri.FeatureLayer;
-              } else if (lRes.name === `${issuesLayer.title} Points`) {
-                associatedLayer = waterbodyLayer.findLayerById(
-                  'waterbodyPoints',
+              } else if (lRes.name === `${graphicsLayer.title} Points`) {
+                associatedLayer = allWaterbodiesLayer.findLayerById(
+                  'allWaterbodyPoints',
                 ) as __esri.FeatureLayer;
               }
 

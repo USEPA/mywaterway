@@ -52,11 +52,18 @@ const layersToIgnore = [
   // TODO layers that still need to be added
   'cyanLayer',
 ];
+if (
+  window.location.pathname.includes('/plan-summary') ||
+  window.location.pathname.includes('/waterbody-report')
+) {
+  layersToIgnore.push('monitoringLocationsLayer');
+}
 
 const layerTypesToIgnore = ['wcs', 'wfs'];
 
 const layersRequireFeatureService = [
   'actionsLayer',
+  'actionsWaterbodies',
   'boundariesLayer',
   'cyanLayer',
   'dischargersLayer',

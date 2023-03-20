@@ -4,9 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import * as query from '@arcgis/core/rest/query';
-import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
-import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
 import Map from 'components/shared/Map';
@@ -207,41 +204,6 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
           }
 
           function getWaterbodySymbol(feature: Object, type: string) {
-            // handle Actions page
-            if (window.location.pathname.includes('/plan-summary')) {
-              let color = { r: 0, g: 123, b: 255 };
-              if (type === 'polygon') color.a = 0.75;
-
-              let planSummarySymbol;
-              if (type === 'point') {
-                planSummarySymbol = new SimpleMarkerSymbol({
-                  color,
-                  style: 'circle',
-                  outline: {
-                    width: 0.65,
-                  },
-                });
-              }
-              if (type === 'polyline') {
-                planSummarySymbol = new SimpleLineSymbol({
-                  color,
-                  style: 'solid',
-                  width: 3,
-                });
-              }
-              if (type === 'polygon') {
-                planSummarySymbol = new SimpleFillSymbol({
-                  color,
-                  style: 'solid',
-                  outline: {
-                    width: 0,
-                  },
-                });
-              }
-
-              return planSummarySymbol;
-            }
-
             // handle Waterbody Report page
             const condition = getWaterbodyCondition(
               feature.attributes,

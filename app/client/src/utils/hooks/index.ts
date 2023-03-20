@@ -1504,6 +1504,7 @@ function useSharedLayers() {
       uniqueValueInfos: createUniqueValueInfos('point', allWaterbodiesAlpha),
     });
     const pointsLayer = new FeatureLayer({
+      id: 'allWaterbodyPoints',
       url: services.data.waterbodyService.points,
       outFields: ['*'],
       renderer: pointsRenderer,
@@ -1524,6 +1525,7 @@ function useSharedLayers() {
       uniqueValueInfos: createUniqueValueInfos('polyline', allWaterbodiesAlpha),
     });
     const linesLayer = new FeatureLayer({
+      id: 'allWaterbodyLines',
       url: services.data.waterbodyService.lines,
       outFields: ['*'],
       renderer: linesRenderer,
@@ -1544,6 +1546,7 @@ function useSharedLayers() {
       uniqueValueInfos: createUniqueValueInfos('polygon', allWaterbodiesAlpha),
     });
     const areasLayer = new FeatureLayer({
+      id: 'allWaterbodyAreas',
       url: services.data.waterbodyService.areas,
       outFields: ['*'],
       renderer: areasRenderer,
