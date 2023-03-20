@@ -21,6 +21,7 @@ import { LocationSearchContext, Status } from 'contexts/locationSearch';
 import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
+import { hasDefinitionExpression } from 'utils/mapFunctions';
 // types
 import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
 
@@ -63,6 +64,7 @@ const layersRequireFeatureService = [
   'monitoringLocationsLayer',
   'providersLayer',
   'searchIconLayer',
+  'selectedTribeLayer',
   'usgsStreamgagesLayer',
   'waterbodyLayer',
   'upstreamWatershed',
@@ -191,7 +193,8 @@ function SavePanel({ visible }: Props) {
     setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
-  const mapView = useContext(LocationSearchContext).mapView as __esri.MapView | null;
+  const mapView = useContext(LocationSearchContext)
+    .mapView as __esri.MapView | null;
   const upstreamWatershedResponse = useContext(LocationSearchContext)
     .upstreamWatershedResponse as {
     status: Status;
@@ -221,7 +224,9 @@ function SavePanel({ visible }: Props) {
   }, [setOAuthInfo, oAuthInfo]);
 
   // Watch for when layers are added to the map
-  const [mapLayerCount, setMapLayerCount] = useState(mapView?.map.layers.length);
+  const [mapLayerCount, setMapLayerCount] = useState(
+    mapView?.map.layers.length,
+  );
   const [layerWatcher, setLayerWatcher] = useState<IHandle | null>(null);
   useEffect(() => {
     if (!mapView || layerWatcher) return;
@@ -324,14 +329,19 @@ function SavePanel({ visible }: Props) {
 
       if (newSwitches.hasOwnProperty(layer.id)) {
         newSwitches[layer.id].layer = layer;
+        newSwitches[layer.id].requiresFeatureService =
+          (layersRequireFeatureService.includes(layer.id) ||
+            fileLayerIds.includes(layer.id)) &&
+          !hasDefinitionExpression(layer);
       } else {
         newSwitches[layer.id] = {
           id: layer.id,
           label: layer.title,
           toggled: layer.visible,
           requiresFeatureService:
-            layersRequireFeatureService.includes(layer.id) ||
-            fileLayerIds.includes(layer.id),
+            (layersRequireFeatureService.includes(layer.id) ||
+              fileLayerIds.includes(layer.id)) &&
+            !hasDefinitionExpression(layer),
           layer: layer,
         };
       }

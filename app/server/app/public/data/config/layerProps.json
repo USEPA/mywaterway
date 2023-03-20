@@ -479,6 +479,61 @@
         }
       }
     },
+    "selectedTribeLayer": {
+      "geometryType": "esriGeometryPolygon",
+      "description": "",
+      "objectIdField": "OBJECTID",
+      "fields": [
+        {
+          "name": "OBJECTID",
+          "type": "esriFieldTypeOID",
+          "actualType": "int",
+          "alias": "OBJECTID",
+          "sqlType": "sqlTypeInteger",
+          "length": 4,
+          "nullable": false,
+          "editable": false,
+          "domain": null,
+          "defaultValue": null
+        },
+        {
+          "name": "TRIBE_NAME",
+          "type": "esriFieldTypeString",
+          "alias": "TRIBE_NAME",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 120,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        }
+      ],
+      "drawingInfo": {
+        "renderer": {
+          "type": "simple",
+          "symbol": {
+            "type": "esriSFS",
+            "style": "esriSFSSolid",
+            "color": [
+              204,
+              255,
+              255,
+              128
+            ],
+            "outline": {
+              "type": "esriSLS",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "width": 2,
+              "style": "esriSLSSolid"
+            }
+          }
+        }
+      }
+    },
     "upstreamWatershed": {
       "geometryType": "esriGeometryPolygon",
       "description": "",

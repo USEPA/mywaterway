@@ -7,6 +7,7 @@ import {
   getEnvironmentString,
 } from 'utils/fetchUtils';
 import {
+  hasDefinitionExpression,
   isFeatureLayer,
   isGraphicsLayer,
   isGroupLayer,
@@ -494,6 +495,11 @@ export async function createFeatureLayers(
 
         continue;
       } else if (layer.layer.id === 'waterbodyLayer') {
+        // Treat definitionExpression layers (i.e. tribe and state) differently. 
+        // These will not use hosted feature services, but instead
+        // be published directly to the web map with a definitionExpression applied
+        if(hasDefinitionExpression(layer.layer)) continue;
+
         const groupLayer = layer.layer as __esri.GroupLayer;
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
         for (const subLayer of subLayers) {
@@ -830,7 +836,7 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
   if (layerType === 'wms') layerTypeOut = 'WMS';
 
   // handle layer specific type overrides
-  if (layer.id === 'allWaterbodiesLayer')
+  if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(layer.id))
     layerTypeOut = 'ArcGISMapServiceLayer';
   if (layer.id === 'ejscreenLayer') layerTypeOut = 'ArcGISMapServiceLayer';
   if (layer.id === 'tribalLayer') layerTypeOut = 'ArcGISMapServiceLayer';
@@ -850,7 +856,7 @@ function getLayerUrl(services: any, layer: LayerType): string {
   let url = layer.layer?.url || '';
   if (layer.widgetLayer?.type === 'portal') url = layer.widgetLayer.url;
   if (layer.widgetLayer?.type === 'url') url = layer.widgetLayer.url;
-  if (layer.id === 'allWaterbodiesLayer')
+  if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(layer.id))
     url = services.data.waterbodyService.base;
   if (layer.id === 'ejscreenLayer') url = services.data.ejscreen;
   if (layer.id === 'tribalLayer') url = services.data.tribal;
@@ -1050,11 +1056,58 @@ export function addWebMap({
         });
       }
     } else {
-      operationalLayers.push({
-        layerType,
-        title: l.label,
-        url,
-      });
+      // handle waterbodies layer on the state and tribe pages
+      if(l.id === 'waterbodyLayer' && isGroupLayer(l.layer)) {
+        const subLayers: ILayerExtendedType[] = [];
+        l.layer.layers.forEach((subLayer) => {
+          if(!isFeatureLayer(subLayer)) return;
+
+          const popupFields = buildPopupFieldsList(
+            subLayer.objectIdField,
+            subLayer.globalIdField,
+            subLayer.fields,
+          );
+          
+          if(subLayer.definitionExpression) {
+            subLayers.push({
+              id: subLayer.layerId,
+              layerDefinition: {
+                definitionExpression: subLayer.definitionExpression,
+              },
+              disablePopup: false,
+              popupInfo: {
+                popupElements: [
+                  {
+                    type: 'fields',
+                    description: '',
+                    fieldInfos: popupFields,
+                    title: '',
+                  },
+                ],
+                fieldInfos: popupFields,
+                title: `${subLayer.title}: {orgName}`,
+              },
+            });
+          } else {
+            subLayers.push({
+              id: subLayer.layerId,
+            });
+          }
+        });
+
+        operationalLayers.push({
+          layerType,
+          title: l.label,
+          url,
+          layers: subLayers,
+        });
+      } else {
+        operationalLayers.push({
+          layerType,
+          title: l.label,
+          url,
+        });
+      }
     }
   });
 

@@ -1063,3 +1063,19 @@ export function stringifyAttributes(
   }
   return { ...attributes, ...stringified };
 }
+
+// checks if a feature layer or any feature layers in a group layer
+// have a definitionExpression defined
+export function hasDefinitionExpression(layer: __esri.Layer) {
+  let hasDefinitionExpression = false;
+  if (isFeatureLayer(layer) && layer.definitionExpression)
+    hasDefinitionExpression = true;
+  else if (isGroupLayer(layer)) {
+    layer.layers.forEach((l) => {
+      if (isFeatureLayer(l) && l.definitionExpression)
+        hasDefinitionExpression = true;
+    });
+  }
+
+  return hasDefinitionExpression;
+}
