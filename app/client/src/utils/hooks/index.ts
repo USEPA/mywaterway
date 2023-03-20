@@ -30,6 +30,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { isBoundariesToggleLayerId } from 'contexts/Surroundings';
 // utilities
 import { getEnclosedLayer } from './boundariesToggleLayer';
+import { useAllWaterbodiesLayer } from './allWaterbodies';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -430,7 +431,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
   const {
     waterbodyAreas, //part of waterbody group layer
-    actionsLayer,
+    actionsWaterbodies,
     dischargersLayer,
     erroredLayers,
     issuesLayer,
@@ -565,7 +566,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     if (attributes.layerType === 'issues') {
       layer = issuesLayer;
     } else if (attributes.layerType === 'actions') {
-      layer = actionsLayer;
+      layer = actionsWaterbodies;
     } else if (attributes.WSR_RIVER_NAME) {
       layer = wildScenicRiversLayer;
       featureLayerType = 'wildScenicRivers';
@@ -759,7 +760,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     nonprofitsLayer,
     upstreamLayer,
     issuesLayer,
-    actionsLayer,
+    actionsWaterbodies,
     findOthers,
     handles,
     wildScenicRiversLayer,
@@ -929,7 +930,7 @@ function useDynamicPopup() {
   return { getTitle, getTemplate, setDynamicPopupFields };
 }
 
-function useSharedLayers() {
+function useSharedLayers(allWaterbodiesMinScale?: number) {
   const services = useServicesContext();
   const { setLayer, setResetHandler } = useLayers();
 
@@ -1591,6 +1592,8 @@ function useSharedLayers() {
 
     return allWaterbodiesLayer;
   }
+
+  useAllWaterbodiesLayer(allWaterbodiesMinScale);
 
   function getLandCoverLayer() {
     return new WMSLayer({

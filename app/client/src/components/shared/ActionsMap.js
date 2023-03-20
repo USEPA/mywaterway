@@ -65,7 +65,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
   const { homeWidget, mapView } = useContext(LocationSearchContext);
 
-  const { actionsLayer, setLayer, updateVisibleLayers } = useLayers();
+  const { actionsWaterbodies, setLayer, updateVisibleLayers } = useLayers();
 
   const [layers, setLayers] = useState(null);
 
@@ -81,8 +81,8 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     if (!monitoringLocationsLayer) return;
     if (!getSharedLayers || layersInitialized) return;
 
-    let localActionsLayer = actionsLayer;
-    if (!actionsLayer) {
+    let localActionsLayer = actionsWaterbodies;
+    if (!actionsWaterbodies) {
       localActionsLayer = new GraphicsLayer({
         id: 'actionsWaterbodies',
         title: 'Waterbodies',
@@ -90,7 +90,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
         visible: true,
         legendEnabled: false,
       });
-      setLayer('actionsLayer', localActionsLayer);
+      setLayer('actionsWaterbodies', localActionsLayer);
     }
 
     setLayers([
@@ -98,10 +98,13 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       localActionsLayer,
       monitoringLocationsLayer,
     ]);
-    updateVisibleLayers({ monitoringLocationsLayer: true });
+    updateVisibleLayers({
+      actionsWaterbodies: true,
+      monitoringLocationsLayer: true,
+    });
     setLayersInitialized(true);
   }, [
-    actionsLayer,
+    actionsWaterbodies,
     getSharedLayers,
     layersInitialized,
     monitoringLocationsLayer,
@@ -148,12 +151,12 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
   // Plots the assessments. Also re-plots if the layout changes
   useEffect(() => {
-    if (!unitIds || !actionsLayer) return;
+    if (!unitIds || !actionsWaterbodies) return;
     if (fetchStatus) return; // only do a fetch if there is no status
 
     function plotAssessments(unitIds: Array<string>) {
       setFetchStatus('fetching');
-      actionsLayer.graphics.removeAll();
+      actionsWaterbodies.graphics.removeAll();
 
       // set up ESRI Queries for ATTAINS lines, area, and points web services
       const linesUrl = services.data.waterbodyService.lines;
@@ -194,7 +197,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
             // pass the layer back up to the parent
             if (typeof onLoad === 'function') {
-              onLoad({ status: 'no-data', layer: actionsLayer });
+              onLoad({ status: 'no-data', layer: actionsWaterbodies });
             }
 
             return;
@@ -296,13 +299,15 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
             lineResponse.features,
             pointResponse.features,
           ).then((graphics) => {
-            graphics.forEach((graphic) => actionsLayer.graphics.add(graphic));
+            graphics.forEach((graphic) =>
+              actionsWaterbodies.graphics.add(graphic),
+            );
 
             setFetchStatus('success');
 
             // pass the layer back up to the parent
             if (typeof onLoad === 'function') {
-              onLoad({ status: 'success', layer: actionsLayer });
+              onLoad({ status: 'success', layer: actionsWaterbodies });
             }
           });
         })
@@ -312,14 +317,14 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
           // pass the layer back up to the parent
           if (typeof onLoad === 'function') {
-            onLoad({ status: 'failure', layer: actionsLayer });
+            onLoad({ status: 'failure', layer: actionsWaterbodies });
           }
         });
     }
 
     if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
   }, [
-    actionsLayer,
+    actionsWaterbodies,
     fetchStatus,
     getPhotoLink,
     navigate,
@@ -349,22 +354,22 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     if (
       !fetchStatus ||
       !mapView ||
-      !actionsLayer ||
+      !actionsWaterbodies ||
       !homeWidget ||
       fetchStatus === 'fetching'
     ) {
       return;
     }
 
-    let zoomParams = actionsLayer.graphics;
+    let zoomParams = actionsWaterbodies.graphics;
     if (
-      actionsLayer.graphics.length === 1 &&
-      (actionsLayer.graphics.items[0].geometry.type === 'point' ||
-        actionsLayer.graphics.items[0].geometry.type === 'multipoint')
+      actionsWaterbodies.graphics.length === 1 &&
+      (actionsWaterbodies.graphics.items[0].geometry.type === 'point' ||
+        actionsWaterbodies.graphics.items[0].geometry.type === 'multipoint')
     ) {
       // handle zooming to a single point graphic
       zoomParams = {
-        target: actionsLayer.graphics,
+        target: actionsWaterbodies.graphics,
         zoom: 16, // set zoom 1 higher since it gets decremented later
       };
     }
@@ -378,7 +383,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     });
 
     setMapLoading(false);
-  }, [fetchStatus, mapView, actionsLayer, homeWidget]);
+  }, [fetchStatus, mapView, actionsWaterbodies, homeWidget]);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   if (!browserIsCompatibleWithArcGIS()) {

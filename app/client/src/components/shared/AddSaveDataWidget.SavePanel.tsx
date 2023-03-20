@@ -56,7 +56,6 @@ if (
 const layerTypesToIgnore = ['wcs', 'wfs'];
 
 const layersRequireFeatureService = [
-  'actionsLayer',
   'actionsWaterbodies',
   'boundariesLayer',
   'cyanLayer',
