@@ -2,7 +2,7 @@
 
 import React, { useContext, useEffect, useRef } from 'react';
 import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
-import {} from 'styled-components/macro';
+import { css } from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useWindowSize } from '@reach/window-size';
 // components
@@ -16,6 +16,15 @@ import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+
+const headingStyles = css`
+  margin-top: 0 !important;
+
+  i {
+    margin-right: 0.3125em;
+    color: #2c72b5;
+  }
+`;
 
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
@@ -129,6 +138,10 @@ function StateTribalTabs() {
 
     return (
       <div>
+        <h2 css={headingStyles}>
+          <i className="fas fa-map-marked-alt" aria-hidden="true" />
+          <strong>{activeState.label}</strong> at a Glance
+        </h2>
         <div>{mapContent}</div>
         <hr />
         <WaterQualityOverview />
