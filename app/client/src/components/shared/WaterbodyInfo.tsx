@@ -1447,6 +1447,7 @@ function CyanDailyContent({
     );
   }
 }
+
 type CyanContentProps = {
   feature: __esri.Graphic;
   mapView?: __esri.MapView;
@@ -1969,7 +1970,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               </>
             ) : (
               <p css={marginBoxStyles(infoBoxStyles)}>
-                There is no CyAN data from the past week for the{' '}
+                There is no measureable CyAN data from the past week for the{' '}
                 {attributes.GNIS_NAME} waterbody.
               </p>
             )}
