@@ -1,6 +1,8 @@
+import ControlPointsGeoreference from '@arcgis/core/layers/support/ControlPointsGeoreference';
 import Extent from '@arcgis/core/geometry/Extent';
-import ExtentAndRotationGeoreference from '@arcgis/core/layers/support/ExtentAndRotationGeoreference';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
+import Point from '@arcgis/core/geometry/Point';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
@@ -1598,22 +1600,76 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const propsPromise = fetcher(propertiesUrl, abortController.signal);
     Promise.all([imagePromise, propsPromise])
       .then(([blob, propsRes]) => {
-        const image = new Image();
-        image.src = URL.createObjectURL(blob);
-        image.onload = () => setImageStatus('success');
-        const imageElement = new ImageElement({
-          image,
-          georeference: new ExtentAndRotationGeoreference({
-            extent: new Extent({
+        // read the image blob to convert it to base64
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = function () {
+          // convert the image to a base64 string
+          const base64String = reader.result;
+          const image = new Image();
+          image.src = base64String?.toString() || '';
+
+          image.onload = () => {
+            setImageStatus('success');
+
+            // create an extent and convert to web mercator for AGO support
+            const geographicExtent = new Extent({
               spatialReference: SpatialReference.WGS84,
               xmin: propsRes.properties.x_min,
               xmax: propsRes.properties.x_max,
               ymin: propsRes.properties.y_min,
               ymax: propsRes.properties.y_max,
-            }),
-          }),
-        });
-        cyanImageLayer.source.elements.add(imageElement);
+            });
+            const webMercatorExtent = webMercatorUtils.geographicToWebMercator(
+              geographicExtent,
+            ) as __esri.Extent;
+
+            // convert the extent to control points for AGO support
+            const swCorner = {
+              sourcePoint: { x: 0, y: image.height },
+              mapPoint: new Point({
+                x: webMercatorExtent.xmin,
+                y: webMercatorExtent.ymin,
+                spatialReference: webMercatorExtent.spatialReference,
+              }),
+            };
+            const nwCorner = {
+              sourcePoint: { x: 0, y: 0 },
+              mapPoint: new Point({
+                x: webMercatorExtent.xmin,
+                y: webMercatorExtent.ymax,
+                spatialReference: webMercatorExtent.spatialReference,
+              }),
+            };
+            const neCorner = {
+              sourcePoint: { x: image.width, y: 0 },
+              mapPoint: new Point({
+                x: webMercatorExtent.xmax,
+                y: webMercatorExtent.ymax,
+                spatialReference: webMercatorExtent.spatialReference,
+              }),
+            };
+            const seCorner = {
+              sourcePoint: { x: image.width, y: image.height },
+              mapPoint: new Point({
+                x: webMercatorExtent.xmax,
+                y: webMercatorExtent.ymin,
+                spatialReference: webMercatorExtent.spatialReference,
+              }),
+            };
+
+            const geo = new ControlPointsGeoreference({
+              controlPoints: [swCorner, nwCorner, neCorner, seCorner],
+              width: image.width,
+              height: image.height,
+            });
+            const imageElement = new ImageElement({
+              image,
+              georeference: geo,
+            });
+            cyanImageLayer.source.elements.add(imageElement);
+          };
+        };
       })
       .catch((err) => {
         setImageStatus('failure');

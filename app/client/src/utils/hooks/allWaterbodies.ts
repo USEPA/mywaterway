@@ -1,43 +1,38 @@
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import { useCallback, useContext, useEffect } from 'react';
 // contexts
-import { useLayersState } from 'contexts/Layers';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useSurroundingsDispatch,
   useSurroundingsState,
 } from 'contexts/Surroundings';
 
-export function useAllWaterbodiesLayer(
-  initialVisible = false,
-  minScale = 577791,
-) {
+export function useAllWaterbodiesLayer(minScale = 577791) {
   const { mapView } = useContext(LocationSearchContext);
   const { disabled, updating } = useSurroundingsState();
-  const { waterbodyLayer } = useLayersState();
+  const { allWaterbodiesLayer, updateVisibleLayers, visibleLayers } =
+    useLayers();
 
   const surroundingsDispatch = useSurroundingsDispatch();
 
   // Set the minimum scale for the layer and its sublayers
   useEffect(() => {
-    if (!waterbodyLayer) return;
-    waterbodyLayer.minScale = minScale;
-    waterbodyLayer.layers.forEach((layer) => {
+    if (!allWaterbodiesLayer) return;
+    allWaterbodiesLayer.minScale = minScale;
+    allWaterbodiesLayer.layers.forEach((layer) => {
       (layer as __esri.FeatureLayer).minScale = minScale;
     });
-  }, [minScale, waterbodyLayer]);
+  }, [minScale, allWaterbodiesLayer]);
 
-  // Externally control initial layer visibility
+  // Synchronize layer visibility in widget with actual layer visibility
   useEffect(() => {
-    if (!waterbodyLayer) return;
-
     surroundingsDispatch({
       type: 'visible',
       id: layerId,
-      payload: initialVisible,
+      payload: visibleLayers[layerId],
     });
-    waterbodyLayer.visible = initialVisible;
-  }, [initialVisible, surroundingsDispatch, waterbodyLayer]);
+  }, [surroundingsDispatch, visibleLayers]);
 
   // Mark the layer as updating, when necessary
   useEffect(() => {
@@ -68,40 +63,34 @@ export function useAllWaterbodiesLayer(
       () => {
         if (!mapView) return;
 
-        const isDisabled = waterbodyLayer
-          ? mapView.scale >= waterbodyLayer.minScale
+        const isDisabled = allWaterbodiesLayer
+          ? mapView.scale >= allWaterbodiesLayer.minScale
           : true;
         if (isDisabled !== disabled[layerId]) {
           surroundingsDispatch({
             type: 'disabled',
             id: layerId,
-            payload: waterbodyLayer
-              ? mapView.scale >= waterbodyLayer.minScale
-              : true,
+            payload: isDisabled,
           });
         }
       },
+      { initial: true },
     );
 
     return function cleanup() {
       disabledHandle.remove();
     };
-  }, [disabled, mapView, surroundingsDispatch, waterbodyLayer]);
+  }, [disabled, mapView, surroundingsDispatch, allWaterbodiesLayer]);
 
   // Function for controlling layer visibility
   const toggleVisibility = useCallback(
     (showLayer: boolean) => {
       return function toggle() {
-        if (!waterbodyLayer) return;
-        waterbodyLayer.visible = showLayer;
-        surroundingsDispatch({
-          type: 'visible',
-          id: layerId,
-          payload: showLayer,
-        });
+        if (!allWaterbodiesLayer) return;
+        updateVisibleLayers({ [layerId]: showLayer });
       };
     },
-    [surroundingsDispatch, waterbodyLayer],
+    [allWaterbodiesLayer, updateVisibleLayers],
   );
 
   useEffect(() => {
@@ -113,4 +102,4 @@ export function useAllWaterbodiesLayer(
   }, [surroundingsDispatch, toggleVisibility]);
 }
 
-const layerId = 'waterbodyLayer';
+const layerId = 'allWaterbodiesLayer';

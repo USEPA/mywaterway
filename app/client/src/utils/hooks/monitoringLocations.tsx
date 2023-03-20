@@ -94,7 +94,6 @@ export function useMonitoringGroups() {
 
   useEffect(() => {
     if (monitoringLocations.status !== 'success') return;
-    if (monitoringGroups) return;
 
     setMonitoringGroups(
       buildMonitoringGroups(
@@ -102,7 +101,7 @@ export function useMonitoringGroups() {
         characteristicGroupMappings,
       ),
     );
-  }, [monitoringGroups, monitoringLocations, setMonitoringGroups]);
+  }, [monitoringLocations, setMonitoringGroups]);
 
   return monitoringGroups;
 }
@@ -120,16 +119,20 @@ function useUpdateData(localFilter: string | null) {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!localFilter) return;
+    if (!localFilter) {
+      fetchedDataDispatch({
+        type: 'success',
+        id: localFetchedDataKey,
+        payload: [],
+      });
+      setLocalData([]);
+      return;
+    }
+
     if (services.status !== 'success') return;
 
     fetchAndTransformData(
-      fetchMonitoringLocations(
-        localFilter,
-        // `huc=${huc12}`,
-        services.data,
-        controller.signal,
-      ),
+      fetchMonitoringLocations(localFilter, services.data, controller.signal),
       fetchedDataDispatch,
       localFetchedDataKey,
     ).then((data) => {
@@ -277,7 +280,9 @@ function buildLayer(
 ) {
   return new FeatureLayer({
     id: baseLayerId,
-    title: 'Past Water Conditions',
+    title: `${
+      type === 'surrounding' ? 'Surrounding ' : ''
+    }Past Water Conditions`,
     listMode: 'hide',
     legendEnabled: true,
     fields: [

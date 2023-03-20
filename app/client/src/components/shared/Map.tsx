@@ -6,6 +6,9 @@ import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useLayers } from 'contexts/Layers';
+// types
+import type { LayerId } from 'contexts/Layers';
 
 const mapContainerStyles = css`
   position: absolute;
@@ -22,7 +25,22 @@ function Map({ layers = null, startingExtent = null }: Props) {
   const { basemap, highlightOptions, initialExtent, mapView, setMapView } =
     useContext(LocationSearchContext);
 
+  const { visibleLayers } = useLayers();
+
   const [map, setMap] = useState<__esri.Map | null>(null);
+
+  useEffect(() => {
+    if (!layers || layers.length === 0) return;
+
+    // hide/show layers based on the visibleLayers object
+    map?.layers.forEach((layer) => {
+      if (visibleLayers.hasOwnProperty(layer.id)) {
+        layer.visible = visibleLayers[layer.id as LayerId];
+      } else {
+        layer.visible = false;
+      }
+    });
+  }, [layers, visibleLayers, map]);
 
   const [mapInitialized, setMapInitialized] = useState(false);
 

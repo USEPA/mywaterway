@@ -82,7 +82,16 @@ function useUpdateData() {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!huc12) return;
+    if (!huc12) {
+      setHucData([]);
+      fetchedDataDispatch({
+        type: 'success',
+        id: localFetchedDataKey,
+        payload: [],
+      });
+      return;
+    }
+
     if (services.status !== 'success') return;
 
     const fetchPromise = fetchPermittedDischargers(

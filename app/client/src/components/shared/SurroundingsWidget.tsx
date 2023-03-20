@@ -1,15 +1,7 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
-import { LocationSearchContext } from 'contexts/locationSearch';
 import { useLayersState } from 'contexts/Layers';
 import {
   isBoundariesToggleLayerId,
@@ -32,12 +24,11 @@ import type { MutableRefObject, ReactNode } from 'react';
 */
 
 export function useSurroundingsWidget(triggerVisible: boolean) {
-  const { visibleLayers } = useContext(LocationSearchContext);
-  const layers = useLayersState();
+  const { layers, visible: visibleLayers } = useLayersState();
   const { togglers, disabled, updating, visible } = useSurroundingsState();
 
   const includedLayers = useMemo(() => {
-    return Object.keys(visibleLayers).reduce<Partial<LayersState>>(
+    return Object.keys(visibleLayers).reduce<Partial<LayersState['layers']>>(
       (included, key) => {
         if (layers.hasOwnProperty(key) && isBoundariesToggleLayerId(key)) {
           return {
@@ -54,11 +45,11 @@ export function useSurroundingsWidget(triggerVisible: boolean) {
   useEffect(() => {
     render(
       <SurroundingsWidget
+        layers={includedLayers}
+        layersUpdating={updating}
         surroundingsVisible={visible}
         toggles={togglers}
         togglesDisabled={disabled}
-        layers={includedLayers}
-        layersUpdating={updating}
         triggerVisible={triggerVisible}
       />,
       container,
@@ -320,7 +311,7 @@ type SurroundingsWidgetContentProps = Omit<
 };
 
 type SurroundingsWidgetProps = {
-  layers: Partial<Pick<LayersState, BoundariesToggleLayerId>>;
+  layers: Partial<Pick<LayersState['layers'], BoundariesToggleLayerId>>;
   layersUpdating: Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
   surroundingsVisible: SurroundingsState['visible'];
   toggles: SurroundingsState['togglers'];

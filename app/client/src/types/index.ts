@@ -86,6 +86,72 @@ export interface ExtendedLayer extends __esri.Layer {
   parent?: __esri.Layer | __esri.Map;
 }
 
+export interface Huc12SummaryData {
+  count: number;
+  items: {
+    assessedCatchmentAreaPercent: number;
+    assessedCatchmentAreaSqMi: number;
+    assessedGoodCatchmentAreaPercent: number;
+    assessedGoodCatchmentAreaSqMi: number;
+    assessedUnknownCatchmentAreaPercent: number;
+    assessedUnknownCatchmentAreaSqMi: number;
+    assessmentUnitCount: number;
+    assessmentUnits: {
+      assessmentUnitId: string;
+    }[];
+    containImpairedWatersCatchmentAreaPercent: number;
+    containImpairedWatersCatchmentAreaSqMi: number;
+    containRestorationCatchmentAreaPercent: number;
+    containRestorationCatchmentAreaSqMi: number;
+    huc12: string;
+    summaryByIRCategory: {
+      assessmentUnitCount: number;
+      catchmentSizePercent: number;
+      catchmentSizeSqMi: number;
+      epaIRCategoryName: string;
+    }[];
+    summaryByParameterImpairments: {
+      assessmentUnitCount: number;
+      catchmentSizePercent: number;
+      catchmentSizeSqMi: number;
+      parameterGroupName: string;
+    }[];
+    summaryByUse: {
+      useAttainmentSummary: {
+        assessmentUnitCount: number;
+        catchmentSizePercent: number;
+        catchmentSizeSqMi: number;
+        useAttainment: string;
+      }[];
+      useGroupName: string;
+      useName: string;
+    }[];
+    summaryByUseGroup: {
+      useAttainmentSummary: {
+        assessmentUnitCount: number;
+        catchmentSizePercent: number;
+        catchmentSizeSqMi: number;
+        useAttainment: string;
+      }[];
+      useGroupName: string;
+    }[];
+    summaryRestorationPlans: {
+      assessmentUnitCount: number;
+      catchmentSizePercent: number;
+      catchmentSizeSqMi: number;
+      summaryTypeName: string;
+    }[];
+    summaryVisionRestorationPlans: {
+      assessmentUnitCount: number;
+      catchmentSizePercent: number;
+      catchmentSizeSqMi: number;
+      summaryTypeName: string;
+    }[];
+    totalCatchmentAreaSqMi: number;
+    totalHucAreaSqMi: number;
+  }[];
+}
+
 export type LookupFile = {
   status: 'fetching' | 'success' | 'failure';
   data: any;

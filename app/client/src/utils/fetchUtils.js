@@ -145,6 +145,7 @@ export function fetchPostFile(
   apiUrl: string,
   data: object,
   file: any,
+  fileName: string = undefined,
   timeout: number = defaultTimeout,
 ) {
   const startTime = performance.now();
@@ -160,7 +161,7 @@ export function fetchPostFile(
 
     body.append(key, valueToAdd);
   }
-  body.append('file', file);
+  body.append('file', file, fileName);
 
   return timeoutPromise(
     timeout,

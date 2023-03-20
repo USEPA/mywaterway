@@ -45,13 +45,7 @@ const tooltipCost =
 const tooltipFiltered = 'This layer will be saved with your selected filters.';
 const tooltipNotLoaded = 'This layer may not have been loaded yet.';
 
-const layersToIgnore = [
-  'nonprofitsLayer',
-  'protectedAreasHighlightLayer',
-
-  // TODO layers that still need to be added
-  'cyanLayer',
-];
+const layersToIgnore = ['nonprofitsLayer', 'protectedAreasHighlightLayer'];
 if (
   window.location.pathname.includes('/plan-summary') ||
   window.location.pathname.includes('/waterbody-report')
@@ -74,7 +68,7 @@ const layersRequireFeatureService = [
   'selectedTribeLayer',
   'usgsStreamgagesLayer',
   'waterbodyLayer',
-  'upstreamWatershed',
+  'upstreamLayer',
 ];
 
 const layersMayBeFiltered = [
@@ -83,7 +77,7 @@ const layersMayBeFiltered = [
   'monitoringLocationsLayer',
 ];
 
-const layersMayNotHaveLoaded = ['cyanLayer', 'upstreamWatershed'];
+const layersMayNotHaveLoaded = ['cyanLayer', 'upstreamLayer'];
 
 const layerFilterOptions = [
   { value: 'All', label: 'All' },
@@ -511,7 +505,7 @@ function SavePanel({ visible }: Props) {
         return;
       }
       if (
-        value.id === 'upstreamWatershed' &&
+        value.id === 'upstreamLayer' &&
         upstreamWatershedResponse.status !== 'success'
       ) {
         return;
@@ -520,7 +514,7 @@ function SavePanel({ visible }: Props) {
       // get the widgetLayer for handling layers added via the Add Data Widget
       const widgetLayer = widgetLayers.find((l) => l.layer.id === value.id);
       const associatedData =
-        value.id === 'upstreamWatershed'
+        value.id === 'upstreamLayer'
           ? upstreamWatershedResponse.data
           : null;
 
