@@ -30,6 +30,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { isBoundariesToggleLayerId } from 'contexts/Surroundings';
 // utilities
 import { getEnclosedLayer } from './boundariesToggleLayer';
+import { useAllWaterbodiesLayer } from './allWaterbodies';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -430,7 +431,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
   const {
     waterbodyAreas, //part of waterbody group layer
-    actionsLayer,
+    actionsWaterbodies,
     dischargersLayer,
     erroredLayers,
     issuesLayer,
@@ -565,7 +566,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     if (attributes.layerType === 'issues') {
       layer = issuesLayer;
     } else if (attributes.layerType === 'actions') {
-      layer = actionsLayer;
+      layer = actionsWaterbodies;
     } else if (attributes.WSR_RIVER_NAME) {
       layer = wildScenicRiversLayer;
       featureLayerType = 'wildScenicRivers';
@@ -759,7 +760,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     nonprofitsLayer,
     upstreamLayer,
     issuesLayer,
-    actionsLayer,
+    actionsWaterbodies,
     findOthers,
     handles,
     wildScenicRiversLayer,
@@ -885,7 +886,7 @@ function useDynamicPopup() {
   return { getTitle, getTemplate, setDynamicPopupFields };
 }
 
-function useSharedLayers() {
+function useSharedLayers(allWaterbodiesMinScale?: number) {
   const services = useServicesContext();
   const { setLayer, setResetHandler } = useLayers();
 
@@ -1478,6 +1479,7 @@ function useSharedLayers() {
       uniqueValueInfos: createUniqueValueInfos('point', allWaterbodiesAlpha),
     });
     const waterbodyPoints = new FeatureLayer({
+      id: 'allWaterbodyPoints',
       url: services.data.waterbodyService.points,
       outFields: ['*'],
       renderer: pointsRenderer,
@@ -1498,6 +1500,7 @@ function useSharedLayers() {
       uniqueValueInfos: createUniqueValueInfos('polyline', allWaterbodiesAlpha),
     });
     const waterbodyLines = new FeatureLayer({
+      id: 'allWaterbodyLines',
       url: services.data.waterbodyService.lines,
       outFields: ['*'],
       renderer: linesRenderer,
@@ -1518,6 +1521,7 @@ function useSharedLayers() {
       uniqueValueInfos: createUniqueValueInfos('polygon', allWaterbodiesAlpha),
     });
     const waterbodyAreas = new FeatureLayer({
+      id: 'allWaterbodyAreas',
       url: services.data.waterbodyService.areas,
       outFields: ['*'],
       renderer: areasRenderer,
@@ -1544,6 +1548,8 @@ function useSharedLayers() {
 
     return allWaterbodiesLayer;
   }
+
+  useAllWaterbodiesLayer(allWaterbodiesMinScale);
 
   function getLandCoverLayer() {
     return new WMSLayer({

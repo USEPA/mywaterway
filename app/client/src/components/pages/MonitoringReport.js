@@ -51,7 +51,6 @@ import { fetchPost } from 'utils/fetchUtils';
 import {
   getEnclosedLayer,
   useAbort,
-  useAllWaterbodiesLayer,
   useMonitoringLocations,
   useMonitoringLocationsLayer,
   useSharedLayers,
@@ -2085,8 +2084,6 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
       mapView.map.basemap = 'gray-vector';
     };
   }, [mapView]);
-
-  useAllWaterbodiesLayer();
 
   const monitoringLocationsLayer = useMonitoringLocationsLayer(siteFilter);
 

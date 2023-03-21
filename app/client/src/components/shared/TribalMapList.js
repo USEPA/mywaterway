@@ -53,7 +53,6 @@ import {
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import {
-  useAllWaterbodiesLayer,
   useMonitoringLocations,
   useMonitoringLocationsLayer,
   useSharedLayers,
@@ -603,7 +602,6 @@ function TribalMap({
     );
   }, [activeState]);
 
-  useAllWaterbodiesLayer(4622350);
   const monitoringLocationsLayer = useMonitoringLocationsLayer(
     monitoringLocationsFilter,
   );
@@ -612,7 +610,7 @@ function TribalMap({
   const services = useServicesContext();
   useWaterbodyHighlight();
 
-  const getSharedLayers = useSharedLayers();
+  const getSharedLayers = useSharedLayers(4622350);
   const [layers, setLayers] = useState(null);
 
   // reset the home widget

@@ -195,7 +195,7 @@ const featureLayerIds = [
 ] as const;
 
 const graphicsLayerIds = [
-  'actionsLayer',
+  'actionsWaterbodies',
   'boundariesLayer',
   'issuesLayer',
   'nonprofitsLayer',

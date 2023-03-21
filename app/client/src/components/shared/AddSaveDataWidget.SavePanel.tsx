@@ -21,6 +21,7 @@ import { LocationSearchContext, Status } from 'contexts/locationSearch';
 import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
+import { hasDefinitionExpression } from 'utils/mapFunctions';
 // types
 import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
 
@@ -45,11 +46,17 @@ const tooltipFiltered = 'This layer will be saved with your selected filters.';
 const tooltipNotLoaded = 'This layer may not have been loaded yet.';
 
 const layersToIgnore = ['nonprofitsLayer', 'protectedAreasHighlightLayer'];
+if (
+  window.location.pathname.includes('/plan-summary') ||
+  window.location.pathname.includes('/waterbody-report')
+) {
+  layersToIgnore.push('monitoringLocationsLayer');
+}
 
 const layerTypesToIgnore = ['wcs', 'wfs'];
 
 const layersRequireFeatureService = [
-  'actionsLayer',
+  'actionsWaterbodies',
   'boundariesLayer',
   'cyanLayer',
   'dischargersLayer',
@@ -57,6 +64,7 @@ const layersRequireFeatureService = [
   'monitoringLocationsLayer',
   'providersLayer',
   'searchIconLayer',
+  'selectedTribeLayer',
   'usgsStreamgagesLayer',
   'waterbodyLayer',
   'upstreamLayer',
@@ -321,14 +329,19 @@ function SavePanel({ visible }: Props) {
 
       if (newSwitches.hasOwnProperty(layer.id)) {
         newSwitches[layer.id].layer = layer;
+        newSwitches[layer.id].requiresFeatureService =
+          (layersRequireFeatureService.includes(layer.id) ||
+            fileLayerIds.includes(layer.id)) &&
+          !hasDefinitionExpression(layer);
       } else {
         newSwitches[layer.id] = {
           id: layer.id,
           label: layer.title,
           toggled: layer.visible,
           requiresFeatureService:
-            layersRequireFeatureService.includes(layer.id) ||
-            fileLayerIds.includes(layer.id),
+            (layersRequireFeatureService.includes(layer.id) ||
+              fileLayerIds.includes(layer.id)) &&
+            !hasDefinitionExpression(layer),
           layer: layer,
         };
       }
@@ -500,9 +513,7 @@ function SavePanel({ visible }: Props) {
       // get the widgetLayer for handling layers added via the Add Data Widget
       const widgetLayer = widgetLayers.find((l) => l.layer.id === value.id);
       const associatedData =
-        value.id === 'upstreamLayer'
-          ? upstreamWatershedResponse.data
-          : null;
+        value.id === 'upstreamLayer' ? upstreamWatershedResponse.data : null;
 
       layersToPublish.push({
         ...value,
