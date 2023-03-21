@@ -12,13 +12,19 @@ import { dataContentError } from 'config/errorMessages';
 // contexts
 import { useDataSourcesContext } from 'contexts/LookupFiles';
 // styles
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
 import { fonts } from 'styles/index.js';
 
 function scrollToItem(id: string) {
   const item = document.getElementById(id);
   if (item) item.scrollIntoView();
 }
+
+const marginBoxStyles = (styles) => css`
+  ${styles}
+  margin: 0.5em 0;
+  width: fit-content;
+`;
 
 const containerStyles = css`
   padding: 1rem;
@@ -201,11 +207,11 @@ function DataContent() {
             <div css={itemStyles} id={id}>
               <i className="fas fa-database" aria-hidden="true" />{' '}
               <h2 css={titleStyles}>{title}</h2>
-              <p>
+              <div css={marginBoxStyles(textBoxStyles)}>
                 <a href={linkHref} target="_blank" rel="noopener noreferrer">
                   {linkLabel}
                 </a>
-              </p>
+              </div>
               <p dangerouslySetInnerHTML={{ __html: description }} />
               <br />
               <h2 css={questionStyles}>

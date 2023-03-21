@@ -798,53 +798,10 @@ function useDynamicPopup() {
     dynamicPopupFields = fields;
   };
 
-  const [hucInfo, setHucInfo] = useState<ClickedHucState>({
-    status: 'none',
-    data: null,
-  });
-
-  const [lastLocation, setLastLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
-
   const getClickedHuc = useCallback(
     (location: __esri.Point) => {
       if (services.status !== 'success') return null;
       return new Promise<ClickedHucState>((resolve, reject) => {
-        const testLocation = {
-          latitude: location.latitude,
-          longitude: location.longitude,
-        };
-
-        function poll(timeout: number) {
-          if (['none', 'fetching'].includes(hucInfo.status)) {
-            setTimeout(poll, timeout);
-          } else {
-            resolve(hucInfo);
-          }
-        }
-        // check if the location changed
-        if (
-          testLocation &&
-          lastLocation &&
-          testLocation.latitude === lastLocation.latitude &&
-          testLocation.longitude === lastLocation.longitude
-        ) {
-          // polls the dom, based on provided timeout, until the esri search input
-          // is added. Once the input is added this sets the id attribute and stops
-          // the polling.
-          poll(1000);
-
-          return;
-        }
-
-        setLastLocation(testLocation);
-        setHucInfo({
-          status: 'fetching',
-          data: null,
-        });
-
         //get the huc boundaries of where the user clicked
         const queryParams = {
           returnGeometry: true,
@@ -863,14 +820,13 @@ function useDynamicPopup() {
             }
 
             const { attributes } = boundaries.features[0];
-            setHucInfo({
+            resolve({
               status: 'success',
               data: {
                 huc12: attributes.huc12,
                 watershed: attributes.name,
               },
             });
-            resolve(hucInfo);
           })
           .catch((err) => {
             console.error(err);
@@ -878,7 +834,7 @@ function useDynamicPopup() {
           });
       });
     },
-    [hucInfo, lastLocation, services],
+    [services],
   );
 
   // Wrapper function for getting the content of the popup

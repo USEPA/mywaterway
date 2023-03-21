@@ -407,7 +407,7 @@ function WaterbodyInfo({
 
   const waterbodyReportLink =
     onWaterbodyReportPage ? null : attributes.organizationid ? (
-      <p css={paragraphStyles}>
+      <div css={paddedMarginBoxStyles(textBoxStyles)}>
         <a
           rel="noopener noreferrer"
           target="_blank"
@@ -422,8 +422,8 @@ function WaterbodyInfo({
           View Waterbody Report
         </a>
         &nbsp;&nbsp;
-        <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </p>
+        <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
+      </div>
     ) : (
       <p css={paragraphStyles}>
         Unable to find a waterbody report for this waterbody.
@@ -1150,7 +1150,13 @@ const cyanListContentStyles = css`
 
 const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
   ${styles}
-  margin: 1em;
+  margin: 1em 0;
+`;
+
+const paddedMarginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+  ${styles}
+  ${marginBoxStyles(styles)}
+  padding: 0.75em;
 `;
 
 const showLessMoreStyles = css`
@@ -2507,7 +2513,7 @@ function MonitoringLocationsContent({
 
       {(!onMonitoringReportPage ||
         layer.id === 'monitoringLocationsLayer-surrounding') && (
-        <p css={paragraphStyles}>
+        <div css={paddedMarginBoxStyles(textBoxStyles)}>
           <a
             rel="noopener noreferrer"
             target="_blank"
@@ -2515,14 +2521,14 @@ function MonitoringLocationsContent({
           >
             <i
               css={iconStyles}
-              className="fas fa-info-circle"
+              className="fas fa-file-alt"
               aria-hidden="true"
             />
             View Monitoring Report
           </a>
           &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </p>
+          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
+        </div>
       )}
     </>
   );
