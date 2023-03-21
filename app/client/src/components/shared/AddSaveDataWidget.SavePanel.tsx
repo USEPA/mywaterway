@@ -45,12 +45,12 @@ const tooltipCost = {
   text: 'Saving this layer may incur storage credits in ArcGIS online.',
 };
 const tooltipFiltered = {
-  icon: 'fas fa-asterisk', 
-  text: 'Check to make sure this layer is loaded on your map'
+  icon: 'fas fa-asterisk',
+  text: 'Only the selections you have made on the map will be saved.',
 };
 const tooltipNotLoaded = {
-  icon: 'fas fa-plus', 
-  text: 'Only the selections you have made on the map will be saved.'
+  icon: 'fas fa-plus',
+  text: 'Check to make sure this layer is loaded on your map.',
 };
 
 const layersToIgnore = ['nonprofitsLayer', 'protectedAreasHighlightLayer'];
