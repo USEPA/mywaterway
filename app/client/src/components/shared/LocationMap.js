@@ -60,7 +60,6 @@ import {
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
-  useAllWaterbodiesLayer,
   useDischargersLayer,
   useMonitoringLocationsLayer,
   useStreamgageLayer,
@@ -225,7 +224,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     waterbodyLayer,
   } = useLayers();
 
-  useAllWaterbodiesLayer();
   const dischargersLayer = useDischargersLayer();
   const monitoringLocationsLayer = useMonitoringLocationsLayer(
     huc12 ? `huc=${huc12}` : null,
@@ -743,7 +741,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           attributes: { OBJECTID: 1 },
         }),
       ],
-      title: 'CyAN Waterbodies'
+      title: 'CyAN Waterbodies',
     });
 
     const cyanImages = new MediaLayer({

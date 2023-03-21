@@ -93,7 +93,7 @@ export function createUniqueValueInfos(
     base: number;
     poly: number;
     outline: number;
-  } | null,
+  } | null = null,
 ) {
   return [
     {
@@ -300,6 +300,41 @@ export function createWaterbodySymbol({
     outline: number;
   } | null;
 }) {
+  // handle Actions page
+  if (window.location.pathname.includes('/plan-summary')) {
+    let color: __esri.Color = new Color({ r: 0, g: 123, b: 255 });
+    if (geometryType === 'polygon') color.a = 0.75;
+
+    let planSummarySymbol;
+    if (geometryType === 'point') {
+      planSummarySymbol = new SimpleMarkerSymbol({
+        color,
+        style: 'circle',
+        outline: {
+          width: 0.65,
+        },
+      });
+    }
+    if (geometryType === 'polyline') {
+      planSummarySymbol = new SimpleLineSymbol({
+        color,
+        style: 'solid',
+        width: 3,
+      });
+    }
+    if (geometryType === 'polygon') {
+      planSummarySymbol = new SimpleFillSymbol({
+        color,
+        style: 'solid',
+        outline: {
+          width: 0,
+        },
+      });
+    }
+
+    return planSummarySymbol;
+  }
+
   const outline = selected
     ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 1 }
     : { color: [0, 0, 0, alpha ? alpha.outline : 1], width: 1 };
@@ -1035,4 +1070,20 @@ export function stringifyAttributes(
     }
   }
   return { ...attributes, ...stringified };
+}
+
+// checks if a feature layer or any feature layers in a group layer
+// have a definitionExpression defined
+export function hasDefinitionExpression(layer: __esri.Layer) {
+  let hasDefinitionExpression = false;
+  if (isFeatureLayer(layer) && layer.definitionExpression)
+    hasDefinitionExpression = true;
+  else if (isGroupLayer(layer)) {
+    layer.layers.forEach((l) => {
+      if (isFeatureLayer(l) && l.definitionExpression)
+        hasDefinitionExpression = true;
+    });
+  }
+
+  return hasDefinitionExpression;
 }

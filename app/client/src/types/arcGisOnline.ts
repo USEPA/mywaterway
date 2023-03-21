@@ -1,6 +1,7 @@
 import {
   IFeature,
   ILayer,
+  ILayerDefinition,
   IServiceNameAvailable,
 } from '@esri/arcgis-rest-types';
 import { WidgetLayer } from 'types/index';
@@ -48,6 +49,7 @@ export type AddItemResponseType = {
 export type ILayerExtendedType = Partial<ILayer> & {
   disablePopup?: boolean;
   id?: any;
+  layerDefinition?: ILayerDefinition;
   layers?: ILayerExtendedType[];
   popupInfo?: any;
   styleUrl?: string;

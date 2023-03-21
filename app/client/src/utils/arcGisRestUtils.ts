@@ -1,15 +1,18 @@
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import { v4 as uuid } from 'uuid';
 // components
 import mapPin from 'images/pin.png';
 // utils
 import {
-  fetchCheck,
   fetchPostFile,
   fetchPostForm,
   getEnvironmentString,
 } from 'utils/fetchUtils';
 import {
+  createWaterbodySymbol,
+  createUniqueValueInfos,
+  hasDefinitionExpression,
   isFeatureLayer,
   isGraphicsLayer,
   isGroupLayer,
@@ -19,7 +22,6 @@ import { escapeForLucene } from 'utils/utils';
 import {
   ILayerDefinition,
   IFeature,
-  IFeatureServiceDefinition,
   IFieldInfo,
 } from '@esri/arcgis-rest-types';
 import {
@@ -30,7 +32,6 @@ import {
   ILayerExtendedType,
   IServiceNameAvailableExtended,
   LayerType,
-  PortalService,
   ServiceMetaDataType,
 } from 'types/arcGisOnline';
 import { LookupFile } from 'types/index';
@@ -40,6 +41,11 @@ declare global {
     logErrorToGa: Function;
   }
 }
+
+type FeatureServiceType = {
+  id: string;
+  url: string;
+};
 
 /**
  * Returns an environment string query parameter to be passed into
@@ -109,10 +115,7 @@ export async function isServiceNameAvailable(
 export async function getFeatureService(
   portal: __esri.Portal,
   serviceMetaData: ServiceMetaDataType,
-): Promise<{
-  portalService: PortalService;
-  featureService: IFeatureServiceDefinition;
-}> {
+): Promise<FeatureServiceType> {
   try {
     // check if the hmw feature service already exists
     let service = await getFeatureServiceWrapped(portal, serviceMetaData);
@@ -127,47 +130,6 @@ export async function getFeatureService(
   }
 }
 
-async function getFeatureServiceRetry(
-  portal: __esri.Portal,
-  serviceMetaData: ServiceMetaDataType,
-) {
-  // Function that fetches the lookup file.
-  // This will retry the fetch 3 times if the fetch fails with a
-  // 1 second delay between each retry.
-  const fetchLookup = async (
-    retryCount: number = 0,
-  ): Promise<{
-    portalService: PortalService;
-    featureService: IFeatureServiceDefinition;
-  }> => {
-    try {
-      // check if the hmw feature service already exists
-      const service = await getFeatureServiceWrapped(portal, serviceMetaData);
-      if (service) return service;
-
-      // resolve the request when the max retry count of 3 is hit
-      if (retryCount === 3) {
-        throw new Error('No service');
-      } else {
-        // recursive retry (1 second between retries)
-        console.log(
-          `Failed to fetch feature service. Retrying (${
-            retryCount + 1
-          } of 3)...`,
-        );
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return await fetchLookup(retryCount + 1);
-      }
-    } catch (err) {
-      window.logErrorToGa(err);
-      throw err;
-    }
-  };
-
-  return await fetchLookup();
-}
-
 /**
  * Gets the hosted feature service and returns null if it it
  * doesn't already exist
@@ -180,28 +142,21 @@ async function getFeatureServiceRetry(
 async function getFeatureServiceWrapped(
   portal: __esri.Portal,
   serviceMetaData: ServiceMetaDataType,
-) {
+): Promise<FeatureServiceType | null> {
   try {
     const query = `orgid:${escapeForLucene(portal.user.orgId)} AND name:${
       serviceMetaData.label
     }`;
     const queryRes = await portal.queryItems({ query });
 
-    const exactMatch = queryRes.results.find(
+    const portalService = queryRes.results.find(
       (layer) => layer.name === serviceMetaData.label,
     );
 
-    if (exactMatch) {
-      const portalService = exactMatch;
-
-      const response = await fetchCheck(
-        `${portalService.url}?f=json${getEnvironmentStringParam()}&token=${
-          portal.credential.token
-        }`,
-      );
+    if (portalService) {
       return {
-        portalService,
-        featureService: response,
+        id: portalService.id,
+        url: portalService.url,
       };
     } else {
       return null;
@@ -274,13 +229,19 @@ export async function createFeatureService(
     };
     appendEnvironmentObjectParam(indata);
 
-    await fetchPostForm(
+    const updateResponse = await fetchPostForm(
       `${portal.user.userContentUrl}/items/${createResponse.itemId}/update`,
       indata,
     );
 
-    // get the feature service from the portal and return it
-    return await getFeatureServiceRetry(portal, serviceMetaData);
+    if (createResponse.success === true && updateResponse.success === true) {
+      return {
+        id: createResponse.serviceItemId,
+        url: createResponse.serviceurl,
+      };
+    } else {
+      throw new Error('No service');
+    }
   } catch (err) {
     window.logErrorToGa(err);
     throw err;
@@ -339,6 +300,22 @@ function addSubLayer({
   if (layer.geometryType === 'polyline') geometryType = 'esriGeometryPolyline';
   if (layer.geometryType === 'polygon') geometryType = 'esriGeometryPolygon';
 
+  // build the renderer
+  const rendererGeometryType = layer.geometryType.replace(
+    'multipoint',
+    'point',
+  );
+  const renderer = new UniqueValueRenderer({
+    field: 'overallstatus',
+    fieldDelimiter: ', ',
+    defaultSymbol: createWaterbodySymbol({
+      condition: 'unassessed',
+      selected: false,
+      geometryType: rendererGeometryType,
+    }),
+    uniqueValueInfos: createUniqueValueInfos(rendererGeometryType),
+  });
+
   layersParams.push({
     ...layerProps.data.defaultLayerProps,
     ...properties,
@@ -347,8 +324,10 @@ function addSubLayer({
     globalIdField: layer.globalIdField,
     objectIdField: layer.objectIdField,
     spatialReference: layer.spatialReference.toJSON(),
-    fields: layer.fields.map(convertFieldToJSON),
-    drawingInfo: { renderer: layer.renderer.toJSON() },
+    fields: layer.fields
+      .filter((field) => field.name.toUpperCase() !== 'SHAPE')
+      .map(convertFieldToJSON),
+    drawingInfo: { renderer: renderer.toJSON() },
     popupTemplate: layer.popupTemplate.toJSON(),
   });
 }
@@ -427,10 +406,7 @@ export async function createFeatureLayers(
             .map(convertFieldToJSON),
         });
         continue;
-      } else if (
-        layer.layer.id === 'upstreamLayer' &&
-        layer.associatedData
-      ) {
+      } else if (layer.layer.id === 'upstreamLayer' && layer.associatedData) {
         // find the object id field
         const objectIdField = layer.associatedData.fields.find(
           (f) => f.type === 'oid',
@@ -448,10 +424,12 @@ export async function createFeatureLayers(
             .map(convertFieldToJSON),
         });
         continue;
-      } else if (layer.layer.id === 'issuesLayer') {
+      } else if (
+        ['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)
+      ) {
         const graphicsLayer = layer.layer as __esri.GraphicsLayer;
-        const waterbodyLayer = mapView.map.layers.find(
-          (l) => l.id === 'waterbodyLayer',
+        const allWaterbodiesLayer = mapView.map.layers.find(
+          (l) => l.id === 'allWaterbodiesLayer',
         ) as __esri.GroupLayer;
 
         // add the layer id 3 times to cover splitting this layer into 3
@@ -460,8 +438,8 @@ export async function createFeatureLayers(
         layerIds.push(graphicsLayer.id);
 
         // add areas layer
-        const areasLayer = waterbodyLayer.findLayerById(
-          'waterbodyAreas',
+        const areasLayer = allWaterbodiesLayer.findLayerById(
+          'allWaterbodyAreas',
         ) as __esri.FeatureLayer;
         addSubLayer({
           layer: areasLayer,
@@ -472,8 +450,8 @@ export async function createFeatureLayers(
         });
 
         // add lines layer
-        const linesLayer = waterbodyLayer.findLayerById(
-          'waterbodyLines',
+        const linesLayer = allWaterbodiesLayer.findLayerById(
+          'allWaterbodyLines',
         ) as __esri.FeatureLayer;
         addSubLayer({
           layer: linesLayer,
@@ -484,8 +462,8 @@ export async function createFeatureLayers(
         });
 
         // add points layer
-        const pointsLayer = waterbodyLayer.findLayerById(
-          'waterbodyPoints',
+        const pointsLayer = allWaterbodiesLayer.findLayerById(
+          'allWaterbodyPoints',
         ) as __esri.FeatureLayer;
         addSubLayer({
           layer: pointsLayer,
@@ -512,6 +490,11 @@ export async function createFeatureLayers(
 
         continue;
       } else if (layer.layer.id === 'waterbodyLayer') {
+        // Treat definitionExpression layers (i.e. tribe and state) differently.
+        // These will not use hosted feature services, but instead
+        // be published directly to the web map with a definitionExpression applied
+        if (hasDefinitionExpression(layer.layer)) continue;
+
         const groupLayer = layer.layer as __esri.GroupLayer;
         const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
         for (const subLayer of subLayers) {
@@ -673,7 +656,9 @@ async function applyEdits({
         const subLayer = subLayers.find((s) => s.title === layerRes.name);
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
-      } else if (layer.id === 'issuesLayer') {
+      } else if (
+        ['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)
+      ) {
         const graphicsLayer = layer.layer as __esri.GraphicsLayer;
 
         // filter features down to just areas, lines, or points
@@ -856,7 +841,7 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
   if (layerType === 'wms') layerTypeOut = 'WMS';
 
   // handle layer specific type overrides
-  if (layer.id === 'allWaterbodiesLayer')
+  if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(layer.id))
     layerTypeOut = 'ArcGISMapServiceLayer';
   if (layer.id === 'ejscreenLayer') layerTypeOut = 'ArcGISMapServiceLayer';
   if (layer.id === 'tribalLayer') layerTypeOut = 'ArcGISMapServiceLayer';
@@ -876,7 +861,7 @@ function getLayerUrl(services: any, layer: LayerType): string {
   let url = layer.layer?.url || '';
   if (layer.widgetLayer?.type === 'portal') url = layer.widgetLayer.url;
   if (layer.widgetLayer?.type === 'url') url = layer.widgetLayer.url;
-  if (layer.id === 'allWaterbodiesLayer')
+  if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(layer.id))
     url = services.data.waterbodyService.base;
   if (layer.id === 'ejscreenLayer') url = services.data.ejscreen;
   if (layer.id === 'tribalLayer') url = services.data.tribal;
@@ -909,18 +894,15 @@ export async function addWebMap({
 }: {
   portal: __esri.Portal;
   mapView: __esri.MapView;
-  service?: {
-    portalService: PortalService;
-    featureService: IFeatureServiceDefinition;
-  };
+  service?: FeatureServiceType;
   services: any;
   serviceMetaData: ServiceMetaDataType;
   layers: LayerType[];
   layerProps?: LookupFile;
   layersRes?: AddToDefinitionResponseType;
 }): Promise<AddItemResponseType> {
-  const itemId = service?.portalService?.id;
-  const baseUrl = service?.portalService?.url;
+  const itemId = service?.id;
+  const baseUrl = service?.url;
 
   function buildPopupFieldsList(
     objectIdField: string,
@@ -962,7 +944,9 @@ export async function addWebMap({
           widgetLayerFile.rawLayer.layerDefinition?.globalIdField,
           widgetLayerFile.fields,
         );
-      } else if (['cyanLayer', 'issuesLayer'].includes(l.id)) {
+      } else if (
+        ['actionsWaterbodies', 'cyanLayer', 'issuesLayer'].includes(l.id)
+      ) {
         // don't do anything for these layers, they will be handeled below
       } else {
         // handle boundaries and providers
@@ -1105,24 +1089,24 @@ export async function addWebMap({
 
             // build fields here
             let popupFields: IFieldInfo[] = [];
-            if (layer.id === 'issuesLayer') {
-              const issuesLayer = layer as __esri.GraphicsLayer;
-              const waterbodyLayer = mapView.map.layers.find(
-                (sl) => sl.id === 'waterbodyLayer',
+            if (['actionsWaterbodies', 'issuesLayer'].includes(layer.id)) {
+              const graphicsLayer = layer as __esri.GraphicsLayer;
+              const allWaterbodiesLayer = mapView.map.layers.find(
+                (sl) => sl.id === 'allWaterbodiesLayer',
               ) as __esri.GroupLayer;
 
               let associatedLayer: __esri.FeatureLayer | null = null;
-              if (lRes.name === `${issuesLayer.title} Areas`) {
-                associatedLayer = waterbodyLayer.findLayerById(
-                  'waterbodyAreas',
+              if (lRes.name === `${graphicsLayer.title} Areas`) {
+                associatedLayer = allWaterbodiesLayer.findLayerById(
+                  'allWaterbodyAreas',
                 ) as __esri.FeatureLayer;
-              } else if (lRes.name === `${issuesLayer.title} Lines`) {
-                associatedLayer = waterbodyLayer.findLayerById(
-                  'waterbodyLines',
+              } else if (lRes.name === `${graphicsLayer.title} Lines`) {
+                associatedLayer = allWaterbodiesLayer.findLayerById(
+                  'allWaterbodyLines',
                 ) as __esri.FeatureLayer;
-              } else if (lRes.name === `${issuesLayer.title} Points`) {
-                associatedLayer = waterbodyLayer.findLayerById(
-                  'waterbodyPoints',
+              } else if (lRes.name === `${graphicsLayer.title} Points`) {
+                associatedLayer = allWaterbodiesLayer.findLayerById(
+                  'allWaterbodyPoints',
                 ) as __esri.FeatureLayer;
               }
 
@@ -1164,11 +1148,58 @@ export async function addWebMap({
         });
       }
     } else {
-      operationalLayers.push({
-        layerType,
-        title: l.label,
-        url,
-      });
+      // handle waterbodies layer on the state and tribe pages
+      if (l.id === 'waterbodyLayer' && isGroupLayer(l.layer)) {
+        const subLayers: ILayerExtendedType[] = [];
+        l.layer.layers.forEach((subLayer) => {
+          if (!isFeatureLayer(subLayer)) return;
+
+          const popupFields = buildPopupFieldsList(
+            subLayer.objectIdField,
+            subLayer.globalIdField,
+            subLayer.fields,
+          );
+
+          if (subLayer.definitionExpression) {
+            subLayers.push({
+              id: subLayer.layerId,
+              layerDefinition: {
+                definitionExpression: subLayer.definitionExpression,
+              },
+              disablePopup: false,
+              popupInfo: {
+                popupElements: [
+                  {
+                    type: 'fields',
+                    description: '',
+                    fieldInfos: popupFields,
+                    title: '',
+                  },
+                ],
+                fieldInfos: popupFields,
+                title: `${subLayer.title}: {orgName}`,
+              },
+            });
+          } else {
+            subLayers.push({
+              id: subLayer.layerId,
+            });
+          }
+        });
+
+        operationalLayers.push({
+          layerType,
+          title: l.label,
+          url,
+          layers: subLayers,
+        });
+      } else {
+        operationalLayers.push({
+          layerType,
+          title: l.label,
+          url,
+        });
+      }
     }
   });
 
@@ -1306,7 +1337,7 @@ export async function publish({
       };
     } else {
       const service = await getFeatureService(portal, serviceMetaData);
-      const serviceUrl: string = service.portalService.url;
+      const serviceUrl: string = service.url;
 
       const layersRes = await createFeatureLayers(
         portal,
