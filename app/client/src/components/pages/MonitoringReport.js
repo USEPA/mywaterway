@@ -1023,6 +1023,11 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   // Get the selected chart data and statistics
   const getChartData = useCallback(
     (newDomain, newMsmts) => {
+      if (!newDomain) {
+        setChartData(null);
+        return;
+      }
+
       // newMsmts must already be sorted by date
       const filteredMsmts =
         newMsmts?.filter((msmt) => {
@@ -1061,7 +1066,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
   const [selectedYears, setSelectedYears] = useState(null);
-  // Initialize the chart
+
+  // Initialize the date slider parameters
   useEffect(() => {
     if (measurements?.length) {
       const yearLow = measurements[0].year;
@@ -1070,20 +1076,19 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       setMaxYear(yearHigh);
       setSelectedYears([yearLow, yearHigh]);
     } else {
-      setChartData(null);
       setMinYear(null);
       setMaxYear(null);
       setSelectedYears(null);
     }
   }, [measurements]);
 
+  // Update the chart with selected parameters
   useEffect(() => {
-    if (!selectedYears) return;
-
     getChartData(selectedYears, measurements);
   }, [getChartData, measurements, selectedYears]);
 
   const displayUnit = unit === 'None' ? '' : unit;
+
   // Title for the y-axis
   let yTitle = charcName;
   if (fraction !== 'None') yTitle += ', ' + fraction?.replace(',', ' -');
