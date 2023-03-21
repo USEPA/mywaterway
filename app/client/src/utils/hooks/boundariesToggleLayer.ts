@@ -1,5 +1,4 @@
 import Graphic from '@arcgis/core/Graphic';
-import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -24,7 +23,8 @@ import type {
   FetchedData,
   FetchedDataState,
 } from 'contexts/FetchedData';
-import type { BoundariesToggleLayerId } from 'contexts/Surroundings';
+import type { LayerId } from 'contexts/Layers';
+import type { SurroundingFeaturesLayerId } from 'contexts/Surroundings';
 
 /*
 ## Hooks
@@ -63,7 +63,6 @@ function useBoundariesToggleLayer<
   buildBaseLayer,
   buildFeatures,
   enclosedFetchedDataKey,
-  layerId,
   minScale = defaultMinScale,
   surroundingFetchedDataKey,
   updateSurroundingData,
@@ -71,59 +70,42 @@ function useBoundariesToggleLayer<
 }: UseBoundariesToggleLayerParams<T, E, S>) {
   const { mapView } = useContext(LocationSearchContext);
 
-  const [enclosedLayer] = useState(
-    buildBaseLayer(`${layerId}-enclosed`, 'enclosed'),
-  );
-  const [surroundingLayer] = useState(
-    buildBaseLayer(`${layerId}-surrounding`, 'surrounding'),
-  );
+  const [enclosedLayer] = useState(buildBaseLayer('enclosed'));
+  const [surroundingLayer] = useState(buildBaseLayer('surrounding'));
+  const enclosedLayerId = enclosedLayer.id as LayerId;
+  const surroundingLayerId = surroundingLayer.id as SurroundingFeaturesLayerId;
 
   const [handleGroupKey] = useState(uuid());
 
-  // Group layer that contains the base layer and its masks
-  const parentLayer = useMemo(() => {
-    return new GroupLayer({
-      id: layerId,
-      layers: [enclosedLayer, surroundingLayer],
-      listMode: 'hide-children',
-      title: enclosedLayer.title,
-    });
-  }, [enclosedLayer, layerId, surroundingLayer]);
-
   const { disabled, visible } = useSurroundingsState();
   const surroundingsDispatch = useSurroundingsDispatch();
-  const { setLayer, updateVisibleLayers, visibleLayers } = useLayers();
+  const { setLayer, updateVisibleLayers } = useLayers();
 
   const { getSignal, abort } = useAbort();
 
-  const surroundingsDisabled = disabled[layerId];
-  const surroundingsVisible = visible[layerId];
-  const layerVisible = visibleLayers[layerId];
+  const surroundingsDisabled = disabled[surroundingLayerId];
+  const surroundingsVisible = visible[surroundingLayerId];
 
   // Update data when the mapView updates
   useEffect(() => {
-    if (parentLayer.hasHandles(handleGroupKey)) return;
+    if (surroundingLayer.hasHandles(handleGroupKey)) return;
 
     const stationaryHandle = reactiveUtils.when(
       () => mapView?.stationary === true,
       () => {
-        if (
-          surroundingsDisabled ||
-          !surroundingsVisible ||
-          layerVisible === false
-        ) {
+        if (surroundingsDisabled || !surroundingsVisible) {
           return;
         }
 
         surroundingsDispatch({
           type: 'updating',
-          id: layerId,
+          id: surroundingLayerId,
           payload: true,
         });
         updateSurroundingData(getSignal()).finally(() =>
           surroundingsDispatch({
             type: 'updating',
-            id: layerId,
+            id: surroundingLayerId,
             payload: false,
           }),
         );
@@ -136,22 +118,24 @@ function useBoundariesToggleLayer<
       () => abort(),
     );
 
-    parentLayer.addHandles([stationaryHandle, movingHandle], handleGroupKey);
+    surroundingLayer.addHandles(
+      [stationaryHandle, movingHandle],
+      handleGroupKey,
+    );
 
     return function cleanup() {
-      parentLayer?.removeHandles(handleGroupKey);
+      surroundingLayer?.removeHandles(handleGroupKey);
     };
   }, [
     abort,
     getSignal,
     handleGroupKey,
-    layerId,
-    layerVisible,
     mapView,
     minScale,
-    parentLayer,
     surroundingsDisabled,
     surroundingsDispatch,
+    surroundingLayer,
+    surroundingLayerId,
     surroundingsVisible,
     updateSurroundingData,
   ]);
@@ -162,17 +146,17 @@ function useBoundariesToggleLayer<
       () => mapView?.scale,
       () => {
         if (mapView?.scale >= minScale && !surroundingsDisabled) {
-          surroundingLayer.visible = false;
+          updateVisibleLayers({ [surroundingLayerId]: false });
           surroundingsDispatch({
             type: 'disabled',
-            id: layerId,
+            id: surroundingLayerId,
             payload: true,
           });
         } else if (mapView?.scale < minScale && surroundingsDisabled) {
-          surroundingLayer.visible = surroundingsVisible;
+          updateVisibleLayers({ [surroundingLayerId]: surroundingsVisible });
           surroundingsDispatch({
             type: 'disabled',
-            id: layerId,
+            id: surroundingLayerId,
             payload: false,
           });
         }
@@ -186,13 +170,14 @@ function useBoundariesToggleLayer<
       mapScaleHandle.remove();
     };
   }, [
-    layerId,
     mapView,
     minScale,
     surroundingLayer,
+    surroundingLayerId,
     surroundingsDisabled,
     surroundingsDispatch,
     surroundingsVisible,
+    updateVisibleLayers,
   ]);
 
   const fetchedDataState = useFetchedDataState();
@@ -219,106 +204,75 @@ function useBoundariesToggleLayer<
     updateLayer,
   ]);
 
-  // Add the layer to the Layers context
+  // Add the layers to the Layers context
   useEffect(() => {
-    setLayer(layerId, parentLayer);
-  }, [layerId, parentLayer, setLayer]);
+    setLayer(surroundingLayerId as LayerId, surroundingLayer);
+  }, [setLayer, surroundingLayer, surroundingLayerId]);
 
-  const [initialLayerVisibility, setInitialLayerVisibility] = useState<
-    boolean | null
-  >(layerVisible);
+  useEffect(() => {
+    setLayer(enclosedLayerId, enclosedLayer);
+  }, [enclosedLayer, enclosedLayerId, setLayer]);
 
   // Manages the surrounding features visibility
   const toggleSurroundings = useCallback(
     (showSurroundings: boolean) => {
       return function toggle() {
-        setInitialLayerVisibility(layerVisible);
-        if (layerVisible && !showSurroundings) {
-          updateVisibleLayers({
-            [layerId]: initialLayerVisibility,
-          });
-        } else if (!layerVisible && showSurroundings) {
-          updateVisibleLayers({ [layerId]: true });
-        }
-
-        surroundingLayer.visible = showSurroundings;
+        updateVisibleLayers({ [surroundingLayerId]: showSurroundings });
 
         surroundingsDispatch({
           type: 'visible',
-          id: layerId,
+          id: surroundingLayerId,
           payload: showSurroundings,
         });
       };
     },
-    [
-      initialLayerVisibility,
-      layerId,
-      layerVisible,
-      surroundingLayer,
-      surroundingsDispatch,
-      updateVisibleLayers,
-    ],
+    [surroundingLayerId, surroundingsDispatch, updateVisibleLayers],
   );
 
   // Add the surroundings toggle to the Layers context
   useEffect(() => {
     surroundingsDispatch({
       type: 'togglers',
-      id: layerId,
+      id: surroundingLayer.id as SurroundingFeaturesLayerId,
       payload: toggleSurroundings,
     });
-  }, [layerId, surroundingsDispatch, toggleSurroundings]);
-
-  // Keep visibility statuses in sync across tabs
-  useEffect(() => {
-    if (!layerVisible && surroundingsVisible) {
-      surroundingLayer.visible = false;
-      surroundingsDispatch({
-        type: 'visible',
-        id: layerId,
-        payload: false,
-      });
-    }
-  }, [
-    layerId,
-    layerVisible,
-    surroundingLayer,
-    surroundingsDispatch,
-    surroundingsVisible,
-  ]);
+  }, [surroundingLayer, surroundingsDispatch, toggleSurroundings]);
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
   // Clean up the layer state and fetched data state when finished
   useEffect(() => {
     return function cleanup() {
-      setLayer(layerId, null);
-      surroundingsDispatch({ type: 'reset', id: layerId });
+      setLayer(surroundingLayerId, null);
+      setLayer(enclosedLayerId, null);
+      surroundingsDispatch({ type: 'reset', id: surroundingLayerId });
       fetchedDataDispatch({ type: 'pending', id: enclosedFetchedDataKey });
       fetchedDataDispatch({ type: 'pending', id: surroundingFetchedDataKey });
     };
   }, [
     enclosedFetchedDataKey,
+    enclosedLayerId,
     fetchedDataDispatch,
-    layerId,
     setLayer,
     surroundingFetchedDataKey,
+    surroundingLayerId,
     surroundingsDispatch,
   ]);
 
-  return parentLayer;
+  return { enclosedLayer, surroundingLayer };
 }
 
 /*
 ## Utils
 */
 
-export function getEnclosedLayer(parentLayer: __esri.GroupLayer) {
-  return (
-    (parentLayer.findLayerById(
-      `${parentLayer.id}-enclosed`,
-    ) as __esri.FeatureLayer) ?? null
-  );
+export function getEnclosedLayer(
+  parentLayer: __esri.GroupLayer | null,
+): __esri.FeatureLayer | null {
+  if (!parentLayer) return null;
+  return parentLayer.findLayerById(
+    `${parentLayer.id}-enclosed`,
+  ) as __esri.FeatureLayer;
 }
 
 function getExtentArea(extent: __esri.Extent) {
@@ -358,7 +312,10 @@ export async function getGeographicExtent(mapView: __esri.MapView | '') {
   ) as __esri.Extent;
 }
 
-export function getSurroundingLayer(parentLayer: __esri.GroupLayer) {
+export function getSurroundingLayer(
+  parentLayer: __esri.GroupLayer | null,
+): __esri.FeatureLayer | null {
+  if (!parentLayer) return null;
   return (
     (parentLayer.findLayerById(
       `${parentLayer.id}-surrounding`,
@@ -429,10 +386,9 @@ type UseBoundariesToggleLayerParams<
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = {
-  buildBaseLayer: (layerId: string, type: SublayerType) => T;
+  buildBaseLayer: (type: SublayerType) => T;
   buildFeatures: (data: FetchedData[E] | FetchedData[S]) => Graphic[];
   enclosedFetchedDataKey: E;
-  layerId: BoundariesToggleLayerId;
   minScale?: number;
   surroundingFetchedDataKey: S;
   updateSurroundingData: (abortSignal: AbortSignal) => Promise<void>;

@@ -27,9 +27,7 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
-import { isBoundariesToggleLayerId } from 'contexts/Surroundings';
 // utilities
-import { getEnclosedLayer } from './boundariesToggleLayer';
 import { useAllWaterbodiesLayer } from './allWaterbodies';
 import {
   createWaterbodySymbol,
@@ -596,10 +594,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     if (!layer) return;
 
-    if (isBoundariesToggleLayerId(layer.id)) {
-      layer = getEnclosedLayer(layer);
-    }
-
     const parent = (graphic.layer as ExtendedLayer)?.parent;
     if (parent && 'id' in parent && parent.id === 'allWaterbodiesLayer') return;
 
@@ -886,7 +880,9 @@ function useDynamicPopup() {
   return { getTitle, getTemplate, setDynamicPopupFields };
 }
 
-function useSharedLayers(allWaterbodiesMinScale?: number) {
+function useSharedLayers(overrides?: {
+  [layerId: string]: { visible?: boolean; minScale?: number };
+}) {
   const services = useServicesContext();
   const { setLayer, setResetHandler } = useLayers();
 
@@ -1533,7 +1529,7 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
     // Make the waterbody layer into a single layer
     const allWaterbodiesLayer = new GroupLayer({
       id: 'allWaterbodiesLayer',
-      title: 'All Waterbodies',
+      title: 'Surrounding Waterbodies',
       listMode: 'hide',
       visible: false,
       minScale,
@@ -1549,7 +1545,10 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
     return allWaterbodiesLayer;
   }
 
-  useAllWaterbodiesLayer(allWaterbodiesMinScale);
+  useAllWaterbodiesLayer(
+    overrides?.allWaterbodiesLayer?.visible,
+    overrides?.allWaterbodiesLayer?.minScale,
+  );
 
   function getLandCoverLayer() {
     return new WMSLayer({

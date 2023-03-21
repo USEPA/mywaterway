@@ -186,7 +186,13 @@ const featureLayerIds = [
   'waterbodyAreas',
   'countyLayer',
   'congressionalLayer',
+  'dischargersLayer',
   'ejscreenLayer',
+  'monitoringLocationsLayer',
+  'surroundingDischargersLayer',
+  'surroundingMonitoringLocationsLayer',
+  'surroundingUsgsStreamgagesLayer',
+  'usgsStreamgagesLayer',
   'waterbodyLines',
   'waterbodyPoints',
   'watershedsLayer',
@@ -209,10 +215,7 @@ const graphicsLayerIds = [
 const groupLayerIds = [
   'allWaterbodiesLayer',
   'cyanLayer',
-  'monitoringLocationsLayer',
-  'dischargersLayer',
   'tribalLayer',
-  'usgsStreamgagesLayer',
   'waterbodyLayer',
 ] as const;
 

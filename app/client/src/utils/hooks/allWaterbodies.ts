@@ -8,7 +8,10 @@ import {
   useSurroundingsState,
 } from 'contexts/Surroundings';
 
-export function useAllWaterbodiesLayer(minScale = 577791) {
+export function useAllWaterbodiesLayer(
+  initialVisible = false,
+  minScale = 577791,
+) {
   const { mapView } = useContext(LocationSearchContext);
   const { disabled, updating } = useSurroundingsState();
   const { allWaterbodiesLayer, updateVisibleLayers, visibleLayers } =
@@ -24,6 +27,11 @@ export function useAllWaterbodiesLayer(minScale = 577791) {
       (layer as __esri.FeatureLayer).minScale = minScale;
     });
   }, [minScale, allWaterbodiesLayer]);
+
+  // Externally control initial layer visibility
+  useEffect(() => {
+    updateVisibleLayers({ [layerId]: initialVisible });
+  }, [initialVisible, surroundingsDispatch, updateVisibleLayers]);
 
   // Synchronize layer visibility in widget with actual layer visibility
   useEffect(() => {

@@ -45,7 +45,13 @@ const tooltipCost =
 const tooltipFiltered = 'This layer will be saved with your selected filters.';
 const tooltipNotLoaded = 'This layer may not have been loaded yet.';
 
-const layersToIgnore = ['nonprofitsLayer', 'protectedAreasHighlightLayer'];
+const layersToIgnore = [
+  'nonprofitsLayer',
+  'protectedAreasHighlightLayer',
+  'surroundingDischargersLayer',
+  'surroundingMonitoringLocationsLayer',
+  'surroundingUsgsStreamgagesLayer',
+];
 if (
   window.location.pathname.includes('/plan-summary') ||
   window.location.pathname.includes('/waterbody-report')

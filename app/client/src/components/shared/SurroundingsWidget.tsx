@@ -4,7 +4,7 @@ import { createPortal, render } from 'react-dom';
 // contexts
 import { useLayersState } from 'contexts/Layers';
 import {
-  isBoundariesToggleLayerId,
+  isSurroundingFeaturesLayerId,
   useSurroundingsState,
 } from 'contexts/Surroundings';
 // utils
@@ -14,7 +14,7 @@ import { fonts } from 'styles';
 // types
 import type { LayersState } from 'contexts/Layers';
 import type {
-  BoundariesToggleLayerId,
+  SurroundingFeaturesLayerId,
   SurroundingsState,
 } from 'contexts/Surroundings';
 import type { MutableRefObject, ReactNode } from 'react';
@@ -30,7 +30,7 @@ export function useSurroundingsWidget(triggerVisible: boolean) {
   const includedLayers = useMemo(() => {
     return Object.keys(visibleLayers).reduce<Partial<LayersState['layers']>>(
       (included, key) => {
-        if (layers.hasOwnProperty(key) && isBoundariesToggleLayerId(key)) {
+        if (layers.hasOwnProperty(key) && isSurroundingFeaturesLayerId(key)) {
           return {
             ...included,
             [key]: layers[key],
@@ -93,8 +93,8 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
         updating={Object.entries(layersUpdating).some(
           ([id, isUpdating]) =>
             isUpdating === true &&
-            surroundingsVisible[id as BoundariesToggleLayerId] &&
-            !togglesDisabled[id as BoundariesToggleLayerId],
+            surroundingsVisible[id as SurroundingFeaturesLayerId] &&
+            !togglesDisabled[id as SurroundingFeaturesLayerId],
         )}
         visible={triggerVisible}
       />
@@ -115,39 +115,41 @@ function SurroundingsWidgetContent({
         <h1>Surrounding Features:</h1>
         <div>
           <ul>
-            {(Object.keys(toggles) as BoundariesToggleLayerId[]).map((id) => {
-              const layer = layers[id];
-              if (!layer) return null;
-              let title = `Show Surrounding ${layer.title}`;
-              if (togglesDisabled[id]) {
-                title = `Surrounding ${layer.title} Not Available`;
-              } else if (surroundingsVisible[id]) {
-                title = `Hide Surrounding ${layer.title}`;
-              }
-              return (
-                <li key={id}>
-                  <div title={title}>
-                    <div
-                      css={listItemContentStyles(togglesDisabled[id])}
-                      onClick={
-                        togglesDisabled[id]
-                          ? undefined
-                          : toggles[id](!surroundingsVisible[id])
-                      }
-                    >
-                      <span
-                        className={`esri-icon-${
-                          !togglesDisabled[id] && surroundingsVisible[id]
-                            ? ''
-                            : 'non-'
-                        }visible`}
-                      ></span>
-                      <span>{layer.title}</span>
+            {(Object.keys(toggles) as SurroundingFeaturesLayerId[]).map(
+              (id) => {
+                const layer = layers[id];
+                if (!layer) return null;
+                let title = `Show ${layer.title}`;
+                if (togglesDisabled[id]) {
+                  title = `${layer.title} Not Available`;
+                } else if (surroundingsVisible[id]) {
+                  title = `Hide ${layer.title}`;
+                }
+                return (
+                  <li key={id}>
+                    <div title={title}>
+                      <div
+                        css={listItemContentStyles(togglesDisabled[id])}
+                        onClick={
+                          togglesDisabled[id]
+                            ? undefined
+                            : toggles[id](!surroundingsVisible[id])
+                        }
+                      >
+                        <span
+                          className={`esri-icon-${
+                            !togglesDisabled[id] && surroundingsVisible[id]
+                              ? ''
+                              : 'non-'
+                          }visible`}
+                        ></span>
+                        <span>{layer.title.replace('Surrounding ', '')}</span>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              );
-            })}
+                  </li>
+                );
+              },
+            )}
           </ul>
         </div>
       </div>
@@ -311,8 +313,8 @@ type SurroundingsWidgetContentProps = Omit<
 };
 
 type SurroundingsWidgetProps = {
-  layers: Partial<Pick<LayersState['layers'], BoundariesToggleLayerId>>;
-  layersUpdating: Partial<{ [B in BoundariesToggleLayerId]: boolean }>;
+  layers: Partial<Pick<LayersState['layers'], SurroundingFeaturesLayerId>>;
+  layersUpdating: Partial<{ [B in SurroundingFeaturesLayerId]: boolean }>;
   surroundingsVisible: SurroundingsState['visible'];
   toggles: SurroundingsState['togglers'];
   togglesDisabled: SurroundingsState['disabled'];

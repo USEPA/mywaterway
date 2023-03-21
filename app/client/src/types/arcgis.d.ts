@@ -1,11 +1,26 @@
 declare namespace __esri {
   interface FeatureLayer {
+    addHandles(
+      handleOrHandles: __esri.WatchHandle | __esri.WatchHandle[],
+      groupKey: any,
+    ): void;
     featureReduction:
       | __esri.FeatureReductionBinning
       | __esri.FeatureReductionCluster
       | __esri.FeatureReductionSelection
       | null;
     globalIdField: string | null;
+    hasHandles(groupKey?: any): boolean;
+    removeHandles(groupKey?: any): void;
+  }
+
+  interface GraphicsLayer {
+    addHandles(
+      handleOrHandles: __esri.WatchHandle | __esri.WatchHandle[],
+      groupKey: any,
+    ): void;
+    hasHandles(groupKey?: any): boolean;
+    removeHandles(groupKey?: any): void;
   }
 
   interface GroupLayer {

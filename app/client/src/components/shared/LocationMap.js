@@ -60,9 +60,9 @@ import {
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
-  useDischargersLayer,
-  useMonitoringLocationsLayer,
-  useStreamgageLayer,
+  useDischargersLayers,
+  useMonitoringLocationsLayers,
+  useStreamgageLayers,
 } from 'utils/hooks';
 import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
@@ -224,11 +224,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     waterbodyLayer,
   } = useLayers();
 
-  const dischargersLayer = useDischargersLayer();
-  const monitoringLocationsLayer = useMonitoringLocationsLayer(
-    huc12 ? `huc=${huc12}` : null,
-  );
-  const usgsStreamgagesLayer = useStreamgageLayer();
+  const { dischargersLayer, surroundingDischargersLayer } =
+    useDischargersLayers();
+  const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
+    useMonitoringLocationsLayers(huc12 ? `huc=${huc12}` : null);
+  const { usgsStreamgagesLayer, surroundingUsgsStreamgagesLayer } =
+    useStreamgageLayers();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -603,7 +604,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyCountMismatch,
   ]);
 
-  const getSharedLayers = useSharedLayers();
+  const getSharedLayers = useSharedLayers({
+    allWaterbodiesLayer: { visible: true },
+  });
   useWaterbodyHighlight();
 
   const { getTitle, getTemplate, setDynamicPopupFields } = useDynamicPopup();
@@ -611,8 +614,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
-    if (!dischargersLayer || !monitoringLocationsLayer || !usgsStreamgagesLayer)
-      return;
     if (!getSharedLayers || layersInitialized) return;
 
     if (layers.length > 0) return;
@@ -772,9 +773,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       newCyanLayer,
       upstreamLayer,
       monitoringLocationsLayer,
+      surroundingMonitoringLocationsLayer,
       usgsStreamgagesLayer,
+      surroundingUsgsStreamgagesLayer,
       issuesLayer,
       dischargersLayer,
+      surroundingDischargersLayer,
       nonprofitsLayer,
       searchIconLayer,
     ]);
@@ -793,6 +797,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     layersInitialized,
     services,
     navigate,
+    surroundingDischargersLayer,
+    surroundingMonitoringLocationsLayer,
+    surroundingUsgsStreamgagesLayer,
     updateErroredLayers,
     updateVisibleLayers,
     usgsStreamgagesLayer,

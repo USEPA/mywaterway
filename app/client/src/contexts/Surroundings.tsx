@@ -123,9 +123,9 @@ function initialToggler(_showSurroundings: boolean) {
   return () => {};
 }
 
-export function isBoundariesToggleLayerId(
+export function isSurroundingFeaturesLayerId(
   layerId: string,
-): layerId is BoundariesToggleLayerId {
+): layerId is SurroundingFeaturesLayerId {
   return (layerIds as readonly string[]).includes(layerId);
 }
 
@@ -135,9 +135,9 @@ export function isBoundariesToggleLayerId(
 
 const layerIds = [
   'allWaterbodiesLayer',
-  'monitoringLocationsLayer',
-  'dischargersLayer',
-  'usgsStreamgagesLayer',
+  'surroundingMonitoringLocationsLayer',
+  'surroundingDischargersLayer',
+  'surroundingUsgsStreamgagesLayer',
 ] as const;
 
 const initialState = layerIds.reduce(
@@ -175,44 +175,44 @@ const initialState = layerIds.reduce(
 
 type Action =
   | { type: 'resetAll' }
-  | { type: 'reset'; id: BoundariesToggleLayerId }
+  | { type: 'reset'; id: SurroundingFeaturesLayerId }
   | {
       type: 'togglers';
-      id: BoundariesToggleLayerId;
+      id: SurroundingFeaturesLayerId;
       payload: (showSurroundings: boolean) => MouseEventHandler<HTMLDivElement>;
     }
   | {
       type: 'disabled';
-      id: BoundariesToggleLayerId;
+      id: SurroundingFeaturesLayerId;
       payload: boolean;
     }
   | {
       type: 'updating';
-      id: BoundariesToggleLayerId;
+      id: SurroundingFeaturesLayerId;
       payload: boolean;
     }
   | {
       type: 'visible';
-      id: BoundariesToggleLayerId;
+      id: SurroundingFeaturesLayerId;
       payload: boolean;
     };
 
-export type BoundariesToggleLayerId = (typeof layerIds)[number];
+export type SurroundingFeaturesLayerId = (typeof layerIds)[number];
 
 export type SurroundingsState = {
   togglers: {
-    [B in BoundariesToggleLayerId]: (
+    [B in SurroundingFeaturesLayerId]: (
       showSurroundings: boolean,
     ) => MouseEventHandler<HTMLDivElement>;
   };
   disabled: {
-    [B in BoundariesToggleLayerId]: boolean;
+    [B in SurroundingFeaturesLayerId]: boolean;
   };
   updating: {
-    [B in BoundariesToggleLayerId]: boolean;
+    [B in SurroundingFeaturesLayerId]: boolean;
   };
   visible: {
-    [B in BoundariesToggleLayerId]: boolean;
+    [B in SurroundingFeaturesLayerId]: boolean;
   };
 };
 

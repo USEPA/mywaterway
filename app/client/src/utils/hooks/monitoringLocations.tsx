@@ -51,14 +51,16 @@ import { colors } from 'styles';
 ## Hooks
 */
 
-export function useMonitoringLocationsLayer(localFilter: string | null = null) {
+export function useMonitoringLocationsLayers(
+  localFilter: string | null = null,
+) {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
 
   const buildBaseLayer = useCallback(
-    (baseLayerId: string, type: SublayerType) => {
-      return buildLayer(baseLayerId, navigate, services, type);
+    (type: SublayerType) => {
+      return buildLayer(navigate, services, type);
     },
     [navigate, services],
   );
@@ -66,8 +68,7 @@ export function useMonitoringLocationsLayer(localFilter: string | null = null) {
   const updateSurroundingData = useUpdateData(localFilter);
 
   // Build a group layer with toggleable boundaries
-  return useAllFeaturesLayer({
-    layerId,
+  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayer({
     buildBaseLayer,
     buildFeatures,
     enclosedFetchedDataKey: localFetchedDataKey,
@@ -75,6 +76,11 @@ export function useMonitoringLocationsLayer(localFilter: string | null = null) {
     surroundingFetchedDataKey,
     updateSurroundingData,
   });
+
+  return {
+    monitoringLocationsLayer: enclosedLayer,
+    surroundingMonitoringLocationsLayer: surroundingLayer,
+  };
 }
 
 export function useMonitoringLocations() {
@@ -273,17 +279,19 @@ function buildMonitoringGroups(
 }
 
 function buildLayer(
-  baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
   type: SublayerType,
 ) {
   return new FeatureLayer({
-    id: baseLayerId,
+    id:
+      type === 'enclosed'
+        ? `${localFetchedDataKey}Layer`
+        : `${surroundingFetchedDataKey}Layer`,
     title: `${
       type === 'surrounding' ? 'Surrounding ' : ''
     }Past Water Conditions`,
-    listMode: 'hide',
+    listMode: type === 'enclosed' ? 'show' : 'hide',
     legendEnabled: true,
     fields: [
       { name: 'OBJECTID', type: 'oid' },
@@ -412,13 +420,11 @@ function transformServiceData(
 
   // attributes common to both the layer and the context object
   return stationsSorted.map((station) => {
-    const locationUrlPartial = 
+    const locationUrlPartial =
       `/monitoring-report/` +
       `${station.properties.ProviderName}/` +
       `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
-      `${encodeURIComponent(
-        station.properties.MonitoringLocationIdentifier,
-      )}/`;
+      `${encodeURIComponent(station.properties.MonitoringLocationIdentifier)}/`;
     return {
       county: station.properties.CountyName,
       monitoringType: 'Past Water Conditions' as const,
@@ -458,7 +464,6 @@ function transformServiceData(
 
 const localFetchedDataKey = 'monitoringLocations';
 const surroundingFetchedDataKey = 'surroundingMonitoringLocations';
-const layerId = 'monitoringLocationsLayer';
 const dataKeys = ['siteId', 'orgId', 'stationProviderName'] as Array<
   keyof MonitoringLocationAttributes
 >;

@@ -54,7 +54,7 @@ import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import {
   useMonitoringLocations,
-  useMonitoringLocationsLayer,
+  useMonitoringLocationsLayers,
   useSharedLayers,
   useWaterbodyHighlight,
 } from 'utils/hooks';
@@ -602,15 +602,16 @@ function TribalMap({
     );
   }, [activeState]);
 
-  const monitoringLocationsLayer = useMonitoringLocationsLayer(
-    monitoringLocationsFilter,
-  );
+  const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
+    useMonitoringLocationsLayers(monitoringLocationsFilter);
 
   const navigate = useNavigate();
   const services = useServicesContext();
   useWaterbodyHighlight();
 
-  const getSharedLayers = useSharedLayers(4622350);
+  const getSharedLayers = useSharedLayers({
+    allWaterbodiesLayer: { minScale: 4622350 },
+  });
   const [layers, setLayers] = useState(null);
 
   // reset the home widget
@@ -623,7 +624,6 @@ function TribalMap({
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [selectedTribeLayer, setSelectedTribeLayer] = useState(null);
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
     if (!activeState?.attainsId || !getSharedLayers || layersInitialized) {
       return;
     }
@@ -736,6 +736,7 @@ function TribalMap({
       upstreamLayer,
       selectedTribeLayer,
       monitoringLocationsLayer,
+      surroundingMonitoringLocationsLayer,
       waterbodyLayer,
     ]);
 
@@ -755,6 +756,7 @@ function TribalMap({
     services,
     setLayer,
     setResetHandler,
+    surroundingMonitoringLocationsLayer,
     updateVisibleLayers,
   ]);
 

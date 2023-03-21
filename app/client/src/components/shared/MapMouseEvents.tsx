@@ -16,8 +16,6 @@ import {
   useMonitoringLocations,
 } from 'utils/hooks/monitoringLocations';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
-// utilities
-import { getEnclosedLayer, getSurroundingLayer } from 'utils/hooks';
 // types
 import type {
   MonitoringFeatureUpdate,
@@ -107,16 +105,16 @@ function prioritizePopup(graphics: __esri.Graphic[] | null) {
   graphics?.sort((a, b) => {
     if (a.attributes.assessmentunitname) return -1;
     else if (
-      a.layer.id === 'monitoringLocationsLayer-enclosed' ||
-      a.layer.id === 'monitoringLocationsLayer-surrounding'
+      a.layer.id === 'monitoringLocationsLayer' ||
+      a.layer.id === 'surroundingMonitoringLocationsLayer'
     ) {
       if (b.attributes.assessmentunitname) return 1;
       return -1;
     } else if (a.attributes.TRIBE_NAME) {
       if (
         b.attributes.assessmentunitname ||
-        b.layer.id === 'monitoringLocationsLayer-enclosed' ||
-        b.layer.id === 'monitoringLocationsLayer-surrounding'
+        b.layer.id === 'monitoringLocationsLayer' ||
+        b.layer.id === 'surroundingMonitoringLocationsLayer'
       )
         return 1;
       return -1;
@@ -152,7 +150,7 @@ function updateGraphics(
   if (!updates || !graphics) return;
   graphics.forEach((graphic) => {
     if (
-      graphic.layer?.id === 'monitoringLocationsLayer-enclosed' &&
+      graphic.layer?.id === 'monitoringLocationsLayer' &&
       !graphic.isAggregate
     ) {
       updateAttributes(graphic, updates);
@@ -177,8 +175,12 @@ function MapMouseEvents({ view }: Props) {
   const { getHucBoundaries, homeWidget, monitoringFeatureUpdates, resetData } =
     useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer, protectedAreasLayer, resetLayers } =
-    useLayers();
+  const {
+    monitoringLocationsLayer,
+    protectedAreasLayer,
+    resetLayers,
+    surroundingMonitoringLocationsLayer,
+  } = useLayers();
 
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
@@ -219,21 +221,19 @@ function MapMouseEvents({ view }: Props) {
 
           if (graphic && graphic.attributes) {
             if (
-              graphic.layer.id === 'monitoringLocationsLayer-enclosed' &&
+              graphic.layer.id === 'monitoringLocationsLayer' &&
               graphic.isAggregate
             ) {
               if (!monitoringLocationsLayer) return;
-              getEnclosedLayer(monitoringLocationsLayer).featureReduction =
-                null;
+              monitoringLocationsLayer.featureReduction = null;
               return;
             }
             if (
-              graphic.layer.id === 'monitoringLocationsLayer-surrounding' &&
+              graphic.layer.id === 'surroundingMonitoringLocationsLayer' &&
               graphic.isAggregate
             ) {
-              if (!monitoringLocationsLayer) return;
-              getSurroundingLayer(monitoringLocationsLayer).featureReduction =
-                null;
+              if (!surroundingMonitoringLocationsLayer) return;
+              surroundingMonitoringLocationsLayer.featureReduction = null;
               return;
             }
 
@@ -339,6 +339,7 @@ function MapMouseEvents({ view }: Props) {
       resetLayers,
       services,
       setSelectedGraphic,
+      surroundingMonitoringLocationsLayer,
     ],
   );
 
@@ -368,7 +369,7 @@ function MapMouseEvents({ view }: Props) {
           // get the graphic from the hittest
           const extraLayersToIgnore = [
             'allWaterbodiesLayer',
-            'monitoringLocationsLayer-surrounding',
+            'surroundingMonitoringLocationsLayer',
           ];
           let feature = getGraphicFromResponse(res, extraLayersToIgnore);
 
@@ -412,15 +413,17 @@ function MapMouseEvents({ view }: Props) {
 
   // restores cluster settings on change of location
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-
-    const surroundingLayer = getSurroundingLayer(monitoringLocationsLayer);
-    const enclosedLayer = getEnclosedLayer(monitoringLocationsLayer);
-
-    surroundingLayer.featureReduction = monitoringClusterSettings;
-    enclosedLayer.featureReduction =
-      locationCount && locationCount >= 20 ? monitoringClusterSettings : null;
-  }, [locationCount, monitoringLocationsLayer]);
+    if (surroundingMonitoringLocationsLayer)
+      surroundingMonitoringLocationsLayer.featureReduction =
+        monitoringClusterSettings;
+    if (monitoringLocationsLayer)
+      monitoringLocationsLayer.featureReduction =
+        locationCount && locationCount >= 20 ? monitoringClusterSettings : null;
+  }, [
+    locationCount,
+    monitoringLocationsLayer,
+    surroundingMonitoringLocationsLayer,
+  ]);
 
   // sets an event listener on the home widget, and
   // restores cluster settings if clicked
@@ -436,20 +439,25 @@ function MapMouseEvents({ view }: Props) {
   useEffect(() => {
     if (!homeWidget) return;
     const handler: IHandle = homeWidget.on('go', (_ev: any) => {
-      if (!monitoringLocationsLayer) return;
-
-      const surroundingLayer = getSurroundingLayer(monitoringLocationsLayer);
-      const enclosedLayer = getEnclosedLayer(monitoringLocationsLayer);
-
-      surroundingLayer.featureReduction = monitoringClusterSettings;
-      enclosedLayer.featureReduction =
-        locationCount && locationCount >= 20 ? monitoringClusterSettings : null;
+      if (surroundingMonitoringLocationsLayer)
+        surroundingMonitoringLocationsLayer.featureReduction =
+          monitoringClusterSettings;
+      if (monitoringLocationsLayer)
+        monitoringLocationsLayer.featureReduction =
+          locationCount && locationCount >= 20
+            ? monitoringClusterSettings
+            : null;
     });
     setHomeClickHandler(handler);
     return function cleanup() {
       setHomeClickHandler(null);
     };
-  }, [homeWidget, locationCount, monitoringLocationsLayer]);
+  }, [
+    homeWidget,
+    locationCount,
+    monitoringLocationsLayer,
+    surroundingMonitoringLocationsLayer,
+  ]);
 
   return null;
 }
