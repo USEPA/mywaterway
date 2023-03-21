@@ -5,7 +5,6 @@ import { v4 as uuid } from 'uuid';
 import mapPin from 'images/pin.png';
 // utils
 import {
-  fetchCheck,
   fetchPostFile,
   fetchPostForm,
   getEnvironmentString,
@@ -23,7 +22,6 @@ import { escapeForLucene } from 'utils/utils';
 import {
   ILayerDefinition,
   IFeature,
-  IFeatureServiceDefinition,
   IFieldInfo,
 } from '@esri/arcgis-rest-types';
 import {
@@ -34,7 +32,6 @@ import {
   ILayerExtendedType,
   IServiceNameAvailableExtended,
   LayerType,
-  PortalService,
   ServiceMetaDataType,
 } from 'types/arcGisOnline';
 import { LookupFile } from 'types/index';
@@ -44,6 +41,11 @@ declare global {
     logErrorToGa: Function;
   }
 }
+
+type FeatureServiceType = {
+  id: string;
+  url: string;
+};
 
 /**
  * Returns an environment string query parameter to be passed into
@@ -113,10 +115,7 @@ export async function isServiceNameAvailable(
 export async function getFeatureService(
   portal: __esri.Portal,
   serviceMetaData: ServiceMetaDataType,
-): Promise<{
-  portalService: PortalService;
-  featureService: IFeatureServiceDefinition;
-}> {
+): Promise<FeatureServiceType> {
   try {
     // check if the hmw feature service already exists
     let service = await getFeatureServiceWrapped(portal, serviceMetaData);
@@ -131,47 +130,6 @@ export async function getFeatureService(
   }
 }
 
-async function getFeatureServiceRetry(
-  portal: __esri.Portal,
-  serviceMetaData: ServiceMetaDataType,
-) {
-  // Function that fetches the lookup file.
-  // This will retry the fetch 3 times if the fetch fails with a
-  // 1 second delay between each retry.
-  const fetchLookup = async (
-    retryCount: number = 0,
-  ): Promise<{
-    portalService: PortalService;
-    featureService: IFeatureServiceDefinition;
-  }> => {
-    try {
-      // check if the hmw feature service already exists
-      const service = await getFeatureServiceWrapped(portal, serviceMetaData);
-      if (service) return service;
-
-      // resolve the request when the max retry count of 3 is hit
-      if (retryCount === 3) {
-        throw new Error('No service');
-      } else {
-        // recursive retry (1 second between retries)
-        console.log(
-          `Failed to fetch feature service. Retrying (${
-            retryCount + 1
-          } of 3)...`,
-        );
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return await fetchLookup(retryCount + 1);
-      }
-    } catch (err) {
-      window.logErrorToGa(err);
-      throw err;
-    }
-  };
-
-  return await fetchLookup();
-}
-
 /**
  * Gets the hosted feature service and returns null if it it
  * doesn't already exist
@@ -184,28 +142,21 @@ async function getFeatureServiceRetry(
 async function getFeatureServiceWrapped(
   portal: __esri.Portal,
   serviceMetaData: ServiceMetaDataType,
-) {
+): Promise<FeatureServiceType | null> {
   try {
     const query = `orgid:${escapeForLucene(portal.user.orgId)} AND name:${
       serviceMetaData.label
     }`;
     const queryRes = await portal.queryItems({ query });
 
-    const exactMatch = queryRes.results.find(
+    const portalService = queryRes.results.find(
       (layer) => layer.name === serviceMetaData.label,
     );
 
-    if (exactMatch) {
-      const portalService = exactMatch;
-
-      const response = await fetchCheck(
-        `${portalService.url}?f=json${getEnvironmentStringParam()}&token=${
-          portal.credential.token
-        }`,
-      );
+    if (portalService) {
       return {
-        portalService,
-        featureService: response,
+        id: portalService.id,
+        url: portalService.url,
       };
     } else {
       return null;
@@ -278,13 +229,19 @@ export async function createFeatureService(
     };
     appendEnvironmentObjectParam(indata);
 
-    await fetchPostForm(
+    const updateResponse = await fetchPostForm(
       `${portal.user.userContentUrl}/items/${createResponse.itemId}/update`,
       indata,
     );
 
-    // get the feature service from the portal and return it
-    return await getFeatureServiceRetry(portal, serviceMetaData);
+    if (createResponse.success === true && updateResponse.success === true) {
+      return {
+        id: createResponse.serviceItemId,
+        url: createResponse.serviceurl,
+      };
+    } else {
+      throw new Error('No service');
+    }
   } catch (err) {
     window.logErrorToGa(err);
     throw err;
@@ -937,18 +894,15 @@ export async function addWebMap({
 }: {
   portal: __esri.Portal;
   mapView: __esri.MapView;
-  service?: {
-    portalService: PortalService;
-    featureService: IFeatureServiceDefinition;
-  };
+  service?: FeatureServiceType;
   services: any;
   serviceMetaData: ServiceMetaDataType;
   layers: LayerType[];
   layerProps?: LookupFile;
   layersRes?: AddToDefinitionResponseType;
 }): Promise<AddItemResponseType> {
-  const itemId = service?.portalService?.id;
-  const baseUrl = service?.portalService?.url;
+  const itemId = service?.id;
+  const baseUrl = service?.url;
 
   function buildPopupFieldsList(
     objectIdField: string,
@@ -1383,7 +1337,7 @@ export async function publish({
       };
     } else {
       const service = await getFeatureService(portal, serviceMetaData);
-      const serviceUrl: string = service.portalService.url;
+      const serviceUrl: string = service.url;
 
       const layersRes = await createFeatureLayers(
         portal,
