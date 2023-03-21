@@ -1192,17 +1192,11 @@ const sliderContainerStyles = css`
 
 const subheadingStyles = css`
   font-weight: bold;
-  padding-bottom: 0.5em;
-  padding-top: 1em;
+  padding-bottom: 0;
 
   &.centered {
     text-align: center;
   }
-`;
-
-const subheadingBoxStyles = css`
-  ${subheadingStyles}
-  padding-top: 0;
 `;
 
 const oneDay = 1000 * 60 * 60 * 24;
@@ -1453,6 +1447,7 @@ function CyanDailyContent({
     );
   }
 }
+
 type CyanContentProps = {
   feature: __esri.Graphic;
   mapView?: __esri.MapView;
@@ -1911,7 +1906,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 `}
                   yUnit="%"
                 />
-                <p>
+                <p css={paragraphStyles}>
                   The categories in this figure are included to assist the user
                   in visually understanding the concentration values. Please
                   review the World Health Organization (WHO) guide,{' '}
@@ -1932,8 +1927,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             {/* If `selectedDate` is null, no date with data was found */}
             {selectedDate ? (
               <>
-                <div css={textBoxStyles}>
-                  <p css={subheadingBoxStyles}>
+                <div css={marginBoxStyles(textBoxStyles)}>
+                  <p css={subheadingStyles}>
                     <HelpTooltip
                       label={
                         <>
@@ -1975,7 +1970,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               </>
             ) : (
               <p css={marginBoxStyles(infoBoxStyles)}>
-                There is no CyAN data from the past week for the{' '}
+                There is no measureable CyAN data from the past week for the{' '}
                 {attributes.GNIS_NAME} waterbody.
               </p>
             )}

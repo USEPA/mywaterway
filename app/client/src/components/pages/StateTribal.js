@@ -131,7 +131,6 @@ const modifiedErrorBoxStyles = css`
 const modifiedIntroBoxStyles = css`
   ${introBoxStyles}
 
-  margin-top: 1.5rem;
   margin-bottom: 1rem;
   line-height: 1.375;
 
@@ -146,6 +145,7 @@ const disclaimerStyles = css`
 
 const byTheNumbersExplanationStyles = css`
   font-style: italic;
+  margin-bottom: 1rem;
   padding: 0.5rem 0 0 0;
 `;
 
@@ -643,14 +643,23 @@ function StateTribal() {
                         )}
 
                         {stateIntro.description && (
-                          <div css={modifiedIntroBoxStyles}>
-                            <p>
-                              <ShowLessMore
-                                text={stateIntro.description}
-                                charLimit={450}
+                          <>
+                            <h2>
+                              <i
+                                aria-hidden="true"
+                                className="fas fa-question-circle"
                               />
-                            </p>
-                          </div>
+                              About <strong>{activeState.label}</strong>
+                            </h2>
+                            <div css={modifiedIntroBoxStyles}>
+                              <p>
+                                <ShowLessMore
+                                  text={stateIntro.description}
+                                  charLimit={450}
+                                />
+                              </p>
+                            </div>
+                          </>
                         )}
 
                         <DisclaimerModal css={disclaimerStyles}>
