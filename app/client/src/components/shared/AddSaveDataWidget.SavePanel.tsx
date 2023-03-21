@@ -40,10 +40,18 @@ type PublishType = {
   };
 };
 
-const tooltipCost =
-  'Including this layer may require ArcGIS Online credits for storage.';
-const tooltipFiltered = 'This layer will be saved with your selected filters.';
-const tooltipNotLoaded = 'This layer may not have been loaded yet.';
+const tooltipCost = {
+  icon: 'fas fa-exclamation',
+  text: 'Saving this layer may incur storage credits in ArcGIS online.',
+};
+const tooltipFiltered = {
+  icon: 'fas fa-asterisk', 
+  text: 'Check to make sure this layer is loaded on your map'
+};
+const tooltipNotLoaded = {
+  icon: 'fas fa-plus', 
+  text: 'Only the selections you have made on the map will be saved.'
+};
 
 const layersToIgnore = ['nonprofitsLayer', 'protectedAreasHighlightLayer'];
 if (
@@ -80,7 +88,7 @@ const layersMayNotHaveLoaded = ['cyanLayer', 'upstreamLayer'];
 
 const layerFilterOptions = [
   { value: 'All', label: 'All' },
-  { value: 'Free', label: 'Free' },
+  { value: 'Free', label: 'No storage credits required' },
 ];
 
 // Performs a deep comparison of 2 objects. Returns true if they are equal
@@ -108,6 +116,44 @@ function isObject(object: any) {
   return object != null && typeof object === 'object';
 }
 
+const sharedInputStyles = `
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 4px;
+  border-color: hsl(0, 0%, 80%);
+  margin-bottom: 10px;
+  padding: 2px 8px;
+  width: 100%;
+`;
+
+const addButtonStyles = css`
+  margin: 0;
+  min-width: 50%;
+  font-weight: normal;
+  font-size: 0.75rem;
+`;
+
+const buttonContainerStyles = css`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
+const descriptionInputStyles = css`
+  ${sharedInputStyles}
+  min-height: 36px;
+  height: 72px;
+  resize: vertical;
+`;
+
+const labelStyles = css`
+  margin-right: 0.25rem;
+`;
+
+const listContainerStyles = css`
+  margin: 0.625rem 0;
+`;
+
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
@@ -120,15 +166,9 @@ const modifiedSuccessBoxStyles = css`
   margin-bottom: 0.625rem;
 `;
 
-const listContainerStyles = css`
-  margin: 0.625rem 0;
-`;
-
-const switchStyles = css`
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.625rem;
-  gap: 0.5rem;
+const saveAsInputStyles = css`
+  ${sharedInputStyles}
+  height: 36px;
 `;
 
 const submitSectionStyles = css`
@@ -136,39 +176,11 @@ const submitSectionStyles = css`
   margin-bottom: 0.625rem;
 `;
 
-const buttonContainerStyles = css`
+const switchStyles = css`
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-`;
-
-const addButtonStyles = css`
-  margin: 0;
-  min-width: 50%;
-  font-weight: normal;
-  font-size: 0.75rem;
-`;
-
-const sharedInputStyles = `
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 4px;
-  border-color: hsl(0, 0%, 80%);
-  margin-bottom: 10px;
-  padding: 2px 8px;
-  width: 100%;
-`;
-
-const saveAsInputStyles = css`
-  ${sharedInputStyles}
-  height: 36px;
-`;
-
-const descriptionInputStyles = css`
-  ${sharedInputStyles}
-  min-height: 36px;
-  height: 72px;
-  resize: vertical;
+  margin-bottom: 0.625rem;
+  gap: 0.5rem;
 `;
 
 function errorMessage(text: string) {
@@ -625,20 +637,20 @@ function SavePanel({ visible }: Props) {
                   <span>{value.label}</span>
                   {value.requiresFeatureService && (
                     <HelpTooltip
-                      label={tooltipCost}
-                      iconClass="fas fa-dollar-sign"
+                      label={tooltipCost.text}
+                      iconClass={tooltipCost.icon}
                     />
                   )}
                   {layersMayBeFiltered.includes(key) && (
                     <HelpTooltip
-                      label={tooltipFiltered}
-                      iconClass="fas fa-asterisk"
+                      label={tooltipFiltered.text}
+                      iconClass={tooltipFiltered.icon}
                     />
                   )}
                   {layersMayNotHaveLoaded.includes(key) && (
                     <HelpTooltip
-                      label={tooltipNotLoaded}
-                      iconClass="fas fa-plus"
+                      label={tooltipNotLoaded.text}
+                      iconClass={tooltipNotLoaded.icon}
                     />
                   )}
                 </div>
@@ -646,18 +658,18 @@ function SavePanel({ visible }: Props) {
             })}
       </div>
       <p>
-        <i aria-hidden className="fas fa-dollar-sign" /> Including this layer
-        may incur storage costs in ArcGIS Online.
+        <i aria-hidden className={tooltipCost.icon} /> {tooltipCost.text}
         <br />
-        <i aria-hidden className="fas fa-asterisk" /> This layer will be saved
-        with your selected filters.
+        <i aria-hidden className={tooltipFiltered.icon} /> {tooltipFiltered.text}
         <br />
-        <i aria-hidden className="fas fa-plus" /> This layer may not have been
-        loaded yet.
+        <i aria-hidden className={tooltipNotLoaded.icon} /> {tooltipNotLoaded.text}
         <br />
       </p>
       <div>
-        <label htmlFor="save-as-name">Name: </label>
+        <label htmlFor="save-as-name" css={labelStyles}>Name: </label>
+        <HelpTooltip
+          label="Enter file name here for your reference"
+        />
         <input
           id="save-as-name"
           css={saveAsInputStyles}
@@ -666,7 +678,10 @@ function SavePanel({ visible }: Props) {
         />
       </div>
       <div>
-        <label htmlFor="service-description">Description: </label>
+        <label htmlFor="service-description" css={labelStyles}>Description: </label>
+        <HelpTooltip
+          label="Enter description here for your reference"
+        />
         <textarea
           id="service-description"
           css={descriptionInputStyles}
