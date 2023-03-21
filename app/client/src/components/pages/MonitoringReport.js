@@ -596,7 +596,7 @@ function getMean(values) {
 }
 
 function getMedian(values) {
-  const sorted = [...values].sort();
+  const sorted = [...values].sort((a, b) => a - b);
   const numValues = values.length;
   let median = 0;
   if (numValues % 2 === 0) {
