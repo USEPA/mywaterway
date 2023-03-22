@@ -656,9 +656,10 @@ function SavePanel({ visible }: Props) {
         );
 
         if (!allToggled) {
+          filters.sort();
           layerDisclaimers.push(`
             <i>${value.label}</i> is filtered to ${buildFilterString(
-            filters.sort(),
+            filters,
           )}.
           `);
         }
