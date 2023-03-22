@@ -2061,13 +2061,12 @@ function SliderContainer({ min, max, disabled = false, onChange }) {
 
 function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
+  const [layers, setLayers] = useState([]);
   const [mapLoading, setMapLoading] = useState(true);
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
-  const { homeWidget, layers, mapView, resetData, setLayers } = useContext(
-    LocationSearchContext,
-  );
+  const { homeWidget, mapView, resetData } = useContext(LocationSearchContext);
 
   const { updateVisibleLayers } = useLayers();
 

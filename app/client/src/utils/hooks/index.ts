@@ -1227,7 +1227,7 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       },
     });
 
-    return new GroupLayer({
+    const tribalLayer = new GroupLayer({
       id: 'tribalLayer',
       title: 'Tribal Areas',
       listMode: 'show',
@@ -1240,6 +1240,8 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
         otherTribes,
       ],
     });
+    setLayer('tribalLayer', tribalLayer);
+    return tribalLayer;
   }
 
   function getCongressionalLayer() {
@@ -1254,7 +1256,7 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       'SQMI',
     ];
 
-    return new FeatureLayer({
+    const congressionalLayer = new FeatureLayer({
       id: 'congressionalLayer',
       url: services.data.congressional,
       title: 'Congressional Districts',
@@ -1278,10 +1280,12 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
         outFields: congressionalLayerOutFields,
       },
     });
+    setLayer('congressionalLayer', congressionalLayer);
+    return congressionalLayer;
   }
 
   function getMappedWaterLayer() {
-    return new MapImageLayer({
+    const mappedWaterLayer = new MapImageLayer({
       id: 'mappedWaterLayer',
       // sublayers have minScale of 288896,
       // but this doesn't match the actual behavior
@@ -1293,11 +1297,13 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       listMode: 'hide-children',
       visible: false,
     });
+    setLayer('mappedWaterLayer', mappedWaterLayer);
+    return mappedWaterLayer;
   }
 
   function getCountyLayer() {
     const countyLayerOutFields = ['NAME', 'CNTY_FIPS', 'STATE_NAME'];
-    return new FeatureLayer({
+    const countyLayer = new FeatureLayer({
       id: 'countyLayer',
       url: services.data.counties,
       title: 'County',
@@ -1321,10 +1327,12 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
         outFields: countyLayerOutFields,
       },
     });
+    setLayer('countyLayer', countyLayer);
+    return countyLayer;
   }
 
   function getStateBoundariesLayer() {
-    return new MapImageLayer({
+    const stateBoundariesLayer = new MapImageLayer({
       id: 'stateBoundariesLayer',
       url: services.data.stateBoundaries,
       title: 'State',
@@ -1333,10 +1341,12 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       visible: false,
       legendEnabled: false,
     });
+    setLayer('stateBoundariesLayer', stateBoundariesLayer);
+    return stateBoundariesLayer;
   }
 
   function getWatershedsLayer() {
-    return new FeatureLayer({
+    const watershedsLayer = new FeatureLayer({
       id: 'watershedsLayer',
       url: services.data.wbd,
       title: 'Watersheds',
@@ -1344,6 +1354,8 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       visible: false,
       outFields: ['*'],
     });
+    setLayer('watershedsLayer', watershedsLayer);
+    return watershedsLayer;
   }
 
   function getEjscreen() {
@@ -1433,7 +1445,7 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       popupTemplate: ejscreenPopupTemplate,
     });
 
-    return new GroupLayer({
+    const ejscreenLayer = new GroupLayer({
       id: 'ejscreenLayer',
       title: 'Demographic Indicators',
       listMode: 'show',
@@ -1449,6 +1461,8 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       ],
       minScale: 577791,
     });
+    setLayer('ejscreenLayer', ejscreenLayer);
+    return ejscreenLayer;
   }
 
   function getAllWaterbodiesLayer() {
@@ -1539,14 +1553,13 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       waterbodyPoints,
     ]);
     setLayer('allWaterbodiesLayer', allWaterbodiesLayer);
-
     return allWaterbodiesLayer;
   }
 
   useAllWaterbodiesLayer(allWaterbodiesMinScale);
 
   function getLandCoverLayer() {
-    return new WMSLayer({
+    const landCoverLayer = new WMSLayer({
       id: 'landCoverLayer',
       legendEnabled: true,
       listMode: 'hide-children',
@@ -1554,6 +1567,8 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       visible: false,
       url: services.data.landCover,
     });
+    setLayer('landCoverLayer', landCoverLayer);
+    return landCoverLayer;
   }
 
   // Gets the settings for the WSIO Health Index layer.

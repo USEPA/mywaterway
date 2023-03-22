@@ -286,15 +286,15 @@ function Community() {
 export default function CommunityContainer() {
   return (
     <EsriMapProvider>
-      <LayersProvider>
-        <CommunityTabsProvider>
+      <CommunityTabsProvider>
+        <LayersProvider>
           <MapHighlightProvider>
             <FullscreenProvider>
               <Community />
             </FullscreenProvider>
           </MapHighlightProvider>
-        </CommunityTabsProvider>
-      </LayersProvider>
+        </LayersProvider>
+      </CommunityTabsProvider>
     </EsriMapProvider>
   );
 }

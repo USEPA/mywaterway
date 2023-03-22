@@ -195,8 +195,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWatershed,
     FIPS,
     setFIPS,
-    layers,
-    setLayers,
     setErrorMessage,
     setWsioHealthIndexData,
     setWildScenicRiversData,
@@ -209,27 +207,27 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   } = useContext(LocationSearchContext);
 
   const {
-    waterbodyAreas,
     boundariesLayer,
     erroredLayers,
-    waterbodyLines,
-    waterbodyPoints,
+    layersInitialized,
+    orderedLayers: layers,
     providersLayer,
     resetLayers,
     searchIconLayer,
     setLayer,
+    setLayersInitialized,
     setResetHandler,
     updateErroredLayers,
     updateVisibleLayers,
+    waterbodyAreas,
     waterbodyLayer,
+    waterbodyLines,
+    waterbodyPoints,
   } = useLayers();
 
-  const { dischargersLayer, surroundingDischargersLayer } =
-    useDischargersLayers();
-  const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
-    useMonitoringLocationsLayers(huc12 ? `huc=${huc12}` : null);
-  const { usgsStreamgagesLayer, surroundingUsgsStreamgagesLayer } =
-    useStreamgageLayers();
+  useDischargersLayers();
+  useMonitoringLocationsLayers(huc12 ? `huc=${huc12}` : null);
+  useStreamgageLayers();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -610,11 +608,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { getTitle, getTemplate, setDynamicPopupFields } = useDynamicPopup();
 
   // Builds the layers that have no dependencies
-  const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
-
-    if (layers.length > 0) return;
 
     // create the layers for the map
     const providersLayer = new GraphicsLayer({
@@ -622,7 +617,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       title: 'Who provides the drinking water here?',
       listMode: 'show',
     });
-
     setLayer('providersLayer', providersLayer);
     setResetHandler('providersLayer', () =>
       providersLayer.graphics.removeAll(),
@@ -633,7 +627,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       title: 'Boundaries',
       listMode: 'show',
     });
-
     setLayer('boundariesLayer', boundariesLayer);
     setResetHandler('boundariesLayer', () => {
       boundariesLayer.graphics.removeAll();
@@ -644,10 +637,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       title: 'Search Location',
       listMode: 'show',
     });
-
     setLayer('searchIconLayer', searchIconLayer);
     setResetHandler('searchIconLayer', () => {
-      searchIconLayer.visible = false;
       searchIconLayer.graphics.removeAll();
     });
 
@@ -657,10 +648,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'hide',
       visible: false,
     });
-
     setLayer('upstreamLayer', upstreamLayer);
     setResetHandler('upstreamLayer', () => {
-      upstreamLayer.visible = false;
       upstreamLayer.graphics.removeAll();
       updateVisibleLayers({ upstreamLayer: false });
     });
@@ -670,7 +659,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       title: 'Identified Issues',
       listMode: 'hide',
     });
-
     setLayer('issuesLayer', issuesLayer);
 
     const nonprofitsLayer = new GraphicsLayer({
@@ -763,44 +751,23 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     });
     newCyanLayer.add(cyanWaterbodies);
     newCyanLayer.add(cyanImages);
+    setLayer('cyanLayer', newCyanLayer);
 
-    setLayers([
-      ...getSharedLayers(),
-      providersLayer,
-      boundariesLayer,
-      newCyanLayer,
-      upstreamLayer,
-      monitoringLocationsLayer,
-      surroundingMonitoringLocationsLayer,
-      usgsStreamgagesLayer,
-      surroundingUsgsStreamgagesLayer,
-      issuesLayer,
-      dischargersLayer,
-      surroundingDischargersLayer,
-      nonprofitsLayer,
-      searchIconLayer,
-    ]);
+    getSharedLayers();
 
     setLayersInitialized(true);
   }, [
-    dischargersLayer,
     getSharedLayers,
     getTemplate,
     getTitle,
-    monitoringLocationsLayer,
     setLayer,
-    setLayers,
     setResetHandler,
-    layers,
     layersInitialized,
     services,
+    setLayersInitialized,
     navigate,
-    surroundingDischargersLayer,
-    surroundingMonitoringLocationsLayer,
-    surroundingUsgsStreamgagesLayer,
     updateErroredLayers,
     updateVisibleLayers,
-    usgsStreamgagesLayer,
   ]);
 
   // popup template to be used for all waterbody sublayers
@@ -1050,7 +1017,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     if (
       waterbodyLayer ||
-      layers.length === 0 ||
       !waterbodyAreas ||
       !waterbodyLines ||
       !waterbodyPoints
@@ -1076,25 +1042,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       waterbodyLayer?.layers.removeAll();
       setLayer('waterbodyLayer', null);
     });
-
-    // Build the new set of layers with the waterbody layer at the correct position
-    const newLayers = [];
-    layers.forEach((layer) => {
-      newLayers.push(layer);
-      if (layer.id === 'boundariesLayer') {
-        newLayers.push(newWaterbodyLayer);
-      }
-    });
-    setLayers(newLayers);
   }, [
-    layers,
     waterbodyLayer,
     waterbodyAreas,
     waterbodyLines,
     waterbodyPoints,
     mapServiceFailure,
     setLayer,
-    setLayers,
     setCipSummary,
     setResetHandler,
     updateErroredLayers,
@@ -1577,7 +1531,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         const hucFeature = hucRes?.features?.[0];
 
         searchIconLayer.graphics.removeAll();
-        searchIconLayer.visible = true;
         searchIconLayer.graphics.add(
           new Graphic({
             geometry: location,
