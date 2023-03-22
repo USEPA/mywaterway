@@ -347,6 +347,7 @@ function CommunityTabs() {
     huc12,
     setMonitoringGroups,
     setShowAllPolluted,
+    setParameterToggleObject,
     setPollutionParameters,
     setDrinkingWaterTabIndex,
   } = useContext(LocationSearchContext);
@@ -433,6 +434,7 @@ function CommunityTabs() {
 
     // identified issues panel
     setShowAllPolluted(true);
+    setParameterToggleObject({});
     setPollutionParameters(null);
 
     // drinking water panel

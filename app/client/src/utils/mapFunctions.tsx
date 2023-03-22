@@ -15,8 +15,9 @@ import type { NavigateFunction } from 'react-router-dom';
 import type {
   ChangeLocationAttributes,
   ClickedHucState,
-  Feature,
   ExtendedLayer,
+  Feature,
+  ImpairmentFields,
   ParentLayer,
   PopupAttributes,
   ScaledLayer,
@@ -1087,3 +1088,18 @@ export function hasDefinitionExpression(layer: __esri.Layer) {
 
   return hasDefinitionExpression;
 }
+
+// translate scientific parameter names
+export const getMappedParameter = (
+  parameterFields: ImpairmentFields,
+  parameter: string,
+) => {
+  const filteredFields = parameterFields.filter(
+    (field) => parameter === field.parameterGroup,
+  )[0];
+  if (!filteredFields) {
+    return null;
+  }
+
+  return filteredFields;
+};

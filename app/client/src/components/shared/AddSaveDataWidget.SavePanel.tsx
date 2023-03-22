@@ -15,14 +15,26 @@ import {
   successBoxStyles,
 } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
+// config
+import { impairmentFields } from 'config/attainsToHmwMapping';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext, Status } from 'contexts/locationSearch';
 import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
-import { hasDefinitionExpression } from 'utils/mapFunctions';
+import {
+  getMappedParameter,
+  hasDefinitionExpression,
+} from 'utils/mapFunctions';
 // types
+import {
+  Huc12SummaryData,
+  MonitoringLocationGroups,
+  MonitoringYearsRange,
+  MonitoringWorkerData,
+  ParameterToggleObject,
+} from 'types/index';
 import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
 
 type PublishType = {
@@ -219,8 +231,20 @@ function SavePanel({ visible }: Props) {
     setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
+  const cipSummary = useContext(LocationSearchContext).cipSummary as {
+    status: Status;
+    data: Huc12SummaryData;
+  };
   const mapView = useContext(LocationSearchContext)
     .mapView as __esri.MapView | null;
+  const monitoringGroups = useContext(LocationSearchContext)
+    .monitoringGroups as MonitoringLocationGroups;
+  const monitoringYearsRange = useContext(LocationSearchContext)
+    .monitoringYearsRange as MonitoringYearsRange;
+  const monitoringWorkerData = useContext(LocationSearchContext)
+    .monitoringWorkerData as MonitoringWorkerData;
+  const parameterToggleObject = useContext(LocationSearchContext)
+    .parameterToggleObject as ParameterToggleObject;
   const upstreamWatershedResponse = useContext(LocationSearchContext)
     .upstreamWatershedResponse as {
     status: Status;
@@ -512,7 +536,7 @@ function SavePanel({ visible }: Props) {
 
   // Saves the data to ArcGIS Online
   async function handleSaveAgo(ev: MouseEvent<HTMLButtonElement>) {
-    if (!saveLayersList) return;
+    if (!mapView || !saveLayersList) return;
 
     // check if user provided a name
     if (!saveAsName) {
@@ -522,8 +546,20 @@ function SavePanel({ visible }: Props) {
       return;
     }
 
+    const buildFilterString = (filters: string[]) => {
+      return filters
+        .map((filter, index) => {
+          const seperator =
+            index === 0 ? '' : index === filters.length - 1 ? ' and ' : ', ';
+
+          return seperator + filter;
+        })
+        .join('');
+    };
+
     // Gather the layers to be published
     const layersToPublish: LayerType[] = [];
+    const layerDisclaimers: string[] = [];
     Object.values(saveLayersList).forEach((value) => {
       if (!value.toggled) return;
       if (saveLayerFilter === 'Free' && value.requiresFeatureService) {
@@ -546,6 +582,87 @@ function SavePanel({ visible }: Props) {
         associatedData,
         widgetLayer,
       });
+
+      // build the filter disclaimer for the dischargers layer
+      if (
+        value.id === 'dischargersLayer' &&
+        window.location.pathname.includes('/identified-issues')
+      ) {
+        layerDisclaimers.push(`
+          <i>${value.label}</i> is filtered to dischargers with significant violations.
+        `);
+      }
+
+      // build the filter disclaimer for the monitoringLocationsLayer
+      if (
+        value.id === 'monitoringLocationsLayer' &&
+        monitoringGroups &&
+        monitoringYearsRange
+      ) {
+        const monitoringGroupsFiltered = Object.values(monitoringGroups).some(
+          (a) => !a.toggled,
+        );
+        const yearsFiltered =
+          monitoringYearsRange &&
+          (monitoringYearsRange[0] !== monitoringWorkerData.minYear ||
+            monitoringYearsRange[1] !== monitoringWorkerData.maxYear);
+        if (monitoringGroupsFiltered || yearsFiltered) {
+          const filters: string[] = [];
+          if (yearsFiltered) {
+            filters.push(
+              `years ${monitoringYearsRange[0]} - ${monitoringYearsRange[1]}`,
+            );
+          }
+
+          if (monitoringGroupsFiltered) {
+            Object.values(monitoringGroups)
+              .sort((a, b) => a.label.localeCompare(b.label))
+              .forEach((group) => {
+                if (!group.label || group.label === 'All' || !group.toggled)
+                  return;
+
+                filters.push(group.label);
+              });
+          }
+
+          layerDisclaimers.push(`
+            <i>${value.label}</i> is filtered to ${buildFilterString(filters)}.
+          `);
+        }
+      }
+
+      // build the filter disclaimer for the issuesLayer
+      if (
+        value.id === 'issuesLayer' &&
+        cipSummary.status === 'success' &&
+        Object.keys(parameterToggleObject).length > 0
+      ) {
+        const filters: string[] = [];
+        let allToggled: boolean = true;
+        cipSummary.data.items[0].summaryByParameterImpairments.forEach(
+          (param) => {
+            const mappedParameter = getMappedParameter(
+              impairmentFields,
+              param['parameterGroupName'],
+            );
+            if (!mappedParameter) return;
+
+            if (parameterToggleObject[mappedParameter.label]) {
+              filters.push(mappedParameter.label);
+            } else {
+              allToggled = false;
+            }
+          },
+        );
+
+        if (!allToggled) {
+          layerDisclaimers.push(`
+            <i>${value.label}</i> is filtered to ${buildFilterString(
+            filters.sort(),
+          )}.
+          `);
+        }
+      }
     });
 
     if (layersToPublish.length === 0) {
@@ -567,6 +684,23 @@ function SavePanel({ visible }: Props) {
           <hr />
           <strong>Auto generated by the How's My Waterway application</strong>
           <div><strong>Created Date:</strong> ${new Date().toLocaleString()}</div>
+          ${
+            layerDisclaimers.length > 0
+              ? `
+              <br />
+              <div>
+                <strong>Applied Layer Filters:</strong>
+                <ul>
+                  ${layerDisclaimers
+                    .map((disclaimer) => {
+                      return `<li>${disclaimer}</li>\n`;
+                    })
+                    .join('')}
+                </ul>
+              </div>
+          `
+              : ''
+          }
         </div>
       `,
     };
