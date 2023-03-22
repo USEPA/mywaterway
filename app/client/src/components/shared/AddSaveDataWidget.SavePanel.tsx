@@ -146,6 +146,10 @@ const descriptionInputStyles = css`
   resize: vertical;
 `;
 
+const footnoteContainerStyles = css`
+  margin: 0.625rem 0.5rem;
+`;
+
 const footnoteIconStyles = css`
   display: flex;
   align-items: center;
@@ -667,7 +671,7 @@ function SavePanel({ visible }: Props) {
               );
             })}
       </div>
-      <div css={listContainerStyles}>
+      <div css={footnoteContainerStyles}>
         <div css={footnoteStyles}>
           <i
             aria-hidden
