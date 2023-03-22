@@ -45,10 +45,10 @@ export function useLocalData<E extends keyof FetchedDataState>(
   return localData;
 }
 
-export function useAllFeaturesLayer<
+export function useAllFeaturesLayers<
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
->(args: UseAllFeaturesLayerParams<E, S>) {
+>(args: UseAllFeaturesLayersParams<E, S>) {
   return useBoundariesToggleLayer({
     ...args,
     updateLayer: updateFeatureLayer,
@@ -266,15 +266,6 @@ function useBoundariesToggleLayer<
 ## Utils
 */
 
-export function getEnclosedLayer(
-  parentLayer: __esri.GroupLayer | null,
-): __esri.FeatureLayer | null {
-  if (!parentLayer) return null;
-  return parentLayer.findLayerById(
-    `${parentLayer.id}-enclosed`,
-  ) as __esri.FeatureLayer;
-}
-
 function getExtentArea(extent: __esri.Extent) {
   return (
     Math.abs(extent.xmax - extent.xmin) * Math.abs(extent.ymax - extent.ymin)
@@ -310,17 +301,6 @@ export async function getGeographicExtent(mapView: __esri.MapView | '') {
   return webMercatorUtils.webMercatorToGeographic(
     extentMercator,
   ) as __esri.Extent;
-}
-
-export function getSurroundingLayer(
-  parentLayer: __esri.GroupLayer | null,
-): __esri.FeatureLayer | null {
-  if (!parentLayer) return null;
-  return (
-    (parentLayer.findLayerById(
-      `${parentLayer.id}-surrounding`,
-    ) as __esri.FeatureLayer) ?? null
-  );
 }
 
 export function handleFetchError(err: unknown): EmptyFetchState {
@@ -388,7 +368,7 @@ type UseBoundariesToggleLayerParams<
   updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
 };
 
-type UseAllFeaturesLayerParams<
+type UseAllFeaturesLayersParams<
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = Omit<

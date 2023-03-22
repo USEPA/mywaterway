@@ -16,7 +16,7 @@ import {
   getExtentBoundingBox,
   getGeographicExtent,
   handleFetchError,
-  useAllFeaturesLayer,
+  useAllFeaturesLayers,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
@@ -59,7 +59,7 @@ export function useStreamgageLayers() {
   const updateSurroundingData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
-  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayer({
+  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
     buildFeatures,
     enclosedFetchedDataKey: localFetchedDataKey,
     buildBaseLayer,

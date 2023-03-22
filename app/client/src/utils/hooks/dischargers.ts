@@ -15,7 +15,7 @@ import {
   getGeographicExtent,
   filterData,
   handleFetchError,
-  useAllFeaturesLayer,
+  useAllFeaturesLayers,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
@@ -53,7 +53,7 @@ export function useDischargersLayers() {
   const updateSurroundingData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
-  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayer({
+  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
     buildBaseLayer,
     buildFeatures,
     enclosedFetchedDataKey: localFetchedDataKey,

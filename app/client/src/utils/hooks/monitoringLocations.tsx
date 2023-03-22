@@ -21,7 +21,7 @@ import {
   getExtentBoundingBox,
   getGeographicExtent,
   handleFetchError,
-  useAllFeaturesLayer,
+  useAllFeaturesLayers,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import {
@@ -68,7 +68,7 @@ export function useMonitoringLocationsLayers(
   const updateSurroundingData = useUpdateData(localFilter);
 
   // Build a group layer with toggleable boundaries
-  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayer({
+  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
     buildBaseLayer,
     buildFeatures,
     enclosedFetchedDataKey: localFetchedDataKey,
