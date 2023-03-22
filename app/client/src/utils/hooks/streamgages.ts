@@ -12,10 +12,10 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  filterData,
   getExtentBoundingBox,
   getGeographicExtent,
   handleFetchError,
-  removeDuplicateData,
   useAllFeaturesLayer,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
@@ -271,10 +271,7 @@ async function fetchAndTransformData(
       ...(responses.map((res) => res.data) as UsgsServiceData),
     );
     const payload = additionalData
-      ? removeDuplicateData(
-          [...usgsStreamgageAttributes, ...additionalData],
-          dataKeys,
-        )
+      ? filterData(usgsStreamgageAttributes, additionalData, dataKeys)
       : usgsStreamgageAttributes;
     dispatch({
       type: 'success',

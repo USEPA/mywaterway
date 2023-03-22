@@ -138,6 +138,8 @@ function Community() {
     };
   }, [fetchedDataDispatch, resetData, setLastSearchText, setSearchText]);
 
+  // Carry over surrounding features layer visibility between tabs.
+  // A ref is used to prevent state updates when surrounding layers are toggled.
   const { visible: surroundingsVisible } = useSurroundingsState();
   const surroundingsVisibleRef = useRef(surroundingsVisible);
 

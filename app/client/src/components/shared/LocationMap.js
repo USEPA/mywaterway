@@ -604,9 +604,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyCountMismatch,
   ]);
 
-  const getSharedLayers = useSharedLayers({
-    allWaterbodiesLayer: { visible: true },
-  });
+  const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
   const { getTitle, getTemplate, setDynamicPopupFields } = useDynamicPopup();

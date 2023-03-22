@@ -8,11 +8,8 @@ import {
   useSurroundingsState,
 } from 'contexts/Surroundings';
 
-export function useAllWaterbodiesLayer(
-  initialVisible = false,
-  minScale = 577791,
-) {
-  const { mapView } = useContext(LocationSearchContext);
+export function useAllWaterbodiesLayer(minScale = 577791) {
+  const { huc12, mapView } = useContext(LocationSearchContext);
   const { disabled, updating } = useSurroundingsState();
   const { allWaterbodiesLayer, updateVisibleLayers, visibleLayers } =
     useLayers();
@@ -28,10 +25,11 @@ export function useAllWaterbodiesLayer(
     });
   }, [minScale, allWaterbodiesLayer]);
 
-  // Externally control initial layer visibility
+  // Show the layer when a HUC is searched
   useEffect(() => {
-    updateVisibleLayers({ [layerId]: initialVisible });
-  }, [initialVisible, surroundingsDispatch, updateVisibleLayers]);
+    if (!huc12) return;
+    updateVisibleLayers({ [layerId]: true });
+  }, [huc12, surroundingsDispatch, updateVisibleLayers]);
 
   // Synchronize layer visibility in widget with actual layer visibility
   useEffect(() => {

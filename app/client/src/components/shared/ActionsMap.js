@@ -73,7 +73,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
+  const { surroundingMonitoringLocationsLayer } =
     useMonitoringLocationsLayers();
 
   // Initially sets up the layers
@@ -96,7 +96,6 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     setLayers([
       ...getSharedLayers(),
       localActionsLayer,
-      monitoringLocationsLayer,
       surroundingMonitoringLocationsLayer,
     ]);
     updateVisibleLayers({
@@ -107,7 +106,6 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     actionsWaterbodies,
     getSharedLayers,
     layersInitialized,
-    monitoringLocationsLayer,
     setLayer,
     surroundingMonitoringLocationsLayer,
     updateVisibleLayers,

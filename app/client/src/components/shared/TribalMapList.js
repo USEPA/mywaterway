@@ -609,9 +609,7 @@ function TribalMap({
   const services = useServicesContext();
   useWaterbodyHighlight();
 
-  const getSharedLayers = useSharedLayers({
-    allWaterbodiesLayer: { minScale: 4622350 },
-  });
+  const getSharedLayers = useSharedLayers(4622350);
   const [layers, setLayers] = useState(null);
 
   // reset the home widget

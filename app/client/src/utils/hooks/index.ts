@@ -880,9 +880,7 @@ function useDynamicPopup() {
   return { getTitle, getTemplate, setDynamicPopupFields };
 }
 
-function useSharedLayers(overrides?: {
-  [layerId: string]: { visible?: boolean; minScale?: number };
-}) {
+function useSharedLayers(allWaterbodiesMinScale?: number) {
   const services = useServicesContext();
   const { setLayer, setResetHandler } = useLayers();
 
@@ -1529,7 +1527,7 @@ function useSharedLayers(overrides?: {
     // Make the waterbody layer into a single layer
     const allWaterbodiesLayer = new GroupLayer({
       id: 'allWaterbodiesLayer',
-      title: 'Surrounding Waterbodies',
+      title: 'All Waterbodies',
       listMode: 'hide',
       visible: false,
       minScale,
@@ -1545,10 +1543,7 @@ function useSharedLayers(overrides?: {
     return allWaterbodiesLayer;
   }
 
-  useAllWaterbodiesLayer(
-    overrides?.allWaterbodiesLayer?.visible,
-    overrides?.allWaterbodiesLayer?.minScale,
-  );
+  useAllWaterbodiesLayer(allWaterbodiesMinScale);
 
   function getLandCoverLayer() {
     return new WMSLayer({

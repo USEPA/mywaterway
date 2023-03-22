@@ -345,13 +345,6 @@ export function filterData<T>(
   });
 }
 
-export function removeDuplicateData<T>(data: T[], keys: Array<keyof T>) {
-  return data.reduce<T[]>((unique, next) => {
-    if (unique.find((datum) => matchKeys(datum, next, keys))) return unique;
-    return [...unique, next];
-  }, []);
-}
-
 async function updateFeatureLayer(
   layer: __esri.FeatureLayer | null,
   features?: __esri.Graphic[] | null,
