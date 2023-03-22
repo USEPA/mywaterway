@@ -68,9 +68,10 @@ const trackStyles = {
 
 type Props = {
   disabled?: boolean;
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
   onChange: (newValues: number[]) => void;
+  range: number[];
 };
 
 function DateSlider({
@@ -78,13 +79,12 @@ function DateSlider({
   min = 0,
   max = new Date().getFullYear(),
   onChange,
+  range,
 }: Props) {
   const [minYear, setMinYear] = useState(min);
   const [maxYear, setMaxYear] = useState(max);
-  const [range, setRange] = useState([min, max]);
   useEffect(() => {
     if (!min || !max) return;
-    setRange([min, max]);
     setMinYear(min);
     setMaxYear(max);
   }, [min, max]);
@@ -95,7 +95,6 @@ function DateSlider({
     stepSize: 1,
     values: range,
     onChange,
-    onDrag: (newValues: number[]) => setRange(newValues),
   });
 
   return (

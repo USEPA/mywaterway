@@ -1177,6 +1177,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                   min={minYear}
                   disabled={!Boolean(Object.keys(annualData).length)}
                   onChange={handleDateSliderChange}
+                  range={yearsRange}
                 />
               )}
             </div>

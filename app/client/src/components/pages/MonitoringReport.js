@@ -596,7 +596,7 @@ function getMean(values) {
 }
 
 function getMedian(values) {
-  const sorted = [...values].sort();
+  const sorted = [...values].sort((a, b) => a - b);
   const numValues = values.length;
   let median = 0;
   if (numValues % 2 === 0) {
@@ -985,6 +985,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
+  const [msmtCount, setMsmtCount] = useState(null);
 
   // Parse the measurements into chartable data points
   const parseMeasurements = useCallback((newDomain, newMsmts) => {
@@ -995,7 +996,6 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     let curCount = 0;
     newMsmts.forEach((msmt) => {
       if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-        curCount++;
         const dataPoint = {
           value: msmt.measurement,
           depth: msmt.depth,
@@ -1003,19 +1003,19 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         };
         if (!curDatum || curDatum.x !== msmt.date) {
           curDatum && newChartData.push(curDatum);
-          curCount = 1;
           curDatum = {
             x: msmt.date,
             y: { 0: dataPoint },
           };
+          curCount = 1;
         } else {
           curDatum.y[curCount.toString()] = dataPoint;
+          curCount++;
         }
         if (curCount > maxCount) maxCount = curCount;
       }
     });
     curDatum && newChartData.push(curDatum);
-    setChartData(newChartData.length ? newChartData : null);
     setDataKeys([...Array(maxCount).keys()]);
     return newChartData;
   }, []);
@@ -1023,6 +1023,11 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   // Get the selected chart data and statistics
   const getChartData = useCallback(
     (newDomain, newMsmts) => {
+      if (!newDomain) {
+        setChartData(null);
+        return;
+      }
+
       // newMsmts must already be sorted by date
       const filteredMsmts =
         newMsmts?.filter((msmt) => {
@@ -1034,6 +1039,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         }) || [];
 
       const newChartData = parseMeasurements(newDomain, filteredMsmts);
+      setChartData(newChartData.length ? newChartData : null);
 
       if (!newChartData.length) return;
 
@@ -1052,28 +1058,37 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       setMean(newMean);
       setMedian(getMedian(yValues));
       setStdDev(getStdDev(yValues, newMean));
+      setMsmtCount(yValues.length);
     },
     [fraction, medium, parseMeasurements, unit],
   );
 
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
-  // Initialize the chart
+  const [selectedYears, setSelectedYears] = useState(null);
+
+  // Initialize the date slider parameters
   useEffect(() => {
     if (measurements?.length) {
       const yearLow = measurements[0].year;
       const yearHigh = measurements[measurements.length - 1].year;
       setMinYear(yearLow);
       setMaxYear(yearHigh);
-      getChartData([yearLow, yearHigh], measurements);
+      setSelectedYears([yearLow, yearHigh]);
     } else {
-      setChartData(null);
       setMinYear(null);
       setMaxYear(null);
+      setSelectedYears(null);
     }
-  }, [getChartData, measurements]);
+  }, [measurements]);
+
+  // Update the chart with selected parameters
+  useEffect(() => {
+    getChartData(selectedYears, measurements);
+  }, [getChartData, measurements, selectedYears]);
 
   const displayUnit = unit === 'None' ? '' : unit;
+
   // Title for the y-axis
   let yTitle = charcName;
   if (fraction !== 'None') yTitle += ', ' + fraction?.replace(',', ' -');
@@ -1119,7 +1134,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               min={minYear}
               max={maxYear}
               disabled={!Boolean(records.length)}
-              onChange={(newDomain) => getChartData(newDomain, measurements)}
+              onChange={(newDomain) => setSelectedYears(newDomain)}
+              range={selectedYears}
             />
             <div css={selectContainerStyles}>
               <span>
@@ -1231,7 +1247,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                     },
                     {
                       label: 'Number of Measurements Shown',
-                      value: chartData.length.toLocaleString(),
+                      value: msmtCount.toLocaleString(),
                     },
                     {
                       label: 'Average of Values',
@@ -1603,6 +1619,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
           max={maxYear}
           min={minYear}
           onChange={(newRange) => setRange(newRange)}
+          range={range}
         />
         <div css={boxSectionStyles}>
           <div css={accordionStyles}>
@@ -2044,7 +2061,7 @@ function MonitoringReport() {
   );
 }
 
-function SliderContainer({ min, max, disabled = false, onChange }) {
+function SliderContainer({ min, max, disabled = false, onChange, range }) {
   if (!min || !max) return <LoadingSpinner />;
   else if (min === max)
     return (
@@ -2055,7 +2072,13 @@ function SliderContainer({ min, max, disabled = false, onChange }) {
 
   return (
     <div css={sliderContainerStyles}>
-      <DateSlider disabled={disabled} min={min} max={max} onChange={onChange} />
+      <DateSlider
+        disabled={disabled}
+        min={min}
+        max={max}
+        onChange={onChange}
+        range={range}
+      />
     </div>
   );
 }
