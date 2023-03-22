@@ -308,7 +308,7 @@ async function fetchPermittedDischargers(
 
   const url =
     `${servicesData.echoNPDES.getFacilities}?output=JSON&tablelist=Y` +
-    `&p_act=Y&p_ptype=NPD&responseset=5000` +
+    `&p_act=Y&p_ptype=NPD,GPC&responseset=5000` +
     `&qcolumns=${columnIds.join(',')}&${boundariesFilter}`;
 
   try {
