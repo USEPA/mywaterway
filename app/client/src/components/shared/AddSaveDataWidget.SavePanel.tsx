@@ -41,7 +41,7 @@ type PublishType = {
 };
 
 const tooltipCost = {
-  icon: 'fas fa-exclamation',
+  icon: 'fas fa-coins',
   text: 'Saving this layer may incur storage credits in ArcGIS online.',
 };
 const tooltipFiltered = {
@@ -144,6 +144,16 @@ const descriptionInputStyles = css`
   min-height: 36px;
   height: 72px;
   resize: vertical;
+`;
+
+const footnoteIconStyles = css`
+  display: flex;
+  align-items: center;
+`;
+
+const footnoteStyles = css`
+  display: flex;
+  gap: 0.25rem;
 `;
 
 const labelStyles = css`
@@ -657,19 +667,39 @@ function SavePanel({ visible }: Props) {
               );
             })}
       </div>
-      <p>
-        <i aria-hidden className={tooltipCost.icon} /> {tooltipCost.text}
-        <br />
-        <i aria-hidden className={tooltipFiltered.icon} /> {tooltipFiltered.text}
-        <br />
-        <i aria-hidden className={tooltipNotLoaded.icon} /> {tooltipNotLoaded.text}
-        <br />
-      </p>
+      <div css={listContainerStyles}>
+        <div css={footnoteStyles}>
+          <i
+            aria-hidden
+            className={tooltipCost.icon}
+            css={footnoteIconStyles}
+          />
+          <span>{tooltipCost.text}</span>
+        </div>
+
+        <div css={footnoteStyles}>
+          <i
+            aria-hidden
+            className={tooltipFiltered.icon}
+            css={footnoteIconStyles}
+          />
+          <span>{tooltipFiltered.text}</span>
+        </div>
+
+        <div css={footnoteStyles}>
+          <i
+            aria-hidden
+            className={tooltipNotLoaded.icon}
+            css={footnoteIconStyles}
+          />
+          <span>{tooltipNotLoaded.text}</span>
+        </div>
+      </div>
       <div>
-        <label htmlFor="save-as-name" css={labelStyles}>Name: </label>
-        <HelpTooltip
-          label="Enter file name here for your reference"
-        />
+        <label htmlFor="save-as-name" css={labelStyles}>
+          Name:{' '}
+        </label>
+        <HelpTooltip label="Enter file name here for your reference" />
         <input
           id="save-as-name"
           css={saveAsInputStyles}
@@ -678,10 +708,10 @@ function SavePanel({ visible }: Props) {
         />
       </div>
       <div>
-        <label htmlFor="service-description" css={labelStyles}>Description: </label>
-        <HelpTooltip
-          label="Enter description here for your reference"
-        />
+        <label htmlFor="service-description" css={labelStyles}>
+          Description:{' '}
+        </label>
+        <HelpTooltip label="Enter description here for your reference" />
         <textarea
           id="service-description"
           css={descriptionInputStyles}
