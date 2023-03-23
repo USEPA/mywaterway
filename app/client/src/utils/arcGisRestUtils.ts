@@ -603,9 +603,7 @@ async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
       });
     });
   } else if (isFeatureLayer(layer)) {
-    const features = await layer.queryFeatures({
-      returnGeometry: true,
-    });
+    const features = await layer.queryFeatures();
     features.features.forEach((feature) => {
       adds.push({
         attributes: feature.attributes,

@@ -31,7 +31,7 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
-import { plotIssues } from 'utils/mapFunctions';
+import { getMappedParameter, plotIssues } from 'utils/mapFunctions';
 import { useDischargers, useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
@@ -88,6 +88,8 @@ function IdentifiedIssues() {
     setViolatingDischargersOnly,
     cipSummary,
     watershed,
+    parameterToggleObject,
+    setParameterToggleObject,
   } = useContext(LocationSearchContext);
 
   const {
@@ -100,8 +102,6 @@ function IdentifiedIssues() {
 
   const { dischargers: violatingDischargers, dischargersStatus } =
     useDischargers();
-
-  const [parameterToggleObject, setParameterToggleObject] = useState({});
 
   const [showAllParameters, setShowAllParameters] = useState(false);
 
@@ -127,18 +127,6 @@ function IdentifiedIssues() {
       if (issuesLayer) issuesLayer.listMode = 'hide';
     };
   }, [issuesLayer, waterbodyLayer]);
-
-  // translate scientific parameter names
-  const getMappedParameter = (parameterFields: Object, parameter: string) => {
-    const filteredFields = parameterFields.filter(
-      (field) => parameter === field.parameterGroup,
-    )[0];
-    if (!filteredFields) {
-      return null;
-    }
-
-    return filteredFields;
-  };
 
   const checkWaterbodiesToDisplay = useCallback(() => {
     const waterbodiesToShow = new Set(); // set to prevent duplicates

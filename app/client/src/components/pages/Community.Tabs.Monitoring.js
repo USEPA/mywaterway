@@ -34,7 +34,10 @@ import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import {
+  initialWorkerData,
+  LocationSearchContext,
+} from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
@@ -194,23 +197,20 @@ const totalRowStyles = css`
 /*
  ** Helpers
  */
-const initialWorkerData = {
-  minYear: null,
-  maxYear: null,
-  annualData: {},
-};
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
 function usePeriodOfRecordData(filter, param) {
+  const { monitoringWorkerData, setMonitoringWorkerData } = useContext(
+    LocationSearchContext,
+  );
   const services = useServicesContext();
   const [url, setUrl] = useState(null);
-  const [workerData, setWorkerData] = useState(initialWorkerData);
 
   // Clear the data on change of location
   const resetWorkerData = useCallback(() => {
-    setWorkerData(initialWorkerData);
-  }, []);
+    setMonitoringWorkerData(initialWorkerData);
+  }, [setMonitoringWorkerData]);
 
   // Craft the URL
   useEffect(() => {
@@ -242,15 +242,15 @@ function usePeriodOfRecordData(filter, param) {
         const parsedData = JSON.parse(message.data);
         parsedData.minYear = parseInt(parsedData.minYear);
         parsedData.maxYear = parseInt(parsedData.maxYear);
-        setWorkerData(parsedData);
+        setMonitoringWorkerData(parsedData);
       }
     };
     return function cleanup() {
       recordsWorker.terminate();
     };
-  }, [filter, url]);
+  }, [filter, setMonitoringWorkerData, url]);
 
-  return [workerData, resetWorkerData];
+  return [monitoringWorkerData, resetWorkerData];
 }
 
 // Dynamically filter the displayed locations
@@ -794,8 +794,10 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const {
     huc12,
     monitoringGroups,
+    monitoringYearsRange,
     setMonitoringFeatureUpdates,
     setMonitoringGroups,
+    setMonitoringYearsRange,
     watershed,
   } = useContext(LocationSearchContext);
 
@@ -878,23 +880,25 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
 
-  // The currently selected date range
-  const [yearsRange, setYearsRange] = useState(null);
-
   // Reset data if the user switches locations
   useEffect(() => {
     if (!huc12) return;
 
     return function cleanup() {
       resetWorkerData();
-      setYearsRange(null);
+      setMonitoringYearsRange(null);
       setAllToggled(true);
       if (!monitoringLocationsLayer) return;
 
       const layer = getEnclosedLayer(monitoringLocationsLayer);
       if (layer) layer.definitionExpression = '';
     };
-  }, [huc12, monitoringLocationsLayer, resetWorkerData]);
+  }, [
+    huc12,
+    monitoringLocationsLayer,
+    resetWorkerData,
+    setMonitoringYearsRange,
+  ]);
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
   // create the filter string for download links based on active toggles
@@ -918,13 +922,13 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         }
       }
 
-      if (yearsRange) {
-        filter += `&startDateLo=01-01-${yearsRange[0]}&startDateHi=12-31-${yearsRange[1]}`;
+      if (monitoringYearsRange) {
+        filter += `&startDateLo=01-01-${monitoringYearsRange[0]}&startDateHi=12-31-${monitoringYearsRange[1]}`;
       }
 
       setCharGroupFilters(filter);
     },
-    [setCharGroupFilters, yearsRange],
+    [setCharGroupFilters, monitoringYearsRange],
   );
 
   const [displayedLocations, setDisplayedLocations] = useState([]);
@@ -938,11 +942,11 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
-      yearsRange,
+      monitoringYearsRange,
     );
 
     // Add filtered data that's relevent to map popups
-    if (yearsRange) {
+    if (monitoringYearsRange) {
       updateFeatures(toggledLocations);
     }
 
@@ -963,7 +967,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
     setCurrentLocations(allLocations);
     setDisplayedLocations(toggledLocations);
-  }, [monitoringGroups, monitoringLocationsLayer, updateFeatures, yearsRange]);
+  }, [
+    monitoringGroups,
+    monitoringLocationsLayer,
+    monitoringYearsRange,
+    updateFeatures,
+  ]);
 
   // Add the stations historical data to the `dataByYear` property,
   // then initializes the date slider
@@ -980,17 +989,24 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       }
     }
     setMonitoringGroups(updatedMonitoringGroups);
-    setYearsRange([minYear, maxYear]);
-  }, [maxYear, minYear, monitoringGroups, annualData, setMonitoringGroups]);
+    setMonitoringYearsRange([minYear, maxYear]);
+  }, [
+    maxYear,
+    minYear,
+    monitoringGroups,
+    annualData,
+    setMonitoringGroups,
+    setMonitoringYearsRange,
+  ]);
 
   const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
   const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
     useState(0);
   useEffect(() => {
     if (Object.keys(annualData).length === 0) return;
-    if (yearsRange) return;
+    if (monitoringYearsRange) return;
     addAnnualData();
-  }, [addAnnualData, annualData, yearsRange]);
+  }, [addAnnualData, annualData, monitoringYearsRange]);
 
   // Updates total counts after displayed locations are filtered
   useEffect(() => {
@@ -1048,9 +1064,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const displayedLocationsCount =
     sortedMonitoringLocations.length.toLocaleString();
 
-  const handleDateSliderChange = useCallback((newRange) => {
-    setYearsRange(newRange);
-  }, []);
+  const handleDateSliderChange = useCallback(
+    (newRange) => {
+      setMonitoringYearsRange(newRange);
+    },
+    [setMonitoringYearsRange],
+  );
 
   const handleSortChange = useCallback(({ value }) => setSortBy(value), []);
 
@@ -1169,7 +1188,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
             </div>
             <div css={sliderContainerStyles}>
-              {!yearsRange ? (
+              {!monitoringYearsRange ? (
                 <LoadingSpinner />
               ) : (
                 <DateSlider
@@ -1326,14 +1345,14 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
             <AccordionList
               title={
-                yearsRange ? (
+                monitoringYearsRange ? (
                   <span data-testid="monitoring-accordion-title">
                     <strong>{displayedLocationsCount.toLocaleString()}</strong>{' '}
                     of <strong>{totalLocationsCount.toLocaleString()}</strong>{' '}
                     water monitoring sample locations in the{' '}
                     <em>{watershed}</em> watershed from{' '}
-                    <strong>{yearsRange[0]}</strong> to{' '}
-                    <strong>{yearsRange[1]}</strong>.
+                    <strong>{monitoringYearsRange[0]}</strong> to{' '}
+                    <strong>{monitoringYearsRange[1]}</strong>.
                   </span>
                 ) : (
                   <span data-testid="monitoring-accordion-title">
