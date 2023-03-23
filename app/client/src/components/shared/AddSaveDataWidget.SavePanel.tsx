@@ -844,7 +844,7 @@ function SavePanel({ visible }: Props) {
         <label htmlFor="save-as-name" css={labelStyles}>
           Name:{' '}
         </label>
-        <HelpTooltip label="Enter file name here for your reference" />
+        <HelpTooltip label="Enter web map name here for your reference" />
         <input
           id="save-as-name"
           css={saveAsInputStyles}
