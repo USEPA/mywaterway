@@ -53,10 +53,12 @@ export interface Facility {
   CWPInspectionCount: string | null;
   CWPName: string;
   CWPPermitStatusDesc: string;
+  CWPPermitTypeDesc: string;
   CWPSNCStatus: string | null;
   CWPStatus: string;
   FacLat: string;
   FacLong: string;
+  PermitComponents: string;
   RegistryID: string;
   SourceID: string;
   uniqueId: string;

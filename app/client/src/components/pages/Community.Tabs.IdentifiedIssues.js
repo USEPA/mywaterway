@@ -731,7 +731,7 @@ function IdentifiedIssues() {
                     </p>
                   )}
 
-                  {violatingDischargers.length && (
+                  {violatingDischargers.length > 0 && (
                     <AccordionList
                       title={
                         <>
@@ -750,7 +750,7 @@ function IdentifiedIssues() {
                       }
                     >
                       {violatingDischargers.map((discharger) => {
-                        const { uniqueId: id, CWPName: name } = discharger;
+                        const { uniqueId: id, CWPName: name, PermitComponents: components } = discharger;
 
                         const feature = {
                           geometry: {
@@ -765,7 +765,13 @@ function IdentifiedIssues() {
                           <AccordionItem
                             key={id}
                             title={<strong>{name || 'Unknown'}</strong>}
-                            subTitle={<>NPDES ID: {id}</>}
+                            subTitle={
+                              <>
+                                NPDES ID: {id}
+                                <br />
+                                Permit Components: {components || 'N/A'}
+                              </>
+                            }
                             feature={feature}
                             idKey="uniqueId"
                           >

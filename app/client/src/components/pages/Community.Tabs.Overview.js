@@ -784,7 +784,13 @@ function sortDischarchers(dischargers, sortBy) {
     });
   } else {
     return dischargers.sort((a, b) => {
-      return a[sortBy].localeCompare(b[sortBy]);
+      if (a[sortBy] && b[sortBy]) {
+        return a[sortBy].localeCompare(b[sortBy]);
+      } else if (!a[sortBy] && b[sortBy]) {
+        return 1;
+      } else {
+        return -1;
+      }
     });
   }
 }
@@ -842,7 +848,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
     ({ index }) => {
       const discharger = sortedPermittedDischargers[index];
 
-      const { uniqueId: id, CWPName: name, CWPStatus: status } = discharger;
+      const { uniqueId: id, CWPName: name, CWPStatus: status, PermitComponents: components } = discharger;
 
       const feature = {
         geometry: {
@@ -863,6 +869,8 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
               NPDES ID: {id}
               <br />
               Compliance Status: {status}
+              <br />
+              Permit Components: {components || 'N/A'}
             </>
           }
           feature={feature}
@@ -935,6 +943,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 {
                   value: 'CWPStatus',
                   label: 'Compliance Status',
+                },
+                {
+                  value: 'PermitComponents',
+                  label: 'Permit Components',
                 },
               ]}
             >
