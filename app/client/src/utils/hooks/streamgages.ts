@@ -12,11 +12,11 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  filterData,
   getExtentBoundingBox,
   getGeographicExtent,
   handleFetchError,
-  removeDuplicateData,
-  useAllFeaturesLayer,
+  useAllFeaturesLayers,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
@@ -44,14 +44,14 @@ import { colors } from 'styles';
 ## Hooks
 */
 
-export function useStreamgageLayer() {
+export function useStreamgageLayers() {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
 
   const buildBaseLayer = useCallback(
-    (baseLayerId: string, type: SublayerType) => {
-      return buildLayer(baseLayerId, navigate, services, type);
+    (type: SublayerType) => {
+      return buildLayer(navigate, services, type);
     },
     [navigate, services],
   );
@@ -59,14 +59,18 @@ export function useStreamgageLayer() {
   const updateSurroundingData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
-  return useAllFeaturesLayer({
+  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
     buildFeatures,
     enclosedFetchedDataKey: localFetchedDataKey,
-    layerId,
     buildBaseLayer,
     surroundingFetchedDataKey,
     updateSurroundingData,
   });
+
+  return {
+    usgsStreamgagesLayer: enclosedLayer,
+    surroundingUsgsStreamgagesLayer: surroundingLayer,
+  };
 }
 
 export function useStreamgages() {
@@ -191,15 +195,17 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
 
 // Builds the base feature layer
 function buildLayer(
-  baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
   type: SublayerType,
 ) {
   return new FeatureLayer({
-    id: baseLayerId,
-    title: 'USGS Sensors',
-    listMode: 'hide',
+    id:
+      type === 'enclosed'
+        ? `${localFetchedDataKey}Layer`
+        : `${surroundingFetchedDataKey}Layer`,
+    title: `${type === 'surrounding' ? 'Surrounding ' : ''}USGS Sensors`,
+    listMode: type === 'enclosed' ? 'show' : 'hide',
     legendEnabled: false,
     fields: [
       { name: 'OBJECTID', type: 'oid' },
@@ -265,10 +271,7 @@ async function fetchAndTransformData(
       ...(responses.map((res) => res.data) as UsgsServiceData),
     );
     const payload = additionalData
-      ? removeDuplicateData(
-          [...usgsStreamgageAttributes, ...additionalData],
-          dataKeys,
-        )
+      ? filterData(usgsStreamgageAttributes, additionalData, dataKeys)
       : usgsStreamgageAttributes;
     dispatch({
       type: 'success',
@@ -565,7 +568,6 @@ function getExtentWkt(extent: __esri.Extent | null) {
 
 const localFetchedDataKey = 'usgsStreamgages';
 const surroundingFetchedDataKey = 'surroundingUsgsStreamgages';
-const layerId = 'usgsStreamgagesLayer';
 const dataKeys = ['orgId', 'siteId'] as Array<keyof UsgsStreamgageAttributes>;
 
 /*

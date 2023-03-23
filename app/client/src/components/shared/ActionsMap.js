@@ -19,7 +19,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   useSharedLayers,
-  useMonitoringLocationsLayer,
+  useMonitoringLocationsLayers,
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
@@ -73,12 +73,12 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const monitoringLocationsLayer = useMonitoringLocationsLayer();
+  const { surroundingMonitoringLocationsLayer } =
+    useMonitoringLocationsLayers();
 
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
     if (!getSharedLayers || layersInitialized) return;
 
     let localActionsLayer = actionsWaterbodies;
@@ -96,19 +96,18 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     setLayers([
       ...getSharedLayers(),
       localActionsLayer,
-      monitoringLocationsLayer,
+      surroundingMonitoringLocationsLayer,
     ]);
     updateVisibleLayers({
       actionsWaterbodies: true,
-      monitoringLocationsLayer: true,
     });
     setLayersInitialized(true);
   }, [
     actionsWaterbodies,
     getSharedLayers,
     layersInitialized,
-    monitoringLocationsLayer,
     setLayer,
+    surroundingMonitoringLocationsLayer,
     updateVisibleLayers,
   ]);
 

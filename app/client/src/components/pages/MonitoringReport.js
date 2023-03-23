@@ -49,10 +49,9 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchPost } from 'utils/fetchUtils';
 import {
-  getEnclosedLayer,
   useAbort,
   useMonitoringLocations,
-  useMonitoringLocationsLayer,
+  useMonitoringLocationsLayers,
   useSharedLayers,
 } from 'utils/hooks';
 import { isAbort, toFixedFloat } from 'utils/utils';
@@ -2085,13 +2084,12 @@ function SliderContainer({ min, max, disabled = false, onChange, range }) {
 
 function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
+  const [layers, setLayers] = useState([]);
   const [mapLoading, setMapLoading] = useState(true);
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
-  const { homeWidget, layers, mapView, resetData, setLayers } = useContext(
-    LocationSearchContext,
-  );
+  const { homeWidget, mapView, resetData } = useContext(LocationSearchContext);
 
   const { updateVisibleLayers } = useLayers();
 
@@ -2108,14 +2106,18 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     };
   }, [mapView]);
 
-  const monitoringLocationsLayer = useMonitoringLocationsLayer(siteFilter);
+  const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
+    useMonitoringLocationsLayers(siteFilter);
 
   // Initialize the layers
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
     if (!getSharedLayers || layersInitialized) return;
 
-    setLayers([...getSharedLayers(), monitoringLocationsLayer]);
+    setLayers([
+      ...getSharedLayers(),
+      monitoringLocationsLayer,
+      surroundingMonitoringLocationsLayer,
+    ]);
     updateVisibleLayers({ monitoringLocationsLayer: true });
     setLayersInitialized(true);
   }, [
@@ -2127,6 +2129,7 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     setLayers,
     site,
     siteStatus,
+    surroundingMonitoringLocationsLayer,
     updateVisibleLayers,
   ]);
 
@@ -2137,10 +2140,9 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     if (!mapView || !layersInitialized || !homeWidget) return;
     if (siteStatus !== 'success') return;
 
-    const stationLayer = getEnclosedLayer(monitoringLocationsLayer);
-    if (!stationLayer) return;
+    if (!monitoringLocationsLayer) return;
 
-    zoomToStation(stationLayer, mapView, getSignal())
+    zoomToStation(monitoringLocationsLayer, mapView, getSignal())
       .then(() => {
         // set map zoom and home widget's viewpoint
         mapView.zoom = mapView.zoom - 1;

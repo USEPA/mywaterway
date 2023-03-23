@@ -154,6 +154,14 @@ export interface Huc12SummaryData {
   }[];
 }
 
+export type ImpairmentFields = {
+  value: string;
+  parameterGroup: string;
+  label: string;
+  term: string;
+  sentence: JSX.Element | null;
+}[];
+
 export type LookupFile = {
   status: 'fetching' | 'success' | 'failure';
   data: any;
@@ -230,10 +238,20 @@ export interface MonitoringLocationsData {
   type: 'FeatureCollection';
 }
 
+export type MonitoringYearsRange = number[] | null;
+
+export type MonitoringWorkerData = {
+  minYear: number;
+  maxYear: number;
+  annualData: any;
+};
+
 export interface NonProfitAttributes {
   Name?: string;
   type: 'nonprofit';
 }
+
+export type ParameterToggleObject = { [key: string]: boolean };
 
 export type ParentLayer = __esri.GroupLayer | SuperLayer;
 

@@ -2,9 +2,21 @@ import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
 // types
 import type { ReactNode } from 'react';
-import type { Huc12SummaryData, MonitoringLocationGroups } from 'types';
+import type {
+  Huc12SummaryData,
+  MonitoringLocationGroups,
+  MonitoringYearsRange,
+  MonitoringWorkerData,
+  ParameterToggleObject,
+} from 'types';
 
 export const LocationSearchContext = createContext();
+
+export const initialWorkerData = {
+  minYear: null,
+  maxYear: null,
+  annualData: {},
+};
 
 type Props = {
   children: ReactNode,
@@ -30,7 +42,6 @@ type State = {
   cipSummary: { status: Status, data: Huc12SummaryData },
   nonprofits: Object,
   mapView: __esri.MapView | null,
-  layers: Object[],
   basemap: Object,
   homeWidget: Object,
   upstreamWidget: Object,
@@ -54,9 +65,12 @@ type State = {
   // monitoring panel
   monitoringGroups: MonitoringLocationGroups,
   monitoringFeatureUpdates: ?Object,
+  monitoringYearsRange: MonitoringYearsRange,
+  monitoringWorkerData: MonitoringWorkerData,
 
   // identified issues panel
   showAllPolluted: boolean,
+  parameterToggleObject: ParameterToggleObject,
   pollutionParameters: Object,
   violatingDischargersOnly: boolean,
 };
@@ -96,7 +110,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     cipSummary: { status: 'fetching', data: {} },
     nonprofits: { status: 'fetching', data: [] },
     mapView: null,
-    layers: [],
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
@@ -121,9 +134,12 @@ export class LocationSearchProvider extends Component<Props, State> {
     // monitoring panel
     monitoringGroups: null,
     monitoringFeatureUpdates: null,
+    monitoringYearsRange: null,
+    monitoringWorkerData: initialWorkerData,
 
     // identified issues panel
     showAllPolluted: true,
+    parameterToggleObject: {},
     pollutionParameters: null,
     violatingDischargersOnly: false,
 
@@ -214,9 +230,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     getUpstreamExtent: () => {
       return this.state.upstreamExtent;
     },
-    setLayers: (layers) => {
-      this.setState({ layers });
-    },
     setUpstreamWatershedResponse: (upstreamWatershedResponse) => {
       this.setState({ upstreamWatershedResponse });
     },
@@ -274,8 +287,17 @@ export class LocationSearchProvider extends Component<Props, State> {
     setMonitoringFeatureUpdates: (monitoringFeatureUpdates) => {
       this.setState({ monitoringFeatureUpdates });
     },
+    setMonitoringYearsRange: (monitoringYearsRange) => {
+      this.setState({ monitoringYearsRange });
+    },
+    setMonitoringWorkerData: (monitoringWorkerData) => {
+      this.setState({ monitoringWorkerData });
+    },
     setShowAllPolluted: (showAllPolluted) => {
       this.setState({ showAllPolluted });
+    },
+    setParameterToggleObject: (parameterToggleObject) => {
+      this.setState({ parameterToggleObject });
     },
     setPollutionParameters: (pollutionParameters) => {
       this.setState({ pollutionParameters });
@@ -313,31 +335,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
 
     resetMap: (useDefaultZoom = false) => {
-      const { initialExtent, layers, mapView, homeWidget } = this.state;
-
-      // Clear waterbody layers from state
-      let newState = {};
-
-      const layersToRemove = [
-        'waterbodyPoints',
-        'waterbodyLines',
-        'waterbodyAreas',
-        'waterbodyLayer',
-      ];
-
-      // remove the layers from state layers list
-      let removedLayers = false;
-      for (let i = layers.length - 1; i >= 0; i--) {
-        const item = layers[i];
-        const itemId = item.id;
-        if (layersToRemove.includes(itemId)) {
-          layers.splice(i, 1);
-          removedLayers = true;
-        }
-      }
-      if (removedLayers) newState['layers'] = layers;
-
-      this.setState(newState);
+      const { initialExtent, mapView, homeWidget } = this.state;
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
@@ -366,6 +364,8 @@ export class LocationSearchProvider extends Component<Props, State> {
         hucBoundaries: '',
         monitoringGroups: null,
         monitoringFeatureUpdates: null,
+        monitoringYearsRange: null,
+        monitoringWorkerData: initialWorkerData,
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },

@@ -15,7 +15,7 @@ import {
   getGeographicExtent,
   filterData,
   handleFetchError,
-  useAllFeaturesLayer,
+  useAllFeaturesLayers,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
@@ -38,14 +38,14 @@ import { colors } from 'styles';
 ## Hooks
 */
 
-export function useDischargersLayer() {
+export function useDischargersLayers() {
   // Build the base feature layer
   const services = useServicesContext();
   const navigate = useNavigate();
 
   const buildBaseLayer = useCallback(
-    (baseLayerId: string, type: SublayerType) => {
-      return buildLayer(baseLayerId, navigate, services, type);
+    (type: SublayerType) => {
+      return buildLayer(navigate, services, type);
     },
     [navigate, services],
   );
@@ -53,14 +53,18 @@ export function useDischargersLayer() {
   const updateSurroundingData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
-  return useAllFeaturesLayer({
-    layerId,
+  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
     buildBaseLayer,
     buildFeatures,
     enclosedFetchedDataKey: localFetchedDataKey,
     surroundingFetchedDataKey,
     updateSurroundingData,
   });
+
+  return {
+    dischargersLayer: enclosedLayer,
+    surroundingDischargersLayer: surroundingLayer,
+  };
 }
 
 export function useDischargers() {
@@ -169,15 +173,17 @@ function buildFeatures(data: Facility[]) {
 
 // Builds the base feature layer
 function buildLayer(
-  baseLayerId: string,
   navigate: NavigateFunction,
   services: ServicesState,
   type: SublayerType,
 ) {
   return new FeatureLayer({
-    id: baseLayerId,
-    title: 'Dischargers',
-    listMode: 'hide',
+    id:
+      type === 'enclosed'
+        ? `${localFetchedDataKey}Layer`
+        : `${surroundingFetchedDataKey}Layer`,
+    title: `${type === 'surrounding' ? 'Surrounding ' : ''}Dischargers`,
+    listMode: type === 'enclosed' ? 'show' : 'hide',
     legendEnabled: false,
     fields: [
       { name: 'OBJECTID', type: 'oid' },
@@ -235,7 +241,7 @@ function buildLayer(
 async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
-  fetchedDataId: 'permittedDischargers' | 'surroundingPermittedDischargers',
+  fetchedDataId: 'dischargers' | 'surroundingDischargers',
   dataToExclude?: Facility[] | null,
   violatingOnly = false,
 ) {
@@ -344,9 +350,8 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
 ## Constants
 */
 
-const localFetchedDataKey = 'permittedDischargers';
-const surroundingFetchedDataKey = 'surroundingPermittedDischargers';
-const layerId = 'dischargersLayer';
+const localFetchedDataKey = 'dischargers';
+const surroundingFetchedDataKey = 'surroundingDischargers';
 const dataKeys = ['SourceID'] as Array<keyof Facility>;
 
 /*

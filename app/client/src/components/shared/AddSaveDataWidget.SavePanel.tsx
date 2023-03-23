@@ -15,14 +15,26 @@ import {
   successBoxStyles,
 } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
+// config
+import { impairmentFields } from 'config/attainsToHmwMapping';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext, Status } from 'contexts/locationSearch';
 import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
-import { hasDefinitionExpression } from 'utils/mapFunctions';
+import {
+  getMappedParameter,
+  hasDefinitionExpression,
+} from 'utils/mapFunctions';
 // types
+import {
+  Huc12SummaryData,
+  MonitoringLocationGroups,
+  MonitoringYearsRange,
+  MonitoringWorkerData,
+  ParameterToggleObject,
+} from 'types/index';
 import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
 
 type PublishType = {
@@ -40,12 +52,26 @@ type PublishType = {
   };
 };
 
-const tooltipCost =
-  'Including this layer may require ArcGIS Online credits for storage.';
-const tooltipFiltered = 'This layer will be saved with your selected filters.';
-const tooltipNotLoaded = 'This layer may not have been loaded yet.';
+const tooltipCost = {
+  icon: 'fas fa-coins',
+  text: 'Saving this layer may incur storage credits in ArcGIS online.',
+};
+const tooltipFiltered = {
+  icon: 'fas fa-asterisk',
+  text: 'Only the selections you have made on the map will be saved.',
+};
+const tooltipNotLoaded = {
+  icon: 'fas fa-plus',
+  text: 'Check to make sure this layer is loaded on your map.',
+};
 
-const layersToIgnore = ['nonprofitsLayer', 'protectedAreasHighlightLayer'];
+const layersToIgnore = [
+  'nonprofitsLayer',
+  'protectedAreasHighlightLayer',
+  'surroundingDischargersLayer',
+  'surroundingMonitoringLocationsLayer',
+  'surroundingUsgsStreamgagesLayer',
+];
 if (
   window.location.pathname.includes('/plan-summary') ||
   window.location.pathname.includes('/waterbody-report')
@@ -80,7 +106,7 @@ const layersMayNotHaveLoaded = ['cyanLayer', 'upstreamLayer'];
 
 const layerFilterOptions = [
   { value: 'All', label: 'All' },
-  { value: 'Free', label: 'Free' },
+  { value: 'Free', label: 'No storage credits required' },
 ];
 
 // Performs a deep comparison of 2 objects. Returns true if they are equal
@@ -108,6 +134,58 @@ function isObject(object: any) {
   return object != null && typeof object === 'object';
 }
 
+const sharedInputStyles = `
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 4px;
+  border-color: hsl(0, 0%, 80%);
+  margin-bottom: 10px;
+  padding: 2px 8px;
+  width: 100%;
+`;
+
+const addButtonStyles = css`
+  margin: 0;
+  min-width: 50%;
+  font-weight: normal;
+  font-size: 0.75rem;
+`;
+
+const buttonContainerStyles = css`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
+const descriptionInputStyles = css`
+  ${sharedInputStyles}
+  min-height: 36px;
+  height: 72px;
+  resize: vertical;
+`;
+
+const footnoteContainerStyles = css`
+  margin: 0.625rem 0.5rem;
+`;
+
+const footnoteIconStyles = css`
+  display: flex;
+  align-items: center;
+`;
+
+const footnoteStyles = css`
+  display: flex;
+  gap: 0.25rem;
+`;
+
+const labelStyles = css`
+  margin-right: 0.25rem;
+`;
+
+const listContainerStyles = css`
+  margin: 0.625rem 0;
+`;
+
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
@@ -120,15 +198,9 @@ const modifiedSuccessBoxStyles = css`
   margin-bottom: 0.625rem;
 `;
 
-const listContainerStyles = css`
-  margin: 0.625rem 0;
-`;
-
-const switchStyles = css`
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.625rem;
-  gap: 0.5rem;
+const saveAsInputStyles = css`
+  ${sharedInputStyles}
+  height: 36px;
 `;
 
 const submitSectionStyles = css`
@@ -136,39 +208,11 @@ const submitSectionStyles = css`
   margin-bottom: 0.625rem;
 `;
 
-const buttonContainerStyles = css`
+const switchStyles = css`
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-`;
-
-const addButtonStyles = css`
-  margin: 0;
-  min-width: 50%;
-  font-weight: normal;
-  font-size: 0.75rem;
-`;
-
-const sharedInputStyles = `
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 4px;
-  border-color: hsl(0, 0%, 80%);
-  margin-bottom: 10px;
-  padding: 2px 8px;
-  width: 100%;
-`;
-
-const saveAsInputStyles = css`
-  ${sharedInputStyles}
-  height: 36px;
-`;
-
-const descriptionInputStyles = css`
-  ${sharedInputStyles}
-  min-height: 36px;
-  height: 72px;
-  resize: vertical;
+  margin-bottom: 0.625rem;
+  gap: 0.5rem;
 `;
 
 function errorMessage(text: string) {
@@ -193,8 +237,20 @@ function SavePanel({ visible }: Props) {
     setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
+  const cipSummary = useContext(LocationSearchContext).cipSummary as {
+    status: Status;
+    data: Huc12SummaryData;
+  };
   const mapView = useContext(LocationSearchContext)
     .mapView as __esri.MapView | null;
+  const monitoringGroups = useContext(LocationSearchContext)
+    .monitoringGroups as MonitoringLocationGroups;
+  const monitoringYearsRange = useContext(LocationSearchContext)
+    .monitoringYearsRange as MonitoringYearsRange;
+  const monitoringWorkerData = useContext(LocationSearchContext)
+    .monitoringWorkerData as MonitoringWorkerData;
+  const parameterToggleObject = useContext(LocationSearchContext)
+    .parameterToggleObject as ParameterToggleObject;
   const upstreamWatershedResponse = useContext(LocationSearchContext)
     .upstreamWatershedResponse as {
     status: Status;
@@ -486,7 +542,7 @@ function SavePanel({ visible }: Props) {
 
   // Saves the data to ArcGIS Online
   async function handleSaveAgo(ev: MouseEvent<HTMLButtonElement>) {
-    if (!saveLayersList) return;
+    if (!mapView || !saveLayersList) return;
 
     // check if user provided a name
     if (!saveAsName) {
@@ -496,8 +552,20 @@ function SavePanel({ visible }: Props) {
       return;
     }
 
+    const buildFilterString = (filters: string[]) => {
+      return filters
+        .map((filter, index) => {
+          const seperator =
+            index === 0 ? '' : index === filters.length - 1 ? ' and ' : ', ';
+
+          return seperator + filter;
+        })
+        .join('');
+    };
+
     // Gather the layers to be published
     const layersToPublish: LayerType[] = [];
+    const layerDisclaimers: string[] = [];
     Object.values(saveLayersList).forEach((value) => {
       if (!value.toggled) return;
       if (saveLayerFilter === 'Free' && value.requiresFeatureService) {
@@ -520,6 +588,88 @@ function SavePanel({ visible }: Props) {
         associatedData,
         widgetLayer,
       });
+
+      // build the filter disclaimer for the dischargers layer
+      if (
+        value.id === 'dischargersLayer' &&
+        window.location.pathname.includes('/identified-issues')
+      ) {
+        layerDisclaimers.push(`
+          <i>${value.label}</i> is filtered to dischargers with significant violations.
+        `);
+      }
+
+      // build the filter disclaimer for the monitoringLocationsLayer
+      if (
+        value.id === 'monitoringLocationsLayer' &&
+        monitoringGroups &&
+        monitoringYearsRange
+      ) {
+        const monitoringGroupsFiltered = Object.values(monitoringGroups).some(
+          (a) => !a.toggled,
+        );
+        const yearsFiltered =
+          monitoringYearsRange &&
+          (monitoringYearsRange[0] !== monitoringWorkerData.minYear ||
+            monitoringYearsRange[1] !== monitoringWorkerData.maxYear);
+        if (monitoringGroupsFiltered || yearsFiltered) {
+          const filters: string[] = [];
+          if (yearsFiltered) {
+            filters.push(
+              `years ${monitoringYearsRange[0]} - ${monitoringYearsRange[1]}`,
+            );
+          }
+
+          if (monitoringGroupsFiltered) {
+            Object.values(monitoringGroups)
+              .sort((a, b) => a.label.localeCompare(b.label))
+              .forEach((group) => {
+                if (!group.label || group.label === 'All' || !group.toggled)
+                  return;
+
+                filters.push(group.label);
+              });
+          }
+
+          layerDisclaimers.push(`
+            <i>${value.label}</i> is filtered to ${buildFilterString(filters)}.
+          `);
+        }
+      }
+
+      // build the filter disclaimer for the issuesLayer
+      if (
+        value.id === 'issuesLayer' &&
+        cipSummary.status === 'success' &&
+        Object.keys(parameterToggleObject).length > 0
+      ) {
+        const filters: string[] = [];
+        let allToggled: boolean = true;
+        cipSummary.data.items[0].summaryByParameterImpairments.forEach(
+          (param) => {
+            const mappedParameter = getMappedParameter(
+              impairmentFields,
+              param['parameterGroupName'],
+            );
+            if (!mappedParameter) return;
+
+            if (parameterToggleObject[mappedParameter.label]) {
+              filters.push(mappedParameter.label);
+            } else {
+              allToggled = false;
+            }
+          },
+        );
+
+        if (!allToggled) {
+          filters.sort();
+          layerDisclaimers.push(`
+            <i>${value.label}</i> is filtered to ${buildFilterString(
+            filters,
+          )}.
+          `);
+        }
+      }
     });
 
     if (layersToPublish.length === 0) {
@@ -541,6 +691,23 @@ function SavePanel({ visible }: Props) {
           <hr />
           <strong>Auto generated by the How's My Waterway application</strong>
           <div><strong>Created Date:</strong> ${new Date().toLocaleString()}</div>
+          ${
+            layerDisclaimers.length > 0
+              ? `
+              <br />
+              <div>
+                <strong>Applied Layer Filters:</strong>
+                <ul>
+                  ${layerDisclaimers
+                    .map((disclaimer) => {
+                      return `<li>${disclaimer}</li>\n`;
+                    })
+                    .join('')}
+                </ul>
+              </div>
+          `
+              : ''
+          }
         </div>
       `,
     };
@@ -625,39 +792,59 @@ function SavePanel({ visible }: Props) {
                   <span>{value.label}</span>
                   {value.requiresFeatureService && (
                     <HelpTooltip
-                      label={tooltipCost}
-                      iconClass="fas fa-dollar-sign"
+                      label={tooltipCost.text}
+                      iconClass={tooltipCost.icon}
                     />
                   )}
                   {layersMayBeFiltered.includes(key) && (
                     <HelpTooltip
-                      label={tooltipFiltered}
-                      iconClass="fas fa-asterisk"
+                      label={tooltipFiltered.text}
+                      iconClass={tooltipFiltered.icon}
                     />
                   )}
                   {layersMayNotHaveLoaded.includes(key) && (
                     <HelpTooltip
-                      label={tooltipNotLoaded}
-                      iconClass="fas fa-plus"
+                      label={tooltipNotLoaded.text}
+                      iconClass={tooltipNotLoaded.icon}
                     />
                   )}
                 </div>
               );
             })}
       </div>
-      <p>
-        <i aria-hidden className="fas fa-dollar-sign" /> Including this layer
-        may incur storage costs in ArcGIS Online.
-        <br />
-        <i aria-hidden className="fas fa-asterisk" /> This layer will be saved
-        with your selected filters.
-        <br />
-        <i aria-hidden className="fas fa-plus" /> This layer may not have been
-        loaded yet.
-        <br />
-      </p>
+      <div css={footnoteContainerStyles}>
+        <div css={footnoteStyles}>
+          <i
+            aria-hidden
+            className={tooltipCost.icon}
+            css={footnoteIconStyles}
+          />
+          <span>{tooltipCost.text}</span>
+        </div>
+
+        <div css={footnoteStyles}>
+          <i
+            aria-hidden
+            className={tooltipFiltered.icon}
+            css={footnoteIconStyles}
+          />
+          <span>{tooltipFiltered.text}</span>
+        </div>
+
+        <div css={footnoteStyles}>
+          <i
+            aria-hidden
+            className={tooltipNotLoaded.icon}
+            css={footnoteIconStyles}
+          />
+          <span>{tooltipNotLoaded.text}</span>
+        </div>
+      </div>
       <div>
-        <label htmlFor="save-as-name">Name: </label>
+        <label htmlFor="save-as-name" css={labelStyles}>
+          Name:{' '}
+        </label>
+        <HelpTooltip label="Enter file name here for your reference" />
         <input
           id="save-as-name"
           css={saveAsInputStyles}
@@ -666,7 +853,10 @@ function SavePanel({ visible }: Props) {
         />
       </div>
       <div>
-        <label htmlFor="service-description">Description: </label>
+        <label htmlFor="service-description" css={labelStyles}>
+          Description:{' '}
+        </label>
+        <HelpTooltip label="Enter description here for your reference" />
         <textarea
           id="service-description"
           css={descriptionInputStyles}

@@ -603,9 +603,7 @@ async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
       });
     });
   } else if (isFeatureLayer(layer)) {
-    const features = await layer.queryFeatures({
-      returnGeometry: true,
-    });
+    const features = await layer.queryFeatures();
     features.features.forEach((feature) => {
       adds.push({
         attributes: feature.attributes,
@@ -686,16 +684,6 @@ async function applyEdits({
         ) as __esri.FeatureLayer;
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
-      } else if (
-        [
-          'dischargersLayer',
-          'monitoringLocationsLayer',
-          'usgsStreamgagesLayer',
-        ].includes(layer.id)
-      ) {
-        const groupLayer = layer.layer as __esri.GroupLayer;
-        const enclosedLayer = groupLayer.findLayerById(`${layer.id}-enclosed`);
-        await processLayerFeatures(enclosedLayer, adds);
       } else if (layer.widgetLayer?.type === 'file') {
         adds = layer.widgetLayer.rawLayer.featureSet.features;
       } else {

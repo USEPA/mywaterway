@@ -2515,7 +2515,7 @@ function MonitoringLocationsContent({
       )}
 
       {(!onMonitoringReportPage ||
-        layer.id === 'monitoringLocationsLayer-surrounding') && (
+        layer.id === 'surroundingMonitoringLocationsLayer') && (
         <div css={paddedMarginBoxStyles(textBoxStyles)}>
           <a
             rel="noopener noreferrer"

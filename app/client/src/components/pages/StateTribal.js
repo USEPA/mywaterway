@@ -645,10 +645,7 @@ function StateTribal() {
                         {stateIntro.description && (
                           <>
                             <h2>
-                              <i
-                                aria-hidden="true"
-                                className="fas fa-question-circle"
-                              />
+                              <i aria-hidden="true" className="fas fa-water" />
                               About <strong>{activeState.label}</strong>
                             </h2>
                             <div css={modifiedIntroBoxStyles}>
