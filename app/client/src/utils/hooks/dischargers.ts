@@ -25,7 +25,7 @@ import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
-  Facility,
+  DischargerAttributes,
   PermittedDischargersData,
   ServicesData,
   ServicesState,
@@ -82,7 +82,7 @@ function useUpdateData() {
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const [hucData, setHucData] = useState<Facility[] | null>([]);
+  const [hucData, setHucData] = useState<DischargerAttributes[] | null>([]);
   useEffect(() => {
     const controller = new AbortController();
 
@@ -156,7 +156,7 @@ function useUpdateData() {
 */
 
 // Builds features from dischargers data
-function buildFeatures(data: Facility[]) {
+function buildFeatures(data: DischargerAttributes[]) {
   return data.map((datum) => {
     return new Graphic({
       attributes: datum,
@@ -242,7 +242,7 @@ async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'dischargers' | 'surroundingDischargers',
-  dataToExclude?: Facility[] | null,
+  dataToExclude?: DischargerAttributes[] | null,
   violatingOnly = false,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -273,7 +273,7 @@ async function fetchAndTransformData(
 
 function transformServiceData(
   permittedDischargers: PermittedDischargersData,
-): Facility[] {
+): DischargerAttributes[] {
   return 'Error' in permittedDischargers.Results
     ? []
     : permittedDischargers.Results.Facilities.map((facility) => {
@@ -332,7 +332,7 @@ async function fetchPermittedDischargers(
   }
 }
 
-function filterViolatingFacilities(facilities: Facility[]) {
+function filterViolatingFacilities(facilities: DischargerAttributes[]) {
   return facilities.filter(
     (facility) =>
       facility['CWPSNCStatus'] !== null &&
@@ -352,7 +352,7 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
 
 const localFetchedDataKey = 'dischargers';
 const surroundingFetchedDataKey = 'surroundingDischargers';
-const dataKeys = ['SourceID'] as Array<keyof Facility>;
+const dataKeys = ['SourceID'] as Array<keyof DischargerAttributes>;
 
 /*
 ## Types

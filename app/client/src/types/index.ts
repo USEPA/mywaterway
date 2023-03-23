@@ -37,18 +37,6 @@ export interface CountyAttributes {
 }
 
 export interface DischargerAttributes {
-  CWPName: string;
-}
-
-export interface EjScreenAttributes {
-  T_OVR64PCT: string;
-}
-
-export interface CyanAttributes {
-  GNIS_NAME: string;
-}
-
-export interface Facility {
   CWPFormalEaCnt: string | null;
   CWPInspectionCount: string | null;
   CWPName: string;
@@ -58,10 +46,27 @@ export interface Facility {
   CWPStatus: string;
   FacLat: string;
   FacLong: string;
-  PermitComponents: string;
+  PermitComponents: string | null;
   RegistryID: string;
   SourceID: string;
   uniqueId: string;
+}
+
+export interface DischargerPermitComponents {
+  [label: string]: {
+    label: string;
+    dischargers: DischargerAttributes[];
+    toggled: boolean;
+  };
+}
+
+
+export interface EjScreenAttributes {
+  T_OVR64PCT: string;
+}
+
+export interface CyanAttributes {
+  GNIS_NAME: string;
 }
 
 export interface Feature {
@@ -263,7 +268,7 @@ export type PermittedDischargersData = {
         BioV3Rows: string;
         CVRows: string;
         FEARows: string;
-        Facilities: Facility[];
+        Facilities: DischargerAttributes[];
         INSPRows: string;
         IndianCountryRows: string;
         InfFEARows: string;
