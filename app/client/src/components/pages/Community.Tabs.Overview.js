@@ -607,6 +607,7 @@ function MonitoringAndSensorsTab({
       services,
     ],
   );
+
   if (
     monitoringLocationsStatus === 'pending' ||
     streamgagesStatus === 'pending'
@@ -793,16 +794,91 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
 
   const { watershed } = useContext(LocationSearchContext);
 
+  const [expandedRows, setExpandedRows] = useState([]);
+
   const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
     useState('CWPName');
+
+  const sortedPermittedDischargers = sortDischarchers(
+    dischargers,
+    permittedDischargersSortedBy,
+  );
 
   const handleSortChange = useCallback((sortBy) => {
     setPermittedDischargersSortedBy(sortBy.value);
   }, []);
 
-  const sortedPermittedDischargers = sortDischarchers(
-    dischargers,
-    permittedDischargersSortedBy,
+  const handleExpandCollapse = useCallback(
+    (allExpanded) => {
+      if (allExpanded) {
+        setExpandedRows([...Array(sortedPermittedDischargers.length).keys()]);
+      } else {
+        setExpandedRows([]);
+      }
+    },
+    [sortedPermittedDischargers],
+  );
+
+  const accordionItemToggleHandler = useCallback(
+    (index) => {
+      return function toggleAccordionItem() {
+        // add the item to the expandedRows array so the accordion item
+        // will stay expanded when the user scrolls or highlights map items
+        if (expandedRows.includes(index)) {
+          setExpandedRows(expandedRows.filter((item) => item !== index));
+        } else setExpandedRows(expandedRows.concat(index));
+      };
+    },
+    [expandedRows],
+  );
+
+  const accordionItemToggleHandlers = useMemo(() => {
+    return sortedPermittedDischargers.map((_item, index) => {
+      return accordionItemToggleHandler(index);
+    });
+  }, [accordionItemToggleHandler, sortedPermittedDischargers]);
+
+  const renderListItem = useCallback(
+    ({ index }) => {
+      const discharger = sortedPermittedDischargers[index];
+
+      const { uniqueId: id, CWPName: name, CWPStatus: status } = discharger;
+
+      const feature = {
+        geometry: {
+          type: 'point',
+          longitude: discharger.FacLong,
+          latitude: discharger.FacLat,
+        },
+        attributes: discharger,
+      };
+
+      return (
+        <AccordionItem
+          icon={diamondIcon({ color: colors.orange() })}
+          key={id}
+          title={<strong>{name || 'Unknown'}</strong>}
+          subTitle={
+            <>
+              NPDES ID: {id}
+              <br />
+              Compliance Status: {status}
+            </>
+          }
+          feature={feature}
+          idKey="uniqueId"
+          allExpanded={expandedRows.includes(index)}
+          onChange={accordionItemToggleHandlers[index]}
+        >
+          <div css={accordionContentStyles}>
+            <WaterbodyInfo type="Permitted Discharger" feature={feature} />
+
+            <ViewOnMapButton feature={feature} />
+          </div>
+        </AccordionItem>
+      );
+    },
+    [accordionItemToggleHandlers, expandedRows, sortedPermittedDischargers],
   );
 
   if (dischargersStatus === 'pending') {
@@ -846,6 +922,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 </>
               }
               onSortChange={handleSortChange}
+              onExpandCollapse={handleExpandCollapse}
               sortOptions={[
                 {
                   value: 'CWPName',
@@ -861,48 +938,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 },
               ]}
             >
-              {sortedPermittedDischargers.map((discharger) => {
-                const {
-                  uniqueId: id,
-                  CWPName: name,
-                  CWPStatus: status,
-                } = discharger;
-
-                const feature = {
-                  geometry: {
-                    type: 'point',
-                    longitude: discharger.FacLong,
-                    latitude: discharger.FacLat,
-                  },
-                  attributes: discharger,
-                };
-
-                return (
-                  <AccordionItem
-                    icon={diamondIcon({ color: colors.orange() })}
-                    key={id}
-                    title={<strong>{name || 'Unknown'}</strong>}
-                    subTitle={
-                      <>
-                        NPDES ID: {id}
-                        <br />
-                        Compliance Status: {status}
-                      </>
-                    }
-                    feature={feature}
-                    idKey="uniqueId"
-                  >
-                    <div css={accordionContentStyles}>
-                      <WaterbodyInfo
-                        type="Permitted Discharger"
-                        feature={feature}
-                      />
-
-                      <ViewOnMapButton feature={feature} />
-                    </div>
-                  </AccordionItem>
-                );
-              })}
+              <VirtualizedList
+                items={sortedPermittedDischargers}
+                renderer={renderListItem}
+              />
             </AccordionList>
           </>
         )}
