@@ -17,6 +17,7 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import { modifiedTableStyles } from 'styles';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -28,6 +29,10 @@ import {
   restoreNonpointSourceError,
   restorationPlanError,
 } from 'config/errorMessages';
+
+const accordionContentStyles = css`
+  padding: 0 0.875em 0.875em;
+`;
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -153,6 +158,17 @@ function Restore() {
                           {sortedGrtsData.map((item, index) => {
                             const url = getUrlFromMarkup(item.project_link);
 
+                            let watershedPlans = null;
+                            if (item.watershed_plans !== null) {
+                              try {
+                                watershedPlans = JSON.parse(
+                                  item.watershed_plans,
+                                );
+                              } catch (err) {
+                                console.error(err);
+                              }
+                            }
+
                             return (
                               <AccordionItem
                                 key={index}
@@ -202,6 +218,44 @@ function Restore() {
                                     },
                                   ]}
                                 />
+                                {Array.isArray(watershedPlans) &&
+                                  watershedPlans.length > 0 && (
+                                    <div css={accordionContentStyles}>
+                                      <table
+                                        css={modifiedTableStyles}
+                                        className="table"
+                                      >
+                                        <thead>
+                                          <tr>
+                                            <th>Watershed Plan</th>
+                                            <th>Watershed Plan Status</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {watershedPlans.map((plan) => (
+                                            <tr key={plan.title}>
+                                              <td>
+                                                {plan.link ? (
+                                                  <a
+                                                    href={plan.link}
+                                                    rel="noopener noreferrer"
+                                                    target="_blank"
+                                                  >
+                                                    {plan.title}
+                                                  </a>
+                                                ) : (
+                                                  plan.title
+                                                )}
+                                              </td>
+                                              <td>
+                                                {plan.status || 'Not Available'}
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
                               </AccordionItem>
                             );
                           })}

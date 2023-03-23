@@ -45,6 +45,7 @@ import {
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 import { parameterList } from 'config/attainsParameters';
+import grtsData from 'config/grtsTestData.json';
 // errors
 import {
   geocodeError,
@@ -1062,7 +1063,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12Param}`)
         .then((res) => {
           setGrts({
-            data: res,
+            // data: res,
+            data: grtsData,
             status: 'success',
           });
         })
