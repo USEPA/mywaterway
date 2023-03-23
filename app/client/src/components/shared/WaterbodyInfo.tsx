@@ -580,7 +580,7 @@ function WaterbodyInfo({
           },
           {
             label: 'Permit Components',
-            value: attributes.PermitComponents,
+            value: attributes.PermitComponents || 'Other',
           },
           {
             label: 'Significant Effluent Violation within the last 3 years',

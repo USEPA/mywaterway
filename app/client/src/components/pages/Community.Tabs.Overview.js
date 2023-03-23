@@ -870,7 +870,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
               <br />
               Compliance Status: {status}
               <br />
-              Permit Components: {components || 'N/A'}
+              Permit Components: {components || 'Other'}
             </>
           }
           feature={feature}
