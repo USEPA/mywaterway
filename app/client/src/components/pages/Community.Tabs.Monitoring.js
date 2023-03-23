@@ -41,7 +41,6 @@ import {
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
-  getEnclosedLayer,
   useStreamgages,
   useMonitoringGroups,
   useWaterbodyOnMap,
@@ -890,8 +889,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       setAllToggled(true);
       if (!monitoringLocationsLayer) return;
 
-      const layer = getEnclosedLayer(monitoringLocationsLayer);
-      if (layer) layer.definitionExpression = '';
+      monitoringLocationsLayer.definitionExpression = '';
     };
   }, [
     huc12,
@@ -937,9 +935,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   useEffect(() => {
     if (!monitoringLocationsLayer || !monitoringGroups) return;
 
-    const layer = getEnclosedLayer(monitoringLocationsLayer);
-    if (!layer) return;
-
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
       monitoringYearsRange,
@@ -958,11 +953,13 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
     // update the filters on the layer
     if (toggledLocations.length === monitoringGroups?.['All'].stations.length) {
-      layer.definitionExpression = '';
+      monitoringLocationsLayer.definitionExpression = '';
     } else if (locationIds.length === 0) {
-      layer.definitionExpression = '1=0';
+      monitoringLocationsLayer.definitionExpression = '1=0';
     } else {
-      layer.definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
+      monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
+        "','",
+      )}')`;
     }
 
     setCurrentLocations(allLocations);

@@ -9,7 +9,7 @@ import {
 } from 'contexts/Surroundings';
 
 export function useAllWaterbodiesLayer(minScale = 577791) {
-  const { mapView } = useContext(LocationSearchContext);
+  const { huc12, mapView } = useContext(LocationSearchContext);
   const { disabled, updating } = useSurroundingsState();
   const { allWaterbodiesLayer, updateVisibleLayers, visibleLayers } =
     useLayers();
@@ -24,6 +24,12 @@ export function useAllWaterbodiesLayer(minScale = 577791) {
       (layer as __esri.FeatureLayer).minScale = minScale;
     });
   }, [minScale, allWaterbodiesLayer]);
+
+  // Show the layer when a HUC is searched
+  useEffect(() => {
+    if (!huc12) return;
+    updateVisibleLayers({ [layerId]: true });
+  }, [huc12, surroundingsDispatch, updateVisibleLayers]);
 
   // Synchronize layer visibility in widget with actual layer visibility
   useEffect(() => {

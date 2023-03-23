@@ -65,7 +65,13 @@ const tooltipNotLoaded = {
   text: 'Check to make sure this layer is loaded on your map.',
 };
 
-const layersToIgnore = ['nonprofitsLayer', 'protectedAreasHighlightLayer'];
+const layersToIgnore = [
+  'nonprofitsLayer',
+  'protectedAreasHighlightLayer',
+  'surroundingDischargersLayer',
+  'surroundingMonitoringLocationsLayer',
+  'surroundingUsgsStreamgagesLayer',
+];
 if (
   window.location.pathname.includes('/plan-summary') ||
   window.location.pathname.includes('/waterbody-report')

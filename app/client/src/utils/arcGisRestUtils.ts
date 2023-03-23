@@ -684,16 +684,6 @@ async function applyEdits({
         ) as __esri.FeatureLayer;
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
-      } else if (
-        [
-          'dischargersLayer',
-          'monitoringLocationsLayer',
-          'usgsStreamgagesLayer',
-        ].includes(layer.id)
-      ) {
-        const groupLayer = layer.layer as __esri.GroupLayer;
-        const enclosedLayer = groupLayer.findLayerById(`${layer.id}-enclosed`);
-        await processLayerFeatures(enclosedLayer, adds);
       } else if (layer.widgetLayer?.type === 'file') {
         adds = layer.widgetLayer.rawLayer.featureSet.features;
       } else {

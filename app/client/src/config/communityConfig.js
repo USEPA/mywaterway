@@ -308,7 +308,6 @@ const tabs = [
     upper: <OverviewUpper />,
     lower: <Overview />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: true,
       searchIconLayer: true,
       waterbodyLayer: true,
@@ -321,7 +320,6 @@ const tabs = [
     upper: <SwimmingUpper />,
     lower: <Swimming />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: true,
       searchIconLayer: true,
       waterbodyLayer: true,
@@ -334,7 +332,6 @@ const tabs = [
     upper: <EatingFishUpper />,
     lower: <EatingFish />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: true,
       searchIconLayer: true,
       waterbodyLayer: true,
@@ -347,7 +344,6 @@ const tabs = [
     upper: <AquaticLifeUpper />,
     lower: <AquaticLife />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: true,
       searchIconLayer: true,
       waterbodyLayer: true,
@@ -360,7 +356,6 @@ const tabs = [
     upper: <DrinkingWaterUpper />,
     lower: <DrinkingWater />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: false,
       searchIconLayer: true,
       providersLayer: true,
@@ -373,7 +368,6 @@ const tabs = [
     upper: <MonitoringUpper />,
     lower: <Monitoring />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: true,
       cyanLayer: true,
       searchIconLayer: true,
@@ -387,7 +381,6 @@ const tabs = [
     upper: <IdentifiedIssuesUpper />,
     lower: <IdentifiedIssues />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: true,
       issuesLayer: true,
       searchIconLayer: true,
@@ -400,7 +393,6 @@ const tabs = [
     upper: <RestoreUpper />,
     lower: <Restore />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: true,
       searchIconLayer: true,
     },
@@ -412,7 +404,6 @@ const tabs = [
     upper: <ProtectUpper />,
     lower: <Protect />,
     layers: {
-      allWaterbodiesLayer: true,
       boundariesLayer: true,
       searchIconLayer: true,
     },

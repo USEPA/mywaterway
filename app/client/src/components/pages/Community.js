@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import { WindowSize } from '@reach/window-size';
@@ -22,6 +22,7 @@ import {
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+import { useSurroundingsState } from 'contexts/Surroundings';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -137,6 +138,15 @@ function Community() {
     };
   }, [fetchedDataDispatch, resetData, setLastSearchText, setSearchText]);
 
+  // Carry over surrounding features layer visibility between tabs.
+  // A ref is used to prevent state updates when surrounding layers are toggled.
+  const { visible: surroundingsVisible } = useSurroundingsState();
+  const surroundingsVisibleRef = useRef(surroundingsVisible);
+
+  useEffect(() => {
+    surroundingsVisibleRef.current = surroundingsVisible;
+  }, [surroundingsVisible]);
+
   useEffect(() => {
     // don't show any tab based layers if on community landing page
     if (window.location.pathname === '/community' || activeTabIndex === -1) {
@@ -145,6 +155,7 @@ function Community() {
 
     updateVisibleLayers(
       {
+        ...surroundingsVisibleRef.current,
         ...tabs[activeTabIndex].layers,
       },
       false,
@@ -275,15 +286,15 @@ function Community() {
 export default function CommunityContainer() {
   return (
     <EsriMapProvider>
-      <LayersProvider>
-        <CommunityTabsProvider>
+      <CommunityTabsProvider>
+        <LayersProvider>
           <MapHighlightProvider>
             <FullscreenProvider>
               <Community />
             </FullscreenProvider>
           </MapHighlightProvider>
-        </CommunityTabsProvider>
-      </LayersProvider>
+        </LayersProvider>
+      </CommunityTabsProvider>
     </EsriMapProvider>
   );
 }

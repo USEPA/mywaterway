@@ -1,4 +1,10 @@
-import { createContext, useCallback, useContext, useReducer } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useReducer,
+} from 'react';
 // types
 import type { Dispatch, ReactNode } from 'react';
 
@@ -14,6 +20,12 @@ function reducer(state: LayersState, action: Action): LayersState {
           ...state.errored,
           ...action.payload,
         },
+      };
+    }
+    case 'initialized': {
+      return {
+        ...state,
+        initialized: action.payload,
       };
     }
     case 'layersMulti': {
@@ -96,6 +108,75 @@ export function useLayers() {
   const state = useLayersState();
   const dispatch = useLayersDispatch();
 
+  // Order of layers for the Community page.
+  // Other pages use a local `layers` state variable.
+  const { layers } = state;
+  const orderedLayers = useMemo(() => {
+    const {
+      actionsWaterbodies,
+      allWaterbodiesLayer,
+      boundariesLayer,
+      congressionalLayer,
+      countyLayer,
+      cyanLayer,
+      dischargersLayer,
+      ejscreenLayer,
+      issuesLayer,
+      landCoverLayer,
+      mappedWaterLayer,
+      monitoringLocationsLayer,
+      nonprofitsLayer,
+      protectedAreasHighlightLayer,
+      protectedAreasLayer,
+      providersLayer,
+      searchIconLayer,
+      selectedTribeLayer,
+      stateBoundariesLayer,
+      surroundingDischargersLayer,
+      surroundingMonitoringLocationsLayer,
+      surroundingUsgsStreamgagesLayer,
+      tribalLayer,
+      upstreamLayer,
+      usgsStreamgagesLayer,
+      waterbodyLayer,
+      watershedsLayer,
+      wildScenicRiversLayer,
+      wsioHealthIndexLayer,
+    } = layers;
+
+    return [
+      ejscreenLayer,
+      wsioHealthIndexLayer,
+      landCoverLayer,
+      protectedAreasLayer,
+      protectedAreasHighlightLayer,
+      wildScenicRiversLayer,
+      tribalLayer,
+      congressionalLayer,
+      stateBoundariesLayer,
+      mappedWaterLayer,
+      countyLayer,
+      watershedsLayer,
+      allWaterbodiesLayer,
+      actionsWaterbodies,
+      selectedTribeLayer,
+      providersLayer,
+      boundariesLayer,
+      waterbodyLayer,
+      issuesLayer,
+      cyanLayer,
+      upstreamLayer,
+      monitoringLocationsLayer,
+      surroundingMonitoringLocationsLayer,
+      usgsStreamgagesLayer,
+      surroundingUsgsStreamgagesLayer,
+      dischargersLayer,
+      surroundingDischargersLayer,
+      nonprofitsLayer,
+      searchIconLayer,
+    ].filter((layer) => layer !== null);
+  }, [layers]);
+
   const { resetters } = state;
   const resetLayers = useCallback(
     (resetVisibility = false) => {
@@ -113,6 +194,13 @@ export function useLayers() {
   const setLayer = useCallback(
     <L extends LayerId>(layerId: L, layer: LayersState['layers'][L]) => {
       dispatch({ type: 'layers', id: layerId, payload: layer });
+    },
+    [dispatch],
+  );
+
+  const setLayersInitialized = useCallback(
+    (isInitialized: boolean) => {
+      dispatch({ type: 'initialized', payload: isInitialized });
     },
     [dispatch],
   );
@@ -149,8 +237,11 @@ export function useLayers() {
   return {
     ...state.layers,
     erroredLayers: state.errored,
+    layersInitialized: state.initialized,
+    orderedLayers,
     resetLayers,
     setLayer,
+    setLayersInitialized,
     setResetHandler,
     updateErroredLayers,
     updateVisibleLayers,
@@ -186,7 +277,12 @@ const featureLayerIds = [
   'waterbodyAreas',
   'countyLayer',
   'congressionalLayer',
-  'ejscreenLayer',
+  'dischargersLayer',
+  'monitoringLocationsLayer',
+  'surroundingDischargersLayer',
+  'surroundingMonitoringLocationsLayer',
+  'surroundingUsgsStreamgagesLayer',
+  'usgsStreamgagesLayer',
   'waterbodyLines',
   'waterbodyPoints',
   'watershedsLayer',
@@ -209,10 +305,8 @@ const graphicsLayerIds = [
 const groupLayerIds = [
   'allWaterbodiesLayer',
   'cyanLayer',
-  'monitoringLocationsLayer',
-  'dischargersLayer',
+  'ejscreenLayer',
   'tribalLayer',
-  'usgsStreamgagesLayer',
   'waterbodyLayer',
 ] as const;
 
@@ -239,6 +333,7 @@ const initialState = layerIds.reduce(
         ...state.errored,
         [layerId]: false,
       },
+      initialized: false,
       layers: {
         ...state.layers,
         [layerId]: null,
@@ -269,6 +364,10 @@ type Action =
   | {
       type: 'erroredMulti';
       payload: LayersState['errored'];
+    }
+  | {
+      type: 'initialized';
+      payload: boolean;
     }
   | {
       type: 'layersMulti';
@@ -305,6 +404,7 @@ export type LayersState = {
   errored: {
     [L in LayerId]: boolean;
   };
+  initialized: boolean;
   layers: {
     [F in (typeof featureLayerIds)[number]]: __esri.FeatureLayer | null;
   } & {
