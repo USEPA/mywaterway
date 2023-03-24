@@ -516,10 +516,7 @@ function CommunityTabs() {
 
         <header css={tabHeaderStyles}>
           <div>
-            <img
-              src={tabs[activeTabIndex].icon}
-              alt={tabs[activeTabIndex].title}
-            />
+            <img src={tabs[activeTabIndex].icon} alt="" />
             <h1 css={tabTitleStyles}>{tabs[activeTabIndex].title}</h1>
           </div>
 

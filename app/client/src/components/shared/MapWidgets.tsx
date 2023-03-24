@@ -176,9 +176,12 @@ const orderedLayers = [
   'waterbodyLayer',
   'allWaterbodiesLayer',
   'monitoringLocationsLayer',
+  'surroundingMonitoringLocationsLayer',
   'usgsStreamgagesLayer',
+  'surroundingUsgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',
+  'surroundingDischargersLayer',
   'cyanLayer',
   'nonprofitsLayer',
   'providersLayer',
@@ -249,7 +252,10 @@ function updateLegend(
       (layer.visible && layer.listMode !== 'hide') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamLayer') ||
-      (layer.visible && layer.id === 'allWaterbodiesLayer')
+      (layer.visible && layer.id === 'allWaterbodiesLayer') ||
+      (layer.visible && layer.id === 'surroundingDischargersLayer') ||
+      (layer.visible && layer.id === 'surroundingUsgsStreamgagesLayer') ||
+      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer')
     ) {
       visibleLayers.push(layer);
     }
