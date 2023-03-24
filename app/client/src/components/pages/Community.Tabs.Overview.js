@@ -1039,7 +1039,7 @@ function PermittedDischargersTab({
               <br />
               Compliance Status: {status}
               <br />
-              Permit Components: {components || 'Other'}
+              Permit Components: {components || 'None'}
             </>
           }
           feature={feature}
@@ -1113,7 +1113,7 @@ function PermittedDischargersTab({
                       const component = dischargerPermitComponents[key];
 
                       const componentLabel = !component.label
-                        ? 'Other'
+                        ? 'None'
                         : component.label;
 
                       return (
@@ -1127,8 +1127,8 @@ function PermittedDischargersTab({
                                 }
                                 ariaLabel={`Toggle ${componentLabel}`}
                               />
-                              {componentLabel === 'Other' ? (
-                                <span>Other</span>
+                              {componentLabel === 'None' ? (
+                                <span>None</span>
                               ) : (
                                 <GlossaryTerm term={componentLabel}>
                                   {componentLabel}

@@ -580,7 +580,13 @@ function WaterbodyInfo({
           },
           {
             label: 'Permit Components',
-            value: attributes.PermitComponents || 'Other',
+            value: attributes.PermitComponents
+              ? attributes.PermitComponents.split(', ')
+                  .sort()
+                  .map((term: string) => (
+                    <GlossaryTerm term={term}>{term}</GlossaryTerm>
+                  ))
+              : 'None',
           },
           {
             label: 'Significant Effluent Violation within the last 3 years',

@@ -757,7 +757,7 @@ function IdentifiedIssues() {
                               <>
                                 NPDES ID: {id}
                                 <br />
-                                Permit Components: {components || 'Other'}
+                                Permit Components: {components || 'None'}
                               </>
                             }
                             feature={feature}
