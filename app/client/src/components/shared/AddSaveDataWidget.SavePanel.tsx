@@ -617,17 +617,15 @@ function SavePanel({ visible }: Props) {
           ).some((a) => !a.toggled);
           if (dischargersFiltered) {
             const filters: string[] = [];
-            if (dischargersFiltered) {
-              Object.keys(dischargerPermitComponents)
-                .filter((key) => key !== 'All')
-                .sort()
-                .forEach((key) => {
-                  const group = dischargerPermitComponents[key];
-                  if (group.label === 'All' || !group.toggled) return;
+            Object.keys(dischargerPermitComponents)
+              .filter((key) => key !== 'All')
+              .sort()
+              .forEach((key) => {
+                const group = dischargerPermitComponents[key];
+                if (group.label === 'All' || !group.toggled) return;
 
-                  filters.push(group.label || 'Other');
-                });
-            }
+                filters.push(group.label || 'Other');
+              });
 
             layerDisclaimers.push(`
               <i>${value.label}</i> is filtered to ${buildFilterString(
