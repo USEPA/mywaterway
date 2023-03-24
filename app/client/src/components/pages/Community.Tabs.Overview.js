@@ -8,6 +8,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   circleIcon,
@@ -356,6 +357,9 @@ function Overview() {
 
             <TabPanel>
               <PermittedDischargersTab
+                setPermittedDischargersDisplayed={
+                  setPermittedDischargersDisplayed
+                }
                 totalPermittedDischargers={totalPermittedDischargers}
               />
             </TabPanel>
@@ -795,20 +799,167 @@ function sortDischarchers(dischargers, sortBy) {
   }
 }
 
-function PermittedDischargersTab({ totalPermittedDischargers }) {
+function PermittedDischargersTab({
+  setPermittedDischargersDisplayed,
+  totalPermittedDischargers,
+}) {
   const { dischargers, dischargersStatus } = useDischargers();
 
-  const { watershed } = useContext(LocationSearchContext);
+  const {
+    dischargerPermitComponents,
+    setDischargerPermitComponents,
+    watershed,
+  } = useContext(LocationSearchContext);
 
+  const { dischargersLayer } = useLayers();
+
+  const [allToggled, setAllToggled] = useState(true);
+  const [displayedDischargers, setDisplayedDischargers] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
 
   const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
     useState('CWPName');
 
+  // Filter dischargers
+  useEffect(() => {
+    if (!dischargersLayer || !dischargerPermitComponents) return;
+
+    const dischargerIds = [];
+    let dischargersToDisplay = [];
+    if (dischargerPermitComponents.All.toggled) {
+      dischargersToDisplay = dischargerPermitComponents.All.dischargers;
+    } else {
+      // generate a list of discharger ids
+      Object.values(dischargerPermitComponents).forEach((group) => {
+        if (group.label === 'All' || !group.toggled) return;
+
+        group.dischargers.forEach((discharger) => {
+          const uniqueId = discharger.uniqueId;
+          if (!dischargerIds.includes(uniqueId)) {
+            dischargerIds.push(uniqueId);
+            dischargersToDisplay.push(discharger);
+          }
+        });
+      });
+    }
+
+    // update the filters on the layer
+    if (dischargerPermitComponents.All.toggled) {
+      dischargersLayer.definitionExpression = '';
+    } else if (dischargerIds.length === 0) {
+      dischargersLayer.definitionExpression = '1=0';
+    } else {
+      dischargersLayer.definitionExpression = `uniqueId IN ('${dischargerIds.join(
+        "','",
+      )}')`;
+    }
+
+    setDisplayedDischargers(dischargersToDisplay);
+  }, [dischargerPermitComponents, dischargersLayer]);
+
   const sortedPermittedDischargers = sortDischarchers(
-    dischargers,
+    displayedDischargers,
     permittedDischargersSortedBy,
   );
+
+  useEffect(() => {
+    if (dischargersStatus !== 'success') return;
+
+    const alreadyAdded = [];
+    const permitComponents = {
+      All: {
+        dischargers: [],
+        label: 'All',
+        toggled: true,
+      },
+    };
+
+    // build a unique list of permit components
+    dischargers.forEach((discharger) => {
+      // there can be multiple permit components split by ", "
+      const components = discharger.PermitComponents?.split(', ') || [null];
+
+      components.forEach((component) => {
+        if (!permitComponents.hasOwnProperty(component)) {
+          permitComponents[component] = {
+            dischargers: [discharger],
+            label: component,
+            toggled: true,
+          };
+        } else {
+          permitComponents[component].dischargers.push(discharger);
+        }
+
+        if (!alreadyAdded.includes(discharger.uniqueId)) {
+          permitComponents['All'].dischargers.push(discharger);
+          alreadyAdded.push(discharger.uniqueId);
+        }
+      });
+    });
+
+    setDischargerPermitComponents(permitComponents);
+  }, [dischargers, dischargersStatus, setDischargerPermitComponents]);
+
+  const toggleAll = useCallback(() => {
+    if (!dischargerPermitComponents) return;
+
+    const updatedGroups = { ...dischargerPermitComponents };
+    for (const label in updatedGroups) {
+      updatedGroups[label].toggled = !allToggled;
+    }
+    setPermittedDischargersDisplayed(!allToggled);
+    setAllToggled((prev) => !prev);
+    setDischargerPermitComponents(updatedGroups);
+  }, [
+    allToggled,
+    dischargerPermitComponents,
+    setDischargerPermitComponents,
+    setPermittedDischargersDisplayed,
+  ]);
+
+  const groupToggleHandler = useCallback(
+    (groupLabel) => {
+      return function toggleGroup(_ev) {
+        if (!dischargerPermitComponents) return;
+
+        const updatedGroups = { ...dischargerPermitComponents };
+        updatedGroups[groupLabel].toggled = !updatedGroups[groupLabel].toggled;
+
+        let allOthersToggled = true;
+        for (let key in updatedGroups) {
+          if (key === 'All') continue;
+          if (!updatedGroups[key].toggled) allOthersToggled = false;
+        }
+        setAllToggled(allOthersToggled);
+        updatedGroups.All.toggled = allOthersToggled;
+
+        setDischargerPermitComponents(updatedGroups);
+
+        // only check the toggles that are on the screen
+        const someToggled = Object.keys(updatedGroups)
+          .filter((label) => label !== 'All')
+          .some((key) => updatedGroups[key].toggled);
+        setPermittedDischargersDisplayed(someToggled);
+      };
+    },
+    [
+      dischargerPermitComponents,
+      setDischargerPermitComponents,
+      setPermittedDischargersDisplayed,
+    ],
+  );
+
+  const groupToggleHandlers = useMemo(() => {
+    if (!dischargerPermitComponents) return null;
+
+    const toggles = {};
+    Object.values(dischargerPermitComponents)
+      .filter((group) => group.label !== 'All')
+      .forEach((group) => {
+        toggles[group.label] = groupToggleHandler(group.label);
+      });
+    return toggles;
+  }, [dischargerPermitComponents, groupToggleHandler]);
 
   const handleSortChange = useCallback((sortBy) => {
     setPermittedDischargersSortedBy(sortBy.value);
@@ -848,7 +999,12 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
     ({ index }) => {
       const discharger = sortedPermittedDischargers[index];
 
-      const { uniqueId: id, CWPName: name, CWPStatus: status, PermitComponents: components } = discharger;
+      const {
+        uniqueId: id,
+        CWPName: name,
+        CWPStatus: status,
+        PermitComponents: components,
+      } = discharger;
 
       const feature = {
         geometry: {
@@ -918,15 +1074,71 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 &nbsp;Permitted Dischargers&nbsp;
               </span>
             </div>
+
+            <table css={toggleTableStyles} className="table">
+              <thead>
+                <tr>
+                  <th>
+                    <div css={toggleStyles}>
+                      <Switch
+                        checked={allToggled}
+                        onChange={toggleAll}
+                        ariaLabel="Toggle all permit components"
+                      />
+                      <span>All Permit Component</span>
+                    </div>
+                  </th>
+                  <th>Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dischargerPermitComponents &&
+                  Object.keys(dischargerPermitComponents)
+                    .filter((key) => key !== 'All')
+                    .sort()
+                    .map((key) => {
+                      const component = dischargerPermitComponents[key];
+
+                      const componentLabel = !component.label
+                        ? 'Other'
+                        : component.label;
+
+                      return (
+                        <tr key={key}>
+                          <td>
+                            <div css={toggleStyles}>
+                              <Switch
+                                checked={component.toggled}
+                                onChange={
+                                  groupToggleHandlers?.[component.label]
+                                }
+                                ariaLabel={`Toggle ${componentLabel}`}
+                              />
+                              {componentLabel === 'Other' ? (
+                                <span>Other</span>
+                              ) : (
+                                <GlossaryTerm term={componentLabel}>
+                                  {componentLabel}
+                                </GlossaryTerm>
+                              )}
+                            </div>
+                          </td>
+                          <td>{component.dischargers.length}</td>
+                        </tr>
+                      );
+                    })}
+              </tbody>
+            </table>
+
             <AccordionList
               title={
                 <>
-                  There {totalPermittedDischargers === 1 ? 'is' : 'are'}{' '}
-                  <strong>{totalPermittedDischargers}</strong> permitted{' '}
-                  {totalPermittedDischargers === 1
-                    ? 'discharger'
-                    : 'dischargers'}{' '}
-                  in the <em>{watershed}</em> watershed.
+                  <strong>
+                    {displayedDischargers.length.toLocaleString()}
+                  </strong>{' '}
+                  of{' '}
+                  <strong>{totalPermittedDischargers.toLocaleString()}</strong>{' '}
+                  permitted dischargers in the <em>{watershed}</em> watershed.
                 </>
               }
               onSortChange={handleSortChange}

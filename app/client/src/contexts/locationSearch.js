@@ -3,6 +3,7 @@ import React, { Component, createContext } from 'react';
 // types
 import type { ReactNode } from 'react';
 import type {
+  DischargerPermitComponents,
   Huc12SummaryData,
   MonitoringLocationGroups,
   MonitoringYearsRange,
@@ -61,6 +62,9 @@ type State = {
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
   FIPS: Object,
+
+  // dischargers
+  dischargerPermitComponents: DischargerPermitComponents,
 
   // monitoring panel
   monitoringGroups: MonitoringLocationGroups,
@@ -130,6 +134,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     errorMessage: '',
     summaryLayerMaxRecordCount: null,
     watershedsLayerMaxRecordCount: null,
+
+    // dischargers
+    dischargerPermitComponents: null,
 
     // monitoring panel
     monitoringGroups: null,
@@ -281,6 +288,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setCipSummary: (cipSummary: { status: Status, data: Huc12SummaryData }) => {
       this.setState({ cipSummary });
     },
+    setDischargerPermitComponents: (dischargerPermitComponents) => {
+      this.setState({ dischargerPermitComponents });
+    },
     setMonitoringGroups: (monitoringGroups) => {
       this.setState({ monitoringGroups });
     },
@@ -362,6 +372,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         countyBoundaries: '',
         atHucBoundaries: false,
         hucBoundaries: '',
+        dischargerPermitComponents: null,
         monitoringGroups: null,
         monitoringFeatureUpdates: null,
         monitoringYearsRange: null,
