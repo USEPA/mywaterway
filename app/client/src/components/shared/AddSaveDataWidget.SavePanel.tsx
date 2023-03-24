@@ -29,6 +29,7 @@ import {
 } from 'utils/mapFunctions';
 // types
 import {
+  DischargerPermitComponents,
   Huc12SummaryData,
   MonitoringLocationGroups,
   MonitoringYearsRange,
@@ -55,7 +56,19 @@ type PublishType = {
 const tooltipCost = {
   icon: 'fas fa-coins',
   text: 'Saving this layer may incur storage credits in ArcGIS online.',
-  richText: <>Saving this layer may incur <a href="https://doc.arcgis.com/en/arcgis-online/administer/credits.htm" target="_blank" rel="noopener noreferrer">storage credits</a> in ArcGIS online.</>,
+  richText: (
+    <>
+      Saving this layer may incur{' '}
+      <a
+        href="https://doc.arcgis.com/en/arcgis-online/administer/credits.htm"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        storage credits
+      </a>{' '}
+      in ArcGIS online.
+    </>
+  ),
 };
 const tooltipFiltered = {
   icon: 'fas fa-asterisk',
@@ -242,12 +255,14 @@ function SavePanel({ visible }: Props) {
     status: Status;
     data: Huc12SummaryData;
   };
+  const dischargerPermitComponents = useContext(LocationSearchContext)
+    .dischargerPermitComponents as DischargerPermitComponents | null;
   const mapView = useContext(LocationSearchContext)
     .mapView as __esri.MapView | null;
   const monitoringGroups = useContext(LocationSearchContext)
-    .monitoringGroups as MonitoringLocationGroups;
+    .monitoringGroups as MonitoringLocationGroups | null;
   const monitoringYearsRange = useContext(LocationSearchContext)
-    .monitoringYearsRange as MonitoringYearsRange;
+    .monitoringYearsRange as MonitoringYearsRange | null;
   const monitoringWorkerData = useContext(LocationSearchContext)
     .monitoringWorkerData as MonitoringWorkerData;
   const parameterToggleObject = useContext(LocationSearchContext)
@@ -591,13 +606,36 @@ function SavePanel({ visible }: Props) {
       });
 
       // build the filter disclaimer for the dischargers layer
-      if (
-        value.id === 'dischargersLayer' &&
-        window.location.pathname.includes('/identified-issues')
-      ) {
-        layerDisclaimers.push(`
-          <i>${value.label}</i> is filtered to dischargers with significant violations.
-        `);
+      if (value.id === 'dischargersLayer') {
+        if (window.location.pathname.includes('/identified-issues')) {
+          layerDisclaimers.push(`
+            <i>${value.label}</i> is filtered to dischargers with significant violations.
+          `);
+        } else if (dischargerPermitComponents) {
+          const dischargersFiltered = Object.values(
+            dischargerPermitComponents,
+          ).some((a) => !a.toggled);
+          if (dischargersFiltered) {
+            const filters: string[] = [];
+            if (dischargersFiltered) {
+              Object.keys(dischargerPermitComponents)
+                .filter((key) => key !== 'All')
+                .sort()
+                .forEach((key) => {
+                  const group = dischargerPermitComponents[key];
+                  if (group.label === 'All' || !group.toggled) return;
+
+                  filters.push(group.label || 'Other');
+                });
+            }
+
+            layerDisclaimers.push(`
+              <i>${value.label}</i> is filtered to ${buildFilterString(
+              filters,
+            )}.
+            `);
+          }
+        }
       }
 
       // build the filter disclaimer for the monitoringLocationsLayer
@@ -665,9 +703,7 @@ function SavePanel({ visible }: Props) {
         if (!allToggled) {
           filters.sort();
           layerDisclaimers.push(`
-            <i>${value.label}</i> is filtered to ${buildFilterString(
-            filters,
-          )}.
+            <i>${value.label}</i> is filtered to ${buildFilterString(filters)}.
           `);
         }
       }
