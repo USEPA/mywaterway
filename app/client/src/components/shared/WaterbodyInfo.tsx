@@ -584,7 +584,7 @@ function WaterbodyInfo({
               ? attributes.PermitComponents.split(', ')
                   .sort()
                   .map((term: string) => (
-                    <GlossaryTerm term={term}>{term}</GlossaryTerm>
+                    <GlossaryTerm key={term} term={term}>{term}</GlossaryTerm>
                   ))
               : 'None',
           },
