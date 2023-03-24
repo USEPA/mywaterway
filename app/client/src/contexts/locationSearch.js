@@ -64,18 +64,18 @@ type State = {
   FIPS: Object,
 
   // dischargers
-  dischargerPermitComponents: DischargerPermitComponents,
+  dischargerPermitComponents: DischargerPermitComponents | null,
 
   // monitoring panel
-  monitoringGroups: MonitoringLocationGroups,
+  monitoringGroups: MonitoringLocationGroups | null,
   monitoringFeatureUpdates: ?Object,
-  monitoringYearsRange: MonitoringYearsRange,
+  monitoringYearsRange: MonitoringYearsRange | null,
   monitoringWorkerData: MonitoringWorkerData,
 
   // identified issues panel
   showAllPolluted: boolean,
   parameterToggleObject: ParameterToggleObject,
-  pollutionParameters: Object,
+  pollutionParameters: Object | null,
   violatingDischargersOnly: boolean,
 };
 

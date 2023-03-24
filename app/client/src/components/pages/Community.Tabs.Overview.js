@@ -807,6 +807,7 @@ function PermittedDischargersTab({
 
   const {
     dischargerPermitComponents,
+    huc12,
     setDischargerPermitComponents,
     watershed,
   } = useContext(LocationSearchContext);
@@ -960,6 +961,18 @@ function PermittedDischargersTab({
       });
     return toggles;
   }, [dischargerPermitComponents, groupToggleHandler]);
+
+  // Reset data if the user switches locations
+  useEffect(() => {
+    if (!huc12) return;
+
+    return function cleanup() {
+      setAllToggled(true);
+      if (!dischargersLayer) return;
+
+      dischargersLayer.definitionExpression = '';
+    };
+  }, [huc12, dischargersLayer]);
 
   const handleSortChange = useCallback((sortBy) => {
     setPermittedDischargersSortedBy(sortBy.value);
