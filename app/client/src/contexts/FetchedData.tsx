@@ -6,7 +6,7 @@ import {
   useReducer,
 } from 'react';
 import type {
-  Facility,
+  DischargerAttributes,
   FetchSuccessState,
   MonitoringLocationAttributes,
   UsgsStreamgageAttributes,
@@ -135,10 +135,10 @@ export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
 
 export type FetchedData = {
   monitoringLocations: MonitoringLocationAttributes[];
-  dischargers: Facility[];
+  dischargers: DischargerAttributes[];
   usgsStreamgages: UsgsStreamgageAttributes[];
   surroundingMonitoringLocations: MonitoringLocationAttributes[];
-  surroundingDischargers: Facility[];
+  surroundingDischargers: DischargerAttributes[];
   surroundingUsgsStreamgages: UsgsStreamgageAttributes[];
 };
 
