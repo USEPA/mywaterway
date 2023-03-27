@@ -1,6 +1,45 @@
 
 # Change Log
 
+## 2.6.0 (April 2023)
+
+### Added
+
+- Added a table of filter switches to the "Permitted Dischargers" section of the "Overview" panel, which allows users to filter locations by their _Permit Component_ type.
+
+- Added _Permit Type_ and _Permit Components_ rows to the the "Permitted Dischargers" information panel.
+
+- Added two headings to the State/Tribe page: one above the organization's description, if it has one, and another above the map on Tribe pages.
+
+- Added the ability to save a map to an ArcGIS Online account. For each selected layer, this saves references to map services wherever possible, and otherwise adds visible features to a hosted feature layer that is added to and saved alongside the map. In addition to any user-supplied description, an auto-generated description provides details about the date and time of the map's creation, as well as a list of filters that were applied to individual layers when the map was saved. 
+
+- Added a "Surrounding Features" widget, which aggregates the functionality that was provided by the "Surrounding Waterbodies" and "Surrounding Monitoring Locations" widgets, and adds similar functionality for "Permitted Dischargers" and "USGS Sensors".
+
+- Added latitude and longitude values to the information panels of "Past Water Conditions", "USGS Sensors" and "Permitted Dischargers" locations. Also added the same latitude and longitude values to the Monitoring Report page.
+
+- Added a "State-Specific Water Quality Standards Effective under the Clean Water Act (CWA)" link to the Waterbody Report page.
+
+- Added a link to the "How’s My Waterway January 2023 Watershed Academy Webcast" to the Educators page.
+
+### Changed
+
+- Updated the "Permitted Dischargers" service query to include GPC (General Permit Covered) facilities.
+
+- Converted the Data page to a template that pulls its content from HMW's S3 bucket.
+
+- Updated the CyAN web services to point at `cyan.epa.gov` instead of `qed.epa.gov`.
+
+- Updated the Layer List widget to include all layers on every tab of the Community page (though initial visibility may still vary from tab to tab).
+
+- Updated styles of the "data system" links on the Data page, the "View Monitoring Report" links in the monitoring location panels and the "View Waterbody Report" links in the waterbody panels so that they are shown in shaded boxes.
+
+- Updated the waterbody information panels and waterbody report page to link waterbody condition labels to the glossary.
+
+- Fixed a bug where extra dates would show and overlap on the CyAN panel date slider during the week following a shift to/from Daylight Savings Time.
+
+- Fixed an error in calculating the median statistic for a characteristic on the Monitoring Report page.
+
+
 ## 2.5.0.1 (January 2023) 
 
 ### Changed
