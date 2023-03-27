@@ -586,7 +586,7 @@ function WaterbodyInfo({
                   .map((term: string) => (
                     <GlossaryTerm key={term} term={term}>{term}</GlossaryTerm>
                   ))
-              : 'None',
+              : 'Not Specified',
           },
           {
             label: 'Significant Effluent Violation within the last 3 years',
