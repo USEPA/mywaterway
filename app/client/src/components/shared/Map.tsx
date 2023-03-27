@@ -5,6 +5,7 @@ import MapView from '@arcgis/core/views/MapView';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useLayers } from 'contexts/Layers';
 // types
@@ -22,6 +23,7 @@ type Props = {
 };
 
 function Map({ layers = null, startingExtent = null }: Props) {
+  const { widgetLayers } = useAddSaveDataWidgetState();
   const { basemap, highlightOptions, initialExtent, mapView, setMapView } =
     useContext(LocationSearchContext);
 
@@ -34,13 +36,16 @@ function Map({ layers = null, startingExtent = null }: Props) {
 
     // hide/show layers based on the visibleLayers object
     map?.layers.forEach((layer) => {
+      // ignore layers added from the add/save data widget
+      if (widgetLayers.some((l) => l.layer.id === layer.id)) return;
+
       if (visibleLayers.hasOwnProperty(layer.id)) {
         layer.visible = visibleLayers[layer.id as LayerId];
       } else {
         layer.visible = false;
       }
     });
-  }, [layers, visibleLayers, map]);
+  }, [layers, map, visibleLayers, widgetLayers]);
 
   const [mapInitialized, setMapInitialized] = useState(false);
 
