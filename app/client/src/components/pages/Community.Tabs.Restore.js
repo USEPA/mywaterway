@@ -188,8 +188,20 @@ function Restore() {
                                         }
                                       : null,
                                     {
-                                      label: 'Total Funds',
+                                      label: (
+                                        <GlossaryTerm term="Total EPA Funds">
+                                          Total EPA Funds
+                                        </GlossaryTerm>
+                                      ),
                                       value: item.total_319_funds,
+                                    },
+                                    {
+                                      label: (
+                                        <GlossaryTerm term="Total Budget">
+                                          Total Budget
+                                        </GlossaryTerm>
+                                      ),
+                                      value: item.total_budget,
                                     },
                                     {
                                       label: 'Project Start Date',
@@ -241,10 +253,12 @@ function Restore() {
                                                     rel="noopener noreferrer"
                                                     target="_blank"
                                                   >
-                                                    {plan.title}
+                                                    {plan.title ||
+                                                      'No Document Available'}
                                                   </a>
                                                 ) : (
-                                                  plan.title
+                                                  plan.title ||
+                                                  'No Document Available'
                                                 )}
                                               </td>
                                               <td>
