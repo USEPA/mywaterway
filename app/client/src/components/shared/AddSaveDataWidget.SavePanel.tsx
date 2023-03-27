@@ -731,7 +731,7 @@ function SavePanel({ visible }: Props) {
             <strong>About the saved data:</strong>
             <p>
               This is a snapshot of the selected data that was saved in How's My Waterway at a 
-              particular point in time. Note: If the data incurs 
+              particular point in time. <strong>Note:</strong> If the data incurs 
               <a 
                 href="https://doc.arcgis.com/en/arcgis-online/administer/credits.htm" 
                 target="_blank" 
