@@ -902,6 +902,7 @@ async function zoomToStation(layer, mapView, signal) {
     // handle zooming to a single point graphic
     const zoomParams = { target: targetGraphic, zoom: 16 };
     await reactiveUtils.whenOnce(() => mapView.ready);
+    await mapView.when();
     await mapView.goTo(zoomParams, { signal });
   }
 }
