@@ -17,8 +17,8 @@ function isExternalUrl(url: string) {
   ];
 
   if (
-    internalHostnames.includes(link.hostname) ||
-    link.hostname.endsWith('epa.gov')
+    internalHostnames.includes(link.host) ||
+    link.host.endsWith('epa.gov')
   ) {
     return false;
   }
