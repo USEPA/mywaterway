@@ -883,7 +883,20 @@ function WaterbodyReport() {
           </div>
         )}
         {waterbodyStatus.status === 'success' && (
-          <p>&nbsp; {waterbodyStatus.data.condition}</p>
+          <p>
+            &nbsp;{' '}
+            <GlossaryTerm
+              term={
+                waterbodyStatus.data.condition === conditions.good
+                  ? 'Good Waters'
+                  : waterbodyStatus.data.condition === conditions.impaired
+                  ? 'Impaired Waters'
+                  : 'Condition Unknown'
+              }
+            >
+              {waterbodyStatus.data.condition}
+            </GlossaryTerm>
+          </p>
         )}
       </div>
 
