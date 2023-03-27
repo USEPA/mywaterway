@@ -16,7 +16,7 @@ import {
 } from 'contexts/Surroundings';
 // utils
 import { useAbort } from 'utils/hooks';
-import { isAbort, toFixedFloat } from 'utils/utils';
+import { isAbort, isClick, toFixedFloat } from 'utils/utils';
 // types
 import type {
   EmptyFetchState,
@@ -216,7 +216,8 @@ function useBoundariesToggleLayer<
   // Manages the surrounding features visibility
   const toggleSurroundings = useCallback(
     (showSurroundings: boolean) => {
-      return function toggle() {
+      return function toggle(ev: React.KeyboardEvent | React.MouseEvent) {
+        if (!isClick(ev)) return;
         updateVisibleLayers({ [surroundingLayerId]: showSurroundings });
 
         surroundingsDispatch({

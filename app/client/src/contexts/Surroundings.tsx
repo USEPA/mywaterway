@@ -1,11 +1,6 @@
-import {
-  createContext,
-  MouseEventHandler,
-  useContext,
-  useReducer,
-} from 'react';
+import { createContext, useContext, useReducer } from 'react';
 // types
-import type { Dispatch, ReactNode } from 'react';
+import type { Dispatch, KeyboardEvent, MouseEvent, ReactNode } from 'react';
 
 const StateContext = createContext<SurroundingsState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -179,7 +174,9 @@ type Action =
   | {
       type: 'togglers';
       id: SurroundingFeaturesLayerId;
-      payload: (showSurroundings: boolean) => MouseEventHandler<HTMLDivElement>;
+      payload: (
+        showSurroundings: boolean,
+      ) => (ev: KeyboardEvent | MouseEvent) => void;
     }
   | {
       type: 'disabled';
@@ -203,7 +200,7 @@ export type SurroundingsState = {
   togglers: {
     [B in SurroundingFeaturesLayerId]: (
       showSurroundings: boolean,
-    ) => MouseEventHandler<HTMLDivElement>;
+    ) => (ev: KeyboardEvent | MouseEvent) => void;
   };
   disabled: {
     [B in SurroundingFeaturesLayerId]: boolean;

@@ -44,7 +44,7 @@ import {
   isPolygon,
   shallowCompare,
 } from 'utils/mapFunctions';
-import { isAbort } from 'utils/utils';
+import { isAbort, isClick } from 'utils/utils';
 // helpers
 import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
 // icons
@@ -598,6 +598,7 @@ function MapWidgets({
     view.ui.add({
       component: surroundingsWidget,
       position: 'top-right',
+      index: 1,
     });
 
     return function cleanup() {
@@ -605,61 +606,68 @@ function MapWidgets({
     };
   }, [surroundingsWidget, view]);
 
-  // Creates and adds the legend widget to the map
+  // Creates and adds the add/save data widget to the map
   const rnd = useRef<Rnd | null>(null);
+
+  // Ensures the add data widget stays within the map div
+  const width = useRef(window.innerWidth);
+  const handleResize = useCallback(() => {
+    const difference = width.current - window.innerWidth;
+    width.current = window.innerWidth;
+    if (difference < 0 || !rnd?.current) return;
+
+    let mapRect = document
+      .getElementById('hmw-map-container')
+      ?.getBoundingClientRect();
+    let awdRect = document
+      .getElementById('add-save-data-widget')
+      ?.getBoundingClientRect();
+
+    if (!mapRect || !awdRect) return;
+
+    const maxLeft = mapRect.width - awdRect.width;
+    const curLeft = awdRect.left - mapRect.left;
+
+    // update the position of the add save data widget
+    const newPosition =
+      curLeft > maxLeft
+        ? maxLeft
+        : awdRect.left - mapRect.left - difference / 2;
+    rnd.current.updatePosition({
+      x: newPosition < 0 ? 0 : newPosition,
+      y: rnd.current.draggable.state.y,
+    });
+  }, []);
+
   const [addSaveDataWidget, setAddSaveDataWidget] =
     useState<HTMLDivElement | null>(null);
   useEffect(() => {
-    if (!view?.ui || addSaveDataWidget) return;
+    if (!view?.ui) return;
 
     const node = document.createElement('div');
-    view.ui.add(node, { position: 'top-right', index: 1 });
+    view.ui.add(node, { position: 'top-right', index: 2 });
 
     render(
       <ShowAddSaveDataWidget
-        setAddSaveDataWidgetVisibleParam={setAddSaveDataWidgetVisible}
+        addSaveDataWidgetVisible={addSaveDataWidgetVisible}
+        setAddSaveDataWidgetVisible={setAddSaveDataWidgetVisible}
       />,
       node,
     );
 
-    // Ensures the add data widget stays within the map div
-    let width = window.innerWidth;
-    function handleResize() {
-      const difference = width - window.innerWidth;
-      width = window.innerWidth;
-      if (difference < 0 || !rnd?.current) return;
-
-      let mapRect = document
-        .getElementById('hmw-map-container')
-        ?.getBoundingClientRect();
-      let awdRect = document
-        .getElementById('add-save-data-widget')
-        ?.getBoundingClientRect();
-
-      if (!mapRect || !awdRect) return;
-
-      const maxLeft = mapRect.width - awdRect.width;
-      const curLeft = awdRect.left - mapRect.left;
-
-      // update the position of the add save data widget
-      const newPosition =
-        curLeft > maxLeft
-          ? maxLeft
-          : awdRect.left - mapRect.left - difference / 2;
-      rnd.current.updatePosition({
-        x: newPosition < 0 ? 0 : newPosition,
-        y: rnd.current.draggable.state.y,
-      });
-    }
-
     window.addEventListener('resize', handleResize);
 
     setAddSaveDataWidget(node);
+
+    return function cleanup() {
+      view?.ui.remove(node);
+      window.removeEventListener('resize', handleResize);
+    };
   }, [
     view,
-    addSaveDataWidget,
     addSaveDataWidgetVisible,
     setAddSaveDataWidgetVisible,
+    handleResize,
   ]);
 
   // Fetch additional legend information. Data is stored in a dictionary
@@ -989,7 +997,7 @@ function MapWidgets({
 
     render(widget, node);
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
-    view.ui.add(node, { position: 'top-right', index: 2 });
+    view.ui.add(node, { position: 'top-right', index: 3 });
 
     return function cleanup() {
       view?.ui.remove(node);
@@ -1058,6 +1066,7 @@ function MapWidgets({
         <div
           id="add-save-data-widget"
           className={addSaveDataWidgetVisible ? '' : 'hidden'}
+          role="region"
           style={{
             backgroundColor: 'white',
             pointerEvents: 'all',
@@ -1100,38 +1109,50 @@ function MapWidgets({
 }
 
 function ShowAddSaveDataWidget({
-  setAddSaveDataWidgetVisibleParam,
+  addSaveDataWidgetVisible,
+  setAddSaveDataWidgetVisible,
 }: {
-  setAddSaveDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
+  addSaveDataWidgetVisible: boolean;
+  setAddSaveDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
 }) {
   const [hover, setHover] = useState(false);
 
-  const widget = document.getElementById('add-save-data-widget');
-  const widgetHidden = widget?.classList.contains('hidden');
+  const clickHandler = useCallback(
+    (ev: React.MouseEvent | React.KeyboardEvent) => {
+      if (!isClick(ev)) return;
+      const widget = document.getElementById('add-save-data-widget');
+      if (!widget) return;
+
+      const widgetHidden = widget.classList.contains('hidden');
+      if (widgetHidden) {
+        widget.classList.remove('hidden');
+        setAddSaveDataWidgetVisible(true);
+      } else {
+        widget.classList.add('hidden');
+        setAddSaveDataWidgetVisible(false);
+      }
+    },
+    [setAddSaveDataWidgetVisible],
+  );
 
   return (
     <div
       className="add-save-data-widget"
       title={
-        widgetHidden
+        addSaveDataWidgetVisible
           ? 'Open Add & Save Data Widget'
           : 'Close Add & Save Data Widget'
       }
       style={hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
-      onClick={(_ev) => {
-        if (!widget) return;
-        if (widgetHidden) {
-          widget.classList.remove('hidden');
-          setAddSaveDataWidgetVisibleParam(true);
-        } else {
-          widget.classList.add('hidden');
-          setAddSaveDataWidgetVisibleParam(false);
-        }
-      }}
+      onClick={clickHandler}
+      onKeyDown={clickHandler}
+      role="button"
+      tabIndex={0}
     >
       <span
+        aria-hidden="true"
         className="esri-icon-add-attachment"
         style={hover ? buttonHoverStyle : buttonStyle}
       />
@@ -1186,6 +1207,22 @@ function ExpandCollapse({
 }: ExpandeCollapseProps) {
   const [hover, setHover] = useState(false);
 
+  const clickHandler = useCallback(
+    (ev: React.KeyboardEvent | React.MouseEvent) => {
+      if (!isClick(ev)) return;
+      // Toggle scroll bars
+      document.documentElement.style.overflow = fullscreenActive
+        ? 'auto'
+        : 'hidden';
+
+      // Toggle fullscreen mode
+      setFullscreenActive(!fullscreenActive);
+
+      mapViewSetter(null);
+    },
+    [fullscreenActive, mapViewSetter, setFullscreenActive],
+  );
+
   return (
     <div
       title={
@@ -1196,19 +1233,13 @@ function ExpandCollapse({
       style={hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
-      onClick={(_ev) => {
-        // Toggle scroll bars
-        document.documentElement.style.overflow = fullscreenActive
-          ? 'auto'
-          : 'hidden';
-
-        // Toggle fullscreen mode
-        setFullscreenActive(!fullscreenActive);
-
-        mapViewSetter(null);
-      }}
+      onClick={clickHandler}
+      onKeyDown={clickHandler}
+      role="button"
+      tabIndex={0}
     >
       <span
+        aria-hidden="true"
         className={
           fullscreenActive
             ? 'esri-icon esri-icon-zoom-in-fixed'
@@ -1392,7 +1423,7 @@ function retrieveUpstreamWatershed(
 
 interface ShowUpstreamWatershedProps {
   getUpstreamWidgetDisabled: () => boolean;
-  onClick: React.MouseEventHandler<HTMLDivElement>;
+  onClick: (ev: React.MouseEvent | React.KeyboardEvent) => void;
   selectionActive?: boolean;
   upstreamLayer: __esri.GraphicsLayer | null;
   upstreamLoading: boolean;
@@ -1426,8 +1457,12 @@ function ShowUpstreamWatershed({
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={onClick}
+      onKeyDown={onClick}
+      role="button"
+      tabIndex={0}
     >
       <span
+        aria-hidden="true"
         className={iconClass}
         style={
           !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
@@ -1488,7 +1523,9 @@ function ShowCurrentUpstreamWatershed({
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
   const handleClick = useCallback(
-    (_ev) => {
+    (ev: React.MouseEvent | React.KeyboardEvent) => {
+      if (!isClick(ev)) return;
+
       retrieveUpstreamWatershed(
         abortSignal,
         getCurrentExtent,
