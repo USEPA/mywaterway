@@ -638,17 +638,6 @@ function handleCheckbox(id, accessor, dispatch) {
   };
 }
 
-const lineColors = {
-  Bacterial: '#03a66a',
-  Metals: '#526571',
-  Nutrients: '#00de04',
-  Other: '#38a6ee',
-  Pesticides: '#400587',
-  PFAS: '#eb4034',
-  Physical: '#ad9e71',
-  Sediments: '#9c7803',
-};
-
 function loadNewData(data, state) {
   const newCharcs = {};
   const newGroups = {};
@@ -1221,7 +1210,6 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             </div>
             <ChartContainer
               range={range}
-              charcName={charcName}
               data={chartData}
               scaleType={scaleType}
               dataKeys={dataKeys}
@@ -1396,19 +1384,7 @@ function CharacteristicsTableSection({
   );
 }
 
-function ChartContainer({
-  range,
-  data,
-  charcName,
-  dataKeys,
-  scaleType,
-  yTitle,
-  unit,
-}) {
-  const charcLabel = getCharcLabel(
-    getCharcGroup(charcName, characteristicsByGroup),
-    characteristicGroupMappings,
-  );
+function ChartContainer({ range, data, dataKeys, scaleType, yTitle, unit }) {
   const chartRef = useRef(null);
 
   if (!data?.length)
@@ -1431,7 +1407,7 @@ function ChartContainer({
     <div ref={chartRef} css={chartContainerStyles}>
       <ScatterPlot
         buildTooltip={buildTooltip(unit)}
-        color={lineColors[charcLabel]}
+        color="#38a6ee"
         containerRef={chartRef.current}
         data={data}
         dataKeys={dataKeys}
