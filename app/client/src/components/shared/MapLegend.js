@@ -112,22 +112,14 @@ function MapLegend({
     if (!isInScale(layer, view.scale)) return false;
 
     // Filter out duplicate surrounding layers.
-    if (
-      layer.id === 'allWaterbodiesLayer' &&
-      visibleLayers.find((l) => l.id === 'waterbodyLayer')
-    )
-      return false;
-    if (
-      layer.id === 'surroundingUsgsStreamgagesLayer' &&
-      visibleLayers.find((l) => l.id === 'usgsStreamgagesLayer')
-    )
-      return false;
-    if (
-      layer.id === 'surroundingDischargersLayer' &&
-      visibleLayers.find((l) => l.id === 'dischargersLayer')
-    )
-      return false;
-    return true;
+    return !(
+      (layer.id === 'allWaterbodiesLayer' &&
+        visibleLayers.find((l) => l.id === 'waterbodyLayer')) ||
+      (layer.id === 'surroundingUsgsStreamgagesLayer' &&
+        visibleLayers.find((l) => l.id === 'usgsStreamgagesLayer')) ||
+      (layer.id === 'surroundingDischargersLayer' &&
+        visibleLayers.find((l) => l.id === 'dischargersLayer'))
+    );
   });
 
   // no legend data
