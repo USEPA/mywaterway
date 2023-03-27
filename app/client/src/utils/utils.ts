@@ -12,12 +12,7 @@ function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
 }
 
 function containsScriptTag(string: string) {
-  string = string
-    .toLowerCase()
-    .replace('%20', '')
-    .replace('%3c', '<')
-    .replace('%3e', '>')
-    .trim();
+  string = decodeURI(string.toLowerCase().replaceAll(' ', ''));
 
   return (
     string.includes('<script>') ||
