@@ -102,6 +102,7 @@ const modifiedDisclaimerStyles = css`
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
+  margin-bottom: 1em;
   text-align: center;
 `;
 
@@ -1161,8 +1162,8 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
   if (monitoringLocations.status === 'failure') {
     return (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{monitoringError}</p>
+      <div css={errorBoxStyles}>
+        <p css={centeredTextStyles}>{monitoringError}</p>
       </div>
     );
   }
