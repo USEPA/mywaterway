@@ -1039,7 +1039,7 @@ function PermittedDischargersTab({
               <br />
               Compliance Status: {status}
               <br />
-              Permit Components: {components || 'None'}
+              Permit Components: {components || 'Not Specified'}
             </>
           }
           feature={feature}
@@ -1098,7 +1098,7 @@ function PermittedDischargersTab({
                         onChange={toggleAll}
                         ariaLabel="Toggle all permit components"
                       />
-                      <span>All Permit Component</span>
+                      <span>All Permit Components</span>
                     </div>
                   </th>
                   <th>Count</th>
@@ -1113,7 +1113,7 @@ function PermittedDischargersTab({
                       const component = dischargerPermitComponents[key];
 
                       const componentLabel = !component.label
-                        ? 'None'
+                        ? 'Not Specified'
                         : component.label;
 
                       return (
@@ -1127,8 +1127,8 @@ function PermittedDischargersTab({
                                 }
                                 ariaLabel={`Toggle ${componentLabel}`}
                               />
-                              {componentLabel === 'None' ? (
-                                <span>None</span>
+                              {componentLabel === 'Not Specified' ? (
+                                <span>Not Specified</span>
                               ) : (
                                 <GlossaryTerm term={componentLabel}>
                                   {componentLabel}

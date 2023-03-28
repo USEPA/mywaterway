@@ -523,7 +523,20 @@ function WaterbodyInfo({
                             {useField.label}
                           </GlossaryTerm>
                         </td>
-                        <td>{value}</td>
+                        <td>
+                          <GlossaryTerm
+                            term={
+                              value === 'Good'
+                                ? 'Good Waters'
+                                : value === 'Impaired' ||
+                                  value === 'Impaired (Issues Identified)'
+                                ? 'Impaired Waters'
+                                : 'Condition Unknown'
+                            }
+                          >
+                            {value}
+                          </GlossaryTerm>
+                        </td>
                       </tr>
                     );
                   })}
@@ -588,7 +601,7 @@ function WaterbodyInfo({
                       {term}
                     </GlossaryTerm>
                   ))
-              : 'None',
+              : 'Not Specified',
           },
           {
             label: 'Significant Effluent Violation within the last 3 years',

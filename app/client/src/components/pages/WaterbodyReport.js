@@ -73,6 +73,13 @@ const containerStyles = css`
   }
 `;
 
+const containerContentExpandStyles = css`
+  display: flex;
+  align-items: center;
+  height: 49px;
+  width: 100%;
+`;
+
 const infoBoxContainerStyles = css`
   padding: 1.5em;
   padding-bottom: 0;
@@ -876,7 +883,20 @@ function WaterbodyReport() {
           </div>
         )}
         {waterbodyStatus.status === 'success' && (
-          <p>&nbsp; {waterbodyStatus.data.condition}</p>
+          <p>
+            &nbsp;{' '}
+            <GlossaryTerm
+              term={
+                waterbodyStatus.data.condition === conditions.good
+                  ? 'Good Waters'
+                  : waterbodyStatus.data.condition === conditions.impaired
+                  ? 'Impaired Waters'
+                  : 'Condition Unknown'
+              }
+            >
+              {waterbodyStatus.data.condition}
+            </GlossaryTerm>
+          </p>
         )}
       </div>
 
@@ -1151,7 +1171,19 @@ function WaterbodyReport() {
                               No evaluated uses provided for this waterbody.
                             </p>
                           ) : (
-                            <AccordionList>
+                            <AccordionList
+                              contentExpandCollapse={
+                                <div css={containerContentExpandStyles}>
+                                  <a
+                                    href="https://www.epa.gov/wqs-tech/state-specific-water-quality-standards-effective-under-clean-water-act-cwa"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    Information on Water Quality Standards
+                                  </a>
+                                </div>
+                              }
+                            >
                               {waterbodyUses.data
                                 .sort((a, b) => a.name.localeCompare(b.name))
                                 .map((use) => (
