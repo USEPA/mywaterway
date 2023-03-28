@@ -1121,7 +1121,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             <SliderContainer
               min={minYear}
               max={maxYear}
-              disabled={!Boolean(records.length)}
+              disabled={!records.length}
               onChange={(newDomain) => setSelectedYears(newDomain)}
               range={selectedYears}
             />
@@ -1590,7 +1590,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         status={charcsStatus}
       >
         <SliderContainer
-          disabled={!Boolean(Object.keys(charcs).length)}
+          disabled={!Object.keys(charcs).length}
           max={maxYear}
           min={minYear}
           onChange={(newRange) => setRange(newRange)}
