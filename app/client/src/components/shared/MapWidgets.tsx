@@ -1042,6 +1042,11 @@ function MapWidgets({
     visibleLayers,
   ]);
 
+  useEffect(() => {
+    if (!addSaveDataWidgetVisible) return;
+    document.getElementById('add-save-data-widget')?.focus();
+  }, [addSaveDataWidgetVisible]);
+
   if (!addSaveDataWidget) return null;
 
   const mapWidth = document
@@ -1075,6 +1080,7 @@ function MapWidgets({
             position: 'absolute',
             bottom: 0,
           }}
+          tabIndex={0}
         >
           <AddSaveDataWidget />
         </div>
@@ -1097,6 +1103,8 @@ function MapWidgets({
             bottomRight: true,
           }}
           dragHandleClassName="drag-handle"
+          role="region"
+          tabIndex={0}
         >
           <AddSaveDataWidget />
           <div css={resizeHandleStyles}>
@@ -1139,7 +1147,7 @@ function ShowAddSaveDataWidget({
     <div
       className="add-save-data-widget"
       title={
-        addSaveDataWidgetVisible
+        !addSaveDataWidgetVisible
           ? 'Open Add & Save Data Widget'
           : 'Close Add & Save Data Widget'
       }
