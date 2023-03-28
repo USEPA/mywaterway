@@ -373,11 +373,13 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       };
     }
 
-    mapView.goTo(zoomParams).then(() => {
-      // set map zoom and home widget's viewpoint
-      mapView.zoom = mapView.zoom - 1;
-      homeWidget.viewpoint = new Viewpoint({
-        targetGeometry: mapView.extent,
+    mapView.when(() => {
+      mapView.goTo(zoomParams).then(() => {
+        // set map zoom and home widget's viewpoint
+        mapView.zoom = mapView.zoom - 1;
+        homeWidget.viewpoint = new Viewpoint({
+          targetGeometry: mapView.extent,
+        });
       });
     });
 

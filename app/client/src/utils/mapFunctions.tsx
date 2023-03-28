@@ -960,7 +960,7 @@ export function GradientIcon({
 // Gets the highlight symbol styles based on the provided geometry.
 export function getHighlightSymbol(
   geometry: __esri.Geometry,
-  options: __esri.MapViewHighlightOptions,
+  options: __esri.HighlightOptions,
 ) {
   let symbol: __esri.Symbol | null = null;
   if (isPolyline(geometry)) {
