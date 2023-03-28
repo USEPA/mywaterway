@@ -25,7 +25,7 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -1171,10 +1171,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     return (
       <>
         {totalLocationsCount === 0 && (
-          <p css={centeredTextStyles}>
-            There are no monitoring sample locations in the {watershed}{' '}
-            watershed.
-          </p>
+          <div css={infoBoxStyles}>
+            <p css={centeredTextStyles}>
+              There are no monitoring sample locations in the {watershed}{' '}
+              watershed.
+            </p>
+          </div>
         )}
 
         {totalLocationsCount > 0 && (

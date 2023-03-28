@@ -11,7 +11,11 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
 import WaterbodyList from 'components/shared/WaterbodyList';
-import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  errorBoxStyles,
+  infoBoxStyles,
+  noteBoxStyles,
+} from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -54,7 +58,6 @@ const modifiedNoteBoxStyles = css`
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
-  margin-bottom: 1em;
   text-align: center;
 `;
 
@@ -632,10 +635,12 @@ function DrinkingWater() {
                   {drinkingWater.data.length > 0 && (
                     <>
                       {providers.length === 0 && (
-                        <p css={centeredTextStyles}>
-                          There are no public drinking water systems serving{' '}
-                          {county} county/municipality.
-                        </p>
+                        <div css={infoBoxStyles}>
+                          <p css={centeredTextStyles}>
+                            There are no public drinking water systems serving{' '}
+                            {county} county/municipality.
+                          </p>
+                        </div>
                       )}
 
                       {providers.length > 0 && (
@@ -780,10 +785,12 @@ function DrinkingWater() {
                   {drinkingWater.data.length > 0 && (
                     <>
                       {totalWithdrawersCount === 0 && (
-                        <p css={centeredTextStyles}>
-                          There are no public water systems drawing water from
-                          the {watershed} watershed.
-                        </p>
+                        <div css={infoBoxStyles}>
+                          <p css={centeredTextStyles}>
+                            There are no public water systems drawing water from
+                            the {watershed} watershed.
+                          </p>
+                        </div>
                       )}
 
                       {totalWithdrawersCount > 0 && (

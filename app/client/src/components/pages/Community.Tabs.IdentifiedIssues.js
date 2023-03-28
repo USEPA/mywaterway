@@ -16,7 +16,7 @@ import { impairmentFields } from 'config/attainsToHmwMapping';
 import Switch from 'components/shared/Switch';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import {
@@ -541,10 +541,12 @@ function IdentifiedIssues() {
                   {(cipSummary.data.count === 0 ||
                     (cipSummary.data.items &&
                       cipSummary.data.items.length === 0)) && (
-                    <p css={centeredTextStyles}>
-                      There are no impairment categories in the{' '}
-                      <em>{watershed}</em> watershed.
-                    </p>
+                    <div css={infoBoxStyles}>
+                      <p css={centeredTextStyles}>
+                        There are no impairment categories in the{' '}
+                        <em>{watershed}</em> watershed.
+                      </p>
+                    </div>
                   )}
 
                   {cipSummary.data.items &&
@@ -602,10 +604,12 @@ function IdentifiedIssues() {
 
                         {!emptyCategoriesWithPercent &&
                           zeroPollutedWaterbodies && (
-                            <p css={centeredTextStyles}>
-                              There are no impairment categories in the{' '}
-                              <em>{watershed}</em> watershed.
-                            </p>
+                            <div css={infoBoxStyles}>
+                              <p css={centeredTextStyles}>
+                                There are no impairment categories in the{' '}
+                                <em>{watershed}</em> watershed.
+                              </p>
+                            </div>
                           )}
 
                         {!emptyCategoriesWithPercent &&
@@ -712,11 +716,13 @@ function IdentifiedIssues() {
               {dischargersStatus === 'success' && (
                 <>
                   {!violatingDischargers.length && (
-                    <p css={centeredTextStyles}>
-                      There are no dischargers with significant{' '}
-                      <GlossaryTerm term="Effluent">effluent</GlossaryTerm>{' '}
-                      violations in the <em>{watershed}</em> watershed.
-                    </p>
+                    <div css={infoBoxStyles}>
+                      <p css={centeredTextStyles}>
+                        There are no dischargers with significant{' '}
+                        <GlossaryTerm term="Effluent">effluent</GlossaryTerm>{' '}
+                        violations in the <em>{watershed}</em> watershed.
+                      </p>
+                    </div>
                   )}
 
                   {violatingDischargers.length > 0 && (
@@ -738,7 +744,11 @@ function IdentifiedIssues() {
                       }
                     >
                       {violatingDischargers.map((discharger) => {
-                        const { uniqueId: id, CWPName: name, PermitComponents: components } = discharger;
+                        const {
+                          uniqueId: id,
+                          CWPName: name,
+                          PermitComponents: components,
+                        } = discharger;
 
                         const feature = {
                           geometry: {

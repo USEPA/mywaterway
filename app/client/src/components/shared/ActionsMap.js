@@ -70,7 +70,12 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const [layers, setLayers] = useState(null);
 
   const services = useServicesContext();
-  const getSharedLayers = useSharedLayers();
+  const excludedLayers = [
+    ...(window.location.pathname.includes('/plan-summary')
+      ? ['allWaterbodiesLayer']
+      : []),
+  ];
+  const getSharedLayers = useSharedLayers({ excludedLayers });
   useWaterbodyHighlight();
 
   const { surroundingMonitoringLocationsLayer } =
