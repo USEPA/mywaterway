@@ -36,13 +36,8 @@ function Map({ layers = null, startingExtent = null }: Props) {
 
     // hide/show layers based on the visibleLayers object
     map?.layers.forEach((layer) => {
-      // ignore layers added from the add/save data widget
-      if (widgetLayers.some((l) => l.layer.id === layer.id)) return;
-
       if (visibleLayers.hasOwnProperty(layer.id)) {
         layer.visible = visibleLayers[layer.id as LayerId];
-      } else {
-        layer.visible = false;
       }
     });
   }, [layers, map, visibleLayers, widgetLayers]);
