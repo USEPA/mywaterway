@@ -999,8 +999,10 @@ export async function addWebMap({
           },
         });
 
-        if (imagesLayer.source.elements.length > 0) {
-          const element = imagesLayer.source.elements.getItemAt(0);
+        const imagesSource =
+          imagesLayer.source as __esri.LocalMediaElementSource;
+        if (imagesSource.elements.length > 0) {
+          const element = imagesSource.elements.getItemAt(0);
           const georeference =
             element.georeference as __esri.ControlPointsGeoreference;
 

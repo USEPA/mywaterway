@@ -7,6 +7,8 @@ import {
   useSurroundingsDispatch,
   useSurroundingsState,
 } from 'contexts/Surroundings';
+// utils
+import { isClick } from 'utils/utils';
 
 export function useAllWaterbodiesLayer(minScale = 577791) {
   const { huc12, mapView } = useContext(LocationSearchContext);
@@ -91,12 +93,12 @@ export function useAllWaterbodiesLayer(minScale = 577791) {
   // Function for controlling layer visibility
   const toggleVisibility = useCallback(
     (showLayer: boolean) => {
-      return function toggle() {
-        if (!allWaterbodiesLayer) return;
+      return function toggle(ev: React.KeyboardEvent | React.MouseEvent) {
+        if (!isClick(ev)) return;
         updateVisibleLayers({ [layerId]: showLayer });
       };
     },
-    [allWaterbodiesLayer, updateVisibleLayers],
+    [updateVisibleLayers],
   );
 
   useEffect(() => {

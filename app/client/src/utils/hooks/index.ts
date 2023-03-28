@@ -118,7 +118,7 @@ function getMatchingFeatures(
 interface HighlightFeatureParams {
   mapView: __esri.MapView;
   features: Array<ExtendedGraphic>;
-  highlightOptions: __esri.MapViewHighlightOptions;
+  highlightOptions: __esri.HighlightOptions;
   handles: Handles;
   group: string;
   layer?: __esri.Layer | null;

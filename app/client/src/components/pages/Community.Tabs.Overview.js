@@ -8,6 +8,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   circleIcon,
@@ -356,6 +357,9 @@ function Overview() {
 
             <TabPanel>
               <PermittedDischargersTab
+                setPermittedDischargersDisplayed={
+                  setPermittedDischargersDisplayed
+                }
                 totalPermittedDischargers={totalPermittedDischargers}
               />
             </TabPanel>
@@ -607,6 +611,7 @@ function MonitoringAndSensorsTab({
       services,
     ],
   );
+
   if (
     monitoringLocationsStatus === 'pending' ||
     streamgagesStatus === 'pending'
@@ -783,26 +788,274 @@ function sortDischarchers(dischargers, sortBy) {
     });
   } else {
     return dischargers.sort((a, b) => {
-      return a[sortBy].localeCompare(b[sortBy]);
+      if (a[sortBy] && b[sortBy]) {
+        return a[sortBy].localeCompare(b[sortBy]);
+      } else if (!a[sortBy] && b[sortBy]) {
+        return 1;
+      } else {
+        return -1;
+      }
     });
   }
 }
 
-function PermittedDischargersTab({ totalPermittedDischargers }) {
+function PermittedDischargersTab({
+  setPermittedDischargersDisplayed,
+  totalPermittedDischargers,
+}) {
   const { dischargers, dischargersStatus } = useDischargers();
 
-  const { watershed } = useContext(LocationSearchContext);
+  const {
+    dischargerPermitComponents,
+    huc12,
+    setDischargerPermitComponents,
+    watershed,
+  } = useContext(LocationSearchContext);
+
+  const { dischargersLayer } = useLayers();
+
+  const [allToggled, setAllToggled] = useState(true);
+  const [displayedDischargers, setDisplayedDischargers] = useState([]);
+  const [expandedRows, setExpandedRows] = useState([]);
 
   const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
     useState('CWPName');
+
+  // Filter dischargers
+  useEffect(() => {
+    if (!dischargersLayer || !dischargerPermitComponents) return;
+
+    const dischargerIds = [];
+    let dischargersToDisplay = [];
+    if (dischargerPermitComponents.All.toggled) {
+      dischargersToDisplay = dischargerPermitComponents.All.dischargers;
+    } else {
+      // generate a list of discharger ids
+      Object.values(dischargerPermitComponents).forEach((group) => {
+        if (group.label === 'All' || !group.toggled) return;
+
+        group.dischargers.forEach((discharger) => {
+          const uniqueId = discharger.uniqueId;
+          if (!dischargerIds.includes(uniqueId)) {
+            dischargerIds.push(uniqueId);
+            dischargersToDisplay.push(discharger);
+          }
+        });
+      });
+    }
+
+    // update the filters on the layer
+    if (dischargerPermitComponents.All.toggled) {
+      dischargersLayer.definitionExpression = '';
+    } else if (dischargerIds.length === 0) {
+      dischargersLayer.definitionExpression = '1=0';
+    } else {
+      dischargersLayer.definitionExpression = `uniqueId IN ('${dischargerIds.join(
+        "','",
+      )}')`;
+    }
+
+    setDisplayedDischargers(dischargersToDisplay);
+  }, [dischargerPermitComponents, dischargersLayer]);
+
+  const sortedPermittedDischargers = sortDischarchers(
+    displayedDischargers,
+    permittedDischargersSortedBy,
+  );
+
+  useEffect(() => {
+    if (dischargersStatus !== 'success') return;
+
+    const alreadyAdded = [];
+    const permitComponents = {
+      All: {
+        dischargers: [],
+        label: 'All',
+        toggled: true,
+      },
+    };
+
+    // build a unique list of permit components
+    dischargers.forEach((discharger) => {
+      // there can be multiple permit components split by ", "
+      const components = discharger.PermitComponents?.split(', ') || [null];
+
+      components.forEach((component) => {
+        if (!permitComponents.hasOwnProperty(component)) {
+          permitComponents[component] = {
+            dischargers: [discharger],
+            label: component,
+            toggled: true,
+          };
+        } else {
+          permitComponents[component].dischargers.push(discharger);
+        }
+
+        if (!alreadyAdded.includes(discharger.uniqueId)) {
+          permitComponents['All'].dischargers.push(discharger);
+          alreadyAdded.push(discharger.uniqueId);
+        }
+      });
+    });
+
+    setDischargerPermitComponents(permitComponents);
+  }, [dischargers, dischargersStatus, setDischargerPermitComponents]);
+
+  const toggleAll = useCallback(() => {
+    if (!dischargerPermitComponents) return;
+
+    const updatedGroups = { ...dischargerPermitComponents };
+    for (const label in updatedGroups) {
+      updatedGroups[label].toggled = !allToggled;
+    }
+    setPermittedDischargersDisplayed(!allToggled);
+    setAllToggled((prev) => !prev);
+    setDischargerPermitComponents(updatedGroups);
+  }, [
+    allToggled,
+    dischargerPermitComponents,
+    setDischargerPermitComponents,
+    setPermittedDischargersDisplayed,
+  ]);
+
+  const groupToggleHandler = useCallback(
+    (groupLabel) => {
+      return function toggleGroup(_ev) {
+        if (!dischargerPermitComponents) return;
+
+        const updatedGroups = { ...dischargerPermitComponents };
+        updatedGroups[groupLabel].toggled = !updatedGroups[groupLabel].toggled;
+
+        let allOthersToggled = true;
+        for (let key in updatedGroups) {
+          if (key === 'All') continue;
+          if (!updatedGroups[key].toggled) allOthersToggled = false;
+        }
+        setAllToggled(allOthersToggled);
+        updatedGroups.All.toggled = allOthersToggled;
+
+        setDischargerPermitComponents(updatedGroups);
+
+        // only check the toggles that are on the screen
+        const someToggled = Object.keys(updatedGroups)
+          .filter((label) => label !== 'All')
+          .some((key) => updatedGroups[key].toggled);
+        setPermittedDischargersDisplayed(someToggled);
+      };
+    },
+    [
+      dischargerPermitComponents,
+      setDischargerPermitComponents,
+      setPermittedDischargersDisplayed,
+    ],
+  );
+
+  const groupToggleHandlers = useMemo(() => {
+    if (!dischargerPermitComponents) return null;
+
+    const toggles = {};
+    Object.values(dischargerPermitComponents)
+      .filter((group) => group.label !== 'All')
+      .forEach((group) => {
+        toggles[group.label] = groupToggleHandler(group.label);
+      });
+    return toggles;
+  }, [dischargerPermitComponents, groupToggleHandler]);
+
+  // Reset data if the user switches locations
+  useEffect(() => {
+    if (!huc12) return;
+
+    return function cleanup() {
+      setAllToggled(true);
+      if (!dischargersLayer) return;
+
+      dischargersLayer.definitionExpression = '';
+    };
+  }, [huc12, dischargersLayer]);
 
   const handleSortChange = useCallback((sortBy) => {
     setPermittedDischargersSortedBy(sortBy.value);
   }, []);
 
-  const sortedPermittedDischargers = sortDischarchers(
-    dischargers,
-    permittedDischargersSortedBy,
+  const handleExpandCollapse = useCallback(
+    (allExpanded) => {
+      if (allExpanded) {
+        setExpandedRows([...Array(sortedPermittedDischargers.length).keys()]);
+      } else {
+        setExpandedRows([]);
+      }
+    },
+    [sortedPermittedDischargers],
+  );
+
+  const accordionItemToggleHandler = useCallback(
+    (index) => {
+      return function toggleAccordionItem() {
+        // add the item to the expandedRows array so the accordion item
+        // will stay expanded when the user scrolls or highlights map items
+        if (expandedRows.includes(index)) {
+          setExpandedRows(expandedRows.filter((item) => item !== index));
+        } else setExpandedRows(expandedRows.concat(index));
+      };
+    },
+    [expandedRows],
+  );
+
+  const accordionItemToggleHandlers = useMemo(() => {
+    return sortedPermittedDischargers.map((_item, index) => {
+      return accordionItemToggleHandler(index);
+    });
+  }, [accordionItemToggleHandler, sortedPermittedDischargers]);
+
+  const renderListItem = useCallback(
+    ({ index }) => {
+      const discharger = sortedPermittedDischargers[index];
+
+      const {
+        uniqueId: id,
+        CWPName: name,
+        CWPStatus: status,
+        PermitComponents: components,
+      } = discharger;
+
+      const feature = {
+        geometry: {
+          type: 'point',
+          longitude: discharger.FacLong,
+          latitude: discharger.FacLat,
+        },
+        attributes: discharger,
+      };
+
+      return (
+        <AccordionItem
+          icon={diamondIcon({ color: colors.orange() })}
+          key={id}
+          title={<strong>{name || 'Unknown'}</strong>}
+          subTitle={
+            <>
+              NPDES ID: {id}
+              <br />
+              Compliance Status: {status}
+              <br />
+              Permit Components: {components || 'Not Specified'}
+            </>
+          }
+          feature={feature}
+          idKey="uniqueId"
+          allExpanded={expandedRows.includes(index)}
+          onChange={accordionItemToggleHandlers[index]}
+        >
+          <div css={accordionContentStyles}>
+            <WaterbodyInfo type="Permitted Discharger" feature={feature} />
+
+            <ViewOnMapButton feature={feature} />
+          </div>
+        </AccordionItem>
+      );
+    },
+    [accordionItemToggleHandlers, expandedRows, sortedPermittedDischargers],
   );
 
   if (dischargersStatus === 'pending') {
@@ -834,18 +1087,75 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 &nbsp;Permitted Dischargers&nbsp;
               </span>
             </div>
+
+            <table css={toggleTableStyles} className="table">
+              <thead>
+                <tr>
+                  <th>
+                    <div css={toggleStyles}>
+                      <Switch
+                        checked={allToggled}
+                        onChange={toggleAll}
+                        ariaLabel="Toggle all permit components"
+                      />
+                      <span>All Permit Components</span>
+                    </div>
+                  </th>
+                  <th>Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dischargerPermitComponents &&
+                  Object.keys(dischargerPermitComponents)
+                    .filter((key) => key !== 'All')
+                    .sort()
+                    .map((key) => {
+                      const component = dischargerPermitComponents[key];
+
+                      const componentLabel = !component.label
+                        ? 'Not Specified'
+                        : component.label;
+
+                      return (
+                        <tr key={key}>
+                          <td>
+                            <div css={toggleStyles}>
+                              <Switch
+                                checked={component.toggled}
+                                onChange={
+                                  groupToggleHandlers?.[component.label]
+                                }
+                                ariaLabel={`Toggle ${componentLabel}`}
+                              />
+                              {componentLabel === 'Not Specified' ? (
+                                <span>Not Specified</span>
+                              ) : (
+                                <GlossaryTerm term={componentLabel}>
+                                  {componentLabel}
+                                </GlossaryTerm>
+                              )}
+                            </div>
+                          </td>
+                          <td>{component.dischargers.length}</td>
+                        </tr>
+                      );
+                    })}
+              </tbody>
+            </table>
+
             <AccordionList
               title={
                 <>
-                  There {totalPermittedDischargers === 1 ? 'is' : 'are'}{' '}
-                  <strong>{totalPermittedDischargers}</strong> permitted{' '}
-                  {totalPermittedDischargers === 1
-                    ? 'discharger'
-                    : 'dischargers'}{' '}
-                  in the <em>{watershed}</em> watershed.
+                  <strong>
+                    {displayedDischargers.length.toLocaleString()}
+                  </strong>{' '}
+                  of{' '}
+                  <strong>{totalPermittedDischargers.toLocaleString()}</strong>{' '}
+                  permitted dischargers in the <em>{watershed}</em> watershed.
                 </>
               }
               onSortChange={handleSortChange}
+              onExpandCollapse={handleExpandCollapse}
               sortOptions={[
                 {
                   value: 'CWPName',
@@ -859,50 +1169,16 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                   value: 'CWPStatus',
                   label: 'Compliance Status',
                 },
+                {
+                  value: 'PermitComponents',
+                  label: 'Permit Components',
+                },
               ]}
             >
-              {sortedPermittedDischargers.map((discharger) => {
-                const {
-                  uniqueId: id,
-                  CWPName: name,
-                  CWPStatus: status,
-                } = discharger;
-
-                const feature = {
-                  geometry: {
-                    type: 'point',
-                    longitude: discharger.FacLong,
-                    latitude: discharger.FacLat,
-                  },
-                  attributes: discharger,
-                };
-
-                return (
-                  <AccordionItem
-                    icon={diamondIcon({ color: colors.orange() })}
-                    key={id}
-                    title={<strong>{name || 'Unknown'}</strong>}
-                    subTitle={
-                      <>
-                        NPDES ID: {id}
-                        <br />
-                        Compliance Status: {status}
-                      </>
-                    }
-                    feature={feature}
-                    idKey="uniqueId"
-                  >
-                    <div css={accordionContentStyles}>
-                      <WaterbodyInfo
-                        type="Permitted Discharger"
-                        feature={feature}
-                      />
-
-                      <ViewOnMapButton feature={feature} />
-                    </div>
-                  </AccordionItem>
-                );
-              })}
+              <VirtualizedList
+                items={sortedPermittedDischargers}
+                renderer={renderListItem}
+              />
             </AccordionList>
           </>
         )}

@@ -960,7 +960,7 @@ export function GradientIcon({
 // Gets the highlight symbol styles based on the provided geometry.
 export function getHighlightSymbol(
   geometry: __esri.Geometry,
-  options: __esri.MapViewHighlightOptions,
+  options: __esri.HighlightOptions,
 ) {
   let symbol: __esri.Symbol | null = null;
   if (isPolyline(geometry)) {
@@ -1077,7 +1077,10 @@ export function stringifyAttributes(
 // have a definitionExpression defined
 export function hasDefinitionExpression(layer: __esri.Layer) {
   let hasDefinitionExpression = false;
-  if (isFeatureLayer(layer) && layer.definitionExpression)
+  const layersToIgnore = ['dischargersLayer', 'monitoringLocationsLayer'];
+
+  if (layersToIgnore.includes(layer.id)) hasDefinitionExpression = false;
+  else if (isFeatureLayer(layer) && layer.definitionExpression)
     hasDefinitionExpression = true;
   else if (isGroupLayer(layer)) {
     layer.layers.forEach((l) => {

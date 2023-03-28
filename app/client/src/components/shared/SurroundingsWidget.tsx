@@ -8,7 +8,7 @@ import {
   useSurroundingsState,
 } from 'contexts/Surroundings';
 // utils
-import { isEmpty } from 'utils/utils';
+import { isClick, isEmpty } from 'utils/utils';
 // styles
 import { fonts } from 'styles';
 // types
@@ -17,7 +17,12 @@ import type {
   SurroundingFeaturesLayerId,
   SurroundingsState,
 } from 'contexts/Surroundings';
-import type { MutableRefObject, ReactNode } from 'react';
+import type {
+  KeyboardEvent,
+  MouseEvent,
+  MutableRefObject,
+  ReactNode,
+} from 'react';
 
 /*
 ## Components
@@ -69,9 +74,13 @@ export function useSurroundingsWidget(triggerVisible: boolean) {
 
 function SurroundingsWidget(props: SurroundingsWidgetProps) {
   const [contentVisible, setContentVisible] = useState(false);
-  const toggleContentVisibility = useCallback(() => {
-    setContentVisible(!contentVisible);
-  }, [contentVisible]);
+  const toggleContentVisibility = useCallback(
+    (ev: KeyboardEvent | MouseEvent) => {
+      if (!isClick(ev)) return;
+      setContentVisible(!contentVisible);
+    },
+    [contentVisible],
+  );
 
   const { triggerVisible, ...rest } = props;
   const { layers, layersUpdating, surroundingsVisible, togglesDisabled } =
@@ -110,7 +119,7 @@ function SurroundingsWidgetContent({
   visible,
 }: SurroundingsWidgetContentProps) {
   return (
-    <div css={widgetContentStyles(visible)}>
+    <div css={widgetContentStyles(visible)} role="region">
       <div>
         <h1>Surrounding Features:</h1>
         <div>
@@ -125,25 +134,30 @@ function SurroundingsWidgetContent({
                 } else if (surroundingsVisible[id]) {
                   title = `Hide ${layer.title}`;
                 }
+                const clickHandler = togglesDisabled[id]
+                  ? undefined
+                  : toggles[id](!surroundingsVisible[id]);
                 return (
                   <li key={id}>
                     <div title={title}>
                       <div
+                        aria-labelledby={`label-${id}`}
                         css={listItemContentStyles(togglesDisabled[id])}
-                        onClick={
-                          togglesDisabled[id]
-                            ? undefined
-                            : toggles[id](!surroundingsVisible[id])
-                        }
+                        onClick={clickHandler}
+                        onKeyDown={clickHandler}
+                        tabIndex={0}
                       >
                         <span
+                          aria-hidden="true"
                           className={`esri-icon-${
                             !togglesDisabled[id] && surroundingsVisible[id]
                               ? ''
                               : 'non-'
                           }visible`}
                         ></span>
-                        <span>{layer.title.replace('Surrounding ', '')}</span>
+                        <span id={`label-${id}`}>
+                          {layer.title.replace('Surrounding ', '')}
+                        </span>
                       </div>
                     </div>
                   </li>
@@ -184,12 +198,19 @@ function SurroundingsWidgetTrigger({
     <div
       title={title}
       css={divStyle(disabled, hover)}
+      onClick={disabled ? undefined : onClick}
+      onKeyDown={disabled ? undefined : onClick}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
-      onClick={disabled ? undefined : onClick}
       ref={forwardedRef}
+      role="button"
+      tabIndex={0}
     >
-      <span className={iconClass} css={buttonStyle(disabled, hover)} />
+      <span
+        aria-hidden="true"
+        className={iconClass}
+        css={buttonStyle(disabled, hover)}
+      />
     </div>
   );
 }
@@ -300,7 +321,7 @@ type PortalProps = {
 type SurroundingsWidgetTriggerProps = {
   disabled: boolean;
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
-  onClick: React.MouseEventHandler<HTMLDivElement>;
+  onClick: (ev: MouseEvent | KeyboardEvent) => void;
   updating: boolean;
   visible: boolean;
 };

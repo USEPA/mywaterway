@@ -345,6 +345,7 @@ function CommunityTabs() {
     address,
     watershed,
     huc12,
+    setDischargerPermitComponents,
     setMonitoringGroups,
     setShowAllPolluted,
     setParameterToggleObject,
@@ -429,6 +430,9 @@ function CommunityTabs() {
   }, [tabsOverlayRef, tabHeight]);
 
   const resetTabSpecificData = () => {
+    // overview panel
+    setDischargerPermitComponents(null);
+
     // monitoring panel
     setMonitoringGroups(null);
 
@@ -512,10 +516,7 @@ function CommunityTabs() {
 
         <header css={tabHeaderStyles}>
           <div>
-            <img
-              src={tabs[activeTabIndex].icon}
-              alt={tabs[activeTabIndex].title}
-            />
+            <img aria-hidden="true" src={tabs[activeTabIndex].icon} alt="" />
             <h1 css={tabTitleStyles}>{tabs[activeTabIndex].title}</h1>
           </div>
 

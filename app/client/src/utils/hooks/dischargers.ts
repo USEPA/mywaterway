@@ -25,7 +25,7 @@ import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
-  Facility,
+  DischargerAttributes,
   PermittedDischargersData,
   ServicesData,
   ServicesState,
@@ -82,7 +82,7 @@ function useUpdateData() {
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const [hucData, setHucData] = useState<Facility[] | null>([]);
+  const [hucData, setHucData] = useState<DischargerAttributes[] | null>([]);
   useEffect(() => {
     const controller = new AbortController();
 
@@ -156,7 +156,7 @@ function useUpdateData() {
 */
 
 // Builds features from dischargers data
-function buildFeatures(data: Facility[]) {
+function buildFeatures(data: DischargerAttributes[]) {
   return data.map((datum) => {
     return new Graphic({
       attributes: datum,
@@ -191,10 +191,12 @@ function buildLayer(
       { name: 'CWPInspectionCount', type: 'string' },
       { name: 'CWPName', type: 'string' },
       { name: 'CWPPermitStatusDesc', type: 'string' },
+      { name: 'CWPPermitTypeDesc', type: 'string' },
       { name: 'CWPSNCStatus', type: 'string' },
       { name: 'CWPStatus', type: 'string' },
       { name: 'FacLat', type: 'string' },
       { name: 'FacLong', type: 'string' },
+      { name: 'PermitComponents', type: 'string' },
       { name: 'RegistryID', type: 'string' },
       { name: 'SourceID', type: 'string' },
       { name: 'uniqueId', type: 'string' },
@@ -240,7 +242,7 @@ async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'dischargers' | 'surroundingDischargers',
-  dataToExclude?: Facility[] | null,
+  dataToExclude?: DischargerAttributes[] | null,
   violatingOnly = false,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -271,7 +273,7 @@ async function fetchAndTransformData(
 
 function transformServiceData(
   permittedDischargers: PermittedDischargersData,
-): Facility[] {
+): DischargerAttributes[] {
   return 'Error' in permittedDischargers.Results
     ? []
     : permittedDischargers.Results.Facilities.map((facility) => {
@@ -297,10 +299,12 @@ async function fetchPermittedDischargers(
     'CWPInspectionCount',
     'CWPName',
     'CWPPermitStatusDesc',
+    'CWPPermitTypeDesc',
     'CWPSNCStatus',
     'CWPStatus',
     'FacLong',
     'FacLat',
+    'PermitComponents',
     'RegistryID',
     'SourceID',
   ];
@@ -314,7 +318,7 @@ async function fetchPermittedDischargers(
 
   const url =
     `${servicesData.echoNPDES.getFacilities}?output=JSON&tablelist=Y` +
-    `&p_act=Y&p_ptype=NPD&responseset=5000` +
+    `&p_act=Y&p_ptype=NPD,GPC&responseset=5000` +
     `&qcolumns=${columnIds.join(',')}&${boundariesFilter}`;
 
   try {
@@ -328,7 +332,7 @@ async function fetchPermittedDischargers(
   }
 }
 
-function filterViolatingFacilities(facilities: Facility[]) {
+function filterViolatingFacilities(facilities: DischargerAttributes[]) {
   return facilities.filter(
     (facility) =>
       facility['CWPSNCStatus'] !== null &&
@@ -348,7 +352,7 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
 
 const localFetchedDataKey = 'dischargers';
 const surroundingFetchedDataKey = 'surroundingDischargers';
-const dataKeys = ['SourceID'] as Array<keyof Facility>;
+const dataKeys = ['SourceID'] as Array<keyof DischargerAttributes>;
 
 /*
 ## Types

@@ -1,5 +1,7 @@
 import Highcharts from 'highcharts';
 import Point from '@arcgis/core/geometry/Point';
+// types
+import type { KeyboardEvent, MouseEvent } from 'react';
 
 // utility function to split up an array into chunks of a designated length
 function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
@@ -12,12 +14,7 @@ function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
 }
 
 function containsScriptTag(string: string) {
-  string = string
-    .toLowerCase()
-    .replace('%20', '')
-    .replace('%3c', '<')
-    .replace('%3e', '>')
-    .trim();
+  string = decodeURI(string.toLowerCase().replaceAll(' ', ''));
 
   return (
     string.includes('<script>') ||
@@ -42,10 +39,21 @@ function isAbort(error: unknown) {
   return error.name === 'AbortError';
 }
 
+function isClick(ev: KeyboardEvent | MouseEvent) {
+  if (isKeyboardEvent(ev)) {
+    if (ev.key !== ' ' && ev.key !== 'Enter') return false;
+  } else if (ev.type !== 'click') return false;
+  return true;
+}
+
 function isEmpty<T>(
   v: T | null | undefined | [] | {},
 ): v is null | undefined | [] | {} {
   return !isNotEmpty(v);
+}
+
+function isKeyboardEvent(ev: KeyboardEvent | MouseEvent): ev is KeyboardEvent {
+  return ev.hasOwnProperty('key');
 }
 
 // Type predicate, negation is used to narrow to type `T`
@@ -519,8 +527,10 @@ export {
   formatNumber,
   getExtensionFromPath,
   isAbort,
+  isClick,
   isEmpty,
   isHuc12,
+  isKeyboardEvent,
   titleCase,
   titleCaseWithExceptions,
   createJsonLD,

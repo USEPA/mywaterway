@@ -94,6 +94,17 @@
           "defaultValue": ""
         },
         {
+          "name": "CWPPermitTypeDesc",
+          "type": "esriFieldTypeString",
+          "alias": "CWPPermitTypeDesc",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 120,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
           "name": "CWPSNCStatus",
           "type": "esriFieldTypeString",
           "alias": "CWPSNCStatus",
@@ -132,6 +143,17 @@
           "alias": "FacLat",
           "sqlType": "sqlTypeDouble",
           "length": 22,
+          "nullable": true,
+          "editable": true,
+          "domain": null,
+          "defaultValue": ""
+        },
+        {
+          "name": "PermitComponents",
+          "type": "esriFieldTypeString",
+          "alias": "PermitComponents",
+          "sqlType": "sqlTypeNVarchar",
+          "length": 1000,
           "nullable": true,
           "editable": true,
           "domain": null,

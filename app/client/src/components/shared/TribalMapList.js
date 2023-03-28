@@ -877,8 +877,10 @@ function TribalMap({
               };
             }
 
-            mapView.goTo(zoomParams).then(() => {
-              setMapLoading(false);
+            mapView.when(() => {
+              mapView.goTo(zoomParams).then(() => {
+                setMapLoading(false);
+              });
             });
 
             // only set the home widget if the user selects a different state

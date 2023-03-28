@@ -296,7 +296,7 @@
       //Only setup the logging for public sites, ie don't log from localhost
       window.gaTarget = '';
       if (
-        window.location.hostname.indexOf('epa.gov') > -1 ||
+        window.location.hostname === 'mywaterway.epa.gov' ||
         window.location.hostname === 'mywaterway-prod.app.cloud.gov'
       ) {
         //EPA (Production) - Just initialize the HMW logs by setting gaTarget
