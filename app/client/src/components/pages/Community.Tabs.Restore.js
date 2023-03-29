@@ -189,7 +189,7 @@ function Restore() {
                                       : null,
                                     {
                                       label: (
-                                        <GlossaryTerm term="Total EPA Funds">
+                                        <GlossaryTerm term="Total EPA Funds (CWA 319)">
                                           Total EPA Funds
                                         </GlossaryTerm>
                                       ),
@@ -197,7 +197,7 @@ function Restore() {
                                     },
                                     {
                                       label: (
-                                        <GlossaryTerm term="Total Budget">
+                                        <GlossaryTerm term="Total Budget (CWA 319)">
                                           Total Budget
                                         </GlossaryTerm>
                                       ),
