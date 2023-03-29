@@ -627,8 +627,8 @@ function DrinkingWater() {
                 <>
                   {drinkingWater.data.length === 0 && (
                     <p css={centeredTextStyles}>
-                      There is no drinking water data for the {watershed}{' '}
-                      watershed.
+                      There is no drinking water data for the{' '}
+                      <em>{watershed}</em> watershed.
                     </p>
                   )}
 
@@ -777,8 +777,8 @@ function DrinkingWater() {
                 <>
                   {drinkingWater.data.length === 0 && (
                     <p css={centeredTextStyles}>
-                      There is no drinking water data for the {watershed}{' '}
-                      watershed.
+                      There is no drinking water data for the{' '}
+                      <em>{watershed}</em> watershed.
                     </p>
                   )}
 
@@ -788,7 +788,7 @@ function DrinkingWater() {
                         <div css={infoBoxStyles}>
                           <p css={centeredTextStyles}>
                             There are no public water systems drawing water from
-                            the {watershed} watershed.
+                            the <em>{watershed}</em> watershed.
                           </p>
                         </div>
                       )}

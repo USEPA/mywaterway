@@ -570,7 +570,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Watershed Health Score data available for the{' '}
-                            {watershed} watershed.
+                            <em>{watershed}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -788,7 +788,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Wild and Scenic River data available in the{' '}
-                            {watershed} watershed.
+                            <em>{watershed}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -979,7 +979,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Protected Areas Database data available for the{' '}
-                            {watershed} watershed.
+                            <em>{watershed}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -1169,7 +1169,7 @@ function Protect() {
                             <div css={modifiedInfoBoxStyles}>
                               <p>
                                 There are no EPA funded protection projects in
-                                the {watershed} watershed.
+                                the <em>{watershed}</em> watershed.
                               </p>
                             </div>
                           )}
