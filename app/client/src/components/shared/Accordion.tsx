@@ -74,6 +74,7 @@ function isReactElement(child: ReactNode): child is ReactElement {
 }
 
 type AccordionListProps = {
+  ariaLabel?: string;
   children: ReactNode;
   className?: string;
   title?: ReactNode;
@@ -85,6 +86,7 @@ type AccordionListProps = {
 };
 
 function AccordionList({
+  ariaLabel = '',
   children,
   className = '',
   title = null,
@@ -108,8 +110,10 @@ function AccordionList({
 
   return (
     <div
+      aria-label={ariaLabel}
       css={accordionListContainerStyles}
       className={`hmw-accordions ${className}`}
+      role="list"
     >
       <div css={columnsStyles}>
         {sortOptions.length > 0 && (
@@ -222,6 +226,7 @@ const colorMap = {
 };
 
 type AccordionItemProps = {
+  ariaLabel?: string;
   children: ReactNode;
   icon?: Object;
   title: ReactNode;
@@ -235,6 +240,7 @@ type AccordionItemProps = {
 };
 
 function AccordionItem({
+  ariaLabel = '',
   children,
   icon,
   title,
@@ -269,30 +275,32 @@ function AccordionItem({
 
   return (
     <div
+      aria-label={ariaLabel}
       css={accordionItemContainerStyles}
       className={`hmw-accordion`}
       onMouseEnter={(_ev) => addHighlight()}
       onMouseLeave={(_ev) => removeHighlight()}
       onFocus={(_ev) => addHighlight()}
       onBlur={(_ev) => removeHighlight()}
+      onClick={(_ev) => {
+        const newIsOpen = !isOpen;
+        setIsOpen(newIsOpen);
+        onChange(newIsOpen);
+      }}
+      onKeyUp={(ev) => {
+        if (ev.key === 'Enter') {
+          const newIsOpen = !isOpen;
+          setIsOpen(newIsOpen);
+          onChange(newIsOpen);
+        }
+      }}
+      role="listitem"
+      tabIndex={0}
     >
       <header
         css={headerStyles}
         className="hmw-accordion-header"
         style={{ backgroundColor }}
-        tabIndex={0}
-        onClick={(_ev) => {
-          const newIsOpen = !isOpen;
-          setIsOpen(newIsOpen);
-          onChange(newIsOpen);
-        }}
-        onKeyUp={(ev) => {
-          if (ev.key === 'Enter') {
-            const newIsOpen = !isOpen;
-            setIsOpen(newIsOpen);
-            onChange(newIsOpen);
-          }
-        }}
       >
         {icon && <div css={iconStyles}>{icon}</div>}
 

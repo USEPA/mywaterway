@@ -1025,6 +1025,7 @@ function PermittedDischargersTab({
 
       return (
         <AccordionItem
+          ariaLabel={name || 'Unknown'}
           icon={diamondIcon({ color: colors.orange() })}
           key={id}
           title={<strong>{name || 'Unknown'}</strong>}
@@ -1141,6 +1142,7 @@ function PermittedDischargersTab({
             </table>
 
             <AccordionList
+              ariaLabel="List of Permitted Dischargers"
               title={
                 <>
                   <strong>
