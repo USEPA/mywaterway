@@ -21,6 +21,8 @@
 
 - Added a link to the "How’s My Waterway January 2023 Watershed Academy Webcast" to the Educators page.
 
+- Added a "Watershed Plan" table to the project items in the Clean Water Act Section 319 Projects panel of the Restore tab, which lists project watershed plans and their associated statuses.
+
 ### Changed
 
 - Updated the "Permitted Dischargers" service query to include GPC (General Permit Covered) facilities.
@@ -34,6 +36,8 @@
 - Updated styles of the "data system" links on the Data page, the "View Monitoring Report" links in the monitoring location panels and the "View Waterbody Report" links in the waterbody panels so that they are shown in shaded boxes.
 
 - Updated the waterbody information panels and waterbody report page to link waterbody condition labels to the glossary.
+
+- Updated the GRTS `GetProjectsByHUC12` service endpoint.
 
 - Fixed a bug where extra dates would show and overlap on the CyAN panel date slider during the week following a shift to/from Daylight Savings Time.
 
