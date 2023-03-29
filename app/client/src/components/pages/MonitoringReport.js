@@ -1868,10 +1868,16 @@ function MonitoringReportContent() {
     `&organization=${encodeURIComponent(orgId)}` +
     `&siteid=${encodeURIComponent(siteId)}`;
 
-  const { monitoringLocations, monitoringLocationsStatus: siteStatus } =
+  useMonitoringLocationsLayers(siteFilter);
+
+  const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
 
   const site = monitoringLocations[0] ?? {};
+  const siteStatus =
+    monitoringLocationsStatus === 'success' && monitoringLocations.length === 0
+      ? 'empty'
+      : monitoringLocationsStatus;
 
   const { fullscreenActive } = useFullscreenState();
   const [characteristics, characteristicsStatus] = useCharacteristics(
@@ -1940,8 +1946,7 @@ function MonitoringReportContent() {
       <div css={containerStyles}>
         <div css={pageErrorBoxStyles}>
           <p>
-            The monitoring location <strong>{siteId}</strong> could not be
-            found.
+            The monitoring location <em>{siteId}</em> could not be found.
           </p>
         </div>
       </div>
@@ -2018,7 +2023,7 @@ function MonitoringReportContent() {
     <StatusContent
       empty={noSiteView}
       failure={<p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>}
-      pending={content}
+      pending={<LoadingSpinner />}
       success={content}
       status={siteStatus}
     />
@@ -2059,16 +2064,18 @@ function SliderContainer({ min, max, disabled = false, onChange, range }) {
   );
 }
 
-function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
+function SiteMap({ layout, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
-  const [layers, setLayers] = useState([]);
   const [mapLoading, setMapLoading] = useState(true);
 
-  const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
   const { homeWidget, mapView, resetData } = useContext(LocationSearchContext);
 
-  const { updateVisibleLayers } = useLayers();
+  const {
+    monitoringLocationsLayer,
+    orderedLayers: layers,
+    updateVisibleLayers,
+  } = useLayers();
 
   useEffect(() => {
     if (!mapView) return;
@@ -2083,32 +2090,14 @@ function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
     };
   }, [mapView]);
 
-  const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
-    useMonitoringLocationsLayers(siteFilter);
-
   // Initialize the layers
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
-    setLayers([
-      ...getSharedLayers(),
-      monitoringLocationsLayer,
-      surroundingMonitoringLocationsLayer,
-    ]);
+    getSharedLayers();
     updateVisibleLayers({ monitoringLocationsLayer: true });
     setLayersInitialized(true);
-  }, [
-    getSharedLayers,
-    layers,
-    layersInitialized,
-    monitoringLocationsLayer,
-    services,
-    setLayers,
-    site,
-    siteStatus,
-    surroundingMonitoringLocationsLayer,
-    updateVisibleLayers,
-  ]);
+  }, [getSharedLayers, layersInitialized, updateVisibleLayers]);
 
   const { getSignal, abort } = useAbort();
 
