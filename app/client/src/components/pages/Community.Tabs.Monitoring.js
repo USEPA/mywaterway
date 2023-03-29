@@ -412,9 +412,7 @@ function Monitoring() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {monitoringLocations.status === 'failure'
-                  ? 'N/A'
-                  : `${monitoringLocations.data?.length ?? 0}`}
+                {monitoringLocations.data?.length || 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Past Water Conditions</p>
               <div css={switchContainerStyles}>
