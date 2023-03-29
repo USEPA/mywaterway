@@ -166,6 +166,10 @@ function Restore() {
                                 );
                               } catch (err) {
                                 console.error(err);
+                                window.logToGa('send', 'exception', {
+                                  exDescription: `Failed to parse watershed_plans JSON data for the "${item.prj_title}" project with ID "${item.prj_seq}"`,
+                                  exFatal: false,
+                                });
                               }
                             }
 
