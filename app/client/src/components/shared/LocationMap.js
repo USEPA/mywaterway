@@ -1923,8 +1923,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView.popup.close();
 
     // zoom to the graphic, and update the home widget, and close any popups
-    mapView.goTo(graphic).then(function () {
-      setAtHucBoundaries(true);
+    mapView.when(() => {
+      mapView.goTo(graphic).then(() => {
+        setAtHucBoundaries(true);
+      });
     });
   }, [
     mapView,

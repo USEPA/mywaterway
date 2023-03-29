@@ -609,7 +609,13 @@ function TribalMap({
   const services = useServicesContext();
   useWaterbodyHighlight();
 
-  const getSharedLayers = useSharedLayers(4622350);
+  const getSharedLayers = useSharedLayers({
+    overrides: {
+      allWaterbodiesLayer: {
+        minScale: 4622350,
+      },
+    },
+  });
   const [layers, setLayers] = useState(null);
 
   // reset the home widget
@@ -877,8 +883,10 @@ function TribalMap({
               };
             }
 
-            mapView.goTo(zoomParams).then(() => {
-              setMapLoading(false);
+            mapView.when(() => {
+              mapView.goTo(zoomParams).then(() => {
+                setMapLoading(false);
+              });
             });
 
             // only set the home widget if the user selects a different state

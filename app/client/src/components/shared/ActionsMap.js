@@ -70,7 +70,12 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const [layers, setLayers] = useState(null);
 
   const services = useServicesContext();
-  const getSharedLayers = useSharedLayers();
+  const excludedLayers = [
+    ...(window.location.pathname.includes('/plan-summary')
+      ? ['allWaterbodiesLayer']
+      : []),
+  ];
+  const getSharedLayers = useSharedLayers({ excludedLayers });
   useWaterbodyHighlight();
 
   const { surroundingMonitoringLocationsLayer } =
@@ -373,11 +378,13 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       };
     }
 
-    mapView.goTo(zoomParams).then(() => {
-      // set map zoom and home widget's viewpoint
-      mapView.zoom = mapView.zoom - 1;
-      homeWidget.viewpoint = new Viewpoint({
-        targetGeometry: mapView.extent,
+    mapView.when(() => {
+      mapView.goTo(zoomParams).then(() => {
+        // set map zoom and home widget's viewpoint
+        mapView.zoom = mapView.zoom - 1;
+        homeWidget.viewpoint = new Viewpoint({
+          targetGeometry: mapView.extent,
+        });
       });
     });
 

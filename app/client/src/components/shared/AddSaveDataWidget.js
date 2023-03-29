@@ -133,7 +133,6 @@ const layerPanelHeaderStyles = css`
   color: #898989;
   font-size: 16px;
   font-weight: normal;
-  line-height: 2;
 `;
 
 const recordListStyles = css`

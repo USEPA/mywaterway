@@ -107,9 +107,20 @@ function MapLegend({
   visibleLayers,
   additionalLegendInfo,
 }: Props) {
-  const filteredVisibleLayers = visibleLayers.filter(
-    (layer) => !ignoreLayers.includes(layer.id) && isInScale(layer, view.scale),
-  );
+  const filteredVisibleLayers = visibleLayers.filter((layer) => {
+    if (ignoreLayers.includes(layer.id)) return false;
+    if (!isInScale(layer, view.scale)) return false;
+
+    // Filter out duplicate surrounding layers.
+    return !(
+      (layer.id === 'allWaterbodiesLayer' &&
+        visibleLayers.find((l) => l.id === 'waterbodyLayer')) ||
+      (layer.id === 'surroundingUsgsStreamgagesLayer' &&
+        visibleLayers.find((l) => l.id === 'usgsStreamgagesLayer')) ||
+      (layer.id === 'surroundingDischargersLayer' &&
+        visibleLayers.find((l) => l.id === 'dischargersLayer'))
+    );
+  });
 
   // no legend data
   if (filteredVisibleLayers.length === 0 && !displayEsriLegend) {
@@ -120,30 +131,17 @@ function MapLegend({
     );
   }
 
-  let waterbodyLayerAdded = false;
-
   return (
     <div css={containerStyles}>
       <ul css={listStyles}>
-        {filteredVisibleLayers.map((layer, index) => {
-          if (
-            layer.visible &&
-            (layer.id === 'waterbodyLayer' ||
-              layer.id === 'allWaterbodiesLayer')
-          ) {
-            if (waterbodyLayerAdded) return null;
-            waterbodyLayerAdded = true;
-          }
-
-          return (
-            <MapLegendContent
-              key={layer.id}
-              view={view}
-              layer={layer}
-              additionalLegendInfo={additionalLegendInfo}
-            />
-          );
-        })}
+        {filteredVisibleLayers.map((layer) => (
+          <MapLegendContent
+            key={layer.id}
+            view={view}
+            layer={layer}
+            additionalLegendInfo={additionalLegendInfo}
+          />
+        ))}
       </ul>
     </div>
   );
@@ -868,8 +866,16 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     return isRestoreProtect ? actionsWaterbodiesLegend : waterbodyLegend;
   }
   if (layer.id === 'issuesLayer') return issuesLegend;
-  if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;
-  if (layer.id === 'dischargersLayer') return dischargersLegend;
+  if (
+    layer.id === 'usgsStreamgagesLayer' ||
+    layer.id === 'surroundingUsgsStreamgagesLayer'
+  )
+    return usgsStreamgagesLegend;
+  if (
+    layer.id === 'dischargersLayer' ||
+    layer.id === 'surroundingDischargersLayer'
+  )
+    return dischargersLegend;
   if (layer.id === 'nonprofitsLayer') return nonprofitsLegend;
   if (layer.id === 'providersLayer') return providersLegend;
   if (layer.id === 'boundariesLayer') return boundariesLegend;

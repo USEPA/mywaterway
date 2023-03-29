@@ -68,7 +68,8 @@ const containerStyles = css`
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}
-  margin-bottom: 1.25rem;
+  margin: 1rem;
+  text-align: center;
 `;
 
 const contentStyles = css`

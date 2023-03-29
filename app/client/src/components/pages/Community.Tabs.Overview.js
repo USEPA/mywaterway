@@ -48,7 +48,6 @@ import {
   echoError,
   streamgagesError,
   monitoringError,
-  huc12SummaryError,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
@@ -79,12 +78,6 @@ const legendItemsStyles = css`
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
-  margin-bottom: 1em;
-  text-align: center;
-`;
-
-const modifiedInfoBoxStyles = css`
-  ${infoBoxStyles};
   margin-bottom: 1em;
   text-align: center;
 `;
@@ -125,7 +118,7 @@ function Overview() {
     waterbodyLayer,
   } = useLayers();
 
-  const { cipSummary, watershed } = useContext(LocationSearchContext);
+  const { cipSummary } = useContext(LocationSearchContext);
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
@@ -218,34 +211,6 @@ function Overview() {
 
   return (
     <div css={containerStyles}>
-      {cipSummary.status === 'failure' && (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{huc12SummaryError}</p>
-        </div>
-      )}
-
-      {streamgagesStatus === 'failure' &&
-        monitoringLocationsStatus === 'failure' && (
-          <div css={modifiedErrorBoxStyles}>
-            <p>{streamgagesError}</p>
-            <p>{monitoringError}</p>
-          </div>
-        )}
-
-      {dischargersStatus === 'failure' && (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{echoError}</p>
-        </div>
-      )}
-
-      {cipSummary.status === 'success' &&
-        waterbodies !== null &&
-        totalWaterbodies === 0 && (
-          <div css={modifiedInfoBoxStyles}>
-            <p>{zeroAssessedWaterbodies(watershed)}</p>
-          </div>
-        )}
-
       <div css={keyMetricsStyles}>
         <div css={keyMetricStyles}>
           {(!waterbodyLayer || waterbodies === null) &&
@@ -371,7 +336,7 @@ function Overview() {
 }
 
 function WaterbodiesTab() {
-  const { watershed } = useContext(LocationSearchContext);
+  const { cipSummary, watershed } = useContext(LocationSearchContext);
   const waterbodies = useWaterbodyFeatures();
 
   const uniqueWaterbodies = waterbodies
@@ -382,6 +347,18 @@ function WaterbodiesTab() {
 
   // draw the waterbody on the map
   useWaterbodyOnMap();
+
+  if (
+    cipSummary.status === 'success' &&
+    waterbodies !== null &&
+    totalWaterbodies === 0
+  ) {
+    return (
+      <div css={infoBoxStyles}>
+        <p css={centeredTextStyles}>{zeroAssessedWaterbodies(watershed)}</p>
+      </div>
+    );
+  }
 
   return (
     <WaterbodyList
@@ -613,6 +590,18 @@ function MonitoringAndSensorsTab({
   );
 
   if (
+    streamgagesStatus === 'failure' &&
+    monitoringLocationsStatus === 'failure'
+  ) {
+    return (
+      <div css={errorBoxStyles}>
+        <p>{streamgagesError}</p>
+        <p>{monitoringError}</p>
+      </div>
+    );
+  }
+
+  if (
     monitoringLocationsStatus === 'pending' ||
     streamgagesStatus === 'pending'
   ) {
@@ -654,27 +643,29 @@ function MonitoringAndSensorsTab({
           />
         </p>
 
+        {streamgagesStatus === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{streamgagesError}</p>
+          </div>
+        )}
+
+        {monitoringLocationsStatus === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{monitoringError}</p>
+          </div>
+        )}
+
         {allMonitoringAndSensors.length === 0 && (
-          <p css={centeredTextStyles}>
-            There are no locations with data in the <em>{watershed}</em>{' '}
-            watershed.
-          </p>
+          <div css={infoBoxStyles}>
+            <p css={centeredTextStyles}>
+              There are no locations with data in the <em>{watershed}</em>{' '}
+              watershed.
+            </p>
+          </div>
         )}
 
         {allMonitoringAndSensors.length > 0 && (
           <>
-            {streamgagesStatus === 'failure' && (
-              <div css={modifiedErrorBoxStyles}>
-                <p>{streamgagesError}</p>
-              </div>
-            )}
-
-            {monitoringLocations.status === 'failure' && (
-              <div css={modifiedErrorBoxStyles}>
-                <p>{monitoringError}</p>
-              </div>
-            )}
-
             <table css={toggleTableStyles} className="table">
               <thead>
                 <tr>
@@ -1039,7 +1030,7 @@ function PermittedDischargersTab({
               <br />
               Compliance Status: {status}
               <br />
-              Permit Components: {components || 'None'}
+              Permit Components: {components || 'Not Specified'}
             </>
           }
           feature={feature}
@@ -1064,8 +1055,8 @@ function PermittedDischargersTab({
 
   if (dischargersStatus === 'failure') {
     return (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{echoError}</p>
+      <div css={errorBoxStyles}>
+        <p css={centeredTextStyles}>{echoError}</p>
       </div>
     );
   }
@@ -1074,9 +1065,11 @@ function PermittedDischargersTab({
     return (
       <>
         {totalPermittedDischargers === 0 && (
-          <p css={centeredTextStyles}>
-            There are no dischargers in the <em>{watershed}</em> watershed.
-          </p>
+          <div css={infoBoxStyles}>
+            <p css={centeredTextStyles}>
+              There are no dischargers in the <em>{watershed}</em> watershed.
+            </p>
+          </div>
         )}
 
         {totalPermittedDischargers > 0 && (
@@ -1098,7 +1091,7 @@ function PermittedDischargersTab({
                         onChange={toggleAll}
                         ariaLabel="Toggle all permit components"
                       />
-                      <span>All Permit Component</span>
+                      <span>All Permit Components</span>
                     </div>
                   </th>
                   <th>Count</th>
@@ -1113,7 +1106,7 @@ function PermittedDischargersTab({
                       const component = dischargerPermitComponents[key];
 
                       const componentLabel = !component.label
-                        ? 'None'
+                        ? 'Not Specified'
                         : component.label;
 
                       return (
@@ -1127,8 +1120,8 @@ function PermittedDischargersTab({
                                 }
                                 ariaLabel={`Toggle ${componentLabel}`}
                               />
-                              {componentLabel === 'None' ? (
-                                <span>None</span>
+                              {componentLabel === 'Not Specified' ? (
+                                <span>Not Specified</span>
                               ) : (
                                 <GlossaryTerm term={componentLabel}>
                                   {componentLabel}

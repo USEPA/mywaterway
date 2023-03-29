@@ -118,7 +118,7 @@ function getMatchingFeatures(
 interface HighlightFeatureParams {
   mapView: __esri.MapView;
   features: Array<ExtendedGraphic>;
-  highlightOptions: __esri.MapViewHighlightOptions;
+  highlightOptions: __esri.HighlightOptions;
   handles: Handles;
   group: string;
   layer?: __esri.Layer | null;
@@ -880,7 +880,17 @@ function useDynamicPopup() {
   return { getTitle, getTemplate, setDynamicPopupFields };
 }
 
-function useSharedLayers(allWaterbodiesMinScale?: number) {
+function useSharedLayers({
+  excludedLayers = [],
+  overrides,
+}: {
+  excludedLayers?: string[];
+  overrides?: {
+    [layerId: string]: {
+      minScale?: number;
+    };
+  };
+} = {}) {
   const services = useServicesContext();
   const { setLayer, setResetHandler } = useLayers();
 
@@ -1466,6 +1476,7 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
   }
 
   function getAllWaterbodiesLayer() {
+    if (excludedLayers.includes('allWaterbodiesLayer')) return null;
     const popupTemplate = {
       title: getTitle,
       content: getTemplate,
@@ -1556,7 +1567,7 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
     return allWaterbodiesLayer;
   }
 
-  useAllWaterbodiesLayer(allWaterbodiesMinScale);
+  useAllWaterbodiesLayer(overrides?.allWaterbodiesLayer?.minScale);
 
   function getLandCoverLayer() {
     const landCoverLayer = new WMSLayer({
@@ -1613,7 +1624,7 @@ function useSharedLayers(allWaterbodiesMinScale?: number) {
       countyLayer,
       watershedsLayer,
       allWaterbodiesLayer,
-    ];
+    ].filter((layer) => layer !== null);
   };
 }
 

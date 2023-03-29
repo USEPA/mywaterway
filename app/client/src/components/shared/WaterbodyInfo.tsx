@@ -523,7 +523,20 @@ function WaterbodyInfo({
                             {useField.label}
                           </GlossaryTerm>
                         </td>
-                        <td>{value}</td>
+                        <td>
+                          <GlossaryTerm
+                            term={
+                              value === 'Good'
+                                ? 'Good Waters'
+                                : value === 'Impaired' ||
+                                  value === 'Impaired (Issues Identified)'
+                                ? 'Impaired Waters'
+                                : 'Condition Unknown'
+                            }
+                          >
+                            {value}
+                          </GlossaryTerm>
+                        </td>
                       </tr>
                     );
                   })}
@@ -584,9 +597,11 @@ function WaterbodyInfo({
               ? attributes.PermitComponents.split(', ')
                   .sort()
                   .map((term: string) => (
-                    <GlossaryTerm key={term} term={term}>{term}</GlossaryTerm>
+                    <GlossaryTerm key={term} term={term}>
+                      {term}
+                    </GlossaryTerm>
                   ))
-              : 'None',
+              : 'Not Specified',
           },
           {
             label: 'Significant Effluent Violation within the last 3 years',
@@ -1599,7 +1614,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const timeout = 60_000;
     const imageTimeout = setTimeout(() => abortController.abort(), timeout);
 
-    cyanImageLayer.source.elements.removeAll();
+    const cyanImageSource =
+      cyanImageLayer.source as __esri.LocalMediaElementSource;
+    cyanImageSource.elements.removeAll();
     setImageStatus('pending');
 
     // workaround for needing to proxy cyan from localhost
@@ -1682,7 +1699,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               image,
               georeference: geo,
             });
-            cyanImageLayer.source.elements.add(imageElement);
+            cyanImageSource.elements.add(imageElement);
           };
         };
       })
@@ -1715,14 +1732,18 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         if (visible) return;
         mapView.popup.features.forEach((feature) => {
           if (feature.layer?.id === 'cyanWaterbodies') {
-            cyanImageLayer.source.elements.removeAll();
+            (
+              cyanImageLayer.source as __esri.LocalMediaElementSource
+            ).elements.removeAll();
           }
         });
       },
     );
 
     return function cleanup() {
-      cyanImageLayer.source.elements.removeAll();
+      (
+        cyanImageLayer.source as __esri.LocalMediaElementSource
+      ).elements.removeAll();
       popupWatchHandle.remove();
     };
   }, [mapView]);

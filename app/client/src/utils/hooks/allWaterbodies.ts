@@ -7,6 +7,8 @@ import {
   useSurroundingsDispatch,
   useSurroundingsState,
 } from 'contexts/Surroundings';
+// utils
+import { isClick } from 'utils/utils';
 
 export function useAllWaterbodiesLayer(minScale = 577791) {
   const { huc12, mapView } = useContext(LocationSearchContext);
@@ -42,6 +44,7 @@ export function useAllWaterbodiesLayer(minScale = 577791) {
 
   // Mark the layer as updating, when necessary
   useEffect(() => {
+    if (!allWaterbodiesLayer) return;
     const updatingHandle = reactiveUtils.watch(
       () => mapView?.navigating,
       () => {
@@ -58,12 +61,13 @@ export function useAllWaterbodiesLayer(minScale = 577791) {
     );
 
     return function cleanup() {
-      updatingHandle.remove();
+      updatingHandle?.remove();
     };
-  }, [mapView, surroundingsDispatch, updating]);
+  }, [allWaterbodiesLayer, mapView, surroundingsDispatch, updating]);
 
   // Mark the layer as disabled when out of scale
   useEffect(() => {
+    if (!allWaterbodiesLayer) return;
     const disabledHandle = reactiveUtils.watch(
       () => mapView?.scale,
       () => {
@@ -84,19 +88,19 @@ export function useAllWaterbodiesLayer(minScale = 577791) {
     );
 
     return function cleanup() {
-      disabledHandle.remove();
+      disabledHandle?.remove();
     };
   }, [disabled, mapView, surroundingsDispatch, allWaterbodiesLayer]);
 
   // Function for controlling layer visibility
   const toggleVisibility = useCallback(
     (showLayer: boolean) => {
-      return function toggle() {
-        if (!allWaterbodiesLayer) return;
+      return function toggle(ev: React.KeyboardEvent | React.MouseEvent) {
+        if (!isClick(ev)) return;
         updateVisibleLayers({ [layerId]: showLayer });
       };
     },
-    [allWaterbodiesLayer, updateVisibleLayers],
+    [updateVisibleLayers],
   );
 
   useEffect(() => {

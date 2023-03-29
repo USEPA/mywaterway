@@ -9,7 +9,7 @@ import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import {
   keyMetricsStyles,
@@ -121,13 +121,15 @@ function Restore() {
                 {grts.status === 'success' && (
                   <>
                     {sortedGrtsData.length === 0 && (
-                      <p css={textStyles}>
-                        There are no{' '}
-                        <GlossaryTerm term="Clean Water Act Section 319 Projects">
-                          Clean Water Act Section 319
-                        </GlossaryTerm>{' '}
-                        projects in the <em>{watershed}</em> watershed.
-                      </p>
+                      <div css={infoBoxStyles}>
+                        <p css={textStyles}>
+                          There are no{' '}
+                          <GlossaryTerm term="Clean Water Act Section 319 Projects">
+                            Clean Water Act Section 319
+                          </GlossaryTerm>{' '}
+                          projects in the <em>{watershed}</em> watershed.
+                        </p>
+                      </div>
                     )}
 
                     {sortedGrtsData.length > 0 && (
@@ -232,13 +234,15 @@ function Restore() {
                 {attainsPlans.status === 'success' && (
                   <>
                     {sortedAttainsPlanData.length === 0 && (
-                      <p css={textStyles}>
-                        There are no EPA funded{' '}
-                        <GlossaryTerm term="Restoration plan">
-                          restoration plans
-                        </GlossaryTerm>{' '}
-                        in the <em>{watershed}</em> watershed.
-                      </p>
+                      <div css={infoBoxStyles}>
+                        <p css={textStyles}>
+                          There are no EPA funded{' '}
+                          <GlossaryTerm term="Restoration plan">
+                            restoration plans
+                          </GlossaryTerm>{' '}
+                          in the <em>{watershed}</em> watershed.
+                        </p>
+                      </div>
                     )}
 
                     {sortedAttainsPlanData.length > 0 && (
