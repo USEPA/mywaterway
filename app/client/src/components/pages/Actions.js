@@ -21,7 +21,7 @@ import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 // styled components
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
@@ -182,6 +182,12 @@ const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}
   margin: 1rem;
   text-align: center;
+`;
+
+const modifiedTextBoxStyles = css`
+  ${textBoxStyles}
+  margin: 1em 0;
+  padding: 0.75em;
 `;
 
 const inlineBoxStyles = css`
@@ -439,7 +445,7 @@ function Actions() {
             )}
 
             {assessmentUrl && (
-              <div>
+              <div css={modifiedTextBoxStyles}>
                 <a
                   href={assessmentUrl}
                   target="_blank"

@@ -25,7 +25,7 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -102,6 +102,7 @@ const modifiedDisclaimerStyles = css`
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
+  margin-bottom: 1em;
   text-align: center;
 `;
 
@@ -1161,8 +1162,8 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
   if (monitoringLocations.status === 'failure') {
     return (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{monitoringError}</p>
+      <div css={errorBoxStyles}>
+        <p css={centeredTextStyles}>{monitoringError}</p>
       </div>
     );
   }
@@ -1171,10 +1172,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     return (
       <>
         {totalLocationsCount === 0 && (
-          <p css={centeredTextStyles}>
-            There are no monitoring sample locations in the {watershed}{' '}
-            watershed.
-          </p>
+          <div css={infoBoxStyles}>
+            <p css={centeredTextStyles}>
+              There are no monitoring sample locations in the {watershed}{' '}
+              watershed.
+            </p>
+          </div>
         )}
 
         {totalLocationsCount > 0 && (
