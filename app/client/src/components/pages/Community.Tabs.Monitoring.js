@@ -1174,8 +1174,8 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         {totalLocationsCount === 0 && (
           <div css={infoBoxStyles}>
             <p css={centeredTextStyles}>
-              There are no monitoring sample locations in the {watershed}{' '}
-              watershed.
+              There are no monitoring sample locations in the{' '}
+              <em>{watershed}</em> watershed.
             </p>
           </div>
         )}
@@ -1184,7 +1184,9 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
           <>
             <div css={sliderHeaderStyles}>
               <span></span>
-              <span>Date range for the {watershed} watershed </span>
+              <span>
+                Date range for the <em>{watershed}</em> watershed{' '}
+              </span>
               <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
             </div>
             <div css={sliderContainerStyles}>
