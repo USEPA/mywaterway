@@ -1056,7 +1056,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // query geocode server for every new search
   const [mapLoading, setMapLoading] = useState(true);
-
   const queryGrtsHuc12 = useCallback(
     (huc12Param) => {
       fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12Param}`)

@@ -54,7 +54,7 @@ const gridStyles = css`
 
 const listContentStyles = css`
   border-top: 1px solid #d8dfe2;
-  margin-bottom: 1rem;
+  padding-bottom: 1rem;
 
   .row-cell {
     padding: 0.75rem;
