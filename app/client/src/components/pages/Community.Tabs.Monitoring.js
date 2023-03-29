@@ -412,9 +412,7 @@ function Monitoring() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {monitoringLocations.status === 'failure'
-                  ? 'N/A'
-                  : `${monitoringLocations.data?.length ?? 0}`}
+                {monitoringLocations.data?.length || 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Past Water Conditions</p>
               <div css={switchContainerStyles}>
@@ -442,54 +440,6 @@ function Monitoring() {
 
           <TabPanels>
             <TabPanel>
-              <p>
-                The yellow squares represent{' '}
-                <a
-                  rel="noreferrer"
-                  target="_blank"
-                  href="https://dashboard.waterdata.usgs.gov"
-                >
-                  USGS monitoring locations
-                </a>{' '}
-                that provide real time water quality measurements – such as
-                water level, water temperature, dissolved oxygen saturation, and
-                other water quality indicators.
-                <ShowLessMore
-                  charLimit={0}
-                  text={
-                    <>
-                      <span css={showLessMoreStyles}>
-                        Areas highlighted light blue are the lakes, reservoirs,
-                        and other large waterbodies where CyAN satellite imagery
-                        data is available. Daily data are a snapshot of{' '}
-                        <GlossaryTerm term="Cyanobacteria">
-                          cyanobacteria
-                        </GlossaryTerm>{' '}
-                        (sometimes referred to as blue-green algae) at the time
-                        of detection.
-                      </span>
-
-                      <span css={showLessMoreStyles}>
-                        Click on each monitoring location on the map or in the
-                        list below to find out more about what was monitored at
-                        each location.
-                      </span>
-                    </>
-                  }
-                />
-              </p>
-
-              <div css={legendItemsStyles}>
-                <span>
-                  {waterwayIcon({ color: '#6c95ce' })}
-                  &nbsp;CyAN Satellite Imagery&nbsp;
-                </span>
-                <span>
-                  {squareIcon({ color: '#fffe00' })}
-                  &nbsp;USGS Sensors&nbsp;
-                </span>
-              </div>
-
               <CurrentConditionsTab
                 usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
                 setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
@@ -502,37 +452,6 @@ function Monitoring() {
               />
             </TabPanel>
             <TabPanel>
-              <p>
-                The purple circles represent{' '}
-                <a
-                  rel="noreferrer"
-                  target="_blank"
-                  href="https://www.waterqualitydata.us"
-                >
-                  Water Quality Portal
-                </a>{' '}
-                monitoring locations where diverse past water condition data are
-                available. These locations may have monitoring data available
-                from as recently as last week, to multiple decades old, or
-                anywhere in between, depending on the location.
-                <ShowLessMore
-                  text={
-                    <span css={showLessMoreStyles}>
-                      Click on each monitoring location on the map or in the
-                      list below to find out more about what was monitored at
-                      each location."
-                    </span>
-                  }
-                />
-              </p>
-
-              <div css={legendItemsStyles}>
-                <span>
-                  {circleIcon({ color: colors.lightPurple() })}
-                  &nbsp;Past Water Conditions&nbsp;
-                </span>
-              </div>
-
               <PastConditionsTab
                 monitoringDisplayed={monitoringDisplayed}
                 setMonitoringDisplayed={setMonitoringDisplayed}
@@ -638,152 +557,217 @@ function CurrentConditionsTab({
         </div>
       )}
 
-      <table css={toggleTableStyles} className="table">
-        <thead>
-          <tr>
-            <th>
-              <span>Current Water Conditions</span>
-            </th>
-            <th>Count</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <div css={toggleStyles}>
-                <Switch
-                  checked={streamgages.length > 0 && usgsStreamgagesDisplayed}
-                  onChange={handleUsgsSensorsToggle}
-                  disabled={streamgages.length === 0}
-                  ariaLabel="USGS Sensors"
-                />
-                <span>USGS Sensors</span>
-              </div>
-            </td>
-            <td>{streamgages.length}</td>
-          </tr>
-          <tr>
-            <td>
-              <div css={toggleStyles}>
-                <Switch
-                  checked={cyanWaterbodies.data?.length > 0 && cyanDisplayed}
-                  onChange={handleCyanWaterbodiesToggle}
-                  disabled={
-                    cyanWaterbodies.status !== 'success' ||
-                    cyanWaterbodies.data?.length === 0
-                  }
-                  ariaLabel="CyAN Satellite Imagery"
-                />
-                <span>CyAN Satellite Imagery</span>
-              </div>
-            </td>
-            <td>{cyanWaterbodies.data?.length ?? 'N/A'}</td>
-          </tr>
-        </tbody>
-      </table>
+      {sortedLocations.length === 0 && (
+        <div css={infoBoxStyles}>
+          <p css={centeredTextStyles}>
+            There are no locations with data in the <em>{watershed}</em>{' '}
+            watershed.
+          </p>
+        </div>
+      )}
 
-      <AccordionList
-        title={
-          <>
-            <strong>{filteredLocations.length}</strong> of{' '}
-            <strong>{sortedLocations.length}</strong>{' '}
-            {sortedLocations.length === 1 ? 'location' : 'locations'} with data
-            in the <em>{watershed}</em> watershed.
-          </>
-        }
-        onSortChange={handleSortChange}
-        sortOptions={[
-          {
-            label: 'Location Name',
-            value: 'locationName',
-          },
-          {
-            label: 'Organization Name',
-            value: 'orgName',
-          },
-          {
-            label: 'Water Type',
-            value: 'locationType',
-          },
-        ]}
-      >
-        {filteredLocations.map((item) => {
-          switch (item.monitoringType) {
-            case 'USGS Sensors': {
-              const feature = {
-                geometry: {
-                  type: 'point',
-                  longitude: item.locationLongitude,
-                  latitude: item.locationLatitude,
-                },
-                attributes: item,
-              };
+      {sortedLocations.length > 0 && (
+        <>
+          <p>
+            The yellow squares represent{' '}
+            <a
+              rel="noreferrer"
+              target="_blank"
+              href="https://dashboard.waterdata.usgs.gov"
+            >
+              USGS monitoring locations
+            </a>{' '}
+            that provide real time water quality measurements – such as water
+            level, water temperature, dissolved oxygen saturation, and other
+            water quality indicators.
+            <ShowLessMore
+              charLimit={0}
+              text={
+                <>
+                  <span css={showLessMoreStyles}>
+                    Areas highlighted light blue are the lakes, reservoirs, and
+                    other large waterbodies where CyAN satellite imagery data is
+                    available. Daily data are a snapshot of{' '}
+                    <GlossaryTerm term="Cyanobacteria">
+                      cyanobacteria
+                    </GlossaryTerm>{' '}
+                    (sometimes referred to as blue-green algae) at the time of
+                    detection.
+                  </span>
 
-              return (
-                <AccordionItem
-                  icon={squareIcon({ color: '#fffe00' })}
-                  key={item.uniqueId}
-                  title={<strong>{item.locationName || 'Unknown'}</strong>}
-                  subTitle={
-                    <>
-                      <em>Organization Name:</em>&nbsp;&nbsp;
-                      {item.orgName}
-                      <br />
-                      <em>Water Type:</em>&nbsp;&nbsp;
-                      {item.locationType}
-                    </>
-                  }
-                  feature={feature}
-                  idKey="uniqueId"
-                >
-                  <div css={accordionContentStyles}>
-                    <WaterbodyInfo
-                      type="USGS Sensors"
-                      feature={feature}
-                      services={services}
+                  <span css={showLessMoreStyles}>
+                    Click on each monitoring location on the map or in the list
+                    below to find out more about what was monitored at each
+                    location.
+                  </span>
+                </>
+              }
+            />
+          </p>
+
+          <div css={legendItemsStyles}>
+            <span>
+              {waterwayIcon({ color: '#6c95ce' })}
+              &nbsp;CyAN Satellite Imagery&nbsp;
+            </span>
+            <span>
+              {squareIcon({ color: '#fffe00' })}
+              &nbsp;USGS Sensors&nbsp;
+            </span>
+          </div>
+
+          <table css={toggleTableStyles} className="table">
+            <thead>
+              <tr>
+                <th>
+                  <span>Current Water Conditions</span>
+                </th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div css={toggleStyles}>
+                    <Switch
+                      checked={
+                        streamgages.length > 0 && usgsStreamgagesDisplayed
+                      }
+                      onChange={handleUsgsSensorsToggle}
+                      disabled={streamgages.length === 0}
+                      ariaLabel="USGS Sensors"
                     />
-
-                    <ViewOnMapButton feature={feature} />
+                    <span>USGS Sensors</span>
                   </div>
-                </AccordionItem>
-              );
-            }
-            case 'CyAN': {
-              const feature = {
-                geometry: item.geometry,
-                attributes: item,
-              };
-              return (
-                <AccordionItem
-                  icon={waterwayIcon({ color: '#6c95ce' })}
-                  key={item.FID}
-                  title={<strong>{item.GNIS_NAME || 'Unknown'}</strong>}
-                  subTitle={
-                    <>
-                      <em>Organization Name:</em>&nbsp;&nbsp;
-                      {item.orgName}
-                    </>
-                  }
-                  feature={feature}
-                  idKey="FID"
-                >
-                  <div css={accordionContentStyles}>
-                    <WaterbodyInfo
-                      feature={feature}
-                      mapView={mapView}
-                      services={services}
-                      type="CyAN"
+                </td>
+                <td>{streamgages.length}</td>
+              </tr>
+              <tr>
+                <td>
+                  <div css={toggleStyles}>
+                    <Switch
+                      checked={
+                        cyanWaterbodies.data?.length > 0 && cyanDisplayed
+                      }
+                      onChange={handleCyanWaterbodiesToggle}
+                      disabled={
+                        cyanWaterbodies.status !== 'success' ||
+                        cyanWaterbodies.data?.length === 0
+                      }
+                      ariaLabel="CyAN Satellite Imagery"
                     />
-                    <ViewOnMapButton feature={feature} fieldName="FID" />
+                    <span>CyAN Satellite Imagery</span>
                   </div>
-                </AccordionItem>
-              );
+                </td>
+                <td>{cyanWaterbodies.data?.length ?? 'N/A'}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <AccordionList
+            title={
+              <>
+                <strong>{filteredLocations.length}</strong> of{' '}
+                <strong>{sortedLocations.length}</strong>{' '}
+                {sortedLocations.length === 1 ? 'location' : 'locations'} with
+                data in the <em>{watershed}</em> watershed.
+              </>
             }
-            default:
-              throw new Error('Unhandled monitoring type');
-          }
-        })}
-      </AccordionList>
+            onSortChange={handleSortChange}
+            sortOptions={[
+              {
+                label: 'Location Name',
+                value: 'locationName',
+              },
+              {
+                label: 'Organization Name',
+                value: 'orgName',
+              },
+              {
+                label: 'Water Type',
+                value: 'locationType',
+              },
+            ]}
+          >
+            {filteredLocations.map((item) => {
+              switch (item.monitoringType) {
+                case 'USGS Sensors': {
+                  const feature = {
+                    geometry: {
+                      type: 'point',
+                      longitude: item.locationLongitude,
+                      latitude: item.locationLatitude,
+                    },
+                    attributes: item,
+                  };
+
+                  return (
+                    <AccordionItem
+                      icon={squareIcon({ color: '#fffe00' })}
+                      key={item.uniqueId}
+                      title={<strong>{item.locationName || 'Unknown'}</strong>}
+                      subTitle={
+                        <>
+                          <em>Organization Name:</em>&nbsp;&nbsp;
+                          {item.orgName}
+                          <br />
+                          <em>Water Type:</em>&nbsp;&nbsp;
+                          {item.locationType}
+                        </>
+                      }
+                      feature={feature}
+                      idKey="uniqueId"
+                    >
+                      <div css={accordionContentStyles}>
+                        <WaterbodyInfo
+                          type="USGS Sensors"
+                          feature={feature}
+                          services={services}
+                        />
+
+                        <ViewOnMapButton feature={feature} />
+                      </div>
+                    </AccordionItem>
+                  );
+                }
+                case 'CyAN': {
+                  const feature = {
+                    geometry: item.geometry,
+                    attributes: item,
+                  };
+                  return (
+                    <AccordionItem
+                      icon={waterwayIcon({ color: '#6c95ce' })}
+                      key={item.FID}
+                      title={<strong>{item.GNIS_NAME || 'Unknown'}</strong>}
+                      subTitle={
+                        <>
+                          <em>Organization Name:</em>&nbsp;&nbsp;
+                          {item.orgName}
+                        </>
+                      }
+                      feature={feature}
+                      idKey="FID"
+                    >
+                      <div css={accordionContentStyles}>
+                        <WaterbodyInfo
+                          feature={feature}
+                          mapView={mapView}
+                          services={services}
+                          type="CyAN"
+                        />
+                        <ViewOnMapButton feature={feature} fieldName="FID" />
+                      </div>
+                    </AccordionItem>
+                  );
+                }
+                default:
+                  throw new Error('Unhandled monitoring type');
+              }
+            })}
+          </AccordionList>
+        </>
+      )}
     </>
   );
 }
@@ -1174,17 +1158,49 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         {totalLocationsCount === 0 && (
           <div css={infoBoxStyles}>
             <p css={centeredTextStyles}>
-              There are no monitoring sample locations in the {watershed}{' '}
-              watershed.
+              There are no monitoring sample locations in the{' '}
+              <em>{watershed}</em> watershed.
             </p>
           </div>
         )}
 
         {totalLocationsCount > 0 && (
           <>
+            <p>
+              The purple circles represent{' '}
+              <a
+                rel="noreferrer"
+                target="_blank"
+                href="https://www.waterqualitydata.us"
+              >
+                Water Quality Portal
+              </a>{' '}
+              monitoring locations where diverse past water condition data are
+              available. These locations may have monitoring data available from
+              as recently as last week, to multiple decades old, or anywhere in
+              between, depending on the location.
+              <ShowLessMore
+                text={
+                  <span css={showLessMoreStyles}>
+                    Click on each monitoring location on the map or in the list
+                    below to find out more about what was monitored at each
+                    location."
+                  </span>
+                }
+              />
+            </p>
+
+            <div css={legendItemsStyles}>
+              <span>
+                {circleIcon({ color: colors.lightPurple() })}
+                &nbsp;Past Water Conditions&nbsp;
+              </span>
+            </div>
             <div css={sliderHeaderStyles}>
               <span></span>
-              <span>Date range for the {watershed} watershed </span>
+              <span>
+                Date range for the <em>{watershed}</em> watershed{' '}
+              </span>
               <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
             </div>
             <div css={sliderContainerStyles}>

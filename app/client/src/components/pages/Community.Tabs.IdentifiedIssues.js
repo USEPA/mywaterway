@@ -596,8 +596,8 @@ function IdentifiedIssues() {
                         {emptyCategoriesWithPercent && (
                           <p css={centeredTextStyles}>
                             Impairment Summary information is temporarily
-                            unavailable for the {watershed} watershed. Please
-                            see the Overview tab for specific impairment
+                            unavailable for the <em>{watershed}</em> watershed.
+                            Please see the Overview tab for specific impairment
                             information on these waters.
                           </p>
                         )}
@@ -616,8 +616,8 @@ function IdentifiedIssues() {
                           !zeroPollutedWaterbodies && (
                             <>
                               <p>
-                                Impairment categories in the {watershed}{' '}
-                                watershed.
+                                Impairment categories in the{' '}
+                                <em>{watershed}</em> watershed.
                               </p>
 
                               <table css={toggleTableStyles} className="table">
@@ -767,7 +767,8 @@ function IdentifiedIssues() {
                               <>
                                 NPDES ID: {id}
                                 <br />
-                                Permit Components: {components || 'Not Specified'}
+                                Permit Components:{' '}
+                                {components || 'Not Specified'}
                               </>
                             }
                             feature={feature}

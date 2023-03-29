@@ -27,8 +27,11 @@ export const huc12SummaryError =
   'Waterbody information is temporarily unavailable, please try again later.';
 
 // message show on the Community page when number of assessed waterbodies is 0
-export const zeroAssessedWaterbodies = (watershed, type = 'watershed') =>
-  `There are no waterbodies assessed in the ${watershed} ${type}.`;
+export const zeroAssessedWaterbodies = (watershed, type = 'watershed') => (
+  <>
+    There are no waterbodies assessed in the <em>{watershed}</em> {type}.
+  </>
+);
 
 // geocode.arcgis.com - Geolocation Service
 export const geocodeError =

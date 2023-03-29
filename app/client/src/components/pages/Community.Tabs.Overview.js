@@ -614,34 +614,38 @@ function MonitoringAndSensorsTab({
   ) {
     return (
       <>
-        <p>
-          Water is monitored by state, federal, tribal, and local agencies.
-          Universities, volunteers and others also help detect water quality
-          concerns.
-        </p>
+        {allMonitoringAndSensors.length > 0 && (
+          <>
+            <p>
+              Water is monitored by state, federal, tribal, and local agencies.
+              Universities, volunteers and others also help detect water quality
+              concerns.
+            </p>
 
-        <div css={legendItemsStyles}>
-          <span>
-            {circleIcon({ color: colors.lightPurple() })}
-            &nbsp;Past Water Conditions&nbsp;
-          </span>
-          <span>
-            {squareIcon({ color: '#fffe00' })}
-            &nbsp;USGS Sensors&nbsp;
-          </span>
-        </div>
+            <div css={legendItemsStyles}>
+              <span>
+                {circleIcon({ color: colors.lightPurple() })}
+                &nbsp;Past Water Conditions&nbsp;
+              </span>
+              <span>
+                {squareIcon({ color: '#fffe00' })}
+                &nbsp;USGS Sensors&nbsp;
+              </span>
+            </div>
 
-        <p>
-          Water quality monitoring locations are shown on the map as both purple
-          circles and yellow squares.
-          <ShowLessMore
-            charLimit={0}
-            text=" The yellow squares represent monitoring
-            locations that provide real time water quality measurements for a
-            subset of categories– such as water level, water temperature,
-            dissolved oxygen saturation, and other water quality indicators. The purple circles represent monitoring locations where all other past water conditions data is available. These locations may have monitoring data available from as recently as last week, to multiple decades old, or anywhere in between, depending on the location."
-          />
-        </p>
+            <p>
+              Water quality monitoring locations are shown on the map as both
+              purple circles and yellow squares.
+              <ShowLessMore
+                charLimit={0}
+                text=" The yellow squares represent monitoring
+                locations that provide real time water quality measurements for a
+                subset of categories– such as water level, water temperature,
+                dissolved oxygen saturation, and other water quality indicators. The purple circles represent monitoring locations where all other past water conditions data is available. These locations may have monitoring data available from as recently as last week, to multiple decades old, or anywhere in between, depending on the location."
+              />
+            </p>
+          </>
+        )}
 
         {streamgagesStatus === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
