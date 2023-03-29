@@ -643,6 +643,18 @@ function MonitoringAndSensorsTab({
           />
         </p>
 
+        {streamgagesStatus === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{streamgagesError}</p>
+          </div>
+        )}
+
+        {monitoringLocationsStatus === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{monitoringError}</p>
+          </div>
+        )}
+
         {allMonitoringAndSensors.length === 0 && (
           <div css={infoBoxStyles}>
             <p css={centeredTextStyles}>
@@ -654,18 +666,6 @@ function MonitoringAndSensorsTab({
 
         {allMonitoringAndSensors.length > 0 && (
           <>
-            {streamgagesStatus === 'failure' && (
-              <div css={modifiedErrorBoxStyles}>
-                <p>{streamgagesError}</p>
-              </div>
-            )}
-
-            {monitoringLocations.status === 'failure' && (
-              <div css={modifiedErrorBoxStyles}>
-                <p>{monitoringError}</p>
-              </div>
-            )}
-
             <table css={toggleTableStyles} className="table">
               <thead>
                 <tr>
