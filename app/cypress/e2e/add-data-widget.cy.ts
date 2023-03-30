@@ -358,7 +358,7 @@ describe('Add & Save Data Widget', () => {
     });
   });
 
-  it.only("Test that the save panel includes layers added from the widget's other tabs", () => {
+  it("Test that the save panel includes layers added from the widget's other tabs", () => {
     openWidget('/community/dc');
 
     cy.get(adwId).within(() => {
