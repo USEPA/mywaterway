@@ -308,7 +308,10 @@ function MapWidgets({
 }: Props) {
   const {
     addSaveDataWidgetVisible,
+    setActiveTabIndex,
     setAddSaveDataWidgetVisible,
+    setSaveAsName,
+    setSaveDescription,
     widgetLayers,
   } = useAddSaveDataWidgetState();
 
@@ -1042,10 +1045,24 @@ function MapWidgets({
     visibleLayers,
   ]);
 
+  // Focus on the add/save data widget when it is first opened
   useEffect(() => {
     if (!addSaveDataWidgetVisible) return;
     document.getElementById('add-save-data-widget')?.focus();
   }, [addSaveDataWidgetVisible]);
+
+  // Reset the add/save data widget values when users change pages
+  useEffect(() => {
+    setActiveTabIndex(0);
+    setAddSaveDataWidgetVisible(false);
+    setSaveAsName('');
+    setSaveDescription('');
+  }, [
+    setActiveTabIndex,
+    setAddSaveDataWidgetVisible,
+    setSaveAsName,
+    setSaveDescription,
+  ]);
 
   if (!addSaveDataWidget) return null;
 
