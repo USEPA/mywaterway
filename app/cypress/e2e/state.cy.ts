@@ -244,7 +244,7 @@ describe('State page Water Overview tab', () => {
 });
 
 describe('State page Advanced Search tab', () => {
-  it.only('Displays search results in a virtualized list', () => {
+  it('Displays search results in a virtualized list', () => {
     cy.visit('/state/AZ/advanced-search');
 
     cy.findAllByRole('button', { name: 'Search' }).last().click();
@@ -257,10 +257,10 @@ describe('State page Advanced Search tab', () => {
       'not.be.visible',
     );
 
-    cy.findByRole('listitem', { name: 'A-7 Backwater' }).should('exist');
+    cy.findByRole('button', { name: 'A-7 Backwater' }).should('exist');
 
     cy.scrollTo('bottom', { duration: 3000 });
 
-    cy.findByRole('listitem', { name: 'A-7 Backwater' }).should('not.exist');
+    cy.findByRole('button', { name: 'A-7 Backwater' }).should('not.exist');
   });
 });

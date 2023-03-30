@@ -275,32 +275,33 @@ function AccordionItem({
 
   return (
     <div
-      aria-label={ariaLabel}
       css={accordionItemContainerStyles}
       className={`hmw-accordion`}
       onMouseEnter={(_ev) => addHighlight()}
       onMouseLeave={(_ev) => removeHighlight()}
       onFocus={(_ev) => addHighlight()}
       onBlur={(_ev) => removeHighlight()}
-      onClick={(_ev) => {
-        const newIsOpen = !isOpen;
-        setIsOpen(newIsOpen);
-        onChange(newIsOpen);
-      }}
-      onKeyUp={(ev) => {
-        if (ev.key === 'Enter') {
-          const newIsOpen = !isOpen;
-          setIsOpen(newIsOpen);
-          onChange(newIsOpen);
-        }
-      }}
       role="listitem"
-      tabIndex={0}
     >
       <header
+        aria-label={ariaLabel}
         css={headerStyles}
         className="hmw-accordion-header"
         style={{ backgroundColor }}
+        onClick={(_ev) => {
+          const newIsOpen = !isOpen;
+          setIsOpen(newIsOpen);
+          onChange(newIsOpen);
+        }}
+        onKeyUp={(ev) => {
+          if (ev.key === 'Enter') {
+            const newIsOpen = !isOpen;
+            setIsOpen(newIsOpen);
+            onChange(newIsOpen);
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         {icon && <div css={iconStyles}>{icon}</div>}
 

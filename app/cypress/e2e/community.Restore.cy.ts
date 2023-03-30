@@ -15,7 +15,7 @@ describe('Restore Tab', () => {
     );
 
     cy.findByRole('tab', { name: 'Restore' }).click();
-    cy.findByRole('listitem', {
+    cy.findByRole('button', {
       name: 'NPS Implementation - Residential Septic BMP Initiative (RSBI)',
     }).click();
 

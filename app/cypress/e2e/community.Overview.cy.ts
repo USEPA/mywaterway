@@ -20,11 +20,11 @@ describe('Overview Tab', () => {
       force: true,
     });
     cy.findByRole('list', { name: 'List of Permitted Dischargers' })
-      .findByRole('listitem')
+      .findAllByRole('listitem')
       .should('have.length', 0);
 
     cy.findByRole('switch', { name: 'Toggle POTW' }).click({ force: true });
-    cy.findByRole('listitem', {
+    cy.findByRole('button', {
       name: 'DISTRICT DEPARTMENT OF ENERGY AND ENVIRONMENT NATURAL RESOURCES ADMINISTRATION',
     }).should('be.visible');
   });
