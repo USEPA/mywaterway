@@ -74,8 +74,7 @@ const listContentStyles = css`
 
 const rowCellStyles = css`
   align-items: baseline;
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: block;
   font-size: 0.875em;
   gap: 0.3em;
   height: 100%;

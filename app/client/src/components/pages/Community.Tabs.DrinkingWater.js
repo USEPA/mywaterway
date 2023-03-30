@@ -70,6 +70,7 @@ const modifiedToggleTableStyles = css`
 
 const disclaimerStyles = css`
   display: inline-block;
+  margin-left: 0.3em;
 `;
 
 // sort alphabetically by name
