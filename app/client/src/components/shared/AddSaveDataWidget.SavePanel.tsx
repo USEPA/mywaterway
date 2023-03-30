@@ -781,6 +781,9 @@ function SavePanel({ visible }: Props) {
       // run publish
       await runPublish(portal, serviceMetaData, layersToPublish);
     } catch (err) {
+      setPublishResponse({
+        status: 'idle',
+      });
       console.error(err);
       setUserPortal(null);
     }
