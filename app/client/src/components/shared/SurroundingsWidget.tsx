@@ -121,9 +121,9 @@ function SurroundingsWidgetContent({
   return (
     <div css={widgetContentStyles(visible)} role="region">
       <div>
-        <h1>Surrounding Features:</h1>
+        <h1 id="surrounding-features-widget-heading">Surrounding Features:</h1>
         <div>
-          <ul>
+          <ul aria-labelledby="surrounding-features-widget-heading">
             {(Object.keys(toggles) as SurroundingFeaturesLayerId[]).map(
               (id) => {
                 const layer = layers[id];
@@ -141,10 +141,14 @@ function SurroundingsWidgetContent({
                   <li key={id}>
                     <div title={title}>
                       <div
+                        aria-checked={
+                          !togglesDisabled[id] && surroundingsVisible[id]
+                        }
                         aria-labelledby={`label-${id}`}
                         css={listItemContentStyles(togglesDisabled[id])}
                         onClick={clickHandler}
                         onKeyDown={clickHandler}
+                        role="switch"
                         tabIndex={0}
                       >
                         <span
@@ -196,6 +200,7 @@ function SurroundingsWidgetTrigger({
 
   return (
     <div
+      aria-label="Surrounding Features"
       title={title}
       css={divStyle(disabled, hover)}
       onClick={disabled ? undefined : onClick}

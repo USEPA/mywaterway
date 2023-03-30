@@ -242,3 +242,25 @@ describe('State page Water Overview tab', () => {
     cy.findByText(text).should('not.exist');
   });
 });
+
+describe('State page Advanced Search tab', () => {
+  it.only('Displays search results in a virtualized list', () => {
+    cy.visit('/state/AZ/advanced-search');
+
+    cy.findAllByRole('button', { name: 'Search' }).last().click();
+    cy.findByRole('button', { name: 'Continue' }).click();
+
+    cy.findByRole('button', { name: 'List' }).click();
+
+    // wait for the waterbody list to load
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 5000 }).should(
+      'not.be.visible',
+    );
+
+    cy.findByRole('listitem', { name: 'A-7 Backwater' }).should('exist');
+
+    cy.scrollTo('bottom', { duration: 3000 });
+
+    cy.findByRole('listitem', { name: 'A-7 Backwater' }).should('not.exist');
+  });
+});
