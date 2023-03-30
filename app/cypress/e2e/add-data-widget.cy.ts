@@ -22,7 +22,9 @@ describe('Add & Save Data Widget', () => {
     // this a work around to an issue where doing
     // "cy.findByTitle('Add & Save Data Widget').click()" does not work for esri
     // widget buttons
-    cy.get('div[title="Open Add & Save Data Widget"]').then((button) => button.click());
+    cy.get('div[title="Open Add & Save Data Widget"]').then((button) =>
+      button.click(),
+    );
 
     cy.get(adwId).should('be.visible');
   }
@@ -326,6 +328,72 @@ describe('Add & Save Data Widget', () => {
         );
         cy.findByText('Unable to import this dataset.').should('exist');
       });
+    });
+  });
+
+  it('Test that save panel switches align with currently visible layers', () => {
+    openWidget('/community/dc/overview');
+
+    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).click();
+    cy.findByRole('list', { name: 'Layer List' }).within(() => {
+      // toggle on a layer
+      cy.findByRole('switch', { name: 'Congressional Districts' }).click({
+        force: true,
+      });
+      // toggle off a layer
+      cy.findByRole('switch', { name: 'Boundaries' }).click({ force: true });
+    });
+
+    cy.get(adwId).within(() => {
+      cy.findByRole('tab', { name: 'Save' }).click();
+
+      cy.findByRole('switch', {
+        name: 'Toggle Congressional Districts',
+      }).should('have.attr', 'aria-checked', 'true');
+      cy.findByRole('switch', { name: 'Toggle Boundaries' }).should(
+        'have.attr',
+        'aria-checked',
+        'false',
+      );
+    });
+  });
+
+  it.only("Test that the save panel includes layers added from the widget's other tabs", () => {
+    openWidget('/community/dc');
+
+    cy.get(adwId).within(() => {
+      cy.findByRole('listitem', { name: 'USA Current Wildfires' }).within(
+        () => {
+          // Add a new layer
+          cy.findByRole('button', { name: 'Add' }).click();
+          // Wait for the layer to be added
+          cy.findByRole('button', { name: 'Remove', timeout: 5000 }).should(
+            'be.visible',
+          );
+        },
+      );
+
+      cy.findByRole('tab', { name: 'Save' }).click();
+      cy.findByRole('switch', { name: 'Toggle USA Current Wildfires' }).should(
+        'have.attr',
+        'aria-checked',
+        'true',
+      );
+
+      cy.findByRole('tab', { name: 'Search' }).click();
+      cy.findByRole('listitem', { name: 'USA Current Wildfires' }).within(
+        () => {
+          // Add a new layer
+          cy.findByRole('button', { name: 'Remove' }).click();
+          // Wait for the layer to be added
+          cy.findByRole('button', { name: 'Add' }).should('be.visible');
+        },
+      );
+
+      cy.findByRole('tab', { name: 'Save' }).click();
+      cy.findByRole('switch', { name: 'Toggle USA Current Wildfires' }).should(
+        'not.exist',
+      );
     });
   });
 });

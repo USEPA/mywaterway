@@ -655,7 +655,7 @@ function SearchPanel() {
           )}
           {searchResults.status === 'success' && (
             <Fragment>
-              <div>
+              <div role="list">
                 {searchResults.data?.results.map((result) => {
                   return <ResultCard result={result} key={result.id} />;
                 })}
@@ -884,7 +884,12 @@ function ResultCard({ result }: ResultCardProps) {
   }, [cardRef]);
 
   return (
-    <div ref={cardRef} css={cardContainerStyles(cardWidth)}>
+    <div
+      aria-label={result.title}
+      ref={cardRef}
+      css={cardContainerStyles(cardWidth)}
+      role="listitem"
+    >
       <img
         css={cardThumbnailStyles}
         src={result.thumbnailUrl}
