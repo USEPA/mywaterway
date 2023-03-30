@@ -36,7 +36,7 @@ const flexRowStyles = css`
 const gridStyles = css`
   ${contentStyles}
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr 1fr;
 
   .row-cell {
     border-bottom: 1px solid #d8dfe2;
