@@ -100,6 +100,10 @@ const rowCellStyles = css`
     margin: -0.5em;
     height: 1.25em;
   }
+
+  small {
+    margin-left: 0.3em;
+  }
 `;
 
 /*

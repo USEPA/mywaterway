@@ -46,7 +46,6 @@ const textStyles = css`
 
 const disclaimerStyles = css`
   display: inline-block;
-  margin-left: 0.3em;
 `;
 
 function Restore() {
