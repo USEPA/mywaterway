@@ -1104,6 +1104,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
       return (
         <AccordionItem
+          ariaLabel={item.locationName}
           icon={circleIcon({ color: colors.lightPurple() })}
           key={index}
           index={index}

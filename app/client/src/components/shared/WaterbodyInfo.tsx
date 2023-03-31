@@ -2424,11 +2424,16 @@ function MonitoringLocationsContent({
       )}
 
       {Object.keys(groups).length > 0 && (
-        <table css={measurementTableStyles} className="table">
+        <table
+          aria-label="Characteristic Groups Summary"
+          css={measurementTableStyles}
+          className="table"
+        >
           <thead>
             <tr>
               <th css={checkboxCellStyles}>
                 <input
+                  aria-label="Toggle all characteristic groups"
                   css={checkboxStyles}
                   type="checkbox"
                   className="checkbox"
@@ -2462,6 +2467,7 @@ function MonitoringLocationsContent({
                 <tr key={key}>
                   <td css={checkboxCellStyles}>
                     <input
+                      aria-label={`Toggle ${key}`}
                       css={checkboxStyles}
                       type="checkbox"
                       className="checkbox"

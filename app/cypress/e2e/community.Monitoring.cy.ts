@@ -154,4 +154,90 @@ describe('Monitoring Tab', () => {
       { exact: false },
     ).should('be.visible');
   });
+
+  it.only('Adjusting the date slider updates info for a monitoring location', () => {
+    const monitoringLocation = '01651770';
+
+    cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
+
+    cy.findByText('Go').click();
+
+    cy.findByRole('tab', { name: 'Monitoring' }).click();
+
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
+
+    cy.scrollTo('bottom');
+
+    cy.findByRole('button', { name: monitoringLocation }).click();
+
+    // the date range is split by elements, so only the full range can be queried,
+    // and this will need to be updated annually
+    cy.findByRole('button', { name: monitoringLocation })
+      .parent()
+      .findByText(
+        (_content, element) => element.textContent === '(1951 - 2023)',
+      )
+      .should('be.visible');
+
+    // drag the slider handle
+    cy.findByRole('slider', { name: '1951' })
+      .trigger('mousedown', {
+        which: 1,
+      })
+      .trigger('mousemove', {
+        which: 1,
+        clientX: 1000,
+      })
+      .trigger('mouseup', {
+        force: true,
+        which: 1,
+      });
+
+    cy.findByRole('button', { name: monitoringLocation })
+      .parent()
+      .findByText(
+        (_content, element) => element.textContent === '(1951 - 2023)',
+      )
+      .should('not.exist');
+  });
+
+  it('Toggling characteristic group checkboxes should change the total measurement count', () => {
+    cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
+
+    cy.findByText('Go').click();
+
+    cy.findByRole('tab', { name: 'Monitoring' }).click();
+
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
+
+    cy.scrollTo('bottom');
+
+    cy.findByRole('button', { name: '01651770' }).click();
+
+    cy.findByRole('checkbox', {
+      name: 'Toggle all characteristic groups',
+    }).click();
+
+    cy.findByRole('table', { name: 'Characteristic Groups Summary' })
+      .find('tbody')
+      .find('td')
+      .last()
+      .should('have.text', '0');
+
+    cy.findByRole('checkbox', { name: 'Toggle Other' }).click();
+
+    cy.findByRole('table', { name: 'Characteristic Groups Summary' })
+      .find('tbody')
+      .find('td')
+      .last()
+      .should('not.have.text', '0');
+  });
 });
