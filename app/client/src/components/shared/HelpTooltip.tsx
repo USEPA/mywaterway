@@ -43,7 +43,7 @@ const centered: Position = (triggerRect, tooltipRect) => {
   if (!triggerRect || !tooltipRect) return {};
   const triggerCenter = triggerRect.left + triggerRect.width / 2;
   const left = triggerCenter - tooltipRect.width / 2;
-  const maxLeft = document.body.clientWidth - tooltipRect.width;
+  const maxLeft = document.body.clientWidth - tooltipRect.width - 2;
   return {
     left: Math.min(Math.max(2, left), maxLeft) + window.scrollX,
     top: triggerRect.bottom + 8 + window.scrollY,
