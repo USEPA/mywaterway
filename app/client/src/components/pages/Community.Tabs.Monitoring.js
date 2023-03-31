@@ -703,6 +703,7 @@ function CurrentConditionsTab({
 
                   return (
                     <AccordionItem
+                      ariaLabel={item.locationName}
                       icon={squareIcon({ color: '#fffe00' })}
                       key={item.uniqueId}
                       title={<strong>{item.locationName || 'Unknown'}</strong>}
@@ -737,6 +738,7 @@ function CurrentConditionsTab({
                   };
                   return (
                     <AccordionItem
+                      ariaLabel={item.GNIS_NAME}
                       icon={waterwayIcon({ color: '#6c95ce' })}
                       key={item.FID}
                       title={<strong>{item.GNIS_NAME || 'Unknown'}</strong>}
@@ -1102,6 +1104,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
       return (
         <AccordionItem
+          ariaLabel={item.locationName}
           icon={circleIcon({ color: colors.lightPurple() })}
           key={index}
           index={index}

@@ -12,11 +12,11 @@ export const cyanError =
 
 // labs.waterdata.usgs.gov - Monitoring Location Service
 export const streamgagesError =
-  'USGS streamgage information is temporarily unavailable, please try again later.';
+  'USGS Sensors information is temporarily unavailable, please try again later.';
 
 // waterqualitydata.us - Monitoring Location Service
 export const monitoringError =
-  'Sample locations information is temporarily unavailable, please try again later.';
+  'Past Water Conditions information is temporarily unavailable, please try again later.';
 
 // waterqualitydata.us - Result Search (downloads)
 export const monitoringDownloadError =

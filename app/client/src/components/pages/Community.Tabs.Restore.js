@@ -177,6 +177,7 @@ function Restore() {
 
                             return (
                               <AccordionItem
+                                ariaLabel={item.prj_title || 'Unknown'}
                                 key={index}
                                 title={
                                   <strong>{item.prj_title || 'Unknown'}</strong>
@@ -240,6 +241,7 @@ function Restore() {
                                   watershedPlans.length > 0 && (
                                     <div css={accordionContentStyles}>
                                       <table
+                                        aria-label="Watershed Plans"
                                         css={modifiedTableStyles}
                                         className="table"
                                       >

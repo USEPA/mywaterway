@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { useRanger } from 'react-ranger';
+import { v4 as uuid } from 'uuid';
 
 /*
  ** Styles
@@ -12,6 +13,7 @@ const handleStyles = {
   cursor: 'grab',
   height: '0.9em',
   opacity: '0.8',
+  padding: '0',
   width: '0.9em',
 };
 
@@ -53,6 +55,7 @@ const tooltipStyles = css`
   border-radius: 10%;
   color: #444;
   font-size: 0.8em;
+  font-weight: normal;
   min-height: auto;
   padding: 0.3em;
   position: absolute;
@@ -81,6 +84,8 @@ function DateSlider({
   onChange,
   range,
 }: Props) {
+  const [sliderId] = useState(uuid());
+
   const [minYear, setMinYear] = useState(min);
   const [maxYear, setMaxYear] = useState(max);
   useEffect(() => {
@@ -117,14 +122,20 @@ function DateSlider({
               ))}
               {!disabled &&
                 handles.map(({ value, active, getHandleProps }, i) => (
-                  <div
+                  <button
+                    aria-labelledby={`slider-${sliderId}-handle-${i}`}
                     {...getHandleProps({
                       key: i,
                       style: active ? handleStylesActive : handleStyles,
                     })}
                   >
-                    <div css={tooltipStyles}>{value}</div>
-                  </div>
+                    <div
+                      id={`slider-${sliderId}-handle-${i}`}
+                      css={tooltipStyles}
+                    >
+                      {value}
+                    </div>
+                  </button>
                 ))}
             </div>
           </div>
