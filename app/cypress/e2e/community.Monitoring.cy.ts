@@ -155,7 +155,7 @@ describe('Monitoring Tab', () => {
     ).should('be.visible');
   });
 
-  it.only('Adjusting the date slider updates info for a monitoring location', () => {
+  it('Adjusting the date slider updates info for a monitoring location', () => {
     const monitoringLocation = '01651770';
 
     cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
