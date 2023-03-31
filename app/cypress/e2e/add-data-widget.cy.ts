@@ -1,4 +1,4 @@
-// Ignore uncaught exceptions for the add-data-widget. The latest version of
+// Ignore uncaught exceptions for the add-save-data-widget. The latest version of
 // Esri throws AbortErrors in the console sometimes for layers added via the add
 // data widget. These errors don't have any effect to the end user.
 Cypress.on('uncaught:exception', (err, runnable) => {
@@ -7,9 +7,9 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   return false;
 });
 
-describe('Add Data Widget', () => {
-  const adwId = '#add-data-widget';
-  const dropzoneId = 'tots-dropzone';
+describe('Add & Save Data Widget', () => {
+  const adwId = '#add-save-data-widget';
+  const dropzoneId = 'hmw-dropzone';
 
   function openWidget(path = '/community') {
     cy.visit(path);
@@ -20,9 +20,9 @@ describe('Add Data Widget', () => {
     );
 
     // this a work around to an issue where doing
-    // "cy.findByTitle('Add Data Widget').click()" does not work for esri
+    // "cy.findByTitle('Add & Save Data Widget').click()" does not work for esri
     // widget buttons
-    cy.get('div[title="Open Add Data Widget"]').then((button) => button.click());
+    cy.get('div[title="Open Add & Save Data Widget"]').then((button) => button.click());
 
     cy.get(adwId).should('be.visible');
   }
@@ -158,7 +158,7 @@ describe('Add Data Widget', () => {
         // Some layers don't have titles. If this is the case, skip this test
         if (layerTitle) {
           // verify the layer is visible on the layers panel
-          cy.findByText(layerTitle);
+          cy.findAllByText(layerTitle);
         }
 
         // delete the layer

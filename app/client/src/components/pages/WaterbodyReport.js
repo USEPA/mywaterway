@@ -29,6 +29,7 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
+import { LayersProvider } from 'contexts/Layers';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -70,6 +71,13 @@ const containerStyles = css`
     margin-bottom: 0.875rem;
     border-top-color: #aebac3;
   }
+`;
+
+const containerContentExpandStyles = css`
+  display: flex;
+  align-items: center;
+  height: 49px;
+  width: 100%;
 `;
 
 const infoBoxContainerStyles = css`
@@ -875,7 +883,20 @@ function WaterbodyReport() {
           </div>
         )}
         {waterbodyStatus.status === 'success' && (
-          <p>&nbsp; {waterbodyStatus.data.condition}</p>
+          <p>
+            &nbsp;{' '}
+            <GlossaryTerm
+              term={
+                waterbodyStatus.data.condition === conditions.good
+                  ? 'Good Waters'
+                  : waterbodyStatus.data.condition === conditions.impaired
+                  ? 'Impaired Waters'
+                  : 'Condition Unknown'
+              }
+            >
+              {waterbodyStatus.data.condition}
+            </GlossaryTerm>
+          </p>
         )}
       </div>
 
@@ -1150,7 +1171,19 @@ function WaterbodyReport() {
                               No evaluated uses provided for this waterbody.
                             </p>
                           ) : (
-                            <AccordionList>
+                            <AccordionList
+                              contentExpandCollapse={
+                                <div css={containerContentExpandStyles}>
+                                  <a
+                                    href="https://www.epa.gov/wqs-tech/state-specific-water-quality-standards-effective-under-clean-water-act-cwa"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    Information on Water Quality Standards
+                                  </a>
+                                </div>
+                              }
+                            >
                               {waterbodyUses.data
                                 .sort((a, b) => a.name.localeCompare(b.name))
                                 .map((use) => (
@@ -1531,10 +1564,12 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
 
 export default function WaterbodyReportContainer() {
   return (
-    <MapHighlightProvider>
-      <FullscreenProvider>
-        <WaterbodyReport />
-      </FullscreenProvider>
-    </MapHighlightProvider>
+    <LayersProvider>
+      <MapHighlightProvider>
+        <FullscreenProvider>
+          <WaterbodyReport />
+        </FullscreenProvider>
+      </MapHighlightProvider>
+    </LayersProvider>
   );
 }

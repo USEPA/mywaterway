@@ -1,126 +1,29 @@
 import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
+// types
 import type { ReactNode } from 'react';
-import type { MonitoringLocationsData } from 'types';
+import type {
+  DischargerPermitComponents,
+  Huc12SummaryData,
+  MonitoringLocationGroups,
+  MonitoringYearsRange,
+  MonitoringWorkerData,
+  ParameterToggleObject,
+} from 'types';
 
 export const LocationSearchContext = createContext();
+
+export const initialWorkerData = {
+  minYear: null,
+  maxYear: null,
+  annualData: {},
+};
 
 type Props = {
   children: ReactNode,
 };
 
-type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
-
-type MonitoringLocationGroups = {
-  [label: string]: {
-    label: string,
-    characteristicGroups?: Array<string>,
-    stations: StationData[],
-    toggled: boolean,
-  },
-};
-
-type PermittedDischargersData = {
-  Results: {
-    BadSystemIDs: null,
-    BioCVRows: string,
-    BioV3Rows: string,
-    CVRows: string,
-    FEARows: string,
-    Facilities: {
-      CWPFormalEaCnt: string,
-      CWPInspectionCount: string,
-      CWPName: string,
-      CWPPermitStatusDesc: string,
-      CWPQtrsWithNC: string,
-      CWPSNCStatus: null,
-      CWPStatus: string,
-      CWPViolStatus: string,
-      E90Exceeds1yr: string,
-      FacLat: string,
-      FacLong: string,
-      RegistryID: string,
-      SourceID: string,
-    }[],
-    INSPRows: string,
-    IndianCountryRows: string,
-    InfFEARows: string,
-    Message: string,
-    PageNo: string,
-    QueryID: string,
-    QueryRows: string,
-    SVRows: string,
-    TotalPenalties: string,
-    V3Rows: string,
-    Version: string,
-  },
-};
-
-type Huc12SummaryData = {
-  count: number,
-  items: {
-    assessedCatchmentAreaPercent: number,
-    assessedCatchmentAreaSqMi: number,
-    assessedGoodCatchmentAreaPercent: number,
-    assessedGoodCatchmentAreaSqMi: number,
-    assessedUnknownCatchmentAreaPercent: number,
-    assessedUnknownCatchmentAreaSqMi: number,
-    assessmentUnitCount: number,
-    assessmentUnits: {
-      assessmentUnitId: string,
-    }[],
-    containImpairedWatersCatchmentAreaPercent: number,
-    containImpairedWatersCatchmentAreaSqMi: number,
-    containRestorationCatchmentAreaPercent: number,
-    containRestorationCatchmentAreaSqMi: number,
-    huc12: string,
-    summaryByIRCategory: {
-      assessmentUnitCount: number,
-      catchmentSizePercent: number,
-      catchmentSizeSqMi: number,
-      epaIRCategoryName: string,
-    }[],
-    summaryByParameterImpairments: {
-      assessmentUnitCount: number,
-      catchmentSizePercent: number,
-      catchmentSizeSqMi: number,
-      parameterGroupName: string,
-    }[],
-    summaryByUse: {
-      useAttainmentSummary: {
-        assessmentUnitCount: number,
-        catchmentSizePercent: number,
-        catchmentSizeSqMi: number,
-        useAttainment: string,
-      }[],
-      useGroupName: string,
-      useName: string,
-    }[],
-    summaryByUseGroup: {
-      useAttainmentSummary: {
-        assessmentUnitCount: number,
-        catchmentSizePercent: number,
-        catchmentSizeSqMi: number,
-        useAttainment: string,
-      }[],
-      useGroupName: string,
-    }[],
-    summaryRestorationPlans: {
-      assessmentUnitCount: number,
-      catchmentSizePercent: number,
-      catchmentSizeSqMi: number,
-      summaryTypeName: string,
-    }[],
-    summaryVisionRestorationPlans: {
-      assessmentUnitCount: number,
-      catchmentSizePercent: number,
-      catchmentSizeSqMi: number,
-      summaryTypeName: string,
-    }[],
-    totalCatchmentAreaSqMi: number,
-    totalHucAreaSqMi: number,
-  }[],
-};
+export type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
 
 type State = {
   initialExtent: Object,
@@ -134,37 +37,16 @@ type State = {
   watershed: string,
   address: string,
   assessmentUnitId: string,
-  monitoringLocations: { status: Status, data: MonitoringLocationsData },
-  permittedDischargers: { status: Status, data: PermittedDischargersData },
   grts: Object,
   attainsPlans: Object,
   drinkingWater: Object,
   cipSummary: { status: Status, data: Huc12SummaryData },
   nonprofits: Object,
-  mapView: Object,
-  layers: Object[],
+  mapView: __esri.MapView | null,
   basemap: Object,
-  waterbodyLayer: Object,
-  issuesLayer: Object,
-  monitoringLocationsLayer: Object,
-  surroundingMonitoringLocationsLayer: Object,
-  usgsStreamgagesLayer: Object,
-  dischargersLayer: Object,
-  nonprofitsLayer: Object,
-  wildScenicRiversLayer: Object,
-  protectedAreasLayer: Object,
-  providersLayer: Object,
-  boundariesLayer: Object,
-  searchIconLayer: Object,
-  actionsLayer: Object,
-  selWaterBodyLayer: Object,
-  wsioHealthIndexLayer: Object,
-  allWaterbodiesLayer: Object,
   homeWidget: Object,
   upstreamWidget: Object,
   upstreamWidgetDisabled: boolean,
-  allWaterbodiesWidgetDisabled: boolean,
-  surroundingMonitoringLocationsWidgetDisabled: boolean,
   hucBoundaries: Object,
   atHucBoundaries: boolean,
   countyBoundaries: Object,
@@ -175,24 +57,26 @@ type State = {
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
-  pointsLayer: Object,
-  linesLayer: Object,
-  areasLayer: Object,
-  upstreamLayer: Object,
-  upstreamLayerVisible: boolean,
+  upstreamWatershedResponse: { status: Status, data: __esri.FeatureSet | null },
   errorMessage: string,
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
   FIPS: Object,
 
+  // dischargers
+  dischargerPermitComponents: DischargerPermitComponents | null,
+
   // monitoring panel
-  monitoringGroups: MonitoringLocationGroups,
+  monitoringGroups: MonitoringLocationGroups | null,
   monitoringFeatureUpdates: ?Object,
+  monitoringYearsRange: MonitoringYearsRange | null,
+  monitoringWorkerData: MonitoringWorkerData,
 
   // identified issues panel
-  showDischargers: boolean,
-  showPolluted: boolean,
-  pollutionParameters: Object,
+  showAllPolluted: boolean,
+  parameterToggleObject: ParameterToggleObject,
+  pollutionParameters: Object | null,
+  violatingDischargersOnly: boolean,
 };
 
 export class LocationSearchProvider extends Component<Props, State> {
@@ -224,38 +108,15 @@ export class LocationSearchProvider extends Component<Props, State> {
     wildScenicRiversData: { status: 'fetching', data: [] },
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
-    monitoringLocations: { status: 'fetching', data: {} },
-    permittedDischargers: { status: 'fetching', data: {} },
     grts: { status: 'fetching', data: [] },
     attainsPlans: { status: 'fetching', data: {} },
     drinkingWater: { status: 'fetching', data: [] },
     cipSummary: { status: 'fetching', data: {} },
     nonprofits: { status: 'fetching', data: [] },
-    mapView: '',
-    layers: [],
-    waterbodyLayer: '',
-    issuesLayer: '',
-    monitoringLocationsLayer: '',
-    surroundingMonitoringLocationsLayer: '',
-    usgsStreamgagesLayer: '',
-    dischargersLayer: '',
-    nonprofitsLayer: '',
-    wildScenicRiversLayer: '',
-    protectedAreasLayer: '',
-    protectedAreasHighlightLayer: '',
-    providersLayer: '',
-    boundariesLayer: '',
-    searchIconLayer: '',
-    actionsLayer: '',
-    selWaterBodyLayer: '',
-    wsioHealthIndexLayer: '',
-    allWaterbodiesLayer: '',
+    mapView: null,
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
-    allWaterbodiesWidgetDisabled: false,
-    surroundingMonitoringLocationsWidgetDisabled: false,
-    visibleLayers: {},
     basemap: 'gray-vector',
     hucBoundaries: '',
     atHucBoundaries: false,
@@ -269,22 +130,25 @@ export class LocationSearchProvider extends Component<Props, State> {
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
 
-    pointsLayer: '',
-    linesLayer: '',
-    areasLayer: '',
-    upstreamLayer: '',
-    upstreamLayerVisible: false,
+    upstreamWatershedResponse: { status: 'idle', data: null },
     errorMessage: '',
     summaryLayerMaxRecordCount: null,
     watershedsLayerMaxRecordCount: null,
 
+    // dischargers
+    dischargerPermitComponents: null,
+
     // monitoring panel
     monitoringGroups: null,
     monitoringFeatureUpdates: null,
+    monitoringYearsRange: null,
+    monitoringWorkerData: initialWorkerData,
 
     // identified issues panel
     showAllPolluted: true,
+    parameterToggleObject: {},
     pollutionParameters: null,
+    violatingDischargersOnly: false,
 
     // current drinking water subtab (0, 1, or 2)
     drinkingWaterTabIndex: 0,
@@ -294,18 +158,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setLastSearchText: (lastSearchText) => {
       this.setState({ lastSearchText });
-    },
-    setMonitoringLocations: (monitoringLocations: {
-      status: Status,
-      data: MonitoringLocationsData,
-    }) => {
-      this.setState({ monitoringLocations });
-    },
-    setPermittedDischargers: (permittedDischargers: {
-      status: Status,
-      data: PermittedDischargersData,
-    }) => {
-      this.setState({ permittedDischargers });
     },
     setNonprofits: (nonprofits: Object) => {
       this.setState({ nonprofits });
@@ -373,8 +225,8 @@ export class LocationSearchProvider extends Component<Props, State> {
     getWatershed: () => {
       return this.state.watershed;
     },
-    getUpstreamLayer: () => {
-      return this.state.upstreamLayer;
+    getUpstreamWatershedResponse: () => {
+      return this.state.upstreamWatershedResponse;
     },
     getUpstreamWidgetDisabled: () => {
       return this.state.upstreamWidgetDisabled;
@@ -385,85 +237,8 @@ export class LocationSearchProvider extends Component<Props, State> {
     getUpstreamExtent: () => {
       return this.state.upstreamExtent;
     },
-    getAllWaterbodiesWidgetDisabled: () => {
-      return this.state.allWaterbodiesWidgetDisabled;
-    },
-    getSurroundingMonitoringLocationsWidgetDisabled: () => {
-      return this.state.surroundingMonitoringLocationsWidgetDisabled;
-    },
-    getMonitoringLocations: () => {
-      return this.state.monitoringLocations;
-    },
-    setLayers: (layers) => {
-      this.setState({ layers });
-    },
-    setWaterbodyLayer: (waterbodyLayer) => {
-      this.setState({ waterbodyLayer });
-    },
-    setIssuesLayer: (issuesLayer) => {
-      this.setState({ issuesLayer });
-    },
-    setMonitoringLocationsLayer: (monitoringLocationsLayer) => {
-      this.setState({ monitoringLocationsLayer });
-    },
-    setSurroundingMonitoringLocationsLayer: (
-      surroundingMonitoringLocationsLayer,
-    ) => {
-      this.setState({ surroundingMonitoringLocationsLayer });
-    },
-    setUsgsStreamgagesLayer: (usgsStreamgagesLayer) => {
-      this.setState({ usgsStreamgagesLayer });
-    },
-    setDischargersLayer: (dischargersLayer) => {
-      this.setState({ dischargersLayer });
-    },
-    setNonprofitsLayer: (nonprofitsLayer) => {
-      this.setState({ nonprofitsLayer });
-    },
-    setWildScenicRiversLayer: (wildScenicRiversLayer) => {
-      this.setState({ wildScenicRiversLayer });
-    },
-    setProtectedAreasLayer: (protectedAreasLayer) => {
-      this.setState({ protectedAreasLayer });
-    },
-    setProtectedAreasHighlightLayer: (protectedAreasHighlightLayer) => {
-      this.setState({ protectedAreasHighlightLayer });
-    },
-    setProvidersLayer: (providersLayer) => {
-      this.setState({ providersLayer });
-    },
-    setBoundariesLayer: (boundariesLayer) => {
-      this.setState({ boundariesLayer });
-    },
-    setSearchIconLayer: (searchIconLayer) => {
-      this.setState({ searchIconLayer });
-    },
-    setActionsLayer: (actionsLayer) => {
-      this.setState({ actionsLayer });
-    },
-    setSelWaterbodyLayer: (selWaterbodyLayer) => {
-      this.setState({ selWaterbodyLayer });
-    },
-    setWsioHealthIndexLayer: (wsioHealthIndexLayer) => {
-      this.setState({ wsioHealthIndexLayer });
-    },
-    setAllWaterbodiesLayer: (allWaterbodiesLayer) => {
-      this.setState({ allWaterbodiesLayer });
-    },
-    setPointsLayer: (pointsLayer) => {
-      this.setState({ pointsLayer });
-    },
-    setLinesLayer: (linesLayer) => {
-      this.setState({ linesLayer });
-    },
-    setAreasLayer: (areasLayer) => {
-      this.setState({ areasLayer });
-    },
-    setUpstreamLayer: (upstreamLayer) => {
-      this.setState({ upstreamLayer });
-    },
-    setUpstreamLayerVisible: (upstreamLayerVisible) => {
-      this.setState({ upstreamLayerVisible });
+    setUpstreamWatershedResponse: (upstreamWatershedResponse) => {
+      this.setState({ upstreamWatershedResponse });
     },
     setSummaryLayerMaxRecordCount: (summaryLayerMaxRecordCount) => {
       this.setState({ summaryLayerMaxRecordCount });
@@ -476,17 +251,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setUpstreamWidget: (upstreamWidget) => {
       this.setState({ upstreamWidget });
-    },
-    setAllWaterbodiesWidgetDisabled: (allWaterbodiesWidgetDisabled) => {
-      this.setState({ allWaterbodiesWidgetDisabled });
-    },
-    setSurroundingMonitoringLocationsWidgetDisabled: (
-      surroundingMonitoringLocationsWidgetDisabled,
-    ) => {
-      this.setState({ surroundingMonitoringLocationsWidgetDisabled });
-    },
-    setVisibleLayers: (visibleLayers) => {
-      this.setState({ visibleLayers });
     },
     setBasemap: (basemap) => {
       this.setState({ basemap });
@@ -524,14 +288,26 @@ export class LocationSearchProvider extends Component<Props, State> {
     setCipSummary: (cipSummary: { status: Status, data: Huc12SummaryData }) => {
       this.setState({ cipSummary });
     },
+    setDischargerPermitComponents: (dischargerPermitComponents) => {
+      this.setState({ dischargerPermitComponents });
+    },
     setMonitoringGroups: (monitoringGroups) => {
       this.setState({ monitoringGroups });
     },
     setMonitoringFeatureUpdates: (monitoringFeatureUpdates) => {
       this.setState({ monitoringFeatureUpdates });
     },
+    setMonitoringYearsRange: (monitoringYearsRange) => {
+      this.setState({ monitoringYearsRange });
+    },
+    setMonitoringWorkerData: (monitoringWorkerData) => {
+      this.setState({ monitoringWorkerData });
+    },
     setShowAllPolluted: (showAllPolluted) => {
       this.setState({ showAllPolluted });
+    },
+    setParameterToggleObject: (parameterToggleObject) => {
+      this.setState({ parameterToggleObject });
     },
     setPollutionParameters: (pollutionParameters) => {
       this.setState({ pollutionParameters });
@@ -541,6 +317,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setFIPS: (FIPS) => {
       this.setState({ FIPS });
+    },
+    setViolatingDischargersOnly: (violatingDischargersOnly) => {
+      this.setState({ violatingDischargersOnly });
     },
 
     /////// Functions that do more than just set a single state ////////
@@ -566,139 +345,15 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
 
     resetMap: (useDefaultZoom = false) => {
-      const {
-        initialExtent,
-        layers,
-        pointsLayer,
-        linesLayer,
-        areasLayer,
-        providersLayer,
-        boundariesLayer,
-        searchIconLayer,
-        monitoringLocationsLayer,
-        usgsStreamgagesLayer,
-        upstreamLayer,
-        dischargersLayer,
-        nonprofitsLayer,
-        protectedAreasHighlightLayer,
-        mapView,
-        homeWidget,
-        waterbodyLayer,
-        wsioHealthIndexLayer,
-        wildScenicRiversLayer,
-        protectedAreasLayer,
-        allWaterbodiesLayer,
-        surroundingMonitoringLocationsLayer,
-      } = this.state;
-
-      // Clear waterbody layers from state
-      let newState = {};
-      if (pointsLayer) newState['pointsLayer'] = null;
-      if (linesLayer) newState['linesLayer'] = null;
-      if (areasLayer) newState['areasLayer'] = null;
-      if (waterbodyLayer) newState['waterbodyLayer'] = null;
-
-      const layersToRemove = [
-        'pointsLayer',
-        'linesLayer',
-        'areasLayer',
-        'waterbodyLayer',
-      ];
-
-      // remove the layers from state layers list
-      let removedLayers = false;
-      for (let i = layers.length - 1; i >= 0; i--) {
-        const item = layers[i];
-        const itemId = item.id;
-        if (layersToRemove.includes(itemId)) {
-          layers.splice(i, 1);
-          removedLayers = true;
-        }
-      }
-      if (removedLayers) newState['layers'] = layers;
-
-      this.setState(newState);
-
-      // hide and remove upstream layer graphics when switching locations
-      if (upstreamLayer) {
-        newState['upstreamLayerVisible'] = false;
-        upstreamLayer.visible = false;
-        upstreamLayer.listMode = 'hide';
-        upstreamLayer.graphics.removeAll();
-        upstreamLayer.error = false;
-      }
-
-      // remove all map content defined in this file
-      if (providersLayer) providersLayer.graphics.removeAll();
-      if (boundariesLayer) boundariesLayer.graphics.removeAll();
-      if (searchIconLayer) {
-        searchIconLayer.visible = false;
-        searchIconLayer.graphics.removeAll();
-      }
-      if (monitoringLocationsLayer) {
-        monitoringLocationsLayer.queryFeatures().then((featureSet) => {
-          monitoringLocationsLayer.applyEdits({
-            deleteFeatures: featureSet.features,
-          });
-        });
-      }
-      if (usgsStreamgagesLayer) {
-        usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-          usgsStreamgagesLayer.applyEdits({
-            deleteFeatures: featureSet.features,
-          });
-        });
-      }
-      if (dischargersLayer) dischargersLayer.graphics.removeAll();
-      if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
-      if (wsioHealthIndexLayer) {
-        wsioHealthIndexLayer.visible = false;
-        wsioHealthIndexLayer.listMode = 'hide';
-      }
-      if (protectedAreasLayer) {
-        protectedAreasLayer.visible = false;
-        protectedAreasLayer.listMode = 'hide';
-      }
-      if (protectedAreasHighlightLayer) {
-        protectedAreasHighlightLayer.graphics.removeAll();
-      }
-      if (wildScenicRiversLayer) {
-        // This timeout is to workaround an issue with the wild and scenic rivers
-        // layer. When turning visibility off for multiple layers with this one
-        // included, the app would crash. This timeout prevents the app from
-        // crashing. Similarly setting visibleLayers to {} would crash the app.
-        setTimeout(() => {
-          wildScenicRiversLayer.visible = false;
-          wildScenicRiversLayer.listMode = 'hide';
-        }, 100);
-      }
+      const { initialExtent, mapView, homeWidget } = this.state;
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
         mapView.extent = initialExtent;
 
-        if (allWaterbodiesLayer) {
-          allWaterbodiesLayer.visible = false;
-          allWaterbodiesLayer.listMode = 'hide';
-        }
-
-        if (surroundingMonitoringLocationsLayer) {
-          surroundingMonitoringLocationsLayer.visible = false;
-          surroundingMonitoringLocationsLayer.listMode = 'hide';
-        }
-
         if (homeWidget) {
           homeWidget.viewpoint = mapView.viewpoint;
         }
-      }
-
-      // reset lines, points, and areas layers
-      if (
-        waterbodyLayer &&
-        waterbodyLayer.layers &&
-        waterbodyLayer.layers.items
-      ) {
-        waterbodyLayer.layers.items = [];
       }
     },
 
@@ -717,10 +372,11 @@ export class LocationSearchProvider extends Component<Props, State> {
         countyBoundaries: '',
         atHucBoundaries: false,
         hucBoundaries: '',
+        dischargerPermitComponents: null,
         monitoringGroups: null,
         monitoringFeatureUpdates: null,
-        monitoringLocations: { status: 'fetching', data: {} },
-        permittedDischargers: { status: 'fetching', data: {} },
+        monitoringYearsRange: null,
+        monitoringWorkerData: initialWorkerData,
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },
@@ -749,14 +405,11 @@ export class LocationSearchProvider extends Component<Props, State> {
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',
-        monitoringLocations: { status: 'success', data: {} },
-        permittedDischargers: { status: 'success', data: {} },
         nonprofits: { status: 'success', data: [] },
         grts: { status: 'success', data: [] },
         attainsPlans: { status: 'success', data: {} },
         cipSummary: { status: 'success', data: {} },
         drinkingWater: { status: 'success', data: [] },
-        visibleLayers: {},
       });
 
       // remove map content

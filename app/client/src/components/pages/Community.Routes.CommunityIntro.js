@@ -1,9 +1,9 @@
 // @flow
 
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { css } from 'styled-components/macro';
 // contexts
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { useLayers } from 'contexts/Layers';
 // styles
 import { fonts } from 'styles/index.js';
 // images
@@ -57,12 +57,12 @@ const textStyles = css`
 `;
 
 function CommunityIntro() {
-  const { setVisibleLayers } = useContext(LocationSearchContext);
+  const { updateVisibleLayers } = useLayers();
 
   // clear the community page layers when a user navigates to the community intro page
   useEffect(() => {
-    setVisibleLayers({});
-  }, [setVisibleLayers]);
+    updateVisibleLayers({}, false);
+  }, [updateVisibleLayers]);
 
   return (
     <div css={containerStyles}>

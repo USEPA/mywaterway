@@ -1,9 +1,8 @@
 // @flow
 
-import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 // contexts
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { useLayers } from 'contexts/Layers';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
 import { colors } from 'styles/index.js';
@@ -46,9 +45,7 @@ function ViewOnMapButton({
   onClick,
   disabled = false,
 }: Props) {
-  const { pointsLayer, linesLayer, areasLayer } = useContext(
-    LocationSearchContext,
-  );
+  const { waterbodyPoints, waterbodyLines, waterbodyAreas } = useLayers();
 
   const { setSelectedGraphic } = useMapHighlightState();
 
@@ -69,7 +66,7 @@ function ViewOnMapButton({
   // The layers are processed in order of decreasing level of detail.
   // Uses the organizationid and assessmentunitidentifier to get the item.
   function getGeometry(callback: Function) {
-    let searchLayers = [areasLayer, linesLayer, pointsLayer];
+    let searchLayers = [waterbodyAreas, waterbodyLines, waterbodyPoints];
     if (layers) searchLayers = layers;
 
     if (searchLayers.length === 0) return;

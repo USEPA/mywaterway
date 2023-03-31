@@ -1,6 +1,5 @@
 import Basemap from '@arcgis/core/Basemap';
-import Graphic from '@arcgis/core/Graphic';
-import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import Papa from 'papaparse';
 import { WindowSize } from '@reach/window-size';
@@ -43,14 +42,19 @@ import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
-import { fetchCheck, fetchPost } from 'utils/fetchUtils';
-import { useSharedLayers } from 'utils/hooks';
-import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
-import { parseAttributes } from 'utils/utils';
+import { fetchPost } from 'utils/fetchUtils';
+import {
+  useAbort,
+  useMonitoringLocations,
+  useMonitoringLocationsLayers,
+  useSharedLayers,
+} from 'utils/hooks';
+import { isAbort, toFixedFloat } from 'utils/utils';
 // styles
 import {
   boxStyles,
@@ -529,73 +533,6 @@ const dateOptions = {
   day: 'numeric',
 };
 
-async function drawSite(site, layer) {
-  if (isEmpty(site)) return false;
-  const newFeature = new Graphic({
-    geometry: {
-      type: 'point',
-      latitude: site.locationLatitude,
-      longitude: site.locationLongitude,
-    },
-    attributes: {
-      ...site,
-      locationUrl: window.location.href,
-      stationProviderName: site.providerName,
-      stationTotalSamples: site.totalSamples,
-      stationTotalMeasurements: site.totalMeasurements,
-      stationTotalsByGroup: JSON.stringify(site.charcGroupCounts),
-    },
-  });
-  const featureSet = await layer.queryFeatures();
-  const editResults = await layer.applyEdits({
-    deleteFeatures: featureSet.features,
-    addFeatures: [newFeature],
-  });
-  return editResults?.addFeatureResults?.length ? true : false;
-}
-
-async function fetchSiteDetails(url, setData, setStatus) {
-  const res = await fetchCheck(url);
-  if (res.features.length < 1) {
-    setStatus('empty');
-    setData({});
-    return;
-  }
-  const feature = res.features[0];
-  const siteDetails = {
-    county: feature.properties.CountyName,
-    charcGroupCounts: feature.properties.characteristicGroupResultCount,
-    charcLabels: labelGroups(
-      feature.properties.characteristicGroupResultCount,
-      characteristicGroupMappings,
-    ),
-    huc8: feature.properties.HUCEightDigitCode,
-    locationLongitude: feature.geometry.coordinates[0],
-    locationLatitude: feature.geometry.coordinates[1],
-    locationName: feature.properties.MonitoringLocationName,
-    locationType: feature.properties.MonitoringLocationTypeName,
-    monitoringType: 'Past Water Conditions',
-    orgId: feature.properties.OrganizationIdentifier,
-    orgName: feature.properties.OrganizationFormalName,
-    siteId: feature.properties.MonitoringLocationIdentifier,
-    providerName: feature.properties.ProviderName,
-    state: feature.properties.StateName,
-    totalSamples: parseInt(feature.properties.activityCount),
-    totalMeasurements: parseInt(feature.properties.resultCount),
-    uniqueId:
-      `${feature.properties.MonitoringLocationIdentifier}/` +
-      `${feature.properties.ProviderName}/` +
-      `${feature.properties.OrganizationIdentifier}`,
-  };
-  siteDetails.charcLabelCounts = parseLabelCounts(
-    siteDetails.charcGroupCounts,
-    siteDetails.charcLabels,
-    characteristicGroupMappings,
-  );
-  setData(siteDetails);
-  setStatus('success');
-}
-
 function fetchParseCsv(url) {
   return new Promise((complete, error) => {
     Papa.parse(url, {
@@ -658,7 +595,7 @@ function getMean(values) {
 }
 
 function getMedian(values) {
-  const sorted = [...values].sort();
+  const sorted = [...values].sort((a, b) => a - b);
   const numValues = values.length;
   let median = 0;
   if (numValues % 2 === 0) {
@@ -686,45 +623,6 @@ function getTotalCount(charcs) {
   return totalCount;
 }
 
-async function getZoomParams(layer) {
-  const featureSet = await layer.queryFeatures();
-  const graphics = featureSet.features;
-  if (graphics.length === 1 && graphics[0].geometry.type === 'point') {
-    // handle zooming to a single point graphic
-    return {
-      target: graphics[0],
-      zoom: 16,
-    };
-  }
-}
-
-function labelGroups(charcGroups, mappings) {
-  const labels = {};
-  mappings
-    .filter((mapping) => mapping.label !== 'All')
-    .forEach((mapping) => {
-      for (const charcGroup in charcGroups) {
-        if (mapping.groupNames.includes(charcGroup)) {
-          if (!labels[mapping.label]) labels[mapping.label] = [];
-          labels[mapping.label].push(charcGroup);
-        }
-      }
-    });
-
-  // add any leftover lower-tier group counts to the 'Other' category
-  const groupsLabelled = Object.values(labels).reduce((a, b) => {
-    a.push(...b);
-    return a;
-  }, []);
-  for (const charcGroup in charcGroups) {
-    if (!groupsLabelled.includes(charcGroup)) {
-      if (!labels['Other']) labels['Other'] = [];
-      labels['Other'].push(charcGroup);
-    }
-  }
-  return labels;
-}
-
 const initialCheckboxes = {
   all: 0,
   groups: {},
@@ -739,24 +637,6 @@ function handleCheckbox(id, accessor, dispatch) {
     });
   };
 }
-
-function isEmpty(obj) {
-  for (let prop in obj) {
-    if (obj.hasOwnProperty(prop)) return false;
-  }
-  return true;
-}
-
-const lineColors = {
-  Bacterial: '#03a66a',
-  Metals: '#526571',
-  Nutrients: '#00de04',
-  Other: '#38a6ee',
-  Pesticides: '#400587',
-  PFAS: '#eb4034',
-  Physical: '#ad9e71',
-  Sediments: '#9c7803',
-};
 
 function loadNewData(data, state) {
   const newCharcs = {};
@@ -818,20 +698,6 @@ function parseCharcs(charcs, range) {
     }
   });
   return result;
-}
-
-function parseLabelCounts(groupCounts, charcLabels, mappings) {
-  const labelCounts = {};
-  mappings
-    .filter((mapping) => mapping.label !== 'All')
-    .forEach((mapping) => (labelCounts[mapping.label] = 0));
-  Object.entries(charcLabels).forEach(([charcLabel, charcGroups]) => {
-    charcGroups.forEach(
-      (charcGroup) => (labelCounts[charcLabel] += groupCounts[charcGroup]),
-    );
-  });
-
-  return labelCounts;
 }
 
 function toggle(state, id, entity, level) {
@@ -996,7 +862,7 @@ function useCharacteristics(provider, orgId, siteId) {
 
   useEffect(() => {
     if (services.status !== 'success') return;
-    setStatus('fetching');
+    setStatus('pending');
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
       `&mimeType=csv&zip=no&dataProfile=resultPhysChem` +
@@ -1016,29 +882,18 @@ function useCharacteristics(provider, orgId, siteId) {
   return [charcs, status];
 }
 
-function useSiteDetails(provider, orgId, siteId) {
-  const services = useServicesContext();
-
-  const [site, setSite] = useState({});
-  const [siteStatus, setSiteStatus] = useState('fetching');
-
-  useEffect(() => {
-    const url =
-      `${services.data.waterQualityPortal.monitoringLocation}` +
-      `search?mimeType=geojson&zip=no&provider=${encodeURIComponent(
-        provider,
-      )}&organization=${encodeURIComponent(orgId)}&siteid=${encodeURIComponent(
-        siteId,
-      )}`;
-
-    fetchSiteDetails(url, setSite, setSiteStatus).catch((err) => {
-      console.error(err);
-      setSiteStatus('failure');
-      setSite({});
-    });
-  }, [provider, services, setSite, setSiteStatus, orgId, siteId]);
-
-  return [site, siteStatus];
+async function zoomToStation(layer, mapView, signal) {
+  await reactiveUtils.whenOnce(() => !mapView.updating);
+  const featureSet = await layer.queryFeatures();
+  const graphics = featureSet.features;
+  if (graphics.length) {
+    const targetGraphic = graphics.pop();
+    // handle zooming to a single point graphic
+    const zoomParams = { target: targetGraphic, zoom: 16 };
+    await reactiveUtils.whenOnce(() => mapView.ready);
+    await mapView.when();
+    await mapView.goTo(zoomParams, { signal });
+  }
 }
 
 /*
@@ -1119,6 +974,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
+  const [msmtCount, setMsmtCount] = useState(null);
 
   // Parse the measurements into chartable data points
   const parseMeasurements = useCallback((newDomain, newMsmts) => {
@@ -1129,7 +985,6 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     let curCount = 0;
     newMsmts.forEach((msmt) => {
       if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-        curCount++;
         const dataPoint = {
           value: msmt.measurement,
           depth: msmt.depth,
@@ -1137,19 +992,19 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         };
         if (!curDatum || curDatum.x !== msmt.date) {
           curDatum && newChartData.push(curDatum);
-          curCount = 1;
           curDatum = {
             x: msmt.date,
             y: { 0: dataPoint },
           };
+          curCount = 1;
         } else {
           curDatum.y[curCount.toString()] = dataPoint;
+          curCount++;
         }
         if (curCount > maxCount) maxCount = curCount;
       }
     });
     curDatum && newChartData.push(curDatum);
-    setChartData(newChartData.length ? newChartData : null);
     setDataKeys([...Array(maxCount).keys()]);
     return newChartData;
   }, []);
@@ -1157,6 +1012,11 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   // Get the selected chart data and statistics
   const getChartData = useCallback(
     (newDomain, newMsmts) => {
+      if (!newDomain) {
+        setChartData(null);
+        return;
+      }
+
       // newMsmts must already be sorted by date
       const filteredMsmts =
         newMsmts?.filter((msmt) => {
@@ -1168,6 +1028,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         }) || [];
 
       const newChartData = parseMeasurements(newDomain, filteredMsmts);
+      setChartData(newChartData.length ? newChartData : null);
 
       if (!newChartData.length) return;
 
@@ -1186,28 +1047,37 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       setMean(newMean);
       setMedian(getMedian(yValues));
       setStdDev(getStdDev(yValues, newMean));
+      setMsmtCount(yValues.length);
     },
     [fraction, medium, parseMeasurements, unit],
   );
 
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
-  // Initialize the chart
+  const [selectedYears, setSelectedYears] = useState(null);
+
+  // Initialize the date slider parameters
   useEffect(() => {
     if (measurements?.length) {
       const yearLow = measurements[0].year;
       const yearHigh = measurements[measurements.length - 1].year;
       setMinYear(yearLow);
       setMaxYear(yearHigh);
-      getChartData([yearLow, yearHigh], measurements);
+      setSelectedYears([yearLow, yearHigh]);
     } else {
-      setChartData(null);
       setMinYear(null);
       setMaxYear(null);
+      setSelectedYears(null);
     }
-  }, [getChartData, measurements]);
+  }, [measurements]);
+
+  // Update the chart with selected parameters
+  useEffect(() => {
+    getChartData(selectedYears, measurements);
+  }, [getChartData, measurements, selectedYears]);
 
   const displayUnit = unit === 'None' ? '' : unit;
+
   // Title for the y-axis
   let yTitle = charcName;
   if (fraction !== 'None') yTitle += ', ' + fraction?.replace(',', ' -');
@@ -1242,7 +1112,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         failure={
           <p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>
         }
-        fetching={<LoadingSpinner />}
+        pending={<LoadingSpinner />}
         status={charcsStatus}
       >
         {infoText ? (
@@ -1252,8 +1122,9 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             <SliderContainer
               min={minYear}
               max={maxYear}
-              disabled={!Boolean(records.length)}
-              onChange={(newDomain) => getChartData(newDomain, measurements)}
+              disabled={!records.length}
+              onChange={(newDomain) => setSelectedYears(newDomain)}
+              range={selectedYears}
             />
             <div css={selectContainerStyles}>
               <span>
@@ -1340,7 +1211,6 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             </div>
             <ChartContainer
               range={range}
-              charcName={charcName}
               data={chartData}
               scaleType={scaleType}
               dataKeys={dataKeys}
@@ -1365,7 +1235,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                     },
                     {
                       label: 'Number of Measurements Shown',
-                      value: chartData.length.toLocaleString(),
+                      value: msmtCount.toLocaleString(),
                     },
                     {
                       label: 'Average of Values',
@@ -1449,7 +1319,7 @@ function CharacteristicsTableSection({
               <p>{monitoringError}</p>
             </div>
           }
-          fetching={<LoadingSpinner />}
+          pending={<LoadingSpinner />}
           status={charcsStatus}
         >
           <FlexRow
@@ -1515,19 +1385,7 @@ function CharacteristicsTableSection({
   );
 }
 
-function ChartContainer({
-  range,
-  data,
-  charcName,
-  dataKeys,
-  scaleType,
-  yTitle,
-  unit,
-}) {
-  const charcLabel = getCharcLabel(
-    getCharcGroup(charcName, characteristicsByGroup),
-    characteristicGroupMappings,
-  );
+function ChartContainer({ range, data, dataKeys, scaleType, yTitle, unit }) {
   const chartRef = useRef(null);
 
   if (!data?.length)
@@ -1550,7 +1408,7 @@ function ChartContainer({
     <div ref={chartRef} css={chartContainerStyles}>
       <ScatterPlot
         buildTooltip={buildTooltip(unit)}
-        color={lineColors[charcLabel]}
+        color="#38a6ee"
         containerRef={chartRef.current}
         data={data}
         dataKeys={dataKeys}
@@ -1729,14 +1587,15 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         failure={
           <p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>
         }
-        fetching={<LoadingSpinner />}
+        pending={<LoadingSpinner />}
         status={charcsStatus}
       >
         <SliderContainer
-          disabled={!Boolean(Object.keys(charcs).length)}
+          disabled={!Object.keys(charcs).length}
           max={maxYear}
           min={minYear}
           onChange={(newRange) => setRange(newRange)}
+          range={range}
         />
         <div css={boxSectionStyles}>
           <div css={accordionStyles}>
@@ -1960,6 +1819,13 @@ function InformationSection({ siteId, site, siteStatus }) {
       value: site.locationType,
     },
     {
+      label: 'Latitude/Longitude',
+      value: `${toFixedFloat(site.locationLatitude, 5)}, ${toFixedFloat(
+        site.locationLongitude,
+        5,
+      )}`,
+    },
+    {
       label: 'Total Sample Count',
       value: site.totalSamples?.toLocaleString(),
     },
@@ -1976,7 +1842,7 @@ function InformationSection({ siteId, site, siteStatus }) {
         <span>
           <small>
             <strong>Location Name: </strong>
-            {siteStatus === 'fetching' && <LoadingSpinner />}
+            {siteStatus === 'pending' && <LoadingSpinner />}
             {siteStatus === 'success' && site.locationName}
           </small>
           <small>
@@ -1996,8 +1862,18 @@ function InformationSection({ siteId, site, siteStatus }) {
 
 function MonitoringReportContent() {
   const { orgId, provider, siteId } = useParams();
+
+  const siteFilter =
+    `provider=${encodeURIComponent(provider)}` +
+    `&organization=${encodeURIComponent(orgId)}` +
+    `&siteid=${encodeURIComponent(siteId)}`;
+
+  const { monitoringLocations, monitoringLocationsStatus: siteStatus } =
+    useMonitoringLocations();
+
+  const site = monitoringLocations[0] ?? {};
+
   const { fullscreenActive } = useFullscreenState();
-  const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
     orgId,
@@ -2028,6 +1904,7 @@ function MonitoringReportContent() {
               layout="narrow"
               site={site}
               siteStatus={siteStatus}
+              siteFilter={siteFilter}
               widthRef={widthRef}
             />
           </div>
@@ -2049,6 +1926,7 @@ function MonitoringReportContent() {
       <SiteMapContainer
         layout="wide"
         site={site}
+        siteFilter={siteFilter}
         siteStatus={siteStatus}
         widthRef={widthRef}
       />
@@ -2077,6 +1955,8 @@ function MonitoringReportContent() {
           <SiteMapContainer
             layout="fullscreen"
             site={site}
+            siteFilter={siteFilter}
+            siteStatus={siteStatus}
             widthRef={widthRef}
           />
         </div>
@@ -2138,7 +2018,7 @@ function MonitoringReportContent() {
     <StatusContent
       empty={noSiteView}
       failure={<p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>}
-      fetching={content}
+      pending={content}
       success={content}
       status={siteStatus}
     />
@@ -2147,15 +2027,17 @@ function MonitoringReportContent() {
 
 function MonitoringReport() {
   return (
-    <FullscreenProvider>
-      <MapHighlightProvider>
-        <MonitoringReportContent />
-      </MapHighlightProvider>
-    </FullscreenProvider>
+    <LayersProvider>
+      <FullscreenProvider>
+        <MapHighlightProvider>
+          <MonitoringReportContent />
+        </MapHighlightProvider>
+      </FullscreenProvider>
+    </LayersProvider>
   );
 }
 
-function SliderContainer({ min, max, disabled = false, onChange }) {
+function SliderContainer({ min, max, disabled = false, onChange, range }) {
   if (!min || !max) return <LoadingSpinner />;
   else if (min === max)
     return (
@@ -2166,28 +2048,27 @@ function SliderContainer({ min, max, disabled = false, onChange }) {
 
   return (
     <div css={sliderContainerStyles}>
-      <DateSlider disabled={disabled} min={min} max={max} onChange={onChange} />
+      <DateSlider
+        disabled={disabled}
+        min={min}
+        max={max}
+        onChange={onChange}
+        range={range}
+      />
     </div>
   );
 }
 
-function SiteMap({ layout, site, siteStatus, widthRef }) {
+function SiteMap({ layout, site, siteFilter, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
-  const [doneDrawing, setDoneDrawing] = useState(false);
+  const [layers, setLayers] = useState([]);
   const [mapLoading, setMapLoading] = useState(true);
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
-  const {
-    homeWidget,
-    layers,
-    mapView,
-    monitoringLocationsLayer,
-    resetData,
-    setLayers,
-    setMonitoringLocationsLayer,
-    setVisibleLayers,
-  } = useContext(LocationSearchContext);
+  const { homeWidget, mapView, resetData } = useContext(LocationSearchContext);
+
+  const { updateVisibleLayers } = useLayers();
 
   useEffect(() => {
     if (!mapView) return;
@@ -2202,69 +2083,20 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
     };
   }, [mapView]);
 
+  const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
+    useMonitoringLocationsLayers(siteFilter);
+
   // Initialize the layers
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
-    if (!monitoringLocationsLayer) {
-      const newMonitoringLocationsLayer = new FeatureLayer({
-        id: 'monitoringLocationsLayer',
-        title: 'Past Water Conditions',
-        listMode: 'hide',
-        legendEnabled: true,
-        fields: [
-          { name: 'OBJECTID', type: 'oid' },
-          { name: 'monitoringType', type: 'string' },
-          { name: 'siteId', type: 'string' },
-          { name: 'orgId', type: 'string' },
-          { name: 'orgName', type: 'string' },
-          { name: 'locationLongitude', type: 'double' },
-          { name: 'locationLatitude', type: 'double' },
-          { name: 'locationName', type: 'string' },
-          { name: 'locationType', type: 'string' },
-          { name: 'locationUrl', type: 'string' },
-          { name: 'stationProviderName', type: 'string' },
-          { name: 'stationTotalSamples', type: 'integer' },
-          { name: 'stationTotalMeasurements', type: 'integer' },
-          { name: 'stationTotalsByGroup', type: 'string' },
-          { name: 'uniqueId', type: 'string' },
-        ],
-        outFields: ['*'],
-        source: [
-          new Graphic({
-            geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-            attributes: { OBJECTID: 1 },
-          }),
-        ],
-        renderer: {
-          type: 'simple',
-          symbol: {
-            type: 'simple-marker',
-            style: 'circle',
-            color: colors.lightPurple(0.75),
-            outline: {
-              width: 0.75,
-            },
-          },
-        },
-        popupTemplate: {
-          outFields: ['*'],
-          title: (feature) => getPopupTitle(feature.graphic.attributes),
-          content: (feature) => {
-            feature.graphic.attributes = parseAttributes(
-              ['stationTotalsByGroup'],
-              feature.graphic.attributes,
-            );
-            return getPopupContent({ feature: feature.graphic, services });
-          },
-        },
-      });
-      setMonitoringLocationsLayer(newMonitoringLocationsLayer);
-      setLayers([...getSharedLayers(), newMonitoringLocationsLayer]);
-      setVisibleLayers({ monitoringLocationsLayer: true });
-    } else {
-      setLayersInitialized(true);
-    }
+    setLayers([
+      ...getSharedLayers(),
+      monitoringLocationsLayer,
+      surroundingMonitoringLocationsLayer,
+    ]);
+    updateVisibleLayers({ monitoringLocationsLayer: true });
+    setLayersInitialized(true);
   }, [
     getSharedLayers,
     layers,
@@ -2272,42 +2104,47 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
     monitoringLocationsLayer,
     services,
     setLayers,
-    setMonitoringLocationsLayer,
-    setVisibleLayers,
     site,
     siteStatus,
+    surroundingMonitoringLocationsLayer,
+    updateVisibleLayers,
   ]);
 
-  // Draw the site on the map
-  useEffect(() => {
-    if (!layersInitialized || doneDrawing) return;
-    drawSite(site, monitoringLocationsLayer).then((result) => {
-      setDoneDrawing(result);
-    });
-  }, [
-    doneDrawing,
-    layersInitialized,
-    site,
-    monitoringLocationsLayer,
-    services,
-  ]);
+  const { getSignal, abort } = useAbort();
 
   // Zoom to the location of the site
   useEffect(() => {
-    if (!doneDrawing || !mapView || !monitoringLocationsLayer || !homeWidget)
-      return;
+    if (!mapView || !layersInitialized || !homeWidget) return;
+    if (siteStatus !== 'success') return;
 
-    getZoomParams(monitoringLocationsLayer).then((zoomParams) => {
-      mapView.goTo(zoomParams).then(() => {
+    if (!monitoringLocationsLayer) return;
+
+    zoomToStation(monitoringLocationsLayer, mapView, getSignal())
+      .then(() => {
         // set map zoom and home widget's viewpoint
         mapView.zoom = mapView.zoom - 1;
         homeWidget.viewpoint = new Viewpoint({
           targetGeometry: mapView.extent,
         });
         setMapLoading(false);
+      })
+      .catch((err) => {
+        if (isAbort(err)) return;
+        console.error(err);
       });
-    });
-  }, [doneDrawing, mapView, monitoringLocationsLayer, homeWidget]);
+
+    return function cleanup() {
+      abort();
+    };
+  }, [
+    abort,
+    getSignal,
+    homeWidget,
+    layersInitialized,
+    mapView,
+    monitoringLocationsLayer,
+    siteStatus,
+  ]);
 
   // Function for resetting the LocationSearch context when the map is removed
   useEffect(() => {
@@ -2329,7 +2166,7 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
 
   return (
     <div css={mapContainerStyles} data-testid="hmw-site-map" ref={widthRef}>
-      {siteStatus === 'fetching' ? <LoadingSpinner /> : <Map layers={layers} />}
+      {siteStatus === 'pending' ? <LoadingSpinner /> : <Map layers={layers} />}
       {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
@@ -2348,13 +2185,13 @@ function StatusContent({
   empty,
   idle = null,
   failure,
-  fetching,
+  pending,
   status,
   success = null,
 }) {
   switch (status) {
-    case 'fetching':
-      return fetching;
+    case 'pending':
+      return pending;
     case 'empty':
       return empty;
     case 'failure':

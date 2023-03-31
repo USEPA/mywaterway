@@ -56,7 +56,6 @@ const waterbodyItemStyles = css`
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
-  margin-bottom: 1em;
   text-align: center;
 `;
 

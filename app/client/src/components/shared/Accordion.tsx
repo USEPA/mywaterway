@@ -81,6 +81,7 @@ type AccordionListProps = {
   sortOptions: { value: string; label: string }[];
   onSortChange: Function;
   onExpandCollapse: Function;
+  contentExpandCollapse?: ReactNode;
 };
 
 function AccordionList({
@@ -91,6 +92,7 @@ function AccordionList({
   sortOptions = [],
   onSortChange = () => {},
   onExpandCollapse = () => {},
+  contentExpandCollapse,
 }: AccordionListProps) {
   const [sortBy, setSortBy] = useState(
     sortOptions.length > 0 ? sortOptions[0] : null,
@@ -129,6 +131,8 @@ function AccordionList({
             />
           </div>
         )}
+
+        {contentExpandCollapse}
 
         {!expandDisabled && (
           <button
