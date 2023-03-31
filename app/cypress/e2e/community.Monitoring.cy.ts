@@ -174,13 +174,12 @@ describe('Monitoring Tab', () => {
 
     cy.findByRole('button', { name: monitoringLocation }).click();
 
-    // the date range is split by elements, so only the full range can be queried,
-    // and this will need to be updated annually
     cy.findByRole('button', { name: monitoringLocation })
       .parent()
-      .findByText(
-        (_content, element) => element.textContent === '(1951 - 2023)',
-      )
+      .findByText((_content, element) => {
+        const match = element.textContent.match(/^\(1951 - 20\d\d\)$/);
+        return Boolean(match);
+      })
       .should('be.visible');
 
     // drag the slider handle
@@ -199,9 +198,10 @@ describe('Monitoring Tab', () => {
 
     cy.findByRole('button', { name: monitoringLocation })
       .parent()
-      .findByText(
-        (_content, element) => element.textContent === '(1951 - 2023)',
-      )
+      .findByText((_content, element) => {
+        const match = element.textContent.match(/^\(1951 - 20\d\d\)$/);
+        return Boolean(match);
+      })
       .should('not.exist');
   });
 
