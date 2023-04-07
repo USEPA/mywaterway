@@ -6,142 +6,41 @@ import {
   useReducer,
 } from 'react';
 import type {
-  UsgsDailyAveragesData,
-  UsgsPrecipitationData,
-  UsgsStreamgagesData,
+  DischargerAttributes,
+  FetchSuccessState,
+  MonitoringLocationAttributes,
+  UsgsStreamgageAttributes,
 } from 'types';
 
-type Props = {
-  children: ReactNode;
-};
+const StateContext = createContext<FetchedDataState | undefined>(undefined);
+const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
+  undefined,
+);
 
-type State = {
-  usgsStreamgages:
-    | { status: 'idle'; data: {} }
-    | { status: 'pending'; data: {} }
-    | { status: 'success'; data: UsgsStreamgagesData }
-    | { status: 'failure'; data: {} };
-  usgsPrecipitation:
-    | { status: 'idle'; data: {} }
-    | { status: 'pending'; data: {} }
-    | { status: 'success'; data: UsgsPrecipitationData }
-    | { status: 'failure'; data: {} };
-  usgsDailyAverages:
-    | { status: 'idle'; data: {} }
-    | { status: 'pending'; data: {} }
-    | { status: 'success'; data: UsgsDailyAveragesData }
-    | { status: 'failure'; data: {} };
-};
-
-export type Action =
-  | { type: 'RESET_FETCHED_DATA' }
-  | { type: 'USGS_STREAMGAGES/FETCH_REQUEST' }
-  | {
-      type: 'USGS_STREAMGAGES/FETCH_SUCCESS';
-      payload: UsgsStreamgagesData;
-    }
-  | { type: 'USGS_STREAMGAGES/FETCH_FAILURE' }
-  | { type: 'USGS_PRECIPITATION/FETCH_REQUEST' }
-  | {
-      type: 'USGS_PRECIPITATION/FETCH_SUCCESS';
-      payload: UsgsPrecipitationData;
-    }
-  | { type: 'USGS_PRECIPITATION/FETCH_FAILURE' }
-  | { type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' }
-  | {
-      type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS';
-      payload: UsgsDailyAveragesData;
-    }
-  | { type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' };
-
-const StateContext = createContext<State | undefined>(undefined);
-const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
-
-const initialState: State = {
-  usgsStreamgages: { status: 'idle', data: {} },
-  usgsPrecipitation: { status: 'idle', data: {} },
-  usgsDailyAverages: { status: 'idle', data: {} },
-};
-
-function reducer(state: State, action: Action): State {
+function reducer(
+  state: FetchedDataState,
+  action: FetchedDataAction,
+): FetchedDataState {
   switch (action.type) {
-    case 'RESET_FETCHED_DATA': {
+    case 'reset': {
       return initialState;
     }
-
-    case 'USGS_STREAMGAGES/FETCH_REQUEST': {
+    case 'idle':
+    case 'pending':
+    case 'failure':
+    case 'success': {
       return {
         ...state,
-        usgsStreamgages: { status: 'pending', data: {} },
+        [action.id]: buildNewDataState(action),
       };
     }
-
-    case 'USGS_STREAMGAGES/FETCH_SUCCESS': {
-      const data = action.payload;
-      return {
-        ...state,
-        usgsStreamgages: { status: 'success', data },
-      };
-    }
-
-    case 'USGS_STREAMGAGES/FETCH_FAILURE': {
-      return {
-        ...state,
-        usgsStreamgages: { status: 'failure', data: {} },
-      };
-    }
-
-    case 'USGS_PRECIPITATION/FETCH_REQUEST': {
-      return {
-        ...state,
-        usgsPrecipitation: { status: 'pending', data: {} },
-      };
-    }
-
-    case 'USGS_PRECIPITATION/FETCH_SUCCESS': {
-      const data = action.payload;
-      return {
-        ...state,
-        usgsPrecipitation: { status: 'success', data },
-      };
-    }
-
-    case 'USGS_PRECIPITATION/FETCH_FAILURE': {
-      return {
-        ...state,
-        usgsPrecipitation: { status: 'failure', data: {} },
-      };
-    }
-
-    case 'USGS_DAILY_AVERAGES/FETCH_REQUEST': {
-      return {
-        ...state,
-        usgsDailyAverages: { status: 'pending', data: {} },
-      };
-    }
-
-    case 'USGS_DAILY_AVERAGES/FETCH_SUCCESS': {
-      const data = action.payload;
-      return {
-        ...state,
-        usgsDailyAverages: { status: 'success', data },
-      };
-    }
-
-    case 'USGS_DAILY_AVERAGES/FETCH_FAILURE': {
-      return {
-        ...state,
-        usgsDailyAverages: { status: 'failure', data: {} },
-      };
-    }
-
     default: {
-      throw new Error(`Unhandled action type: ${action}`);
+      throw new Error(`Unhandled action type.`);
     }
   }
 }
 
-export function FetchedDataProvider({ children }: Props) {
+export function FetchedDataProvider({ children }: ProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -179,3 +78,92 @@ export function useFetchedDataDispatch() {
   }
   return context;
 }
+
+/*
+## Utils
+*/
+
+function buildNewDataState(action: FetchedDataAction) {
+  switch (action.type) {
+    case 'idle':
+    case 'failure':
+    case 'pending': {
+      return { status: action.type, data: null };
+    }
+    case 'success': {
+      return { status: action.type, data: action.payload };
+    }
+  }
+}
+
+/*
+## Constants
+*/
+
+const dataKeys = [
+  'monitoringLocations',
+  'dischargers',
+  'usgsStreamgages',
+  'surroundingMonitoringLocations',
+  'surroundingDischargers',
+  'surroundingUsgsStreamgages',
+];
+
+const initialState = dataKeys.reduce((state, key) => {
+  return {
+    ...state,
+    [key]: { status: 'pending', data: null },
+  };
+}, {}) as FetchedDataState;
+
+/*
+## Types
+*/
+
+type ProviderProps = {
+  children: ReactNode;
+};
+
+type EmptyFetchStatus = Exclude<FetchStatus, 'success'>;
+
+export type EmptyFetchState = {
+  status: EmptyFetchStatus;
+  data: null;
+};
+
+export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
+
+export type FetchedData = {
+  monitoringLocations: MonitoringLocationAttributes[];
+  dischargers: DischargerAttributes[];
+  usgsStreamgages: UsgsStreamgageAttributes[];
+  surroundingMonitoringLocations: MonitoringLocationAttributes[];
+  surroundingDischargers: DischargerAttributes[];
+  surroundingUsgsStreamgages: UsgsStreamgageAttributes[];
+};
+
+export type FetchedDataAction =
+  | { type: 'reset' }
+  | FetchedDataEmptyAction
+  | FetchedDataSuccessAction;
+
+type FetchedDataEmptyAction = {
+  [E in EmptyFetchStatus]: {
+    type: E;
+    id: keyof FetchedDataState;
+  };
+}[EmptyFetchStatus];
+
+export type FetchedDataState = {
+  [D in keyof FetchedData]: FetchState<FetchedData[D]>;
+};
+
+export type FetchedDataSuccessAction = {
+  [D in keyof FetchedDataState]: {
+    type: 'success';
+    id: D;
+    payload: FetchedData[D];
+  };
+}[keyof FetchedDataState];
+
+export type FetchStatus = 'idle' | 'pending' | 'failure' | 'success';

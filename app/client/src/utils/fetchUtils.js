@@ -8,12 +8,13 @@ export function fetchCheck(
   apiUrl: string,
   signal: ?AbortSignal = null,
   timeout: number = defaultTimeout,
+  responseType: string = 'json',
 ) {
   const startTime = performance.now();
   return timeoutPromise(timeout, fetch(apiUrl, { signal }))
     .then((response) => {
       logCallToGoogleAnalytics(apiUrl, response.status, startTime);
-      return checkResponse(response);
+      return checkResponse(response, responseType);
     })
     .catch((err) => {
       if (isAbort(err)) return Promise.reject(err);
@@ -30,13 +31,14 @@ export function proxyFetch(
   apiUrl: string,
   signal: ?AbortSignal = null,
   timeout: number = defaultTimeout,
+  responseType: string = 'json',
 ) {
   const { REACT_APP_PROXY_URL } = process.env;
   // if environment variable is not set, default to use the current site origin
   const proxyUrl = REACT_APP_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
-  return fetchCheck(url, signal, timeout);
+  return fetchCheck(url, signal, timeout, responseType);
 }
 
 export function lookupFetch(
@@ -143,6 +145,7 @@ export function fetchPostFile(
   apiUrl: string,
   data: object,
   file: any,
+  fileName: string = undefined,
   timeout: number = defaultTimeout,
 ) {
   const startTime = performance.now();
@@ -158,7 +161,7 @@ export function fetchPostFile(
 
     body.append(key, valueToAdd);
   }
-  body.append('file', file);
+  body.append('file', file, fileName);
 
   return timeoutPromise(
     timeout,

@@ -7,22 +7,22 @@ function getLabel(charType, labelMappings) {
 }
 
 function incrementTotals(station, record, mappings) {
-  station.stationTotalMeasurements += record.ResultCount;
-  station.stationTotalSamples += record.ActivityCount;
-  if (!(record.CharacteristicName in station.stationTotalsByCharacteristic)) {
-    station.stationTotalsByCharacteristic[record.CharacteristicName] = 0;
+  station.totalMeasurements += record.ResultCount;
+  station.totalSamples += record.ActivityCount;
+  if (!(record.CharacteristicName in station.totalsByCharacteristic)) {
+    station.totalsByCharacteristic[record.CharacteristicName] = 0;
   }
-  station.stationTotalsByCharacteristic[record.CharacteristicName] +=
+  station.totalsByCharacteristic[record.CharacteristicName] +=
     record.ResultCount;
-  if (!(record.CharacteristicType in station.stationTotalsByGroup)) {
-    station.stationTotalsByGroup[record.CharacteristicType] = 0;
+  if (!(record.CharacteristicType in station.totalsByGroup)) {
+    station.totalsByGroup[record.CharacteristicType] = 0;
   }
-  station.stationTotalsByGroup[record.CharacteristicType] += record.ResultCount;
+  station.totalsByGroup[record.CharacteristicType] += record.ResultCount;
   const label = getLabel(record.CharacteristicType, mappings);
-  if (!(label in station.stationTotalsByLabel)) {
-    station.stationTotalsByLabel[label] = 0;
+  if (!(label in station.totalsByLabel)) {
+    station.totalsByLabel[label] = 0;
   }
-  station.stationTotalsByLabel[label] += record.ResultCount;
+  station.totalsByLabel[label] += record.ResultCount;
 }
 
 function structureByYear(records, mappings) {
@@ -44,11 +44,11 @@ function structureByYear(records, mappings) {
     if (!stationDataForYear) {
       stationDataForYear = {
         uniqueId: id,
-        stationTotalMeasurements: 0,
-        stationTotalSamples: 0,
-        stationTotalsByCharacteristic: {},
-        stationTotalsByGroup: {},
-        stationTotalsByLabel: {},
+        totalMeasurements: 0,
+        totalSamples: 0,
+        totalsByCharacteristic: {},
+        totalsByGroup: {},
+        totalsByLabel: {},
       };
       results[record.YearSummarized][id] = stationDataForYear;
     }

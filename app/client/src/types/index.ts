@@ -10,11 +10,11 @@ export interface AllotmentAttributes {
 
 export interface AnnualStationData {
   uniqueId: string;
-  stationTotalMeasurements: number;
-  stationTotalSamples: number;
-  stationTotalsByCharacteristic: { [characteristic: string]: number };
-  stationTotalsByGroup: { [group: string]: number };
-  stationTotalsByLabel: { [label: string]: number };
+  totalMeasurements: number;
+  totalSamples: number;
+  totalsByCharacteristic: { [characteristic: string]: number };
+  totalsByGroup: { [group: string]: number };
+  totalsByLabel: { [label: string]: number };
 }
 
 export interface ChangeLocationAttributes {
@@ -37,8 +37,29 @@ export interface CountyAttributes {
 }
 
 export interface DischargerAttributes {
+  CWPFormalEaCnt: string | null;
+  CWPInspectionCount: string | null;
   CWPName: string;
+  CWPPermitStatusDesc: string;
+  CWPPermitTypeDesc: string;
+  CWPSNCStatus: string | null;
+  CWPStatus: string;
+  FacLat: string;
+  FacLong: string;
+  PermitComponents: string | null;
+  RegistryID: string;
+  SourceID: string;
+  uniqueId: string;
 }
+
+export interface DischargerPermitComponents {
+  [label: string]: {
+    label: string;
+    dischargers: DischargerAttributes[];
+    toggled: boolean;
+  };
+}
+
 
 export interface EjScreenAttributes {
   T_OVR64PCT: string;
@@ -46,24 +67,6 @@ export interface EjScreenAttributes {
 
 export interface CyanAttributes {
   GNIS_NAME: string;
-}
-
-export interface Facility {
-  CWPName: string;
-  CWPNAICSCodes: string | null;
-  E90Exceeds1yr?: string;
-  FacLat: string;
-  FacLong: string;
-  CWPPermitStatusDesc: string;
-  CWPStatus: string;
-  CWPSNCStatus: string | null;
-  CWPQtrsWithNC: string;
-  CWPViolStatus: string;
-  CWPInspectionCount: string | null;
-  CWPFormalEaCnt: string | null;
-  Over80CountUs: string;
-  RegistryID: string;
-  SourceID: string;
 }
 
 export interface Feature {
@@ -75,7 +78,7 @@ interface FetchEmptyState {
   data: {} | [] | null;
 }
 
-interface FetchSuccessState<Type> {
+export interface FetchSuccessState<Type> {
   status: 'success';
   data: Type;
 }
@@ -90,9 +93,88 @@ export interface ExtendedLayer extends __esri.Layer {
   parent?: __esri.Layer | __esri.Map;
 }
 
+export interface Huc12SummaryData {
+  count: number;
+  items: {
+    assessedCatchmentAreaPercent: number;
+    assessedCatchmentAreaSqMi: number;
+    assessedGoodCatchmentAreaPercent: number;
+    assessedGoodCatchmentAreaSqMi: number;
+    assessedUnknownCatchmentAreaPercent: number;
+    assessedUnknownCatchmentAreaSqMi: number;
+    assessmentUnitCount: number;
+    assessmentUnits: {
+      assessmentUnitId: string;
+    }[];
+    containImpairedWatersCatchmentAreaPercent: number;
+    containImpairedWatersCatchmentAreaSqMi: number;
+    containRestorationCatchmentAreaPercent: number;
+    containRestorationCatchmentAreaSqMi: number;
+    huc12: string;
+    summaryByIRCategory: {
+      assessmentUnitCount: number;
+      catchmentSizePercent: number;
+      catchmentSizeSqMi: number;
+      epaIRCategoryName: string;
+    }[];
+    summaryByParameterImpairments: {
+      assessmentUnitCount: number;
+      catchmentSizePercent: number;
+      catchmentSizeSqMi: number;
+      parameterGroupName: string;
+    }[];
+    summaryByUse: {
+      useAttainmentSummary: {
+        assessmentUnitCount: number;
+        catchmentSizePercent: number;
+        catchmentSizeSqMi: number;
+        useAttainment: string;
+      }[];
+      useGroupName: string;
+      useName: string;
+    }[];
+    summaryByUseGroup: {
+      useAttainmentSummary: {
+        assessmentUnitCount: number;
+        catchmentSizePercent: number;
+        catchmentSizeSqMi: number;
+        useAttainment: string;
+      }[];
+      useGroupName: string;
+    }[];
+    summaryRestorationPlans: {
+      assessmentUnitCount: number;
+      catchmentSizePercent: number;
+      catchmentSizeSqMi: number;
+      summaryTypeName: string;
+    }[];
+    summaryVisionRestorationPlans: {
+      assessmentUnitCount: number;
+      catchmentSizePercent: number;
+      catchmentSizeSqMi: number;
+      summaryTypeName: string;
+    }[];
+    totalCatchmentAreaSqMi: number;
+    totalHucAreaSqMi: number;
+  }[];
+}
+
+export type ImpairmentFields = {
+  value: string;
+  parameterGroup: string;
+  label: string;
+  term: string;
+  sentence: JSX.Element | null;
+}[];
+
+export type LookupFile = {
+  status: 'fetching' | 'success' | 'failure';
+  data: any;
+};
+
 export interface MonitoringFeatureUpdate {
-  stationTotalMeasurements: number;
-  stationTotalsByGroup: { [group: string]: number };
+  totalMeasurements: number;
+  totalsByGroup: { [group: string]: number };
   timeframe: [number, number];
 }
 
@@ -101,6 +183,7 @@ export type MonitoringFeatureUpdates = {
 } | null;
 
 export interface MonitoringLocationAttributes {
+  county: string;
   monitoringType: 'Past Water Conditions';
   siteId: string;
   orgId: string;
@@ -110,12 +193,14 @@ export interface MonitoringLocationAttributes {
   locationName: string;
   locationType: string;
   locationUrl: string;
-  stationDataByYear: { [year: string | number]: AnnualStationData } | null;
-  stationProviderName: string;
-  stationTotalSamples: number;
-  stationTotalMeasurements: number;
-  stationTotalsByGroup: { [groups: string]: number };
-  stationTotalsByLabel: { [label: string]: number } | null;
+  locationUrlPartial: string;
+  state: string;
+  dataByYear: { [year: string | number]: AnnualStationData } | null;
+  providerName: string;
+  totalSamples: number;
+  totalMeasurements: number;
+  totalsByGroup: { [groups: string]: number };
+  totalsByLabel: { [label: string]: number } | null;
   timeframe: [number, number] | null;
   uniqueId: string;
 }
@@ -130,7 +215,7 @@ export interface MonitoringLocationGroups {
 }
 
 export interface MonitoringLocationsData {
-  features: {
+  features: Array<{
     geometry: {
       coordinates: [number, number];
       type: 'Point';
@@ -154,16 +239,54 @@ export interface MonitoringLocationsData {
       siteUrl: string;
     };
     type: 'Feature';
-  }[];
+  }>;
   type: 'FeatureCollection';
 }
+
+export type MonitoringYearsRange = number[] | null;
+
+export type MonitoringWorkerData = {
+  minYear: number;
+  maxYear: number;
+  annualData: any;
+};
 
 export interface NonProfitAttributes {
   Name?: string;
   type: 'nonprofit';
 }
 
+export type ParameterToggleObject = { [key: string]: boolean };
+
 export type ParentLayer = __esri.GroupLayer | SuperLayer;
+
+export type PermittedDischargersData = {
+  Results:
+    | {
+        BadSystemIDs: null;
+        BioCVRows: string;
+        BioV3Rows: string;
+        CVRows: string;
+        FEARows: string;
+        Facilities: DischargerAttributes[];
+        INSPRows: string;
+        IndianCountryRows: string;
+        InfFEARows: string;
+        Message: string;
+        PageNo: string;
+        QueryID: string;
+        QueryRows: string;
+        SVRows: string;
+        TotalPenalties: string;
+        V3Rows: string;
+        Version: string;
+      }
+    | {
+        Error: {
+          ErrorMessage: string;
+        };
+      };
+};
 
 export type PopupAttributes =
   | ActionAttributes
@@ -195,7 +318,7 @@ export interface ScaledLayer extends __esri.Layer {
   maxScale?: number;
 }
 
-interface ServicesData {
+export interface ServicesData {
   attains: { serviceUrl: string };
   cyan: {
     application: string;
@@ -205,7 +328,13 @@ interface ServicesData {
     properties: string;
     waterbodies: string;
   };
+  echoNPDES: {
+    getFacilities: string;
+    metadata: string;
+  };
   upstreamWatershed: string;
+  usgsDailyValues: string;
+  usgsSensorThingsAPI: string;
   usgsWaterAlert: string;
   waterQualityPortal: {
     resultSearch: string;
@@ -265,6 +394,7 @@ export interface UsgsStreamgageAttributes {
     primary: StreamgageMeasurement[];
     secondary: StreamgageMeasurement[];
   };
+  uniqueId: string;
 }
 
 export interface UsgsDailyAveragesData {
@@ -385,9 +515,47 @@ export interface WaterbodyAttributes {
   overallstatus: string;
 }
 
-export interface WidgetLayer extends __esri.Layer {
+interface PortalLayer extends __esri.Layer {
   portalItem?: __esri.PortalItem;
 }
+
+export type PortalLayerTypes =
+  | 'Feature Service'
+  | 'Image Service'
+  | 'KML'
+  | 'Map Service'
+  | 'Vector Tile Service'
+  | 'WMS';
+
+export type WidgetLayer =
+  | {
+      type: 'portal';
+      layerType: PortalLayerTypes;
+      id: string;
+      layer: PortalLayer;
+      url: string;
+    }
+  | {
+      type: 'url';
+      layer: __esri.Layer;
+      layerType: string;
+      url: string;
+      urlType: 'ArcGIS' | 'CSV' | 'GeoRSS' | 'KML' | 'WCS' | 'WFS' | 'WMS';
+    }
+  | {
+      type: 'file';
+      fields: __esri.FieldProperties[];
+      layer: __esri.Layer;
+      layerId: string;
+      layerType?: string;
+      objectIdField: string;
+      outFields: string[];
+      popupTemplate: __esri.PopupTemplateProperties;
+      renderer: __esri.RendererProperties;
+      source: __esri.Graphic[];
+      title: string;
+      rawLayer: any;
+    };
 
 export interface WildScenicRiverAttributes {
   WSR_RIVER_NAME: string;

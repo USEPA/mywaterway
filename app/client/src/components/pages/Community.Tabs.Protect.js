@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import * as query from '@arcgis/core/rest/query';
@@ -26,11 +20,12 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // config
 import { tabs } from 'config/communityConfig';
 // contexts
-import { useFetchedDataState } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { useSurroundingsDispatch } from 'contexts/Surroundings';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
 import { useWaterbodyOnMap } from 'utils/hooks';
@@ -204,30 +199,29 @@ function Protect() {
     watershed,
     highlightOptions,
     huc12,
-    monitoringLocations,
-    monitoringLocationsLayer,
     statesData,
-    visibleLayers,
-    setVisibleLayers,
-    wsioHealthIndexLayer,
     wsioHealthIndexData,
-    wildScenicRiversLayer,
     wildScenicRiversData,
-    protectedAreasLayer,
     protectedAreasData,
-    protectedAreasHighlightLayer,
-    usgsStreamgagesLayer,
-    waterbodyLayer,
     cipSummary,
-    allWaterbodiesLayer,
-    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
-  const { usgsStreamgages } = useFetchedDataState();
+  const {
+    allWaterbodiesLayer,
+    monitoringLocationsLayer,
+    protectedAreasHighlightLayer,
+    protectedAreasLayer,
+    updateVisibleLayers,
+    usgsStreamgagesLayer,
+    visibleLayers,
+    wildScenicRiversLayer,
+  } = useLayers();
 
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const [normalizedGrtsProjects, setNormalizedGrtsProjects] = useState([]);
+
+  const surroundingsDispatch = useSurroundingsDispatch();
 
   // normalize grts projects data with attains plans data
   useEffect(() => {
@@ -307,91 +301,6 @@ function Protect() {
 
   const [waterbodyLayerDisplayed, setWaterbodyLayerDisplayed] = useState(false);
 
-  // Updates the visible layers. This function also takes into account whether
-  // or not the underlying webservices failed.
-  const updateVisibleLayers = useCallback(
-    ({ key = null, newValue = null, useCurrentValue = false }) => {
-      const newVisibleLayers = {};
-      if (wsioHealthIndexData.status !== 'failure') {
-        newVisibleLayers['wsioHealthIndexLayer'] =
-          !wsioHealthIndexLayer || useCurrentValue
-            ? visibleLayers['wsioHealthIndexLayer']
-            : healthScoresDisplayed;
-      }
-      if (protectedAreasData.status !== 'failure') {
-        newVisibleLayers['protectedAreasLayer'] =
-          !protectedAreasLayer || useCurrentValue
-            ? visibleLayers['protectedAreasLayer']
-            : protectedAreasDisplayed;
-      }
-      if (wildScenicRiversData.status !== 'failure') {
-        newVisibleLayers['wildScenicRiversLayer'] =
-          !wildScenicRiversLayer || useCurrentValue
-            ? visibleLayers['wildScenicRiversLayer']
-            : wildScenicRiversDisplayed;
-      }
-      if (cipSummary.status !== 'failure') {
-        newVisibleLayers['waterbodyLayer'] =
-          !waterbodyLayer || useCurrentValue
-            ? visibleLayers['waterbodyLayer']
-            : false;
-      }
-
-      if (monitoringLocations.status !== 'failure') {
-        newVisibleLayers['monitoringLocationsLayer'] =
-          !monitoringLocationsLayer || useCurrentValue
-            ? visibleLayers['monitoringLocationsLayer']
-            : monitoringLocationsLayer.visible;
-      }
-
-      if (usgsStreamgages.status !== 'failure') {
-        newVisibleLayers['usgsStreamgagesLayer'] =
-          !usgsStreamgagesLayer || useCurrentValue
-            ? visibleLayers['usgsStreamgagesLayer']
-            : usgsStreamgagesLayer.visible;
-      }
-
-      if (newVisibleLayers.hasOwnProperty(key)) {
-        newVisibleLayers[key] = newValue;
-      }
-
-      // set the visible layers if something changed
-      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
-        setVisibleLayers(newVisibleLayers);
-      }
-    },
-    [
-      healthScoresDisplayed,
-      monitoringLocations,
-      monitoringLocationsLayer,
-      usgsStreamgages,
-      usgsStreamgagesLayer,
-      wsioHealthIndexLayer,
-      wsioHealthIndexData,
-      protectedAreasDisplayed,
-      protectedAreasLayer,
-      protectedAreasData,
-      wildScenicRiversDisplayed,
-      wildScenicRiversLayer,
-      wildScenicRiversData,
-      waterbodyLayer,
-      cipSummary,
-      visibleLayers,
-      setVisibleLayers,
-    ],
-  );
-
-  // Updates visible layers based on webservice statuses.
-  useEffect(() => {
-    updateVisibleLayers({ useCurrentValue: true });
-  }, [
-    wsioHealthIndexData,
-    protectedAreasData,
-    wildScenicRiversData,
-    visibleLayers,
-    updateVisibleLayers,
-  ]);
-
   const [tabIndex, setTabIndex] = useState(null);
 
   // toggle the switches setting when the map layer's visibility changes
@@ -431,58 +340,50 @@ function Protect() {
   function onWsioToggle(newValue) {
     if (newValue) {
       setInitialAllWaterbodiesVisibility(allWaterbodiesLayer.visible);
-      setInitialSurroundingMonitoringVisibility(
-        surroundingMonitoringLocationsLayer.visible,
-      );
       setInitialMonitoringLocationsVisibility(monitoringLocationsLayer.visible);
       setInitialUsgsStreamgagesVisibility(usgsStreamgagesLayer.visible);
 
-      if (allWaterbodiesLayer) allWaterbodiesLayer.visible = false;
-      if (surroundingMonitoringLocationsLayer)
-        surroundingMonitoringLocationsLayer.visible = false;
-      if (monitoringLocationsLayer) monitoringLocationsLayer.visible = false;
-      if (usgsStreamgagesLayer) usgsStreamgagesLayer.visible = false;
+      updateVisibleLayers({
+        allWaterbodiesLayer: false,
+        monitoringLocationsLayer: false,
+        usgsStreamgagesLayer: false,
+        wsioHealthIndexLayer: newValue,
+      });
+      surroundingsDispatch({
+        type: 'visible',
+        id: 'allWaterbodiesLayer',
+        payload: false,
+      });
     } else {
-      if (allWaterbodiesLayer)
-        allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
-      if (surroundingMonitoringLocationsLayer)
-        surroundingMonitoringLocationsLayer.visible =
-          initialSurroundingMonitoringVisibility;
-      if (monitoringLocationsLayer)
-        monitoringLocationsLayer.visible = initialMonitoringLocationsVisibility;
-      if (usgsStreamgagesLayer)
-        usgsStreamgagesLayer.visible = initialUsgsStreamgagesVisibility;
+      updateVisibleLayers({
+        allWaterbodiesLayer: initialAllWaterbodiesVisibility,
+        monitoringLocationsLayer: initialMonitoringLocationsVisibility,
+        usgsStreamgagesLayer: initialUsgsStreamgagesVisibility,
+        wsioHealthIndexLayer: newValue,
+      });
+      surroundingsDispatch({
+        type: 'visible',
+        id: 'allWaterbodiesLayer',
+        payload: initialAllWaterbodiesVisibility,
+      });
     }
 
     setHealthScoresDisplayed(newValue);
-    updateVisibleLayers({
-      key: 'wsioHealthIndexLayer',
-      newValue,
-    });
   }
 
   function onWildScenicToggle() {
     setWildScenicRiversDisplayed(!wildScenicRiversDisplayed);
-    updateVisibleLayers({
-      key: 'wildScenicRiversLayer',
-      newValue: !wildScenicRiversDisplayed,
-    });
+    updateVisibleLayers({ wildScenicRiversLayer: !wildScenicRiversDisplayed });
   }
 
   function onProtectedAreasToggle() {
     setProtectedAreasDisplayed(!protectedAreasDisplayed);
-    updateVisibleLayers({
-      key: 'protectedAreasLayer',
-      newValue: !protectedAreasDisplayed,
-    });
+    updateVisibleLayers({ protectedAreasLayer: !protectedAreasDisplayed });
   }
 
   function onWaterbodyLayerToggle() {
     setWaterbodyLayerDisplayed(!waterbodyLayerDisplayed);
-    updateVisibleLayers({
-      key: 'waterbodyLayer',
-      newValue: !waterbodyLayerDisplayed,
-    });
+    updateVisibleLayers({ waterbodyLayer: !waterbodyLayerDisplayed });
   }
 
   const [selectedFeature, setSelectedFeature] = useState(null);
@@ -517,18 +418,6 @@ function Protect() {
 
     setInitialAllWaterbodiesVisibility(allWaterbodiesLayer.visible);
   }, [allWaterbodiesLayer]);
-
-  const [
-    initialSurroundingMonitoringVisibility,
-    setInitialSurroundingMonitoringVisibility,
-  ] = useState(false);
-  useEffect(() => {
-    if (!surroundingMonitoringLocationsLayer) return;
-
-    setInitialSurroundingMonitoringVisibility(
-      surroundingMonitoringLocationsLayer.visible,
-    );
-  }, [surroundingMonitoringLocationsLayer]);
 
   const initialVisibility = tabs.find((tab) => tab.title === 'Protect')?.layers;
 
@@ -578,19 +467,21 @@ function Protect() {
       if (!componentWillUnmount?.current) return;
 
       allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
-      surroundingMonitoringLocationsLayer.visible =
-        initialSurroundingMonitoringVisibility;
+      surroundingsDispatch({
+        type: 'visible',
+        id: 'allWaterbodiesLayer',
+        payload: initialAllWaterbodiesVisibility,
+      });
       monitoringLocationsLayer.visible = initialMonitoringLocationsVisibility;
       usgsStreamgagesLayer.visible = initialUsgsStreamgagesVisibility;
     };
   }, [
     allWaterbodiesLayer,
     initialAllWaterbodiesVisibility,
-    initialSurroundingMonitoringVisibility,
     initialMonitoringLocationsVisibility,
     initialUsgsStreamgagesVisibility,
     monitoringLocationsLayer,
-    surroundingMonitoringLocationsLayer,
+    surroundingsDispatch,
     usgsStreamgagesLayer,
   ]);
 
@@ -615,7 +506,6 @@ function Protect() {
         <Tabs
           onChange={(index) => {
             setTabIndex(index);
-            updateVisibleLayers({});
           }}
           defaultIndex={tabIndex}
         >
@@ -680,7 +570,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Watershed Health Score data available for the{' '}
-                            {watershed} watershed.
+                            <em>{watershed}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -834,10 +724,7 @@ function Protect() {
                     }
 
                     setWildScenicRiversDisplayed(true);
-                    updateVisibleLayers({
-                      key: 'wildScenicRiversLayer',
-                      newValue: true,
-                    });
+                    updateVisibleLayers({ wildScenicRiversLayer: true });
                   }}
                   title={
                     <label css={labelStyles}>
@@ -901,7 +788,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Wild and Scenic River data available in the{' '}
-                            {watershed} watershed.
+                            <em>{watershed}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -1003,8 +890,7 @@ function Protect() {
 
                                       setWildScenicRiversDisplayed(true);
                                       updateVisibleLayers({
-                                        key: 'wildScenicRiversLayer',
-                                        newValue: true,
+                                        wildScenicRiversLayer: true,
                                       });
                                     }}
                                   />
@@ -1025,10 +911,7 @@ function Protect() {
                     }
 
                     setProtectedAreasDisplayed(true);
-                    updateVisibleLayers({
-                      key: 'protectedAreasLayer',
-                      newValue: true,
-                    });
+                    updateVisibleLayers({ protectedAreasLayer: true });
                   }}
                   title={
                     <label css={labelStyles}>
@@ -1096,7 +979,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Protected Areas Database data available for the{' '}
-                            {watershed} watershed.
+                            <em>{watershed}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -1214,8 +1097,7 @@ function Protect() {
 
                                       setProtectedAreasDisplayed(true);
                                       updateVisibleLayers({
-                                        key: 'protectedAreasLayer',
-                                        newValue: true,
+                                        protectedAreasLayer: true,
                                       });
                                     }}
                                   />
@@ -1240,10 +1122,7 @@ function Protect() {
                     }
 
                     setWaterbodyLayerDisplayed(true);
-                    updateVisibleLayers({
-                      key: 'waterbodyLayer',
-                      newValue: true,
-                    });
+                    updateVisibleLayers({ waterbodyLayer: true });
                   }}
                   title={
                     <label css={labelStyles}>
@@ -1290,7 +1169,7 @@ function Protect() {
                             <div css={modifiedInfoBoxStyles}>
                               <p>
                                 There are no EPA funded protection projects in
-                                the {watershed} watershed.
+                                the <em>{watershed}</em> watershed.
                               </p>
                             </div>
                           )}
