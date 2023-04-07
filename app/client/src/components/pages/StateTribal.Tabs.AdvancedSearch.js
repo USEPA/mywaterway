@@ -22,6 +22,7 @@ import ConfirmModal from 'components/shared/ConfirmModal';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
+import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useMapHighlightState,
@@ -1223,8 +1224,10 @@ function MenuItem({ index, width, setSize, value }: MenuItemProps) {
 
 export default function AdvancedSearchContainer() {
   return (
-    <MapHighlightProvider>
-      <AdvancedSearch />
-    </MapHighlightProvider>
+    <LayersProvider>
+      <MapHighlightProvider>
+        <AdvancedSearch />
+      </MapHighlightProvider>
+    </LayersProvider>
   );
 }

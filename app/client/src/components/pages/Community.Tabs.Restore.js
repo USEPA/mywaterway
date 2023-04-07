@@ -1,6 +1,6 @@
 // @flow
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -9,7 +9,7 @@ import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import {
   keyMetricsStyles,
@@ -17,7 +17,9 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import { modifiedTableStyles } from 'styles';
 // contexts
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup } from 'components/shared/Regex';
@@ -27,6 +29,10 @@ import {
   restoreNonpointSourceError,
   restorationPlanError,
 } from 'config/errorMessages';
+
+const accordionContentStyles = css`
+  padding: 0 0.875em 0.875em;
+`;
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -43,61 +49,12 @@ const disclaimerStyles = css`
 `;
 
 function Restore() {
-  const {
-    attainsPlans,
-    cipSummary,
-    grts,
-    visibleLayers,
-    setVisibleLayers,
-    watershed,
-    waterbodyLayer,
-  } = useContext(LocationSearchContext);
+  const { attainsPlans, grts, watershed } = useContext(LocationSearchContext);
+
+  const { updateVisibleLayers } = useLayers();
 
   // draw the waterbody on the map
   useWaterbodyOnMap('restoreTab', 'overallstatus');
-
-  const [restoreLayerEnabled, setRestoreLayerEnabled] = useState(true);
-
-  // Syncs the toggles with the visible layers on the map. Mainly
-  // used for when the user toggles layers in full screen mode and then
-  // exist full screen.
-  useEffect(() => {
-    const { waterbodyLayer } = visibleLayers;
-
-    if (typeof waterbodyLayer === 'boolean') {
-      setRestoreLayerEnabled(waterbodyLayer);
-    }
-  }, [visibleLayers]);
-
-  // Updates the visible layers. This function also takes into account whether
-  // or not the underlying webservices failed.
-  const updateVisibleLayers = useCallback(
-    ({ key = null, newValue = null, useCurrentValue = false }) => {
-      const newVisibleLayers = {};
-      if (cipSummary.status !== 'failure') {
-        newVisibleLayers['waterbodyLayer'] =
-          !waterbodyLayer || useCurrentValue
-            ? visibleLayers['waterbodyLayer']
-            : restoreLayerEnabled;
-      }
-
-      if (newVisibleLayers.hasOwnProperty(key)) {
-        newVisibleLayers[key] = newValue;
-      }
-
-      // set the visible layers if something changed
-      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
-        setVisibleLayers(newVisibleLayers);
-      }
-    },
-    [
-      waterbodyLayer,
-      restoreLayerEnabled,
-      cipSummary,
-      visibleLayers,
-      setVisibleLayers,
-    ],
-  );
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
@@ -114,16 +71,6 @@ function Restore() {
           .filter((item) => item.actionTypeCode !== 'Protection Approach')
           .sort((a, b) => a.actionName.localeCompare(b.actionName))
       : [];
-
-  const setRestoreLayerVisibility = (visible) => {
-    setRestoreLayerEnabled(visible);
-
-    // first check if layer exists and is not falsy
-    updateVisibleLayers({
-      key: 'waterbodyLayer',
-      newValue: waterbodyLayer && visible,
-    });
-  };
 
   return (
     <div css={containerStyles}>
@@ -155,7 +102,11 @@ function Restore() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs onChange={(index) => setRestoreLayerVisibility(index === 1)}>
+        <Tabs
+          onChange={(index) =>
+            updateVisibleLayers({ waterbodyLayer: index === 1 })
+          }
+        >
           <TabList>
             <Tab>Clean Water Act Section 319 Projects</Tab>
             <Tab>Restoration Plans</Tab>
@@ -175,13 +126,15 @@ function Restore() {
                 {grts.status === 'success' && (
                   <>
                     {sortedGrtsData.length === 0 && (
-                      <p css={textStyles}>
-                        There are no{' '}
-                        <GlossaryTerm term="Clean Water Act Section 319 Projects">
-                          Clean Water Act Section 319
-                        </GlossaryTerm>{' '}
-                        projects in the <em>{watershed}</em> watershed.
-                      </p>
+                      <div css={infoBoxStyles}>
+                        <p css={textStyles}>
+                          There are no{' '}
+                          <GlossaryTerm term="Clean Water Act Section 319 Projects">
+                            Clean Water Act Section 319
+                          </GlossaryTerm>{' '}
+                          projects in the <em>{watershed}</em> watershed.
+                        </p>
+                      </div>
                     )}
 
                     {sortedGrtsData.length > 0 && (
@@ -207,8 +160,24 @@ function Restore() {
                           {sortedGrtsData.map((item, index) => {
                             const url = getUrlFromMarkup(item.project_link);
 
+                            let watershedPlans = null;
+                            if (item.watershed_plans !== null) {
+                              try {
+                                watershedPlans = JSON.parse(
+                                  item.watershed_plans,
+                                );
+                              } catch (err) {
+                                console.error(err);
+                                window.logToGa('send', 'exception', {
+                                  exDescription: `Failed to parse watershed_plans JSON data for the "${item.prj_title}" project with ID "${item.prj_seq}"`,
+                                  exFatal: false,
+                                });
+                              }
+                            }
+
                             return (
                               <AccordionItem
+                                ariaLabel={item.prj_title || 'Unknown'}
                                 key={index}
                                 title={
                                   <strong>{item.prj_title || 'Unknown'}</strong>
@@ -226,8 +195,20 @@ function Restore() {
                                         }
                                       : null,
                                     {
-                                      label: 'Total Funds',
+                                      label: (
+                                        <GlossaryTerm term="Total EPA Funds (CWA 319)">
+                                          Total EPA Funds
+                                        </GlossaryTerm>
+                                      ),
                                       value: item.total_319_funds,
+                                    },
+                                    {
+                                      label: (
+                                        <GlossaryTerm term="Total Budget (CWA 319)">
+                                          Total Budget
+                                        </GlossaryTerm>
+                                      ),
+                                      value: item.total_budget,
                                     },
                                     {
                                       label: 'Project Start Date',
@@ -256,6 +237,47 @@ function Restore() {
                                     },
                                   ]}
                                 />
+                                {Array.isArray(watershedPlans) &&
+                                  watershedPlans.length > 0 && (
+                                    <div css={accordionContentStyles}>
+                                      <table
+                                        aria-label="Watershed Plans"
+                                        css={modifiedTableStyles}
+                                        className="table"
+                                      >
+                                        <thead>
+                                          <tr>
+                                            <th>Watershed Plan</th>
+                                            <th>Watershed Plan Status</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {watershedPlans.map((plan) => (
+                                            <tr key={plan.title}>
+                                              <td>
+                                                {plan.link ? (
+                                                  <a
+                                                    href={plan.link}
+                                                    rel="noopener noreferrer"
+                                                    target="_blank"
+                                                  >
+                                                    {plan.title ||
+                                                      'No Document Available'}
+                                                  </a>
+                                                ) : (
+                                                  plan.title ||
+                                                  'No Document Available'
+                                                )}
+                                              </td>
+                                              <td>
+                                                {plan.status || 'Not Available'}
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
                               </AccordionItem>
                             );
                           })}
@@ -286,13 +308,15 @@ function Restore() {
                 {attainsPlans.status === 'success' && (
                   <>
                     {sortedAttainsPlanData.length === 0 && (
-                      <p css={textStyles}>
-                        There are no EPA funded{' '}
-                        <GlossaryTerm term="Restoration plan">
-                          restoration plans
-                        </GlossaryTerm>{' '}
-                        in the <em>{watershed}</em> watershed.
-                      </p>
+                      <div css={infoBoxStyles}>
+                        <p css={textStyles}>
+                          There are no EPA funded{' '}
+                          <GlossaryTerm term="Restoration plan">
+                            restoration plans
+                          </GlossaryTerm>{' '}
+                          in the <em>{watershed}</em> watershed.
+                        </p>
+                      </div>
                     )}
 
                     {sortedAttainsPlanData.length > 0 && (

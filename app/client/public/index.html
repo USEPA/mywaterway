@@ -269,6 +269,14 @@
         ga(`${window.gaTarget}.${command}`, ...props);
       }
 
+      function logErrorToGa(err, fatal = false) {
+        const error = new Error(err);
+        window.logToGa('send', 'exception', {
+          exDescription: `${error.name}:${error.message}:${error.stack}`,
+          exFatal: fatal,
+        });
+      }
+
       // get origin for mapping proxy calls
       const loc = window.location;
       const origin =
@@ -288,7 +296,7 @@
       //Only setup the logging for public sites, ie don't log from localhost
       window.gaTarget = '';
       if (
-        window.location.hostname.indexOf('epa.gov') > -1 ||
+        window.location.hostname === 'mywaterway.epa.gov' ||
         window.location.hostname === 'mywaterway-prod.app.cloud.gov'
       ) {
         //EPA (Production) - Just initialize the HMW logs by setting gaTarget

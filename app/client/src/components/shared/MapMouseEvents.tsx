@@ -7,13 +7,15 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useMapHighlightState } from 'contexts/MapHighlight';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
-import { monitoringClusterSettings } from 'components/shared/LocationMap';
+import {
+  monitoringClusterSettings,
+  useMonitoringLocations,
+} from 'utils/hooks/monitoringLocations';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
-// utilities
-import { useDynamicPopup } from 'utils/hooks';
 // types
 import type {
   MonitoringFeatureUpdate,
@@ -58,21 +60,18 @@ function getGraphicsFromResponse(
   const matches = res.results.filter((result) => {
     if (result.type !== 'graphic') return null;
 
-    const { attributes: attr } = result.graphic;
     const layer = result.graphic.layer as ExtendedLayer;
     // ignore huc 12 boundaries, map-marker, highlight and provider graphics
     const excludedLayers = [
       'stateBoundariesLayer',
       'mappedWaterLayer',
       'watershedsLayer',
-      'boundaries',
-      'map-marker',
-      'highlight',
-      'providers',
+      'boundariesLayer',
+      'searchIconLayer',
+      'providersLayer',
       ...additionalLayers,
     ];
     if (!result.graphic.layer?.id) return null;
-    if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
     if (excludedLayers.indexOf(layer.id) !== -1) return null;
     if (
       layer.parent &&
@@ -173,18 +172,19 @@ function MapMouseEvents({ view }: Props) {
   const services = useServicesContext();
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
 
-  const {
-    getHucBoundaries,
-    homeWidget,
-    monitoringFeatureUpdates,
-    monitoringLocations,
-    monitoringLocationsLayer,
-    resetData,
-    protectedAreasLayer,
-    surroundingMonitoringLocationsLayer,
-  } = useContext(LocationSearchContext);
+  const { getHucBoundaries, homeWidget, monitoringFeatureUpdates, resetData } =
+    useContext(LocationSearchContext);
 
-  const getDynamicPopup = useDynamicPopup();
+  const {
+    monitoringLocationsLayer,
+    protectedAreasLayer,
+    resetLayers,
+    surroundingMonitoringLocationsLayer,
+  } = useLayers();
+
+  const { monitoringLocations, monitoringLocationsStatus } =
+    useMonitoringLocations();
+
   const onTribePage = window.location.pathname.startsWith('/tribe/');
   const onMonitoringPanel = window.location.pathname.endsWith('/monitoring');
   if (onTribePage || onMonitoringPanel) view.popup.autoOpenEnabled = false;
@@ -224,14 +224,15 @@ function MapMouseEvents({ view }: Props) {
               graphic.layer.id === 'monitoringLocationsLayer' &&
               graphic.isAggregate
             ) {
+              if (!monitoringLocationsLayer) return;
               monitoringLocationsLayer.featureReduction = null;
               return;
             }
-
             if (
               graphic.layer.id === 'surroundingMonitoringLocationsLayer' &&
               graphic.isAggregate
             ) {
+              if (!surroundingMonitoringLocationsLayer) return;
               surroundingMonitoringLocationsLayer.featureReduction = null;
               return;
             }
@@ -277,8 +278,9 @@ function MapMouseEvents({ view }: Props) {
                     content: getPopupContent({
                       navigate,
                       resetData: () => {
-                        fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+                        fetchedDataDispatch({ type: 'reset' });
                         resetData();
+                        resetLayers();
                       },
                       feature: {
                         attributes: {
@@ -299,7 +301,7 @@ function MapMouseEvents({ view }: Props) {
                 // if the protectedAreasLayer is not visible just open the popup
                 // like normal, otherwise query the protectedAreasLayer to see
                 // if the user clicked on a protected area
-                if (!protectedAreasLayer.visible) {
+                if (!protectedAreasLayer?.visible) {
                   openChangeLocationPopup();
                 } else {
                   // check if protected areas layer was clicked on
@@ -334,6 +336,7 @@ function MapMouseEvents({ view }: Props) {
       navigate,
       protectedAreasLayer,
       resetData,
+      resetLayers,
       services,
       setSelectedGraphic,
       surroundingMonitoringLocationsLayer,
@@ -395,42 +398,27 @@ function MapMouseEvents({ view }: Props) {
     });
 
     setInitialized(true);
-  }, [
-    getDynamicPopup,
-    handleMapClick,
-    initialized,
-    services,
-    setHighlightedGraphic,
-    view,
-  ]);
+  }, [handleMapClick, initialized, services, setHighlightedGraphic, view]);
 
   // recalculates stored total location count on change of location
-  const [locationCount, setLocationCount] = useState(null);
+  const [locationCount, setLocationCount] = useState<number | null>(null);
   useEffect(() => {
-    if (
-      monitoringLocations.status !== 'success' ||
-      !monitoringLocations.data.features
-    )
+    if (monitoringLocationsStatus !== 'success' || !monitoringLocations.length)
       return;
-    setLocationCount(monitoringLocations.data.features.length);
+    setLocationCount(monitoringLocations.length);
     return function cleanup() {
       setLocationCount(null);
     };
-  }, [monitoringLocations]);
+  }, [monitoringLocations, monitoringLocationsStatus]);
 
   // restores cluster settings on change of location
   useEffect(() => {
-    if (
-      surroundingMonitoringLocationsLayer &&
-      !surroundingMonitoringLocationsLayer.featureReduction
-    ) {
+    if (surroundingMonitoringLocationsLayer)
       surroundingMonitoringLocationsLayer.featureReduction =
         monitoringClusterSettings;
-    }
-    if (!locationCount || locationCount <= 20) return;
-    if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
-      return;
-    monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+    if (monitoringLocationsLayer)
+      monitoringLocationsLayer.featureReduction =
+        locationCount && locationCount >= 20 ? monitoringClusterSettings : null;
   }, [
     locationCount,
     monitoringLocationsLayer,
@@ -451,22 +439,14 @@ function MapMouseEvents({ view }: Props) {
   useEffect(() => {
     if (!homeWidget) return;
     const handler: IHandle = homeWidget.on('go', (_ev: any) => {
-      if (
-        monitoringLocationsLayer &&
-        !monitoringLocationsLayer.featureReduction &&
-        locationCount &&
-        locationCount > 20
-      ) {
-        monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-      }
-
-      if (
-        surroundingMonitoringLocationsLayer &&
-        !surroundingMonitoringLocationsLayer.featureReduction
-      ) {
+      if (surroundingMonitoringLocationsLayer)
         surroundingMonitoringLocationsLayer.featureReduction =
           monitoringClusterSettings;
-      }
+      if (monitoringLocationsLayer)
+        monitoringLocationsLayer.featureReduction =
+          locationCount && locationCount >= 20
+            ? monitoringClusterSettings
+            : null;
     });
     setHomeClickHandler(handler);
     return function cleanup() {

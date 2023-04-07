@@ -43,7 +43,7 @@ const centered: Position = (triggerRect, tooltipRect) => {
   if (!triggerRect || !tooltipRect) return {};
   const triggerCenter = triggerRect.left + triggerRect.width / 2;
   const left = triggerCenter - tooltipRect.width / 2;
-  const maxLeft = document.body.clientWidth - tooltipRect.width;
+  const maxLeft = document.body.clientWidth - tooltipRect.width - 2;
   return {
     left: Math.min(Math.max(2, left), maxLeft) + window.scrollX,
     top: triggerRect.bottom + 8 + window.scrollY,
@@ -81,9 +81,15 @@ type HelpTooltipProps = {
   description?: string;
   children?: ReactElement;
   label: ReactNode;
+  iconClass?: string;
 };
 
-function HelpTooltip({ description, children, label }: HelpTooltipProps) {
+function HelpTooltip({
+  description,
+  children,
+  label,
+  iconClass = 'fas fa-question-circle',
+}: HelpTooltipProps) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   return (
     <Tooltip label={label} triggerRef={triggerRef}>
@@ -95,11 +101,7 @@ function HelpTooltip({ description, children, label }: HelpTooltipProps) {
         {children ? (
           children
         ) : (
-          <i
-            aria-hidden
-            css={helpIconStyles}
-            className="fas fa-question-circle"
-          />
+          <i aria-hidden css={helpIconStyles} className={iconClass} />
         )}
         <span className="sr-only">{description || 'Information Tooltip'}</span>
       </button>

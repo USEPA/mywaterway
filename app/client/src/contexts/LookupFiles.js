@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState } from 'react';
 import type { Node } from 'react';
 // utilities
 import { fetchCheck, lookupFetch } from 'utils/fetchUtils';
+// types
+import { LookupFile } from 'types/index';
 
 // Common function for setting the context/state of lookup files.
 function getLookupFile(filename: string, setVariable: Function) {
@@ -19,17 +21,14 @@ function getLookupFile(filename: string, setVariable: Function) {
 }
 
 // --- components ---
-type LookupFile = {
-  status: 'fetching' | 'success' | 'failure',
-  data: Object,
-};
-
 type LookupFiles = {
   dataSources: LookupFile,
   documentOrder: LookupFile,
   setDocumentOrder: Function,
   educatorMaterials: LookupFile,
   setEducatorMaterials: Function,
+  layerProps: LookupFile,
+  setLayerProps: Function,
   nars: LookupFile,
   setNars: Function,
   notifications: LookupFile,
@@ -57,6 +56,8 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setDocumentOrder: () => {},
   educatorMaterials: { status: 'fetching', data: null },
   setEducatorMaterials: () => {},
+  layerProps: { status: 'fetching', data: null },
+  setLayerProps: () => {},
   nars: { status: 'fetching', data: null },
   setNars: () => {},
   notifications: { status: 'fetching', data: null },
@@ -93,6 +94,10 @@ function LookupFilesProvider({ children }: Props) {
   const [educatorMaterials, setEducatorMaterials] = useState({
     status: 'fetching',
     data: {},
+  });
+  const [layerProps, setLayerProps] = React.useState<LookupFile>({
+    status: 'fetching',
+    data: [],
   });
   const [nars, setNars] = useState({
     status: 'fetching',
@@ -140,6 +145,8 @@ function LookupFilesProvider({ children }: Props) {
         setDocumentOrder,
         educatorMaterials,
         setEducatorMaterials,
+        layerProps,
+        setLayerProps,
         nars,
         setNars,
         notifications,
@@ -206,6 +213,20 @@ function useEducatorMaterialsContext() {
   }
 
   return educatorMaterials;
+}
+
+// Custom hook for the layerProps.json file.
+let layerPropsInitialized = false; // global var for ensuring fetch only happens once
+function useLayerProps() {
+  const { layerProps, setLayerProps } = React.useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!layerPropsInitialized) {
+    layerPropsInitialized = true;
+    getLookupFile('config/layerProps.json', setLayerProps);
+  }
+
+  return layerProps;
 }
 
 // Custom hook for the waterTypeOptions.json lookup file.
@@ -397,6 +418,7 @@ export {
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,
+  useLayerProps,
   useNarsContext,
   useNotificationsContext,
   useOrganizationsContext,

@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import { WindowSize } from '@reach/window-size';
@@ -13,6 +13,7 @@ import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   CommunityTabsContext,
@@ -21,6 +22,7 @@ import {
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+import { useSurroundingsState } from 'contexts/Surroundings';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -122,19 +124,28 @@ function Community() {
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const { resetData, setSearchText, setLastSearchText, errorMessage } =
+  const { setSearchText, setLastSearchText, errorMessage, resetData } =
     useContext(LocationSearchContext);
+
+  const { updateVisibleLayers } = useLayers();
 
   useEffect(() => {
     return function cleanup() {
-      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+      fetchedDataDispatch({ type: 'reset' });
       resetData();
       setSearchText('');
       setLastSearchText('');
     };
   }, [fetchedDataDispatch, resetData, setLastSearchText, setSearchText]);
 
-  const { setVisibleLayers } = useContext(LocationSearchContext);
+  // Carry over surrounding features layer visibility between tabs.
+  // A ref is used to prevent state updates when surrounding layers are toggled.
+  const { visible: surroundingsVisible } = useSurroundingsState();
+  const surroundingsVisibleRef = useRef(surroundingsVisible);
+
+  useEffect(() => {
+    surroundingsVisibleRef.current = surroundingsVisible;
+  }, [surroundingsVisible]);
 
   useEffect(() => {
     // don't show any tab based layers if on community landing page
@@ -142,13 +153,19 @@ function Community() {
       return;
     }
 
-    setVisibleLayers(tabs[activeTabIndex].layers);
-  }, [activeTabIndex, setVisibleLayers]);
+    updateVisibleLayers(
+      {
+        ...surroundingsVisibleRef.current,
+        ...tabs[activeTabIndex].layers,
+      },
+      false,
+    );
+  }, [activeTabIndex, updateVisibleLayers]);
 
   // reset data when navigating back to /community
   useEffect(() => {
     if (window.location.pathname === '/community') {
-      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+      fetchedDataDispatch({ type: 'reset' });
       resetData();
       setSearchText('');
       setLastSearchText('');
@@ -270,11 +287,13 @@ export default function CommunityContainer() {
   return (
     <EsriMapProvider>
       <CommunityTabsProvider>
-        <MapHighlightProvider>
-          <FullscreenProvider>
-            <Community />
-          </FullscreenProvider>
-        </MapHighlightProvider>
+        <LayersProvider>
+          <MapHighlightProvider>
+            <FullscreenProvider>
+              <Community />
+            </FullscreenProvider>
+          </MapHighlightProvider>
+        </LayersProvider>
       </CommunityTabsProvider>
     </EsriMapProvider>
   );

@@ -288,7 +288,6 @@ function Page({ children }: Props) {
         <ul>
           <li>
             <button
-              title="Glossary"
               className="js-glossary-toggle"
               data-disabled={!initialized || glossaryStatus === 'fetching'}
             >
@@ -299,7 +298,6 @@ function Page({ children }: Props) {
 
           <li>
             <button
-              title="Data"
               onClick={(_ev) => {
                 if (window.location.pathname !== '/data') {
                   setDataDisplayed(true);
@@ -315,7 +313,6 @@ function Page({ children }: Props) {
 
           <li>
             <button
-              title="About"
               onClick={(_ev) => {
                 if (window.location.pathname !== '/about') {
                   setDataDisplayed(false);
@@ -331,7 +328,6 @@ function Page({ children }: Props) {
 
           <li>
             <button
-              title="Educators"
               onClick={(_ev) => {
                 if (window.location.pathname !== '/educators') {
                   setDataDisplayed(false);
@@ -347,7 +343,6 @@ function Page({ children }: Props) {
 
           <li>
             <a
-              title="Contact Us"
               href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
               target="_blank"
               rel="noopener noreferrer"

@@ -6,17 +6,17 @@ import React from 'react';
 export const echoError =
   'The permitted discharger information is temporarily unavailable, please try again later.';
 
-// qed.epa.gov
+// cyan.epa.gov
 export const cyanError =
   'CyAN data is temporarily unavailable, please try again later.';
 
 // labs.waterdata.usgs.gov - Monitoring Location Service
 export const streamgagesError =
-  'USGS streamgage information is temporarily unavailable, please try again later.';
+  'USGS Sensors information is temporarily unavailable, please try again later.';
 
 // waterqualitydata.us - Monitoring Location Service
 export const monitoringError =
-  'Sample locations information is temporarily unavailable, please try again later.';
+  'Past Water Conditions information is temporarily unavailable, please try again later.';
 
 // waterqualitydata.us - Result Search (downloads)
 export const monitoringDownloadError =
@@ -27,8 +27,11 @@ export const huc12SummaryError =
   'Waterbody information is temporarily unavailable, please try again later.';
 
 // message show on the Community page when number of assessed waterbodies is 0
-export const zeroAssessedWaterbodies = (watershed, type = 'watershed') =>
-  `There are no waterbodies assessed in the ${watershed} ${type}.`;
+export const zeroAssessedWaterbodies = (watershed, type = 'watershed') => (
+  <>
+    There are no waterbodies assessed in the <em>{watershed}</em> {type}.
+  </>
+);
 
 // geocode.arcgis.com - Geolocation Service
 export const geocodeError =
