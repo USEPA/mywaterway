@@ -94,6 +94,43 @@ describe('Community Visual Regression Testing', () => {
     });
     cy.get(mapId).matchSnapshot('verify-view-on-map-button-waterbody-popup');
   });
+
+  it('Verify toggling on surrounding streamgages works', () => {
+    cy.visit('/community/150503010906/overview');
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // delay to allow features to load
+    cy.wait(10000);
+
+    cy.findByRole('button', { name: 'Surrounding Features' }).click();
+    cy.findByRole('list', { name: 'Surrounding Features:' })
+      .findByRole('switch', { name: 'USGS Sensors' })
+      .click();
+
+    cy.findByRole('list', { name: 'Surrounding Features:' })
+      .findByRole('switch', { name: 'Dischargers' })
+      .click();
+
+    cy.findByRole('list', { name: 'Surrounding Features:' })
+      .findByRole('switch', { name: 'Past Water Conditions' })
+      .click();
+
+    cy.findByRole('button', { name: 'Surrounding Features' })
+      .get('span.esri-icon-loading-indicator', { timeout: 10000 })
+      .should('exist');
+    cy.findByRole('button', { name: 'Surrounding Features' })
+      .get('span.esri-icon-loading-indicator', { timeout: 10000 })
+      .should('not.exist');
+
+    // delay to draw features after data loaded
+    cy.wait(10000);
+
+    cy.get(mapId).matchSnapshot('tucson-surrounding-streamgages');
+  });
 });
 
 describe('State Visual Regression Testing', () => {

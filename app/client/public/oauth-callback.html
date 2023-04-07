@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html class="js" lang="en" dir="ltr">
+  <head>
+    <title>How’s My Waterway? | US EPA | ArcGIS Login Redirect</title>
+    <script>
+      function loadHandler() {
+        if (opener) {
+          if (location.hash) {
+            try {
+              var esriId = opener.require('esri/kernel').id;
+            } catch (e) {}
+
+            if (esriId) {
+              esriId.setOAuthResponseHash(location.hash);
+            } else {
+              opener.dispatchEvent(
+                new CustomEvent('arcgis:auth:hash', { detail: location.hash }),
+              );
+            }
+          } else if (location.search) {
+            opener.dispatchEvent(
+              new CustomEvent('arcgis:auth:location:search', {
+                detail: location.search,
+              }),
+            );
+          }
+        }
+        close();
+      }
+    </script>
+  </head>
+  <body onload="loadHandler();"></body>
+</html>

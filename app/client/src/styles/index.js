@@ -8,6 +8,7 @@ const colors = {
   slate: (alpha: number = 1) => `rgba(53, 61, 71, ${alpha})`, // #353d47
   blue: (alpha: number = 1) => `rgba(0, 113, 187, ${alpha})`, // #0071bb
   navyBlue: (alpha: number = 1) => `rgba(64, 97, 142, ${alpha})`, // #40618e
+  orange: (alpha: number = 1) => `rgba(255, 166, 0, ${alpha})`, // #ffa500
   teal: (alpha: number = 1) => `rgba(80, 210, 194, ${alpha})`, // #50d2c2
   gold: (alpha: number = 1) => `rgba(252, 171, 83, ${alpha})`, // #fcab53
   magenta: (alpha: number = 1) => `rgba(255, 51, 102, ${alpha})`, // #ff3366
@@ -16,6 +17,7 @@ const colors = {
   purple: (alpha: number = 1) => `rgba(107, 65, 149, ${alpha})`, // #6b4195
   lightPurple: (alpha: number = 1) => `rgba(197, 0, 255, ${alpha})`, // #6b4195
   steel: (alpha: number = 1) => `rgba(82, 101, 113, ${alpha})`, // #526571
+  yellow: (alpha: number = 1) => `rgba(255, 255, 0, ${alpha})`, // #ffff00
 
   // for hovers and selecting waterbodies
   highlightedRed: (alpha: number = 1) => `rgba(124, 157, 173, ${alpha})`, //  #54bcec
@@ -29,9 +31,6 @@ const colors = {
   grayc: '#ccc',
   grayd: '#ddd',
   graye: '#eee',
-
-  orange: '#ffa500',
-  yellow: '#ffff00',
 };
 
 const disclaimerStyles = css`

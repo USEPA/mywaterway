@@ -3,9 +3,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
-import Graphic from '@arcgis/core/Graphic';
-import Polygon from '@arcgis/core/geometry/Polygon';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
 import { ListContent } from 'components/shared/BoxContent';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -14,12 +11,17 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
 import WaterbodyList from 'components/shared/WaterbodyList';
-import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  errorBoxStyles,
+  infoBoxStyles,
+  noteBoxStyles,
+} from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -28,7 +30,7 @@ import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 // styles
-import { colors, toggleTableStyles } from 'styles/index.js';
+import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -56,7 +58,6 @@ const modifiedNoteBoxStyles = css`
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
-  margin-bottom: 1em;
   text-align: center;
 `;
 
@@ -223,19 +224,22 @@ function DrinkingWater() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
-    waterbodyLayer,
-    providersLayer,
-    boundariesLayer,
     countyBoundaries,
     drinkingWater,
     watershed,
     mapView,
     atHucBoundaries,
-    setVisibleLayers,
     drinkingWaterTabIndex,
     setDrinkingWaterTabIndex,
     currentExtent,
   } = useContext(LocationSearchContext);
+
+  const {
+    boundariesLayer,
+    providersLayer,
+    updateVisibleLayers,
+    waterbodyLayer,
+  } = useLayers();
 
   // set the waterbody features
   const waterbodies = useWaterbodyFeatures();
@@ -248,34 +252,12 @@ function DrinkingWater() {
   // draw the drinking water providers (county) on the map
   const [countyGraphic, setCountyGraphic] = useState(null);
   useEffect(() => {
-    if (
-      !countyBoundaries ||
-      !countyBoundaries.features ||
-      countyBoundaries.features.length === 0
-    ) {
+    if (!providersLayer?.graphics || providersLayer.graphics.length === 0) {
       setCountyGraphic(null); // set to null if new search results in no boundaries
       return;
     }
 
-    const graphic = new Graphic({
-      attributes: { name: 'providers' },
-      geometry: new Polygon({
-        spatialReference: countyBoundaries.spatialReference,
-        rings: countyBoundaries.features[0].geometry.rings,
-      }),
-      symbol: new SimpleFillSymbol({
-        color: [0, 0, 0, 0.15],
-        outline: {
-          color: colors.yellow,
-          width: 3,
-          style: 'solid',
-        },
-      }),
-    });
-
-    setCountyGraphic(graphic);
-    providersLayer.graphics.removeAll();
-    providersLayer.graphics.add(graphic);
+    setCountyGraphic(providersLayer.graphics.at(0));
   }, [providersLayer, countyBoundaries]);
 
   // toggle map layers' visibility when a tab changes
@@ -283,7 +265,7 @@ function DrinkingWater() {
     if (!boundariesLayer || !waterbodyLayer || !providersLayer) return;
 
     if (drinkingWaterTabIndex === 0) {
-      setVisibleLayers({
+      updateVisibleLayers({
         boundariesLayer: false,
         waterbodyLayer: false,
         providersLayer: true,
@@ -291,7 +273,7 @@ function DrinkingWater() {
     }
 
     if (drinkingWaterTabIndex === 1) {
-      setVisibleLayers({
+      updateVisibleLayers({
         boundariesLayer: true,
         waterbodyLayer: false,
         providersLayer: false,
@@ -299,7 +281,7 @@ function DrinkingWater() {
     }
 
     if (drinkingWaterTabIndex === 2) {
-      setVisibleLayers({
+      updateVisibleLayers({
         boundariesLayer: true,
         waterbodyLayer: true,
         providersLayer: false,
@@ -310,7 +292,7 @@ function DrinkingWater() {
     boundariesLayer,
     waterbodyLayer,
     providersLayer,
-    setVisibleLayers,
+    updateVisibleLayers,
   ]);
 
   // set map zoom when switching to or from providers subtab
@@ -645,18 +627,20 @@ function DrinkingWater() {
                 <>
                   {drinkingWater.data.length === 0 && (
                     <p css={centeredTextStyles}>
-                      There is no drinking water data for the {watershed}{' '}
-                      watershed.
+                      There is no drinking water data for the{' '}
+                      <em>{watershed}</em> watershed.
                     </p>
                   )}
 
                   {drinkingWater.data.length > 0 && (
                     <>
                       {providers.length === 0 && (
-                        <p css={centeredTextStyles}>
-                          There are no public drinking water systems serving{' '}
-                          {county} county/municipality.
-                        </p>
+                        <div css={infoBoxStyles}>
+                          <p css={centeredTextStyles}>
+                            There are no public drinking water systems serving{' '}
+                            {county} county/municipality.
+                          </p>
+                        </div>
                       )}
 
                       {providers.length > 0 && (
@@ -793,18 +777,20 @@ function DrinkingWater() {
                 <>
                   {drinkingWater.data.length === 0 && (
                     <p css={centeredTextStyles}>
-                      There is no drinking water data for the {watershed}{' '}
-                      watershed.
+                      There is no drinking water data for the{' '}
+                      <em>{watershed}</em> watershed.
                     </p>
                   )}
 
                   {drinkingWater.data.length > 0 && (
                     <>
                       {totalWithdrawersCount === 0 && (
-                        <p css={centeredTextStyles}>
-                          There are no public water systems drawing water from
-                          the {watershed} watershed.
-                        </p>
+                        <div css={infoBoxStyles}>
+                          <p css={centeredTextStyles}>
+                            There are no public water systems drawing water from
+                            the <em>{watershed}</em> watershed.
+                          </p>
+                        </div>
                       )}
 
                       {totalWithdrawersCount > 0 && (

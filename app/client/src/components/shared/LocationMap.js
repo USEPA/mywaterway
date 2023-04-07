@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Node } from 'react';
 import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
@@ -40,10 +34,8 @@ import {
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
-import {
-  useFetchedDataDispatch,
-  useFetchedDataState,
-} from 'contexts/FetchedData';
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -65,11 +57,12 @@ import {
   useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
-  useMonitoringLocations,
   useSharedLayers,
-  useStreamgageData,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
+  useDischargersLayers,
+  useMonitoringLocationsLayers,
+  useStreamgageLayers,
 } from 'utils/hooks';
 import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
@@ -82,13 +75,12 @@ import {
   browserIsCompatibleWithArcGIS,
   resetCanonicalLink,
   removeJsonLD,
-  parseAttributes,
 } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
-import 'styles/mapStyles.css';
 import { colors } from 'styles/index.js';
+import 'styles/mapStyles.css';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
@@ -161,9 +153,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const abortSignal = useAbortSignal();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
-  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
-    useFetchedDataState();
-
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -173,9 +162,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     lastSearchText,
     setLastSearchText,
     setCurrentExtent,
-    boundariesLayer,
-    searchIconLayer,
-    waterbodyLayer,
     countyBoundaries,
     statesData,
     homeWidget,
@@ -205,32 +191,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    setMonitoringLocations,
     // setNonprofits,
-    setPermittedDischargers,
-    setWaterbodyLayer,
-    setIssuesLayer,
-    setMonitoringLocationsLayer,
-    setUsgsStreamgagesLayer,
-    setUpstreamLayer,
-    setDischargersLayer,
-    setNonprofitsLayer,
-    setProvidersLayer,
-    setBoundariesLayer,
-    setSearchIconLayer,
     setWatershed,
-    resetData,
-    setNoDataAvailable,
     FIPS,
     setFIPS,
-    layers,
-    setLayers,
-    pointsLayer,
-    linesLayer,
-    areasLayer,
-    setPointsLayer,
-    setLinesLayer,
-    setAreasLayer,
     setErrorMessage,
     setWsioHealthIndexData,
     setWildScenicRiversData,
@@ -238,8 +202,32 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-    usgsStreamgagesLayer,
+    resetData,
+    setNoDataAvailable,
   } = useContext(LocationSearchContext);
+
+  const {
+    boundariesLayer,
+    erroredLayers,
+    layersInitialized,
+    orderedLayers: layers,
+    providersLayer,
+    resetLayers,
+    searchIconLayer,
+    setLayer,
+    setLayersInitialized,
+    setResetHandler,
+    updateErroredLayers,
+    updateVisibleLayers,
+    waterbodyAreas,
+    waterbodyLayer,
+    waterbodyLines,
+    waterbodyPoints,
+  } = useLayers();
+
+  useDischargersLayers();
+  useMonitoringLocationsLayers(huc12 ? `huc=${huc12}` : null);
+  useStreamgageLayers();
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -617,178 +605,61 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const getDynamicPopup = useDynamicPopup();
-  const { getTitle, getTemplate, setDynamicPopupFields } = getDynamicPopup();
+  const { getTitle, getTemplate, setDynamicPopupFields } = useDynamicPopup();
 
   // Builds the layers that have no dependencies
-  const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
-
-    if (layers.length > 0) return;
 
     // create the layers for the map
     const providersLayer = new GraphicsLayer({
       id: 'providersLayer',
       title: 'Who provides the drinking water here?',
-      listMode: 'hide',
+      listMode: 'show',
     });
-
-    setProvidersLayer(providersLayer);
+    setLayer('providersLayer', providersLayer);
+    setResetHandler('providersLayer', () =>
+      providersLayer.graphics.removeAll(),
+    );
 
     const boundariesLayer = new GraphicsLayer({
       id: 'boundariesLayer',
       title: 'Boundaries',
       listMode: 'show',
     });
-
-    setBoundariesLayer(boundariesLayer);
+    setLayer('boundariesLayer', boundariesLayer);
+    setResetHandler('boundariesLayer', () => {
+      boundariesLayer.graphics.removeAll();
+    });
 
     const searchIconLayer = new GraphicsLayer({
       id: 'searchIconLayer',
       title: 'Search Location',
       listMode: 'show',
     });
-
-    setSearchIconLayer(searchIconLayer);
+    setLayer('searchIconLayer', searchIconLayer);
+    setResetHandler('searchIconLayer', () => {
+      searchIconLayer.graphics.removeAll();
+    });
 
     const upstreamLayer = new GraphicsLayer({
-      id: 'upstreamWatershed',
+      id: 'upstreamLayer',
       title: 'Upstream Watershed',
       listMode: 'hide',
       visible: false,
     });
-
-    setUpstreamLayer(upstreamLayer);
-
-    const monitoringLocationsLayer = new FeatureLayer({
-      id: 'monitoringLocationsLayer',
-      title: 'Past Water Conditions',
-      listMode: 'hide',
-      legendEnabled: true,
-      fields: [
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'monitoringType', type: 'string' },
-        { name: 'siteId', type: 'string' },
-        { name: 'orgId', type: 'string' },
-        { name: 'orgName', type: 'string' },
-        { name: 'locationLongitude', type: 'double' },
-        { name: 'locationLatitude', type: 'double' },
-        { name: 'locationName', type: 'string' },
-        { name: 'locationType', type: 'string' },
-        { name: 'locationUrl', type: 'string' },
-        { name: 'stationProviderName', type: 'string' },
-        { name: 'stationTotalSamples', type: 'integer' },
-        { name: 'stationTotalsByGroup', type: 'string' },
-        { name: 'stationTotalMeasurements', type: 'integer' },
-        { name: 'timeframe', type: 'string' },
-        { name: 'uniqueId', type: 'string' },
-      ],
-      objectIdField: 'OBJECTID',
-      outFields: ['*'],
-      // NOTE: initial graphic below will be replaced with UGSG streamgages
-      source: [
-        new Graphic({
-          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { OBJECTID: 1 },
-        }),
-      ],
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-marker',
-          style: 'circle',
-          color: colors.lightPurple(0.5),
-          outline: {
-            width: 0.75,
-          },
-        },
-      },
-      featureReduction: monitoringClusterSettings,
-      popupTemplate: {
-        outFields: ['*'],
-        title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) => {
-          // Parse non-scalar variables
-          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-          feature.graphic.attributes = parseAttributes(
-            structuredProps,
-            feature.graphic.attributes,
-          );
-          return getPopupContent({
-            feature: feature.graphic,
-            services,
-            navigate,
-          });
-        },
-      },
+    setLayer('upstreamLayer', upstreamLayer);
+    setResetHandler('upstreamLayer', () => {
+      upstreamLayer.graphics.removeAll();
+      updateVisibleLayers({ upstreamLayer: false });
     });
-
-    setMonitoringLocationsLayer(monitoringLocationsLayer);
-
-    const usgsStreamgagesLayer = new FeatureLayer({
-      id: 'usgsStreamgagesLayer',
-      title: 'USGS Sensors',
-      listMode: 'hide',
-      legendEnabled: false,
-      fields: [
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'monitoringType', type: 'string' },
-        { name: 'siteId', type: 'string' },
-        { name: 'orgId', type: 'string' },
-        { name: 'orgName', type: 'string' },
-        { name: 'locationLongitude', type: 'single' },
-        { name: 'locationLatitude', type: 'single' },
-        { name: 'locationName', type: 'string' },
-        { name: 'locationType', type: 'string' },
-        { name: 'locationUrl', type: 'string' },
-        { name: 'streamgageMeasurements', type: 'blob' },
-      ],
-      objectIdField: 'OBJECTID',
-      outFields: ['*'],
-      // NOTE: initial graphic below will be replaced with UGSG streamgages
-      source: [
-        new Graphic({
-          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { OBJECTID: 1 },
-        }),
-      ],
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-marker',
-          style: 'square',
-          color: '#fffe00', // '#989fa2'
-          outline: {
-            width: 0.75,
-          },
-        },
-      },
-      popupTemplate: {
-        outFields: ['*'],
-        title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) =>
-          getPopupContent({ feature: feature.graphic, navigate, services }),
-      },
-    });
-
-    setUsgsStreamgagesLayer(usgsStreamgagesLayer);
 
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
       title: 'Identified Issues',
       listMode: 'hide',
     });
-
-    setIssuesLayer(issuesLayer);
-
-    const dischargersLayer = new GraphicsLayer({
-      id: 'dischargersLayer',
-      title: 'Dischargers',
-      listMode: 'hide',
-    });
-
-    setDischargersLayer(dischargersLayer);
+    setLayer('issuesLayer', issuesLayer);
 
     const nonprofitsLayer = new GraphicsLayer({
       id: 'nonprofitsLayer',
@@ -796,7 +667,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'hide',
     });
 
-    setNonprofitsLayer(nonprofitsLayer);
+    setLayer('nonprofitsLayer', nonprofitsLayer);
+    setResetHandler('nonprofitsLayer', () =>
+      nonprofitsLayer.graphics.removeAll(),
+    );
 
     const cyanWaterbodies = new FeatureLayer({
       id: 'cyanWaterbodies',
@@ -828,6 +702,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       legendEnabled: false,
       objectIdField: 'OBJECTID',
       outFields: ['*'],
+      spatialReference: {
+        wkid: 102100,
+      },
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -851,6 +728,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           attributes: { OBJECTID: 1 },
         }),
       ],
+      title: 'CyAN Waterbodies',
     });
 
     const cyanImages = new MediaLayer({
@@ -859,6 +737,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       effect: 'saturate(150%) contrast(150%)',
       id: 'cyanImages',
       opacity: 1,
+      spatialReference: {
+        wkid: 102100,
+      },
+      title: 'CyAN Images',
     });
 
     const newCyanLayer = new GroupLayer({
@@ -869,40 +751,23 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     });
     newCyanLayer.add(cyanWaterbodies);
     newCyanLayer.add(cyanImages);
+    setLayer('cyanLayer', newCyanLayer);
 
-    setLayers([
-      ...getSharedLayers(),
-      providersLayer,
-      boundariesLayer,
-      newCyanLayer,
-      upstreamLayer,
-      monitoringLocationsLayer,
-      usgsStreamgagesLayer,
-      issuesLayer,
-      dischargersLayer,
-      nonprofitsLayer,
-      searchIconLayer,
-    ]);
+    getSharedLayers();
 
     setLayersInitialized(true);
   }, [
     getSharedLayers,
     getTemplate,
     getTitle,
-    layers,
-    setBoundariesLayer,
-    setDischargersLayer,
-    setIssuesLayer,
-    setLayers,
-    setMonitoringLocationsLayer,
-    setUsgsStreamgagesLayer,
-    setUpstreamLayer,
-    setNonprofitsLayer,
-    setProvidersLayer,
-    setSearchIconLayer,
+    setLayer,
+    setResetHandler,
     layersInitialized,
     services,
+    setLayersInitialized,
     navigate,
+    updateErroredLayers,
+    updateVisibleLayers,
   ]);
 
   // popup template to be used for all waterbody sublayers
@@ -921,8 +786,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setMapLoading(false);
       console.error(err);
       setCipSummary({ status: 'failure', data: {} });
+      updateErroredLayers({ waterbodyLayer: true, issuesLayer: true });
     },
-    [setCipSummary],
+    [setCipSummary, updateErroredLayers],
   );
 
   const { cropGeometryToHuc } = useGeometryUtils();
@@ -947,6 +813,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             originalFeatures.push(item);
           });
           setLinesData({ features: originalFeatures });
+          updateErroredLayers({ waterbodyLines: false });
 
           // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
@@ -967,7 +834,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           };
           const newLinesLayer = new FeatureLayer({
             id: 'waterbodyLines',
-            name: 'Lines',
+            title: 'Waterbody Lines',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -976,11 +843,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: linesRenderer,
             popupTemplate,
           });
-          setLinesLayer(newLinesLayer);
+          setLayer('waterbodyLines', newLinesLayer);
+          setResetHandler('waterbodyLines', () => {
+            setLayer('waterbodyLines', null);
+          });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          setLinesLayer('error');
+          updateErroredLayers({ waterbodyLines: true });
           setLinesData({ features: [] });
         });
     },
@@ -988,9 +858,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
-      setLinesData,
-      setLinesLayer,
       services,
+      setLayer,
+      setLinesData,
+      setResetHandler,
+      updateErroredLayers,
     ],
   );
 
@@ -1014,6 +886,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             originalFeatures.push(item);
           });
           setAreasData({ features: originalFeatures });
+          updateErroredLayers({ waterbodyAreas: false });
 
           // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
@@ -1034,7 +907,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           };
           const newAreasLayer = new FeatureLayer({
             id: 'waterbodyAreas',
-            name: 'Areas',
+            title: 'Waterbody Areas',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -1043,11 +916,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: areasRenderer,
             popupTemplate,
           });
-          setAreasLayer(newAreasLayer);
+          setLayer('waterbodyAreas', newAreasLayer);
+          setResetHandler('waterbodyAreas', () => {
+            setLayer('waterbodyAreas', null);
+          });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          setAreasLayer('error');
+          updateErroredLayers({ waterbodyAreas: true });
           setAreasData({ features: [] });
         });
     },
@@ -1055,9 +931,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
-      setAreasData,
-      setAreasLayer,
       services,
+      setAreasData,
+      setLayer,
+      setResetHandler,
+      updateErroredLayers,
     ],
   );
 
@@ -1074,6 +952,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .executeQueryJSON(url, queryParams)
         .then((res) => {
           setPointsData(res);
+          updateErroredLayers({ waterbodyPoints: false });
 
           const pointsRenderer = {
             type: 'unique-value',
@@ -1089,7 +968,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           const newPointsLayer = new FeatureLayer({
             id: 'waterbodyPoints',
-            name: 'Points',
+            title: 'Waterbody Points',
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
@@ -1098,28 +977,33 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderer: pointsRenderer,
             popupTemplate,
           });
-          setPointsLayer(newPointsLayer);
+          setLayer('waterbodyPoints', newPointsLayer);
+          setResetHandler('waterbodyPoints', () => {
+            setLayer('waterbodyPoints', null);
+          });
         })
         .catch((err) => {
           handleMapServiceError(err);
-          setPointsLayer('error');
+          updateErroredLayers({ waterbodyPoints: true });
           setPointsData({ features: [] });
         });
     },
     [
       handleMapServiceError,
       popupTemplate,
-      setPointsData,
-      setPointsLayer,
       services,
+      setLayer,
+      setPointsData,
+      setResetHandler,
+      updateErroredLayers,
     ],
   );
 
   // if any service fails, consider all of them failed and do not show any waterbody data
   const mapServiceFailure =
-    linesLayer === 'error' ||
-    areasLayer === 'error' ||
-    pointsLayer === 'error' ||
+    erroredLayers.waterbodyLines ||
+    erroredLayers.waterbodyAreas ||
+    erroredLayers.waterbodyPoints ||
     orphanFeatures.status === 'error';
 
   // Builds the waterbody layer once data has been fetched for all sub layers
@@ -1127,15 +1011,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (mapServiceFailure) {
       setMapLoading(false);
       setCipSummary({ status: 'failure', data: {} });
+      updateErroredLayers({ waterbodyLayer: true, issuesLayer: true });
       return;
     }
 
     if (
       waterbodyLayer ||
-      layers.length === 0 ||
-      !areasLayer ||
-      !linesLayer ||
-      !pointsLayer
+      !waterbodyAreas ||
+      !waterbodyLines ||
+      !waterbodyPoints
     ) {
       return;
     }
@@ -1144,259 +1028,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const newWaterbodyLayer = new GroupLayer({
       id: 'waterbodyLayer',
       title: 'Waterbodies',
-      listMode: 'hide',
+      listMode: 'hide-children',
       visible: false,
       legendEnabled: false,
     });
-    newWaterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
-    setWaterbodyLayer(newWaterbodyLayer);
-
-    // Build the new set of layers with the waterbody layer at the correct position
-    const newLayers = [];
-    layers.forEach((layer) => {
-      newLayers.push(layer);
-      if (layer.id === 'boundariesLayer') {
-        newLayers.push(newWaterbodyLayer);
-      }
+    newWaterbodyLayer.addMany([
+      waterbodyAreas,
+      waterbodyLines,
+      waterbodyPoints,
+    ]);
+    setLayer('waterbodyLayer', newWaterbodyLayer);
+    setResetHandler('waterbodyLayer', () => {
+      waterbodyLayer?.layers.removeAll();
+      setLayer('waterbodyLayer', null);
     });
-    setLayers(newLayers);
   }, [
-    layers,
     waterbodyLayer,
-    areasLayer,
-    linesLayer,
-    pointsLayer,
+    waterbodyAreas,
+    waterbodyLines,
+    waterbodyPoints,
     mapServiceFailure,
-    setWaterbodyLayer,
-    setLayers,
+    setLayer,
     setCipSummary,
+    setResetHandler,
+    updateErroredLayers,
   ]);
 
   // query geocode server for every new search
   const [mapLoading, setMapLoading] = useState(true);
-
-  const queryMonitoringStationService = useCallback(
-    (huc12Param) => {
-      const url =
-        `${services.data.waterQualityPortal.monitoringLocation}` +
-        `search?mimeType=geojson&zip=no&huc=${huc12Param}`;
-
-      fetchCheck(url)
-        .then((res) => {
-          setMonitoringLocations({
-            status: 'success',
-            data: res,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          setMonitoringLocations({ status: 'failure', data: {} });
-        });
-    },
-    [setMonitoringLocations, services],
-  );
-
-  // updates the features on the monitoringStationsLayer
-  // and the monitoring groups
-  useMonitoringLocations();
-
-  const fetchUsgsStreamgages = useCallback(
-    (huc12) => {
-      const url =
-        `${services.data.usgsSensorThingsAPI}?` +
-        /**/ `$select=name,` +
-        /*  */ `properties/active,` +
-        /*  */ `properties/agency,` +
-        /*  */ `properties/agencyCode,` +
-        /*  */ `properties/monitoringLocationUrl,` +
-        /*  */ `properties/monitoringLocationName,` +
-        /*  */ `properties/monitoringLocationType,` +
-        /*  */ `properties/monitoringLocationNumber,` +
-        /*  */ `properties/hydrologicUnit&` +
-        /**/ `$expand=` +
-        /*  */ `Locations($select=location),` +
-        /*  */ `Datastreams(` +
-        /*    */ `$select=description,` +
-        /*      */ `properties/ParameterCode,` +
-        /*      */ `properties/WebDescription,` +
-        /*      */ `unitOfMeasurement/name,` +
-        /*      */ `unitOfMeasurement/symbol;` +
-        /*    */ `$expand=` +
-        /*      */ `Observations(` +
-        /*        */ `$select=phenomenonTime,result;` +
-        /*        */ `$top=1;` +
-        /*        */ `$orderBy=phenomenonTime desc` +
-        /*      */ `)` +
-        /*  */ `)&` +
-        /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
-
-      fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
-
-      fetchCheck(url)
-        .then((res) => {
-          fetchedDataDispatch({
-            type: 'USGS_STREAMGAGES/FETCH_SUCCESS',
-            payload: res,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_FAILURE' });
-        });
-    },
-    [services, fetchedDataDispatch],
-  );
-
-  const fetchUsgsPrecipitation = useCallback(
-    (huc12) => {
-      // https://help.waterdata.usgs.gov/stat_code
-      const sumValues = '00006';
-
-      // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
-      const precipitation = '00045'; // Precipitation, total, inches
-
-      const url =
-        services.data.usgsDailyValues +
-        `?format=json` +
-        `&siteStatus=active` +
-        `&statCd=${sumValues}` +
-        `&parameterCd=${precipitation}` +
-        `&huc=${huc12.substring(0, 8)}`;
-
-      fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_REQUEST' });
-
-      fetchCheck(url)
-        .then((res) => {
-          fetchedDataDispatch({
-            type: 'USGS_PRECIPITATION/FETCH_SUCCESS',
-            payload: res,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_FAILURE' });
-        });
-    },
-    [services, fetchedDataDispatch],
-  );
-
-  const fetchUsgsDailyAverages = useCallback(
-    (huc12) => {
-      // https://help.waterdata.usgs.gov/stat_code
-      const meanValues = '00003';
-      const sumValues = '00006';
-
-      // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
-      const allParams = 'all';
-      const precipitation = '00045'; // Precipitation, total, inches
-
-      const url =
-        services.data.usgsDailyValues +
-        `?format=json` +
-        `&siteStatus=active` +
-        `&period=P7D` +
-        `&huc=${huc12.substring(0, 8)}`;
-
-      fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
-
-      Promise.all([
-        fetchCheck(`${url}&statCd=${meanValues}&parameterCd=${allParams}`),
-        fetchCheck(`${url}&statCd=${sumValues}&parameterCd=${precipitation}`),
-      ])
-        .then(([allParamsRes, precipitationRes]) => {
-          fetchedDataDispatch({
-            type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS',
-            payload: {
-              allParamsMean: allParamsRes,
-              precipitationSum: precipitationRes,
-            },
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' });
-        });
-    },
-    [services, fetchedDataDispatch],
-  );
-
-  const normalizedUsgsStreamgages = useStreamgageData(
-    usgsStreamgages,
-    usgsPrecipitation,
-    usgsDailyAverages,
-  );
-
-  useEffect(() => {
-    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
-
-    const graphics = normalizedUsgsStreamgages.map((gage) => {
-      return new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: gage.locationLongitude,
-          latitude: gage.locationLatitude,
-        },
-        attributes: gage,
-      });
-    });
-
-    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-      return usgsStreamgagesLayer.applyEdits({
-        deleteFeatures: featureSet.features,
-        addFeatures: graphics,
-      });
-    });
-  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
-
-  const queryPermittedDischargersService = useCallback(
-    (huc12Param) => {
-      fetchCheck(services.data.echoNPDES.metadata)
-        .then((res) => {
-          // Columns to return from Echo
-          const facilityColumns = [
-            'CWPName',
-            'CWPStatus',
-            'CWPViolStatus',
-            'CWPSNCStatus',
-            'CWPPermitStatusDesc',
-            'CWPQtrsWithNC',
-            'CWPInspectionCount',
-            'CWPFormalEaCnt',
-            'RegistryID',
-            'FacLong',
-            'FacLat',
-          ];
-
-          // Loop through the metadata and find the ids of the columns we want
-          const columnIds = [];
-          res.Results.ResultColumns.forEach((column) => {
-            if (facilityColumns.indexOf(column.ObjectName) !== -1) {
-              columnIds.push(column.ColumnID);
-            }
-          });
-
-          const url =
-            `${services.data.echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12Param}` +
-            `&p_act=Y&p_ptype=NPD&responseset=5000` +
-            `&qcolumns=${columnIds.join(',')}`;
-
-          fetchCheck(url)
-            .then((res) => {
-              setPermittedDischargers({ status: 'success', data: res });
-            })
-            .catch((err) => {
-              console.error(err);
-              setPermittedDischargers({ status: 'failure', data: {} });
-            });
-        })
-        .catch((err) => {
-          console.error(err);
-          setPermittedDischargers({ status: 'failure', data: {} });
-        });
-    },
-    [setPermittedDischargers, services],
-  );
-
   const queryGrtsHuc12 = useCallback(
     (huc12Param) => {
       fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12Param}`)
@@ -1653,26 +1312,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .then((res) => {
           // duplicate the objectid to a
           // different field for later reference
-          const features = res.features.map((item) => {
-            return new Graphic({
-              attributes: {
-                ...item.attributes,
-                locationName: item.attributes.GNIS_NAME,
-                monitoringType: 'CyAN',
-                oid: item.attributes.OBJECTID,
-                orgName: 'Cyanobacteria Assessment Network (CyAN)',
-              },
-              geometry: new Polygon({
-                rings: item.geometry.rings,
-                spatialReference: {
-                  wkid: 102100,
+          const features =
+            res.features?.map((item) => {
+              return new Graphic({
+                attributes: {
+                  ...item.attributes,
+                  locationName: item.attributes.GNIS_NAME,
+                  monitoringType: 'CyAN',
+                  oid: item.attributes.OBJECTID,
+                  orgName: 'Cyanobacteria Assessment Network (CyAN)',
                 },
-              }),
-              layer: cyanWaterbodiesLayer,
-            });
+                geometry: new Polygon({
+                  rings: item.geometry.rings,
+                  spatialReference: {
+                    wkid: 102100,
+                  },
+                }),
+                layer: cyanWaterbodiesLayer,
+              });
+            }) ?? [];
+
+          const data = features.map((feature) => {
+            return {
+              ...feature.attributes,
+              geometry: feature.geometry,
+            };
           });
 
-          setCyanWaterbodies({ status: 'success', data: features });
+          setCyanWaterbodies({ status: 'success', data });
 
           cyanWaterbodiesLayer.queryFeatures().then((featureSet) => {
             cyanWaterbodiesLayer.applyEdits({
@@ -1696,6 +1363,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         results.items[0].summaryByParameterImpairments.sort((a, b) =>
           a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1,
         );
+      updateErroredLayers({ waterbodyLayer: false, issuesLayer: false });
       setCipSummary({ status: 'success', data: results });
       setAssessmentUnitCount(results.items[0].assessmentUnits.length);
 
@@ -1718,6 +1386,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       retrievePoints,
       setAssessmentUnitIDs,
       setCipSummary,
+      updateErroredLayers,
     ],
   );
 
@@ -1798,10 +1467,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       navigate('/community');
       setNoDataAvailable();
+      resetLayers();
       setMapLoading(false);
       setErrorMessage(errorMessage);
     },
-    [navigate, setErrorMessage, setNoDataAvailable],
+    [navigate, resetLayers, setErrorMessage, setNoDataAvailable],
   );
 
   const [hucResponse, setHucResponse] = useState(null);
@@ -1815,11 +1485,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           setHuc12(huc12);
           processBoundariesData(response);
-          queryMonitoringStationService(huc12);
-          fetchUsgsStreamgages(huc12);
-          fetchUsgsPrecipitation(huc12);
-          fetchUsgsDailyAverages(huc12);
-          queryPermittedDischargersService(huc12);
           queryGrtsHuc12(huc12);
           queryAttainsPlans(huc12);
 
@@ -1835,31 +1500,36 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
     },
     [
-      processBoundariesData,
-      queryAttainsPlans,
-      queryGrtsHuc12,
-      queryMonitoringStationService,
-      fetchUsgsStreamgages,
-      fetchUsgsPrecipitation,
-      fetchUsgsDailyAverages,
-      queryPermittedDischargersService,
       setHuc12,
+      processBoundariesData,
+      queryGrtsHuc12,
+      queryAttainsPlans,
       handleNoDataAvailable,
     ],
   );
 
   const processGeocodeServerResults = useCallback(
     (searchText, hucRes = null) => {
-      const renderMapAndZoomTo = (longitude, latitude, callback) => {
+      const renderMapAndZoomTo = (
+        longitude,
+        latitude,
+        searchText,
+        hucRes,
+        callback,
+      ) => {
         const location = {
           type: 'point',
           longitude: longitude,
           latitude: latitude,
+          spatialReference: {
+            wkid: 102100,
+          },
         };
         if (!searchIconLayer) return;
 
+        const hucFeature = hucRes?.features?.[0];
+
         searchIconLayer.graphics.removeAll();
-        searchIconLayer.visible = true;
         searchIconLayer.graphics.add(
           new Graphic({
             geometry: location,
@@ -1869,7 +1539,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               height: 25,
               yoffset: 9, // this is a little lower to account for space below pin
             }),
-            attributes: { name: 'map-marker' },
+            attributes: {
+              OBJECTID: 1,
+              searchText,
+              huc12: hucFeature ? hucFeature.attributes.huc12 : '',
+              huc12Name: hucFeature ? hucFeature.attributes.name : '',
+            },
           }),
         );
 
@@ -1967,6 +1642,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             renderMapAndZoomTo(
               location.location.longitude,
               location.location.latitude,
+              location.address,
+              hucRes,
               () => handleHUC12(hucRes),
             );
           } else {
@@ -1982,6 +1659,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 renderMapAndZoomTo(
                   location.location.longitude,
                   location.location.latitude,
+                  searchText,
+                  hucRes,
                   () => handleHUC12(hucRes),
                 );
               })
@@ -2010,26 +1689,48 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           query
             .executeQueryJSON(url, countiesQuery)
             .then((countiesRes) => {
+              if (!providersLayer) return;
+
               // not all locations have a State and County code, check for it
               if (
                 countiesRes.features &&
                 countiesRes.features.length > 0 &&
                 countiesRes.features[0].attributes
               ) {
-                const stateCode = countiesRes.features[0].attributes.STATE_FIPS;
-                const countyCode =
-                  countiesRes.features[0].attributes.FIPS.substring(2, 5);
+                const feature = countiesRes.features[0];
+                const stateCode = feature.attributes.STATE_FIPS;
+                const countyCode = feature.attributes.FIPS.substring(2, 5);
                 setFIPS({
                   stateCode: stateCode,
                   countyCode: countyCode,
                   status: 'success',
                 });
+
+                const graphic = new Graphic({
+                  attributes: feature.attributes,
+                  geometry: new Polygon({
+                    spatialReference: countiesRes.spatialReference,
+                    rings: feature.geometry.rings,
+                  }),
+                  symbol: new SimpleFillSymbol({
+                    color: [0, 0, 0, 0.15],
+                    outline: {
+                      color: colors.yellow(),
+                      width: 3,
+                      style: 'solid',
+                    },
+                  }),
+                });
+
+                providersLayer.graphics.removeAll();
+                providersLayer.graphics.add(graphic);
               } else {
                 setFIPS({
                   stateCode: '',
                   countyCode: '',
                   status: 'failure',
                 });
+                providersLayer.graphics.removeAll();
               }
 
               setCountyBoundaries(countiesRes);
@@ -2073,8 +1774,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           //   where the address would normally be.
           // Go ahead and zoom to the center of the huc
           const { centermass_x, centermass_y } = hucRes.features[0].attributes;
-          renderMapAndZoomTo(centermass_x, centermass_y, () =>
-            handleHUC12(hucRes),
+          renderMapAndZoomTo(
+            centermass_x,
+            centermass_y,
+            searchText,
+            hucRes,
+            () => handleHUC12(hucRes),
           );
 
           // set drinkingWater to an empty array, since we don't have
@@ -2095,6 +1800,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setFIPS,
       handleNoDataAvailable,
       services,
+      providersLayer,
     ],
   );
 
@@ -2145,8 +1851,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useEffect(() => {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
-    fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+    fetchedDataDispatch({ type: 'reset' });
     resetData();
+    resetLayers();
     setMapLoading(true);
     setHucResponse(null);
     setErrorMessage('');
@@ -2158,6 +1865,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     lastSearchText,
     layers,
     resetData,
+    resetLayers,
     setLastSearchText,
     queryGeocodeServer,
     setErrorMessage,
@@ -2196,7 +1904,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'dash',
         },
       },
-      attributes: { name: 'boundaries' },
+      attributes: hucBoundaries.features[0].attributes,
     });
 
     // clear previously set graphic (from a previous search), and add graphic
@@ -2214,8 +1922,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView.popup.close();
 
     // zoom to the graphic, and update the home widget, and close any popups
-    mapView.goTo(graphic).then(function () {
-      setAtHucBoundaries(true);
+    mapView.when(() => {
+      mapView.goTo(graphic).then(() => {
+        setAtHucBoundaries(true);
+      });
     });
   }, [
     mapView,

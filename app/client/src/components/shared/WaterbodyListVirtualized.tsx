@@ -103,6 +103,7 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
       </div>
 
       <AccordionList
+        ariaLabel="Waterbody List"
         sortOptions={[
           { value: 'assessmentunitname', label: 'Waterbody Name' },
           { value: 'assessmentunitidentifier', label: 'Assessment Unit Id' },
@@ -160,13 +161,14 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
             const auId = graphic.attributes.assessmentunitidentifier;
             const name = graphic.attributes.assessmentunitname;
 
-            const viewOnMapDisabled = 
+            const viewOnMapDisabled =
               graphic.attributes.area_count === 0 &&
               graphic.attributes.line_count === 0 &&
               graphic.attributes.point_count === 0;
 
             return (
               <AccordionItem
+                ariaLabel={name}
                 key={symbolType + orgId + auId}
                 title={<strong>{name}</strong>}
                 subTitle={
@@ -192,7 +194,10 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
                     type="Waterbody State Overview"
                     feature={graphic}
                   />
-                  <ViewOnMapButton feature={graphic} disabled={viewOnMapDisabled} />
+                  <ViewOnMapButton
+                    feature={graphic}
+                    disabled={viewOnMapDisabled}
+                  />
                 </div>
               </AccordionItem>
             );

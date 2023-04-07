@@ -1,5 +1,7 @@
 import Highcharts from 'highcharts';
 import Point from '@arcgis/core/geometry/Point';
+// types
+import type { KeyboardEvent, MouseEvent } from 'react';
 
 // utility function to split up an array into chunks of a designated length
 function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
@@ -12,12 +14,7 @@ function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
 }
 
 function containsScriptTag(string: string) {
-  string = string
-    .toLowerCase()
-    .replace('%20', '')
-    .replace('%3c', '<')
-    .replace('%3e', '>')
-    .trim();
+  string = decodeURI(string.toLowerCase().replaceAll(' ', ''));
 
   return (
     string.includes('<script>') ||
@@ -37,8 +34,39 @@ function formatNumber(number: number, digits: number = 0) {
   });
 }
 
-function isAbort(error: Error) {
+function isAbort(error: unknown) {
+  if (!error || typeof error !== 'object' || !('name' in error)) return false;
   return error.name === 'AbortError';
+}
+
+function isClick(ev: KeyboardEvent | MouseEvent) {
+  if (isKeyboardEvent(ev)) {
+    if (ev.key !== ' ' && ev.key !== 'Enter') return false;
+  } else if (ev.type !== 'click') return false;
+  return true;
+}
+
+function isEmpty<T>(
+  v: T | null | undefined | [] | {},
+): v is null | undefined | [] | {} {
+  return !isNotEmpty(v);
+}
+
+function isKeyboardEvent(ev: KeyboardEvent | MouseEvent): ev is KeyboardEvent {
+  return ev.hasOwnProperty('key');
+}
+
+// Type predicate, negation is used to narrow to type `T`
+function isNotEmpty<T>(v: T | null | undefined | [] | {}): v is T {
+  if (v === null || v === undefined || v === '') return false;
+  if (Array.isArray(v) && v.length === 0) return false;
+  else if (
+    Object.keys(v).length === 0 &&
+    Object.getPrototypeOf(v) === Object.prototype
+  ) {
+    return false;
+  }
+  return true;
 }
 
 // Gets the file extension from a url or path. The backup parameter was added
@@ -453,14 +481,56 @@ function removeAccessibiltyHcSvgExport() {
   );
 }
 
+// Rounds a float to a specified precision
+function toFixedFloat(num: number, precision: number = 0) {
+  if (precision < 0) return num;
+  const offset = 10 ** precision;
+  return Math.round((num + Number.EPSILON) * offset) / offset;
+}
+
+/**
+ * Script from ESRI for escaping a ArcGIS Online usernames and
+ * organization ids.
+ *
+ * @param value The ArcGIS Online username or organization id
+ * @returns The escaped version of the username or org id.
+ */
+function escapeForLucene(value: string) {
+  const a = [
+    '+',
+    '-',
+    '&',
+    '!',
+    '(',
+    ')',
+    '{',
+    '}',
+    '[',
+    ']',
+    '^',
+    '"',
+    '~',
+    '*',
+    '?',
+    ':',
+    '\\',
+  ];
+  const r = new RegExp('(\\' + a.join('|\\') + ')', 'g');
+  return value.replace(r, '\\$1');
+}
+
 export {
   chunkArray,
   containsScriptTag,
+  escapeForLucene,
   escapeRegex,
   formatNumber,
   getExtensionFromPath,
   isAbort,
+  isClick,
+  isEmpty,
   isHuc12,
+  isKeyboardEvent,
   titleCase,
   titleCaseWithExceptions,
   createJsonLD,
@@ -480,4 +550,5 @@ export {
   indicesOf,
   parseAttributes,
   removeAccessibiltyHcSvgExport,
+  toFixedFloat,
 };

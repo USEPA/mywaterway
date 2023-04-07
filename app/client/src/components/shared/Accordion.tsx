@@ -74,6 +74,7 @@ function isReactElement(child: ReactNode): child is ReactElement {
 }
 
 type AccordionListProps = {
+  ariaLabel?: string;
   children: ReactNode;
   className?: string;
   title?: ReactNode;
@@ -81,9 +82,11 @@ type AccordionListProps = {
   sortOptions: { value: string; label: string }[];
   onSortChange: Function;
   onExpandCollapse: Function;
+  contentExpandCollapse?: ReactNode;
 };
 
 function AccordionList({
+  ariaLabel = '',
   children,
   className = '',
   title = null,
@@ -91,6 +94,7 @@ function AccordionList({
   sortOptions = [],
   onSortChange = () => {},
   onExpandCollapse = () => {},
+  contentExpandCollapse,
 }: AccordionListProps) {
   const [sortBy, setSortBy] = useState(
     sortOptions.length > 0 ? sortOptions[0] : null,
@@ -106,8 +110,10 @@ function AccordionList({
 
   return (
     <div
+      aria-label={ariaLabel}
       css={accordionListContainerStyles}
       className={`hmw-accordions ${className}`}
+      role="list"
     >
       <div css={columnsStyles}>
         {sortOptions.length > 0 && (
@@ -129,6 +135,8 @@ function AccordionList({
             />
           </div>
         )}
+
+        {contentExpandCollapse}
 
         {!expandDisabled && (
           <button
@@ -218,6 +226,7 @@ const colorMap = {
 };
 
 type AccordionItemProps = {
+  ariaLabel?: string;
   children: ReactNode;
   icon?: Object;
   title: ReactNode;
@@ -231,6 +240,7 @@ type AccordionItemProps = {
 };
 
 function AccordionItem({
+  ariaLabel = '',
   children,
   icon,
   title,
@@ -271,12 +281,13 @@ function AccordionItem({
       onMouseLeave={(_ev) => removeHighlight()}
       onFocus={(_ev) => addHighlight()}
       onBlur={(_ev) => removeHighlight()}
+      role="listitem"
     >
       <header
+        aria-label={ariaLabel}
         css={headerStyles}
         className="hmw-accordion-header"
         style={{ backgroundColor }}
-        tabIndex={0}
         onClick={(_ev) => {
           const newIsOpen = !isOpen;
           setIsOpen(newIsOpen);
@@ -289,6 +300,8 @@ function AccordionItem({
             onChange(newIsOpen);
           }
         }}
+        role="button"
+        tabIndex={0}
       >
         {icon && <div css={iconStyles}>{icon}</div>}
 

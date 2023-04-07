@@ -11,6 +11,7 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import type { ReactNode } from 'react';
 
 type AccordionItemProps = {
+  ariaLabel?: string;
   icon?: Object;
   title: ReactNode;
   subTitle?: ReactNode;
@@ -22,6 +23,7 @@ type AccordionItemProps = {
 };
 
 function AccordionItem({
+  ariaLabel,
   icon,
   title,
   subTitle,
@@ -78,6 +80,7 @@ function AccordionItem({
 
   return (
     <AccordionItemSimple
+      ariaLabel={ariaLabel}
       icon={icon}
       title={title}
       subTitle={subTitle}

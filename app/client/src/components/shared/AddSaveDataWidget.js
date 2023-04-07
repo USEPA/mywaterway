@@ -7,11 +7,12 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import { linkButtonStyles } from 'components/shared/LinkButton';
-import FilePanel from 'components/shared/AddDataWidget.FilePanel';
-import SearchPanel from 'components/shared/AddDataWidget.SearchPanel';
-import URLPanel from 'components/shared/AddDataWidget.URLPanel';
+import FilePanel from 'components/shared/AddSaveDataWidget.FilePanel';
+import SavePanel from 'components/shared/AddSaveDataWidget.SavePanel';
+import SearchPanel from 'components/shared/AddSaveDataWidget.SearchPanel';
+import URLPanel from 'components/shared/AddSaveDataWidget.URLPanel';
 // contexts
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 
 // --- styles (AddData) ---
@@ -132,7 +133,6 @@ const layerPanelHeaderStyles = css`
   color: #898989;
   font-size: 16px;
   font-weight: normal;
-  line-height: 2;
 `;
 
 const recordListStyles = css`
@@ -153,18 +153,19 @@ const layerIconButtonStyles = css`
 `;
 
 // --- components (AddData) ---
-function AddDataWidget() {
+function AddSaveDataWidget() {
   const { mapView } = useContext(LocationSearchContext);
   const {
-    setAddDataWidgetVisible,
+    activeTabIndex,
+    setActiveTabIndex,
+    setAddSaveDataWidgetVisible,
     pageNumber,
     setPageNumber,
     searchResults,
     widgetLayers,
     setWidgetLayers,
-  } = useAddDataWidgetState();
+  } = useAddSaveDataWidgetState();
 
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [layerPanelVisible, setLayerPanelVisible] = useState(false);
 
   // Build an array of layers to display on the layers panel.
@@ -173,20 +174,20 @@ function AddDataWidget() {
   const layersToDisplay = [];
   widgetLayers.forEach((layer) => {
     // directly add non-group layers
-    if (layer.type !== 'group') {
-      layersToDisplay.push({ layer, title: layer.title });
+    if (layer.layer.type !== 'group') {
+      layersToDisplay.push({ layer: layer.layer, title: layer.layer.title });
       return;
     }
 
     // for group layers, add each child layer separately
-    layer.layers.items
+    layer.layer.layers.items
       .slice()
       .reverse()
       .forEach((childLayer) => {
         // filter out tables as they don't get displayed on the map
         if (childLayer.isTable) return;
 
-        const title = `${layer.title} - ${childLayer.title}`;
+        const title = `${layer.layer.title} - ${childLayer.title}`;
         layersToDisplay.push({ layer: childLayer, title });
       });
   });
@@ -195,13 +196,13 @@ function AddDataWidget() {
     <Fragment>
       <div css={widgetHeaderStyles}>
         <div css={dragHandleStyles} className="drag-handle">
-          <h1>Add Data</h1>
+          <h1>Add & Save Data</h1>
         </div>
         <button
           onClick={() => {
-            const widget = document.getElementById('add-data-widget');
+            const widget = document.getElementById('add-save-data-widget');
             widget.classList.add('hidden');
-            setAddDataWidgetVisible(false);
+            setAddSaveDataWidgetVisible(false);
           }}
         >
           X
@@ -222,6 +223,7 @@ function AddDataWidget() {
               <Tab>Search</Tab>
               <Tab>URL</Tab>
               <Tab>File</Tab>
+              <Tab>Save</Tab>
             </TabList>
 
             <TabPanels>
@@ -235,6 +237,10 @@ function AddDataWidget() {
 
               <TabPanel>
                 <FilePanel />
+              </TabPanel>
+
+              <TabPanel>
+                <SavePanel visible={true} />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -272,7 +278,7 @@ function AddDataWidget() {
                             setWidgetLayers((currentWidgetLayers) =>
                               currentWidgetLayers.filter(
                                 (widgetLayer) =>
-                                  widgetLayer.id !== item.layer.id,
+                                  widgetLayer.layer.id !== item.layer.id,
                               ),
                             );
                             return;
@@ -287,7 +293,7 @@ function AddDataWidget() {
                             setWidgetLayers((currentWidgetLayers) =>
                               currentWidgetLayers.filter(
                                 (widgetLayer) =>
-                                  widgetLayer.id !== item.layer.parent.id,
+                                  widgetLayer.layer.id !== item.layer.parent.id,
                               ),
                             );
                           }
@@ -374,4 +380,4 @@ function AddDataWidget() {
   );
 }
 
-export default AddDataWidget;
+export default AddSaveDataWidget;
