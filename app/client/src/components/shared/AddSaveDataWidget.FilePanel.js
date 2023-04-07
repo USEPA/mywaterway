@@ -18,7 +18,7 @@ import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { fetchPostFile, fetchPostForm } from 'utils/fetchUtils';
@@ -36,26 +36,51 @@ import {
 import { colors } from 'styles/index.js';
 
 /**
+ * Gets the number from the last parentheses. If the value
+ * is not a number NaN is returned.
+ *
+ * @param str String to get number in last parentheses
+ * @returns number in last set of parentheses or NaN if no parentheses
+ */
+function getNumberFromParen(str: string) {
+  const splitLabel = str.split('(');
+  return parseInt(splitLabel[splitLabel.length - 1].replace(')', ''));
+}
+
+/**
  * Determines if the desired name has already been used. If it has
  * it appends in index to the end (i.e. '<desiredName> (2)').
+ *
+ * @param layers Layers to search in for determining if name is in use
+ * @param desiredName Name to check if in use
+ * @returns The desired name with in index value if it is already in use
  */
 function getLayerName(layers, desiredName) {
+  const numInDesiredName = getNumberFromParen(desiredName);
+  let newName =
+    numInDesiredName || numInDesiredName === 0
+      ? desiredName.replace(`(${numInDesiredName})`, '').trim()
+      : desiredName;
+
   // get a list of names in use
-  let usedNames: string[] = [];
+  let duplicateCount = 0;
   layers.forEach((layer) => {
-    usedNames.push(layer.title);
+    // remove any counts from the end of the name to ge an accurate count
+    // for the new name
+    const numInParen = getNumberFromParen(layer.layer.title);
+    const possibleName =
+      numInParen || numInParen === 0
+        ? layer.layer.title.replaceAll(`(${numInParen})`, '').trim()
+        : layer.layer.title;
+
+    if (possibleName === newName) duplicateCount += 1;
   });
 
-  // Find a name where there is not a collision.
-  // Most of the time this loop will be skipped.
-  let duplicateCount = 0;
-  let newName = desiredName;
-  while (usedNames.includes(newName)) {
-    duplicateCount += 1;
-    newName = `${desiredName} (${duplicateCount})`;
-  }
-
-  return newName;
+  if (duplicateCount === 0) return newName;
+  else
+    return `${newName} (${
+      duplicateCount === numInDesiredName ? duplicateCount + 1 : duplicateCount
+    })`;
 }
 
 // --- styles (FileIcon) ---
@@ -231,7 +256,7 @@ type UploadStatusType =
   | 'file-read-error';
 
 function FilePanel() {
-  const { widgetLayers, setWidgetLayers } = useAddDataWidgetState();
+  const { widgetLayers, setWidgetLayers } = useAddSaveDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
 
   const [generalizeFeatures, setGeneralizeFeatures] = useState(false);
@@ -432,7 +457,7 @@ function FilePanel() {
 
     setFeaturesAdded(true);
 
-    const featureLayers: __esri.FeatureLayer[] = [];
+    const featureLayers: WidgetLayer[] = [];
     generateResponse.featureCollection.layers.forEach((layer: any) => {
       if (
         !layer?.featureSet?.features ||
@@ -497,7 +522,14 @@ function FilePanel() {
       };
 
       // create the feature layer
-      const layerToAdd = new FeatureLayer(layerProps);
+      const newLayer = new FeatureLayer(layerProps);
+      const layerToAdd = {
+        ...layerProps,
+        type: 'file',
+        layerId: newLayer.id,
+        layer: newLayer,
+        rawLayer: layer,
+      };
       featureLayers.push(layerToAdd);
     });
 
@@ -613,8 +645,8 @@ function FilePanel() {
             style={{ padding: '10px', position: 'relative' }}
           >
             <input
-              id="tots-dropzone"
-              data-testid="tots-dropzone"
+              id="hmw-dropzone"
+              data-testid="hmw-dropzone"
               {...getInputProps()}
             />
             {isDragActive ? (
@@ -628,7 +660,7 @@ function FilePanel() {
                   <FileIcon label="GPX" />
                   <FileIcon label="Geo JSON" />
                 </div>
-                <label htmlFor="tots-dropzone">Drop or Browse</label>
+                <label htmlFor="hmw-dropzone">Drop or Browse</label>
                 <br />
                 <button onClick={open}>Browse</button>
               </div>

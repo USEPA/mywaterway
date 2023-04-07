@@ -129,6 +129,10 @@ function StateTribalTabs() {
 
     return (
       <div>
+        <h2>
+          <i className="fas fa-map-marked-alt" aria-hidden="true" />
+          <strong>{activeState.label}</strong> at a Glance
+        </h2>
         <div>{mapContent}</div>
         <hr />
         <WaterQualityOverview />

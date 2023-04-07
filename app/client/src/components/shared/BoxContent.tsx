@@ -36,7 +36,7 @@ const flexRowStyles = css`
 const gridStyles = css`
   ${contentStyles}
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr 1fr;
 
   .row-cell {
     border-bottom: 1px solid #d8dfe2;
@@ -54,7 +54,7 @@ const gridStyles = css`
 
 const listContentStyles = css`
   border-top: 1px solid #d8dfe2;
-  margin-bottom: 1rem;
+  padding-bottom: 1rem;
 
   .row-cell {
     padding: 0.75rem;
@@ -74,8 +74,7 @@ const listContentStyles = css`
 
 const rowCellStyles = css`
   align-items: baseline;
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: block;
   font-size: 0.875em;
   gap: 0.3em;
   height: 100%;
@@ -100,6 +99,10 @@ const rowCellStyles = css`
   svg {
     margin: -0.5em;
     height: 1.25em;
+  }
+
+  small {
+    margin-left: 0.3em;
   }
 `;
 

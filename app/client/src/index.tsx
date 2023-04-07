@@ -9,11 +9,12 @@ import reportWebVitals from './reportWebVitals';
 import AppRoutes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
-import { AddDataWidgetProvider } from 'contexts/AddDataWidget';
+import { AddSaveDataWidgetProvider } from 'contexts/AddSaveDataWidget';
 import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
 import { LookupFilesProvider } from 'contexts/LookupFiles';
 import { FetchedDataProvider } from 'contexts/FetchedData';
+import { SurroundingsProvider } from 'contexts/Surroundings';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 // types
@@ -41,12 +42,14 @@ function Root() {
         <FetchedDataProvider>
           <LocationSearchProvider>
             <GlossaryProvider>
-              <AddDataWidgetProvider>
-                <GlobalStyle />
-                <ErrorBoundary message={defaultErrorBoundaryMessage}>
-                  <AppRoutes />
-                </ErrorBoundary>
-              </AddDataWidgetProvider>
+              <SurroundingsProvider>
+                <AddSaveDataWidgetProvider>
+                  <GlobalStyle />
+                  <ErrorBoundary message={defaultErrorBoundaryMessage}>
+                    <AppRoutes />
+                  </ErrorBoundary>
+                </AddSaveDataWidgetProvider>
+              </SurroundingsProvider>
             </GlossaryProvider>
           </LocationSearchProvider>
         </FetchedDataProvider>

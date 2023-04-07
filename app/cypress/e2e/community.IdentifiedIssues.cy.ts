@@ -15,7 +15,7 @@ describe('Identified Issues Tab', () => {
       'not.exist',
     );
 
-    cy.findByText('Identified Issues').click();
+    cy.findByRole('tab', { name: 'Identified Issues' }).click();
 
     cy.findByLabelText('Toggle Issues Layer').click({ force: true });
     cy.findByLabelText('Toggle Issues Layer').should(
@@ -44,7 +44,7 @@ describe('Identified Issues Tab', () => {
       'not.exist',
     );
 
-    cy.findByText('Identified Issues').click();
+    cy.findByRole('tab', { name: 'Identified Issues' }).click();
 
     cy.findByLabelText('Toggle Dischargers Layer').click({ force: true });
     cy.findByLabelText('Toggle Dischargers Layer').should(
@@ -67,7 +67,7 @@ describe('Identified Issues Tab', () => {
     );
 
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
-    cy.findByText('Identified Issues').click();
+    cy.findByRole('tab', { name: 'Identified Issues' }).click();
     cy.findByTestId('hmw-dischargers').click();
     cy.findByText('WASHINGTON NAVY YARD').click();
     cy.findByText('Compliance Status:');

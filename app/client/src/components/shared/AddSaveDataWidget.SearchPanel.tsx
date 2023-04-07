@@ -18,7 +18,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useAddDataWidgetState } from 'contexts/AddDataWidget';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // config
 import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
@@ -200,7 +200,7 @@ type SortBy =
 // --- components (SearchPanel) ---
 function SearchPanel() {
   const { pageNumber, setPageNumber, searchResults, setSearchResults } =
-    useAddDataWidgetState();
+    useAddSaveDataWidgetState();
 
   const locationList = [
     { value: '161a24e10b8d405d97492264589afd0b', label: 'Suggested Content' },
@@ -655,9 +655,9 @@ function SearchPanel() {
           )}
           {searchResults.status === 'success' && (
             <Fragment>
-              <div>
-                {searchResults.data?.results.map((result, index) => {
-                  return <ResultCard result={result} key={index} />;
+              <div role="list">
+                {searchResults.data?.results.map((result) => {
+                  return <ResultCard result={result} key={result.id} />;
                 })}
               </div>
               {!searchResults.data && (
@@ -749,7 +749,7 @@ type ResultCardProps = {
 };
 
 function ResultCard({ result }: ResultCardProps) {
-  const { widgetLayers, setWidgetLayers } = useAddDataWidgetState();
+  const { widgetLayers, setWidgetLayers } = useAddSaveDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
 
   // Used to determine if the layer for this card has been added or not
@@ -757,7 +757,9 @@ function ResultCard({ result }: ResultCardProps) {
   useEffect(() => {
     setAdded(
       widgetLayers.findIndex(
-        (widgetLayer) => widgetLayer.portalItem?.id === result.id,
+        (widgetLayer) =>
+          widgetLayer.type === 'portal' &&
+          widgetLayer.layer.portalItem?.id === result.id,
       ) !== -1,
     );
   }, [widgetLayers, result]);
@@ -772,7 +774,7 @@ function ResultCard({ result }: ResultCardProps) {
   }, [watcher]);
 
   /**
-   * Adds non-tots layers as reference portal layers.
+   * Adds non-hmw layers as reference portal layers.
    */
   const addRefLayer = useCallback(() => {
     if (!mapView?.map) return;
@@ -826,10 +828,16 @@ function ResultCard({ result }: ResultCardProps) {
       // add the layer to the map
       setWidgetLayers((currentWidgetLayers: WidgetLayer[]) => [
         ...currentWidgetLayers,
-        layer,
+        {
+          type: 'portal',
+          layerType: result.type,
+          id: result.id,
+          layer,
+          url: result.url,
+        },
       ]);
     });
-  }, [mapView, result.id, setWidgetLayers]);
+  }, [mapView, result, setWidgetLayers]);
 
   /**
    * Removes the reference portal layers.
@@ -847,7 +855,9 @@ function ResultCard({ result }: ResultCardProps) {
     if (layersToRemove.length > 0) {
       setWidgetLayers((currentWidgetLayers) =>
         currentWidgetLayers.filter(
-          (widgetLayer) => widgetLayer?.portalItem?.id !== result.id,
+          (widgetLayer) =>
+            widgetLayer.type === 'portal' &&
+            widgetLayer.layer.portalItem?.id !== result.id,
         ),
       );
     }
@@ -874,7 +884,12 @@ function ResultCard({ result }: ResultCardProps) {
   }, [cardRef]);
 
   return (
-    <div ref={cardRef} css={cardContainerStyles(cardWidth)}>
+    <div
+      aria-label={result.title}
+      ref={cardRef}
+      css={cardContainerStyles(cardWidth)}
+      role="listitem"
+    >
       <img
         css={cardThumbnailStyles}
         src={result.thumbnailUrl}
