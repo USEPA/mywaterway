@@ -1165,7 +1165,7 @@ function MapPopup({
 const cyanListContentStyles = css`
   ${listContentStyles}
   border-top: none;
-  margin-bottom: 0;
+  padding-bottom: 0;
 
   .row-cell {
     background-color: initial !important;
