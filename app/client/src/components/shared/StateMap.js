@@ -209,6 +209,7 @@ function StateMap({
   }, [
     getSharedLayers,
     setLayer,
+    setResetHandler,
     layersInitialized,
     services,
     updateVisibleLayers,
