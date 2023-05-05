@@ -13,6 +13,31 @@ function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
   return chunks;
 }
 
+// utility function to split up an array into chunks of a designated max character length
+function chunkArrayCharLength(
+  array: string[],
+  charLength: number,
+  separator: string = ',',
+): Array<string> {
+  const chunks: string[] = [];
+  let tempString = '';
+  let chunkString = '';
+  array.forEach((item: string, index: number) => {
+    if (!tempString) tempString = item;
+    else tempString += separator + item;
+
+    if (tempString.length <= charLength) chunkString = tempString;
+    else {
+      chunks.push(chunkString);
+      tempString = item;
+    }
+  });
+
+  chunks.push(chunkString);
+
+  return chunks;
+}
+
 function containsScriptTag(string: string) {
   string = decodeURI(string.toLowerCase().replaceAll(' ', ''));
 
@@ -521,6 +546,7 @@ function escapeForLucene(value: string) {
 
 export {
   chunkArray,
+  chunkArrayCharLength,
   containsScriptTag,
   escapeForLucene,
   escapeRegex,

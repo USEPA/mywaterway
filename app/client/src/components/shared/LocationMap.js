@@ -66,6 +66,7 @@ import {
 } from 'utils/hooks';
 import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
+  chunkArrayCharLength,
   isAbort,
   isHuc12,
   updateCanonicalLink,
@@ -399,11 +400,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const handleOrphanedFeatures = useCallback(
-    (res, attainsDomainsData, missingAssessments) => {
+    (resUnits, attainsDomainsData, missingAssessments) => {
       if (organizations.status !== 'success') return;
 
       const allAssessmentUnits = [];
-      res.items.forEach((item) =>
+      resUnits.forEach((item) =>
         item.assessmentUnits.forEach((assessmentUnit) => {
           allAssessmentUnits.push(assessmentUnit);
         }),
@@ -432,7 +433,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
 
       const requests = [];
-      res.items.forEach((item) => {
+      resUnits.forEach((item) => {
         const orgId = item.organizationIdentifier;
         const ids = item.assessmentUnits.map(
           (assessment) => assessment.assessmentUnitIdentifier,
@@ -451,13 +452,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         const reportingCycle = organization?.attributes?.reportingcycle;
         if (!reportingCycle) return;
 
-        const url =
-          `${services.data.attains.serviceUrl}` +
-          `assessments?organizationId=${orgId}&reportingCycle=${reportingCycle}&assessmentUnitIdentifier=${ids.join(
-            ',',
-          )}`;
+        // chunk the requests by character count
+        // the assessmentUnitIdentifier param supports a max of 1000 characters
+        const chunkedUnitIds = chunkArrayCharLength(ids, 1000);
 
-        requests.push(fetchCheck(url));
+        chunkedUnitIds.forEach((chunk) => {
+          const url =
+            `${services.data.attains.serviceUrl}` +
+            `assessments?organizationId=${orgId}&reportingCycle=${reportingCycle}&assessmentUnitIdentifier=${chunk}`;
+
+          requests.push(fetchCheck(url));
+        });
       });
 
       Promise.all(requests)
@@ -555,20 +560,40 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
             const attainsDomainsData = res;
 
-            const url =
-              `${services.data.attains.serviceUrl}` +
-              `assessmentUnits?assessmentUnitIdentifier=${orphanIDs.join(',')}`;
+            // chunk the requests by character count
+            // the assessmentUnitIdentifier param supports a max of 1000 characters
+            const chunkedUnitIds = chunkArrayCharLength(orphanIDs, 1000);
 
-            fetchCheck(url)
-              .then((resUnits) => {
-                if (
-                  !resUnits ||
-                  !resUnits.items ||
-                  resUnits.items.length === 0
-                ) {
+            const requests = [];
+            chunkedUnitIds.forEach((chunk) => {
+              const url =
+                `${services.data.attains.serviceUrl}` +
+                `assessmentUnits?assessmentUnitIdentifier=${chunk}`;
+
+              requests.push(fetchCheck(url));
+            });
+
+            Promise.all(requests)
+              .then((responses) => {
+                if (!responses) {
                   setOrphanFeatures({ features: [], status: 'error' });
                   return;
                 }
+
+                let resUnits = [];
+                responses.forEach((response) => {
+                  if (
+                    !response ||
+                    !response.items ||
+                    response.items.length === 0
+                  ) {
+                    setOrphanFeatures({ features: [], status: 'error' });
+                    return;
+                  }
+
+                  resUnits = resUnits.concat(response.items);
+                });
+
                 handleOrphanedFeatures(resUnits, attainsDomainsData, orphanIDs);
               })
               .catch((err) => {
