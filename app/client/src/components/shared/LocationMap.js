@@ -474,7 +474,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           let orphans = [];
           responses.forEach((response) => {
-            if (!response || !response.items || response.items.length === 0) {
+            if (!response?.items || response.items.length === 0) {
               setOrphanFeatures({ features: [], status: 'error' });
               return;
             }
@@ -582,11 +582,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
                 let resUnits = [];
                 responses.forEach((response) => {
-                  if (
-                    !response ||
-                    !response.items ||
-                    response.items.length === 0
-                  ) {
+                  if (!response?.items || response.items.length === 0) {
                     setOrphanFeatures({ features: [], status: 'error' });
                     return;
                   }
@@ -1155,7 +1151,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          if (!res || !res.features || res.features.length <= 0) {
+          if (!res?.features || res.features.length <= 0) {
             setFishingInfo({ status: 'success', data: [] });
             return;
           }
@@ -1188,7 +1184,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          if (!res || !res.features || res.features.length <= 0) {
+          if (!res?.features || res.features.length <= 0) {
             setWsioHealthIndexData({ status: 'success', data: [] });
             return;
           }
@@ -1213,11 +1209,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const getWildScenicRivers = useCallback(
     (boundaries) => {
-      if (
-        !boundaries ||
-        !boundaries.features ||
-        boundaries.features.length === 0
-      ) {
+      if (!boundaries?.features || boundaries.features.length === 0) {
         setWildScenicRiversData({
           data: [],
           status: 'success',
@@ -1257,11 +1249,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const getProtectedAreas = useCallback(
     (boundaries) => {
-      if (
-        !boundaries ||
-        !boundaries.features ||
-        boundaries.features.length === 0
-      ) {
+      if (!boundaries?.features || boundaries.features.length === 0) {
         setProtectedAreasData({
           data: [],
           fields: [],
