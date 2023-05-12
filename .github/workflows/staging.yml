@@ -134,7 +134,7 @@ jobs:
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
       - name: Deploy application to Cloud.gov
-        run: cf push $APP_NAME --strategy rolling -f ../manifest-staging.yml -p . -t 180
+        run: cf push $APP_NAME --strategy rolling -f ../manifest-staging.yml -p . -t 180 -s $CF_STACK
         working-directory: app/server
       
       - name: Zip artifacts
