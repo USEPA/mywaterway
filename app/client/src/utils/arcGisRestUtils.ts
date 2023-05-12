@@ -1139,7 +1139,7 @@ export async function addWebMap({
       }
     } else {
       // handle waterbodies layer on the state and tribe pages
-      if (l.id === 'waterbodyLayer' && isGroupLayer(l.layer)) {
+      if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(l.id) && isGroupLayer(l.layer)) {
         const subLayers: ILayerExtendedType[] = [];
         l.layer.layers.forEach((subLayer) => {
           if (!isFeatureLayer(subLayer)) return;
@@ -1173,6 +1173,19 @@ export async function addWebMap({
           } else {
             subLayers.push({
               id: subLayer.layerId,
+              disablePopup: false,
+              popupInfo: {
+                popupElements: [
+                  {
+                    type: 'fields',
+                    description: '',
+                    fieldInfos: popupFields,
+                    title: '',
+                  },
+                ],
+                fieldInfos: popupFields,
+                title: `${subLayer.title}: {orgName}`,
+              },
             });
           }
         });
