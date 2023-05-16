@@ -4,6 +4,7 @@ import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import Color from '@arcgis/core/Color';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import * as geometryEngineAsync from '@arcgis/core/geometry/geometryEngineAsync';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -1679,64 +1680,75 @@ function useGeometryUtils() {
     resFeatures: __esri.Graphic[],
     hucGeometry: __esri.Geometry,
   ) {
-    // start by getting the extend of the huc boundaries
-    let extent = hucGeometry.extent;
+    return new Promise<any>((resolve, reject) => {
+      // start by getting the extend of the huc boundaries
+      let extent = hucGeometry.extent;
 
-    // add the extent of all of the waterbodies
-    const features: __esri.Graphic[] = [];
-    resFeatures.forEach((feature) => {
-      extent.union(feature.geometry.extent);
-    });
+      // add the extent of all of the waterbodies
+      const features: __esri.Graphic[] = [];
+      resFeatures.forEach((feature) => {
+        extent.union(feature.geometry.extent);
+      });
 
-    // build geometry from the extent
-    const extentGeometry = new Polygon({
-      spatialReference: hucGeometry.spatialReference,
-      centroid: extent.center,
-      rings: [
-        [
-          [extent.xmin, extent.ymin],
-          [extent.xmin, extent.ymax],
-          [extent.xmax, extent.ymax],
-          [extent.xmax, extent.ymin],
-          [extent.xmin, extent.ymin],
+      // build geometry from the extent
+      const extentGeometry = new Polygon({
+        spatialReference: hucGeometry.spatialReference,
+        centroid: extent.center,
+        rings: [
+          [
+            [extent.xmin, extent.ymin],
+            [extent.xmin, extent.ymax],
+            [extent.xmax, extent.ymax],
+            [extent.xmax, extent.ymin],
+            [extent.xmin, extent.ymin],
+          ],
         ],
-      ],
+      });
+
+      // subtract the huc from the full extent
+      const subtractor = geometryEngine.difference(extentGeometry, hucGeometry);
+
+      // crop any geometry that extends beyond the huc 12
+      const requests: Promise<__esri.Geometry>[] = [];
+      resFeatures.forEach((feature,index) => {
+        // crop the waterbodies that extend outside of the huc
+        requests.push( geometryEngineAsync.difference(
+          feature.geometry,
+          Array.isArray(subtractor) ? subtractor[0] : subtractor,
+        ));
+      });
+
+      Promise.all(requests).then((responses) => {
+        responses.forEach((newGeometry, index) => {
+          const feature = resFeatures[index];
+          feature.geometry = Array.isArray(newGeometry)
+            ? newGeometry[0]
+            : newGeometry;
+          features.push(feature);
+        });
+
+        // order the features by overall status
+        const sortBy = [
+          'Cause',
+          'Not Supporting',
+          'Insufficient Information',
+          'Not Assessed',
+          'Meeting Criteria',
+          'Fully Supporting',
+        ];
+        features.sort((a, b) => {
+          return (
+            sortBy.indexOf(a.attributes.overallstatus) -
+            sortBy.indexOf(b.attributes.overallstatus)
+          );
+        });
+
+        resolve(features);
+      }).catch((err) => {
+        console.error(err);
+        reject(err);
+      });
     });
-
-    // subtract the huc from the full extent
-    const subtractor = geometryEngine.difference(extentGeometry, hucGeometry);
-
-    // crop any geometry that extends beyond the huc 12
-    resFeatures.forEach((feature) => {
-      // crop the waterbodies that extend outside of the huc
-      const newGeometry = geometryEngine.difference(
-        feature.geometry,
-        Array.isArray(subtractor) ? subtractor[0] : subtractor,
-      );
-
-      feature.geometry = Array.isArray(newGeometry)
-        ? newGeometry[0]
-        : newGeometry;
-      features.push(feature);
-    });
-
-    // order the features by overall status
-    const sortBy = [
-      'Cause',
-      'Not Supporting',
-      'Insufficient Information',
-      'Not Assessed',
-      'Meeting Criteria',
-      'Fully Supporting',
-    ];
-    features.sort((a, b) => {
-      return (
-        sortBy.indexOf(a.attributes.overallstatus) -
-        sortBy.indexOf(b.attributes.overallstatus)
-      );
-    });
-
-    return features;
   };
 
   return { cropGeometryToHuc };
