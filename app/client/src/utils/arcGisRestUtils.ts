@@ -369,7 +369,7 @@ export async function createFeatureLayers(
     for (const layer of layersReversed) {
       if (!layer.requiresFeatureService) continue;
 
-      const properties = layerProps.data.layerSpecificSettings[layer.layer.id];
+      const properties = layerProps.data.layerSpecificSettings[layer.layer.id].layerProps;
 
       // handle layers added via file upload
       if (layer.widgetLayer?.type === 'file') {
@@ -913,6 +913,11 @@ export async function addWebMap({
   layers.forEach((l) => {
     const layerType = getAgoLayerType(l) as string;
     const url = getLayerUrl(services, l);
+    const layerSettings = layerProps?.data.layerSpecificSettings[l.layer.id];
+    const popupTitle = layerSettings?.popupTitle || '';
+    console.log('l: ', l);
+    console.log('l.layer.id: ', l.layer.id);
+    console.log('layerSettings: ', layerSettings);
 
     if (layerType === 'VectorTileLayer') {
       operationalLayers.push({
@@ -938,7 +943,7 @@ export async function addWebMap({
         // don't do anything for these layers, they will be handeled below
       } else {
         // handle boundaries and providers
-        let properties = layerProps.data.layerSpecificSettings[l.layer.id];
+        let properties = layerSettings.layerProps;
         if (l.layer.id === 'boundariesLayer')
           properties = mapView.map.findLayerById('watershedsLayer');
         if (l.layer.id === 'providersLayer')
@@ -995,7 +1000,7 @@ export async function addWebMap({
               },
             ],
             fieldInfos: popupFields,
-            title: `${lRes.name}: {orgName}`,
+            title: `${lRes.name}${popupTitle}`,
           },
         });
 
@@ -1061,7 +1066,7 @@ export async function addWebMap({
                 },
               ],
               fieldInfos: popupFields,
-              title: `${lRes.name}: {orgName}`,
+              title: `${lRes.name}${popupTitle}`,
             },
           });
         });
@@ -1131,7 +1136,7 @@ export async function addWebMap({
                   },
                 ],
                 fieldInfos: popupFields,
-                title: `${lRes.name}: {orgName}`,
+                title: `${lRes.name}${popupTitle}`,
               },
             };
           }),
@@ -1139,7 +1144,10 @@ export async function addWebMap({
       }
     } else {
       // handle waterbodies layer on the state and tribe pages
-      if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(l.id) && isGroupLayer(l.layer)) {
+      if (
+        ['allWaterbodiesLayer', 'waterbodyLayer'].includes(l.id) &&
+        isGroupLayer(l.layer)
+      ) {
         const subLayers: ILayerExtendedType[] = [];
         l.layer.layers.forEach((subLayer) => {
           if (!isFeatureLayer(subLayer)) return;
@@ -1167,7 +1175,7 @@ export async function addWebMap({
                   },
                 ],
                 fieldInfos: popupFields,
-                title: `${subLayer.title}: {orgName}`,
+                title: `${subLayer.title}${popupTitle}`,
               },
             });
           } else {
@@ -1184,7 +1192,7 @@ export async function addWebMap({
                   },
                 ],
                 fieldInfos: popupFields,
-                title: `${subLayer.title}: {orgName}`,
+                title: `${subLayer.title}${popupTitle}`,
               },
             });
           }
@@ -1197,8 +1205,37 @@ export async function addWebMap({
           layers: subLayers,
         });
       } else {
+        // TODO - Consider adding popup template. Will need to think about
+        //        how to ignore layers that already have popup templates
+        //        (e.g. layers added via add data widget)
+        console.log('layer: ', l);
+
+        // build popup for feature layers that were not added via add data widget
+        let popupInfo;
+        if(!l.widgetLayer && layerType === 'ArcGISFeatureLayer' && isFeatureLayer(l.layer)) {
+          const popupFields = buildPopupFieldsList(
+            l.layer.objectIdField,
+            l.layer.globalIdField,
+            l.layer.fields,
+          );
+
+          popupInfo = {
+            popupElements: [
+              {
+                type: 'fields',
+                description: '',
+                fieldInfos: popupFields,
+                title: '',
+              },
+            ],
+            fieldInfos: popupFields,
+            title: `${l.layer.title}${layerSettings?.popupTitle || ''}`,
+          };
+        }
+
         operationalLayers.push({
           layerType,
+          popupInfo,
           title: l.label,
           url,
         });

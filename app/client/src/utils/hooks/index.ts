@@ -1499,6 +1499,7 @@ function useSharedLayers({
     });
     const waterbodyPoints = new FeatureLayer({
       id: 'allWaterbodyPoints',
+      title: 'All Waterbodies Points',
       url: services.data.waterbodyService.points,
       outFields: ['*'],
       renderer: pointsRenderer,
@@ -1520,6 +1521,7 @@ function useSharedLayers({
     });
     const waterbodyLines = new FeatureLayer({
       id: 'allWaterbodyLines',
+      title: 'All Waterbodies Lines',
       url: services.data.waterbodyService.lines,
       outFields: ['*'],
       renderer: linesRenderer,
@@ -1541,6 +1543,7 @@ function useSharedLayers({
     });
     const waterbodyAreas = new FeatureLayer({
       id: 'allWaterbodyAreas',
+      title: 'All Waterbodies Areas',
       url: services.data.waterbodyService.areas,
       outFields: ['*'],
       renderer: areasRenderer,
