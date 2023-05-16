@@ -881,10 +881,8 @@ function useDynamicPopup() {
 }
 
 function useSharedLayers({
-  excludedLayers = [],
   overrides,
 }: {
-  excludedLayers?: string[];
   overrides?: {
     [layerId: string]: {
       minScale?: number;
@@ -1476,7 +1474,6 @@ function useSharedLayers({
   }
 
   function getAllWaterbodiesLayer() {
-    if (excludedLayers.includes('allWaterbodiesLayer')) return null;
     const popupTemplate = {
       title: getTitle,
       content: getTemplate,

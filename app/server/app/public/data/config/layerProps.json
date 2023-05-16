@@ -1,5 +1,11 @@
 {
   "layerSpecificSettings": {
+    "actionsWaterbodies": {
+      "popupTitle": ": {assessmentunitname} (ID: {assessmentunitidentifier})",
+      "layerProps": {
+        "description": ""
+      }
+    },
     "allWaterbodiesLayer": {
       "popupTitle": ": {assessmentunitname} (ID: {assessmentunitidentifier })",
       "layerProps": {
