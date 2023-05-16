@@ -915,9 +915,6 @@ export async function addWebMap({
     const url = getLayerUrl(services, l);
     const layerSettings = layerProps?.data.layerSpecificSettings[l.layer.id];
     const popupTitle = layerSettings?.popupTitle || '';
-    console.log('l: ', l);
-    console.log('l.layer.id: ', l.layer.id);
-    console.log('layerSettings: ', layerSettings);
 
     if (layerType === 'VectorTileLayer') {
       operationalLayers.push({
@@ -1205,11 +1202,6 @@ export async function addWebMap({
           layers: subLayers,
         });
       } else {
-        // TODO - Consider adding popup template. Will need to think about
-        //        how to ignore layers that already have popup templates
-        //        (e.g. layers added via add data widget)
-        console.log('layer: ', l);
-
         // build popup for feature layers that were not added via add data widget
         let popupInfo;
         if(!l.widgetLayer && layerType === 'ArcGISFeatureLayer' && isFeatureLayer(l.layer)) {
