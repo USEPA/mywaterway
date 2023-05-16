@@ -225,6 +225,12 @@
         }
       }
     },
+    "issuesLayer": {
+      "popupTitle": ": {assessmentunitname} (ID: {assessmentunitidentifier})",
+      "layerProps": {
+        "description": ""
+      }
+    },
     "monitoringLocationsLayer": {
       "popupTitle": ": {locationName}",
       "layerProps": {

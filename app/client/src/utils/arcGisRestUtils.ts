@@ -369,7 +369,7 @@ export async function createFeatureLayers(
     for (const layer of layersReversed) {
       if (!layer.requiresFeatureService) continue;
 
-      const properties = layerProps.data.layerSpecificSettings[layer.layer.id].layerProps;
+      const properties = layerProps.data.layerSpecificSettings[layer.layer.id]?.layerProps;
 
       // handle layers added via file upload
       if (layer.widgetLayer?.type === 'file') {
