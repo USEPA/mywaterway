@@ -591,22 +591,19 @@ function getCheckedStatus(numberSelected, children) {
   return status;
 }
 
-function getMean(values, precision) {
+function getMean(values) {
   const sum = values.reduce((a, b) => a + b, 0);
-  const mean = sum / values.length;
-  return precision !== undefined ? parseFloat(mean.toFixed(precision)) : mean;
+  return sum / values.length;
 }
 
 function getMedian(values) {
   const sorted = [...values].sort((a, b) => a - b);
   const numValues = values.length;
-  let median = 0;
   if (numValues % 2 === 0) {
-    median = (sorted[numValues / 2 - 1] + sorted[numValues / 2]) / 2;
+    return (sorted[numValues / 2 - 1] + sorted[numValues / 2]) / 2;
   } else {
-    median = sorted[(numValues - 1) / 2];
+    return sorted[(numValues - 1) / 2];
   }
-  return parseFloat(median.toFixed(measurementPrecision));
 }
 
 function getStdDev(values, mean = null) {
@@ -614,8 +611,7 @@ function getStdDev(values, mean = null) {
   const sampleMean = mean ?? getMean(values);
   const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
   const variance = tss / (values.length - 1);
-  const stdDev = Math.sqrt(variance);
-  return parseFloat(stdDev.toFixed(measurementPrecision));
+  return Math.sqrt(variance);
 }
 
 function getTotalCount(charcs) {
@@ -1046,9 +1042,10 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       const newRange = [Math.min(...yValues), Math.max(...yValues)];
       setRange(newRange);
 
-      setMean(getMean(yValues, measurementPrecision));
+      const newMean = getMean(yValues);
+      setMean(newMean);
       setMedian(getMedian(yValues));
-      setStdDev(getStdDev(yValues));
+      setStdDev(getStdDev(yValues, newMean));
       setMsmtCount(yValues.length);
     },
     [fraction, medium, parseMeasurements, unit],
@@ -1093,9 +1090,14 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     infoText =
       'No measurements available to be charted for this characteristic.';
 
-  let average = mean?.toLocaleString('en-US');
+  let average = '';
+  if (mean)
+    average += toFixedFloat(mean, measurementPrecision).toLocaleString('en-US');
   if (stdDev)
-    average += ` ${String.fromCharCode(177)} ${stdDev.toLocaleString()}`;
+    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
+      stdDev,
+      measurementPrecision,
+    ).toLocaleString()}`;
   average += ` ${displayUnit}`;
 
   return (
@@ -1245,7 +1247,10 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                     },
                     {
                       label: 'Median Value',
-                      value: `${median.toLocaleString()} ${displayUnit}`,
+                      value: `${toFixedFloat(
+                        median,
+                        measurementPrecision,
+                      ).toLocaleString()} ${displayUnit}`,
                     },
                     {
                       label: 'Minimum Value',
