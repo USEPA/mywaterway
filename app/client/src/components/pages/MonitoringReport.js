@@ -486,7 +486,8 @@ function buildTooltip(unit) {
       <div css={chartTooltipStyles}>
         <p>{datum.x}:</p>
         <p>
-          <em>Measurement</em>: {`${msmt.value} ${unit}`}
+          <em>Measurement</em>:{' '}
+          {`${msmt.value.toFixed(measurementPrecision)} ${unit}`}
           <br />
           {depth && (
             <>
@@ -590,10 +591,10 @@ function getCheckedStatus(numberSelected, children) {
   return status;
 }
 
-function getMean(values) {
+function getMean(values, precision) {
   const sum = values.reduce((a, b) => a + b, 0);
   const mean = sum / values.length;
-  return parseFloat(mean.toFixed(measurementPrecision));
+  return precision !== undefined ? parseFloat(mean.toFixed(precision)) : mean;
 }
 
 function getMedian(values) {
@@ -946,9 +947,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       mediumValues.add(record.medium);
 
       record.date = getDate(record);
-      record.measurement = parseFloat(
-        record.measurement.toFixed(measurementPrecision),
-      );
+      record.measurement = parseFloat(record.measurement);
       newMeasurements.push(record);
     });
 
@@ -990,8 +989,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     newMsmts.forEach((msmt) => {
       if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
         const dataPoint = {
-          // Map zero values to the lowest number afforded by the chosen precision
-          value: msmt.measurement || 1 * 10 ** (-1 * measurementPrecision),
+          // Map zero values to the lowest number possible
+          value: msmt.measurement || Number.EPSILON,
           depth: msmt.depth,
           depthUnit: msmt.depthUnit,
         };
@@ -1047,11 +1046,9 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       const newRange = [Math.min(...yValues), Math.max(...yValues)];
       setRange(newRange);
 
-      const newMean = getMean(yValues);
-
-      setMean(newMean);
+      setMean(getMean(yValues, measurementPrecision));
       setMedian(getMedian(yValues));
-      setStdDev(getStdDev(yValues, newMean));
+      setStdDev(getStdDev(yValues));
       setMsmtCount(yValues.length);
     },
     [fraction, medium, parseMeasurements, unit],
