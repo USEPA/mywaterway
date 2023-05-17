@@ -369,7 +369,8 @@ export async function createFeatureLayers(
     for (const layer of layersReversed) {
       if (!layer.requiresFeatureService) continue;
 
-      const properties = layerProps.data.layerSpecificSettings[layer.layer.id]?.layerProps;
+      const properties =
+        layerProps.data.layerSpecificSettings[layer.layer.id]?.layerProps;
 
       // handle layers added via file upload
       if (layer.widgetLayer?.type === 'file') {
@@ -1204,7 +1205,11 @@ export async function addWebMap({
       } else {
         // build popup for feature layers that were not added via add data widget
         let popupInfo;
-        if(!l.widgetLayer && layerType === 'ArcGISFeatureLayer' && isFeatureLayer(l.layer)) {
+        if (
+          !l.widgetLayer &&
+          layerType === 'ArcGISFeatureLayer' &&
+          isFeatureLayer(l.layer)
+        ) {
           const popupFields = buildPopupFieldsList(
             l.layer.objectIdField,
             l.layer.globalIdField,
@@ -1362,6 +1367,7 @@ export async function publish({
         services,
         serviceMetaData,
         layers,
+        layerProps,
       });
 
       return {
