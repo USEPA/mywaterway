@@ -600,7 +600,7 @@ async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
     layer.graphics.forEach((graphic) => {
       adds.push({
         attributes: graphic.attributes,
-        geometry: graphic.geometry.toJSON(),
+        geometry: graphic.geometry?.toJSON(),
       });
     });
   } else if (isFeatureLayer(layer)) {
@@ -608,7 +608,7 @@ async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
     features.features.forEach((feature) => {
       adds.push({
         attributes: feature.attributes,
-        geometry: feature.geometry.toJSON(),
+        geometry: feature.geometry?.toJSON(),
       });
     });
   }
