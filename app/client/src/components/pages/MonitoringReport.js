@@ -464,6 +464,8 @@ const treeStyles = (level, styles) => {
 ## Helpers
 */
 
+const measurementPrecision = 3;
+
 function buildOptions(values) {
   return Array.from(values).map((value) => {
     return { value: value, label: value };
@@ -484,7 +486,8 @@ function buildTooltip(unit) {
       <div css={chartTooltipStyles}>
         <p>{datum.x}:</p>
         <p>
-          <em>Measurement</em>: {`${msmt.value} ${unit}`}
+          <em>Measurement</em>:{' '}
+          {`${msmt.value.toFixed(measurementPrecision)} ${unit}`}
           <br />
           {depth && (
             <>
@@ -590,20 +593,17 @@ function getCheckedStatus(numberSelected, children) {
 
 function getMean(values) {
   const sum = values.reduce((a, b) => a + b, 0);
-  const mean = sum / values.length;
-  return parseFloat(mean.toFixed(3));
+  return sum / values.length;
 }
 
 function getMedian(values) {
   const sorted = [...values].sort((a, b) => a - b);
   const numValues = values.length;
-  let median = 0;
   if (numValues % 2 === 0) {
-    median = (sorted[numValues / 2 - 1] + sorted[numValues / 2]) / 2;
+    return (sorted[numValues / 2 - 1] + sorted[numValues / 2]) / 2;
   } else {
-    median = sorted[(numValues - 1) / 2];
+    return sorted[(numValues - 1) / 2];
   }
-  return parseFloat(median.toFixed(3));
 }
 
 function getStdDev(values, mean = null) {
@@ -611,8 +611,7 @@ function getStdDev(values, mean = null) {
   const sampleMean = mean ?? getMean(values);
   const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
   const variance = tss / (values.length - 1);
-  const stdDev = Math.sqrt(variance);
-  return parseFloat(stdDev.toFixed(3));
+  return Math.sqrt(variance);
 }
 
 function getTotalCount(charcs) {
@@ -944,7 +943,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       mediumValues.add(record.medium);
 
       record.date = getDate(record);
-      record.measurement = parseFloat(record.measurement.toFixed(3));
+      record.measurement = parseFloat(record.measurement);
       newMeasurements.push(record);
     });
 
@@ -986,7 +985,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     newMsmts.forEach((msmt) => {
       if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
         const dataPoint = {
-          value: msmt.measurement,
+          // Map zero values to the lowest number possible
+          value: msmt.measurement || Number.EPSILON,
           depth: msmt.depth,
           depthUnit: msmt.depthUnit,
         };
@@ -1043,7 +1043,6 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       setRange(newRange);
 
       const newMean = getMean(yValues);
-
       setMean(newMean);
       setMedian(getMedian(yValues));
       setStdDev(getStdDev(yValues, newMean));
@@ -1091,9 +1090,14 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     infoText =
       'No measurements available to be charted for this characteristic.';
 
-  let average = mean?.toLocaleString('en-US');
+  let average = '';
+  if (mean)
+    average += toFixedFloat(mean, measurementPrecision).toLocaleString('en-US');
   if (stdDev)
-    average += ` ${String.fromCharCode(177)} ${stdDev.toLocaleString()}`;
+    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
+      stdDev,
+      measurementPrecision,
+    ).toLocaleString()}`;
   average += ` ${displayUnit}`;
 
   return (
@@ -1243,7 +1247,10 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                     },
                     {
                       label: 'Median Value',
-                      value: `${median.toLocaleString()} ${displayUnit}`,
+                      value: `${toFixedFloat(
+                        median,
+                        measurementPrecision,
+                      ).toLocaleString()} ${displayUnit}`,
                     },
                     {
                       label: 'Minimum Value',
