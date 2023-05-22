@@ -432,11 +432,9 @@ const shadedBoxSectionStyles = css`
 
 const sliderContainerStyles = css`
   ${boxSectionStyles}
-  align-items: flex-end;
   display: flex;
   justify-content: center;
-  height: 3.5em;
-  margin-top: 0.4375rem;
+  height: 4.5em;
   width: 100%;
   span {
     margin-bottom: 0.1em;
