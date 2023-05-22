@@ -2,7 +2,7 @@
 
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
 // components
 import {
   AccordionList,
@@ -25,7 +25,7 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
-import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -127,7 +127,6 @@ const sliderContainerStyles = css`
   display: flex;
   gap: 1rem;
   justify-content: center;
-  padding-bottom: 10px;
   width: 100%;
   span {
     &:first-of-type {
@@ -139,23 +138,17 @@ const sliderContainerStyles = css`
   }
 `;
 
-const sliderHeaderStyles = css`
-  background-color: #f0f6f9;
-  border-bottom: 2px solid #dee2e6;
-  border-top: 1px solid #dee2e6;
-  display: flex;
-  gap: 0.5em;
-  justify-content: space-between;
-  margin: auto;
-  font-weight: bold;
-  padding: 0.5rem;
-  text-align: center;
-  width: 100%;
+const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+  ${styles}
+  margin: 1em 0;
+`;
 
-  span {
-    &:first-of-type {
-      width: 1em;
-    }
+const subheadingStyles = css`
+  font-weight: bold;
+  padding-bottom: 0;
+
+  &.centered {
+    text-align: center;
   }
 `;
 
@@ -1199,26 +1192,27 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 &nbsp;Past Water Conditions&nbsp;
               </span>
             </div>
-            <div css={sliderHeaderStyles}>
-              <span></span>
-              <span>
-                Date range for the <em>{watershed}</em> watershed{' '}
-              </span>
-              <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
+            <div css={marginBoxStyles(textBoxStyles)}>
+              <p css={subheadingStyles}>
+                <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
+                &nbsp;&nbsp; Date range for the <em>{watershed}</em> watershed{' '}
+              </p>
+
+              <div css={sliderContainerStyles}>
+                {!monitoringYearsRange ? (
+                  <LoadingSpinner />
+                ) : (
+                  <DateSlider
+                    max={maxYear}
+                    min={minYear}
+                    disabled={!Boolean(Object.keys(annualData).length)}
+                    onChange={handleDateSliderChange}
+                    range={monitoringYearsRange}
+                  />
+                )}
+              </div>
             </div>
-            <div css={sliderContainerStyles}>
-              {!monitoringYearsRange ? (
-                <LoadingSpinner />
-              ) : (
-                <DateSlider
-                  max={maxYear}
-                  min={minYear}
-                  disabled={!Boolean(Object.keys(annualData).length)}
-                  onChange={handleDateSliderChange}
-                  range={monitoringYearsRange}
-                />
-              )}
-            </div>
+
             <table
               css={modifiedToggleTableStyles}
               aria-label="Monitoring Location Summary"
