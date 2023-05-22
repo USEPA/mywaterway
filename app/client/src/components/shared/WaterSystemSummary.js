@@ -15,11 +15,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
-import {
-  formatNumber,
-  isAbort,
-  removeAccessibiltyHcSvgExport,
-} from 'utils/utils';
+import { formatNumber, isAbort } from 'utils/utils';
 import { useAbortSignal } from 'utils/hooks';
 // errors
 import { grpaError } from 'config/errorMessages';
@@ -29,9 +25,6 @@ highchartsExporting(Highcharts);
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
-
-// Workaround for the Download SVG not working with the accessibility module.
-removeAccessibiltyHcSvgExport();
 
 function formatValue(value: ?string) {
   return value ? formatNumber(value) : '';
