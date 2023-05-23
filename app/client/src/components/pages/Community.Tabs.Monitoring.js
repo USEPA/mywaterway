@@ -146,10 +146,7 @@ const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
 const subheadingStyles = css`
   font-weight: bold;
   padding-bottom: 0;
-
-  &.centered {
-    text-align: center;
-  }
+  text-align: center;
 `;
 
 const switchContainerStyles = css`

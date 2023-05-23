@@ -1222,10 +1222,7 @@ const sliderContainerStyles = css`
 const subheadingStyles = css`
   font-weight: bold;
   padding-bottom: 0;
-
-  &.centered {
-    text-align: center;
-  }
+  text-align: center;
 `;
 
 const oneDay = 1000 * 60 * 60 * 24;
@@ -1428,7 +1425,7 @@ function CyanDailyContent({
     const maxCc = getMaxCellConcentration(data.measurements);
     return (
       <>
-        <p className="centered" css={subheadingStyles}>
+        <p css={subheadingStyles}>
           Cyanobacteria Concentration Histogram and Maximum for Selected Date:{' '}
           {formatDate(epochDate)}
         </p>
@@ -1975,7 +1972,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                         </>
                       }
                     />
-                    &nbsp;&nbsp; Date Selection:
+                    &nbsp;&nbsp; Date Selection
                   </p>
 
                   <div css={sliderContainerStyles}>
