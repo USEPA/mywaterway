@@ -1,4 +1,3 @@
-import Highcharts from 'highcharts';
 import Point from '@arcgis/core/geometry/Point';
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
