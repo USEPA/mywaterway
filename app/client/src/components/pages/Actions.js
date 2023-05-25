@@ -43,7 +43,7 @@ import {
   getOrganizationLabel,
   getTypeFromAttributes,
 } from 'utils/mapFunctions';
-import { chunkArray } from 'utils/utils';
+import { chunkArrayCharLength } from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';
 // errors
@@ -58,16 +58,16 @@ function getAssessmentUnitNames(services: any, orgId: string, action: Object) {
     });
 
     // unitIds, in 100 item chunks, to not overload attains web service call
-    const chunkedUnitIds = chunkArray(unitIds, 100);
+    const chunkedUnitIds = chunkArrayCharLength(unitIds, 1000);
 
     // request data with each chunk of unitIds
     const requests = [];
 
-    chunkedUnitIds.forEach((chunk: Array<string>) => {
+    chunkedUnitIds.forEach((chunk) => {
       const url =
         `${services.data.attains.serviceUrl}` +
         `assessmentUnits?organizationId=${orgId}` +
-        `&assessmentUnitIdentifier=${chunk.join(',')}`;
+        `&assessmentUnitIdentifier=${chunk}`;
       const request = fetchCheck(url);
       requests.push(request);
     });
