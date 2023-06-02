@@ -51,6 +51,7 @@ jobs:
       APP_NAME: mywaterway-dev
       CF_ORG: ${{ secrets.CF_ORG }}
       CF_SPACE: ${{ secrets.CF_SPACE_DEV }}
+      CF_STACK: cflinuxfs4
       CF_USER_DEV: ${{ secrets.CF_USER_DEV }}
       CF_PASSWORD_DEV: ${{ secrets.CF_PASSWORD_DEV }}
       CF_S3_PUB_ACCESS_KEY: ${{ secrets.CF_DEV_S3_PUB_ACCESS_KEY }}
@@ -127,5 +128,5 @@ jobs:
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
       - name: Deploy application to Cloud.gov
-        run: cf push $APP_NAME --strategy rolling -f ../manifest-dev.yml -p . -t 180
+        run: cf push $APP_NAME --strategy rolling -f ../manifest-dev.yml -p . -t 180 -s $CF_STACK
         working-directory: app/server

@@ -121,6 +121,12 @@ function initialToggler(_showSurroundings: boolean) {
 export function isSurroundingFeaturesLayerId(
   layerId: string,
 ): layerId is SurroundingFeaturesLayerId {
+  if (
+    window.location.pathname.includes('/plan-summary') &&
+    layerId === 'allWaterbodiesLayer'
+  )
+    return false;
+
   return (layerIds as readonly string[]).includes(layerId);
 }
 

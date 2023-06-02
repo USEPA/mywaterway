@@ -66,6 +66,7 @@ import {
 } from 'utils/hooks';
 import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
+  chunkArrayCharLength,
   isAbort,
   isHuc12,
   updateCanonicalLink,
@@ -399,11 +400,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const handleOrphanedFeatures = useCallback(
-    (res, attainsDomainsData, missingAssessments) => {
+    (resUnits, attainsDomainsData, missingAssessments) => {
       if (organizations.status !== 'success') return;
 
       const allAssessmentUnits = [];
-      res.items.forEach((item) =>
+      resUnits.forEach((item) =>
         item.assessmentUnits.forEach((assessmentUnit) => {
           allAssessmentUnits.push(assessmentUnit);
         }),
@@ -432,7 +433,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
 
       const requests = [];
-      res.items.forEach((item) => {
+      resUnits.forEach((item) => {
         const orgId = item.organizationIdentifier;
         const ids = item.assessmentUnits.map(
           (assessment) => assessment.assessmentUnitIdentifier,
@@ -451,13 +452,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         const reportingCycle = organization?.attributes?.reportingcycle;
         if (!reportingCycle) return;
 
-        const url =
-          `${services.data.attains.serviceUrl}` +
-          `assessments?organizationId=${orgId}&reportingCycle=${reportingCycle}&assessmentUnitIdentifier=${ids.join(
-            ',',
-          )}`;
+        // chunk the requests by character count
+        // the assessmentUnitIdentifier param supports a max of 1000 characters
+        const chunkedUnitIds = chunkArrayCharLength(ids, 1000);
 
-        requests.push(fetchCheck(url));
+        chunkedUnitIds.forEach((chunk) => {
+          const url =
+            `${services.data.attains.serviceUrl}` +
+            `assessments?organizationId=${orgId}&reportingCycle=${reportingCycle}&assessmentUnitIdentifier=${chunk}`;
+
+          requests.push(fetchCheck(url));
+        });
       });
 
       Promise.all(requests)
@@ -469,7 +474,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           let orphans = [];
           responses.forEach((response) => {
-            if (!response || !response.items || response.items.length === 0) {
+            if (!response?.items || response.items.length === 0) {
               setOrphanFeatures({ features: [], status: 'error' });
               return;
             }
@@ -555,20 +560,36 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
             const attainsDomainsData = res;
 
-            const url =
-              `${services.data.attains.serviceUrl}` +
-              `assessmentUnits?assessmentUnitIdentifier=${orphanIDs.join(',')}`;
+            // chunk the requests by character count
+            // the assessmentUnitIdentifier param supports a max of 1000 characters
+            const chunkedUnitIds = chunkArrayCharLength(orphanIDs, 1000);
 
-            fetchCheck(url)
-              .then((resUnits) => {
-                if (
-                  !resUnits ||
-                  !resUnits.items ||
-                  resUnits.items.length === 0
-                ) {
+            const requests = [];
+            chunkedUnitIds.forEach((chunk) => {
+              const url =
+                `${services.data.attains.serviceUrl}` +
+                `assessmentUnits?assessmentUnitIdentifier=${chunk}`;
+
+              requests.push(fetchCheck(url));
+            });
+
+            Promise.all(requests)
+              .then((responses) => {
+                if (!responses) {
                   setOrphanFeatures({ features: [], status: 'error' });
                   return;
                 }
+
+                let resUnits = [];
+                responses.forEach((response) => {
+                  if (!response?.items || response.items.length === 0) {
+                    setOrphanFeatures({ features: [], status: 'error' });
+                    return;
+                  }
+
+                  resUnits = resUnits.concat(response.items);
+                });
+
                 handleOrphanedFeatures(resUnits, attainsDomainsData, orphanIDs);
               })
               .catch((err) => {
@@ -816,36 +837,40 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           updateErroredLayers({ waterbodyLines: false });
 
           // crop the waterbodies geometry to within the huc
-          const features = cropGeometryToHuc(
+          cropGeometryToHuc(
             res.features,
             boundaries.features[0].geometry,
-          );
-
-          const linesRenderer = {
-            type: 'unique-value',
-            field: 'overallstatus',
-            fieldDelimiter: ', ',
-            defaultSymbol: createWaterbodySymbol({
-              condition: 'unassessed',
-              selected: false,
-              geometryType: 'polyline',
-            }),
-            uniqueValueInfos: createUniqueValueInfos('polyline'),
-          };
-          const newLinesLayer = new FeatureLayer({
-            id: 'waterbodyLines',
-            title: 'Waterbody Lines',
-            geometryType: res.geometryType,
-            spatialReference: res.spatialReference,
-            fields: res.fields,
-            source: features,
-            outFields: ['*'],
-            renderer: linesRenderer,
-            popupTemplate,
-          });
-          setLayer('waterbodyLines', newLinesLayer);
-          setResetHandler('waterbodyLines', () => {
-            setLayer('waterbodyLines', null);
+          ).then((features) => {
+            const linesRenderer = {
+              type: 'unique-value',
+              field: 'overallstatus',
+              fieldDelimiter: ', ',
+              defaultSymbol: createWaterbodySymbol({
+                condition: 'unassessed',
+                selected: false,
+                geometryType: 'polyline',
+              }),
+              uniqueValueInfos: createUniqueValueInfos('polyline'),
+            };
+            const newLinesLayer = new FeatureLayer({
+              id: 'waterbodyLines',
+              title: 'Waterbody Lines',
+              geometryType: res.geometryType,
+              spatialReference: res.spatialReference,
+              fields: res.fields,
+              source: features,
+              outFields: ['*'],
+              renderer: linesRenderer,
+              popupTemplate,
+            });
+            setLayer('waterbodyLines', newLinesLayer);
+            setResetHandler('waterbodyLines', () => {
+              setLayer('waterbodyLines', null);
+            });
+          }).catch((err) => {
+            handleMapServiceError(err);
+            updateErroredLayers({ waterbodyLines: true });
+            setLinesData({ features: [] });
           });
         })
         .catch((err) => {
@@ -889,36 +914,40 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           updateErroredLayers({ waterbodyAreas: false });
 
           // crop the waterbodies geometry to within the huc
-          const features = cropGeometryToHuc(
+          cropGeometryToHuc(
             res.features,
             boundaries.features[0].geometry,
-          );
-
-          const areasRenderer = {
-            type: 'unique-value',
-            field: 'overallstatus',
-            fieldDelimiter: ', ',
-            defaultSymbol: createWaterbodySymbol({
-              condition: 'unassessed',
-              selected: false,
-              geometryType: 'polygon',
-            }),
-            uniqueValueInfos: createUniqueValueInfos('polygon'),
-          };
-          const newAreasLayer = new FeatureLayer({
-            id: 'waterbodyAreas',
-            title: 'Waterbody Areas',
-            geometryType: res.geometryType,
-            spatialReference: res.spatialReference,
-            fields: res.fields,
-            source: features,
-            outFields: ['*'],
-            renderer: areasRenderer,
-            popupTemplate,
-          });
-          setLayer('waterbodyAreas', newAreasLayer);
-          setResetHandler('waterbodyAreas', () => {
-            setLayer('waterbodyAreas', null);
+          ).then((features) => {
+            const areasRenderer = {
+              type: 'unique-value',
+              field: 'overallstatus',
+              fieldDelimiter: ', ',
+              defaultSymbol: createWaterbodySymbol({
+                condition: 'unassessed',
+                selected: false,
+                geometryType: 'polygon',
+              }),
+              uniqueValueInfos: createUniqueValueInfos('polygon'),
+            };
+            const newAreasLayer = new FeatureLayer({
+              id: 'waterbodyAreas',
+              title: 'Waterbody Areas',
+              geometryType: res.geometryType,
+              spatialReference: res.spatialReference,
+              fields: res.fields,
+              source: features,
+              outFields: ['*'],
+              renderer: areasRenderer,
+              popupTemplate,
+            });
+            setLayer('waterbodyAreas', newAreasLayer);
+            setResetHandler('waterbodyAreas', () => {
+              setLayer('waterbodyAreas', null);
+            });
+          }).catch((err) => {
+            handleMapServiceError(err);
+            updateErroredLayers({ waterbodyAreas: true });
+            setAreasData({ features: [] });
           });
         })
         .catch((err) => {
@@ -1130,7 +1159,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          if (!res || !res.features || res.features.length <= 0) {
+          if (!res?.features || res.features.length <= 0) {
             setFishingInfo({ status: 'success', data: [] });
             return;
           }
@@ -1163,7 +1192,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          if (!res || !res.features || res.features.length <= 0) {
+          if (!res?.features || res.features.length <= 0) {
             setWsioHealthIndexData({ status: 'success', data: [] });
             return;
           }
@@ -1188,11 +1217,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const getWildScenicRivers = useCallback(
     (boundaries) => {
-      if (
-        !boundaries ||
-        !boundaries.features ||
-        boundaries.features.length === 0
-      ) {
+      if (!boundaries?.features || boundaries.features.length === 0) {
         setWildScenicRiversData({
           data: [],
           status: 'success',
@@ -1232,11 +1257,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const getProtectedAreas = useCallback(
     (boundaries) => {
-      if (
-        !boundaries ||
-        !boundaries.features ||
-        boundaries.features.length === 0
-      ) {
+      if (!boundaries?.features || boundaries.features.length === 0) {
         setProtectedAreasData({
           data: [],
           fields: [],
