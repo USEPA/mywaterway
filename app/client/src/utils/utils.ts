@@ -1,4 +1,3 @@
-import Highcharts from 'highcharts';
 import Point from '@arcgis/core/geometry/Point';
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
@@ -10,6 +9,31 @@ function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
   while (index < array.length) {
     chunks.push(array.slice(index, (index += chunkLength)));
   }
+  return chunks;
+}
+
+// utility function to split up an array into chunks of a designated max character length
+function chunkArrayCharLength(
+  array: string[],
+  charLength: number,
+  separator: string = ',',
+): Array<string> {
+  const chunks: string[] = [];
+  let tempString = '';
+  let chunkString = '';
+  array.forEach((item: string, index: number) => {
+    if (!tempString) tempString = item;
+    else tempString += separator + item;
+
+    if (tempString.length <= charLength) chunkString = tempString;
+    else {
+      chunks.push(chunkString);
+      tempString = item;
+    }
+  });
+
+  chunks.push(chunkString);
+
   return chunks;
 }
 
@@ -465,22 +489,6 @@ function parseAttributes<Type>(
   return { ...attributes, ...parsed };
 }
 
-// Workaround for the Download SVG not working with the accessibility module.
-function removeAccessibiltyHcSvgExport() {
-  Highcharts.addEvent(
-    Highcharts.Chart.prototype,
-    'afterA11yUpdate',
-    function (e: Event | Highcharts.Dictionary<any> | undefined) {
-      if (!e || !('accessibility' in e)) return;
-
-      const a11y = e.accessibility;
-      if ((this.renderer as any).forExport && a11y && a11y.proxyProvider) {
-        a11y.proxyProvider.destroy();
-      }
-    },
-  );
-}
-
 // Rounds a float to a specified precision
 function toFixedFloat(num: number, precision: number = 0) {
   if (precision < 0) return num;
@@ -521,6 +529,7 @@ function escapeForLucene(value: string) {
 
 export {
   chunkArray,
+  chunkArrayCharLength,
   containsScriptTag,
   escapeForLucene,
   escapeRegex,
@@ -549,6 +558,5 @@ export {
   summarizeAssessments,
   indicesOf,
   parseAttributes,
-  removeAccessibiltyHcSvgExport,
   toFixedFloat,
 };

@@ -22,7 +22,6 @@ import {
 import {
   formatNumber,
   normalizeString,
-  removeAccessibiltyHcSvgExport,
   titleCase,
   titleCaseWithExceptions,
 } from 'utils/utils';
@@ -36,9 +35,6 @@ highchartsExporting(Highcharts);
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
-
-// Workaround for the Download SVG not working with the accessibility module.
-removeAccessibiltyHcSvgExport();
 
 const chartFooterStyles = css`
   font-size: 0.75rem;

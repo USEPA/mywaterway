@@ -88,6 +88,7 @@ function StateMap({
   const {
     resetLayers,
     setLayer,
+    setResetHandler,
     updateVisibleLayers,
     waterbodyAreas,
     waterbodyLayer,
@@ -135,6 +136,9 @@ function StateMap({
       popupTemplate,
     });
     setLayer('waterbodyPoints', waterbodyPoints);
+    setResetHandler('waterbodyPoints', () => {
+      setLayer('waterbodyPoints', null);
+    });
 
     const linesRenderer = {
       type: 'unique-value',
@@ -155,6 +159,9 @@ function StateMap({
       popupTemplate,
     });
     setLayer('waterbodyLines', waterbodyLines);
+    setResetHandler('waterbodyLines', () => {
+      setLayer('waterbodyLines', null);
+    });
 
     const areasRenderer = {
       type: 'unique-value',
@@ -175,6 +182,9 @@ function StateMap({
       popupTemplate,
     });
     setLayer('waterbodyAreas', waterbodyAreas);
+    setResetHandler('waterbodyAreas', () => {
+      setLayer('waterbodyAreas', null);
+    });
 
     // Make the waterbody layer into a single layer
     const waterbodyLayer = new GroupLayer({
@@ -186,6 +196,10 @@ function StateMap({
     });
     waterbodyLayer.addMany([waterbodyAreas, waterbodyLines, waterbodyPoints]);
     setLayer('waterbodyLayer', waterbodyLayer);
+    setResetHandler('waterbodyLayer', () => {
+      waterbodyLayer?.layers.removeAll();
+      setLayer('waterbodyLayer', null);
+    });
 
     setLayers([...getSharedLayers(), waterbodyLayer]);
 
@@ -195,6 +209,7 @@ function StateMap({
   }, [
     getSharedLayers,
     setLayer,
+    setResetHandler,
     layersInitialized,
     services,
     updateVisibleLayers,

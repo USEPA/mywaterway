@@ -1,6 +1,27 @@
 
 # Change Log
 
+## 2.6.1 (June 2023)
+
+### Changed
+
+- Updated the look of the date sliders on the Community Monitoring panel and the Monitoring Report page to stand out more.
+
+- Updated the saving widget to apply better popup titles. 
+
+- Updated the saving widget to include popups for the All Waterbodies layer.
+
+- Improved the performance of cropping geometry to the selected HUC12 boundaries.
+
+- Fixed an error with saving from Baton Rouge, LA on the community page.
+
+- Fixed a bug on the monitoring report page where no data would be displayed when using the log scale, if there was at least one zero value.
+
+- Fixed a bug on the state advanced search page where the second search would not display anything on the map.
+
+- Fixed a bug where locations with a lot of waterbodies without GIS were not loading on the community page.
+
+
 ## 2.6.0 (April 2023)
 
 ### Added

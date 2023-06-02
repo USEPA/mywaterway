@@ -53,6 +53,7 @@ jobs:
       APP_NAME_ATTAINS: mywaterway-attains
       CF_ORG: ${{ secrets.CF_ORG }}
       CF_SPACE: ${{ secrets.CF_SPACE_STAGING }}
+      CF_STACK: cflinuxfs4
       CF_USER_STAGING: ${{ secrets.CF_USER_STAGING }}
       CF_PASSWORD_STAGING: ${{ secrets.CF_PASSWORD_STAGING }}
       CF_S3_PUB_ACCESS_KEY: ${{ secrets.CF_STAGING_S3_PUB_ACCESS_KEY }}
@@ -133,7 +134,7 @@ jobs:
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
       - name: Deploy application to Cloud.gov
-        run: cf push $APP_NAME --strategy rolling -f ../manifest-staging.yml -p . -t 180
+        run: cf push $APP_NAME --strategy rolling -f ../manifest-staging.yml -p . -t 180 -s $CF_STACK
         working-directory: app/server
       
       - name: Zip artifacts
@@ -175,6 +176,6 @@ jobs:
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
       - name: Deploy ATTAINS version of application to Cloud.gov
-        run: cf push $APP_NAME_ATTAINS --strategy rolling -f ../manifest-attains.yml -p . -t 180
+        run: cf push $APP_NAME_ATTAINS --strategy rolling -f ../manifest-attains.yml -p . -t 180 -s $CF_STACK
         working-directory: app/server
 

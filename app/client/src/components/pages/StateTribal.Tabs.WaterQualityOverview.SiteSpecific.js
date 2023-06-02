@@ -16,7 +16,7 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
-import { formatNumber, removeAccessibiltyHcSvgExport } from 'utils/utils';
+import { formatNumber } from 'utils/utils';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
@@ -29,9 +29,6 @@ highchartsExporting(Highcharts);
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
-
-// Workaround for the Download SVG not working with the accessibility module.
-removeAccessibiltyHcSvgExport();
 
 const textStyles = css`
   padding-bottom: 0;
