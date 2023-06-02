@@ -369,7 +369,8 @@ export async function createFeatureLayers(
     for (const layer of layersReversed) {
       if (!layer.requiresFeatureService) continue;
 
-      const properties = layerProps.data.layerSpecificSettings[layer.layer.id];
+      const properties =
+        layerProps.data.layerSpecificSettings[layer.layer.id]?.layerProps;
 
       // handle layers added via file upload
       if (layer.widgetLayer?.type === 'file') {
@@ -599,7 +600,7 @@ async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
     layer.graphics.forEach((graphic) => {
       adds.push({
         attributes: graphic.attributes,
-        geometry: graphic.geometry.toJSON(),
+        geometry: graphic.geometry?.toJSON(),
       });
     });
   } else if (isFeatureLayer(layer)) {
@@ -607,7 +608,7 @@ async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
     features.features.forEach((feature) => {
       adds.push({
         attributes: feature.attributes,
-        geometry: feature.geometry.toJSON(),
+        geometry: feature.geometry?.toJSON(),
       });
     });
   }
@@ -913,6 +914,8 @@ export async function addWebMap({
   layers.forEach((l) => {
     const layerType = getAgoLayerType(l) as string;
     const url = getLayerUrl(services, l);
+    const layerSettings = layerProps?.data.layerSpecificSettings[l.layer.id];
+    const popupTitle = layerSettings?.popupTitle || '';
 
     if (layerType === 'VectorTileLayer') {
       operationalLayers.push({
@@ -938,7 +941,7 @@ export async function addWebMap({
         // don't do anything for these layers, they will be handeled below
       } else {
         // handle boundaries and providers
-        let properties = layerProps.data.layerSpecificSettings[l.layer.id];
+        let properties = layerSettings.layerProps;
         if (l.layer.id === 'boundariesLayer')
           properties = mapView.map.findLayerById('watershedsLayer');
         if (l.layer.id === 'providersLayer')
@@ -995,7 +998,7 @@ export async function addWebMap({
               },
             ],
             fieldInfos: popupFields,
-            title: `${lRes.name}: {orgName}`,
+            title: `${lRes.name}${popupTitle}`,
           },
         });
 
@@ -1061,7 +1064,7 @@ export async function addWebMap({
                 },
               ],
               fieldInfos: popupFields,
-              title: `${lRes.name}: {orgName}`,
+              title: `${lRes.name}${popupTitle}`,
             },
           });
         });
@@ -1131,7 +1134,7 @@ export async function addWebMap({
                   },
                 ],
                 fieldInfos: popupFields,
-                title: `${lRes.name}: {orgName}`,
+                title: `${lRes.name}${popupTitle}`,
               },
             };
           }),
@@ -1139,7 +1142,10 @@ export async function addWebMap({
       }
     } else {
       // handle waterbodies layer on the state and tribe pages
-      if (l.id === 'waterbodyLayer' && isGroupLayer(l.layer)) {
+      if (
+        ['allWaterbodiesLayer', 'waterbodyLayer'].includes(l.id) &&
+        isGroupLayer(l.layer)
+      ) {
         const subLayers: ILayerExtendedType[] = [];
         l.layer.layers.forEach((subLayer) => {
           if (!isFeatureLayer(subLayer)) return;
@@ -1167,12 +1173,25 @@ export async function addWebMap({
                   },
                 ],
                 fieldInfos: popupFields,
-                title: `${subLayer.title}: {orgName}`,
+                title: `${subLayer.title}${popupTitle}`,
               },
             });
           } else {
             subLayers.push({
               id: subLayer.layerId,
+              disablePopup: false,
+              popupInfo: {
+                popupElements: [
+                  {
+                    type: 'fields',
+                    description: '',
+                    fieldInfos: popupFields,
+                    title: '',
+                  },
+                ],
+                fieldInfos: popupFields,
+                title: `${subLayer.title}${popupTitle}`,
+              },
             });
           }
         });
@@ -1184,8 +1203,36 @@ export async function addWebMap({
           layers: subLayers,
         });
       } else {
+        // build popup for feature layers that were not added via add data widget
+        let popupInfo;
+        if (
+          !l.widgetLayer &&
+          layerType === 'ArcGISFeatureLayer' &&
+          isFeatureLayer(l.layer)
+        ) {
+          const popupFields = buildPopupFieldsList(
+            l.layer.objectIdField,
+            l.layer.globalIdField,
+            l.layer.fields,
+          );
+
+          popupInfo = {
+            popupElements: [
+              {
+                type: 'fields',
+                description: '',
+                fieldInfos: popupFields,
+                title: '',
+              },
+            ],
+            fieldInfos: popupFields,
+            title: `${l.layer.title}${layerSettings?.popupTitle || ''}`,
+          };
+        }
+
         operationalLayers.push({
           layerType,
+          popupInfo,
           title: l.label,
           url,
         });
@@ -1320,6 +1367,7 @@ export async function publish({
         services,
         serviceMetaData,
         layers,
+        layerProps,
       });
 
       return {

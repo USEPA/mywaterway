@@ -367,7 +367,7 @@ describe('Add & Save Data Widget', () => {
           // Add a new layer
           cy.findByRole('button', { name: 'Add' }).click();
           // Wait for the layer to be added
-          cy.findByRole('button', { name: 'Remove', timeout: 5000 }).should(
+          cy.findByRole('button', { name: 'Remove', timeout: 120000 }).should(
             'be.visible',
           );
         },

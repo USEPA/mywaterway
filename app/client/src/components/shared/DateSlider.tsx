@@ -1,7 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { useRanger } from 'react-ranger';
 import { v4 as uuid } from 'uuid';
+
+function getTicks(yearsArray: number[], maxTicks: number) {  
+  if(yearsArray.length <= maxTicks) return yearsArray; 
+
+  const tickList = [];
+  const length = yearsArray.length;
+  const skip = Math.round(length / maxTicks);
+  for (let i = 0; i < length; i += skip) {
+    tickList.push(yearsArray[i]);
+  }
+
+  return tickList;
+}
 
 /*
  ** Styles
@@ -40,7 +53,9 @@ const sliderContainerStyles = css`
   gap: 1em;
   height: 3.5em;
   justify-content: center;
+  padding-bottom: 2em;
   width: 100%;
+  margin: 25px 30px 0;
 `;
 
 const sliderStyles = css`
@@ -48,6 +63,27 @@ const sliderStyles = css`
   display: inline-flex;
   width: 100%;
   z-index: 0;
+`;
+
+const tickLabelStyles = css`
+  position: absolute;
+  font-size: 1em;
+  color: rgba(0, 0, 0, 0.5);
+  top: 100%;
+  transform: translate(-50%, 1.2rem);
+  white-space: nowrap;
+`;
+
+const tickStyles = css`
+  :before {
+    content: '';
+    position: absolute;
+    left: 0;
+    background: rgba(0, 0, 0, 0.2);
+    height: 5px;
+    width: 2px;
+    transform: translate(-50%, 0.7rem);
+  }
 `;
 
 const tooltipStyles = css`
@@ -93,18 +129,43 @@ function DateSlider({
     setMinYear(min);
     setMaxYear(max);
   }, [min, max]);
+  
+  const [sliderWidth, setSliderWidth] = useState(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const observer = useMemo(
+    () =>
+      new (window as any).ResizeObserver((entries: any) => {
+        if (entries[0]) {
+          const { width } = entries[0].contentRect;
+          setSliderWidth(width);
+        }
+      }),
+    []
+  );
+  useLayoutEffect(() => {
+    if (!sliderRef?.current) return;
+    observer.observe(sliderRef.current);
+    return () => {
+      observer.disconnect();
+    };
+  }, [observer, sliderRef]);
 
-  const { getTrackProps, segments, handles } = useRanger({
+
+  const yearsArray = [...Array(max - min + 1).keys()].map(x => x + min);
+  const tickList = getTicks(yearsArray, sliderWidth < 80 ? 1 : sliderWidth < 300 ? 2 : 4);
+  if(tickList.slice(-1)[0] !== max) tickList.push(max);
+
+  const { getTrackProps, segments, ticks, handles } = useRanger({
     min: minYear,
     max: maxYear,
     stepSize: 1,
+    ticks: tickList,
     values: range,
     onChange,
   });
 
   return (
-    <div css={sliderContainerStyles}>
-      <span>{!disabled && minYear}</span>
+    <div css={sliderContainerStyles} ref={sliderRef}>
       {minYear !== maxYear && (
         <>
           <div css={sliderStyles}>
@@ -120,6 +181,13 @@ function DateSlider({
                   })}
                 />
               ))}
+              {ticks.map(({ value, getTickProps }, i) => {
+                return (
+                  <div css={tickStyles} {...getTickProps({ key: i })}>
+                    <div css={tickLabelStyles}>{value}</div>
+                  </div>
+                );
+              })}
               {!disabled &&
                 handles.map(({ value, active, getHandleProps }, i) => (
                   <button
@@ -139,7 +207,6 @@ function DateSlider({
                 ))}
             </div>
           </div>
-          <span>{!disabled && maxYear}</span>
         </>
       )}
     </div>

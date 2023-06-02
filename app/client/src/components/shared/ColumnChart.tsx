@@ -3,8 +3,6 @@ import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
 import { useCallback, useMemo } from 'react';
-// utils
-import { removeAccessibiltyHcSvgExport } from 'utils/utils';
 // styles
 import { fonts } from 'styles/index.js';
 
@@ -13,9 +11,6 @@ highchartsExporting(Highcharts);
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
-
-// Workaround for the Download SVG not working with the accessibility module.
-removeAccessibiltyHcSvgExport();
 
 const baseFontSize = '14px';
 const mediumFontSize = '16px';

@@ -97,6 +97,11 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
+  text-align: center;
+`;
+
 const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
@@ -1233,10 +1238,12 @@ function WaterbodyReport() {
                       {waterbodySources.status === 'success' && (
                         <>
                           {waterbodySources.data.length === 0 ? (
-                            <p>
-                              No probable sources of impairment identified for
-                              this waterbody.
-                            </p>
+                            <div css={modifiedInfoBoxStyles}>
+                              <p>
+                                No probable sources of impairment identified for
+                                this waterbody.
+                              </p>
+                            </div>
                           ) : (
                             <ReactTable
                               data={waterbodySources.data}
@@ -1288,7 +1295,9 @@ function WaterbodyReport() {
                       {documents.status === 'success' && (
                         <>
                           {documents.data.length === 0 ? (
-                            <p>No documents are available</p>
+                            <div css={modifiedInfoBoxStyles}>
+                              <p>No documents are available</p>
+                            </div>
                           ) : (
                             <>
                               <em>Links below open in a new browser tab.</em>
@@ -1352,7 +1361,9 @@ function WaterbodyReport() {
                       {waterbodyActions.status === 'success' && (
                         <>
                           {waterbodyActions.data.length === 0 ? (
-                            <p>No plans specified for this waterbody.</p>
+                            <div css={modifiedInfoBoxStyles}>
+                              <p>No plans specified for this waterbody.</p>
+                            </div>
                           ) : (
                             <>
                               <em>Links below open in a new browser tab.</em>
