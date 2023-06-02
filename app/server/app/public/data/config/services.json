@@ -6,7 +6,7 @@
   "mappedWater": "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus/NHDPlus/MapServer",
   "upstreamWatershed": "https://gispub.epa.gov/arcgis/rest/services/OW/CatchmentFabric/MapServer/2/",
   "nonprofits": "https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/",
-  "tribal": "https://geopub.epa.gov/arcgis/rest/services/EMEF/tribal/MapServer",
+  "tribal": "https://geopub.epa.gov/arcgis/rest/services/EMEF/Tribal/MapServer",
   "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_116th_Congressional_Districts_all/FeatureServer",
   "wsio": "https://gispub.epa.gov/arcgis/rest/services/r4/wsio/MapServer/0",
   "waterbodyService": {
@@ -52,7 +52,7 @@
   },
   "wildScenicRivers": "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/WildScenicRiversV2_AGOL/FeatureServer/1/",
   "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus3/Protection_Mechanism_Category/MapServer/",
-  "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2018_Public/MapServer/",
+  "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2020_Public/MapServer/",
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
   "cyan": {
