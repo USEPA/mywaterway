@@ -922,6 +922,7 @@ function MapWidgets({
     });
   }, [view]);
 
+  // add the download widget
   useEffect(() => {
     if (downloadWidget)
       view?.ui.add(downloadWidget, { position: 'top-right', index: 3 });
