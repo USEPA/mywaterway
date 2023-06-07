@@ -18,6 +18,7 @@ import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
 import Point from '@arcgis/core/geometry/Point';
+import Print from '@arcgis/core/widgets/Print.js';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import * as query from '@arcgis/core/rest/query';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
@@ -903,6 +904,32 @@ function MapWidgets({
     fullScreenWidgetCreated,
   ]);
 
+  // create download widget
+  const downloadWidget = useMemo(() => {
+    if (!view) return null;
+    const container = document.createElement('div');
+    container.style.width = '50%';
+    const downloadContent = new Print({ view, container, label: 'sfasdfsdf' });
+
+    return new Expand({
+      expandIconClass: 'esri-icon-download',
+      expandTooltip: 'Open Download Widget',
+      collapseTooltip: 'Close Download Widget',
+      view,
+      mode: 'floating',
+      autoCollapse: true,
+      content: downloadContent,
+    });
+  }, [view]);
+
+  useEffect(() => {
+    if (downloadWidget)
+      view?.ui.add(downloadWidget, { position: 'top-right', index: 3 });
+    return function cleanup() {
+      if (downloadWidget) view?.ui.remove(downloadWidget);
+    };
+  }, [downloadWidget, view]);
+
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on Tribal page or valid Community page location
   useEffect(() => {
@@ -1000,7 +1027,7 @@ function MapWidgets({
 
     render(widget, node);
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
-    view.ui.add(node, { position: 'top-right', index: 3 });
+    view.ui.add(node, { position: 'top-right', index: 4 });
 
     return function cleanup() {
       view?.ui.remove(node);
