@@ -875,14 +875,6 @@ function TribalMap({
             let zoomParams = fullExtent;
             let homeParams = { targetGeometry: fullExtent };
 
-            if (pointsExtent.count === 1) {
-              zoomParams = { target: fullExtent, zoom: 15 };
-              homeParams = {
-                targetGeometry: fullExtent,
-                scale: 18056, // same as zoom 15, viewpoint only takes scale
-              };
-            }
-
             mapView.when(() => {
               mapView.goTo(zoomParams).then(() => {
                 setMapLoading(false);
