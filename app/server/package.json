@@ -29,7 +29,8 @@
   },
   "main": "app/server.js",
   "scripts": {
-    "start": "nodemon -r dotenv/config --inspect app/server.js dotenv_config_path=./.env.local"
+    "start": "nodemon -r dotenv/config --inspect app/server.js dotenv_config_path=./.env.local",
+    "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.348.0",

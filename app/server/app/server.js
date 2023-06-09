@@ -1,18 +1,13 @@
-const {
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} = require('@aws-sdk/client-s3');
-const axios = require('axios');
-const { readFileSync, writeFileSync } = require('fs');
 const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cron = require('node-cron');
 const favicon = require('serve-favicon');
 const basicAuth = require('express-basic-auth');
-const { setTimeout } = require('timers/promises');
+const { getEnvironment } = require('./server/utilities/environment');
 const logger = require('./server/utilities/logger');
+const { getS3Config } = require('./server/utilities/s3');
+const { updateGlossary } = require('./tasks/updateGlossary');
 const log = logger.logger;
 
 const app = express();
@@ -79,15 +74,7 @@ if (process.env.GLOSSARY_AUTH) {
 /****************************************************************
  Which environment
 ****************************************************************/
-var isLocal = false;
-var isDevelopment = false;
-var isStaging = false;
-
-if (process.env.NODE_ENV) {
-  isLocal = 'local' === process.env.NODE_ENV.toLowerCase();
-  isDevelopment = 'development' === process.env.NODE_ENV.toLowerCase();
-  isStaging = 'staging' === process.env.NODE_ENV.toLowerCase();
-}
+const { isLocal, isDevelopment, isStaging } = getEnvironment();
 
 if (isLocal) {
   log.info('Environment = local');
@@ -152,71 +139,10 @@ function getUnauthorizedResponse(req) {
 /****************************************************************
 For Cloud.gov enviroments, get s3 endpoint location and config
 ****************************************************************/
-let s3Config = null;
-let s3Bucket = null;
 if (!isLocal) {
-  if (process.env.VCAP_SERVICES) {
-    log.info('VCAP_SERVICES environmental variable found, continuing.');
-  } else {
-    let msg = 'VCAP_SERVICES environmental variable NOT set, exiting system.';
-    log.error(msg);
-    process.exit();
-  }
-
-  if (process.env.S3_PUB_BIND_NAME) {
-    log.info('S3_PUB_BIND_NAME environmental variable found, continuing.');
-  } else {
-    let msg =
-      'S3_PUB_BIND_NAME environmental variable NOT set, exiting system.';
-    log.error(msg);
-    process.exit();
-  }
-
-  let vcap_services = JSON.parse(process.env.VCAP_SERVICES);
-  let S3_PUB_BIND_NAME = process.env.S3_PUB_BIND_NAME;
-
-  let s3_object = null;
-  if (!vcap_services.hasOwnProperty('s3')) {
-    let msg =
-      'VCAP_SERVICES environmental variable does not include bind to s3, exiting system.';
-    log.error(msg);
-    process.exit();
-  } else {
-    s3_object = vcap_services.s3.find(
-      (obj) => obj.instance_name == S3_PUB_BIND_NAME,
-    );
-  }
-
-  if (
-    s3_object == null ||
-    !s3_object.hasOwnProperty('credentials') ||
-    !s3_object.credentials.hasOwnProperty('bucket') ||
-    !s3_object.credentials.hasOwnProperty('region') ||
-    !s3_object.credentials.hasOwnProperty('access_key_id') ||
-    !s3_object.credentials.hasOwnProperty('secret_access_key')
-  ) {
-    let msg =
-      'VCAP_SERVICES environmental variable does not include the proper s3 information, exiting system.';
-    log.error(msg);
-    process.exit();
-  }
-
-  var s3_bucket_url =
-    'https://' +
-    s3_object.credentials.bucket +
-    '.s3-' +
-    s3_object.credentials.region +
-    '.amazonaws.com';
+  const { bucket, region } = getS3Config();
+  var s3_bucket_url = `https://${bucket}.s3-${region}.amazonaws.com`;
   log.info('Calculated s3 bucket URL = ' + s3_bucket_url);
-
-  s3Bucket = s3_object.credentials.bucket;
-  s3Config = {
-    credentials: {
-      accessKeyId: s3_object.credentials.access_key_id,
-      secretAccessKey: s3_object.credentials.secret_access_key,
-    },
-    region: s3_object.credentials.region,
-  };
 
   app.set('s3_bucket_url', s3_bucket_url);
 }
@@ -224,80 +150,8 @@ if (!isLocal) {
 /****************************************************************
  Start a cron jobs for syncing the glossary terms to S3
 ****************************************************************/
-async function cacheGlossary(retryCount = 0) {
-  try {
-    // get the URL of the glossary service
-    let services;
-    if (isLocal) {
-      services = readFileSync(
-        path.resolve(__dirname, 'public/data/config/services.json'),
-        'utf8',
-      );
-    } else {
-      const command = new GetObjectCommand({
-        Bucket: s3Bucket,
-        Key: 'data/config/services.json',
-      });
-      const s3 = new S3Client(s3Config);
-      services = await s3.send(command).Body.transformToString();
-    }
-    const glossaryUrl = JSON.parse(services).glossaryURL;
-
-    // fetch the glossary data
-    const res = await axios.get(glossaryUrl, {
-      headers: {
-        authorization: `basic ${process.env.GLOSSARY_AUTH}`,
-      },
-      timeout: 10_000,
-    });
-    if (res.status !== 200) {
-      if (retryCount < 3) {
-        log.info('Non-200 response returned from glossary service, retrying');
-        await setTimeout(5_000);
-        return cacheGlossary(retryCount + 1);
-      } else {
-        throw new Error('Glossary request retry count exceeded');
-      }
-    }
-
-    // transform the glossary data
-    const terms = res.data
-      .filter((item) => item['ActiveStatus'] !== 'Deleted')
-      .map((item) => ({
-        term: item['Name'],
-        definition: item['Attributes'].find(
-          (attr) => attr['Name'] === 'Editorial Note',
-        )['Value'],
-      }))
-      .filter(
-        (item, index, array) =>
-          array.findIndex((i) => i.term === item.term) === index,
-      );
-
-    // store the glossary data in public S3 (or local FS)
-    if (isLocal) {
-      writeFileSync(
-        path.resolve(__dirname, 'public/data/glossary.json'),
-        JSON.stringify(terms),
-      );
-    } else {
-      const s3 = new S3Client(s3Config);
-      const command = new PutObjectCommand({
-        Bucket: s3Bucket,
-        Key: 'data/glossary.json',
-        ACL: 'public-read',
-        ContentType: 'application/json',
-        Body: JSON.stringify(terms),
-      });
-      s3.send(command);
-    }
-  } catch (err) {
-    log.error(`Failed to cache glossary terms: ${err}`);
-  }
-}
-
 // run glossary task once at start-up
-cacheGlossary();
+updateGlossary();
 
 // schedule a recurring task to cache glossary data,
 // but only assign the task to one program instance
@@ -307,7 +161,7 @@ if (isLocal || process.env.CF_INSTANCE_INDEX === 0) {
     '0 1 * * *',
     () => {
       log.info('Running glossary cron task');
-      cacheGlossary();
+      updateGlossary();
     },
     { scheduled: true },
   );
