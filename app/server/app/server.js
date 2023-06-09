@@ -45,11 +45,11 @@ app.use(function (req, res, next) {
  Revoke unneeded and potentially harmful HTTP methods
  ****************************************************************/
 app.use(function (req, res, next) {
-  var whiteList = ['GET', 'POST', 'HEAD'];
+  const whiteList = ['GET', 'POST', 'HEAD'];
   if (whiteList.indexOf(req.method) != -1) next();
   else {
     res.sendStatus(401);
-    var metadataObj = logger.populateMetdataObjFromRequest(req);
+    const metadataObj = logger.populateMetdataObjFromRequest(req);
     log.error(
       logger.formatLogMsg(
         metadataObj,
@@ -141,7 +141,7 @@ For Cloud.gov enviroments, get s3 endpoint location and config
 ****************************************************************/
 if (!isLocal) {
   const { bucket, region } = getS3Config();
-  var s3_bucket_url = `https://${bucket}.s3-${region}.amazonaws.com`;
+  const s3_bucket_url = `https://${bucket}.s3-${region}.amazonaws.com`;
   log.info('Calculated s3 bucket URL = ' + s3_bucket_url);
 
   app.set('s3_bucket_url', s3_bucket_url);
