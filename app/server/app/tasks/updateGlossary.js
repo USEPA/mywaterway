@@ -1,11 +1,15 @@
-const { GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { GetObjectCommand } = require('@aws-sdk/client-s3');
 const axios = require('axios');
-const { readFileSync, writeFileSync } = require('fs');
+const { readFileSync } = require('fs');
 const { resolve } = require('path');
 const { setTimeout } = require('timers/promises');
 const { getEnvironment } = require('../server/utilities/environment');
 const logger = require('../server/utilities/logger');
-const { getS3Client, getS3Config } = require('../server/utilities/s3');
+const {
+  getS3Client,
+  getS3Config,
+  uploadFileS3,
+} = require('../server/utilities/s3');
 
 const log = logger.logger;
 
@@ -62,22 +66,7 @@ async function updateGlossary(retryCount = 0) {
       );
 
     // store the glossary data in public S3 (or local FS)
-    if (isLocal) {
-      writeFileSync(
-        resolve(__dirname, '../public/data/glossary.json'),
-        JSON.stringify(terms),
-      );
-    } else {
-      const s3 = getS3Client();
-      const command = new PutObjectCommand({
-        Bucket: getS3Config().bucket,
-        Key: 'data/glossary.json',
-        ACL: 'public-read',
-        ContentType: 'application/json',
-        Body: JSON.stringify(terms),
-      });
-      s3.send(command);
-    }
+    await uploadFileS3('glossary.json', JSON.stringify(terms));
   } catch (err) {
     log.error(`Failed to update glossary terms: ${err}`);
   }

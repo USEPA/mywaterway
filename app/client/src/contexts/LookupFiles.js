@@ -232,7 +232,7 @@ function useGlossaryTermsContext() {
 
   if (!glossaryTermsInitialized) {
     glossaryTermsInitialized = true;
-    getLookupFile('glossary.json', setGlossaryTerms);
+    getLookupFile('cache/glossary.json', setGlossaryTerms);
   }
 
   return glossaryTerms;

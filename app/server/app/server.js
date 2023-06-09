@@ -148,13 +148,13 @@ if (!isLocal) {
 }
 
 /****************************************************************
- Start a cron jobs for syncing the glossary terms to S3
+ Start a cron job for syncing the glossary terms to S3
 ****************************************************************/
 // run glossary task once at start-up
 updateGlossary();
 
 // schedule a recurring task to cache glossary data,
-// but only assign the task to one program instance
+// but only assign the task to one server instance
 if (isLocal || process.env.CF_INSTANCE_INDEX === 0) {
   log.info('Scheduling glossary cron task to run every day at 1AM');
   cron.schedule(

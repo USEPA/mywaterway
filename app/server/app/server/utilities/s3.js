@@ -1,9 +1,12 @@
-const { S3Client } = require('@aws-sdk/client-s3');
+const { PutObjectCommand, S3Client } = require('@aws-sdk/client-s3');
+const { mkdirSync, writeFileSync } = require('fs');
+const { resolve } = require('path');
+const { getEnvironment } = require('./environment');
 const logger = require('./logger');
 
 const log = logger.logger;
 
-exports.getS3Client = function () {
+function getS3Client() {
   const { accessKeyId, region, secretAccessKey } = getS3Config();
   return new S3Client({
     credentials: {
@@ -12,9 +15,9 @@ exports.getS3Client = function () {
     },
     region,
   });
-};
+}
 
-exports.getS3Config = function () {
+function getS3Config() {
   if (!process.env.VCAP_SERVICES) {
     let msg = 'VCAP_SERVICES environmental variable NOT set, exiting system.';
     log.error(msg);
@@ -63,4 +66,46 @@ exports.getS3Config = function () {
     accessKeyId: s3_object.credentials.access_key_id,
     secretAccessKey: s3_object.credentials.secretAccessKey,
   };
+}
+
+// Uploads file to public S3 bucket
+async function uploadFileS3(filePath, fileToUpload, subFolder = 'cache') {
+  const { isLocal } = getEnvironment();
+  try {
+    // local development: write files directly to disk on the client app side
+    // Cloud.gov: upload files to the public s3 bucket
+    if (isLocal) {
+      const subFolderPath = resolve(
+        __dirname,
+        `../../public/data/${subFolder}`,
+      );
+
+      // create the sub folder if it doesn't already exist
+      mkdirSync(subFolderPath, { recursive: true });
+
+      // write the file
+      writeFileSync(`${subFolderPath}/${filePath}`, fileToUpload);
+    } else {
+      // setup public s3 bucket
+      const s3 = getS3Client();
+
+      // upload the file
+      const command = new PutObjectCommand({
+        Bucket: getS3Config().bucket,
+        Key: `${subFolder}/${filePath}`,
+        ACL: 'public-read',
+        ContentType: 'application/json',
+        Body: fileToUpload,
+      });
+      return s3.send(command);
+    }
+  } catch (err) {
+    log.warn(`Error saving "${filePath}" to public S3 bucket`);
+  }
+}
+
+module.exports = {
+  getS3Client,
+  getS3Config,
+  uploadFileS3,
 };
