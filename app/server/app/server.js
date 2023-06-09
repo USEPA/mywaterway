@@ -226,6 +226,7 @@ if (!isLocal) {
 ****************************************************************/
 async function cacheGlossary(retryCount = 0) {
   try {
+    // get the URL of the glossary service
     let services;
     if (isLocal) {
       services = readFileSync(
@@ -242,6 +243,7 @@ async function cacheGlossary(retryCount = 0) {
     }
     const glossaryUrl = JSON.parse(services).glossaryURL;
 
+    // fetch the glossary data
     const res = await axios.get(glossaryUrl, {
       headers: {
         authorization: `basic ${process.env.GLOSSARY_AUTH}`,
@@ -252,12 +254,13 @@ async function cacheGlossary(retryCount = 0) {
       if (retryCount < 3) {
         log.info('Non-200 response returned from glossary service, retrying');
         await setTimeout(5_000);
-        return await cacheGlossary(retryCount + 1);
+        return cacheGlossary(retryCount + 1);
       } else {
         throw new Error('Glossary request retry count exceeded');
       }
     }
 
+    // transform the glossary data
     const terms = res.data
       .filter((item) => item['ActiveStatus'] !== 'Deleted')
       .map((item) => ({
@@ -271,6 +274,7 @@ async function cacheGlossary(retryCount = 0) {
           array.findIndex((i) => i.term === item.term) === index,
       );
 
+    // store the glossary data in public S3 (or local FS)
     if (isLocal) {
       writeFileSync(
         path.resolve(__dirname, 'public/data/glossary.json'),
@@ -292,8 +296,11 @@ async function cacheGlossary(retryCount = 0) {
   }
 }
 
+// run glossary task once at start-up
 cacheGlossary();
 
+// schedule a recurring task to cache glossary data,
+// but only assign the task to one program instance
 if (isLocal || process.env.CF_INSTANCE_INDEX === 0) {
   log.info('Scheduling glossary cron task to run every day at 1AM');
   cron.schedule(

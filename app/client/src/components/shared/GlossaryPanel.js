@@ -6,13 +6,11 @@ import { css, createGlobalStyle } from 'styled-components/macro';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useGlossaryState } from 'contexts/Glossary';
+import { useGlossaryTermsContext } from 'contexts/LookupFiles';
 // styles
 import { colors, fonts } from 'styles/index.js';
 // errors
 import { glossaryError } from 'config/errorMessages';
-// helpers
-import { isAbort } from 'utils/utils';
 
 const Glossary = require('glossary-panel');
 
@@ -182,41 +180,21 @@ const listStyles = css`
 
 // --- components ---
 function GlossaryPanel({ path }) {
-  const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
-    useGlossaryState();
-
-  // initialize Glossary panel
-  useEffect(() => {
-    if (!window.fetchGlossaryTerms) return;
-
-    if (!initialized) {
-      setInitialized(true);
-
-      // Do not initialize glossary if terms on the dom
-      if (termsInDOM()) return;
-
-      // initialize the glossary
-      window.fetchGlossaryTerms
-        .then((terms) => {
-          setGlossaryStatus(terms.status);
-          try {
-            new Glossary(terms.data);
-          } catch (err) {
-            console.error(err);
-          }
-        })
-        .catch((err) => {
-          if (isAbort(err)) return;
-          console.error(err);
-        });
+  const { data, status } = useGlossaryTermsContext();
+  const [glossary, setGlossary] = useState(null);
+  if (!glossary && status === 'success') {
+    try {
+      setGlossary(new Glossary(data));
+    } catch (err) {
+      console.error(err);
     }
-  });
+  }
 
   // Reset initialized flag to re-initialize the Glossary
   useEffect(() => {
     // set the initialized flag to false if there are no glossary terms on the DOM
-    if (!termsInDOM()) setInitialized(false);
-  }, [path, setInitialized]);
+    if (!termsInDOM()) setGlossary(null);
+  }, [path]);
 
   return (
     <>
@@ -242,13 +220,13 @@ function GlossaryPanel({ path }) {
         </header>
 
         <div css={containerStyles}>
-          {glossaryStatus === 'failure' && (
+          {status === 'failure' && (
             <div css={errorBoxStyles}>
               <p>{glossaryError}</p>
             </div>
           )}
 
-          {glossaryStatus === 'success' && (
+          {status === 'success' && (
             <input
               css={inputStyles}
               className="js-glossary-search form-control"
@@ -275,16 +253,7 @@ type Props = {
 };
 
 function GlossaryTerm({ term, className, style, children }: Props) {
-  const [status, setStatus] = useState('fetching');
-
-  if (window.fetchGlossaryTerms) {
-    window.fetchGlossaryTerms
-      .then((terms) => setStatus(terms.status))
-      .catch((err) => {
-        if (isAbort(err)) return;
-        console.error(err);
-      });
-  }
+  const { status } = useGlossaryTermsContext();
 
   return (
     <span

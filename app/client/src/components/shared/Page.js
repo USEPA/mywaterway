@@ -12,8 +12,10 @@ import AboutContent from 'components/shared/AboutContent';
 import EducatorsContent from 'components/shared/EducatorsContent';
 import GlossaryPanel from 'components/shared/GlossaryPanel';
 // contexts
-import { useGlossaryState } from 'contexts/Glossary';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useGlossaryTermsContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import {
   getEnvironmentString,
@@ -177,7 +179,7 @@ type Props = {
 function Page({ children }: Props) {
   const navigate = useNavigate();
 
-  const { initialized, glossaryStatus } = useGlossaryState();
+  const { status: glossaryStatus } = useGlossaryTermsContext();
 
   const services = useServicesContext();
 
@@ -289,7 +291,7 @@ function Page({ children }: Props) {
           <li>
             <button
               className="js-glossary-toggle"
-              data-disabled={!initialized || glossaryStatus === 'fetching'}
+              data-disabled={glossaryStatus !== 'success'}
             >
               <i className="fas fa-book" aria-hidden="true" />
               Glossary
