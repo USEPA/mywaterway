@@ -42,5 +42,5 @@ app/cypress/videos/
 # create react app
 /app/client/build
 
-# fetched data
-/app/server/app/public/data/glossary.json
+# cached content
+/app/server/app/public/data/cache
