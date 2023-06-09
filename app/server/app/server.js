@@ -7,7 +7,7 @@ const basicAuth = require('express-basic-auth');
 const { getEnvironment } = require('./server/utilities/environment');
 const logger = require('./server/utilities/logger');
 const { getS3Config } = require('./server/utilities/s3');
-const { updateGlossary } = require('./tasks/updateGlossary');
+const updateGlossary = require('./tasks/updateGlossary');
 const log = logger.logger;
 
 const app = express();
