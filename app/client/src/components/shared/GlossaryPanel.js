@@ -182,13 +182,15 @@ const listStyles = css`
 function GlossaryPanel({ path }) {
   const { data, status } = useGlossaryTermsContext();
   const [glossary, setGlossary] = useState(null);
-  if (!glossary && status === 'success') {
-    try {
-      setGlossary(new Glossary(data));
-    } catch (err) {
-      console.error(err);
+  useEffect(() => {
+    if (!glossary && status === 'success') {
+      try {
+        setGlossary(new Glossary(data));
+      } catch (err) {
+        console.error(err);
+      }
     }
-  }
+  }, [data, glossary, status]);
 
   // Reset initialized flag to re-initialize the Glossary
   useEffect(() => {
@@ -259,8 +261,10 @@ function GlossaryTerm({ term, className, style, children }: Props) {
 
   if (status === 'fetching' && !observer.current) {
     const newObserver = new MutationObserver(function () {
-      setStatus(termsInDOM() ? 'success' : 'fetching');
-      this.disconnect();
+      if (termsInDOM()) {
+        setStatus('success');
+        this.disconnect();
+      }
     });
     newObserver.observe(document.getElementById('glossary') ?? document, {
       childList: true,
