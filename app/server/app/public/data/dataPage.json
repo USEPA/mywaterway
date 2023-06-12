@@ -2,13 +2,13 @@
   "intro": "<em>How’s My Waterway</em> pulls data from multiple databases at EPA and other federal agencies through web services. Below is a summary of data included in <em>How’s My Waterway</em>.",
   "content": [
     {
-      "description": "ATTAINS contains information on water quality assessments, impaired waters, and total maximum daily loads (TMDLs), through data submitted by states under Clean Water Act sections <span data-glossary-term data-term='303(d) listed impaired waters (Category 5)'>303(d)</span> and 305(b).",
+      "description": "ATTAINS contains information on water quality assessments, impaired waters, and total maximum daily loads (TMDLs), through data submitted by states, territories and tribes under Clean Water Act sections <span data-glossary-term data-term='303(d) listed impaired waters (Category 5)'>303(d)</span>, <span data-glossary-term data-term='Clean Water Act Section 305(b)'>305(b)</span> and the <span data-glossary-term data-term='Tribal Grant Program CWA Section 106'>106 Tribal Grant program</span>.",
       "extraContent": "<br /><h2 style='display:block;margin-bottom:0.25rem;font-size:1.125em;line-height:1.125;font-family:Source Sans Pro,Helvetica Neue,Helvetica,Roboto,Arial,sans-serif;font-weight:bold;padding-bottom:0'>Impairment Category Filtering Tool:</h2><p><a href='attains' target='_blank' rel='noopener noreferrer'>How ATTAINS data are grouped in How’s My Waterway</a></p>",
       "id": "attains",
       "linkHref": "https://www.epa.gov/waterdata/attains",
       "linkLabel": "ATTAINS Data/System",
       "shortName": "ATTAINS",
-      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term data-term='overall waterbody condition'>waterbody condition</span> list and map), Swimming, Eating Fish, Aquatic Life, Identified Issues ( <span data-glossary-term data-term='impairment'>impairments</span> ), Restore ( <span data-glossary-term data-term='restoration plan'>restoration plans</span>), Drinking Water (Which waters have been assessed for drinking water use?). It can also be found on the state page under the State Water Quality Overview and Advanced Search tabs.",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term data-term='overall waterbody condition'>waterbody condition</span> list and map), Swimming, Eating Fish, Aquatic Life, Identified Issues ( <span data-glossary-term data-term='impairment'>impairments</span> ), Restore ( <span data-glossary-term data-term='restoration plan'>restoration plans</span>), Drinking Water (Which waters have been assessed for drinking water use?). It can also be found on the State & Tribal tab under the State or Tribal Water Quality Overview and the Advanced Search tabs.",
       "title": "Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)"
     },
     {
