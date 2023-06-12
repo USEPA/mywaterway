@@ -1,6 +1,6 @@
 // @flow
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import type { Node } from 'react';
 // utilities
 import { fetchCheck, lookupFetch } from 'utils/fetchUtils';
