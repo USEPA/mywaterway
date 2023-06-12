@@ -302,7 +302,7 @@ function SiteSpecific({
             <p>
               <GlossaryTerm term="Surface Water">Surface water</GlossaryTerm>{' '}
               (streams, rivers, and lakes) or{' '}
-              <GlossaryTerm term="Groundwater">ground water</GlossaryTerm>{' '}
+              <GlossaryTerm term="Ground Water">ground water</GlossaryTerm>{' '}
               (aquifers) can serve as sources of drinking water, referred to as{' '}
               source water. Public utilities treat source water that is used for
               public drinking water supplies. The graphic below shows the
