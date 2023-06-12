@@ -1,7 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
-// contexts
-import { useGlossaryTermsContext } from 'contexts/LookupFiles';
 // helpers
 import { lookupFetch } from 'utils/fetchUtils';
 import { useAbortSignal } from 'utils/hooks';
@@ -46,7 +44,6 @@ type Props = {
   children: ReactNode;
 };
 export function GlossaryProvider({ children }: Props) {
-  // const glossaryTerms = useGlossaryTermsContext();
   const abortSignal = useAbortSignal();
 
   const [initialized, setInitialized] = useState(false);
