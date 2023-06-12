@@ -50,7 +50,7 @@ export function lookupFetch(
   const baseUrl = REACT_APP_SERVER_URL || window.location.origin;
   const url = `${baseUrl}/data/${path}`;
 
-  return new Promise<Object>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     // Function that fetches the lookup file.
     // This will retry the fetch 3 times if the fetch fails with a
     // 1 second delay between each retry.

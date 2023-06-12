@@ -1,16 +1,18 @@
 // @flow
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { css, createGlobalStyle } from 'styled-components/macro';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useGlossaryTermsContext } from 'contexts/LookupFiles';
+import { useGlossaryState } from 'contexts/Glossary';
 // styles
 import { colors, fonts } from 'styles/index.js';
 // errors
 import { glossaryError } from 'config/errorMessages';
+// helpers
+import { isAbort } from 'utils/utils';
 
 const Glossary = require('glossary-panel');
 
@@ -180,23 +182,42 @@ const listStyles = css`
 
 // --- components ---
 function GlossaryPanel({ path }) {
-  const { data, status } = useGlossaryTermsContext();
-  const [glossary, setGlossary] = useState(null);
+  const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
+    useGlossaryState();
+
+  // initialize Glossary panel
   useEffect(() => {
-    if (!glossary && status === 'success') {
-      try {
-        setGlossary(new Glossary(data));
-      } catch (err) {
-        console.error(err);
-      }
+    if (!window.fetchGlossaryTerms) return;
+
+    if (!initialized) {
+      setInitialized(true);
+
+      // Do not initialize glossary if terms on the dom
+      if (termsInDOM()) return;
+
+      // initialize the glossary
+      window.fetchGlossaryTerms
+        .then((terms) => {
+          console.log(terms.status);
+          setGlossaryStatus(terms.status);
+          try {
+            new Glossary(terms.data);
+          } catch (err) {
+            console.error(err);
+          }
+        })
+        .catch((err) => {
+          if (isAbort(err)) return;
+          console.error(err);
+        });
     }
-  }, [data, glossary, status]);
+  });
 
   // Reset initialized flag to re-initialize the Glossary
   useEffect(() => {
     // set the initialized flag to false if there are no glossary terms on the DOM
-    if (!termsInDOM()) setGlossary(null);
-  }, [path]);
+    if (!termsInDOM()) setInitialized(false);
+  }, [path, setInitialized]);
 
   return (
     <>
@@ -222,13 +243,13 @@ function GlossaryPanel({ path }) {
         </header>
 
         <div css={containerStyles}>
-          {status === 'failure' && (
+          {glossaryStatus === 'failure' && (
             <div css={errorBoxStyles}>
               <p>{glossaryError}</p>
             </div>
           )}
 
-          {status === 'success' && (
+          {glossaryStatus === 'success' && (
             <input
               css={inputStyles}
               className="js-glossary-search form-control"
@@ -255,29 +276,16 @@ type Props = {
 };
 
 function GlossaryTerm({ term, className, style, children }: Props) {
-  const [status, setStatus] = useState(termsInDOM() ? 'success' : 'fetching');
+  const [status, setStatus] = useState('fetching');
 
-  const observer = useRef(null);
-
-  if (status === 'fetching' && !observer.current) {
-    const newObserver = new MutationObserver(function () {
-      if (termsInDOM()) {
-        setStatus('success');
-        this.disconnect();
-      }
-    });
-    newObserver.observe(document.getElementById('glossary') ?? document, {
-      childList: true,
-      subtree: true,
-    });
-    observer.current = newObserver;
+  if (window.fetchGlossaryTerms) {
+    window.fetchGlossaryTerms
+      .then((terms) => setStatus(terms.status))
+      .catch((err) => {
+        if (isAbort(err)) return;
+        console.error(err);
+      });
   }
-
-  useEffect(() => {
-    return function cleanup() {
-      if (observer.current) observer.current.disconnect();
-    };
-  }, []);
 
   return (
     <span
