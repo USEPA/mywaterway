@@ -27,8 +27,6 @@ type LookupFiles = {
   setDocumentOrder: Function,
   educatorMaterials: LookupFile,
   setEducatorMaterials: Function,
-  glossaryTerms: LookupFile,
-  setGlossaryTerms: Function,
   layerProps: LookupFile,
   setLayerProps: Function,
   nars: LookupFile,
@@ -58,8 +56,6 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setDocumentOrder: () => {},
   educatorMaterials: { status: 'fetching', data: null },
   setEducatorMaterials: () => {},
-  glossaryTerms: { status: 'fetching', data: null },
-  setGlossaryTerms: () => {},
   layerProps: { status: 'fetching', data: null },
   setLayerProps: () => {},
   nars: { status: 'fetching', data: null },
@@ -98,10 +94,6 @@ function LookupFilesProvider({ children }: Props) {
   const [educatorMaterials, setEducatorMaterials] = useState({
     status: 'fetching',
     data: {},
-  });
-  const [glossaryTerms, setGlossaryTerms] = useState({
-    status: 'fetching',
-    data: null,
   });
   const [layerProps, setLayerProps] = React.useState<LookupFile>({
     status: 'fetching',
@@ -153,8 +145,6 @@ function LookupFilesProvider({ children }: Props) {
         setDocumentOrder,
         educatorMaterials,
         setEducatorMaterials,
-        glossaryTerms,
-        setGlossaryTerms,
         layerProps,
         setLayerProps,
         nars,
@@ -223,19 +213,6 @@ function useEducatorMaterialsContext() {
   }
 
   return educatorMaterials;
-}
-
-// Custom hook for glossary.json file.
-let glossaryTermsInitialized = false; // global var for ensuring fetch only happens once
-function useGlossaryTermsContext() {
-  const { glossaryTerms, setGlossaryTerms } = useContext(LookupFilesContext);
-
-  if (!glossaryTermsInitialized) {
-    glossaryTermsInitialized = true;
-    getLookupFile('cache/glossary.json', setGlossaryTerms);
-  }
-
-  return glossaryTerms;
 }
 
 // Custom hook for the layerProps.json file.
@@ -441,7 +418,6 @@ export {
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,
-  useGlossaryTermsContext,
   useLayerProps,
   useNarsContext,
   useNotificationsContext,
