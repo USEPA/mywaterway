@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Node } from 'react';
 import { css, createGlobalStyle } from 'styled-components/macro';
 // components
@@ -253,7 +253,27 @@ type Props = {
 };
 
 function GlossaryTerm({ term, className, style, children }: Props) {
-  const { status } = useGlossaryTermsContext();
+  const [status, setStatus] = useState(termsInDOM() ? 'success' : 'fetching');
+
+  const observer = useRef(null);
+
+  if (status === 'fetching' && !observer.current) {
+    const newObserver = new MutationObserver(function () {
+      setStatus(termsInDOM() ? 'success' : 'fetching');
+      this.disconnect();
+    });
+    newObserver.observe(document.getElementById('glossary') ?? document, {
+      childList: true,
+      subtree: true,
+    });
+    observer.current = newObserver;
+  }
+
+  useEffect(() => {
+    return function cleanup() {
+      if (observer.current) observer.current.disconnect();
+    };
+  }, []);
 
   return (
     <span
