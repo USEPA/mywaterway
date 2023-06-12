@@ -150,6 +150,10 @@ function DataContent() {
         node,
       );
       span.parentNode.replaceChild(node, span);
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        rootElement.render(node.parentElement);
+      }
     });
   }, [status]);
 
