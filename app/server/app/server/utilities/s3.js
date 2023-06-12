@@ -64,7 +64,7 @@ function getS3Config() {
     bucket: s3_object.credentials.bucket,
     region: s3_object.credentials.region,
     accessKeyId: s3_object.credentials.access_key_id,
-    secretAccessKey: s3_object.credentials.secretAccessKey,
+    secretAccessKey: s3_object.credentials.secret_access_key,
   };
 }
 
@@ -92,7 +92,7 @@ async function uploadFileS3(filePath, fileToUpload, subFolder = 'cache') {
       // upload the file
       const command = new PutObjectCommand({
         Bucket: getS3Config().bucket,
-        Key: `${subFolder}/${filePath}`,
+        Key: `data/${subFolder}/${filePath}`,
         ACL: 'public-read',
         ContentType: 'application/json',
         Body: fileToUpload,

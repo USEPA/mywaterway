@@ -30,7 +30,7 @@ async function updateGlossary(retryCount = 0) {
         Key: 'data/config/services.json',
       });
       const s3 = getS3Client();
-      services = await s3.send(command).Body.transformToString();
+      services = await (await s3.send(command)).Body.transformToString();
     }
     const glossaryUrl = JSON.parse(services).glossaryURL;
 

@@ -17,7 +17,7 @@
     "summary": "https://inlandwaters.geoplatform.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4",
     "controlTable": "https://inlandwaters.geoplatform.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/5"
   },
-  "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/savedreport/terms/HMWGlossary",
+  "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/HMW%20Glossary/terms/full",
   "waterQualityPortal": {
     "userInterface": "https://www.waterqualitydata.us/",
     "stationSearch": "https://www.waterqualitydata.us/data/Station/search?",
