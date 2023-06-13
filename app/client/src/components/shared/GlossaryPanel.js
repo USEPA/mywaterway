@@ -198,7 +198,6 @@ function GlossaryPanel({ path }) {
       // initialize the glossary
       window.fetchGlossaryTerms
         .then((terms) => {
-          console.log(terms.status);
           setGlossaryStatus(terms.status);
           try {
             new Glossary(terms.data);
