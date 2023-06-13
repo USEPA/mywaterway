@@ -764,14 +764,12 @@ function WaterQualityOverview() {
 
   // Handles user and auto water type selection
   let waterType = '';
-  if (displayWaterTypes && displayWaterTypes.length > 0) {
+  if (displayWaterTypes?.length) {
     // set to the user's selection if it is availble
     if (displayWaterTypes.includes(userSelectedWaterType)) {
       waterType = userSelectedWaterType;
-    }
-
-    // set to first item if the user's select cannot be found
-    else {
+    } else {
+      // set to first item if the user's select cannot be found
       waterType = displayWaterTypes[0];
     }
   }
@@ -807,7 +805,7 @@ function WaterQualityOverview() {
   }
 
   // set to first item if the user's select cannot be found
-  if (!useSelected && useList.length > 0) {
+  if (!useSelected && useList.length) {
     useSelected = titleCase(useList[0].useName);
   }
 
