@@ -1,9 +1,13 @@
 const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
+const cron = require('node-cron');
 const favicon = require('serve-favicon');
 const basicAuth = require('express-basic-auth');
+const { getEnvironment } = require('./server/utilities/environment');
 const logger = require('./server/utilities/logger');
+const { getS3Config } = require('./server/utilities/s3');
+const updateGlossary = require('./tasks/updateGlossary');
 const log = logger.logger;
 
 const app = express();
@@ -41,11 +45,11 @@ app.use(function (req, res, next) {
  Revoke unneeded and potentially harmful HTTP methods
  ****************************************************************/
 app.use(function (req, res, next) {
-  var whiteList = ['GET', 'POST', 'HEAD'];
+  const whiteList = ['GET', 'POST', 'HEAD'];
   if (whiteList.indexOf(req.method) != -1) next();
   else {
     res.sendStatus(401);
-    var metadataObj = logger.populateMetdataObjFromRequest(req);
+    const metadataObj = logger.populateMetdataObjFromRequest(req);
     log.error(
       logger.formatLogMsg(
         metadataObj,
@@ -70,15 +74,7 @@ if (process.env.GLOSSARY_AUTH) {
 /****************************************************************
  Which environment
 ****************************************************************/
-var isLocal = false;
-var isDevelopment = false;
-var isStaging = false;
-
-if (process.env.NODE_ENV) {
-  isLocal = 'local' === process.env.NODE_ENV.toLowerCase();
-  isDevelopment = 'development' === process.env.NODE_ENV.toLowerCase();
-  isStaging = 'staging' === process.env.NODE_ENV.toLowerCase();
-}
+const { isLocal, isDevelopment, isStaging } = getEnvironment();
 
 if (isLocal) {
   log.info('Environment = local');
@@ -141,61 +137,34 @@ function getUnauthorizedResponse(req) {
 }
 
 /****************************************************************
-For Cloud.gov enviroments, get s3 endpoint location
+For Cloud.gov enviroments, get s3 endpoint location and config
 ****************************************************************/
 if (!isLocal) {
-  if (process.env.VCAP_SERVICES) {
-    log.info('VCAP_SERVICES environmental variable found, continuing.');
-  } else {
-    let msg = 'VCAP_SERVICES environmental variable NOT set, exiting system.';
-    log.error(msg);
-    process.exit();
-  }
-
-  if (process.env.S3_PUB_BIND_NAME) {
-    log.info('S3_PUB_BIND_NAME environmental variable found, continuing.');
-  } else {
-    let msg =
-      'S3_PUB_BIND_NAME environmental variable NOT set, exiting system.';
-    log.error(msg);
-    process.exit();
-  }
-
-  let vcap_services = JSON.parse(process.env.VCAP_SERVICES);
-  let S3_PUB_BIND_NAME = process.env.S3_PUB_BIND_NAME;
-
-  let s3_object = null;
-  if (!vcap_services.hasOwnProperty('s3')) {
-    let msg =
-      'VCAP_SERVICES environmental variable does not include bind to s3, exiting system.';
-    log.error(msg);
-    process.exit();
-  } else {
-    s3_object = vcap_services.s3.find(
-      (obj) => obj.instance_name == S3_PUB_BIND_NAME,
-    );
-  }
-
-  if (
-    s3_object == null ||
-    !s3_object.hasOwnProperty('credentials') ||
-    !s3_object.credentials.hasOwnProperty('bucket') ||
-    !s3_object.credentials.hasOwnProperty('region')
-  ) {
-    let msg =
-      'VCAP_SERVICES environmental variable does not include the proper s3 information, exiting system.';
-    log.error(msg);
-    process.exit();
-  }
-
-  var s3_bucket_url =
-    'https://' +
-    s3_object.credentials.bucket +
-    '.s3-' +
-    s3_object.credentials.region +
-    '.amazonaws.com';
+  const { bucket, region } = getS3Config();
+  const s3_bucket_url = `https://${bucket}.s3-${region}.amazonaws.com`;
   log.info('Calculated s3 bucket URL = ' + s3_bucket_url);
+
   app.set('s3_bucket_url', s3_bucket_url);
+}
+
+/****************************************************************
+ Start a cron job for syncing the glossary terms to S3
+****************************************************************/
+// schedule a recurring task to cache glossary data,
+// but only assign the task to one server instance
+if (isLocal || process.env.CF_INSTANCE_INDEX === 0) {
+  // run glossary task once at start-up
+  updateGlossary();
+
+  log.info('Scheduling glossary cron task to run every day at 1AM');
+  cron.schedule(
+    '0 1 * * *',
+    () => {
+      log.info('Running glossary cron task');
+      updateGlossary();
+    },
+    { scheduled: true },
+  );
 }
 
 /****************************************************************
