@@ -786,7 +786,7 @@ function WaterQualityOverview() {
   // building graphs with aggregrate data.
   const addedUses = [];
   const useList = []; //used for dropdown (excludes duplicate names)
-  const completeUseList = []; //used for aggregrate data (includes duplicate names)
+  let completeUseList = []; //used for aggregrate data (includes duplicate names)
   let useSelected = '';
   if (waterTypeData) {
     waterTypeData.forEach((waterTypeItem) => {
@@ -800,18 +800,20 @@ function WaterQualityOverview() {
             if (useName === userSelectedUse)
               useSelected = titleCase(userSelectedUse);
           }
-
-          if (titleCase(useName) === useSelected) {
-            completeUseList.push(use);
-          }
+          completeUseList.push(use);
         }
       });
     });
   }
 
   // set to first item if the user's select cannot be found
-  if (!useSelected && useList.length > 0)
+  if (!useSelected && useList.length > 0) {
     useSelected = titleCase(useList[0].useName);
+  }
+
+  completeUseList = completeUseList.filter(
+    (use) => titleCase(normalizeString(use.useName)) === useSelected,
+  );
 
   const displayUses = useList
     .filter((use) => topicUses.hasOwnProperty(normalizeString(use.useName)))

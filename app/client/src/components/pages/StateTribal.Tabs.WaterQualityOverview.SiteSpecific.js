@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -111,16 +111,11 @@ function SiteSpecific({
 }: Props) {
   const { currentReportingCycle } = useContext(StateTribalTabsContext);
 
-  const [waterTypeUnits, setWaterTypeUnits] = useState('');
-  useEffect(() => {
-    if (!waterTypeData || waterTypeData.length === 0) {
-      if (waterTypeUnits) setWaterTypeUnits(null);
-      return;
-    }
-
+  let waterTypeUnits = null;
+  if (waterTypeData?.length) {
     // check the use to see if it is using counts or not
     let usesCounts = false;
-    let tempUnits = waterTypeData[0].unitsCode;
+    waterTypeUnits = waterTypeData[0].unitsCode;
     waterTypeData.forEach((waterTypeOption) => {
       waterTypeOption['useAttainments']
         .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
@@ -138,12 +133,8 @@ function SiteSpecific({
         });
     });
 
-    if (usesCounts) tempUnits = 'Waters';
-
-    if (tempUnits !== waterTypeUnits) {
-      setWaterTypeUnits(tempUnits);
-    }
-  }, [waterType, waterTypeData, waterTypeUnits, useSelected]);
+    if (usesCounts) waterTypeUnits = 'Waters';
+  }
 
   // adds up the total amount (miles, acres, square miles) of waters for each
   // support category (fully supporting, not supporting, etc.) accross
@@ -436,7 +427,7 @@ function SiteSpecific({
         </>
       )}
 
-      {parameters && parameters.length > 0 && (
+      {parameters?.length > 0 && (
         <AccordionList expandDisabled={true}>
           <AccordionItem
             title={
