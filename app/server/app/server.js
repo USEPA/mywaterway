@@ -152,9 +152,6 @@ if (!isLocal) {
 ****************************************************************/
 // schedule a recurring task to cache glossary data,
 // but only assign the task to one server instance
-log.info('process.env = ' + process.env);
-log.info('process.env.CF_INSTANCE_INDEX = ' + process.env.CF_INSTANCE_INDEX);
-log.info('typeof process.env.CF_INSTANCE_INDEX = ' + typeof process.env.CF_INSTANCE_INDEX);
 if (isLocal || process.env.CF_INSTANCE_INDEX === '0') {
   // run glossary task once at start-up
   updateGlossary();
@@ -163,7 +160,6 @@ if (isLocal || process.env.CF_INSTANCE_INDEX === '0') {
   cron.schedule(
     '0 1 * * *',
     () => {
-      log.info('Running glossary cron task');
       updateGlossary();
     },
     { scheduled: true },

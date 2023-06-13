@@ -14,6 +14,8 @@ const {
 const log = logger.logger;
 
 async function updateGlossary(retryCount = 0) {
+  log.info(`Running glossary cron task on instance: ${process.env.CF_INSTANCE_INDEX}`);
+
   try {
     const { isLocal } = getEnvironment();
 
