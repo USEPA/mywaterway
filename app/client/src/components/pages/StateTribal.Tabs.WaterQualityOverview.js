@@ -759,7 +759,7 @@ function WaterQualityOverview() {
                 relabelWaterType(item.waterTypeCode, waterTypeOptions),
               ),
           ),
-        ].sort()
+        ].sort((a, b) => a.localeCompare(b))
       : [];
 
   // Handles user and auto water type selection
