@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  Fragment,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
@@ -286,11 +280,7 @@ function WaterQualityOverview() {
   const [currentState, setCurrentState] = useState('');
   const [currentStateData, setCurrentStateData] = useState({});
   const [yearSelected, setYearSelected] = useState('');
-  const [waterType, setWaterType] = useState('');
-  const [useSelected, setUseSelected] = useState('');
   const [currentTopic, setCurrentTopic] = useState('swimming');
-  const [waterTypes, setWaterTypes] = useState(null);
-  const [waterTypeData, setWaterTypeData] = useState(null);
 
   const [surveyData, setSurveyData] = useState(null);
 
@@ -299,18 +289,9 @@ function WaterQualityOverview() {
     data: [],
   });
 
-  const [topicUses, setTopicUses] = useState({});
-  const [useList, setUseList] = useState([]);
-  const [completeUseList, setCompleteUseList] = useState([]);
-
   // user selections
   const [userSelectedWaterType, setUserSelectedWaterType] = useState('');
   const [userSelectedUse, setUserSelectedUse] = useState('');
-
-  // dropdown lists
-  const [displayWaterTypes, setDisplayWaterTypes] = useState([]);
-  const [displayUses, setDisplayUses] = useState([]);
-  const [subPopulationCodes, setSubPopulationCodes] = useState([]);
 
   // documents
   const [surveyDocuments, setSurveyDocuments] = useState([]);
@@ -630,13 +611,10 @@ function WaterQualityOverview() {
       setSurveyLoading(true);
       setSurveyDocuments([]);
       setYearSelected('');
-      setWaterType('');
-      setUseSelected('');
       setServiceError(false);
       setSurveyServiceError(false);
       setNoDataError(false);
       setSurveyData(null);
-      setSubPopulationCodes([]);
       setOrganizationData({ status: 'fetching', data: {} });
       setUsesStateSummaryCalled(false);
       setCurrentReportingCycle({
@@ -704,15 +682,10 @@ function WaterQualityOverview() {
   }, [abortSignal, stories]);
 
   // Gets a list of uses that pertain to the current topic
-  useEffect(() => {
-    if (activeState.value === '' || stateNationalUses.status !== 'success') {
-      return;
-    }
-
-    let category = formatTopic(currentTopic);
-
+  const topicUses = {};
+  if (activeState.value !== '' && stateNationalUses.status === 'success') {
+    const category = formatTopic(currentTopic);
     //get the list of possible uses
-    let possibleUses = {};
     stateNationalUses.data.forEach((item) => {
       if (
         item.category === category &&
@@ -721,90 +694,15 @@ function WaterQualityOverview() {
             item.orgId === activeState.attainsId))
       ) {
         // make sure to use upper case to prevent duplicate uses
-        possibleUses[normalizeString(item.name)] = item;
+        topicUses[normalizeString(item.name)] = item;
       }
     });
-
-    setTopicUses(possibleUses);
-  }, [currentTopic, activeState, waterTypeData, stateNationalUses]);
-
-  // Gets a unique list of water types that have data that is relevant to
-  // the current topic
-  useEffect(() => {
-    if (waterTypeOptions.status !== 'success');
-    if (!waterTypes) {
-      setDisplayWaterTypes([]);
-      return;
-    }
-
-    const displayWaterTypes = [
-      // get a list of unique water type codes
-      ...new Set(
-        waterTypes
-          .filter((item) => {
-            // add the item if it has a use relevant to
-            // the selected tab
-            let hasUse = false;
-            item.useAttainments.forEach((use) => {
-              if (
-                topicUses.hasOwnProperty(normalizeString(use.useName)) &&
-                hasUseValues(use)
-              ) {
-                hasUse = true;
-              }
-            });
-
-            if (hasUse) {
-              return relabelWaterType(item.waterTypeCode, waterTypeOptions);
-            } else return null;
-          })
-          .map((item) =>
-            relabelWaterType(item.waterTypeCode, waterTypeOptions),
-          ),
-      ),
-    ].sort();
-
-    setDisplayWaterTypes(displayWaterTypes);
-  }, [waterTypes, topicUses, waterTypeOptions]);
-
-  // Builds use lists that will be used for displaying in dropdowns and
-  // building graphs with aggregrate data.
-  useEffect(() => {
-    // fill in the use list dropdown
-    let addedUses = [];
-    let useList = []; //used for dropdown (excludes duplicate names)
-    let completeUseList = []; //used for aggregrate data (includes duplicate names)
-    if (waterTypeData) {
-      waterTypeData.forEach((waterTypeItem) => {
-        waterTypeItem['useAttainments'].forEach((use) => {
-          let useName = normalizeString(use.useName);
-          if (topicUses.hasOwnProperty(useName) && hasUseValues(use)) {
-            if (!addedUses.includes(useName)) {
-              addedUses.push(useName);
-              useList.push(use);
-            }
-
-            if (titleCase(useName) === useSelected) {
-              completeUseList.push(use);
-            }
-          }
-        });
-      });
-    }
-
-    setUseList(useList);
-    setCompleteUseList(completeUseList);
-    const displayUses = useList
-      .filter((use) => topicUses.hasOwnProperty(normalizeString(use.useName)))
-      .map((use) => titleCase(use.useName))
-      .sort();
-    setDisplayUses(displayUses);
-  }, [topicUses, waterTypeData, useSelected]);
+  }
 
   // Handles user year changes and gets data associated with the selected year.
-  useEffect(() => {
-    if (waterTypeOptions.status !== 'success') return;
-    let yearData =
+  let waterTypes = null;
+  if (waterTypeOptions.status === 'success') {
+    const yearData =
       yearSelected &&
       currentStateData.reportingCycles &&
       currentStateData.reportingCycles.length > 0 &&
@@ -814,7 +712,7 @@ function WaterQualityOverview() {
 
     if (yearData) {
       // Build a list of water types that includes the simple water type attribute.
-      const waterTypes = [];
+      waterTypes = [];
       yearData['waterTypes'].forEach((waterType) => {
         // Get the simple water type name (i.e. one of the types in the dropdown)
         // from the detailed water type
@@ -829,71 +727,107 @@ function WaterQualityOverview() {
           simpleWaterType: simpleWaterType,
         });
       });
+    }
+  }
 
-      setWaterTypes(waterTypes);
-    } else setWaterTypes(null);
-  }, [currentTopic, yearSelected, currentStateData, waterTypeOptions]);
+  // Gets a unique list of water types that have data that is relevant to
+  // the current topic
+  const displayWaterTypes =
+    waterTypes && waterTypeOptions.status === 'success'
+      ? [
+          // get a list of unique water type codes
+          ...new Set(
+            waterTypes
+              .filter((item) => {
+                // add the item if it has a use relevant to
+                // the selected tab
+                let hasUse = false;
+                item.useAttainments.forEach((use) => {
+                  if (
+                    topicUses.hasOwnProperty(normalizeString(use.useName)) &&
+                    hasUseValues(use)
+                  ) {
+                    hasUse = true;
+                  }
+                });
+
+                if (hasUse) {
+                  return relabelWaterType(item.waterTypeCode, waterTypeOptions);
+                } else return null;
+              })
+              .map((item) =>
+                relabelWaterType(item.waterTypeCode, waterTypeOptions),
+              ),
+          ),
+        ].sort((a, b) => a.localeCompare(b))
+      : [];
 
   // Handles user and auto water type selection
-  useEffect(() => {
-    if (displayWaterTypes && displayWaterTypes.length > 0) {
-      // set to the user's selection if it is availble
-      if (displayWaterTypes.includes(userSelectedWaterType)) {
-        setWaterType(userSelectedWaterType);
-      }
-
-      // set to first item if the user's select cannot be found
-      else {
-        setWaterType(displayWaterTypes[0]);
-      }
+  let waterType = '';
+  if (displayWaterTypes?.length) {
+    // set to the user's selection if it is availble
+    if (displayWaterTypes.includes(userSelectedWaterType)) {
+      waterType = userSelectedWaterType;
     } else {
-      setWaterType(''); // no data available
+      // set to first item if the user's select cannot be found
+      waterType = displayWaterTypes[0];
     }
-  }, [displayWaterTypes, userSelectedWaterType]);
+  }
 
   // Gets data that is associated with the selected water type
-  useEffect(() => {
-    if (!waterType || !waterTypes) return;
+  const waterTypeData =
+    waterType && waterTypes
+      ? waterTypes.filter((x) => waterType === x['simpleWaterType'])
+      : null;
 
-    const waterTypeData =
-      waterType &&
-      waterTypes &&
-      waterTypes.filter((x) => waterType === x['simpleWaterType']);
-    setWaterTypeData(waterTypeData);
-  }, [waterTypes, waterType]);
+  // Builds use lists that will be used for displaying in dropdowns and
+  // building graphs with aggregrate data.
+  const addedUses = [];
+  const useList = []; //used for dropdown (excludes duplicate names)
+  let completeUseList = []; //used for aggregrate data (includes duplicate names)
+  let useSelected = '';
+  if (waterTypeData) {
+    waterTypeData.forEach((waterTypeItem) => {
+      waterTypeItem['useAttainments'].forEach((use) => {
+        let useName = normalizeString(use.useName);
+        if (topicUses.hasOwnProperty(useName) && hasUseValues(use)) {
+          if (!addedUses.includes(useName)) {
+            addedUses.push(useName);
+            useList.push(use);
+            // set to the user's selection if it is availble
+            if (useName === userSelectedUse)
+              useSelected = titleCase(userSelectedUse);
+          }
+          completeUseList.push(use);
+        }
+      });
+    });
+  }
 
-  // Handles user and auto use selection
-  useEffect(() => {
-    if (useList && useList.length > 0) {
-      // set to the user's selection if it is availble
-      if (useList.some((e) => normalizeString(e.useName) === userSelectedUse)) {
-        setUseSelected(titleCase(userSelectedUse));
-      }
+  // set to first item if the user's select cannot be found
+  if (!useSelected && useList.length) {
+    useSelected = titleCase(useList[0].useName);
+  }
 
-      // set to first item if the user's select cannot be found
-      else {
-        setUseSelected(titleCase(useList[0].useName));
-      }
-    } else {
-      setUseSelected(''); // no data available
-    }
-  }, [useList, userSelectedUse]);
+  completeUseList = completeUseList.filter(
+    (use) => titleCase(normalizeString(use.useName)) === useSelected,
+  );
+
+  const displayUses = useList
+    .filter((use) => topicUses.hasOwnProperty(normalizeString(use.useName)))
+    .map((use) => titleCase(use.useName))
+    .sort();
 
   // Handles changes in the selected use
-  useEffect(() => {
-    if (
-      !useSelected ||
-      !surveyData ||
-      !waterType ||
-      !topicUses.hasOwnProperty(normalizeString(useSelected)) ||
-      waterTypeOptions.status !== 'success'
-    ) {
-      if (surveyData) setSubPopulationCodes([]);
-      return;
-    }
-
+  const subPopulationCodes = [];
+  if (
+    useSelected &&
+    surveyData &&
+    waterType &&
+    topicUses.hasOwnProperty(normalizeString(useSelected)) &&
+    waterTypeOptions.status === 'success'
+  ) {
     // build a list of subpopulation codes
-    let subPopulationCodes = [];
     surveyData.surveyWaterGroups
       .filter((x) =>
         waterTypeOptions.data[waterType].includes(x['waterTypeGroupCode']),
@@ -922,14 +856,11 @@ function WaterQualityOverview() {
         // add the watergroup if it matches the filter criteria
         if (hasUse) subPopulationCodes.push(waterGroup);
       });
-
     // sort the subpopulation codes
     subPopulationCodes.sort((a, b) => {
       return a.subPopulationCode.localeCompare(b.subPopulationCode);
     });
-
-    setSubPopulationCodes(subPopulationCodes);
-  }, [useSelected, surveyData, waterType, topicUses, waterTypeOptions]);
+  }
 
   // setup order of the tabs
   const tabs = [

@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { css } from 'styled-components/macro';
 import { WindowSize } from '@reach/window-size';
 import Highcharts from 'highcharts';
@@ -113,35 +113,27 @@ function SurveyResults({
   const waterTypeOptions = useWaterTypeOptionsContext();
 
   const [userSelectedSubPop, setUserSelectedSubPop] = useState('');
-  const [selectedSubPop, setSelectedSubPop] = useState('');
-  const [selectedSurveyGroup, setSelectedSurveyGroup] = useState(null);
 
   // Handles user and auto subPopulation selection
-  useEffect(() => {
-    if (subPopulationCodes && subPopulationCodes.length > 0) {
-      // set to the user's selection if it is availble
-      if (
-        subPopulationCodes.some(
-          (e) => e.subPopulationCode === userSelectedSubPop,
-        )
-      ) {
-        setSelectedSubPop(userSelectedSubPop);
-        setSelectedSurveyGroup(
-          subPopulationCodes.find(
-            (item) => item.subPopulationCode === userSelectedSubPop,
-          ),
-        );
-      }
-
-      // set to first item if the user's select cannot be found
-      else {
-        setSelectedSubPop(subPopulationCodes[0].subPopulationCode);
-        setSelectedSurveyGroup(subPopulationCodes[0]);
-      }
-    } else {
-      setSelectedSubPop(''); // no data available
+  let selectedSubPop = '';
+  let selectedSurveyGroup = null;
+  if (subPopulationCodes && subPopulationCodes.length > 0) {
+    // set to the user's selection if it is availble
+    if (
+      subPopulationCodes.some((e) => e.subPopulationCode === userSelectedSubPop)
+    ) {
+      selectedSubPop = userSelectedSubPop;
+      selectedSurveyGroup = subPopulationCodes.find(
+        (item) => item.subPopulationCode === userSelectedSubPop,
+      );
     }
-  }, [waterType, useSelected, subPopulationCodes, userSelectedSubPop]);
+
+    // set to first item if the user's select cannot be found
+    else {
+      selectedSubPop = subPopulationCodes[0].subPopulationCode;
+      selectedSurveyGroup = subPopulationCodes[0];
+    }
+  }
 
   // gets the color, label and order of a particular stressor
   const getStressorColorCoding = (mapping, stressor, surveyCategoryCode) => {
