@@ -10,7 +10,7 @@ import {
 // utils
 import { isClick, isEmpty } from 'utils/utils';
 // styles
-import { colors, fonts } from 'styles';
+import { fonts } from 'styles';
 // types
 import type { LayersState } from 'contexts/Layers';
 import type {
@@ -282,8 +282,8 @@ const loaderStyles = css`
   &::after {
     content: '';
     width: 80px;
-    height: 2px;
-    background: ${colors.grayc};
+    height: 1px;
+    background: rgba(110, 110, 110, 0.3);
     position: absolute;
     top: 0;
     left: 0;
@@ -336,12 +336,12 @@ const widgetContentStyles = (visible: boolean) => css`
 
           & > div:first-child {
             border-left: 3px solid transparent;
-            padding: 5px 5px 3px;
+            padding: 5px 5px 4px;
           }
 
           & > div:last-child {
             width: 100%;
-            height: 2px;
+            height: 1px;
             position: relative;
             overflow: hidden;
           }
