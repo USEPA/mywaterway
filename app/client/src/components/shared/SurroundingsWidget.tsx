@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css, keyframes } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
 import { useLayersState } from 'contexts/Layers';
@@ -10,7 +10,7 @@ import {
 // utils
 import { isClick, isEmpty } from 'utils/utils';
 // styles
-import { fonts } from 'styles';
+import { colors, fonts } from 'styles';
 // types
 import type { LayersState } from 'contexts/Layers';
 import type {
@@ -113,6 +113,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
 
 function SurroundingsWidgetContent({
   layers,
+  layersUpdating,
   surroundingsVisible,
   toggles,
   togglesDisabled,
@@ -137,6 +138,10 @@ function SurroundingsWidgetContent({
                 const clickHandler = togglesDisabled[id]
                   ? undefined
                   : toggles[id](!surroundingsVisible[id]);
+                const updating =
+                  layersUpdating[id] &&
+                  surroundingsVisible[id] &&
+                  !togglesDisabled[id];
                 return (
                   <li key={id}>
                     <div title={title}>
@@ -164,6 +169,7 @@ function SurroundingsWidgetContent({
                         </span>
                       </div>
                     </div>
+                    <div css={updating ? loaderStyles : undefined}></div>
                   </li>
                 );
               },
@@ -261,6 +267,30 @@ const listItemContentStyles = (disabled: boolean) => css`
   }
 `;
 
+const loader = keyframes`
+   0% {
+      left: 0;
+      transform: translateX(-100%);
+    }
+    100% {
+      left: 100%;
+      transform: translateX(0%);
+    }
+`;
+
+const loaderStyles = css`
+  &::after {
+    content: '';
+    width: 80px;
+    height: 2px;
+    background: ${colors.grayc};
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: ${loader} 2s linear infinite;
+  }
+`;
+
 const widgetContentStyles = (visible: boolean) => css`
   background-color: white;
   cursor: initial;
@@ -304,9 +334,16 @@ const widgetContentStyles = (visible: boolean) => css`
           line-height: 1;
           margin-bottom: 10px;
 
-          & > div {
+          & > div:first-child {
             border-left: 3px solid transparent;
-            padding: 5px;
+            padding: 5px 5px 3px;
+          }
+
+          & > div:last-child {
+            width: 100%;
+            height: 2px;
+            position: relative;
+            overflow: hidden;
           }
         }
       }
