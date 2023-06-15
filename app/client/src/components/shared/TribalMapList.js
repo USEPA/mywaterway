@@ -53,9 +53,11 @@ import {
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import {
+  useDischargersLayers,
   useMonitoringLocations,
   useMonitoringLocationsLayers,
   useSharedLayers,
+  useStreamgageLayers,
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import {
@@ -605,6 +607,9 @@ function TribalMap({
   const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
     useMonitoringLocationsLayers(monitoringLocationsFilter);
 
+  const { surroundingUsgsStreamgagesLayer } = useStreamgageLayers();
+  const { surroundingDischargersLayer } = useDischargersLayers();
+
   const navigate = useNavigate();
   const services = useServicesContext();
   useWaterbodyHighlight();
@@ -739,6 +744,8 @@ function TribalMap({
       ...sharedLayers,
       upstreamLayer,
       selectedTribeLayer,
+      surroundingDischargersLayer,
+      surroundingUsgsStreamgagesLayer,
       monitoringLocationsLayer,
       surroundingMonitoringLocationsLayer,
       waterbodyLayer,
@@ -760,7 +767,9 @@ function TribalMap({
     services,
     setLayer,
     setResetHandler,
+    surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,
+    surroundingUsgsStreamgagesLayer,
     updateVisibleLayers,
   ]);
 
