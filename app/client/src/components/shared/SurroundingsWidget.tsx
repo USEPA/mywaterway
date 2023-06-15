@@ -282,7 +282,7 @@ const loaderStyles = css`
   &::after {
     content: '';
     width: 80px;
-    height: 1px;
+    height: 1.5px;
     background: rgba(110, 110, 110, 0.3);
     position: absolute;
     top: 0;
@@ -336,12 +336,12 @@ const widgetContentStyles = (visible: boolean) => css`
 
           & > div:first-child {
             border-left: 3px solid transparent;
-            padding: 5px 5px 4px;
+            padding: 5px 5px 3.5px;
           }
 
           & > div:last-child {
             width: 100%;
-            height: 1px;
+            height: 1.5px;
             position: relative;
             overflow: hidden;
           }
