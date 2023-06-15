@@ -28,7 +28,7 @@ import type {
 ## Components
 */
 
-export function useSurroundingsWidget(triggerVisible: boolean) {
+export function useSurroundingsWidget(triggerVisible = true) {
   const { layers, visible: visibleLayers } = useLayersState();
   const { togglers, disabled, updating, visible } = useSurroundingsState();
 

@@ -593,8 +593,7 @@ function MapWidgets({
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode, observers]);
 
-  const surroundingsWidgetVisible = !pathname.includes('state');
-  const surroundingsWidget = useSurroundingsWidget(surroundingsWidgetVisible);
+  const surroundingsWidget = useSurroundingsWidget();
   useEffect(() => {
     if (!view?.ui) return;
 

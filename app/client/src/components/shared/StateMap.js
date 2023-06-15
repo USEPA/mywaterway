@@ -34,7 +34,13 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
-import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import {
+  useDischargersLayers,
+  useMonitoringLocationsLayers,
+  useSharedLayers,
+  useStreamgageLayers,
+  useWaterbodyHighlight,
+} from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // styles
 import 'styles/mapStyles.css';
@@ -101,6 +107,10 @@ function StateMap({
   const [noGisDataAvailable, setNoGisDataAvailable] = useState(false);
   const [stateMapLoadError, setStateMapLoadError] = useState(false);
 
+  const { surroundingMonitoringLocationsLayer } =
+    useMonitoringLocationsLayers();
+  const { surroundingUsgsStreamgagesLayer } = useStreamgageLayers();
+  const { surroundingDischargersLayer } = useDischargersLayers();
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
 
@@ -201,7 +211,13 @@ function StateMap({
       setLayer('waterbodyLayer', null);
     });
 
-    setLayers([...getSharedLayers(), waterbodyLayer]);
+    setLayers([
+      ...getSharedLayers(),
+      surroundingDischargersLayer,
+      surroundingMonitoringLocationsLayer,
+      surroundingUsgsStreamgagesLayer,
+      waterbodyLayer,
+    ]);
 
     updateVisibleLayers({ waterbodyLayer: true });
 
@@ -212,6 +228,9 @@ function StateMap({
     setResetHandler,
     layersInitialized,
     services,
+    surroundingDischargersLayer,
+    surroundingMonitoringLocationsLayer,
+    surroundingUsgsStreamgagesLayer,
     updateVisibleLayers,
     navigate,
   ]);
