@@ -1,7 +1,7 @@
 ---
 applications:
   - name: mywaterway-dev
-    instances: 2
+    instances: 1
     memory: 128M
     disk_quota: 512MB
     timeout: 180
