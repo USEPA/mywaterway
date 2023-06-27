@@ -906,10 +906,13 @@ function MapWidgets({
 
   // create download widget
   const downloadWidget = useMemo(() => {
-    if (!view) return null;
+    if (!view || services.status !== 'success') return null;
     const container = document.createElement('div');
-    container.style.width = '50%';
-    const downloadContent = new Print({ view, container, label: 'sfasdfsdf' });
+    const downloadContent = new Print({
+      view,
+      container,
+      // printServiceUrl: `${services.data.printService}`,
+    });
 
     return new Expand({
       expandIconClass: 'esri-icon-download',
@@ -920,7 +923,7 @@ function MapWidgets({
       autoCollapse: true,
       content: downloadContent,
     });
-  }, [view]);
+  }, [services, view]);
 
   // add the download widget
   useEffect(() => {
