@@ -45,7 +45,10 @@ const containerStyles = css`
 `;
 
 const switchContainerStyles = css`
-  margin-top: 0.5em;
+  margin-bottom: 0;
+  & > div {
+    margin-top: 0.5em;
+  }
 `;
 
 const centeredTextStyles = css`
@@ -59,6 +62,11 @@ const accordionContentStyles = css`
 const toggleStyles = css`
   display: flex;
   align-items: center;
+  margin-bottom: 0;
+
+  label {
+    margin-bottom: 0;
+  }
 
   span {
     margin-left: 0.5rem;
@@ -468,24 +476,19 @@ function IdentifiedIssues() {
           {cipSummary.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {getImpairedWatersPercent()}
               </span>
               <p css={keyMetricLabelStyles}>of Assessed Waters are impaired</p>
-              <div css={switchContainerStyles}>
-                <Switch
-                  checked={
-                    toggleIssuesChecked && cipSummary.status !== 'failure'
-                  }
-                  onChange={() => toggleSwitch('Toggle Issues Layer')}
-                  disabled={
-                    zeroPollutedWaterbodies || cipSummary.status === 'failure'
-                  }
-                  ariaLabel="Toggle Issues Layer"
-                />
-              </div>
-            </>
+              <Switch
+                checked={toggleIssuesChecked && cipSummary.status !== 'failure'}
+                onChange={() => toggleSwitch('Toggle Issues Layer')}
+                disabled={
+                  zeroPollutedWaterbodies || cipSummary.status === 'failure'
+                }
+              />
+            </label>
           )}
         </div>
 
@@ -493,7 +496,7 @@ function IdentifiedIssues() {
           {dischargersStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {dischargersStatus === 'failure'
                   ? 'N/A'
@@ -502,15 +505,12 @@ function IdentifiedIssues() {
               <p css={keyMetricLabelStyles}>
                 Dischargers with Significant Violations
               </p>
-              <div css={switchContainerStyles}>
-                <Switch
-                  checked={toggleDischargersChecked}
-                  onChange={() => toggleSwitch('Toggle Dischargers Layer')}
-                  disabled={zeroDischargers}
-                  ariaLabel="Toggle Dischargers Layer"
-                />
-              </div>
-            </>
+              <Switch
+                checked={toggleDischargersChecked}
+                onChange={() => toggleSwitch('Toggle Dischargers Layer')}
+                disabled={zeroDischargers}
+              />
+            </label>
           )}
         </div>
       </div>
@@ -624,16 +624,15 @@ function IdentifiedIssues() {
                                 <thead>
                                   <tr>
                                     <th>
-                                      <div css={toggleStyles}>
+                                      <label css={toggleStyles}>
                                         <Switch
                                           checked={showAllParameters}
                                           onChange={(_ev) => {
                                             toggleSwitch('Toggle All');
                                           }}
-                                          ariaLabel="Toggle all impairment categories"
                                         />
                                         <span>Identified Issues</span>
-                                      </div>
+                                      </label>
                                     </th>
                                     <th>% of Assessed Area</th>
                                   </tr>
@@ -659,13 +658,17 @@ function IdentifiedIssues() {
                                       // if service contains a parameter we have no mapping for
                                       if (!mappedParameter) return false;
 
+                                      const parameterLabelId = `${mappedParameter.label.replaceAll(
+                                        ' ',
+                                        '-',
+                                      )}-label`;
                                       return (
                                         <tr key={mappedParameter.label}>
                                           <td>
                                             <div css={toggleStyles}>
                                               <Switch
-                                                ariaLabel={
-                                                  mappedParameter.label
+                                                ariaLabelledBy={
+                                                  parameterLabelId
                                                 }
                                                 checked={
                                                   parameterToggleObject[
@@ -678,11 +681,13 @@ function IdentifiedIssues() {
                                                   );
                                                 }}
                                               />
-                                              <GlossaryTerm
-                                                term={mappedParameter.term}
-                                              >
-                                                {mappedParameter.label}
-                                              </GlossaryTerm>
+                                              <label id={parameterLabelId}>
+                                                <GlossaryTerm
+                                                  term={mappedParameter.term}
+                                                >
+                                                  {mappedParameter.label}
+                                                </GlossaryTerm>
+                                              </label>
                                             </div>
                                           </td>
                                           <td>
