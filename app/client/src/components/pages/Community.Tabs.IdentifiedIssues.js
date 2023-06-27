@@ -681,13 +681,13 @@ function IdentifiedIssues() {
                                                   );
                                                 }}
                                               />
-                                              <label id={parameterLabelId}>
+                                              <span id={parameterLabelId}>
                                                 <GlossaryTerm
                                                   term={mappedParameter.term}
                                                 >
                                                   {mappedParameter.label}
                                                 </GlossaryTerm>
-                                              </label>
+                                              </span>
                                             </div>
                                           </td>
                                           <td>

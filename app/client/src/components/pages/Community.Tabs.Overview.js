@@ -1136,11 +1136,11 @@ function PermittedDischargersTab({
                               {componentLabel === 'Not Specified' ? (
                                 <span id={componentLabelId}>Not Specified</span>
                               ) : (
-                                <label id={componentLabelId}>
+                                <span id={componentLabelId}>
                                   <GlossaryTerm term={componentLabel}>
                                     {componentLabel}
                                   </GlossaryTerm>
-                                </label>
+                                </span>
                               )}
                             </div>
                           </td>

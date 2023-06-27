@@ -263,7 +263,6 @@ function GlossaryPanel({ path }) {
             css={listStyles}
             className="js-glossary-list"
             tabIndex="0"
-            role="listbox"
           />
         </div>
       </div>
