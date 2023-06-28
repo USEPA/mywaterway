@@ -25,7 +25,11 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
-import { errorBoxStyles, infoBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  errorBoxStyles,
+  infoBoxStyles,
+  textBoxStyles,
+} from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -150,7 +154,10 @@ const subheadingStyles = css`
 `;
 
 const switchContainerStyles = css`
-  margin-top: 0.5em;
+  margin-bottom: 0;
+  & > div {
+    margin-top: 0.5em;
+  }
 `;
 
 const tableFooterStyles = css`
@@ -172,6 +179,7 @@ const tableFooterStyles = css`
 const toggleStyles = css`
   display: flex;
   align-items: center;
+  margin-bottom: 0;
 
   span {
     margin-left: 0.5rem;
@@ -377,46 +385,40 @@ function Monitoring() {
           {usgsStreamgages.status === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {totalCurrentWaterConditions || 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Current Water Conditions</p>
-              <div css={switchContainerStyles}>
-                <Switch
-                  checked={
-                    Boolean(totalCurrentWaterConditions) &&
-                    currentWaterConditionsDisplayed
-                  }
-                  onChange={handleCurrentWaterConditionsToggle}
-                  disabled={!Boolean(totalCurrentWaterConditions)}
-                  ariaLabel="Current Water Conditions"
-                />
-              </div>
-            </>
+              <Switch
+                checked={
+                  Boolean(totalCurrentWaterConditions) &&
+                  currentWaterConditionsDisplayed
+                }
+                onChange={handleCurrentWaterConditionsToggle}
+                disabled={!Boolean(totalCurrentWaterConditions)}
+              />
+            </label>
           )}
         </div>
         <div css={keyMetricStyles}>
           {monitoringLocations.status === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {monitoringLocations.data?.length || 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Past Water Conditions</p>
-              <div css={switchContainerStyles}>
-                <Switch
-                  checked={
-                    Boolean(monitoringLocations.data?.length) &&
-                    monitoringDisplayed
-                  }
-                  onChange={handlePastWaterConditionsToggle}
-                  disabled={!Boolean(monitoringLocations.data?.length)}
-                  ariaLabel="Past Water Conditions"
-                />
-              </div>
-            </>
+              <Switch
+                checked={
+                  Boolean(monitoringLocations.data?.length) &&
+                  monitoringDisplayed
+                }
+                onChange={handlePastWaterConditionsToggle}
+                disabled={!Boolean(monitoringLocations.data?.length)}
+              />
+            </label>
           )}
         </div>
       </div>
@@ -618,23 +620,22 @@ function CurrentConditionsTab({
             <tbody>
               <tr>
                 <td>
-                  <div css={toggleStyles}>
+                  <label css={toggleStyles}>
                     <Switch
                       checked={
                         streamgages.length > 0 && usgsStreamgagesDisplayed
                       }
                       onChange={handleUsgsSensorsToggle}
                       disabled={streamgages.length === 0}
-                      ariaLabel="USGS Sensors"
                     />
                     <span>USGS Sensors</span>
-                  </div>
+                  </label>
                 </td>
                 <td>{streamgages.length}</td>
               </tr>
               <tr>
                 <td>
-                  <div css={toggleStyles}>
+                  <label css={toggleStyles}>
                     <Switch
                       checked={
                         cyanWaterbodies.data?.length > 0 && cyanDisplayed
@@ -644,10 +645,9 @@ function CurrentConditionsTab({
                         cyanWaterbodies.status !== 'success' ||
                         cyanWaterbodies.data?.length === 0
                       }
-                      ariaLabel="CyAN Satellite Imagery"
                     />
                     <span>CyAN Satellite Imagery</span>
-                  </div>
+                  </label>
                 </td>
                 <td>{cyanWaterbodies.data?.length ?? 'N/A'}</td>
               </tr>
@@ -1218,14 +1218,10 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               <thead>
                 <tr>
                   <th>
-                    <div css={toggleStyles}>
-                      <Switch
-                        checked={allToggled}
-                        onChange={toggleAll}
-                        ariaLabel="Toggle all monitoring locations"
-                      />
+                    <label css={toggleStyles}>
+                      <Switch checked={allToggled} onChange={toggleAll} />
                       <span>All Monitoring Locations</span>
-                    </div>
+                    </label>
                   </th>
                   <th colSpan="2">Location Count</th>
                   <th>Measurement Count</th>
@@ -1249,14 +1245,13 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                     return (
                       <tr key={group.label}>
                         <td>
-                          <div css={toggleStyles}>
+                          <label css={toggleStyles}>
                             <Switch
                               checked={group.toggled}
                               onChange={groupToggleHandlers?.[group.label]}
-                              ariaLabel={`Toggle ${group.label}`}
                             />
                             <span>{group.label}</span>
-                          </div>
+                          </label>
                         </td>
                         <td colSpan="2">{locationCount.toLocaleString()}</td>
                         <td>{measurementCount.toLocaleString()}</td>

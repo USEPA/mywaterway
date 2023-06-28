@@ -283,7 +283,7 @@ function AccordionItem({
       onBlur={(_ev) => removeHighlight()}
       role="listitem"
     >
-      <header
+      <div
         aria-label={ariaLabel}
         css={headerStyles}
         className="hmw-accordion-header"
@@ -320,7 +320,7 @@ function AccordionItem({
           className={`fa fa-angle-${isOpen ? 'down' : 'right'}`}
           aria-hidden="true"
         />
-      </header>
+      </div>
 
       <div
         style={
