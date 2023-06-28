@@ -1,4 +1,3 @@
-import Point from '@arcgis/core/geometry/Point';
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
 
@@ -21,7 +20,7 @@ function chunkArrayCharLength(
   const chunks: string[] = [];
   let tempString = '';
   let chunkString = '';
-  array.forEach((item: string, index: number) => {
+  array.forEach((item: string) => {
     if (!tempString) tempString = item;
     else tempString += separator + item;
 
@@ -241,45 +240,6 @@ function createMarkup(message: string) {
   return { __html: message };
 }
 
-// Determines if the input text is a string representing coordinates.
-// If so the coordinates are converted to an Esri Point object.
-function getPointFromCoordinates(text: string) {
-  const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
-  let point = null;
-  if (regex.test(text)) {
-    const found: RegExpMatchArray | null = text.match(regex);
-    if (found && found.length >= 4 && found[1] && found[3]) {
-      point = new Point({
-        x: parseFloat(found[1]),
-        y: parseFloat(found[3]),
-      });
-    }
-  }
-
-  return point;
-}
-
-// Determines if the input text is a string that contains coordinates.
-// The return value is an object containing the esri point for the coordinates (coordinatesPart)
-// and any remaining text (searchPart).
-function splitSuggestedSearch(text: string) {
-  // split search
-  const parts = text.split('|');
-
-  // get the coordinates part (is last item)
-  const tempCoords = parts[parts.length - 1];
-  const coordinatesPart = getPointFromCoordinates(tempCoords);
-
-  // remove the coordinates part from initial array
-  const coordinatesString = coordinatesPart ? parts.pop() ?? '' : '';
-
-  // get the point from the coordinates part
-  return {
-    searchPart: parts.length > 0 ? parts.join('|') : coordinatesString,
-    coordinatesPart,
-  };
-}
-
 /**
  * Creates a simple popup that contains all of the attributes on the
  * graphic.
@@ -381,6 +341,38 @@ function escapeRegex(str: string) {
   return str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
 }
 
+// Converts CyAN `year dayOfYear` format to epoch timestamp
+function cyanDateToEpoch(yearDay: string) {
+  const yearAndDay = yearDay.split(' ');
+  if (yearAndDay.length !== 2) return null;
+  const year = parseInt(yearAndDay[0]);
+  const day = parseInt(yearAndDay[1]);
+  if (Number.isFinite(year) && Number.isFinite(day)) {
+    return new Date(year, 0, day).getTime();
+  }
+  return null;
+}
+
+function getDayOfYear(date: Date) {
+  const firstOfYear = new Date(date.getFullYear(), 0, 0);
+  const diff =
+    date.getTime() -
+    firstOfYear.getTime() +
+    getTzOffsetMsecs(firstOfYear, date);
+  const oneDay = 1000 * 60 * 60 * 24;
+  return Math.floor(diff / oneDay);
+}
+
+function getMedian(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const numValues = values.length;
+  if (numValues % 2 === 0) {
+    return (sorted[numValues / 2 - 1] + sorted[numValues / 2]) / 2;
+  } else {
+    return sorted[(numValues - 1) / 2];
+  }
+}
+
 // Gets the selected community tab from the url
 function getSelectedCommunityTab() {
   const pathParts = window.location.pathname.substring(1).split('/');
@@ -390,6 +382,12 @@ function getSelectedCommunityTab() {
   }
 
   return selectedCommunityTab.toLowerCase();
+}
+
+function getTzOffsetMsecs(previous: Date, current: Date) {
+  return (
+    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
+  );
 }
 
 // Normalizes string for comparisons.
@@ -530,11 +528,15 @@ function escapeForLucene(value: string) {
 export {
   chunkArray,
   chunkArrayCharLength,
+  cyanDateToEpoch,
   containsScriptTag,
   escapeForLucene,
   escapeRegex,
   formatNumber,
+  getDayOfYear,
   getExtensionFromPath,
+  getMedian,
+  getTzOffsetMsecs,
   isAbort,
   isClick,
   isEmpty,
@@ -547,8 +549,6 @@ export {
   resetCanonicalLink,
   removeJsonLD,
   createMarkup,
-  getPointFromCoordinates,
-  splitSuggestedSearch,
   getSimplePopupTemplate,
   browserIsCompatibleWithArcGIS,
   convertAgencyCode,

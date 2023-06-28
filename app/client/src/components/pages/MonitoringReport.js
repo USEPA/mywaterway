@@ -54,7 +54,7 @@ import {
   useMonitoringLocationsLayers,
   useSharedLayers,
 } from 'utils/hooks';
-import { isAbort, toFixedFloat } from 'utils/utils';
+import { getMedian, isAbort, toFixedFloat } from 'utils/utils';
 // styles
 import {
   boxStyles,
@@ -592,16 +592,6 @@ function getCheckedStatus(numberSelected, children) {
 function getMean(values) {
   const sum = values.reduce((a, b) => a + b, 0);
   return sum / values.length;
-}
-
-function getMedian(values) {
-  const sorted = [...values].sort((a, b) => a - b);
-  const numValues = values.length;
-  if (numValues % 2 === 0) {
-    return (sorted[numValues / 2 - 1] + sorted[numValues / 2]) / 2;
-  } else {
-    return sorted[(numValues - 1) / 2];
-  }
 }
 
 function getStdDev(values, mean = null) {

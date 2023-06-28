@@ -23,12 +23,8 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { useKeyPress } from 'utils/hooks';
-import {
-  containsScriptTag,
-  indicesOf,
-  isHuc12,
-  splitSuggestedSearch,
-} from 'utils/utils';
+import { containsScriptTag, indicesOf, isHuc12 } from 'utils/utils';
+import { splitSuggestedSearch } from 'utils/mapFunctions';
 // styles
 import { colors, fonts } from 'styles/index.js';
 // errors

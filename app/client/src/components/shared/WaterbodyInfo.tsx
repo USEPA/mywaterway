@@ -35,8 +35,11 @@ import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
   convertDomainCode,
+  cyanDateToEpoch,
   formatNumber,
+  getDayOfYear,
   getSelectedCommunityTab,
+  getTzOffsetMsecs,
   parseAttributes,
   isAbort,
   titleCaseWithExceptions,
@@ -1252,18 +1255,6 @@ function barChartDataPoint(
   };
 }
 
-// Converts CyAN `year dayOfYear` format to epoch timestamp
-function cyanDateToEpoch(yearDay: string) {
-  const yearAndDay = yearDay.split(' ');
-  if (yearAndDay.length !== 2) return null;
-  const year = parseInt(yearAndDay[0]);
-  const day = parseInt(yearAndDay[1]);
-  if (Number.isFinite(year) && Number.isFinite(day)) {
-    return new Date(year, 0, day).getTime();
-  }
-  return null;
-}
-
 function epochToMonthDay(epoch: number) {
   const date = new Date(epoch);
   return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -1275,13 +1266,6 @@ function formatDate(epoch: number) {
     month: 'short',
     day: 'numeric',
   });
-}
-
-function getDayOfYear(day: Date) {
-  const firstOfYear = new Date(day.getFullYear(), 0, 0);
-  const diff =
-    day.getTime() - firstOfYear.getTime() + getTzOffsetMsecs(firstOfYear, day);
-  return Math.floor(diff / oneDay);
 }
 
 function getAverageNonLandPixelArea(data: CellConcentrationData) {
@@ -1309,12 +1293,6 @@ function getTotalNonLandPixels(
 ) {
   const { belowDetection, measurements, noData } = data;
   return sum(belowDetection, noData, ...measurements);
-}
-
-function getTzOffsetMsecs(previous: Date, current: Date) {
-  return (
-    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
-  );
 }
 
 function squareKmToSquareMi(km: number) {

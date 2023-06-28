@@ -1,3 +1,5 @@
+import { getMedian } from '../../client/src/utils/utils';
+
 // This is a workaround for making the tests more reliable when running
 // cypress in headless mode, particularly for running code coverage.
 Cypress.on('uncaught:exception', (_err, _runnable) => {
@@ -63,5 +65,30 @@ describe('The Site ID tooltip', () => {
     cy.findByText('A Site ID is a designator used to describe', {
       exact: false,
     });
+  });
+});
+
+describe('Unit test statistic functions', () => {
+  before(() => {
+    expect(getMedian, 'getMedian').to.be.a('function');
+  });
+
+  it('Properly calculates a median value', () => {
+    const values = [0, 5, 12, 1, 68, 33, 3, 300, 24];
+    expect(getMedian(values)).to.eq(12);
+  });
+});
+
+describe('The Download Data section', () => {
+  beforeEach(() => {
+    cy.visit(`/monitoring-report/${provider}/${orgId}/${siteId}`);
+  });
+
+  it('Un-checks children when a parent checkbox is un-checked', () => {
+    cy.findByRole('checkbox', { name: 'Not Assigned' }).click();
+    cy.findByRole('button', { name: /Not Assigned/ }).click();
+    cy.findByRole('checkbox', { name: 'Cyanide, available' }).should(
+      'not.be.checked',
+    );
   });
 });

@@ -1,3 +1,9 @@
+import {
+  cyanDateToEpoch,
+  getDayOfYear,
+  getTzOffsetMsecs,
+} from '../../client/src/utils/utils';
+
 describe('Monitoring Tab', () => {
   beforeEach(() => {
     cy.visit('/community');
@@ -239,5 +245,9 @@ describe('Monitoring Tab', () => {
       .find('td')
       .last()
       .should('not.have.text', '0');
+  });
+
+  it('CyAN date is correctly transformed to an epoch timestamp', () => {
+    // const cyanDate = '2020
   });
 });
