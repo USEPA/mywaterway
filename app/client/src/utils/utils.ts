@@ -341,28 +341,6 @@ function escapeRegex(str: string) {
   return str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
 }
 
-// Converts CyAN `year dayOfYear` format to epoch timestamp
-function cyanDateToEpoch(yearDay: string) {
-  const yearAndDay = yearDay.split(' ');
-  if (yearAndDay.length !== 2) return null;
-  const year = parseInt(yearAndDay[0]);
-  const day = parseInt(yearAndDay[1]);
-  if (Number.isFinite(year) && Number.isFinite(day)) {
-    return new Date(year, 0, day).getTime();
-  }
-  return null;
-}
-
-function getDayOfYear(date: Date) {
-  const firstOfYear = new Date(date.getFullYear(), 0, 0);
-  const diff =
-    date.getTime() -
-    firstOfYear.getTime() +
-    getTzOffsetMsecs(firstOfYear, date);
-  const oneDay = 1000 * 60 * 60 * 24;
-  return Math.floor(diff / oneDay);
-}
-
 function getMedian(values: number[]) {
   const sorted = [...values].sort((a, b) => a - b);
   const numValues = values.length;
@@ -382,12 +360,6 @@ function getSelectedCommunityTab() {
   }
 
   return selectedCommunityTab.toLowerCase();
-}
-
-function getTzOffsetMsecs(previous: Date, current: Date) {
-  return (
-    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
-  );
 }
 
 // Normalizes string for comparisons.
@@ -528,15 +500,12 @@ function escapeForLucene(value: string) {
 export {
   chunkArray,
   chunkArrayCharLength,
-  cyanDateToEpoch,
   containsScriptTag,
   escapeForLucene,
   escapeRegex,
   formatNumber,
-  getDayOfYear,
   getExtensionFromPath,
   getMedian,
-  getTzOffsetMsecs,
   isAbort,
   isClick,
   isEmpty,

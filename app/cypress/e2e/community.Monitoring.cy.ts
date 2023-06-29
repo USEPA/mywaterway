@@ -1,8 +1,8 @@
 import {
-  cyanDateToEpoch,
-  getDayOfYear,
-  getTzOffsetMsecs,
-} from '../../client/src/utils/utils';
+  createRelativeDailyTimestampRange,
+  epochToMonthDay,
+  yearDayStringToEpoch,
+} from '../../client/src/utils/dateUtils';
 
 describe('Monitoring Tab', () => {
   beforeEach(() => {
@@ -246,8 +246,68 @@ describe('Monitoring Tab', () => {
       .last()
       .should('not.have.text', '0');
   });
+});
 
-  it('CyAN date is correctly transformed to an epoch timestamp', () => {
-    // const cyanDate = '2020
+describe('CyAN date functions', () => {
+  before(() => {
+    expect(yearDayStringToEpoch, 'yearDayStringToEpoch').to.be.a('function');
+    expect(epochToMonthDay, 'epochToMonthDay').to.be.a('function');
+    expect(
+      createRelativeDailyTimestampRange,
+      'createRelativeDailyTimestampRange',
+    ).to.be.a('function');
+  });
+
+  it('CyAN dates are correctly parsed during time changes and leap years', () => {
+    const testCases = [
+      {
+        // start of DST
+        input: ['2022 69', '2022 70', '2022 71', '2022 72', '2022 73'],
+        output: ['3/10', '3/11', '3/12', '3/13', '3/14'],
+      },
+      {
+        // end of DST
+        input: ['2022 307', '2022 308', '2022 309', '2022 310', '2022 311'],
+        output: ['11/3', '11/4', '11/5', '11/6', '11/7'],
+      },
+      {
+        // leap day
+        input: ['2020 58', '2020 59', '2020 60', '2020 61', '2020 62'],
+        output: ['2/27', '2/28', '2/29', '3/1', '3/2'],
+      },
+    ];
+
+    testCases.forEach((testCase) => {
+      testCase.input.forEach((date, i) => {
+        expect(epochToMonthDay(yearDayStringToEpoch(date))).to.equal(
+          testCase.output[i],
+        );
+      });
+    });
+  });
+
+  it('Day ranges are correctly calculated during time changes and leap years', () => {
+    const testCases = [
+      {
+        input: new Date(2022, 2, 16),
+        output: ['3/9', '3/10', '3/11', '3/12', '3/13', '3/14', '3/15'],
+      },
+      {
+        input: new Date(2022, 10, 9),
+        output: ['11/2', '11/3', '11/4', '11/5', '11/6', '11/7', '11/8'],
+      },
+      {
+        input: new Date(2020, 2, 4),
+        output: ['2/26', '2/27', '2/28', '2/29', '3/1', '3/2', '3/3'],
+      },
+    ];
+
+    testCases.forEach((testCase) => {
+      createRelativeDailyTimestampRange(testCase.input, -7, -1).forEach(
+        (timestamp, i) => {
+          expect(epochToMonthDay(timestamp)).to.equal(testCase.output[i]);
+        },
+      );
+    });
   });
 });

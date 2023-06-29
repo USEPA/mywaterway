@@ -23,6 +23,12 @@ import { Sparkline } from 'components/shared/Sparkline';
 import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
+import {
+  createRelativeDailyTimestampRange,
+  epochToMonthDay,
+  getDayOfYear,
+  yearDayStringToEpoch,
+} from 'utils/dateUtils';
 import { useAbortSignal } from 'utils/hooks';
 import {
   getWaterbodyCondition,
@@ -35,11 +41,8 @@ import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
   convertDomainCode,
-  cyanDateToEpoch,
   formatNumber,
-  getDayOfYear,
   getSelectedCommunityTab,
-  getTzOffsetMsecs,
   parseAttributes,
   isAbort,
   titleCaseWithExceptions,
@@ -1255,11 +1258,6 @@ function barChartDataPoint(
   };
 }
 
-function epochToMonthDay(epoch: number) {
-  const date = new Date(epoch);
-  return `${date.getMonth() + 1}/${date.getDate()}`;
-}
-
 function formatDate(epoch: number) {
   return new Date(epoch).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -1477,11 +1475,18 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   useEffect(() => {
     if (services?.status !== 'success') return;
 
-    const startDateRaw = new Date(today.getTime() - 7 * oneDay);
-    const startDate = new Date(
-      startDateRaw.getTime() + getTzOffsetMsecs(startDateRaw, today),
+    const dateRange = createRelativeDailyTimestampRange(today, -7, -1);
+    const newData = dateRange.reduce<CellConcentrationData>(
+      (dataObj, timestamp) => {
+        return {
+          ...dataObj,
+          [timestamp]: null,
+        };
+      },
+      {},
     );
 
+    const startDate = new Date(dateRange[0]);
     const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
       attributes.oid ?? attributes.OBJECTID
     }&start_year=${startDate.getFullYear()}&start_day=${getDayOfYear(
@@ -1499,21 +1504,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
     fetcher(dataUrl, abortSignal)
       .then((res: { data: { [date: string]: number[] } }) => {
-        const newData: CellConcentrationData = {};
-        let currentDate = startDate.getTime();
-        const yesterdayRaw = today.getTime() - oneDay;
-        const yesterday =
-          yesterdayRaw + getTzOffsetMsecs(new Date(yesterdayRaw), today);
-        while (currentDate <= yesterday) {
-          newData[currentDate] = null;
-          const nextDate = currentDate + oneDay;
-          currentDate =
-            nextDate -
-            getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
-        }
         Object.entries(res.data).forEach(([date, values]) => {
           if (values.length !== 256) return;
-          const epochDate = cyanDateToEpoch(date);
+          const epochDate = yearDayStringToEpoch(date);
           // Indices 0, 254, & 255 represent indetectable pixels
           if (epochDate !== null && newData.hasOwnProperty(epochDate)) {
             const measurements = values.slice(1, 254);
