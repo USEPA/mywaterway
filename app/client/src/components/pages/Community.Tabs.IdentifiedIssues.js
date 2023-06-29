@@ -458,7 +458,7 @@ function IdentifiedIssues() {
 
   function getImpairedWatersPercent() {
     if (cipSummary.status === 'failure') return 'N/A';
-    return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent}%` || 0 + '%';
+    return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent ?? 0}%`;
   }
 
   return (

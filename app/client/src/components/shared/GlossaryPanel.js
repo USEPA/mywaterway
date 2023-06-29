@@ -187,7 +187,7 @@ function GlossaryPanel({ path }) {
 
   // initialize Glossary panel
   useEffect(() => {
-    if (!window.fetchGlossaryTerms) return;
+    if (!window.hasOwnProperty('fetchGlossaryTerms')) return;
 
     if (!initialized) {
       setInitialized(true);
@@ -277,7 +277,7 @@ type Props = {
 function GlossaryTerm({ term, className, style, children }: Props) {
   const [status, setStatus] = useState('fetching');
 
-  if (window.fetchGlossaryTerms) {
+  if (window.hasOwnProperty('fetchGlossaryTerms')) {
     window.fetchGlossaryTerms
       .then((terms) => setStatus(terms.status))
       .catch((err) => {

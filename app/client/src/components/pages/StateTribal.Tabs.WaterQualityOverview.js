@@ -816,7 +816,7 @@ function WaterQualityOverview() {
   const displayUses = useList
     .filter((use) => topicUses.hasOwnProperty(normalizeString(use.useName)))
     .map((use) => titleCase(use.useName))
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 
   // Handles changes in the selected use
   const subPopulationCodes = [];

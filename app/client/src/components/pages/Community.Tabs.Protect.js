@@ -58,7 +58,7 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
   // don't add ' and ' if only one state is found
   if (stateNames.length === 1) return stateNames[0];
 
-  stateNames.sort();
+  stateNames.sort((a, b) => a.localeCompare(b));
   return stateNames.slice(0, -1).join(', ') + ' and ' + stateNames.slice(-1);
 }
 
