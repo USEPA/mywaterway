@@ -1105,7 +1105,10 @@ function PermittedDischargersTab({
                 {dischargerPermitComponents &&
                   Object.keys(dischargerPermitComponents)
                     .filter((key) => key !== 'All')
-                    .sort((a, b) => a.localeCompare(b))
+                    .sort((a, b) => {
+                      if (a === 'null') return 1;
+                      return a.localeCompare(b);
+                    })
                     .map((key) => {
                       const component = dischargerPermitComponents[key];
 

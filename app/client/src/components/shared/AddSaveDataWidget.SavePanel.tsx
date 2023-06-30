@@ -619,7 +619,10 @@ function SavePanel({ visible }: Props) {
             const filters: string[] = [];
             Object.keys(dischargerPermitComponents)
               .filter((key) => key !== 'All')
-              .sort((a, b) => a.localeCompare(b))
+              .sort((a, b) => {
+                if (a === 'null') return 1;
+                return a.localeCompare(b);
+              })
               .forEach((key) => {
                 const group = dischargerPermitComponents[key];
                 if (group.label === 'All' || !group.toggled) return;
