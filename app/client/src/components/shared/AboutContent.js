@@ -81,7 +81,7 @@ function AboutContent() {
     const href = window.location.href;
 
     // get the pathname without the leading /
-    const pathname = window.location.pathname.substr(1);
+    const pathname = window.location.pathname.slice(1);
 
     // build the url for the data page
     let newHref = '';

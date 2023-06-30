@@ -103,7 +103,7 @@ function HelpTooltip({
         ) : (
           <i aria-hidden css={helpIconStyles} className={iconClass} />
         )}
-        <span className="sr-only">{description || 'Information Tooltip'}</span>
+        <span className="sr-only">{description ?? 'Information Tooltip'}</span>
       </button>
     </Tooltip>
   );

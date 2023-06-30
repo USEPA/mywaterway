@@ -389,7 +389,7 @@ function SavePanel({ visible }: Props) {
     });
 
     // build object of switches based on layers on map
-    const newSwitches = saveLayersList ? { ...saveLayersList } : {};
+    const newSwitches = { ...saveLayersList };
     const newSwitchesNoLayer: any = {};
     const layersOnMap: string[] = [];
     mapView.map.layers.forEach((layer) => {

@@ -1196,44 +1196,41 @@ function Protect() {
                               {allProtectionProjects.map((item, index) => {
                                 const url = getUrlFromMarkup(item.projectLink);
                                 const protectionPlans =
-                                  item.watershedPlans &&
                                   // break string into pieces separated by commas and map over them
-                                  item.watershedPlans.split(',').map((plan) => {
-                                    const markup =
-                                      plan.split('</a>')[0] + '</a>';
-                                    const title = getTitleFromMarkup(markup);
-                                    const planUrl = getUrlFromMarkup(markup);
-                                    if (!title || !planUrl) return null;
-                                    return { url: planUrl, title: title };
-                                  });
+                                  item.watershedPlans
+                                    ?.split(',')
+                                    .map((plan) => {
+                                      const markup =
+                                        plan.split('</a>')[0] + '</a>';
+                                      const title = getTitleFromMarkup(markup);
+                                      const planUrl = getUrlFromMarkup(markup);
+                                      if (!title || !planUrl) return null;
+                                      return { url: planUrl, title: title };
+                                    });
                                 // remove any plans with missing titles or urls
                                 const filteredProtectionPlans =
-                                  protectionPlans &&
-                                  protectionPlans.filter(
-                                    (plan) => plan && plan.url && plan.title,
+                                  protectionPlans?.filter(
+                                    (plan) => plan?.url && plan.title,
                                   );
 
                                 const protectionPlanLinks =
-                                  filteredProtectionPlans &&
-                                  filteredProtectionPlans.length > 0
-                                    ? filteredProtectionPlans.map(
-                                        (plan, index) => {
-                                          if (plan && plan.url && plan.title) {
-                                            return (
-                                              <div key={index}>
-                                                <a
-                                                  href={plan.url}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                >
-                                                  {plan.title}
-                                                </a>
-                                              </div>
-                                            );
-                                          }
-                                          return false;
-                                        },
-                                      )
+                                  filteredProtectionPlans?.length > 0
+                                    ? filteredProtectionPlans.map((plan) => {
+                                        if (plan?.url && plan.title) {
+                                          return (
+                                            <div key={index}>
+                                              <a
+                                                href={plan.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                              >
+                                                {plan.title}
+                                              </a>
+                                            </div>
+                                          );
+                                        }
+                                        return false;
+                                      })
                                     : 'Document not available';
 
                                 return (

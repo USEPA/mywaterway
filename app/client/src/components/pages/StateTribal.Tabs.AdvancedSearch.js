@@ -947,7 +947,7 @@ function AdvancedSearch() {
           css={buttonStyles}
           disabled={searchLoading}
           onClick={(_ev) => {
-            if (mapView && mapView.popup) mapView.popup.close();
+            mapView?.popup?.close();
             executeFilter();
           }}
         >
@@ -1135,8 +1135,7 @@ function AdvancedSearch() {
         }}
       >
         Your search will return{' '}
-        <strong>{numberOfRecords && numberOfRecords.toLocaleString()}</strong>{' '}
-        results.
+        <strong>{numberOfRecords?.toLocaleString() ?? 0}</strong> results.
         <br />
         {numberOfRecords > 0 ? (
           <>Would you like to continue?</>

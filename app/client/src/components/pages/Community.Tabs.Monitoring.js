@@ -25,7 +25,11 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
-import { errorBoxStyles, infoBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  errorBoxStyles,
+  infoBoxStyles,
+  textBoxStyles,
+} from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -389,7 +393,7 @@ function Monitoring() {
                     currentWaterConditionsDisplayed
                   }
                   onChange={handleCurrentWaterConditionsToggle}
-                  disabled={!Boolean(totalCurrentWaterConditions)}
+                  disabled={!totalCurrentWaterConditions}
                   ariaLabel="Current Water Conditions"
                 />
               </div>
@@ -412,7 +416,7 @@ function Monitoring() {
                     monitoringDisplayed
                   }
                   onChange={handlePastWaterConditionsToggle}
-                  disabled={!Boolean(monitoringLocations.data?.length)}
+                  disabled={!monitoringLocations.data?.length}
                   ariaLabel="Past Water Conditions"
                 />
               </div>
@@ -1202,7 +1206,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                   <DateSlider
                     max={maxYear}
                     min={minYear}
-                    disabled={!Boolean(Object.keys(annualData).length)}
+                    disabled={!Object.keys(annualData).length}
                     onChange={handleDateSliderChange}
                     range={monitoringYearsRange}
                   />

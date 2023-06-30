@@ -453,11 +453,7 @@ function DrinkingWater() {
   }
 
   let county = '';
-  if (
-    countyBoundaries &&
-    countyBoundaries.features &&
-    countyBoundaries.features.length > 0
-  ) {
+  if (countyBoundaries?.features?.length > 0) {
     county = countyBoundaries.features[0].attributes.NAME;
   }
 

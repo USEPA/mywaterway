@@ -386,9 +386,7 @@ function WaterQualityOverview() {
         // for states like Alaska that have no reporting cycles
         if (
           activeState.source !== 'Tribe' &&
-          (!res.data ||
-            !res.data.reportingCycles ||
-            res.data.reportingCycles.length === 0)
+          !res.data?.reportingCycles?.length
         ) {
           setUsesStateSummaryServiceError(true);
           setLoading(false);
@@ -475,7 +473,7 @@ function WaterQualityOverview() {
 
       fetchCheck(url, abortSignal)
         .then((res) => {
-          if (!res || !res.features || res.features.length === 0) {
+          if (!res?.features?.length) {
             setFishingAdvisoryData({ status: 'success', data: [] });
             return;
           }
@@ -510,13 +508,7 @@ function WaterQualityOverview() {
         .then((res) => {
           setSurveyLoading(false);
 
-          if (
-            !res ||
-            !res.items ||
-            res.items.length === 0 ||
-            !res.items[0].surveys ||
-            res.items[0].surveys.length === 0
-          ) {
+          if (!res?.items?.length || !res.items[0].surveys?.length) {
             setSurveyData(null);
             setSurveyDocuments([]);
             return;
@@ -560,7 +552,7 @@ function WaterQualityOverview() {
           let orgID;
 
           // look for an org id that is of type state
-          if (res && res.data) {
+          if (res?.data) {
             res.data.forEach((org) => {
               if (org.type === 'State') orgID = org.id;
             });

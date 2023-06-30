@@ -228,7 +228,7 @@ function Overview() {
                 <Switch
                   checked={Boolean(totalWaterbodies) && waterbodiesDisplayed}
                   onChange={handleWaterbodiesToggle}
-                  disabled={!Boolean(totalWaterbodies)}
+                  disabled={!totalWaterbodies}
                   ariaLabel="Waterbodies"
                 />
               </div>
@@ -245,9 +245,7 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalMonitoringAndSensors)
-                  ? totalMonitoringAndSensors
-                  : 'N/A'}
+                {totalMonitoringAndSensors ? totalMonitoringAndSensors : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Monitoring Locations</p>
               <div css={switchContainerStyles}>
@@ -257,7 +255,7 @@ function Overview() {
                     monitoringAndSensorsDisplayed
                   }
                   onChange={handleMonitoringLocationsToggle}
-                  disabled={!Boolean(totalMonitoringAndSensors)}
+                  disabled={!totalMonitoringAndSensors}
                   ariaLabel="Monitoring Stations"
                 />
               </div>
@@ -271,9 +269,7 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalPermittedDischargers)
-                  ? totalPermittedDischargers
-                  : 'N/A'}
+                {totalPermittedDischargers ? totalPermittedDischargers : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <div css={switchContainerStyles}>
@@ -283,7 +279,7 @@ function Overview() {
                     permittedDischargersDisplayed
                   }
                   onChange={handlePermittedDischargersToggle}
-                  disabled={!Boolean(totalPermittedDischargers)}
+                  disabled={!totalPermittedDischargers}
                   ariaLabel="Permitted Dischargers"
                 />
               </div>
