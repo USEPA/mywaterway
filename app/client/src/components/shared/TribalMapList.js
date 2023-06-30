@@ -387,7 +387,8 @@ function TribalMapList({
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    monitoringLocations.length && monitoringLocationsDisplayed
+                    Boolean(monitoringLocations.length) &&
+                    monitoringLocationsDisplayed
                   }
                   onChange={(_checked) => {
                     if (!monitoringLocationsLayer) return;
