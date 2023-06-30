@@ -5,6 +5,7 @@ type Props = {
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   ariaLabel: string;
+  ariaLabelledBy?: string;
 };
 
 function Switch({
@@ -12,6 +13,7 @@ function Switch({
   onChange = () => {},
   disabled = false,
   ariaLabel = '',
+  ariaLabelledBy = undefined,
 }: Props) {
   return (
     <ReactSwitch
@@ -28,6 +30,7 @@ function Switch({
       height={12}
       disabled={disabled}
       aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
       aria-checked={checked}
     />
   );

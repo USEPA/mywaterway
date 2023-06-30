@@ -258,7 +258,12 @@ function GlossaryPanel({ path }) {
             />
           )}
 
-          <ul css={listStyles} className="js-glossary-list" />
+          <ul
+            aria-labelledby="glossary-title"
+            css={listStyles}
+            className="js-glossary-list"
+            tabIndex="0"
+          />
         </div>
       </div>
     </>

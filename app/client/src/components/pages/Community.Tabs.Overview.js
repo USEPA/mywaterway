@@ -83,7 +83,10 @@ const modifiedErrorBoxStyles = css`
 `;
 
 const switchContainerStyles = css`
-  margin-top: 0.5em;
+  margin-bottom: 0;
+  & > div {
+    margin-top: 0.5em;
+  }
 `;
 
 const centeredTextStyles = css`
@@ -97,6 +100,11 @@ const accordionContentStyles = css`
 const toggleStyles = css`
   display: flex;
   align-items: center;
+  margin-bottom: 0;
+
+  label {
+    margin-bottom: 0;
+  }
 
   span {
     margin-left: 0.5rem;
@@ -217,22 +225,21 @@ function Overview() {
           cipSummary.status !== 'failure' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {Boolean(totalWaterbodies) && cipSummary.status === 'success'
                   ? totalWaterbodies.toLocaleString()
                   : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
-              <div css={switchContainerStyles}>
+              <div>
                 <Switch
                   checked={Boolean(totalWaterbodies) && waterbodiesDisplayed}
                   onChange={handleWaterbodiesToggle}
                   disabled={!totalWaterbodies}
-                  ariaLabel="Waterbodies"
                 />
               </div>
-            </>
+            </label>
           )}
         </div>
 
@@ -243,12 +250,12 @@ function Overview() {
           streamgagesStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {totalMonitoringAndSensors ? totalMonitoringAndSensors : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Monitoring Locations</p>
-              <div css={switchContainerStyles}>
+              <div>
                 <Switch
                   checked={
                     Boolean(totalMonitoringAndSensors) &&
@@ -256,10 +263,9 @@ function Overview() {
                   }
                   onChange={handleMonitoringLocationsToggle}
                   disabled={!totalMonitoringAndSensors}
-                  ariaLabel="Monitoring Stations"
                 />
               </div>
-            </>
+            </label>
           )}
         </div>
 
@@ -267,12 +273,12 @@ function Overview() {
           {dischargersStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {totalPermittedDischargers ? totalPermittedDischargers : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
-              <div css={switchContainerStyles}>
+              <div>
                 <Switch
                   checked={
                     Boolean(totalPermittedDischargers) &&
@@ -280,10 +286,9 @@ function Overview() {
                   }
                   onChange={handlePermittedDischargersToggle}
                   disabled={!totalPermittedDischargers}
-                  ariaLabel="Permitted Dischargers"
                 />
               </div>
-            </>
+            </label>
           )}
         </div>
       </div>
@@ -678,23 +683,22 @@ function MonitoringAndSensorsTab({
               <tbody>
                 <tr>
                   <td>
-                    <div css={toggleStyles}>
+                    <label css={toggleStyles}>
                       <Switch
                         checked={
                           streamgages.length > 0 && usgsStreamgagesDisplayed
                         }
                         onChange={handleUsgsSensorsToggle}
                         disabled={streamgages.length === 0}
-                        ariaLabel="USGS Sensors"
                       />
                       <span>USGS Sensors</span>
-                    </div>
+                    </label>
                   </td>
                   <td>{streamgages.length}</td>
                 </tr>
                 <tr>
                   <td>
-                    <div css={toggleStyles}>
+                    <label css={toggleStyles}>
                       <Switch
                         checked={
                           monitoringLocations.length > 0 &&
@@ -702,10 +706,9 @@ function MonitoringAndSensorsTab({
                         }
                         onChange={handlePastWaterConditionsToggle}
                         disabled={monitoringLocations.length === 0}
-                        ariaLabel="Past Water Conditions"
                       />
                       <span>Past Water Conditions</span>
-                    </div>
+                    </label>
                   </td>
                   <td>{monitoringLocations.length}</td>
                 </tr>
@@ -1086,14 +1089,14 @@ function PermittedDischargersTab({
               <thead>
                 <tr>
                   <th>
-                    <div css={toggleStyles}>
+                    <label css={toggleStyles}>
                       <Switch
                         checked={allToggled}
                         onChange={toggleAll}
                         ariaLabel="Toggle all permit components"
                       />
                       <span>All Permit Components</span>
-                    </div>
+                    </label>
                   </th>
                   <th>Count</th>
                 </tr>
@@ -1109,6 +1112,10 @@ function PermittedDischargersTab({
                       const componentLabel = !component.label
                         ? 'Not Specified'
                         : component.label;
+                      const componentLabelId = `${key.replaceAll(
+                        ' ',
+                        '-',
+                      )}-label`;
 
                       return (
                         <tr key={key}>
@@ -1120,13 +1127,16 @@ function PermittedDischargersTab({
                                   groupToggleHandlers?.[component.label]
                                 }
                                 ariaLabel={`Toggle ${componentLabel}`}
+                                ariaLabelledBy={componentLabelId}
                               />
                               {componentLabel === 'Not Specified' ? (
-                                <span>Not Specified</span>
+                                <span id={componentLabelId}>Not Specified</span>
                               ) : (
-                                <GlossaryTerm term={componentLabel}>
-                                  {componentLabel}
-                                </GlossaryTerm>
+                                <span id={componentLabelId}>
+                                  <GlossaryTerm term={componentLabel}>
+                                    {componentLabel}
+                                  </GlossaryTerm>
+                                </span>
                               )}
                             </div>
                           </td>
