@@ -1,6 +1,6 @@
 // @flow
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 import type { Node } from 'react';
 // utilities
 import { fetchCheck, lookupFetch } from 'utils/fetchUtils';
@@ -136,37 +136,54 @@ function LookupFilesProvider({ children }: Props) {
     data: {},
   });
 
+  const state = useMemo(
+    () => ({
+      dataSources,
+      setDataSources,
+      documentOrder,
+      setDocumentOrder,
+      educatorMaterials,
+      setEducatorMaterials,
+      layerProps,
+      setLayerProps,
+      nars,
+      setNars,
+      notifications,
+      setNotifications,
+      organizations,
+      setOrganizations,
+      reportStatusMapping,
+      setReportStatusMapping,
+      services,
+      setServices,
+      stateNationalUses,
+      setStateNationalUses,
+      surveyMapping,
+      setSurveyMapping,
+      tribeMapping,
+      setTribeMapping,
+      waterTypeOptions,
+      setWaterTypeOptions,
+    }),
+    [
+      dataSources,
+      documentOrder,
+      educatorMaterials,
+      layerProps,
+      nars,
+      notifications,
+      organizations,
+      reportStatusMapping,
+      services,
+      stateNationalUses,
+      surveyMapping,
+      tribeMapping,
+      waterTypeOptions,
+    ],
+  );
+
   return (
-    <LookupFilesContext.Provider
-      value={{
-        dataSources,
-        setDataSources,
-        documentOrder,
-        setDocumentOrder,
-        educatorMaterials,
-        setEducatorMaterials,
-        layerProps,
-        setLayerProps,
-        nars,
-        setNars,
-        notifications,
-        setNotifications,
-        organizations,
-        setOrganizations,
-        reportStatusMapping,
-        setReportStatusMapping,
-        services,
-        setServices,
-        stateNationalUses,
-        setStateNationalUses,
-        surveyMapping,
-        setSurveyMapping,
-        tribeMapping,
-        setTribeMapping,
-        waterTypeOptions,
-        setWaterTypeOptions,
-      }}
-    >
+    <LookupFilesContext.Provider value={state}>
       {children}
     </LookupFilesContext.Provider>
   );

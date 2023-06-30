@@ -127,13 +127,13 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
       </div>
 
       <AccordionList title={title}>
-        {sortedWaterbodies.map((graphic, index) => {
+        {sortedWaterbodies.map((graphic) => {
           /* prettier-ignore */
           const condition = getWaterbodyCondition(graphic.attributes, fieldName).condition;
 
           return (
             <AccordionItem
-              key={index}
+              key={graphic.attributes.assessmentunitidentifier}
               title={<strong>{graphic.attributes.assessmentunitname}</strong>}
               subTitle={
                 <>

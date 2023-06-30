@@ -219,7 +219,7 @@ function MapMouseEvents({ view }: Props) {
           const graphics = getGraphicsFromResponse(res, extraLayersToIgnore);
           const graphic = graphics?.length ? graphics[0] : null;
 
-          if (graphic && graphic.attributes) {
+          if (graphic?.attributes) {
             if (
               graphic.layer.id === 'monitoringLocationsLayer' &&
               graphic.isAggregate

@@ -23,7 +23,7 @@ import { Sparkline } from 'components/shared/Sparkline';
 import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-import { useAbortSignal } from 'utils/hooks';
+import { useAbort } from 'utils/hooks';
 import {
   getWaterbodyCondition,
   isClassBreaksRenderer,
@@ -467,7 +467,7 @@ function WaterbodyInfo({
         return value !== 'Not Applicable';
       }) || [];
 
-    const reportingCycle = attributes && attributes.reportingcycle;
+    const reportingCycle = attributes?.reportingcycle;
     return (
       <>
         {extraContent}
@@ -1333,9 +1333,9 @@ function sumSlice(nums: number[], start: number, end?: number) {
 
 enum CcIdx {
   Low = 0,
-  Medium = cyanMetadata.findIndex((cc) => cc >= 100_000),
-  High = cyanMetadata.findIndex((cc) => cc >= 300_000),
-  VeryHigh = cyanMetadata.findIndex((cc) => cc >= 1_000_000),
+  Medium = 99,
+  High = 139,
+  VeryHigh = 183,
 }
 
 type CellConcentrationData = {
@@ -1482,7 +1482,7 @@ type CyanContentProps = {
 
 function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const { attributes } = feature;
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
 
   const [today] = useState(() => {
     const now = new Date();
@@ -1519,7 +1519,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const fetcher =
       window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
 
-    fetcher(dataUrl, abortSignal)
+    fetcher(dataUrl, getSignal())
       .then((res: { data: { [date: string]: number[] } }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
@@ -1559,7 +1559,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           data: null,
         });
       });
-  }, [abortSignal, attributes, today, services]);
+  }, [getSignal, attributes, today, services]);
 
   const [dates, setDates] = useState<number[]>([]);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
@@ -1636,7 +1636,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           // convert the image to a base64 string
           const base64String = reader.result;
           const image = new Image();
-          image.src = base64String?.toString() || '';
+          image.src = base64String?.toString() ?? '';
 
           image.onload = () => {
             setImageStatus('success');

@@ -102,12 +102,8 @@ function ViewOnMapButton({
 
       if (layer.type === 'graphics') {
         for (const graphic of layer.graphics.items) {
-          const graphicOrgId =
-            graphic && graphic.attributes && graphic.attributes.organizationid;
-          const graphicAuId =
-            graphic &&
-            graphic.attributes &&
-            graphic.attributes.assessmentunitidentifier;
+          const graphicOrgId = graphic?.attributes?.organizationid;
+          const graphicAuId = graphic?.attributes?.assessmentunitidentifier;
           if (
             graphicOrgId === organizationid &&
             graphicAuId === assessmentunitidentifier
