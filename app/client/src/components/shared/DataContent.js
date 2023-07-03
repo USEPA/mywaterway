@@ -12,11 +12,7 @@ import { dataContentError } from 'config/errorMessages';
 // contexts
 import { useDataSourcesContext } from 'contexts/LookupFiles';
 // styles
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-  textBoxStyles,
-} from 'components/shared/MessageBoxes';
+import { errorBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
 import { fonts } from 'styles/index.js';
 
 function scrollToItem(id: string) {
@@ -44,10 +40,6 @@ const containerStyles = css`
 
   li {
     margin-bottom: 0.25em;
-  }
-
-  i {
-    padding-right: 0.75rem;
   }
 
   @media (min-width: 30em) {
