@@ -206,7 +206,7 @@ function SiteSpecific({
       .sort((a, b) => {
         return parseFloat(parameterCalc[b]) - parseFloat(parameterCalc[a]);
       })
-      .map((param, index) => {
+      .map((param) => {
         const percent = formatNumber(
           (parameterCalc[param] /
             (calculatedSupport.total - calculatedSupport.notAssessed)) *
@@ -221,22 +221,18 @@ function SiteSpecific({
           return field.parameterGroup === param;
         })?.[0];
 
-        const itemSentence = (match) => {
-          if (!match) return null;
-          return match.sentence ? (
-            <>{match.sentence}</>
-          ) : (
-            <>
-              contain{' '}
-              <GlossaryTerm term={match.term}>{match.label}</GlossaryTerm>
-            </>
-          );
-        };
+        const sentence = !match ? null : match.sentence ? (
+          <>{match.sentence}</>
+        ) : (
+          <>
+            contain <GlossaryTerm term={match.term}>{match.label}</GlossaryTerm>
+          </>
+        );
 
         return (
           <li key={param}>
             <span css={percentStyles}>{percent}%</span> or {number} {units}{' '}
-            {itemSentence(match) ?? <strong>{param}</strong>}.
+            {match ? sentence : <strong>{param}</strong>}
           </li>
         );
       });
