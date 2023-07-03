@@ -220,41 +220,6 @@ export interface MonitoringLocationGroups {
   };
 }
 
-export interface CyanWaterbodiesData {
-  features: Array<{
-    attributes: {
-      FID: number;
-      OBJECTID: number;
-      PERMANENT_: string;
-      FDATE: string;
-      RESOLUTION: number;
-      GNIS_ID: string;
-      GNIS_NAME: string;
-      AREASQKM: number;
-      ELEVATION: number;
-      REACHCODE: string;
-      FTYPE: number;
-      FCODE: number;
-      GLOBALID: string;
-      VISIBILITY: number;
-      SHAPE_Leng: number;
-      SHAPE_Area: number;
-      STATE_ABBR: string;
-      x_min: number;
-      x_max: number;
-      y_min: number;
-      y_max: number;
-      c_lat: number;
-      c_lng: number;
-      layer: string;
-      path: string;
-      Shape__Area: number;
-      Shape__Length: number;
-    };
-    geometry: __esri.Polygon;
-  }>;
-}
-
 export interface MonitoringLocationsData {
   features: Array<{
     geometry: {

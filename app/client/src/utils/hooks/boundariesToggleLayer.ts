@@ -56,7 +56,7 @@ export function useAllFeaturesLayers<
 }
 
 function useBoundariesToggleLayer<
-  T extends __esri.FeatureLayer | __esri.GraphicsLayer,
+  T extends __esri.FeatureLayer | __esri.GraphicsLayer | __esri.GroupLayer,
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 >({
@@ -327,12 +327,17 @@ export function filterData<T>(
 }
 
 async function updateFeatureLayer(
-  layer: __esri.FeatureLayer | null,
+  layer: __esri.FeatureLayer | __esri.GroupLayer | null,
   features?: __esri.Graphic[] | null,
 ) {
   if (!layer) return;
+  const featureLayer =
+    layer.type === 'group'
+      ? (layer.layers.find((l) => l.type === 'feature') as __esri.FeatureLayer)
+      : layer;
+  if (!featureLayer) return;
 
-  const featureSet = await layer.queryFeatures();
+  const featureSet = await featureLayer.queryFeatures();
   const edits: {
     addFeatures?: __esri.Graphic[];
     deleteFeatures: __esri.Graphic[];
@@ -340,7 +345,7 @@ async function updateFeatureLayer(
     deleteFeatures: featureSet.features,
   };
   if (features) edits.addFeatures = features;
-  layer.applyEdits(edits);
+  featureLayer.applyEdits(edits);
 }
 
 /*
@@ -356,7 +361,7 @@ const defaultMinScale = 577791;
 export type SublayerType = 'enclosed' | 'surrounding';
 
 type UseBoundariesToggleLayerParams<
-  T extends __esri.FeatureLayer | __esri.GraphicsLayer,
+  T extends __esri.FeatureLayer | __esri.GraphicsLayer | __esri.GroupLayer,
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = {
@@ -373,6 +378,6 @@ type UseAllFeaturesLayersParams<
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = Omit<
-  UseBoundariesToggleLayerParams<__esri.FeatureLayer, E, S>,
+  UseBoundariesToggleLayerParams<__esri.FeatureLayer | __esri.GroupLayer, E, S>,
   'updateLayer'
 >;

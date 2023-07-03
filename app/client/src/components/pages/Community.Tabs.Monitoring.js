@@ -45,6 +45,7 @@ import {
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
+  useCyanWaterbodies,
   useStreamgages,
   useMonitoringGroups,
   useWaterbodyOnMap,
@@ -308,8 +309,6 @@ function filterLocations(groups, timeframe) {
 }
 
 function Monitoring() {
-  const { cyanWaterbodies } = useContext(LocationSearchContext);
-
   const {
     monitoringLocationsLayer,
     updateVisibleLayers,
@@ -317,7 +316,8 @@ function Monitoring() {
     visibleLayers,
   } = useLayers();
 
-  const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
+  const { cyanWaterbodies, monitoringLocations, usgsStreamgages } =
+    useFetchedDataState();
 
   const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
     useState(true);
@@ -483,18 +483,14 @@ function CurrentConditionsTab({
 
   const services = useServicesContext();
 
-  const { cyanWaterbodies, mapView, watershed } = useContext(
-    LocationSearchContext,
-  );
+  const { mapView, watershed } = useContext(LocationSearchContext);
 
+  const { cyanWaterbodies, cyanWaterbodiesStatus } = useCyanWaterbodies();
   const { streamgages, streamgagesStatus } = useStreamgages();
 
   const [sortedBy, setSortedBy] = useState('locationName');
 
-  const sortedLocations = [
-    ...streamgages,
-    ...(cyanWaterbodies.status === 'success' ? cyanWaterbodies.data : []),
-  ].sort((a, b) => {
+  const sortedLocations = [...streamgages, ...cyanWaterbodies].sort((a, b) => {
     if (sortedBy in a && sortedBy in b) {
       return a[sortedBy].localeCompare(b[sortedBy]);
     } else if (sortedBy in a) return -1;
@@ -543,7 +539,7 @@ function CurrentConditionsTab({
         </div>
       )}
 
-      {cyanWaterbodies.status === 'failure' && (
+      {cyanWaterbodiesStatus === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
           <p>{cyanError}</p>
         </div>
@@ -637,19 +633,17 @@ function CurrentConditionsTab({
                 <td>
                   <label css={toggleStyles}>
                     <Switch
-                      checked={
-                        cyanWaterbodies.data?.length > 0 && cyanDisplayed
-                      }
+                      checked={cyanWaterbodies.length > 0 && cyanDisplayed}
                       onChange={handleCyanWaterbodiesToggle}
                       disabled={
-                        cyanWaterbodies.status !== 'success' ||
-                        cyanWaterbodies.data?.length === 0
+                        cyanWaterbodiesStatus !== 'success' ||
+                        cyanWaterbodies.length === 0
                       }
                     />
                     <span>CyAN Satellite Imagery</span>
                   </label>
                 </td>
-                <td>{cyanWaterbodies.data?.length ?? 'N/A'}</td>
+                <td>{cyanWaterbodies.length ?? 'N/A'}</td>
               </tr>
             </tbody>
           </table>

@@ -4,22 +4,21 @@ import Graphic from '@arcgis/core/Graphic';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import MediaLayer from '@arcgis/core/layers/MediaLayer';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // contexts
-import {
-  useFetchedDataDispatch,
-  useFetchedDataState,
-} from 'contexts/FetchedData';
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
-import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
   filterData,
   handleFetchError,
+  useAllFeaturesLayers,
+  useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 // types
@@ -28,17 +27,20 @@ import type { Dispatch } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
   CyanWaterbodyAttributes,
-  CyanWaterbodiesData,
   ServicesData,
   ServicesState,
 } from 'types';
 import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
-// styles
-import { colors } from 'styles';
 
 /*
 ## Hooks
 */
+
+export function useCyanWaterbodies() {
+  const { data, status } = useLocalData(localFetchedDataKey);
+
+  return { cyanWaterbodies: data, cyanWaterbodiesStatus: status };
+}
 
 export function useCyanWaterbodiesLayers() {
   // Build the base feature layer
@@ -53,6 +55,20 @@ export function useCyanWaterbodiesLayers() {
   );
 
   const updateSurroundingData = useUpdateData();
+
+  // Build a group layer with toggleable boundaries
+  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
+    buildBaseLayer,
+    buildFeatures,
+    enclosedFetchedDataKey: localFetchedDataKey,
+    surroundingFetchedDataKey,
+    updateSurroundingData,
+  });
+
+  return {
+    cyanLayer: enclosedLayer,
+    surroundingCyanLayer: surroundingLayer,
+  };
 }
 
 function useUpdateData() {
@@ -65,7 +81,7 @@ function useUpdateData() {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!hucBoundaries) {
+    if (!hucBoundaries?.features?.length) {
       setHucData([]);
       fetchedDataDispatch({
         type: 'success',
@@ -78,16 +94,63 @@ function useUpdateData() {
     if (services.status !== 'success') return;
 
     const fetchPromise = fetchCyanWaterbodies(
-      hucBoundaries,
+      hucBoundaries.features[0].geometry,
       services.data,
       controller.signal,
     );
-  }, []);
+
+    fetchAndTransformData(
+      fetchPromise,
+      fetchedDataDispatch,
+      'cyanWaterbodies',
+    ).then((data) => setHucData(data));
+
+    return function cleanup() {
+      controller.abort();
+    };
+  }, [fetchedDataDispatch, hucBoundaries, services]);
+
+  const extent = useRef<__esri.Polygon | null>(null);
+
+  const updateSurroundingData = useCallback(
+    async (abortSignal: AbortSignal) => {
+      if (services.status !== 'success') return;
+
+      if (!mapView) return;
+
+      // Same extent, no update necessary
+      if (mapView.extent === extent.current) return;
+      extent.current = mapView.extent;
+
+      await fetchAndTransformData(
+        fetchCyanWaterbodies(
+          Polygon.fromExtent(mapView.extent),
+          services.data,
+          abortSignal,
+        ),
+        fetchedDataDispatch,
+        surroundingFetchedDataKey,
+        hucData, // Filter out HUC data
+      );
+    },
+    [fetchedDataDispatch, hucData, mapView, services],
+  );
+
+  return updateSurroundingData;
 }
 
 /*
 ## Utils
 */
+
+function buildFeatures(data: CyanWaterbodyAttributes[]) {
+  return data.map((datum) => {
+    return new Graphic({
+      attributes: datum,
+      geometry: datum.geometry,
+    });
+  });
+}
 
 function buildLayer(
   navigate: NavigateFunction,
@@ -101,13 +164,8 @@ function buildLayer(
         : `${surroundingFetchedDataKey}`,
     fields: [
       { name: 'AREASQKM', type: 'double' },
-      { name: 'FDATE', type: 'string' },
       { name: 'FID', type: 'integer' },
-      { name: 'GNIS_ID', type: 'string' },
       { name: 'GNIS_NAME', type: 'string' },
-      { name: 'c_lat', type: 'double' },
-      { name: 'c_lng', type: 'double' },
-      { name: 'ELEVATION', type: 'double' },
       { name: 'locationName', type: 'string' },
       { name: 'monitoringType', type: 'string', defaultValue: 'CyAN' },
       { name: 'OBJECTID', type: 'oid' },
@@ -117,12 +175,6 @@ function buildLayer(
         type: 'string',
         defaultValue: 'Cyanobacteria Assessment Network (CyAN)',
       },
-      { name: 'PERMANENT_', type: 'string' },
-      { name: 'RESOLUTION', type: 'integer' },
-      { name: 'x_max', type: 'double' },
-      { name: 'x_min', type: 'double' },
-      { name: 'y_max', type: 'double' },
-      { name: 'y_min', type: 'double' },
     ],
     legendEnabled: false,
     objectIdField: 'OBJECTID',
@@ -142,7 +194,7 @@ function buildLayer(
         style: 'solid',
         color: new Color([108, 149, 206, 0.4]),
         outline: {
-          color: colors.black(type === 'enclosed' ? 1.0 : 0.5),
+          color: [0, 0, 0, 0],
           width: 0.75,
           style: 'solid',
         },
@@ -178,13 +230,15 @@ function buildLayer(
   });
   newCyanLayer.add(cyanWaterbodies);
   newCyanLayer.add(cyanImages);
+
+  return newCyanLayer;
 }
 
 async function fetchAndTransformData(
   promise: ReturnType<typeof fetchCyanWaterbodies>,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: typeof localFetchedDataKey | typeof surroundingFetchedDataKey,
-  dataToExclude?: CyanWaterbodyAttributes[] | null,
+  dataToExclude: CyanWaterbodyAttributes[] | null = null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
@@ -212,19 +266,20 @@ async function fetchCyanWaterbodies(
   boundaries: __esri.Polygon,
   servicesData: ServicesData,
   abortSignal: AbortSignal,
-): Promise<FetchState<CyanWaterbodiesData>> {
-  const url = servicesData.cyan.waterbodies + '/query';
-  const data = {
-    outFields: '*',
-    geometry: {
-      rings: boundaries.rings,
+): Promise<FetchState<__esri.FeatureSet>> {
+  const url = servicesData.cyan.waterbodies;
+  const queryParams = {
+    outFields: ['*'],
+    geometry: boundaries,
+    outSpatialReference: {
+      wkid: 102100,
     },
-    geometryType: 'esriGeometryPolygon',
-    f: 'json',
-    spatialRel: 'esriSpatialRelIntersects',
+    returnGeometry: true,
   };
   try {
-    const res = await fetchPostForm(url, data, abortSignal);
+    const res = await query.executeQueryJSON(url, queryParams, {
+      signal: abortSignal,
+    });
     return { status: 'success', data: res };
   } catch (err) {
     return handleFetchError(err);
@@ -232,13 +287,13 @@ async function fetchCyanWaterbodies(
 }
 
 function transformServiceData(
-  serviceData: CyanWaterbodiesData,
+  serviceData: __esri.FeatureSet,
 ): CyanWaterbodyAttributes[] {
   return serviceData.features.map((feature) => ({
     AREASQKM: feature.attributes.AREASQKM,
     FID: feature.attributes.FID,
     GNIS_NAME: feature.attributes.GNIS_NAME,
-    geometry: feature.geometry,
+    geometry: feature.geometry as __esri.Polygon,
     locationName: feature.attributes.GNIS_NAME,
     monitoringType: 'CyAN',
     oid: feature.attributes.OBJECTID,
