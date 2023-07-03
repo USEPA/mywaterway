@@ -36,6 +36,17 @@ export interface CountyAttributes {
   STATE_NAME: string;
 }
 
+export interface CyanWaterbodyAttributes {
+  AREASQKM: number;
+  FID: number;
+  geometry: __esri.Polygon;
+  GNIS_NAME: string;
+  locationName: string;
+  monitoringType: 'CyAN';
+  oid: number;
+  orgName: 'Cyanobacteria Assessment Network (CyAN)';
+}
+
 export interface DischargerAttributes {
   CWPFormalEaCnt: string | null;
   CWPInspectionCount: string | null;
@@ -60,13 +71,8 @@ export interface DischargerPermitComponents {
   };
 }
 
-
 export interface EjScreenAttributes {
   T_OVR64PCT: string;
-}
-
-export interface CyanAttributes {
-  GNIS_NAME: string;
 }
 
 export interface Feature {
@@ -214,6 +220,41 @@ export interface MonitoringLocationGroups {
   };
 }
 
+export interface CyanWaterbodiesData {
+  features: Array<{
+    attributes: {
+      FID: number;
+      OBJECTID: number;
+      PERMANENT_: string;
+      FDATE: string;
+      RESOLUTION: number;
+      GNIS_ID: string;
+      GNIS_NAME: string;
+      AREASQKM: number;
+      ELEVATION: number;
+      REACHCODE: string;
+      FTYPE: number;
+      FCODE: number;
+      GLOBALID: string;
+      VISIBILITY: number;
+      SHAPE_Leng: number;
+      SHAPE_Area: number;
+      STATE_ABBR: string;
+      x_min: number;
+      x_max: number;
+      y_min: number;
+      y_max: number;
+      c_lat: number;
+      c_lng: number;
+      layer: string;
+      path: string;
+      Shape__Area: number;
+      Shape__Length: number;
+    };
+    geometry: __esri.Polygon;
+  }>;
+}
+
 export interface MonitoringLocationsData {
   features: Array<{
     geometry: {
@@ -306,7 +347,7 @@ export type PopupAttributes =
   | WaterbodyAttributes
   | WildScenicRiverAttributes
   | WsioHealthIndexAttributes
-  | CyanAttributes;
+  | CyanWaterbodyAttributes;
 
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
