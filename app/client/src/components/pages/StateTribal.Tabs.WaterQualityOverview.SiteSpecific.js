@@ -232,7 +232,7 @@ function SiteSpecific({
         return (
           <li key={param}>
             <span css={percentStyles}>{percent}%</span> or {number} {units}{' '}
-            {match ? sentence : <strong>{param}</strong>}
+            {match ? sentence : <strong>{param}</strong>}.
           </li>
         );
       });
