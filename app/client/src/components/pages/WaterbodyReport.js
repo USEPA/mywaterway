@@ -1381,8 +1381,8 @@ function WaterbodyReport() {
                                     .sort((a, b) =>
                                       a.name.localeCompare(b.name),
                                     )
-                                    .map((action, index) => (
-                                      <tr key={index}>
+                                    .map((action) => (
+                                      <tr key={action.id}>
                                         <td>
                                           <a
                                             href={`/plan-summary/${orgId}/${action.id}`}
@@ -1530,7 +1530,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
           </thead>
           <tbody>
             {pollutants
-              .sort((a, b) => a.name.localeCompare(b.name))
+              .toSorted((a, b) => a.name.localeCompare(b.name))
               .map((pollutant) => (
                 <tr key={pollutant.name}>
                   <td>{titleCaseWithExceptions(pollutant.name)}</td>

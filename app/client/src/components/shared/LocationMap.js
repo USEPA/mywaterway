@@ -54,7 +54,7 @@ import {
 } from 'config/errorMessages';
 // helpers
 import {
-  useAbortSignal,
+  useAbort,
   useDynamicPopup,
   useGeometryUtils,
   useSharedLayers,
@@ -151,7 +151,7 @@ type Props = {
 };
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
@@ -837,41 +837,40 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           updateErroredLayers({ waterbodyLines: false });
 
           // crop the waterbodies geometry to within the huc
-          cropGeometryToHuc(
-            res.features,
-            boundaries.features[0].geometry,
-          ).then((features) => {
-            const linesRenderer = {
-              type: 'unique-value',
-              field: 'overallstatus',
-              fieldDelimiter: ', ',
-              defaultSymbol: createWaterbodySymbol({
-                condition: 'unassessed',
-                selected: false,
-                geometryType: 'polyline',
-              }),
-              uniqueValueInfos: createUniqueValueInfos('polyline'),
-            };
-            const newLinesLayer = new FeatureLayer({
-              id: 'waterbodyLines',
-              title: 'Waterbody Lines',
-              geometryType: res.geometryType,
-              spatialReference: res.spatialReference,
-              fields: res.fields,
-              source: features,
-              outFields: ['*'],
-              renderer: linesRenderer,
-              popupTemplate,
+          cropGeometryToHuc(res.features, boundaries.features[0].geometry)
+            .then((features) => {
+              const linesRenderer = {
+                type: 'unique-value',
+                field: 'overallstatus',
+                fieldDelimiter: ', ',
+                defaultSymbol: createWaterbodySymbol({
+                  condition: 'unassessed',
+                  selected: false,
+                  geometryType: 'polyline',
+                }),
+                uniqueValueInfos: createUniqueValueInfos('polyline'),
+              };
+              const newLinesLayer = new FeatureLayer({
+                id: 'waterbodyLines',
+                title: 'Waterbody Lines',
+                geometryType: res.geometryType,
+                spatialReference: res.spatialReference,
+                fields: res.fields,
+                source: features,
+                outFields: ['*'],
+                renderer: linesRenderer,
+                popupTemplate,
+              });
+              setLayer('waterbodyLines', newLinesLayer);
+              setResetHandler('waterbodyLines', () => {
+                setLayer('waterbodyLines', null);
+              });
+            })
+            .catch((err) => {
+              handleMapServiceError(err);
+              updateErroredLayers({ waterbodyLines: true });
+              setLinesData({ features: [] });
             });
-            setLayer('waterbodyLines', newLinesLayer);
-            setResetHandler('waterbodyLines', () => {
-              setLayer('waterbodyLines', null);
-            });
-          }).catch((err) => {
-            handleMapServiceError(err);
-            updateErroredLayers({ waterbodyLines: true });
-            setLinesData({ features: [] });
-          });
         })
         .catch((err) => {
           handleMapServiceError(err);
@@ -914,41 +913,40 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           updateErroredLayers({ waterbodyAreas: false });
 
           // crop the waterbodies geometry to within the huc
-          cropGeometryToHuc(
-            res.features,
-            boundaries.features[0].geometry,
-          ).then((features) => {
-            const areasRenderer = {
-              type: 'unique-value',
-              field: 'overallstatus',
-              fieldDelimiter: ', ',
-              defaultSymbol: createWaterbodySymbol({
-                condition: 'unassessed',
-                selected: false,
-                geometryType: 'polygon',
-              }),
-              uniqueValueInfos: createUniqueValueInfos('polygon'),
-            };
-            const newAreasLayer = new FeatureLayer({
-              id: 'waterbodyAreas',
-              title: 'Waterbody Areas',
-              geometryType: res.geometryType,
-              spatialReference: res.spatialReference,
-              fields: res.fields,
-              source: features,
-              outFields: ['*'],
-              renderer: areasRenderer,
-              popupTemplate,
+          cropGeometryToHuc(res.features, boundaries.features[0].geometry)
+            .then((features) => {
+              const areasRenderer = {
+                type: 'unique-value',
+                field: 'overallstatus',
+                fieldDelimiter: ', ',
+                defaultSymbol: createWaterbodySymbol({
+                  condition: 'unassessed',
+                  selected: false,
+                  geometryType: 'polygon',
+                }),
+                uniqueValueInfos: createUniqueValueInfos('polygon'),
+              };
+              const newAreasLayer = new FeatureLayer({
+                id: 'waterbodyAreas',
+                title: 'Waterbody Areas',
+                geometryType: res.geometryType,
+                spatialReference: res.spatialReference,
+                fields: res.fields,
+                source: features,
+                outFields: ['*'],
+                renderer: areasRenderer,
+                popupTemplate,
+              });
+              setLayer('waterbodyAreas', newAreasLayer);
+              setResetHandler('waterbodyAreas', () => {
+                setLayer('waterbodyAreas', null);
+              });
+            })
+            .catch((err) => {
+              handleMapServiceError(err);
+              updateErroredLayers({ waterbodyAreas: true });
+              setAreasData({ features: [] });
             });
-            setLayer('waterbodyAreas', newAreasLayer);
-            setResetHandler('waterbodyAreas', () => {
-              setLayer('waterbodyAreas', null);
-            });
-          }).catch((err) => {
-            handleMapServiceError(err);
-            updateErroredLayers({ waterbodyAreas: true });
-            setAreasData({ features: [] });
-          });
         })
         .catch((err) => {
           handleMapServiceError(err);
@@ -1453,16 +1451,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(
         `${services.data.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
-        abortSignal,
+        getSignal(),
       ).then(
         (res) => handleMapServices(res, boundaries),
         handleMapServiceError,
       );
     },
     [
-      abortSignal,
       getCyanWaterbodies,
       getFishingLinkData,
+      getSignal,
       getWsioHealthIndexData,
       getWildScenicRivers,
       getProtectedAreas,
@@ -1605,7 +1603,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               'Addr_type',
             ],
           },
-          { signal: abortSignal },
+          { signal: getSignal() },
         );
       } else {
         // If coordinates, perform reverse geolocation
@@ -1615,7 +1613,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             location: point,
             outSpatialReference: SpatialReference.WebMercator,
           },
-          { signal: abortSignal },
+          { signal: getSignal() },
         );
       }
 
@@ -1672,7 +1670,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               returnGeometry: true,
               geometry: location.location,
               outFields: ['*'],
-              signal: abortSignal,
+              signal: getSignal(),
             };
             query
               .executeQueryJSON(services.data.wbd, hucQuery)
@@ -1705,7 +1703,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             returnGeometry: true,
             geometry: location.location.clone(),
             outFields: ['*'],
-            signal: abortSignal,
+            signal: getSignal(),
           };
           query
             .executeQueryJSON(url, countiesQuery)
@@ -1812,7 +1810,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      abortSignal,
+      getSignal,
       handleHUC12,
       searchIconLayer,
       setAddress,
@@ -1835,7 +1833,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           returnGeometry: true,
           where: "HUC12 = '" + searchText + "'",
           outFields: ['*'],
-          signal: abortSignal,
+          signal: getSignal(),
         };
         query
           .executeQueryJSON(services.data.wbd, queryParams)
@@ -1866,7 +1864,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         processGeocodeServerResults(searchText);
       }
     },
-    [abortSignal, processGeocodeServerResults, handleNoDataAvailable, services],
+    [getSignal, processGeocodeServerResults, handleNoDataAvailable, services],
   );
 
   useEffect(() => {

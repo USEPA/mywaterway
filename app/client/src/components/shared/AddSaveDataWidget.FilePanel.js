@@ -443,14 +443,8 @@ function FilePanel() {
   // types. This is so users can view popups but not edit the features.
   const [newLayerName, setNewLayerName] = useState('');
   useEffect(() => {
-    if (!mapView?.map || !file?.file?.esriFileType || featuresAdded) {
-      return;
-    }
-    if (!generateResponse) return;
-    if (
-      !generateResponse.featureCollection?.layers ||
-      generateResponse.featureCollection.layers.length === 0
-    ) {
+    if (!mapView?.map || !file?.file?.esriFileType || featuresAdded) return;
+    if (!generateResponse?.featureCollection?.layers?.length) {
       setUploadStatus('no-data');
       return;
     }
@@ -459,12 +453,7 @@ function FilePanel() {
 
     const featureLayers: WidgetLayer[] = [];
     generateResponse.featureCollection.layers.forEach((layer: any) => {
-      if (
-        !layer?.featureSet?.features ||
-        layer.featureSet.features.length === 0
-      ) {
-        return;
-      }
+      if (!layer?.featureSet?.features?.length) return;
 
       // get the list of fields
       let fields: __esri.Field[] = [];

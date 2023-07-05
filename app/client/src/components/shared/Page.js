@@ -218,8 +218,8 @@ function Page({ children }: Props) {
   useEffect(() => {
     if (interceptorsInitialized) return;
 
-    var callId = 0;
-    var callDurations = {};
+    let callId = 0;
+    const callDurations = {};
 
     // intercept esri calls to gispub
     const urls = [

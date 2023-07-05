@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 // helpers
 import { lookupFetch } from 'utils/fetchUtils';
-import { useAbortSignal } from 'utils/hooks';
+import { useAbort } from 'utils/hooks';
 
 // types
 interface GlossaryData {
@@ -44,7 +44,7 @@ type Props = {
   children: ReactNode;
 };
 export function GlossaryProvider({ children }: Props) {
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
 
   const [initialized, setInitialized] = useState(false);
   const [glossaryStatus, setGlossaryStatus] =
@@ -70,7 +70,7 @@ export function GlossaryProvider({ children }: Props) {
     setPromiseInitialized(true);
 
     window.fetchGlossaryTerms = new Promise((resolve) => {
-      lookupFetch('cache/glossary.json')
+      lookupFetch('cache/glossary.json', getSignal())
         .then((data: any) => {
           resolve({ status: 'success', data });
         })
@@ -79,7 +79,7 @@ export function GlossaryProvider({ children }: Props) {
           resolve({ status: 'failure', data: [] });
         });
     });
-  }, [abortSignal, promiseInitialized]);
+  }, [getSignal, promiseInitialized]);
 
   return (
     <StateContext.Provider value={state}>{children}</StateContext.Provider>

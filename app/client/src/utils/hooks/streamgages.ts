@@ -329,15 +329,15 @@ function transformServiceData(
         });
 
         const data = {
-          parameterCategory: matchedParam?.hmwCategory || 'exclude',
-          parameterOrder: matchedParam?.hmwOrder || 0,
-          parameterName: matchedParam?.hmwName || parameterDesc,
-          parameterUsgsName: matchedParam?.staDescription || parameterDesc,
+          parameterCategory: matchedParam?.hmwCategory ?? 'exclude',
+          parameterOrder: matchedParam?.hmwOrder ?? 0,
+          parameterName: matchedParam?.hmwName ?? parameterDesc,
+          parameterUsgsName: matchedParam?.staDescription ?? parameterDesc,
           parameterCode,
           measurement,
           datetime: new Date(observation.phenomenonTime).toLocaleString(),
           dailyAverages: [], // NOTE: will be set below
-          unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
+          unitAbbr: matchedParam?.hmwUnits ?? parameterUnit.symbol,
           unitName: parameterUnit.name,
         };
 

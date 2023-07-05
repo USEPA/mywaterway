@@ -46,7 +46,7 @@ import {
 } from 'utils/mapFunctions';
 import { isAbort, isClick } from 'utils/utils';
 // helpers
-import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
+import { useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
@@ -316,7 +316,7 @@ function MapWidgets({
   } = useAddSaveDataWidgetState();
 
   const pathname = window.location.pathname;
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
   const watchHandles = useMemo<IHandle[]>(() => [], []);
   const observers = useMemo<MutationObserver[]>(() => [], []);
   useEffect(() => {
@@ -687,11 +687,11 @@ function MapWidgets({
 
     const requests = [];
     let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
     url = `${services.data.ejscreen}legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
     url = `${services.data.mappedWater}/legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
 
     Promise.all(requests)
       .then((responses) => {
@@ -714,7 +714,7 @@ function MapWidgets({
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [abortSignal, additionalLegendInitialized, services]);
+  }, [additionalLegendInitialized, getSignal, services]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] =
@@ -953,7 +953,7 @@ function MapWidgets({
 
     const widget = pathname.includes('/community') ? (
       <ShowCurrentUpstreamWatershed
-        abortSignal={abortSignal}
+        abortSignal={getSignal()}
         getCurrentExtent={getCurrentExtent}
         getHuc12={getHuc12}
         getTemplate={getTemplate}
@@ -973,7 +973,7 @@ function MapWidgets({
       />
     ) : (
       <ShowSelectedUpstreamWatershed
-        abortSignal={abortSignal}
+        abortSignal={getSignal()}
         getCurrentExtent={getCurrentExtent}
         getHuc12={getHuc12}
         getTemplate={getTemplate}
@@ -1005,9 +1005,9 @@ function MapWidgets({
       view?.ui.remove(node);
     };
   }, [
-    abortSignal,
     getCurrentExtent,
     getHuc12,
+    getSignal,
     getTemplate,
     getUpstreamExtent,
     getUpstreamWidgetDisabled,
@@ -1370,7 +1370,7 @@ function retrieveUpstreamWatershed(
       const watershed = getWatershed() || 'Unknown Watershed';
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
-      if (!res || !res.features || res.features.length === 0) {
+      if (!res?.features?.length) {
         setUpstreamLayerErrored(true);
         upstreamLayer.graphics.removeAll();
         canDisable && setUpstreamWidgetDisabled(true);

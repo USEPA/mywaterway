@@ -364,7 +364,7 @@ function TribalMapList({
                       waterbodyLayer: !waterbodiesDisplayed,
                     });
                   }}
-                  disabled={!Boolean(waterbodies.data.length)}
+                  disabled={!waterbodies.data.length}
                   ariaLabel="Waterbodies"
                 />
               </div>
@@ -402,7 +402,7 @@ function TribalMapList({
                       monitoringLocationsLayer: !monitoringLocationsDisplayed,
                     });
                   }}
-                  disabled={!Boolean(monitoringLocations.length)}
+                  disabled={!monitoringLocations.length}
                   ariaLabel="Monitoring Stations"
                 />
               </div>
@@ -996,7 +996,7 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
 
         return (
           <AccordionItem
-            key={index}
+            key={item.uniqueId}
             index={index}
             title={<strong>{item.locationName || 'Unknown'}</strong>}
             subTitle={
