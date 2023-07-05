@@ -44,6 +44,7 @@ const TermStyles = createGlobalStyle`
 const iconStyles = css`
   font-weight: 900;
   color: rgba(0, 113, 188, 0.5);
+  margin-right: 0.25em;
 `;
 
 const panelStyles = css`
@@ -311,7 +312,6 @@ function GlossaryTerm({ term, className, style, children }: Props) {
         status={status}
         aria-hidden="true"
       />
-      &nbsp;
       {children}
     </span>
   );

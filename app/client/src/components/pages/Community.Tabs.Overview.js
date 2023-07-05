@@ -1090,11 +1090,7 @@ function PermittedDischargersTab({
                 <tr>
                   <th>
                     <label css={toggleStyles}>
-                      <Switch
-                        checked={allToggled}
-                        onChange={toggleAll}
-                        ariaLabel="Toggle all permit components"
-                      />
+                      <Switch checked={allToggled} onChange={toggleAll} />
                       <span>All Permit Components</span>
                     </label>
                   </th>
@@ -1129,7 +1125,6 @@ function PermittedDischargersTab({
                                 onChange={
                                   groupToggleHandlers?.[component.label]
                                 }
-                                ariaLabel={`Toggle ${componentLabel}`}
                                 ariaLabelledBy={componentLabelId}
                               />
                               {componentLabel === 'Not Specified' ? (
