@@ -1177,7 +1177,11 @@ function ShowAddSaveDataWidget({
     >
       <span
         aria-hidden="true"
-        className="esri-icon-add-attachment"
+        className={
+          addSaveDataWidgetVisible
+            ? 'esri-icon-collapse'
+            : 'esri-icon-add-attachment'
+        }
         style={hover ? buttonHoverStyle : buttonStyle}
       />
     </div>
@@ -1464,14 +1468,31 @@ function ShowUpstreamWatershed({
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
 
+  // This useEffect/watcher is here to ensure the correct title and icon 
+  // are being shown. Without this the icon/title don't change until
+  // the user moves the mouse off of the button.
+  const [watcher, setWatcher] = useState<IHandle | null>(null);
+  const [upstreamVisible, setUpstreamVisible] = useState(false);
+  useEffect(() => {
+    if(!upstreamLayer || watcher) return;
+
+    setWatcher(
+      reactiveUtils.watch(
+        () => upstreamLayer.visible,
+        () => setUpstreamVisible(upstreamLayer.visible),
+      )
+    );
+  }, [upstreamLayer, watcher]);
+
   if (!upstreamLayer) return null;
 
   let title = 'View Upstream Watershed';
   if (upstreamWidgetDisabled) title = 'Upstream Widget Not Available';
-  else if (upstreamLayer.visible) title = 'Hide Upstream Watershed';
+  else if (upstreamVisible) title = 'Hide Upstream Watershed';
   else if (selectionActive) title = 'Cancel Watershed Selection';
 
   let iconClass = 'esri-icon esri-icon-overview-arrow-top-left';
+  if (upstreamVisible) iconClass = 'esri-icon-collapse';
   if (upstreamLoading) iconClass = 'esri-icon-loading-indicator esri-rotating';
 
   return (
