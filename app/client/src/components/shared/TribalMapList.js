@@ -383,7 +383,7 @@ function TribalMapList({
                   ? monitoringLocations.length
                   : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -403,7 +403,7 @@ function TribalMapList({
                     });
                   }}
                   disabled={!monitoringLocations.length}
-                  ariaLabel="Monitoring Stations"
+                  ariaLabel="Water Monitoring Stations"
                 />
               </div>
             </>
@@ -531,7 +531,7 @@ function TribalMapList({
           <Tabs>
             <TabList>
               <Tab css={largeTabStyles}>Waterbodies</Tab>
-              <Tab css={largeTabStyles}>Monitoring Locations</Tab>
+              <Tab css={largeTabStyles}>Water Monitoring Locations</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>

@@ -360,7 +360,7 @@ const tabs = [
     },
   },
   {
-    title: 'Monitoring',
+    title: 'Water Monitoring',
     route: '/community/{urlSearch}/monitoring',
     icon: monitoringIcon,
     upper: <MonitoringUpper />,
