@@ -45,6 +45,7 @@ const iconStyles = css`
   font-weight: 900;
   color: rgba(0, 113, 188, 0.5);
   margin-right: 0.25em;
+  padding-right: 0 !important;
 `;
 
 const panelStyles = css`
