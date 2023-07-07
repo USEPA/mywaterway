@@ -201,6 +201,12 @@ const parameterStyles = css`
   }
 `;
 
+const tableStyles = css`
+  th {
+    vertical-align: middle !important;
+  }
+`;
+
 const dateCellStyles = css`
   @media (min-width: 25em) {
     white-space: nowrap;
@@ -1367,13 +1373,13 @@ function WaterbodyReport() {
                           ) : (
                             <>
                               <em>Links below open in a new browser tab.</em>
-                              <table className="table">
+                              <table className="table" css={tableStyles}>
                                 <thead>
                                   <tr>
                                     <th>Plan</th>
                                     <th>Impairments</th>
                                     <th>Type</th>
-                                    <th>Date</th>
+                                    <th>Completion Date</th>
                                   </tr>
                                 </thead>
                                 <tbody>
