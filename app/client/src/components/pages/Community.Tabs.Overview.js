@@ -254,7 +254,7 @@ function Overview() {
               <span css={keyMetricNumberStyles}>
                 {totalMonitoringAndSensors ? totalMonitoringAndSensors : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div>
                 <Switch
                   checked={
@@ -297,7 +297,7 @@ function Overview() {
         <Tabs onChange={handleTabClick}>
           <TabList>
             <Tab>Waterbodies</Tab>
-            <Tab>Monitoring Locations</Tab>
+            <Tab>Water Monitoring Locations</Tab>
             <Tab>Permitted Dischargers</Tab>
           </TabList>
 

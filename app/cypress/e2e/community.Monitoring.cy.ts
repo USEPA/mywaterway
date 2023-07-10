@@ -15,7 +15,7 @@ describe('Monitoring Tab', () => {
       'not.exist',
     );
 
-    cy.findByText('Monitoring').click();
+    cy.findByText('Water Monitoring').click();
     cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
 
     // click Toggle All Monitoring Locations switch and check that all switches are toggled off
@@ -58,7 +58,7 @@ describe('Monitoring Tab', () => {
     );
 
     // navigate to the Past Water Conditions sub-tab
-    cy.findByRole('tab', { name: 'Monitoring' }).click();
+    cy.findByRole('tab', { name: 'Water Monitoring' }).click();
     cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
 
     // turn off all switches
@@ -95,7 +95,7 @@ describe('Monitoring Tab', () => {
     );
 
     // navigate to the Past Water Conditions sub-tab
-    cy.findByRole('tab', { name: 'Monitoring' }).click();
+    cy.findByRole('tab', { name: 'Water Monitoring' }).click();
     cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
 
     // turn off all switches
@@ -122,7 +122,7 @@ describe('Monitoring Tab', () => {
     );
     cy.findByText('Go').click();
 
-    cy.findByText('Monitoring').click();
+    cy.findByText('Water Monitoring').click();
 
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
@@ -154,7 +154,7 @@ describe('Monitoring Tab', () => {
 
     cy.findByText('Go').click();
 
-    cy.findByRole('tab', { name: 'Monitoring' }).click();
+    cy.findByRole('tab', { name: 'Water Monitoring' }).click();
 
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
@@ -202,7 +202,7 @@ describe('Monitoring Tab', () => {
 
     cy.findByText('Go').click();
 
-    cy.findByRole('tab', { name: 'Monitoring' }).click();
+    cy.findByRole('tab', { name: 'Water Monitoring' }).click();
 
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',

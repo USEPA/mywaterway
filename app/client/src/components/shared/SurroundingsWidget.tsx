@@ -96,6 +96,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
         </Portal>
       )}
       <SurroundingsWidgetTrigger
+        contentVisible={contentVisible}
         disabled={isEmpty(layers)}
         forwardedRef={triggerRef}
         onClick={toggleContentVisibility}
@@ -186,6 +187,7 @@ function Portal({ children, container }: PortalProps) {
 }
 
 function SurroundingsWidgetTrigger({
+  contentVisible,
   disabled,
   forwardedRef,
   onClick,
@@ -194,13 +196,14 @@ function SurroundingsWidgetTrigger({
 }: SurroundingsWidgetTriggerProps) {
   const [hover, setHover] = useState(false);
 
-  let title = disabled
-    ? 'Surrounding Features Widget Not Available'
-    : 'Toggle Surrounding Features';
-
-  let iconClass = updating
-    ? 'esri-icon-loading-indicator esri-rotating'
-    : 'esri-icon esri-icon-globe';
+  let title = 'Open Surrounding Features';
+  let iconClass = 'esri-icon esri-icon-globe';
+  if (contentVisible) {
+    iconClass = 'esri-icon-collapse';
+    title = 'Close Surrounding Features';
+  }
+  if (updating) iconClass = 'esri-icon-loading-indicator esri-rotating';
+  if (disabled) title = 'Surrounding Features Widget Not Available';
 
   if (!visible) return null;
 
@@ -361,6 +364,7 @@ type PortalProps = {
 };
 
 type SurroundingsWidgetTriggerProps = {
+  contentVisible: boolean;
   disabled: boolean;
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
   onClick: (ev: MouseEvent | KeyboardEvent) => void;
