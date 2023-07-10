@@ -196,13 +196,14 @@ function SurroundingsWidgetTrigger({
 }: SurroundingsWidgetTriggerProps) {
   const [hover, setHover] = useState(false);
 
-  const title = disabled
-    ? 'Surrounding Features Widget Not Available'
-    : 'Toggle Surrounding Features';
-
+  let title = 'Open Surrounding Features';
   let iconClass = 'esri-icon esri-icon-globe';
-  if (contentVisible) iconClass = 'esri-icon-collapse';
+  if (contentVisible) {
+    iconClass = 'esri-icon-collapse';
+    title = 'Close Surrounding Features';
+  }
   if (updating) iconClass = 'esri-icon-loading-indicator esri-rotating';
+  if (disabled) title = 'Surrounding Features Widget Not Available';
 
   if (!visible) return null;
 
