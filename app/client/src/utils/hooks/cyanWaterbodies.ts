@@ -17,7 +17,8 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import {
   filterData,
   handleFetchError,
-  useAllFeaturesLayers,
+  updateFeatureLayer,
+  useBoundariesToggleLayer,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
@@ -44,24 +45,26 @@ export function useCyanWaterbodies() {
 
 export function useCyanWaterbodiesLayers() {
   // Build the base feature layer
+  const { getMapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
   const navigate = useNavigate();
 
   const buildBaseLayer = useCallback(
     (type: SublayerType) => {
-      return buildLayer(navigate, services, type);
+      return buildLayer(navigate, services, type, getMapView);
     },
-    [navigate, services],
+    [getMapView, navigate, services],
   );
 
   const updateSurroundingData = useUpdateData();
 
   // Build a group layer with toggleable boundaries
-  const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
+  const { enclosedLayer, surroundingLayer } = useBoundariesToggleLayer({
     buildBaseLayer,
     buildFeatures,
     enclosedFetchedDataKey: localFetchedDataKey,
     surroundingFetchedDataKey,
+    updateLayer: updateCyanFeatureLayer,
     updateSurroundingData,
   });
 
@@ -156,6 +159,7 @@ function buildLayer(
   navigate: NavigateFunction,
   services: ServicesState,
   type: SublayerType,
+  getMapView: () => __esri.MapView,
 ) {
   const cyanWaterbodies = new FeatureLayer({
     id:
@@ -186,7 +190,12 @@ function buildLayer(
       title: (feature: __esri.Feature) =>
         getPopupTitle(feature.graphic.attributes),
       content: (feature: __esri.Feature) =>
-        getPopupContent({ feature: feature.graphic, navigate, services }),
+        getPopupContent({
+          feature: feature.graphic,
+          mapView: getMapView(),
+          navigate,
+          services,
+        }),
       outFields: ['*'],
     },
     renderer: new SimpleRenderer({
@@ -299,6 +308,17 @@ function transformServiceData(
     oid: feature.attributes.OBJECTID,
     orgName: 'Cyanobacteria Assessment Network (CyAN)',
   }));
+}
+
+async function updateCyanFeatureLayer(
+  layer: __esri.GroupLayer | null,
+  features?: __esri.Graphic[] | null,
+) {
+  if (!layer) return;
+
+  const featureLayer = (layer.layers.find((l) => l.type === 'feature') ??
+    null) as __esri.FeatureLayer | null;
+  return await updateFeatureLayer(featureLayer, features);
 }
 
 /*

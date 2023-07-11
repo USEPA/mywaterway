@@ -55,7 +55,7 @@ export function useAllFeaturesLayers<
   });
 }
 
-function useBoundariesToggleLayer<
+export function useBoundariesToggleLayer<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer | __esri.GroupLayer,
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
@@ -326,18 +326,13 @@ export function filterData<T>(
   });
 }
 
-async function updateFeatureLayer(
-  layer: __esri.FeatureLayer | __esri.GroupLayer | null,
+export async function updateFeatureLayer(
+  layer: __esri.FeatureLayer | null,
   features?: __esri.Graphic[] | null,
 ) {
   if (!layer) return;
-  const featureLayer =
-    layer.type === 'group'
-      ? (layer.layers.find((l) => l.type === 'feature') as __esri.FeatureLayer)
-      : layer;
-  if (!featureLayer) return;
 
-  const featureSet = await featureLayer.queryFeatures();
+  const featureSet = await layer.queryFeatures();
   const edits: {
     addFeatures?: __esri.Graphic[];
     deleteFeatures: __esri.Graphic[];
@@ -345,7 +340,7 @@ async function updateFeatureLayer(
     deleteFeatures: featureSet.features,
   };
   if (features) edits.addFeatures = features;
-  featureLayer.applyEdits(edits);
+  layer.applyEdits(edits);
 }
 
 /*
@@ -378,6 +373,6 @@ type UseAllFeaturesLayersParams<
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = Omit<
-  UseBoundariesToggleLayerParams<__esri.FeatureLayer | __esri.GroupLayer, E, S>,
+  UseBoundariesToggleLayerParams<__esri.FeatureLayer, E, S>,
   'updateLayer'
 >;
