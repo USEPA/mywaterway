@@ -35,6 +35,7 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import {
+  useCyanWaterbodiesLayers,
   useDischargersLayers,
   useMonitoringLocationsLayers,
   useSharedLayers,
@@ -109,6 +110,7 @@ function StateMap({
 
   const { surroundingMonitoringLocationsLayer } =
     useMonitoringLocationsLayers();
+  const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
   const { surroundingUsgsStreamgagesLayer } = useStreamgageLayers();
   const { surroundingDischargersLayer } = useDischargersLayers();
   const getSharedLayers = useSharedLayers();
@@ -213,6 +215,7 @@ function StateMap({
 
     setLayers([
       ...getSharedLayers(),
+      surroundingCyanLayer,
       surroundingDischargersLayer,
       surroundingMonitoringLocationsLayer,
       surroundingUsgsStreamgagesLayer,
@@ -228,6 +231,7 @@ function StateMap({
     setResetHandler,
     layersInitialized,
     services,
+    surroundingCyanLayer,
     surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,
     surroundingUsgsStreamgagesLayer,

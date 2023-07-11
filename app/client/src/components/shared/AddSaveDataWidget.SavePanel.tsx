@@ -82,6 +82,7 @@ const tooltipNotLoaded = {
 const layersToIgnore = [
   'nonprofitsLayer',
   'protectedAreasHighlightLayer',
+  'surroundingCyanLayer',
   'surroundingDischargersLayer',
   'surroundingMonitoringLocationsLayer',
   'surroundingUsgsStreamgagesLayer',

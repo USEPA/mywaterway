@@ -118,7 +118,9 @@ function MapLegend({
       (layer.id === 'surroundingUsgsStreamgagesLayer' &&
         visibleLayers.find((l) => l.id === 'usgsStreamgagesLayer')) ||
       (layer.id === 'surroundingDischargersLayer' &&
-        visibleLayers.find((l) => l.id === 'dischargersLayer'))
+        visibleLayers.find((l) => l.id === 'dischargersLayer')) ||
+      (layer.id === 'surroundingCyanLayer' &&
+        visibleLayers.find((l) => l.id === 'cyanLayer'))
     );
   });
 
@@ -242,7 +244,7 @@ export const circleIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
   );
 };
 
-export const waterwayIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
+export const waterwayIcon = ({ color, stroke = 'black' }) => {
   return (
     <svg
       width={boxSize}
@@ -307,6 +309,18 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           <WaterbodyIcon condition="polluted" selected={false} />
         </div>
         <span css={labelStyles}>Waterbody: Impaired</span>
+      </div>
+    </li>
+  );
+
+  // jsx
+  const cyanLegend = (
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          {waterwayIcon({ color: '#6c95ce' })}
+        </div>
+        <span css={labelStyles}>CyAN Satellite Imagery</span>
       </div>
     </li>
   );
@@ -871,6 +885,8 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     layer.id === 'surroundingUsgsStreamgagesLayer'
   )
     return usgsStreamgagesLegend;
+  if (layer.id === 'cyanLayer' || layer.id === 'surroundingCyanLayer')
+    return cyanLegend;
   if (
     layer.id === 'dischargersLayer' ||
     layer.id === 'surroundingDischargersLayer'
