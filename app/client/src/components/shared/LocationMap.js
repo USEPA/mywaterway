@@ -51,7 +51,7 @@ import {
 } from 'config/errorMessages';
 // helpers
 import {
-  useAbortSignal,
+  useAbort,
   useCyanWaterbodiesLayers,
   useDynamicPopup,
   useGeometryUtils,
@@ -149,7 +149,7 @@ type Props = {
 };
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
@@ -1302,15 +1302,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(
         `${services.data.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
-        abortSignal,
+        getSignal(),
       ).then(
         (res) => handleMapServices(res, boundaries),
         handleMapServiceError,
       );
     },
     [
-      abortSignal,
       getFishingLinkData,
+      getSignal,
       getWsioHealthIndexData,
       getWildScenicRivers,
       getProtectedAreas,
@@ -1453,7 +1453,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               'Addr_type',
             ],
           },
-          { signal: abortSignal },
+          { signal: getSignal() },
         );
       } else {
         // If coordinates, perform reverse geolocation
@@ -1463,7 +1463,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             location: point,
             outSpatialReference: SpatialReference.WebMercator,
           },
-          { signal: abortSignal },
+          { signal: getSignal() },
         );
       }
 
@@ -1520,7 +1520,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               returnGeometry: true,
               geometry: location.location,
               outFields: ['*'],
-              signal: abortSignal,
+              signal: getSignal(),
             };
             query
               .executeQueryJSON(services.data.wbd, hucQuery)
@@ -1553,7 +1553,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             returnGeometry: true,
             geometry: location.location.clone(),
             outFields: ['*'],
-            signal: abortSignal,
+            signal: getSignal(),
           };
           query
             .executeQueryJSON(url, countiesQuery)
@@ -1660,7 +1660,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      abortSignal,
+      getSignal,
       handleHUC12,
       searchIconLayer,
       setAddress,
@@ -1683,7 +1683,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           returnGeometry: true,
           where: "HUC12 = '" + searchText + "'",
           outFields: ['*'],
-          signal: abortSignal,
+          signal: getSignal(),
         };
         query
           .executeQueryJSON(services.data.wbd, queryParams)
@@ -1714,7 +1714,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         processGeocodeServerResults(searchText);
       }
     },
-    [abortSignal, processGeocodeServerResults, handleNoDataAvailable, services],
+    [getSignal, processGeocodeServerResults, handleNoDataAvailable, services],
   );
 
   useEffect(() => {

@@ -63,7 +63,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
         0;
 
       const scrollTop = scrollPosition - offsetTop;
-      innerRef.current && innerRef.current.scrollTo(scrollTop);
+      innerRef.current?.scrollTo(scrollTop);
     }, throttleTime);
 
     window.addEventListener('scroll', handleWindowScroll);
@@ -113,7 +113,7 @@ function VirtualizedList({ items, renderer }: Props) {
   const isVisible = useOnScreen(ref);
 
   return (
-    <div ref={newRef => setRef(newRef)}>
+    <div ref={(newRef) => setRef(newRef)}>
       {isVisible && <VirtualizedListInner items={items} renderer={renderer} />}
     </div>
   );

@@ -27,7 +27,7 @@ describe('Data page', () => {
 
     // verify the page loads
     cy.findByText(
-      'pulls data from multiple databases at EPA and other federal agencies',
+      'retrieves data from various systems at the Environmental Protection Agency (EPA) and other federal agencies',
       { exact: false },
     );
 

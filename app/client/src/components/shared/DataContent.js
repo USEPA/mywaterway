@@ -12,7 +12,11 @@ import { dataContentError } from 'config/errorMessages';
 // contexts
 import { useDataSourcesContext } from 'contexts/LookupFiles';
 // styles
-import { errorBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  errorBoxStyles,
+  infoBoxStyles,
+  textBoxStyles,
+} from 'components/shared/MessageBoxes';
 import { fonts } from 'styles/index.js';
 
 function scrollToItem(id: string) {
@@ -29,6 +33,13 @@ const marginBoxStyles = (styles) => css`
 const containerStyles = css`
   padding: 1rem;
 
+  h3 {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding-bottom: 0;
+    font-family: ${fonts.primary};
+  }
+
   p {
     padding-bottom: 0;
     line-height: 1.375;
@@ -40,6 +51,10 @@ const containerStyles = css`
 
   li {
     margin-bottom: 0.25em;
+  }
+
+  i {
+    padding-right: 0.75rem;
   }
 
   @media (min-width: 30em) {
@@ -54,6 +69,17 @@ const containerStyles = css`
 const contentsTitleStyles = css`
   padding-bottom: 16px !important;
   text-decoration: underline;
+`;
+
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
+  display: inline-block;
+  margin-top: 2rem;
+  width: 100%;
+
+  h3 {
+    margin-bottom: 0.5em;
+  }
 `;
 
 const modifiedLinkButtonStyles = css`
@@ -228,6 +254,10 @@ function DataContent() {
           </div>
         ),
       )}
+      <div
+        css={modifiedInfoBoxStyles}
+        dangerouslySetInnerHTML={{ __html: data.footer }}
+      />
     </div>
   );
 }

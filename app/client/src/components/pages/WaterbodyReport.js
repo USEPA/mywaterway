@@ -201,6 +201,12 @@ const parameterStyles = css`
   }
 `;
 
+const tableStyles = css`
+  th {
+    vertical-align: middle !important;
+  }
+`;
+
 const dateCellStyles = css`
   @media (min-width: 25em) {
     white-space: nowrap;
@@ -1367,13 +1373,13 @@ function WaterbodyReport() {
                           ) : (
                             <>
                               <em>Links below open in a new browser tab.</em>
-                              <table className="table">
+                              <table className="table" css={tableStyles}>
                                 <thead>
                                   <tr>
                                     <th>Plan</th>
                                     <th>Impairments</th>
                                     <th>Type</th>
-                                    <th>Date</th>
+                                    <th>Completion Date</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -1381,8 +1387,8 @@ function WaterbodyReport() {
                                     .sort((a, b) =>
                                       a.name.localeCompare(b.name),
                                     )
-                                    .map((action, index) => (
-                                      <tr key={index}>
+                                    .map((action) => (
+                                      <tr key={action.id}>
                                         <td>
                                           <a
                                             href={`/plan-summary/${orgId}/${action.id}`}
@@ -1530,7 +1536,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
           </thead>
           <tbody>
             {pollutants
-              .sort((a, b) => a.name.localeCompare(b.name))
+              .toSorted((a, b) => a.name.localeCompare(b.name))
               .map((pollutant) => (
                 <tr key={pollutant.name}>
                   <td>{titleCaseWithExceptions(pollutant.name)}</td>

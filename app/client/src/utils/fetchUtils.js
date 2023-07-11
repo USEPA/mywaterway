@@ -21,7 +21,7 @@ export function fetchCheck(
       console.error(err);
 
       let status = err;
-      if (err && err.status) status = err.status;
+      if (err?.status) status = err.status;
       logCallToGoogleAnalytics(apiUrl, status, startTime);
       return checkResponse(err);
     });

@@ -236,7 +236,7 @@ function Overview() {
                 <Switch
                   checked={Boolean(totalWaterbodies) && waterbodiesDisplayed}
                   onChange={handleWaterbodiesToggle}
-                  disabled={!Boolean(totalWaterbodies)}
+                  disabled={!totalWaterbodies}
                 />
               </div>
             </label>
@@ -252,11 +252,9 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalMonitoringAndSensors)
-                  ? totalMonitoringAndSensors
-                  : 'N/A'}
+                {totalMonitoringAndSensors ? totalMonitoringAndSensors : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div>
                 <Switch
                   checked={
@@ -264,7 +262,7 @@ function Overview() {
                     monitoringAndSensorsDisplayed
                   }
                   onChange={handleMonitoringLocationsToggle}
-                  disabled={!Boolean(totalMonitoringAndSensors)}
+                  disabled={!totalMonitoringAndSensors}
                 />
               </div>
             </label>
@@ -277,9 +275,7 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalPermittedDischargers)
-                  ? totalPermittedDischargers
-                  : 'N/A'}
+                {totalPermittedDischargers ? totalPermittedDischargers : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <div>
@@ -289,7 +285,7 @@ function Overview() {
                     permittedDischargersDisplayed
                   }
                   onChange={handlePermittedDischargersToggle}
-                  disabled={!Boolean(totalPermittedDischargers)}
+                  disabled={!totalPermittedDischargers}
                 />
               </div>
             </label>
@@ -301,7 +297,7 @@ function Overview() {
         <Tabs onChange={handleTabClick}>
           <TabList>
             <Tab>Waterbodies</Tab>
-            <Tab>Monitoring Locations</Tab>
+            <Tab>Water Monitoring Locations</Tab>
             <Tab>Permitted Dischargers</Tab>
           </TabList>
 
@@ -1094,11 +1090,7 @@ function PermittedDischargersTab({
                 <tr>
                   <th>
                     <label css={toggleStyles}>
-                      <Switch
-                        checked={allToggled}
-                        onChange={toggleAll}
-                        ariaLabel="Toggle all permit components"
-                      />
+                      <Switch checked={allToggled} onChange={toggleAll} />
                       <span>All Permit Components</span>
                     </label>
                   </th>
@@ -1109,7 +1101,10 @@ function PermittedDischargersTab({
                 {dischargerPermitComponents &&
                   Object.keys(dischargerPermitComponents)
                     .filter((key) => key !== 'All')
-                    .sort()
+                    .sort((a, b) => {
+                      if (a === 'null') return 1;
+                      return a.localeCompare(b);
+                    })
                     .map((key) => {
                       const component = dischargerPermitComponents[key];
 
@@ -1130,7 +1125,6 @@ function PermittedDischargersTab({
                                 onChange={
                                   groupToggleHandlers?.[component.label]
                                 }
-                                ariaLabel={`Toggle ${componentLabel}`}
                                 ariaLabelledBy={componentLabelId}
                               />
                               {componentLabel === 'Not Specified' ? (

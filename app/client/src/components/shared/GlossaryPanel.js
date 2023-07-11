@@ -44,6 +44,8 @@ const TermStyles = createGlobalStyle`
 const iconStyles = css`
   font-weight: 900;
   color: rgba(0, 113, 188, 0.5);
+  margin-right: 0.25em;
+  padding-right: 0 !important;
 `;
 
 const panelStyles = css`
@@ -187,7 +189,7 @@ function GlossaryPanel({ path }) {
 
   // initialize Glossary panel
   useEffect(() => {
-    if (!window.fetchGlossaryTerms) return;
+    if (!window.hasOwnProperty('fetchGlossaryTerms')) return;
 
     if (!initialized) {
       setInitialized(true);
@@ -282,7 +284,7 @@ type Props = {
 function GlossaryTerm({ term, className, style, children }: Props) {
   const [status, setStatus] = useState('fetching');
 
-  if (window.fetchGlossaryTerms) {
+  if (window.hasOwnProperty('fetchGlossaryTerms')) {
     window.fetchGlossaryTerms
       .then((terms) => setStatus(terms.status))
       .catch((err) => {
@@ -311,7 +313,6 @@ function GlossaryTerm({ term, className, style, children }: Props) {
         status={status}
         aria-hidden="true"
       />
-      &nbsp;
       {children}
     </span>
   );

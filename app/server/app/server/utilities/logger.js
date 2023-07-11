@@ -1,4 +1,4 @@
-var log4js = require('log4js');
+const log4js = require('log4js');
 
 log4js.configure({
   appenders: {
@@ -22,7 +22,7 @@ log4js.configure({
   },
 });
 
-var logger = log4js.getLogger();
+const logger = log4js.getLogger();
 
 if (process.env.LOGGER_LEVEL)
   logger.level = process.env.LOGGER_LEVEL.toUpperCase();
@@ -30,7 +30,7 @@ else logger.level = 'INFO'; //default level
 
 logger.info('LOGGER_LEVEL = ' + logger.level);
 
-var getLogger = function () {
+const getLogger = function () {
   return logger;
 };
 

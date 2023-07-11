@@ -163,7 +163,6 @@ function highlightFeature({
   });
 }
 
-// TODO: Migrate to this hook, the other doesn't properly reset
 function useAbort() {
   const abortController = useRef(new AbortController());
   const getAbortController = useCallback(() => {
@@ -189,24 +188,6 @@ function useAbort() {
   );
 
   return { abort, getSignal };
-}
-
-function useAbortSignal() {
-  const abortController = useRef(new AbortController());
-
-  useEffect(() => {
-    if (abortController.current.signal.aborted) {
-      abortController.current = new AbortController();
-    }
-  }, [abortController.current.signal.aborted]);
-
-  useEffect(() => {
-    return function abort() {
-      abortController.current.abort();
-    };
-  }, []);
-
-  return abortController.current.signal;
 }
 
 // custom hook that combines lines, area, and points features from context,
@@ -527,7 +508,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     let { currentHighlight, currentSelection } = highlightState;
 
     // verify that we have a graphic before continuing
-    if (!graphic || !graphic.attributes) {
+    if (!graphic?.attributes) {
       handles.remove(group);
       mapView.graphics.removeAll();
 
@@ -710,7 +691,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
       Promise.all(requests).then((responses) => {
         responses.forEach((response) => {
-          if (!response || !response.features) return;
+          if (!response?.features) return;
 
           highlightFeature({
             mapView,
@@ -1781,7 +1762,6 @@ function useOnScreen(node: HTMLDivElement | null) {
 
 export {
   useAbort,
-  useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useKeyPress,

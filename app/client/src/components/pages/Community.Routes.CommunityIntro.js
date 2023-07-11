@@ -131,11 +131,11 @@ function CommunityIntro() {
 
       <p css={topicStyles}>
         <span css={iconStyles}>
-          <img src={monitoringIcon} alt="Monitoring" />
+          <img src={monitoringIcon} alt="Water Monitoring" />
         </span>
 
         <span css={textStyles}>
-          <strong>Monitoring:</strong> &nbsp; View monitoring locations.
+          <strong>Water Monitoring:</strong> &nbsp; View monitoring locations.
         </span>
       </p>
 

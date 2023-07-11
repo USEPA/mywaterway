@@ -138,11 +138,9 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
         'x-tiff',
         'x-windows-bmp',
       ].map((imageType) => `image/${imageType}`);
-      const photo =
-        documents &&
-        documents.find((document) =>
-          allowedTypes.includes(document.documentFileType),
-        );
+      const photo = documents?.find((document) =>
+        allowedTypes.includes(document.documentFileType),
+      );
       return photo ? photo.documentURL : null;
     },
     [services],

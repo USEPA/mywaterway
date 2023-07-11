@@ -64,7 +64,7 @@ function MapVisibilityButton({
         </button>
       </div>
 
-      {children && children(mapShown)}
+      {children?.(mapShown)}
     </>
   );
 }

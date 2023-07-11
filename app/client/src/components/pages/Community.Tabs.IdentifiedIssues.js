@@ -149,8 +149,7 @@ function IdentifiedIssues() {
     if (features && features.length !== 0) {
       features.forEach((feature) => {
         if (
-          feature &&
-          feature.attributes &&
+          feature?.attributes &&
           impairmentFields.findIndex(
             (field) => feature.attributes[field.value] === 'Cause',
           ) !== -1
@@ -424,9 +423,7 @@ function IdentifiedIssues() {
   // if 0% of waterbodies are impaired this is true
   const zeroPollutedWaterbodies =
     cipServiceReady &&
-    !Boolean(
-      cipSummary.data.items[0].containImpairedWatersCatchmentAreaPercent,
-    );
+    !cipSummary.data.items[0].containImpairedWatersCatchmentAreaPercent;
 
   let toggleIssuesChecked;
 
@@ -466,7 +463,7 @@ function IdentifiedIssues() {
 
   function getImpairedWatersPercent() {
     if (cipSummary.status === 'failure') return 'N/A';
-    return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent}%` || 0 + '%';
+    return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent ?? 0}%`;
   }
 
   return (

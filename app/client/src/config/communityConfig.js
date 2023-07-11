@@ -115,12 +115,10 @@ function EatingFishUpper() {
         {fishingInfo.status === 'success' ? (
           <>
             {fishingInfo.data.map((state, index) => {
-              const seperator =
-                index === 0
-                  ? ''
-                  : index === fishingInfo.data.length - 1
-                  ? ' and '
-                  : ', ';
+              let seperator = ', ';
+              if (index === 0) seperator = '';
+              else if (index === fishingInfo.data.length - 1)
+                seperator = ' and ';
 
               const matchedState = statesData.data.find((s) => {
                 return s.code === state.stateCode;
@@ -362,7 +360,7 @@ const tabs = [
     },
   },
   {
-    title: 'Monitoring',
+    title: 'Water Monitoring',
     route: '/community/{urlSearch}/monitoring',
     icon: monitoringIcon,
     upper: <MonitoringUpper />,

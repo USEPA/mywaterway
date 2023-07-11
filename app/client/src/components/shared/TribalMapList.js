@@ -365,7 +365,7 @@ function TribalMapList({
                       waterbodyLayer: !waterbodiesDisplayed,
                     });
                   }}
-                  disabled={!Boolean(waterbodies.data.length)}
+                  disabled={!waterbodies.data.length}
                   ariaLabel="Waterbodies"
                 />
               </div>
@@ -384,7 +384,7 @@ function TribalMapList({
                   ? monitoringLocations.length
                   : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -403,8 +403,8 @@ function TribalMapList({
                       monitoringLocationsLayer: !monitoringLocationsDisplayed,
                     });
                   }}
-                  disabled={!Boolean(monitoringLocations.length)}
-                  ariaLabel="Monitoring Stations"
+                  disabled={!monitoringLocations.length}
+                  ariaLabel="Water Monitoring Stations"
                 />
               </div>
             </>
@@ -532,7 +532,7 @@ function TribalMapList({
           <Tabs>
             <TabList>
               <Tab css={largeTabStyles}>Waterbodies</Tab>
-              <Tab css={largeTabStyles}>Monitoring Locations</Tab>
+              <Tab css={largeTabStyles}>Water Monitoring Locations</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
@@ -1000,7 +1000,7 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
 
         return (
           <AccordionItem
-            key={index}
+            key={item.uniqueId}
             index={index}
             title={<strong>{item.locationName || 'Unknown'}</strong>}
             subTitle={

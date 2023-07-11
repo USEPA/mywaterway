@@ -396,7 +396,7 @@ function Monitoring() {
                   currentWaterConditionsDisplayed
                 }
                 onChange={handleCurrentWaterConditionsToggle}
-                disabled={!Boolean(totalCurrentWaterConditions)}
+                disabled={!totalCurrentWaterConditions}
               />
             </label>
           )}
@@ -416,7 +416,7 @@ function Monitoring() {
                   monitoringDisplayed
                 }
                 onChange={handlePastWaterConditionsToggle}
-                disabled={!Boolean(monitoringLocations.data?.length)}
+                disabled={!monitoringLocations.data?.length}
               />
             </label>
           )}
@@ -1196,7 +1196,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                   <DateSlider
                     max={maxYear}
                     min={minYear}
-                    disabled={!Boolean(Object.keys(annualData).length)}
+                    disabled={!Object.keys(annualData).length}
                     onChange={handleDateSliderChange}
                     range={monitoringYearsRange}
                   />

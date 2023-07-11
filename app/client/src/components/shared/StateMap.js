@@ -434,7 +434,7 @@ function StateMap({
   }, []);
 
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
-  const mapInputsHeight = mapInputs && mapInputs.getBoundingClientRect().height;
+  const mapInputsHeight = mapInputs?.getBoundingClientRect().height;
 
   // jsx
   const mapContent = (
