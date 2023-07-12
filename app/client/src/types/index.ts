@@ -17,7 +17,7 @@ export interface AnnualStationData {
   totalsByLabel: { [label: string]: number };
 }
 
-export interface AssessmentUseAttainment {
+interface AssessmentUseAttainment {
   agencyCode: string;
   assessmentMetadata?: {
     assessmentActivity?: {
@@ -46,10 +46,14 @@ export interface AssessmentUseAttainment {
   useName: string;
 }
 
+export interface AssessmentUseAttainmentByGroup {
+  [useGroup: string]: AssessmentUseAttainment[];
+} 
+
 export type AssessmentUseAttainmentState =
-  | { status: 'fetching'; data: [] }
-  | { status: 'failure'; data: [] }
-  | { status: 'success'; data: AssessmentUseAttainment[] };
+  | { status: 'fetching'; data: null }
+  | { status: 'failure'; data: null }
+  | { status: 'success'; data: AssessmentUseAttainmentByGroup };
 
 export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';

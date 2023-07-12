@@ -61,6 +61,7 @@ import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  AssessmentUseAttainmentByGroup,
   AssessmentUseAttainmentState,
   ChangeLocationAttributes,
   ClickedHucState,
@@ -435,7 +436,7 @@ function WaterbodyInfo({
     );
 
   const [useAttainments, setUseAttainments] = useState<AssessmentUseAttainmentState>({
-    data: [],
+    data: null,
     status: 'fetching',
   });
   useEffect(() => {
@@ -456,12 +457,12 @@ function WaterbodyInfo({
       `&reportingCycle=${reportingcycle}` +
       `&summarize=Y`;
 
-    setUseAttainments({ data: [], status: 'fetching' });
+    setUseAttainments({ data: null, status: 'fetching' });
 
     fetchCheck(url)
       .then((res) => {
         if (!res?.items || res.items.length === 0) {
-          setUseAttainments({ data: [], status: 'failure' });
+          setUseAttainments({ data: null, status: 'failure' });
           return;
         }
 
@@ -470,12 +471,12 @@ function WaterbodyInfo({
           (a: any) => a.assessmentUnitIdentifier === assessmentunitidentifier,
         );
         if (!assessment) {
-          setUseAttainments({ data: [], status: 'failure' });
+          setUseAttainments({ data: null, status: 'failure' });
           return;
         }
 
         // search for Other useAttainments
-        const uses: any = {
+        const uses: AssessmentUseAttainmentByGroup = {
           'Drinking Water': [],
           'Ecological Life': [],
           'Fish and Shellfish Consumption': [],
@@ -497,7 +498,7 @@ function WaterbodyInfo({
       })
       .catch((err) => {
         console.error(err);
-        setUseAttainments({ data: [], status: 'failure' });
+        setUseAttainments({ data: null, status: 'failure' });
       });
   }, [feature, services, setUseAttainments, stateNationalUses, type]);
 
