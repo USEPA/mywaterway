@@ -14,6 +14,10 @@ import {
   getOrganizationLabel,
 } from 'utils/mapFunctions';
 // contexts
+import { 
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 
 const textStyles = css`
@@ -71,6 +75,8 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
   // Sort the waterbodies
   const [sortBy, setSortBy] = useState('assessmentunitname');
 
+  const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
   const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
@@ -193,6 +199,8 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
                   <WaterbodyInfo
                     type="Waterbody State Overview"
                     feature={graphic}
+                    services={services}
+                    stateNationalUses={stateNationalUses}
                   />
                   <ViewOnMapButton
                     feature={graphic}

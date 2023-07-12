@@ -32,7 +32,10 @@ import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import { useServicesContext } from 'contexts/LookupFiles';
+import { 
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // helpers
 import {
   useDischargersLayers,
@@ -86,6 +89,7 @@ function StateMap({
   const navigate = useNavigate();
 
   const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
 
   const { selectedGraphic } = useMapHighlightState();
 
@@ -123,7 +127,7 @@ function StateMap({
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
-        getPopupContent({ feature: feature.graphic, navigate }),
+        getPopupContent({ feature: feature.graphic, navigate, services, stateNationalUses }),
     };
 
     // Build the feature layers that will make up the waterbody layer
@@ -228,6 +232,7 @@ function StateMap({
     setResetHandler,
     layersInitialized,
     services,
+    stateNationalUses,
     surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,
     surroundingUsgsStreamgagesLayer,

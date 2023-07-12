@@ -27,7 +27,7 @@ import WMSLayer from '@arcgis/core/layers/WMSLayer';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import { useServicesContext } from 'contexts/LookupFiles';
+import { useServicesContext, useStateNationalUsesContext } from 'contexts/LookupFiles';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
 import {
@@ -427,6 +427,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   } = useLayers();
 
   const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
   const navigate = useNavigate();
 
   // Handles zooming to a selected graphic when "View on Map" is clicked.
@@ -465,10 +466,11 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         selectedGraphic,
         dynamicPopupFields,
         services,
+        stateNationalUses,
         navigate,
       );
     });
-  }, [mapView, selectedGraphic, services, navigate]);
+  }, [mapView, navigate, selectedGraphic, services, stateNationalUses]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);
@@ -761,6 +763,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 function useDynamicPopup() {
   const navigate = useNavigate();
   const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
   const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
   );
@@ -837,6 +840,7 @@ function useDynamicPopup() {
           fields,
           mapView,
           services,
+          stateNationalUses,
           navigate,
         });
       }
@@ -848,10 +852,11 @@ function useDynamicPopup() {
         mapView,
         resetData: reset,
         services,
+        stateNationalUses,
         navigate,
       });
     },
-    [getClickedHuc, getHucBoundaries, getMapView, navigate, reset, services],
+    [getClickedHuc, getHucBoundaries, getMapView, navigate, reset, services, stateNationalUses],
   );
 
   // Wrapper function for getting the title of the popup

@@ -17,6 +17,40 @@ export interface AnnualStationData {
   totalsByLabel: { [label: string]: number };
 }
 
+export interface AssessmentUseAttainment {
+  agencyCode: string;
+  assessmentMetadata?: {
+    assessmentActivity?: {
+      assessmentDate: string;
+      assessorName?: string;
+    };
+    assessmentBasisCode?: string;
+    assessmentMethodTypes: {
+      methodTypeCode: string;
+      methodTypeContext: string;
+      methodTypeName: string;
+    }[];
+    assessmentTypes?: {
+      assessmentConfidenceCode: string;
+      assessmentTypeCode: string;
+    }[];
+    monitoringActivity?: {
+      monitoringEndDate?: string;
+      monitoringStartDate?: string;
+    };
+  },
+  threatenedIndicator: string;
+  trendCode?: string;
+  useAttainmentCode: string;
+  useAttainmentCodeName: string;
+  useName: string;
+}
+
+export type AssessmentUseAttainmentState =
+  | { status: 'fetching'; data: [] }
+  | { status: 'failure'; data: [] }
+  | { status: 'success'; data: AssessmentUseAttainment[] };
+
 export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
 }

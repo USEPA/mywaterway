@@ -61,9 +61,11 @@ import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  AssessmentUseAttainmentState,
   ChangeLocationAttributes,
   ClickedHucState,
   FetchState,
+  LookupFile,
   MonitoringLocationAttributes,
   ServicesState,
   StreamgageMeasurement,
@@ -363,6 +365,7 @@ type WaterbodyInfoProps = {
   fields?: __esri.Field[] | null;
   mapView?: __esri.MapView;
   services?: ServicesState;
+  stateNationalUses?: LookupFile;
   type: string;
 };
 
@@ -376,6 +379,7 @@ function WaterbodyInfo({
   extraContent,
   mapView,
   services,
+  stateNationalUses,
   fields,
 }: WaterbodyInfoProps) {
   const { attributes } = feature;
@@ -429,6 +433,77 @@ function WaterbodyInfo({
         Unable to find a waterbody report for this waterbody.
       </p>
     );
+
+  const [useAttainments, setUseAttainments] = useState<AssessmentUseAttainmentState>({
+    data: [],
+    status: 'fetching',
+  });
+  useEffect(() => {
+    if (type !== 'Waterbody' && type !== 'Waterbody State Overview') return;
+    if (
+      services?.status !== 'success' ||
+      stateNationalUses?.status !== 'success'
+    )
+      return;
+
+    const { assessmentunitidentifier, organizationid, reportingcycle } =
+      feature.attributes;
+
+    const url =
+      services.data.attains.serviceUrl +
+      `assessments?assessmentUnitIdentifier=${assessmentunitidentifier}` +
+      `&organizationId=${organizationid}` +
+      `&reportingCycle=${reportingcycle}` +
+      `&summarize=Y`;
+
+    setUseAttainments({ data: [], status: 'fetching' });
+
+    fetchCheck(url)
+      .then((res) => {
+        if (!res?.items || res.items.length === 0) {
+          setUseAttainments({ data: [], status: 'failure' });
+          return;
+        }
+
+        // find the assessment
+        const assessment = res.items[0].assessments.find(
+          (a: any) => a.assessmentUnitIdentifier === assessmentunitidentifier,
+        );
+        if (!assessment) {
+          setUseAttainments({ data: [], status: 'failure' });
+          return;
+        }
+
+        // search for Other useAttainments
+        const uses: any = {
+          'Drinking Water': [],
+          'Ecological Life': [],
+          'Fish and Shellfish Consumption': [],
+          Recreation: [],
+          Cultural: [],
+          Other: [],
+        };
+        assessment.useAttainments.forEach((useAttainment: any) => {
+          // check if it is other in stateNationalUses
+          const nationalUse = stateNationalUses.data.find(
+            (u: any) =>
+              u.orgId === organizationid && u.name === useAttainment.useName,
+          );
+
+          uses[nationalUse.category].push(useAttainment);
+        });
+
+        setUseAttainments({ data: uses, status: 'success' });
+      })
+      .catch((err) => {
+        console.error(err);
+        setUseAttainments({ data: [], status: 'failure' });
+      });
+  }, [feature, services, setUseAttainments, stateNationalUses, type]);
+
+  useEffect(() => {
+    console.log('useAttainments: ', useAttainments);
+  }, [useAttainments]);
 
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
@@ -1022,6 +1097,7 @@ type MapPopupProps = {
   mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
+  stateNationalUses?: LookupFile;
   fields?: __esri.Field[] | null;
 };
 
@@ -1034,6 +1110,7 @@ function MapPopup({
   mapView,
   resetData,
   services,
+  stateNationalUses,
   fields,
   navigate,
 }: MapPopupProps) {
@@ -1154,6 +1231,7 @@ function MapPopup({
             extraContent={extraContent}
             mapView={mapView}
             services={services}
+            stateNationalUses={stateNationalUses}
             fields={fields}
           />
         </div>
