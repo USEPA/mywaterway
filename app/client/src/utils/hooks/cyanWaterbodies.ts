@@ -8,12 +8,12 @@ import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
+import { useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   handleFetchError,
@@ -21,16 +21,10 @@ import {
   useBoundariesToggleLayer,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
-import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
-import type {
-  CyanWaterbodyAttributes,
-  ServicesData,
-  ServicesState,
-} from 'types';
+import type { CyanWaterbodyAttributes, Feature, ServicesData } from 'types';
 import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
 
 /*
@@ -44,16 +38,14 @@ export function useCyanWaterbodies() {
 }
 
 export function useCyanWaterbodiesLayers() {
-  // Build the base feature layer
-  const { getMapView } = useContext(LocationSearchContext);
-  const services = useServicesContext();
-  const navigate = useNavigate();
+  const { getTemplate, getTitle } = useDynamicPopup();
 
+  // Build the base feature layer
   const buildBaseLayer = useCallback(
     (type: SublayerType) => {
-      return buildLayer(navigate, services, type, getMapView);
+      return buildLayer(type, getTitle, getTemplate);
     },
-    [getMapView, navigate, services],
+    [getTemplate, getTitle],
   );
 
   const updateSurroundingData = useUpdateData();
@@ -156,10 +148,9 @@ function buildFeatures(data: CyanWaterbodyAttributes[]) {
 }
 
 function buildLayer(
-  navigate: NavigateFunction,
-  services: ServicesState,
   type: SublayerType,
-  getMapView: () => __esri.MapView,
+  getTitle: (graphic: Feature) => string,
+  getTemplate: (graphic: Feature) => HTMLDivElement | null,
 ) {
   const cyanWaterbodies = new FeatureLayer({
     id:
@@ -187,15 +178,8 @@ function buildLayer(
       wkid: 102100,
     },
     popupTemplate: {
-      title: (feature: __esri.Feature) =>
-        getPopupTitle(feature.graphic.attributes),
-      content: (feature: __esri.Feature) =>
-        getPopupContent({
-          feature: feature.graphic,
-          mapView: getMapView(),
-          navigate,
-          services,
-        }),
+      title: getTitle,
+      content: getTemplate,
       outFields: ['*'],
     },
     renderer: new SimpleRenderer({

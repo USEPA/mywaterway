@@ -624,7 +624,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const { getTitle, getTemplate, setDynamicPopupFields } = useDynamicPopup();
+  const { setDynamicPopupFields } = useDynamicPopup();
 
   // Builds the layers that have no dependencies
   useEffect(() => {
@@ -696,8 +696,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLayersInitialized(true);
   }, [
     getSharedLayers,
-    getTemplate,
-    getTitle,
     setLayer,
     setResetHandler,
     layersInitialized,
