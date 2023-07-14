@@ -107,6 +107,7 @@ export function fetchPost(
 export function fetchPostForm(
   apiUrl: string,
   data: object,
+  signal: ?AbortSignal = null,
   headers: any = { 'content-type': 'application/x-www-form-urlencoded' },
   timeout: number = defaultTimeout,
 ) {
@@ -130,6 +131,7 @@ export function fetchPostForm(
       method: 'POST',
       headers,
       body,
+      signal,
     }),
   )
     .then((response) => {

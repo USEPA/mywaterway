@@ -6,7 +6,6 @@ import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
-import Color from '@arcgis/core/Color';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductionCluster';
@@ -14,11 +13,9 @@ import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import * as locator from '@arcgis/core/rest/locator';
-import MediaLayer from '@arcgis/core/layers/MediaLayer';
 import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
-import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
@@ -55,6 +52,7 @@ import {
 // helpers
 import {
   useAbort,
+  useCyanWaterbodiesLayers,
   useDynamicPopup,
   useGeometryUtils,
   useSharedLayers,
@@ -64,7 +62,7 @@ import {
   useMonitoringLocationsLayers,
   useStreamgageLayers,
 } from 'utils/hooks';
-import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   chunkArrayCharLength,
   isAbort,
@@ -179,7 +177,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setAreasData,
     setLinesData,
     setPointsData,
-    setCyanWaterbodies,
     setAddress,
     setAttainsPlans,
     cipSummary,
@@ -226,6 +223,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     waterbodyPoints,
   } = useLayers();
 
+  useCyanWaterbodiesLayers();
   useDischargersLayers();
   useMonitoringLocationsLayers(huc12 ? `huc=${huc12}` : null);
   useStreamgageLayers();
@@ -626,7 +624,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const { getTitle, getTemplate, setDynamicPopupFields } = useDynamicPopup();
+  const { setDynamicPopupFields } = useDynamicPopup();
 
   // Builds the layers that have no dependencies
   useEffect(() => {
@@ -693,94 +691,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       nonprofitsLayer.graphics.removeAll(),
     );
 
-    const cyanWaterbodies = new FeatureLayer({
-      id: 'cyanWaterbodies',
-      fields: [
-        { name: 'AREASQKM', type: 'double' },
-        { name: 'FDATE', type: 'string' },
-        { name: 'FID', type: 'integer' },
-        { name: 'GNIS_ID', type: 'string' },
-        { name: 'GNIS_NAME', type: 'string' },
-        { name: 'c_lat', type: 'double' },
-        { name: 'c_lng', type: 'double' },
-        { name: 'ELEVATION', type: 'double' },
-        { name: 'locationName', type: 'string' },
-        { name: 'monitoringType', type: 'string', defaultValue: 'CyAN' },
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'oid', type: 'integer' },
-        {
-          name: 'orgName',
-          type: 'string',
-          defaultValue: 'Cyanobacteria Assessment Network (CyAN)',
-        },
-        { name: 'PERMANENT_', type: 'string' },
-        { name: 'RESOLUTION', type: 'integer' },
-        { name: 'x_max', type: 'double' },
-        { name: 'x_min', type: 'double' },
-        { name: 'y_max', type: 'double' },
-        { name: 'y_min', type: 'double' },
-      ],
-      legendEnabled: false,
-      objectIdField: 'OBJECTID',
-      outFields: ['*'],
-      spatialReference: {
-        wkid: 102100,
-      },
-      popupTemplate: {
-        title: getTitle,
-        content: getTemplate,
-        outFields: ['*'],
-      },
-      renderer: new SimpleRenderer({
-        symbol: new SimpleFillSymbol({
-          style: 'solid',
-          color: new Color([108, 149, 206, 0.4]),
-          outline: {
-            color: [0, 0, 0, 0],
-            width: 0.75,
-            style: 'solid',
-          },
-        }),
-      }),
-      // NOTE: initial graphic below will be replaced
-      source: [
-        new Graphic({
-          geometry: new Polygon(),
-          attributes: { OBJECTID: 1 },
-        }),
-      ],
-      title: 'CyAN Waterbodies',
-    });
-
-    const cyanImages = new MediaLayer({
-      blendMode: 'color-burn',
-      copyright: 'CyAN, EPA',
-      effect: 'saturate(150%) contrast(150%)',
-      id: 'cyanImages',
-      opacity: 1,
-      spatialReference: {
-        wkid: 102100,
-      },
-      title: 'CyAN Images',
-    });
-
-    const newCyanLayer = new GroupLayer({
-      id: 'cyanLayer',
-      title: 'CyAN Waterbodies',
-      listMode: 'hide-children',
-      visible: false,
-    });
-    newCyanLayer.add(cyanWaterbodies);
-    newCyanLayer.add(cyanImages);
-    setLayer('cyanLayer', newCyanLayer);
-
     getSharedLayers();
 
     setLayersInitialized(true);
   }, [
     getSharedLayers,
-    getTemplate,
-    getTitle,
     setLayer,
     setResetHandler,
     layersInitialized,
@@ -1312,69 +1227,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, setProtectedAreasData, setDynamicPopupFields],
   );
 
-  const getCyanWaterbodies = useCallback(
-    (boundaries) => {
-      const cyanWaterbodiesLayer = mapView.map.findLayerById('cyanWaterbodies');
-      if (!cyanWaterbodiesLayer) return;
-      const url = services.data.cyan.waterbodies + '/query';
-      const data = {
-        outFields: '*',
-        geometry: {
-          rings: boundaries.features[0].geometry.rings,
-        },
-        geometryType: 'esriGeometryPolygon',
-        f: 'json',
-        spatialRel: 'esriSpatialRelIntersects',
-      };
-      setCyanWaterbodies({ status: 'pending', data: null });
-      fetchPostForm(url, data)
-        .then((res) => {
-          // duplicate the objectid to a
-          // different field for later reference
-          const features =
-            res.features?.map((item) => {
-              return new Graphic({
-                attributes: {
-                  ...item.attributes,
-                  locationName: item.attributes.GNIS_NAME,
-                  monitoringType: 'CyAN',
-                  oid: item.attributes.OBJECTID,
-                  orgName: 'Cyanobacteria Assessment Network (CyAN)',
-                },
-                geometry: new Polygon({
-                  rings: item.geometry.rings,
-                  spatialReference: {
-                    wkid: 102100,
-                  },
-                }),
-                layer: cyanWaterbodiesLayer,
-              });
-            }) ?? [];
-
-          const data = features.map((feature) => {
-            return {
-              ...feature.attributes,
-              geometry: feature.geometry,
-            };
-          });
-
-          setCyanWaterbodies({ status: 'success', data });
-
-          cyanWaterbodiesLayer.queryFeatures().then((featureSet) => {
-            cyanWaterbodiesLayer.applyEdits({
-              deleteFeatures: featureSet.features,
-              addFeatures: features,
-            });
-          });
-        })
-        .catch((err) => {
-          setCyanWaterbodies({ status: 'failure', data: null });
-          console.error(err);
-        });
-    },
-    [mapView, services, setCyanWaterbodies],
-  );
-
   const handleMapServices = useCallback(
     (results, boundaries) => {
       // sort the parameters by highest percent to lowest
@@ -1431,9 +1283,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // get Protected Areas data for current huc boundaries
       getProtectedAreas(boundaries);
 
-      // get CyAN data for current huc boundaries
-      getCyanWaterbodies(boundaries);
-
       // call states service for converting statecodes to state names
       // don't re-fetch the states service if it's already populated, it doesn't vary by location
       if (statesData.status !== 'success') {
@@ -1458,7 +1307,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       );
     },
     [
-      getCyanWaterbodies,
       getFishingLinkData,
       getSignal,
       getWsioHealthIndexData,

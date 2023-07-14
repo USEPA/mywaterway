@@ -1482,6 +1482,7 @@ type CyanContentProps = {
 
 function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const { attributes } = feature;
+  const layerId = feature.layer?.id;
   const { getSignal } = useAbort();
 
   const [today] = useState(() => {
@@ -1596,7 +1597,11 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     if (services?.status !== 'success') return;
     if (!mapView) return;
 
-    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
+    const cyanImageLayer = mapView.map.findLayerById(
+      layerId === 'surroundingCyanWaterbodies'
+        ? 'surroundingCyanImages'
+        : 'cyanImages',
+    );
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
     const currentDate = new Date(selectedDate);
@@ -1714,21 +1719,29 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     return function cleanup() {
       clearTimeout(imageTimeout);
     };
-  }, [attributes, mapView, selectedDate, services]);
+  }, [attributes, layerId, mapView, selectedDate, services]);
 
   // Remove the image when this component unmounts
   useEffect(() => {
     if (!mapView) return;
 
-    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
+    const cyanImageLayer = mapView.map.findLayerById(
+      layerId === 'surroundingCyanWaterbodies'
+        ? 'surroundingCyanImages'
+        : 'cyanImages',
+    );
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
-    const popupWatchHandle = mapView.popup.watch(
+    // Remove the satellite image when the popup is closed
+    const popupVisibilityWatchHandle = mapView.popup.watch(
       'visible',
       (visible: boolean) => {
         if (visible) return;
         mapView.popup.features.forEach((feature) => {
-          if (feature.layer?.id === 'cyanWaterbodies') {
+          if (
+            feature.layer?.id === 'cyanWaterbodies' ||
+            feature.layer?.id === 'surroundingCyanWaterbodies'
+          ) {
             (
               cyanImageLayer.source as __esri.LocalMediaElementSource
             ).elements.removeAll();
@@ -1737,13 +1750,24 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       },
     );
 
+    // Remove the satellite image when a new location is clicked
+    const popupFeaturesWatchHandle = mapView.popup.watch(
+      'features',
+      (_features: __esri.Graphic[]) => {
+        (
+          cyanImageLayer.source as __esri.LocalMediaElementSource
+        ).elements.removeAll();
+      },
+    );
+
     return function cleanup() {
       (
         cyanImageLayer.source as __esri.LocalMediaElementSource
       ).elements.removeAll();
-      popupWatchHandle.remove();
+      popupVisibilityWatchHandle.remove();
+      popupFeaturesWatchHandle.remove();
     };
-  }, [mapView]);
+  }, [layerId, mapView]);
 
   const [barChartData, setBarChartData] = useState<ChartData | null>(null);
 

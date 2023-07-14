@@ -183,6 +183,7 @@ const orderedLayers = [
   'dischargersLayer',
   'surroundingDischargersLayer',
   'cyanLayer',
+  'surroundingCyanLayer',
   'nonprofitsLayer',
   'providersLayer',
   'upstreamLayer',
@@ -255,7 +256,8 @@ function updateLegend(
       (layer.visible && layer.id === 'allWaterbodiesLayer') ||
       (layer.visible && layer.id === 'surroundingDischargersLayer') ||
       (layer.visible && layer.id === 'surroundingUsgsStreamgagesLayer') ||
-      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer')
+      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer') ||
+      (layer.visible && layer.id === 'surroundingCyanLayer')
     ) {
       visibleLayers.push(layer);
     }

@@ -1775,6 +1775,7 @@ export {
 
 export * from './allWaterbodies';
 export * from './boundariesToggleLayer';
+export * from './cyanWaterbodies';
 export * from './dischargers';
 export * from './monitoringLocations';
 export * from './streamgages';

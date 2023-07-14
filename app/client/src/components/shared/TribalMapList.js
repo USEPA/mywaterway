@@ -53,6 +53,7 @@ import {
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import {
+  useCyanWaterbodiesLayers,
   useDischargersLayers,
   useMonitoringLocations,
   useMonitoringLocationsLayers,
@@ -609,6 +610,7 @@ function TribalMap({
 
   const { surroundingUsgsStreamgagesLayer } = useStreamgageLayers();
   const { surroundingDischargersLayer } = useDischargersLayers();
+  const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
 
   const navigate = useNavigate();
   const services = useServicesContext();
@@ -744,6 +746,7 @@ function TribalMap({
       ...sharedLayers,
       upstreamLayer,
       selectedTribeLayer,
+      surroundingCyanLayer,
       surroundingDischargersLayer,
       surroundingUsgsStreamgagesLayer,
       monitoringLocationsLayer,
@@ -767,6 +770,7 @@ function TribalMap({
     services,
     setLayer,
     setResetHandler,
+    surroundingCyanLayer,
     surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,
     surroundingUsgsStreamgagesLayer,

@@ -6,6 +6,7 @@ import {
   useReducer,
 } from 'react';
 import type {
+  CyanWaterbodyAttributes,
   DischargerAttributes,
   FetchSuccessState,
   MonitoringLocationAttributes,
@@ -101,9 +102,11 @@ function buildNewDataState(action: FetchedDataAction) {
 */
 
 const dataKeys = [
+  'cyanWaterbodies',
   'monitoringLocations',
   'dischargers',
   'usgsStreamgages',
+  'surroundingCyanWaterbodies',
   'surroundingMonitoringLocations',
   'surroundingDischargers',
   'surroundingUsgsStreamgages',
@@ -134,9 +137,11 @@ export type EmptyFetchState = {
 export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
 
 export type FetchedData = {
+  cyanWaterbodies: CyanWaterbodyAttributes[];
   monitoringLocations: MonitoringLocationAttributes[];
   dischargers: DischargerAttributes[];
   usgsStreamgages: UsgsStreamgageAttributes[];
+  surroundingCyanWaterbodies: CyanWaterbodyAttributes[];
   surroundingMonitoringLocations: MonitoringLocationAttributes[];
   surroundingDischargers: DischargerAttributes[];
   surroundingUsgsStreamgages: UsgsStreamgageAttributes[];
