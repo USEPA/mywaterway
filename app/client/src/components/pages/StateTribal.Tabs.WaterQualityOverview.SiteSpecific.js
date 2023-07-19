@@ -148,7 +148,7 @@ function SiteSpecific({
       total: 0,
     };
 
-    if (!waterTypeData || waterTypeData.length === 0) return support;
+    if (!waterTypeData?.length) return support;
 
     // loop through the use categories in the watertypes and add up each support item
     waterTypeData.forEach((waterTypeOption) => {
@@ -206,7 +206,7 @@ function SiteSpecific({
       .sort((a, b) => {
         return parseFloat(parameterCalc[b]) - parseFloat(parameterCalc[a]);
       })
-      .map((param, index) => {
+      .map((param) => {
         const percent = formatNumber(
           (parameterCalc[param] /
             (calculatedSupport.total - calculatedSupport.notAssessed)) *
@@ -230,7 +230,7 @@ function SiteSpecific({
         );
 
         return (
-          <li key={index}>
+          <li key={param}>
             <span css={percentStyles}>{percent}%</span> or {number} {units}{' '}
             {match ? sentence : <strong>{param}</strong>}.
           </li>
@@ -267,12 +267,9 @@ function SiteSpecific({
   const responsiveBarChartHeight =
     barChartData.length === 1 ? 75 : barChartData.length * 60;
 
-  const responsiveBarChartFontSize =
-    window.innerWidth < 350
-      ? '10px'
-      : window.innerWidth < 450
-      ? '11.5px'
-      : '15px';
+  let responsiveBarChartFontSize = '15px';
+  if (window.innerWidth < 350) responsiveBarChartFontSize = '10px';
+  else if (window.innerWidth < 450) responsiveBarChartFontSize = '11.5px';
 
   return (
     <>

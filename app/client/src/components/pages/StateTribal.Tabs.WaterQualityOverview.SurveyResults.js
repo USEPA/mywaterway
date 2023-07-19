@@ -117,7 +117,7 @@ function SurveyResults({
   // Handles user and auto subPopulation selection
   let selectedSubPop = '';
   let selectedSurveyGroup = null;
-  if (subPopulationCodes && subPopulationCodes.length > 0) {
+  if (subPopulationCodes?.length > 0) {
     // set to the user's selection if it is availble
     if (
       subPopulationCodes.some((e) => e.subPopulationCode === userSelectedSubPop)
@@ -174,8 +174,7 @@ function SurveyResults({
   let allCategoryCodes = {};
   let allStressorNames = [];
   if (
-    surveyData &&
-    surveyData.surveyWaterGroups &&
+    surveyData?.surveyWaterGroups &&
     waterType &&
     waterTypeOptions.status === 'success' &&
     surveyMapping.status === 'success'
@@ -198,8 +197,7 @@ function SurveyResults({
           let useSelectedUpper = normalizeString(useSelected);
           let topicUseSelected = topicUses[useSelectedUpper];
           surveyUseSelected =
-            topicUseSelected &&
-            topicUseSelected.surveyuseCode &&
+            topicUseSelected?.surveyuseCode &&
             titleCase(topicUseSelected.surveyuseCode);
 
           let mapOrgId = mapping['organizationIdentifier'];
@@ -218,8 +216,7 @@ function SurveyResults({
             normalizeString(mapSubPop) === normalizeString(selectedSubPop) &&
             waterTypeOptions.data[waterType].includes(mapWaterGroup) &&
             (normalizeString(mapSurveyUse) === normalizeString(useSelected) ||
-              (topicUseSelected &&
-                topicUseSelected.surveyuseCode &&
+              (topicUseSelected?.surveyuseCode &&
                 normalizeString(mapSurveyUse) ===
                   normalizeString(topicUseSelected.surveyuseCode)))
           ) {
@@ -237,8 +234,7 @@ function SurveyResults({
 
           // check the useCode
           if (
-            !topicUseSelected ||
-            !topicUseSelected.hasOwnProperty('surveyuseCode') ||
+            !topicUseSelected?.hasOwnProperty('surveyuseCode') ||
             (paramSurveyUseCode !== useSelectedUpper &&
               paramSurveyUseCode !==
                 normalizeString(topicUseSelected.surveyuseCode))
@@ -410,8 +406,7 @@ function SurveyResults({
   const populationId = Date.now() + Math.random();
 
   return (
-    subPopulationCodes &&
-    subPopulationCodes.length > 0 && (
+    subPopulationCodes?.length > 0 && (
       <>
         <h3>
           Overall water quality in {activeState.label}{' '}

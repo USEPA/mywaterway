@@ -141,7 +141,12 @@ const textStyles = css`
 `;
 
 const titleStyles = css`
-  padding: 0.375em;
+  background: none;
+  border: none;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
   font-family: ${fonts.secondary};
   font-size: 1.5em;
   color: white;
@@ -213,8 +218,8 @@ function Page({ children }: Props) {
   useEffect(() => {
     if (interceptorsInitialized) return;
 
-    var callId = 0;
-    var callDurations = {};
+    let callId = 0;
+    const callDurations = {};
 
     // intercept esri calls to gispub
     const urls = [
@@ -356,8 +361,9 @@ function Page({ children }: Props) {
 
       <div css={bannerStyles}>
         <div css={textStyles}>
-          <span
+          <button
             css={titleStyles}
+            tabIndex="0"
             onClick={(_ev) => {
               if (dataDisplayed) setDataDisplayed(false);
               if (aboutDisplayed) setAboutDisplayed(false);
@@ -366,7 +372,7 @@ function Page({ children }: Props) {
             }}
           >
             How’s My Waterway?
-          </span>
+          </button>
 
           <p css={subtitleStyles}>
             Informing the conversation about your waters.

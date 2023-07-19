@@ -82,6 +82,7 @@ const tooltipNotLoaded = {
 const layersToIgnore = [
   'nonprofitsLayer',
   'protectedAreasHighlightLayer',
+  'surroundingCyanLayer',
   'surroundingDischargersLayer',
   'surroundingMonitoringLocationsLayer',
   'surroundingUsgsStreamgagesLayer',
@@ -389,7 +390,7 @@ function SavePanel({ visible }: Props) {
     });
 
     // build object of switches based on layers on map
-    const newSwitches = saveLayersList ? { ...saveLayersList } : {};
+    const newSwitches = { ...saveLayersList };
     const newSwitchesNoLayer: any = {};
     const layersOnMap: string[] = [];
     mapView.map.layers.forEach((layer) => {
@@ -619,7 +620,10 @@ function SavePanel({ visible }: Props) {
             const filters: string[] = [];
             Object.keys(dischargerPermitComponents)
               .filter((key) => key !== 'All')
-              .sort()
+              .sort((a, b) => {
+                if (a === 'null') return 1;
+                return a.localeCompare(b);
+              })
               .forEach((key) => {
                 const group = dischargerPermitComponents[key];
                 if (group.label === 'All' || !group.toggled) return;
@@ -699,7 +703,7 @@ function SavePanel({ visible }: Props) {
         );
 
         if (!allToggled) {
-          filters.sort();
+          filters.sort((a, b) => a.localeCompare(b));
           layerDisclaimers.push(`
             <i>${value.label}</i> is filtered to ${buildFilterString(filters)}.
           `);

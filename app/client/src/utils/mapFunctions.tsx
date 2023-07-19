@@ -584,7 +584,7 @@ export const openPopup = (
   services: ServicesState,
   navigate: NavigateFunction,
 ) => {
-  const fieldName = feature.attributes && feature.attributes.fieldName;
+  const fieldName = feature.attributes?.fieldName;
 
   // set the popup template
   if (
@@ -679,7 +679,7 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
 
   // protect tab teal nonprofits
   else if ('type' in attributes && attributes.type === 'nonprofit') {
-    title = attributes.Name || 'Unknown name';
+    title = attributes.Name ?? 'Unknown name';
   }
 
   // county
@@ -915,10 +915,8 @@ export function graphicComparison(
 
   // change occurred
   if (
-    (graphic1 && graphic1.attributes && !graphic2) ||
-    (graphic1 && graphic1.attributes && graphic2 && !graphic2.attributes) ||
-    (graphic2 && graphic2.attributes && !graphic1) ||
-    (graphic2 && graphic2.attributes && graphic1 && !graphic1.attributes) ||
+    (graphic1?.attributes && !graphic2?.attributes) ||
+    (graphic2?.attributes && !graphic1?.attributes) ||
     !shallowCompare(graphic1?.attributes, graphic2?.attributes)
   ) {
     return false;

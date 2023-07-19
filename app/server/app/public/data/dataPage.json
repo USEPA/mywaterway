@@ -1,5 +1,6 @@
 {
-  "intro": "<em>How’s My Waterway</em> pulls data from multiple databases at EPA and other federal agencies through web services. Below is a summary of data included in <em>How’s My Waterway</em>.",
+  "intro": "<em>How's My Waterway</em> retrieves data from various systems at the Environmental Protection Agency (EPA) and other federal agencies using web services. These web services are also accessible to other users/applications so they too can access the data. In addition, the source code for the How's My Waterway web application is available in an <a href='https://github.com/usepa/mywaterway' target='_blank' rel='noopener noreferrer'>EPA GitHub repository</a> <a class='exit-disclaimer' href='https://www.epa.gov/home/exit-epa' target='_blank' rel='noopener noreferrer'>EXIT</a>.<br /><br />Below is a summary of data included in How’s My Waterway.",
+  "footer": "<h3><i class='fas fa-envelope' aria-hidden='true'></i>Contact Us</h3>For more information, <a href='https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway' target='_blank' rel='noopener noreferrer'>contact us</a>&nbsp;&nbsp;<small>(opens new browser tab)</small> or email: <a href=\"mailto:mywaterway@epa.gov\">mywaterway@epa.gov</a>.",
   "content": [
     {
       "description": "ATTAINS contains information on water quality assessments, impaired waters, and total maximum daily loads (TMDLs), through data submitted by states, territories and tribes under Clean Water Act sections <span data-glossary-term data-term='303(d) listed impaired waters (Category 5)'>303(d)</span>, <span data-glossary-term data-term='Clean Water Act Section 305(b)'>305(b)</span> and the <span data-glossary-term data-term='Tribal Grant Program CWA Section 106'>106 Tribal Grant program</span>.",
@@ -18,7 +19,7 @@
       "linkHref": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
       "linkLabel": "CyAN Data/System",
       "shortName": "CyAN",
-      "siteLocation": "Information from CyAN can be found on the Community Page in the Monitoring Tab under current water conditions, CyAN Satellite Imagery.",
+      "siteLocation": "Information from CyAN can be found on the Community Page in the Water Monitoring tab under Current Water Conditions, CyAN Satellite Imagery.",
       "title": "Cyanobacteria Assessment Network (CyAN)"
     },
     {
@@ -48,7 +49,7 @@
       "linkHref": "https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas",
       "linkLabel": "Protected Areas Data/System",
       "shortName": "Wild and Protected Areas",
-      "siteLocation": "Information from this database can be found on the Community page on the protect tab under Watershed Health and Protection, Protected Areas.",
+      "siteLocation": "Information from this database can be found on the Community page on the Protect tab under Watershed Health and Protection, Protected Areas.",
       "title": "Protected Areas"
     },
     {
@@ -68,7 +69,7 @@
       "linkHref": "https://waterdata.usgs.gov/nwis/rt",
       "linkLabel": "USGS Stream Gages Data/System",
       "shortName": "USGS Stream Gage",
-      "siteLocation": "Information from the USGS databases can be found on the Community page on the Overview tab under Monitoring Locations, Current Water Conditions, USGS Sensors and in the Monitoring Tab under current water conditions, USGS Sensors.",
+      "siteLocation": "Information from the USGS databases can be found on the Community page on the Overview tab under Water Monitoring Locations, Current Water Conditions, USGS Sensors and in the Water Monitoring tab under current water conditions, USGS Sensors.",
       "title": "USGS Sensors (USGS Stream Gages)"
     },
     {
@@ -78,7 +79,7 @@
       "linkHref": "https://www.waterqualitydata.us/",
       "linkLabel": "WQP Data/System",
       "shortName": "WQP",
-      "siteLocation": "Information from this database can be found on the Community page under the Overview tab under Monitoring Locations, Past Water Conditions, and on the Monitoring tab under Past Water Conditions, as well as on the Monitoring Report pages.",
+      "siteLocation": "Information from this database can be found on the Community page under the Overview tab under Water Monitoring Locations, Past Water Conditions, and on the Water Monitoring tab under Past Water Conditions, as well as on the Monitoring Report pages.",
       "title": "Water Quality Portal (WQP)"
     },
     {
@@ -98,7 +99,7 @@
       "linkHref": "https://www.epa.gov/wsio",
       "linkLabel": "WSIO Data/System",
       "shortName": "WSIO",
-      "siteLocation": "Information from this database can be found on the Community page on the protect tab under Watershed Health and Protection, Watershed Health Scores.",
+      "siteLocation": "Information from this database can be found on the Community page on the Protect tab under Watershed Health and Protection, Watershed Health Scores.",
       "title": "Watershed Index Online (WSIO)"
     },
     {
@@ -108,7 +109,7 @@
       "linkHref": "https://www.rivers.gov/",
       "linkLabel": "Wild and Scenic Rivers Data/System",
       "shortName": "Wild and Scenic Rivers",
-      "siteLocation": "Information from this database can be found on the Community page on the protect tab under Watershed Health and Protection, Wild and Scenic Rivers.",
+      "siteLocation": "Information from this database can be found on the Community page on the Protect tab under Watershed Health and Protection, Wild and Scenic Rivers.",
       "title": "Wild and Scenic Rivers"
     }
   ]

@@ -6,7 +6,6 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { render } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 // contexts
 import {
   useFetchedDataDispatch,
@@ -16,6 +15,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
+import { useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   getExtentBoundingBox,
@@ -24,24 +24,19 @@ import {
   useAllFeaturesLayers,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
-import {
-  getPopupContent,
-  getPopupTitle,
-  stringifyAttributes,
-} from 'utils/mapFunctions';
+import { stringifyAttributes } from 'utils/mapFunctions';
 import { parseAttributes } from 'utils/utils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
 import type {
+  Feature,
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
   MonitoringLocationsData,
   ServicesData,
-  ServicesState,
 } from 'types';
 import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
 // styles
@@ -54,15 +49,14 @@ import { colors } from 'styles';
 export function useMonitoringLocationsLayers(
   localFilter: string | null = null,
 ) {
-  // Build the base feature layer
-  const services = useServicesContext();
-  const navigate = useNavigate();
+  const { getTemplate, getTitle } = useDynamicPopup();
 
+  // Build the base feature layer
   const buildBaseLayer = useCallback(
     (type: SublayerType) => {
-      return buildLayer(navigate, services, type);
+      return buildLayer(type, getTitle, getTemplate);
     },
-    [navigate, services],
+    [getTemplate, getTitle],
   );
 
   const updateSurroundingData = useUpdateData(localFilter);
@@ -279,9 +273,9 @@ function buildMonitoringGroups(
 }
 
 function buildLayer(
-  navigate: NavigateFunction,
-  services: ServicesState,
   type: SublayerType,
+  getTitle: (graphic: Feature) => string,
+  getTemplate: (graphic: Feature) => HTMLDivElement | null,
 ) {
   return new FeatureLayer({
     id:
@@ -337,20 +331,16 @@ function buildLayer(
     featureReduction: monitoringClusterSettings,
     popupTemplate: {
       outFields: ['*'],
-      title: (feature: __esri.Feature) =>
-        getPopupTitle(feature.graphic.attributes),
-      content: (feature: __esri.Feature) => {
+      title: getTitle,
+      content: (feature: Feature) => {
+        console.log(JSON.stringify(feature));
         // Parse non-scalar variables
         const structuredProps = ['totalsByGroup', 'timeframe'];
         feature.graphic.attributes = parseAttributes(
           structuredProps,
           feature.graphic.attributes,
         );
-        return getPopupContent({
-          feature: feature.graphic,
-          services,
-          navigate,
-        });
+        return getTemplate(feature);
       },
     },
     visible: type === 'enclosed',
@@ -476,7 +466,7 @@ export const monitoringClusterSettings = new FeatureReductionCluster({
   popupEnabled: true,
   popupTemplate: {
     title: 'Cluster summary',
-    content: (feature: __esri.Feature) => {
+    content: (feature: Feature) => {
       const content = (
         <div style={{ margin: '0.625em' }}>
           This cluster represents {feature.graphic.attributes.cluster_count}{' '}

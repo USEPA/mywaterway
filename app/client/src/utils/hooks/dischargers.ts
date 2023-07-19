@@ -4,13 +4,13 @@ import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
+import { useDynamicPopup } from 'utils/hooks';
 import {
   getGeographicExtent,
   filterData,
@@ -18,17 +18,15 @@ import {
   useAllFeaturesLayers,
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
-import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 // config
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
 import type {
   DischargerAttributes,
+  Feature,
   PermittedDischargersData,
   ServicesData,
-  ServicesState,
 } from 'types';
 import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
 // styles
@@ -39,15 +37,14 @@ import { colors } from 'styles';
 */
 
 export function useDischargersLayers() {
-  // Build the base feature layer
-  const services = useServicesContext();
-  const navigate = useNavigate();
+  const { getTemplate, getTitle } = useDynamicPopup();
 
+  // Build the base feature layer
   const buildBaseLayer = useCallback(
     (type: SublayerType) => {
-      return buildLayer(navigate, services, type);
+      return buildLayer(type, getTitle, getTemplate);
     },
-    [navigate, services],
+    [getTemplate, getTitle],
   );
 
   const updateSurroundingData = useUpdateData();
@@ -173,9 +170,9 @@ function buildFeatures(data: DischargerAttributes[]) {
 
 // Builds the base feature layer
 function buildLayer(
-  navigate: NavigateFunction,
-  services: ServicesState,
   type: SublayerType,
+  getTitle: (graphic: Feature) => string,
+  getTemplate: (graphic: Feature) => HTMLDivElement | null,
 ) {
   return new FeatureLayer({
     id:
@@ -229,10 +226,8 @@ function buildLayer(
     }),
     popupTemplate: {
       outFields: ['*'],
-      title: (feature: __esri.Feature) =>
-        getPopupTitle(feature.graphic.attributes),
-      content: (feature: __esri.Feature) =>
-        getPopupContent({ feature: feature.graphic, navigate, services }),
+      title: getTitle,
+      content: getTemplate,
     },
     visible: type === 'enclosed',
   });

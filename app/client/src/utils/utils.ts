@@ -118,7 +118,7 @@ function getExtensionFromPath(primary: string, backup: string = '') {
 
 function titleCase(string: string) {
   const smallWords =
-    /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|v.?|vs.?|via)$/i;
+    /^(a[nst]?|and|but|by|en|for|i[fn]|o[fn]|n?or|per|the|to|vs?.?|via)$/i;
   const alphanumericPattern = /([A-Za-z0-9\u00C0-\u00FF])/;
   const wordSeparators = /([ :–—-])/;
 

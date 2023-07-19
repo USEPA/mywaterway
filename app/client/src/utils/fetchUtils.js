@@ -21,7 +21,7 @@ export function fetchCheck(
       console.error(err);
 
       let status = err;
-      if (err && err.status) status = err.status;
+      if (err?.status) status = err.status;
       logCallToGoogleAnalytics(apiUrl, status, startTime);
       return checkResponse(err);
     });
@@ -107,6 +107,7 @@ export function fetchPost(
 export function fetchPostForm(
   apiUrl: string,
   data: object,
+  signal: ?AbortSignal = null,
   headers: any = { 'content-type': 'application/x-www-form-urlencoded' },
   timeout: number = defaultTimeout,
 ) {
@@ -130,6 +131,7 @@ export function fetchPostForm(
       method: 'POST',
       headers,
       body,
+      signal,
     }),
   )
     .then((response) => {

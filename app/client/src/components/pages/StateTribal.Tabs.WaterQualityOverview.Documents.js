@@ -273,24 +273,13 @@ function DocumentsTable({
               Header: 'Document',
               width: docNameWidth,
               Render: (cell) => {
+                const { documentFileName, documentURL } = cell.row.original;
                 return (
-                  <>
-                    <a
-                      href={cell.row.original.documentURL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {cell.value} (
-                      {getExtensionFromPath(
-                        cell.row.original.documentFileName,
-                        cell.row.original.documentURL,
-                      )}
-                      )
-                    </a>
-                    <DynamicExitDisclaimer
-                      url={cell.row.original.documentURL}
-                    />
-                  </>
+                  <DocumentLink
+                    filename={documentFileName}
+                    url={documentURL}
+                    value={cell.value}
+                  />
                 );
               },
             },
@@ -307,6 +296,17 @@ function DocumentsTable({
           ];
         }}
       />
+    </>
+  );
+}
+
+function DocumentLink({ filename, url, value }) {
+  return (
+    <>
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        {value} ({getExtensionFromPath(filename, url)})
+      </a>
+      <DynamicExitDisclaimer url={url} />
     </>
   );
 }
