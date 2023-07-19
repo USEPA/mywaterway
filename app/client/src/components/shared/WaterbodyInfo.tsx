@@ -18,6 +18,7 @@ import {
   infoBoxStyles,
   textBoxStyles,
 } from 'components/shared/MessageBoxes';
+import Modal from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import { Sparkline } from 'components/shared/Sparkline';
 import TickSlider from 'components/shared/TickSlider';
@@ -128,6 +129,11 @@ function labelValue(
 /*
 ## Styles
 */
+const detailedUsesIconStyles = css`
+  margin-right: 0.25rem;
+  color: #485566;
+`;
+
 const linkSectionStyles = css`
   p {
     padding-bottom: 1.5em;
@@ -435,15 +441,20 @@ function WaterbodyInfo({
       </p>
     );
 
-  const [useAttainments, setUseAttainments] = useState<AssessmentUseAttainmentState>({
-    data: null,
-    status: 'fetching',
-  });
-  useEffect(() => {
+  const [selectedUseField, setSelectedUseField] = useState<
+    (typeof useFields)[number] | null
+  >(null);
+  const [useAttainments, setUseAttainments] =
+    useState<AssessmentUseAttainmentState>({
+      data: null,
+      status: 'fetching',
+    });
+  const fetchDetailedUses = useCallback(() => {
     if (type !== 'Waterbody' && type !== 'Waterbody State Overview') return;
     if (
       services?.status !== 'success' ||
-      stateNationalUses?.status !== 'success'
+      stateNationalUses?.status !== 'success' ||
+      useAttainments?.status === 'success'
     )
       return;
 
@@ -500,11 +511,14 @@ function WaterbodyInfo({
         console.error(err);
         setUseAttainments({ data: null, status: 'failure' });
       });
-  }, [feature, services, setUseAttainments, stateNationalUses, type]);
-
-  useEffect(() => {
-    console.log('useAttainments: ', useAttainments);
-  }, [useAttainments]);
+  }, [
+    feature,
+    services,
+    setUseAttainments,
+    stateNationalUses,
+    type,
+    useAttainments,
+  ]);
 
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
@@ -577,7 +591,7 @@ function WaterbodyInfo({
             )}
 
             {applicableFields.length > 0 && (
-              <table css={modifiedTableStyles} className="table">
+              <table css={measurementTableStyles} className="table">
                 <thead>
                   <tr>
                     <th>What is this water used for?</th>
@@ -595,11 +609,95 @@ function WaterbodyInfo({
                     return (
                       <tr key={useField.value}>
                         <td>
+                          <Modal
+                            label={`Detailed Uses for ${useField.label}`}
+                            maxWidth="35rem"
+                            onClose={() => setSelectedUseField(null)}
+                            triggerElm={
+                              <i
+                                className="fas fa-question-circle"
+                                css={detailedUsesIconStyles}
+                                title={`View detailed uses for ${useField.label}`}
+                                onClick={() => {
+                                  setSelectedUseField(useField);
+                                  fetchDetailedUses();
+                                }}
+                              ></i>
+                            }
+                          >
+                            {useAttainments.status === 'fetching' && (
+                              <LoadingSpinner />
+                            )}
+
+                            {selectedUseField &&
+                              useAttainments.status === 'success' && (
+                                <table
+                                  css={measurementTableStyles}
+                                  className="table"
+                                >
+                                  <thead>
+                                    <tr>
+                                      <th>
+                                        Detailed{' '}
+                                        <em>{selectedUseField.label}</em> Uses
+                                      </th>
+                                      <th>Condition</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {useAttainments.data[
+                                      selectedUseField.category
+                                    ].map((use: any) => {
+                                      const useCode = use.useAttainmentCode;
+                                      const value =
+                                        useCode === 'F'
+                                          ? 'Good'
+                                          : useCode === 'N'
+                                          ? 'Impaired'
+                                          : 'Condition Unknown';
+
+                                      return (
+                                        <tr>
+                                          <td>{use.useName}</td>
+                                          <td
+                                            css={css`
+                                              min-width: 100px;
+                                            `}
+                                          >
+                                            {['F', 'N', 'I'].includes(
+                                              useCode,
+                                            ) ? (
+                                              <GlossaryTerm
+                                                term={
+                                                  value === 'Good'
+                                                    ? 'Good Waters'
+                                                    : value === 'Impaired'
+                                                    ? 'Impaired Waters'
+                                                    : 'Condition Unknown'
+                                                }
+                                              >
+                                                {value}
+                                              </GlossaryTerm>
+                                            ) : (
+                                              use.useName
+                                            )}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              )}
+                          </Modal>
                           <GlossaryTerm term={useField.term}>
                             {useField.label}
                           </GlossaryTerm>
                         </td>
-                        <td>
+                        <td
+                          css={css`
+                            width: 165px;
+                          `}
+                        >
                           <GlossaryTerm
                             term={
                               value === 'Good'
