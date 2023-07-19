@@ -18,6 +18,7 @@ import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
 import Point from '@arcgis/core/geometry/Point';
+import Print from '@arcgis/core/widgets/Print.js';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import * as query from '@arcgis/core/rest/query';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
@@ -904,6 +905,36 @@ function MapWidgets({
     fullScreenWidgetCreated,
   ]);
 
+  // create print widget
+  const printWidget = useMemo(() => {
+    if (!view || services.status !== 'success') return null;
+    const container = document.createElement('div');
+    const printContent = new Print({
+      view,
+      container,
+      printServiceUrl: services.data.printService,
+    });
+
+    return new Expand({
+      expandIconClass: 'esri-icon-download',
+      expandTooltip: 'Open Download Widget',
+      collapseTooltip: 'Close Download Widget',
+      view,
+      mode: 'floating',
+      autoCollapse: true,
+      content: printContent,
+    });
+  }, [services, view]);
+
+  // add the print widget
+  useEffect(() => {
+    if (printWidget)
+      view?.ui.add(printWidget, { position: 'top-right', index: 3 });
+    return function cleanup() {
+      if (printWidget) view?.ui.remove(printWidget);
+    };
+  }, [printWidget, view]);
+
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on Tribal page or valid Community page location
   useEffect(() => {
@@ -1001,7 +1032,7 @@ function MapWidgets({
 
     render(widget, node);
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
-    view.ui.add(node, { position: 'top-right', index: 3 });
+    view.ui.add(node, { position: 'top-right', index: 4 });
 
     return function cleanup() {
       view?.ui.remove(node);
@@ -1470,19 +1501,19 @@ function ShowUpstreamWatershed({
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
 
-  // This useEffect/watcher is here to ensure the correct title and icon 
+  // This useEffect/watcher is here to ensure the correct title and icon
   // are being shown. Without this the icon/title don't change until
   // the user moves the mouse off of the button.
   const [watcher, setWatcher] = useState<IHandle | null>(null);
   const [upstreamVisible, setUpstreamVisible] = useState(false);
   useEffect(() => {
-    if(!upstreamLayer || watcher) return;
+    if (!upstreamLayer || watcher) return;
 
     setWatcher(
       reactiveUtils.watch(
         () => upstreamLayer.visible,
         () => setUpstreamVisible(upstreamLayer.visible),
-      )
+      ),
     );
   }, [upstreamLayer, watcher]);
 
