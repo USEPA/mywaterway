@@ -14,7 +14,7 @@ import Field from '@arcgis/core/layers/support/Field';
 import Graphic from '@arcgis/core/Graphic';
 import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 // components
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts

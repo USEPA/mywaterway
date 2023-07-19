@@ -9,7 +9,7 @@ import TabLinks from 'components/shared/TabLinks';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { introBoxStyles } from 'components/shared/IntroBox';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
