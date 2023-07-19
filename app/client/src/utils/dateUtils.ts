@@ -1,5 +1,14 @@
-const oneDay = 1000 * 60 * 60 * 24;
+const ONE_DAY = 1000 * 60 * 60 * 24;
 
+/**
+ * Creates a range of timestamps spaced a day apart,
+ * calculated from offsets around a given base.
+ *
+ * @param base - The reference Date
+ * @param startOffset - The offset in number of days for the start of the range
+ * @param endOffset - The offset in number of days for the end of the range
+ * @returns An array of epoch timestamps
+ */
 export function createRelativeDailyTimestampRange(
   base: Date,
   startOffset: number,
@@ -7,42 +16,23 @@ export function createRelativeDailyTimestampRange(
 ) {
   if (startOffset > endOffset) return [];
 
-  const startDateRaw = base.getTime() + startOffset * oneDay;
+  const startDateRaw = base.getTime() + startOffset * ONE_DAY;
   const startDate = new Date(
     startDateRaw + getTzOffsetMsecs(new Date(startDateRaw), base),
   );
 
-  const endDateRaw = base.getTime() + endOffset * oneDay;
+  const endDateRaw = base.getTime() + endOffset * ONE_DAY;
   const endDate = endDateRaw + getTzOffsetMsecs(new Date(endDateRaw), base);
 
   const timestampRange: number[] = [];
   let currentDate = startDate.getTime();
   while (currentDate <= endDate) {
     timestampRange.push(currentDate);
-    const nextDate = currentDate + oneDay;
+    const nextDate = currentDate + ONE_DAY;
     currentDate =
       nextDate - getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
   }
   return timestampRange;
-}
-
-export function createCyanDataObject(today: Date) {
-  const startDateRaw = new Date(today.getTime() - 7 * oneDay);
-  const startDate = new Date(
-    startDateRaw.getTime() + getTzOffsetMsecs(startDateRaw, today),
-  );
-  const newData: { [date: string]: null } = {};
-  let currentDate = startDate.getTime();
-  const yesterdayRaw = today.getTime() - oneDay;
-  const yesterday =
-    yesterdayRaw + getTzOffsetMsecs(new Date(yesterdayRaw), today);
-  while (currentDate <= yesterday) {
-    newData[currentDate] = null;
-    const nextDate = currentDate + oneDay;
-    currentDate =
-      nextDate - getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
-  }
-  return newData;
 }
 
 export function epochToMonthDay(epoch: number) {
@@ -56,7 +46,7 @@ export function getDayOfYear(date: Date) {
     date.getTime() -
     firstOfYear.getTime() +
     getTzOffsetMsecs(firstOfYear, date);
-  return Math.floor(diff / oneDay);
+  return Math.floor(diff / ONE_DAY);
 }
 
 export function getTzOffsetMsecs(previous: Date, current: Date) {
@@ -65,7 +55,12 @@ export function getTzOffsetMsecs(previous: Date, current: Date) {
   );
 }
 
-// Converts `year dayOfYear` format to epoch timestamp
+/**
+ * Converts a date string in the format `year dayOfYear` to an epoch timestamp.
+ *
+ * @param yearDay - A string in the format `year dayOfyear`
+ * @returns An epoch timestamp, or null if the input string wasn't formatted correctly
+ */
 export function yearDayStringToEpoch(yearDay: string) {
   const yearAndDay = yearDay.split(' ');
   if (yearAndDay.length !== 2) return null;
