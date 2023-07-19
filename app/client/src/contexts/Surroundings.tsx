@@ -136,6 +136,7 @@ export function isSurroundingFeaturesLayerId(
 
 const layerIds = [
   'allWaterbodiesLayer',
+  'surroundingCyanLayer',
   'surroundingMonitoringLocationsLayer',
   'surroundingDischargersLayer',
   'surroundingUsgsStreamgagesLayer',

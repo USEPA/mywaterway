@@ -98,6 +98,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
       <SurroundingsWidgetTrigger
         contentVisible={contentVisible}
         disabled={isEmpty(layers)}
+        expanded={contentVisible}
         forwardedRef={triggerRef}
         onClick={toggleContentVisibility}
         updating={Object.entries(layersUpdating).some(
@@ -189,6 +190,7 @@ function Portal({ children, container }: PortalProps) {
 function SurroundingsWidgetTrigger({
   contentVisible,
   disabled,
+  expanded,
   forwardedRef,
   onClick,
   updating,
@@ -366,6 +368,7 @@ type PortalProps = {
 type SurroundingsWidgetTriggerProps = {
   contentVisible: boolean;
   disabled: boolean;
+  expanded: boolean;
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
   onClick: (ev: MouseEvent | KeyboardEvent) => void;
   updating: boolean;
