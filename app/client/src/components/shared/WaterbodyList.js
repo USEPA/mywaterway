@@ -20,7 +20,7 @@ import {
 } from 'utils/mapFunctions';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { 
+import {
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';

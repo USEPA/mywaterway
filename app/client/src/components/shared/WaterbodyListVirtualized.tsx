@@ -14,7 +14,7 @@ import {
   getOrganizationLabel,
 } from 'utils/mapFunctions';
 // contexts
-import { 
+import {
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';

@@ -14,7 +14,7 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { 
+import {
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -264,7 +264,12 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
             } else {
               // when no content is provided just display the normal community
               // waterbody content
-              content = getPopupContent({ feature, navigate, services, stateNationalUses });
+              content = getPopupContent({
+                feature,
+                navigate,
+                services,
+                stateNationalUses,
+              });
             }
 
             return new Graphic({

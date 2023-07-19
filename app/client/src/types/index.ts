@@ -38,7 +38,7 @@ interface AssessmentUseAttainment {
       monitoringEndDate?: string;
       monitoringStartDate?: string;
     };
-  },
+  };
   threatenedIndicator: string;
   trendCode?: string;
   useAttainmentCode: string;
@@ -48,7 +48,7 @@ interface AssessmentUseAttainment {
 
 export interface AssessmentUseAttainmentByGroup {
   [useGroup: string]: AssessmentUseAttainment[];
-} 
+}
 
 export type AssessmentUseAttainmentState =
   | { status: 'fetching'; data: null }

@@ -29,7 +29,10 @@ import AlertMessage from 'components/shared/AlertMessage';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useServicesContext, useStateNationalUsesContext } from 'contexts/LookupFiles';
+import {
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // helpers
 import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 // errors
@@ -45,7 +48,10 @@ function AppRoutes() {
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
 
-  if (services.status === 'fetching' || stateNationalUses.status === 'fetching') {
+  if (
+    services.status === 'fetching' ||
+    stateNationalUses.status === 'fetching'
+  ) {
     return <LoadingSpinner />;
   }
 

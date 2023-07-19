@@ -45,7 +45,7 @@ import {
   LocationSearchProvider,
 } from 'contexts/locationSearch';
 import { LayersProvider, useLayers } from 'contexts/Layers';
-import { 
+import {
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -647,7 +647,12 @@ function TribalMap({
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
-        getPopupContent({ feature: feature.graphic, navigate, services, stateNationalUses }),
+        getPopupContent({
+          feature: feature.graphic,
+          navigate,
+          services,
+          stateNationalUses,
+        }),
     };
 
     // Build the feature layers that will make up the waterbody layer
@@ -775,7 +780,8 @@ function TribalMap({
     setLayer,
     setResetHandler,
     stateNationalUses,
-    surroundingCyanLayer,    surroundingDischargersLayer,
+    surroundingCyanLayer,
+    surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,
     surroundingUsgsStreamgagesLayer,
     updateVisibleLayers,

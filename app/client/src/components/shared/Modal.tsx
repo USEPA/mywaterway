@@ -214,7 +214,11 @@ type DisclaimerProps = {
   infoIcon?: boolean;
 };
 
-export function DisclaimerModal({ children, infoIcon = false, ...props }: DisclaimerProps) {
+export function DisclaimerModal({
+  children,
+  infoIcon = false,
+  ...props
+}: DisclaimerProps) {
   return (
     <Modal
       closeTitle="Close disclaimer"
