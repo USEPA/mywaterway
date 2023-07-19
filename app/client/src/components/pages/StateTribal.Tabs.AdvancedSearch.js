@@ -547,7 +547,7 @@ function AdvancedSearch() {
     query
       .executeForCount(url, queryParams)
       .then((res) => {
-        setNumberOfRecords(res ? res : 0);
+        setNumberOfRecords(res);
         setSearchLoading(false);
       })
       .catch((err) => {
@@ -792,7 +792,7 @@ function AdvancedSearch() {
             isMulti
             isLoading={!parameterGroupOptions}
             isSearchable={false}
-            options={parameterGroupOptions ? parameterGroupOptions : []}
+            options={parameterGroupOptions ?? []}
             value={parameterFilter}
             onChange={updateParameterFilter}
             styles={reactSelectStyles}

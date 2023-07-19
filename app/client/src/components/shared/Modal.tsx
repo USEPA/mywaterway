@@ -155,7 +155,7 @@ export default function Modal({
             <Dialog.Description className="sr-only">{label}</Dialog.Description>
             <button
               css={closeButtonStyles}
-              title={closeTitle || 'Close'}
+              title={closeTitle ?? 'Close'}
               onClick={close}
             >
               ×

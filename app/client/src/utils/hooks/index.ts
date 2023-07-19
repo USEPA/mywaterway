@@ -27,7 +27,10 @@ import WMSLayer from '@arcgis/core/layers/WMSLayer';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import { useServicesContext, useStateNationalUsesContext } from 'contexts/LookupFiles';
+import {
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
 import {
@@ -386,9 +389,7 @@ function useWaterbodyOnMap(
     if (!allWaterbodiesLayer) return;
 
     const layers = allWaterbodiesLayer.layers;
-    const attribute = allWaterbodiesAttribute
-      ? allWaterbodiesAttribute
-      : attributeName;
+    const attribute = allWaterbodiesAttribute ?? attributeName;
 
     setRenderer(layers.at(2), 'point', attribute, allWaterbodiesAlpha);
     setRenderer(layers.at(1), 'polyline', attribute, allWaterbodiesAlpha);
@@ -856,7 +857,15 @@ function useDynamicPopup() {
         navigate,
       });
     },
-    [getClickedHuc, getHucBoundaries, getMapView, navigate, reset, services, stateNationalUses],
+    [
+      getClickedHuc,
+      getHucBoundaries,
+      getMapView,
+      navigate,
+      reset,
+      services,
+      stateNationalUses,
+    ],
   );
 
   // Wrapper function for getting the title of the popup

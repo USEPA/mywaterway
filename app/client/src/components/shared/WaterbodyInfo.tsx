@@ -657,7 +657,7 @@ function WaterbodyInfo({
                                           : 'Condition Unknown';
 
                                       return (
-                                        <tr>
+                                        <tr key={use.useName}>
                                           <td>{use.useName}</td>
                                           <td
                                             css={css`
