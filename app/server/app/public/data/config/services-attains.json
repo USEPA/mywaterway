@@ -63,7 +63,6 @@
     "properties": "https://cyan.epa.gov/waterbody/properties",
     "waterbodies": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0"
   },
-  "printService": "https://gispub.epa.gov/arcgis/rest/services/Utilities/PrintingTools/GPServer",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -384,11 +383,6 @@
       "urlLookup": "cyan.dataDownload",
       "wildcardUrl": "{urlLookup}/*",
       "name": "CyAN - data download"
-    },
-    {
-      "urlLookup": "printService",
-      "wildcardUrl": "{urlLookup}*",
-      "name": "print service"
     }
   ]
 }
