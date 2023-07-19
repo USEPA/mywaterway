@@ -15,9 +15,9 @@ import * as query from '@arcgis/core/rest/query';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import Modal from 'components/shared/Modal';
 import StateMap from 'components/shared/StateMap';
 import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized';
-import ConfirmModal from 'components/shared/ConfirmModal';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -533,7 +533,6 @@ function AdvancedSearch() {
   };
 
   const [numberOfRecords, setNumberOfRecords] = useState(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [nextFilter, setNextFilter] = useState('');
   useEffect(() => {
     if (!nextFilter || serviceError) return;
@@ -550,7 +549,6 @@ function AdvancedSearch() {
       .then((res) => {
         setNumberOfRecords(res ? res : 0);
         setSearchLoading(false);
-        setConfirmOpen(true);
       })
       .catch((err) => {
         console.error(err);
@@ -575,7 +573,6 @@ function AdvancedSearch() {
   // Resets the filters when the user selects a different state
   useEffect(() => {
     // Reset ui
-    setConfirmOpen(false);
     setServiceError(false);
     setSearchLoading(false);
     setWatershedMrcError(false);
@@ -698,10 +695,6 @@ function AdvancedSearch() {
         setNumberOfRecords(null);
         setNextFilter(newFilter);
       } else {
-        // filter didn't change, re-show the dialog if the numberOfRecords has been
-        // set (i.e. there is not already a query to get the number of records)
-        if (numberOfRecords >= 0) setConfirmOpen(true);
-
         setSearchLoading(false);
       }
     } else {
@@ -943,26 +936,55 @@ function AdvancedSearch() {
       </div>
 
       <div css={searchStyles}>
-        <button
-          css={buttonStyles}
-          disabled={searchLoading}
-          onClick={(_ev) => {
-            mapView?.popup?.close();
-            executeFilter();
+        <Modal
+          closeTitle="Cancel search"
+          confirmEnabled={numberOfRecords > 0}
+          isConfirm={true}
+          label="Warning about potentially slow search"
+          onConfirm={() => {
+            setCurrentFilter(nextFilter);
+            setWaterbodyData(null);
+            setServiceError(false);
+            // update the possible display options
+            setDisplayOptions(newDisplayOptions);
+            // figure out if the selected display option is available
+            const indexOfDisplay = newDisplayOptions.findIndex((item) => {
+              return item.value === selectedDisplayOption.value;
+            });
+            // set the display back to the default option
+            if (newDisplayOptions.length === 1 || indexOfDisplay === -1) {
+              setSelectedDisplayOption(defaultDisplayOption);
+            }
           }}
-        >
-          {searchLoading ? (
-            <>
-              <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
-              &nbsp;&nbsp;Loading...
-            </>
-          ) : (
-            <>
+          triggerElm={
+            <button
+              css={buttonStyles}
+              disabled={searchLoading}
+              onClick={(_ev) => {
+                mapView?.popup?.close();
+                executeFilter();
+              }}
+            >
               <i className="fas fa-search" aria-hidden="true" />
               &nbsp;&nbsp;Search
+            </button>
+          }
+        >
+          {searchLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              Your search will return{' '}
+              <strong>{numberOfRecords?.toLocaleString() ?? 0}</strong> results.
+              <br />
+              {numberOfRecords > 0 ? (
+                <>Would you like to continue?</>
+              ) : (
+                <>Please change your filter criteria and try again.</>
+              )}
             </>
           )}
-        </button>
+        </Modal>
       </div>
     </>
   );
@@ -1110,40 +1132,6 @@ function AdvancedSearch() {
 
   return (
     <div data-content="stateoverview">
-      <ConfirmModal
-        label="Warning about potentially slow search"
-        isOpen={confirmOpen}
-        confirmEnabled={numberOfRecords > 0}
-        onConfirm={(_ev) => {
-          setConfirmOpen(false);
-          setCurrentFilter(nextFilter);
-          setWaterbodyData(null);
-          setServiceError(false);
-          // update the possible display options
-          setDisplayOptions(newDisplayOptions);
-          // figure out if the selected display option is available
-          const indexOfDisplay = newDisplayOptions.findIndex((item) => {
-            return item.value === selectedDisplayOption.value;
-          });
-          // set the display back to the default option
-          if (newDisplayOptions.length === 1 || indexOfDisplay === -1) {
-            setSelectedDisplayOption(defaultDisplayOption);
-          }
-        }}
-        onCancel={(_ev) => {
-          setConfirmOpen(false);
-        }}
-      >
-        Your search will return{' '}
-        <strong>{numberOfRecords?.toLocaleString() ?? 0}</strong> results.
-        <br />
-        {numberOfRecords > 0 ? (
-          <>Would you like to continue?</>
-        ) : (
-          <>Please change your filter criteria and try again.</>
-        )}
-      </ConfirmModal>
-
       {filterControls}
 
       {currentFilter && resultsContainer}

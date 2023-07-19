@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import { css } from 'styled-components/macro';
-import { DialogContent, DialogOverlay } from '@reach/dialog';
+// components
+import Modal from 'components/shared/Modal';
 // types
 import type { ReactNode } from 'react';
 // styles
 import { colors } from 'styles/index.js';
-import '@reach/dialog/styles.css';
 
 const disclaimerButtonStyles = css`
   position: relative;
@@ -26,90 +25,40 @@ const disclaimerButtonStyles = css`
   }
 `;
 
-const overlayStyles = css`
-  &[data-reach-dialog-overlay] {
-    z-index: 1000;
-    background-color: ${colors.black(0.75)};
-  }
-`;
-
-const contentStyles = css`
-  &[data-reach-dialog-content] {
-    position: relative;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0;
-    padding: 1.5rem;
-    width: auto;
-    max-width: 25rem;
-  }
-
-  p {
-    margin-top: 1rem;
-    margin-bottom: 0;
-    padding-bottom: 0;
-    font-size: 0.875rem;
-    line-height: 1.375;
-
-    &:first-of-type {
-      margin-top: 0;
-    }
-  }
-`;
-
-const closeButtonStyles = css`
+const helpIconStyles = css`
   position: absolute;
-  top: 0;
-  right: 0;
-  padding: 0;
-  border: none;
-  width: 1.5rem;
-  height: 1.5rem;
-  color: white;
-  background-color: ${colors.black(0.5)};
-
-  &:hover,
-  &:focus {
-    background-color: ${colors.black(0.75)};
-  }
+  top: 5px;
+  right: 5px;
+  color: #485566;
 `;
 
 // --- components ---
 type Props = {
   children: ReactNode;
+  infoIcon?: boolean;
 };
 
-function DisclaimerModal({ children, ...props }: Props) {
-  const [dialogShown, setDialogShown] = useState(false);
+function DisclaimerModal({ children, infoIcon = false, ...props }: Props) {
   return (
-    <>
-      <button
-        css={disclaimerButtonStyles}
-        onClick={(_ev) => setDialogShown(!dialogShown)}
-        // spread props so button’s styles (e.g. position) can be further set when used
-        {...props}
-      >
-        Disclaimer
-      </button>
-
-      <DialogOverlay
-        css={overlayStyles}
-        isOpen={dialogShown}
-        onDismiss={() => setDialogShown(false)}
-      >
-        <DialogContent css={contentStyles} aria-label="Disclaimer">
-          {children}
+    <Modal
+      closeTitle="Close disclaimer"
+      label="Disclaimer"
+      triggerElm={
+        infoIcon ? (
+          <i css={helpIconStyles} className="fas fa-question-circle"></i>
+        ) : (
           <button
-            css={closeButtonStyles}
-            title="Close disclaimer"
-            onClick={(_ev) => setDialogShown(false)}
+            css={disclaimerButtonStyles}
+            // spread props so button’s styles (e.g. position) can be further set when used
+            {...props}
           >
-            ×
+            Disclaimer
           </button>
-        </DialogContent>
-      </DialogOverlay>
-    </>
+        )
+      }
+    >
+      {children}
+    </Modal>
   );
 }
 

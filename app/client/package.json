@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@arcgis/core": "4.26.5",
-    "@reach/dialog": "0.18.0",
+    "@radix-ui/react-dialog": "1.0.4",
     "@reach/tabs": "0.18.0",
     "@reach/tooltip": "0.18.0",
     "@reach/window-size": "0.18.0",
