@@ -912,6 +912,7 @@ function MapWidgets({
     const printContent = new Print({
       view,
       container,
+      printServiceUrl: services.data.printService,
     });
 
     return new Expand({
