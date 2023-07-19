@@ -453,11 +453,7 @@ function DrinkingWater() {
   }
 
   let county = '';
-  if (
-    countyBoundaries &&
-    countyBoundaries.features &&
-    countyBoundaries.features.length > 0
-  ) {
+  if (countyBoundaries?.features?.length > 0) {
     county = countyBoundaries.features[0].attributes.NAME;
   }
 
@@ -731,7 +727,9 @@ function DrinkingWater() {
                       Surface water
                     </GlossaryTerm>{' '}
                     (streams, rivers, and lakes) or{' '}
-                    <GlossaryTerm term="Groundwater">ground water</GlossaryTerm>{' '}
+                    <GlossaryTerm term="Ground Water">
+                      ground water
+                    </GlossaryTerm>{' '}
                     (aquifers) can serve as sources of drinking water, referred
                     to as source water.
                   </p>
@@ -937,7 +935,7 @@ function DrinkingWater() {
                     Surface water
                   </GlossaryTerm>{' '}
                   (streams, rivers, and lakes) or{' '}
-                  <GlossaryTerm term="Groundwater">ground water</GlossaryTerm>{' '}
+                  <GlossaryTerm term="Ground Water">ground water</GlossaryTerm>{' '}
                   (aquifers) can serve as sources of drinking water, referred to
                   as source water. EPA, states, and tribes may monitor and
                   conduct an{' '}

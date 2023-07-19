@@ -1,6 +1,5 @@
 // @flow
 
-import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
@@ -96,53 +95,7 @@ function Documents({
   surveyDocuments,
   surveyServiceError,
 }: Props) {
-  const [surveyDocumentsRanked, setSurveyDocumentsRanked] = useState([]);
-  const [assessmentDocumentsRanked, setAssessmentDocumentsRanked] = useState(
-    [],
-  );
-
   const documentOrder = useDocumentOrderContext();
-
-  useEffect(() => {
-    if (documentOrder.status === 'fetching') return;
-
-    const rankings =
-      documentOrder.status === 'success'
-        ? documentOrder.data.surveysOrdering
-        : {};
-    const documentsRanked = getDocumentTypeOrder(surveyDocuments, rankings);
-
-    setSurveyDocumentsRanked(documentsRanked);
-  }, [surveyDocuments, documentOrder]);
-
-  useEffect(() => {
-    if (
-      organizationData.status === 'fetching' ||
-      documentOrder.status === 'fetching'
-    ) {
-      return;
-    }
-
-    if (
-      organizationData.status === 'failure' ||
-      (organizationData.status === 'success' &&
-        !organizationData.data?.documents)
-    ) {
-      setAssessmentDocumentsRanked([]);
-      return;
-    }
-
-    const rankings =
-      documentOrder.status === 'success'
-        ? documentOrder.data.integratedReportOrdering
-        : {};
-    const documentsRanked = getDocumentTypeOrder(
-      organizationData.data.documents,
-      rankings,
-    );
-
-    setAssessmentDocumentsRanked(documentsRanked);
-  }, [organizationData, documentOrder]);
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];
@@ -170,6 +123,33 @@ function Documents({
 
     return documentsRanked;
   };
+
+  // rank survey documents
+  let surveyDocumentsRanked = [];
+  if (documentOrder.status !== 'fetching') {
+    const rankings =
+      documentOrder.status === 'success'
+        ? documentOrder.data.surveysOrdering
+        : {};
+    surveyDocumentsRanked = getDocumentTypeOrder(surveyDocuments, rankings);
+  }
+
+  // rank assessment documents
+  let assessmentDocumentsRanked = [];
+  if (
+    documentOrder.status !== 'fetching' &&
+    organizationData.status === 'success' &&
+    organizationData.data?.documents
+  ) {
+    const rankings =
+      documentOrder.status === 'success'
+        ? documentOrder.data.integratedReportOrdering
+        : {};
+    assessmentDocumentsRanked = getDocumentTypeOrder(
+      organizationData.data.documents,
+      rankings,
+    );
+  }
 
   const assessmentDocumentsSorted = sortDocuments(
     assessmentDocumentsRanked,
@@ -293,24 +273,13 @@ function DocumentsTable({
               Header: 'Document',
               width: docNameWidth,
               Render: (cell) => {
+                const { documentFileName, documentURL } = cell.row.original;
                 return (
-                  <>
-                    <a
-                      href={cell.row.original.documentURL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {cell.value} (
-                      {getExtensionFromPath(
-                        cell.row.original.documentFileName,
-                        cell.row.original.documentURL,
-                      )}
-                      )
-                    </a>
-                    <DynamicExitDisclaimer
-                      url={cell.row.original.documentURL}
-                    />
-                  </>
+                  <DocumentLink
+                    filename={documentFileName}
+                    url={documentURL}
+                    value={cell.value}
+                  />
                 );
               },
             },
@@ -327,6 +296,17 @@ function DocumentsTable({
           ];
         }}
       />
+    </>
+  );
+}
+
+function DocumentLink({ filename, url, value }) {
+  return (
+    <>
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        {value} ({getExtensionFromPath(filename, url)})
+      </a>
+      <DynamicExitDisclaimer url={url} />
     </>
   );
 }

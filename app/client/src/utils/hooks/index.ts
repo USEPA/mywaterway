@@ -163,7 +163,6 @@ function highlightFeature({
   });
 }
 
-// TODO: Migrate to this hook, the other doesn't properly reset
 function useAbort() {
   const abortController = useRef(new AbortController());
   const getAbortController = useCallback(() => {
@@ -189,24 +188,6 @@ function useAbort() {
   );
 
   return { abort, getSignal };
-}
-
-function useAbortSignal() {
-  const abortController = useRef(new AbortController());
-
-  useEffect(() => {
-    if (abortController.current.signal.aborted) {
-      abortController.current = new AbortController();
-    }
-  }, [abortController.current.signal.aborted]);
-
-  useEffect(() => {
-    return function abort() {
-      abortController.current.abort();
-    };
-  }, []);
-
-  return abortController.current.signal;
 }
 
 // custom hook that combines lines, area, and points features from context,
@@ -527,7 +508,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     let { currentHighlight, currentSelection } = highlightState;
 
     // verify that we have a graphic before continuing
-    if (!graphic || !graphic.attributes) {
+    if (!graphic?.attributes) {
       handles.remove(group);
       mapView.graphics.removeAll();
 
@@ -710,7 +691,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
       Promise.all(requests).then((responses) => {
         responses.forEach((response) => {
-          if (!response || !response.features) return;
+          if (!response?.features) return;
 
           highlightFeature({
             mapView,
@@ -1710,44 +1691,48 @@ function useGeometryUtils() {
 
       // crop any geometry that extends beyond the huc 12
       const requests: Promise<__esri.Geometry>[] = [];
-      resFeatures.forEach((feature,index) => {
+      resFeatures.forEach((feature, index) => {
         // crop the waterbodies that extend outside of the huc
-        requests.push( geometryEngineAsync.difference(
-          feature.geometry,
-          Array.isArray(subtractor) ? subtractor[0] : subtractor,
-        ));
+        requests.push(
+          geometryEngineAsync.difference(
+            feature.geometry,
+            Array.isArray(subtractor) ? subtractor[0] : subtractor,
+          ),
+        );
       });
 
-      Promise.all(requests).then((responses) => {
-        responses.forEach((newGeometry, index) => {
-          const feature = resFeatures[index];
-          feature.geometry = Array.isArray(newGeometry)
-            ? newGeometry[0]
-            : newGeometry;
-          features.push(feature);
-        });
+      Promise.all(requests)
+        .then((responses) => {
+          responses.forEach((newGeometry, index) => {
+            const feature = resFeatures[index];
+            feature.geometry = Array.isArray(newGeometry)
+              ? newGeometry[0]
+              : newGeometry;
+            features.push(feature);
+          });
 
-        // order the features by overall status
-        const sortBy = [
-          'Cause',
-          'Not Supporting',
-          'Insufficient Information',
-          'Not Assessed',
-          'Meeting Criteria',
-          'Fully Supporting',
-        ];
-        features.sort((a, b) => {
-          return (
-            sortBy.indexOf(a.attributes.overallstatus) -
-            sortBy.indexOf(b.attributes.overallstatus)
-          );
-        });
+          // order the features by overall status
+          const sortBy = [
+            'Cause',
+            'Not Supporting',
+            'Insufficient Information',
+            'Not Assessed',
+            'Meeting Criteria',
+            'Fully Supporting',
+          ];
+          features.sort((a, b) => {
+            return (
+              sortBy.indexOf(a.attributes.overallstatus) -
+              sortBy.indexOf(b.attributes.overallstatus)
+            );
+          });
 
-        resolve(features);
-      }).catch((err) => {
-        console.error(err);
-        reject(err);
-      });
+          resolve(features);
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
     });
   };
 
@@ -1777,7 +1762,6 @@ function useOnScreen(node: HTMLDivElement | null) {
 
 export {
   useAbort,
-  useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useKeyPress,
@@ -1791,6 +1775,7 @@ export {
 
 export * from './allWaterbodies';
 export * from './boundariesToggleLayer';
+export * from './cyanWaterbodies';
 export * from './dischargers';
 export * from './monitoringLocations';
 export * from './streamgages';

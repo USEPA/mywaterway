@@ -70,8 +70,8 @@ function Stories({ stories }: Props) {
           )}
           {stories.data.length > 0 && (
             <>
-              {stories.data.slice(0, storiesToLoad).map((story, index) => (
-                <div css={storyStyles} key={index}>
+              {stories.data.slice(0, storiesToLoad).map((story) => (
+                <div css={storyStyles} key={story.ss_seq}>
                   <a
                     href={story.web_link}
                     target="_blank"

@@ -37,7 +37,7 @@ import {
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
 import { chunkArray, isAbort } from 'utils/utils';
 import {
-  useAbortSignal,
+  useAbort,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
 } from 'utils/hooks';
@@ -233,7 +233,7 @@ const screenLabelWithPaddingStyles = css`
 `;
 
 function AdvancedSearch() {
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
   const services = useServicesContext();
 
   const {
@@ -311,7 +311,7 @@ function AdvancedSearch() {
   useEffect(() => {
     if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
-    retrieveMaxRecordCount(services.data.wbd, abortSignal)
+    retrieveMaxRecordCount(services.data.wbd, getSignal())
       .then((maxRecordCount) => {
         setWatershedsLayerMaxRecordCount(maxRecordCount);
       })
@@ -323,7 +323,7 @@ function AdvancedSearch() {
         setWatershedMrcError(true);
       });
   }, [
-    abortSignal,
+    getSignal,
     watershedsLayerMaxRecordCount,
     setWatershedsLayerMaxRecordCount,
     watershedMrcError,
@@ -338,7 +338,7 @@ function AdvancedSearch() {
     const queryParams = {
       where: `UPPER(STATES) LIKE '%${activeState.value}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
-      signal: abortSignal,
+      signal: getSignal(),
     };
 
     retrieveFeatures({
@@ -365,14 +365,14 @@ function AdvancedSearch() {
         setServiceError(true);
         setWatersheds([]);
       });
-  }, [abortSignal, activeState, watershedsLayerMaxRecordCount, services]);
+  }, [activeState, getSignal, watershedsLayerMaxRecordCount, services]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
   const [summaryMrcError, setSummaryMrcError] = useState(false);
   useEffect(() => {
     if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
-    retrieveMaxRecordCount(services.data.waterbodyService.summary, abortSignal)
+    retrieveMaxRecordCount(services.data.waterbodyService.summary, getSignal())
       .then((maxRecordCount) => {
         setSummaryLayerMaxRecordCount(maxRecordCount);
       })
@@ -384,7 +384,7 @@ function AdvancedSearch() {
         setSummaryMrcError(true);
       });
   }, [
-    abortSignal,
+    getSignal,
     summaryLayerMaxRecordCount,
     setSummaryLayerMaxRecordCount,
     summaryMrcError,
@@ -412,7 +412,7 @@ function AdvancedSearch() {
           'orgtype',
           'reportingcycle',
         ],
-        signal: abortSignal,
+        signal: getSignal(),
       };
 
       retrieveFeatures({
@@ -460,7 +460,7 @@ function AdvancedSearch() {
         returnGeometry: false,
         where: currentFilter,
         outFields: ['*'],
-        signal: abortSignal,
+        signal: getSignal(),
       };
 
       retrieveFeatures({
@@ -478,7 +478,7 @@ function AdvancedSearch() {
         });
     }
   }, [
-    abortSignal,
+    getSignal,
     setWaterbodyData,
     currentFilter,
     summaryLayerMaxRecordCount,
@@ -727,42 +727,55 @@ function AdvancedSearch() {
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
   const { selectedGraphic } = useMapHighlightState();
-  useEffect(() => {
-    if (!selectedGraphic) return;
-
+  const [prevSelectedGraphic, setPrevSelectedGraphic] =
+    useState(selectedGraphic);
+  if (prevSelectedGraphic !== selectedGraphic) {
+    setPrevSelectedGraphic(selectedGraphic);
     setShowMap(true);
     scrollToMap();
-  }, [selectedGraphic]);
+  }
 
   // Waits until the data is loaded and the map is visible before scrolling
   // to the map
-  useEffect(() => {
-    if (!waterbodyData) return;
-
+  const [prevWaterbodyData, setPrevWaterbodyData] = useState(waterbodyData);
+  if (waterbodyData && prevWaterbodyData !== waterbodyData) {
+    setPrevWaterbodyData(waterbodyData);
     scrollToMap();
-  }, [waterbodyData]);
+  }
 
   // Combines the parameter groups and use groups filters to make the
   // display options.
-  useEffect(() => {
+  const updateDisplayOptions = (newParameterFilter, newUseFilter) => {
     let newDisplayOptions = [defaultDisplayOption];
 
     // if the filter array exists add it to newDisplayOptions
-    if (useFilter) {
+    if (newUseFilter) {
       newDisplayOptions.push({
         label: 'Use Groups',
-        options: useFilter.sort((a, b) => a.label.localeCompare(b.label)),
+        options: newUseFilter.sort((a, b) => a.label.localeCompare(b.label)),
       });
     }
-    if (parameterFilter) {
+    if (newParameterFilter) {
       newDisplayOptions.push({
         label: 'Parameter Groups',
-        options: parameterFilter.sort((a, b) => a.label.localeCompare(b.label)),
+        options: newParameterFilter.sort((a, b) =>
+          a.label.localeCompare(b.label),
+        ),
       });
     }
 
     setNewDisplayOptions(newDisplayOptions);
-  }, [parameterFilter, useFilter]);
+  };
+
+  const updateParameterFilter = (newParameterFilter) => {
+    setParameterFilter(newParameterFilter);
+    updateDisplayOptions(newParameterFilter, useFilter);
+  };
+
+  const updateUseFilter = (newUseFilter) => {
+    setUseFilter(newUseFilter);
+    updateDisplayOptions(parameterFilter, newUseFilter);
+  };
 
   useWaterbodyOnMap(selectedDisplayOption.value, '', 'unassessed');
 
@@ -788,7 +801,7 @@ function AdvancedSearch() {
             isSearchable={false}
             options={parameterGroupOptions ? parameterGroupOptions : []}
             value={parameterFilter}
-            onChange={(ev) => setParameterFilter(ev)}
+            onChange={updateParameterFilter}
             styles={reactSelectStyles}
           />
         </div>
@@ -803,7 +816,7 @@ function AdvancedSearch() {
             isSearchable={false}
             options={useFields}
             value={useFilter}
-            onChange={(ev) => setUseFilter(ev)}
+            onChange={updateUseFilter}
             styles={reactSelectStyles}
           />
         </div>
@@ -934,7 +947,7 @@ function AdvancedSearch() {
           css={buttonStyles}
           disabled={searchLoading}
           onClick={(_ev) => {
-            if (mapView && mapView.popup) mapView.popup.close();
+            mapView?.popup?.close();
             executeFilter();
           }}
         >
@@ -1122,8 +1135,7 @@ function AdvancedSearch() {
         }}
       >
         Your search will return{' '}
-        <strong>{numberOfRecords && numberOfRecords.toLocaleString()}</strong>{' '}
-        results.
+        <strong>{numberOfRecords?.toLocaleString() ?? 0}</strong> results.
         <br />
         {numberOfRecords > 0 ? (
           <>Would you like to continue?</>

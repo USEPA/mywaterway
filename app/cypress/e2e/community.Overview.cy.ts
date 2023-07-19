@@ -16,14 +16,14 @@ describe('Overview Tab', () => {
     cy.findByRole('tab', { name: 'Permitted Dischargers' }).click();
 
     // Toggle All Permit Components switch and check that no accordion items are displayed
-    cy.findByRole('switch', { name: 'Toggle all permit components' }).click({
+    cy.findByRole('switch', { name: 'All Permit Components' }).click({
       force: true,
     });
     cy.findByRole('list', { name: 'List of Permitted Dischargers' })
       .findAllByRole('listitem')
       .should('have.length', 0);
 
-    cy.findByRole('switch', { name: 'Toggle POTW' }).click({ force: true });
+    cy.findByLabelText('POTW').click({ force: true });
     cy.findByRole('button', {
       name: 'DISTRICT DEPARTMENT OF ENERGY AND ENVIRONMENT NATURAL RESOURCES ADMINISTRATION',
     }).should('be.visible');

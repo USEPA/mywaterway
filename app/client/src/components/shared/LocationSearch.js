@@ -876,9 +876,7 @@ function LocationSearch({ route, label }: Props) {
                     watershed &&
                     huc12
                       ? `WATERSHED: ${watershed} (${huc12})`
-                      : inputText.indexOf('|') > -1
-                      ? inputText.split('|')[0]
-                      : inputText
+                      : inputText.split('|')[0]
                   }
                   onChange={(ev) => {
                     setInputText(ev.target.value);

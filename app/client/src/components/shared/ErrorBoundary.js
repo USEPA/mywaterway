@@ -73,7 +73,7 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <>
-          {data && data['all'] && (
+          {data?.['all'] && (
             <div
               css={errorBannerStyles}
               color={data['all'].color}

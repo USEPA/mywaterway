@@ -16,7 +16,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import { formatNumber, isAbort } from 'utils/utils';
-import { useAbortSignal } from 'utils/hooks';
+import { useAbort } from 'utils/hooks';
 // errors
 import { grpaError } from 'config/errorMessages';
 
@@ -109,7 +109,7 @@ type Props = {
 
 function WaterSystemSummary({ state }: Props) {
   const services = useServicesContext();
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
 
   const [lastCountsCode, setLastCountsCode] = useState(null);
   const [systemTypeRes, setSystemTypeRes] = useState({
@@ -133,10 +133,10 @@ function WaterSystemSummary({ state }: Props) {
 
     fetchCheck(
       `${services.data.dwmaps.getGPRASystemCountsByType}${state.value}`,
-      abortSignal,
+      getSignal(),
     )
       .then((res) => {
-        if (!res || !res.items || res.items.length === 0) {
+        if (!res?.items?.length) {
           setSystemTypeRes({
             status: 'failure',
             data: {
@@ -191,7 +191,7 @@ function WaterSystemSummary({ state }: Props) {
           },
         });
       });
-  }, [abortSignal, state, services, lastCountsCode]);
+  }, [getSignal, state, services, lastCountsCode]);
 
   // fetch GPRA data
   const [lastSummaryCode, setLastSummaryCode] = useState(null);
@@ -213,7 +213,7 @@ function WaterSystemSummary({ state }: Props) {
 
     fetchCheck(
       `${services.data.dwmaps.getGPRASummary}${state.value}`,
-      abortSignal,
+      getSignal(),
     )
       .then((res) =>
         setGpraData({
@@ -225,7 +225,7 @@ function WaterSystemSummary({ state }: Props) {
         if (isAbort(err)) return;
         setGpraData({ status: 'failure', data: {} });
       });
-  }, [abortSignal, state, services, lastSummaryCode]);
+  }, [getSignal, state, services, lastSummaryCode]);
 
   return (
     <>

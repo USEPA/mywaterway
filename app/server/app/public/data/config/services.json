@@ -17,7 +17,7 @@
     "summary": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4",
     "controlTable": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/5"
   },
-  "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/savedreport/terms/HMWGlossary",
+  "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/HMW%20Glossary/terms/full",
   "waterQualityPortal": {
     "userInterface": "https://www.waterqualitydata.us/",
     "stationSearch": "https://www.waterqualitydata.us/data/Station/search?",
@@ -63,7 +63,7 @@
     "properties": "https://cyan.epa.gov/waterbody/properties",
     "waterbodies": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0"
   },
-  "printService": "https://gispub.epa.gov/arcgis/rest/services/Utilities/PrintingTools/GPServer",
+  "printService": "https://gispub.epa.gov/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",

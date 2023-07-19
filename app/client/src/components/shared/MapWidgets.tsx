@@ -47,7 +47,7 @@ import {
 } from 'utils/mapFunctions';
 import { isAbort, isClick } from 'utils/utils';
 // helpers
-import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
+import { useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
@@ -184,6 +184,7 @@ const orderedLayers = [
   'dischargersLayer',
   'surroundingDischargersLayer',
   'cyanLayer',
+  'surroundingCyanLayer',
   'nonprofitsLayer',
   'providersLayer',
   'upstreamLayer',
@@ -256,7 +257,8 @@ function updateLegend(
       (layer.visible && layer.id === 'allWaterbodiesLayer') ||
       (layer.visible && layer.id === 'surroundingDischargersLayer') ||
       (layer.visible && layer.id === 'surroundingUsgsStreamgagesLayer') ||
-      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer')
+      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer') ||
+      (layer.visible && layer.id === 'surroundingCyanLayer')
     ) {
       visibleLayers.push(layer);
     }
@@ -317,7 +319,7 @@ function MapWidgets({
   } = useAddSaveDataWidgetState();
 
   const pathname = window.location.pathname;
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
   const watchHandles = useMemo<IHandle[]>(() => [], []);
   const observers = useMemo<MutationObserver[]>(() => [], []);
   useEffect(() => {
@@ -594,8 +596,7 @@ function MapWidgets({
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode, observers]);
 
-  const surroundingsWidgetVisible = !pathname.includes('state');
-  const surroundingsWidget = useSurroundingsWidget(surroundingsWidgetVisible);
+  const surroundingsWidget = useSurroundingsWidget();
   useEffect(() => {
     if (!view?.ui) return;
 
@@ -689,11 +690,11 @@ function MapWidgets({
 
     const requests = [];
     let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
     url = `${services.data.ejscreen}legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
     url = `${services.data.mappedWater}/legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
 
     Promise.all(requests)
       .then((responses) => {
@@ -716,7 +717,7 @@ function MapWidgets({
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [abortSignal, additionalLegendInitialized, services]);
+  }, [additionalLegendInitialized, getSignal, services]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] =
@@ -904,14 +905,14 @@ function MapWidgets({
     fullScreenWidgetCreated,
   ]);
 
-  // create download widget
-  const downloadWidget = useMemo(() => {
+  // create print widget
+  const printWidget = useMemo(() => {
     if (!view || services.status !== 'success') return null;
     const container = document.createElement('div');
-    const downloadContent = new Print({
+    const printContent = new Print({
       view,
       container,
-      // printServiceUrl: `${services.data.printService}`,
+      printServiceUrl: services.data.printService,
     });
 
     return new Expand({
@@ -921,18 +922,18 @@ function MapWidgets({
       view,
       mode: 'floating',
       autoCollapse: true,
-      content: downloadContent,
+      content: printContent,
     });
   }, [services, view]);
 
-  // add the download widget
+  // add the print widget
   useEffect(() => {
-    if (downloadWidget)
-      view?.ui.add(downloadWidget, { position: 'top-right', index: 3 });
+    if (printWidget)
+      view?.ui.add(printWidget, { position: 'top-right', index: 3 });
     return function cleanup() {
-      if (downloadWidget) view?.ui.remove(downloadWidget);
+      if (printWidget) view?.ui.remove(printWidget);
     };
-  }, [downloadWidget, view]);
+  }, [printWidget, view]);
 
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on Tribal page or valid Community page location
@@ -985,7 +986,7 @@ function MapWidgets({
 
     const widget = pathname.includes('/community') ? (
       <ShowCurrentUpstreamWatershed
-        abortSignal={abortSignal}
+        abortSignal={getSignal()}
         getCurrentExtent={getCurrentExtent}
         getHuc12={getHuc12}
         getTemplate={getTemplate}
@@ -1005,7 +1006,7 @@ function MapWidgets({
       />
     ) : (
       <ShowSelectedUpstreamWatershed
-        abortSignal={abortSignal}
+        abortSignal={getSignal()}
         getCurrentExtent={getCurrentExtent}
         getHuc12={getHuc12}
         getTemplate={getTemplate}
@@ -1037,9 +1038,9 @@ function MapWidgets({
       view?.ui.remove(node);
     };
   }, [
-    abortSignal,
     getCurrentExtent,
     getHuc12,
+    getSignal,
     getTemplate,
     getUpstreamExtent,
     getUpstreamWidgetDisabled,
@@ -1209,7 +1210,11 @@ function ShowAddSaveDataWidget({
     >
       <span
         aria-hidden="true"
-        className="esri-icon-add-attachment"
+        className={
+          addSaveDataWidgetVisible
+            ? 'esri-icon-collapse'
+            : 'esri-icon-add-attachment'
+        }
         style={hover ? buttonHoverStyle : buttonStyle}
       />
     </div>
@@ -1402,7 +1407,7 @@ function retrieveUpstreamWatershed(
       const watershed = getWatershed() || 'Unknown Watershed';
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
-      if (!res || !res.features || res.features.length === 0) {
+      if (!res?.features?.length) {
         setUpstreamLayerErrored(true);
         upstreamLayer.graphics.removeAll();
         canDisable && setUpstreamWidgetDisabled(true);
@@ -1496,14 +1501,31 @@ function ShowUpstreamWatershed({
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
 
+  // This useEffect/watcher is here to ensure the correct title and icon
+  // are being shown. Without this the icon/title don't change until
+  // the user moves the mouse off of the button.
+  const [watcher, setWatcher] = useState<IHandle | null>(null);
+  const [upstreamVisible, setUpstreamVisible] = useState(false);
+  useEffect(() => {
+    if (!upstreamLayer || watcher) return;
+
+    setWatcher(
+      reactiveUtils.watch(
+        () => upstreamLayer.visible,
+        () => setUpstreamVisible(upstreamLayer.visible),
+      ),
+    );
+  }, [upstreamLayer, watcher]);
+
   if (!upstreamLayer) return null;
 
   let title = 'View Upstream Watershed';
   if (upstreamWidgetDisabled) title = 'Upstream Widget Not Available';
-  else if (upstreamLayer.visible) title = 'Hide Upstream Watershed';
+  else if (upstreamVisible) title = 'Hide Upstream Watershed';
   else if (selectionActive) title = 'Cancel Watershed Selection';
 
   let iconClass = 'esri-icon esri-icon-overview-arrow-top-left';
+  if (upstreamVisible) iconClass = 'esri-icon-collapse';
   if (upstreamLoading) iconClass = 'esri-icon-loading-indicator esri-rotating';
 
   return (

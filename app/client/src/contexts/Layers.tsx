@@ -132,6 +132,7 @@ export function useLayers() {
       searchIconLayer,
       selectedTribeLayer,
       stateBoundariesLayer,
+      surroundingCyanLayer,
       surroundingDischargersLayer,
       surroundingMonitoringLocationsLayer,
       surroundingUsgsStreamgagesLayer,
@@ -165,6 +166,7 @@ export function useLayers() {
       waterbodyLayer,
       issuesLayer,
       cyanLayer,
+      surroundingCyanLayer,
       upstreamLayer,
       monitoringLocationsLayer,
       surroundingMonitoringLocationsLayer,
@@ -306,6 +308,7 @@ const groupLayerIds = [
   'allWaterbodiesLayer',
   'cyanLayer',
   'ejscreenLayer',
+  'surroundingCyanLayer',
   'tribalLayer',
   'waterbodyLayer',
 ] as const;

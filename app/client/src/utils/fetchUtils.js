@@ -21,7 +21,7 @@ export function fetchCheck(
       console.error(err);
 
       let status = err;
-      if (err && err.status) status = err.status;
+      if (err?.status) status = err.status;
       logCallToGoogleAnalytics(apiUrl, status, startTime);
       return checkResponse(err);
     });
@@ -50,7 +50,7 @@ export function lookupFetch(
   const baseUrl = REACT_APP_SERVER_URL || window.location.origin;
   const url = `${baseUrl}/data/${path}`;
 
-  return new Promise<Object>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     // Function that fetches the lookup file.
     // This will retry the fetch 3 times if the fetch fails with a
     // 1 second delay between each retry.
@@ -107,6 +107,7 @@ export function fetchPost(
 export function fetchPostForm(
   apiUrl: string,
   data: object,
+  signal: ?AbortSignal = null,
   headers: any = { 'content-type': 'application/x-www-form-urlencoded' },
   timeout: number = defaultTimeout,
 ) {
@@ -130,6 +131,7 @@ export function fetchPostForm(
       method: 'POST',
       headers,
       body,
+      signal,
     }),
   )
     .then((response) => {

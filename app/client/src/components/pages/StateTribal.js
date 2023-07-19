@@ -600,11 +600,7 @@ function StateTribal() {
                             <div css={keyMetricsStyles}>
                               {stateIntro.organizationMetrics.map(
                                 (metric, index) => {
-                                  if (
-                                    !metric ||
-                                    !metric.value ||
-                                    !metric.label
-                                  ) {
+                                  if (!metric?.value || !metric.label) {
                                     return null;
                                   }
 

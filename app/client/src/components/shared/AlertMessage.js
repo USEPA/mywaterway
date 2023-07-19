@@ -48,7 +48,7 @@ function AlertMessage() {
     const data = notifications.data;
 
     // create a banner that applies to all pages
-    const allPagesBanner = data && data['all'] && (
+    const allPagesBanner = data?.['all'] && (
       <div
         css={bannerStyles(data['all'].color, data['all'].backgroundColor)}
         dangerouslySetInnerHTML={createMarkup(data['all'].message)}

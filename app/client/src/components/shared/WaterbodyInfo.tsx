@@ -23,7 +23,7 @@ import { Sparkline } from 'components/shared/Sparkline';
 import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-import { useAbortSignal } from 'utils/hooks';
+import { useAbort } from 'utils/hooks';
 import {
   getWaterbodyCondition,
   isClassBreaksRenderer,
@@ -467,7 +467,7 @@ function WaterbodyInfo({
         return value !== 'Not Applicable';
       }) || [];
 
-    const reportingCycle = attributes && attributes.reportingcycle;
+    const reportingCycle = attributes?.reportingcycle;
     return (
       <>
         {extraContent}
@@ -1333,9 +1333,9 @@ function sumSlice(nums: number[], start: number, end?: number) {
 
 enum CcIdx {
   Low = 0,
-  Medium = cyanMetadata.findIndex((cc) => cc >= 100_000),
-  High = cyanMetadata.findIndex((cc) => cc >= 300_000),
-  VeryHigh = cyanMetadata.findIndex((cc) => cc >= 1_000_000),
+  Medium = 99,
+  High = 139,
+  VeryHigh = 183,
 }
 
 type CellConcentrationData = {
@@ -1482,7 +1482,8 @@ type CyanContentProps = {
 
 function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const { attributes } = feature;
-  const abortSignal = useAbortSignal();
+  const layerId = feature.layer?.id;
+  const { getSignal } = useAbort();
 
   const [today] = useState(() => {
     const now = new Date();
@@ -1519,7 +1520,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const fetcher =
       window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
 
-    fetcher(dataUrl, abortSignal)
+    fetcher(dataUrl, getSignal())
       .then((res: { data: { [date: string]: number[] } }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
@@ -1559,7 +1560,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           data: null,
         });
       });
-  }, [abortSignal, attributes, today, services]);
+  }, [getSignal, attributes, today, services]);
 
   const [dates, setDates] = useState<number[]>([]);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
@@ -1596,7 +1597,11 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     if (services?.status !== 'success') return;
     if (!mapView) return;
 
-    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
+    const cyanImageLayer = mapView.map.findLayerById(
+      layerId === 'surroundingCyanWaterbodies'
+        ? 'surroundingCyanImages'
+        : 'cyanImages',
+    );
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
     const currentDate = new Date(selectedDate);
@@ -1636,7 +1641,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           // convert the image to a base64 string
           const base64String = reader.result;
           const image = new Image();
-          image.src = base64String?.toString() || '';
+          image.src = base64String?.toString() ?? '';
 
           image.onload = () => {
             setImageStatus('success');
@@ -1714,21 +1719,29 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     return function cleanup() {
       clearTimeout(imageTimeout);
     };
-  }, [attributes, mapView, selectedDate, services]);
+  }, [attributes, layerId, mapView, selectedDate, services]);
 
   // Remove the image when this component unmounts
   useEffect(() => {
     if (!mapView) return;
 
-    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
+    const cyanImageLayer = mapView.map.findLayerById(
+      layerId === 'surroundingCyanWaterbodies'
+        ? 'surroundingCyanImages'
+        : 'cyanImages',
+    );
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
-    const popupWatchHandle = mapView.popup.watch(
+    // Remove the satellite image when the popup is closed
+    const popupVisibilityWatchHandle = mapView.popup.watch(
       'visible',
       (visible: boolean) => {
         if (visible) return;
         mapView.popup.features.forEach((feature) => {
-          if (feature.layer?.id === 'cyanWaterbodies') {
+          if (
+            feature.layer?.id === 'cyanWaterbodies' ||
+            feature.layer?.id === 'surroundingCyanWaterbodies'
+          ) {
             (
               cyanImageLayer.source as __esri.LocalMediaElementSource
             ).elements.removeAll();
@@ -1737,13 +1750,24 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       },
     );
 
+    // Remove the satellite image when a new location is clicked
+    const popupFeaturesWatchHandle = mapView.popup.watch(
+      'features',
+      (_features: __esri.Graphic[]) => {
+        (
+          cyanImageLayer.source as __esri.LocalMediaElementSource
+        ).elements.removeAll();
+      },
+    );
+
     return function cleanup() {
       (
         cyanImageLayer.source as __esri.LocalMediaElementSource
       ).elements.removeAll();
-      popupWatchHandle.remove();
+      popupVisibilityWatchHandle.remove();
+      popupFeaturesWatchHandle.remove();
     };
-  }, [mapView]);
+  }, [layerId, mapView]);
 
   const [barChartData, setBarChartData] = useState<ChartData | null>(null);
 

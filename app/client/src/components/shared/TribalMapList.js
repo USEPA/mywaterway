@@ -53,9 +53,12 @@ import {
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import {
+  useCyanWaterbodiesLayers,
+  useDischargersLayers,
   useMonitoringLocations,
   useMonitoringLocationsLayers,
   useSharedLayers,
+  useStreamgageLayers,
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import {
@@ -362,7 +365,7 @@ function TribalMapList({
                       waterbodyLayer: !waterbodiesDisplayed,
                     });
                   }}
-                  disabled={!Boolean(waterbodies.data.length)}
+                  disabled={!waterbodies.data.length}
                   ariaLabel="Waterbodies"
                 />
               </div>
@@ -381,7 +384,7 @@ function TribalMapList({
                   ? monitoringLocations.length
                   : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -400,8 +403,8 @@ function TribalMapList({
                       monitoringLocationsLayer: !monitoringLocationsDisplayed,
                     });
                   }}
-                  disabled={!Boolean(monitoringLocations.length)}
-                  ariaLabel="Monitoring Stations"
+                  disabled={!monitoringLocations.length}
+                  ariaLabel="Water Monitoring Stations"
                 />
               </div>
             </>
@@ -529,7 +532,7 @@ function TribalMapList({
           <Tabs>
             <TabList>
               <Tab css={largeTabStyles}>Waterbodies</Tab>
-              <Tab css={largeTabStyles}>Monitoring Locations</Tab>
+              <Tab css={largeTabStyles}>Water Monitoring Locations</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
@@ -604,6 +607,10 @@ function TribalMap({
 
   const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
     useMonitoringLocationsLayers(monitoringLocationsFilter);
+
+  const { surroundingUsgsStreamgagesLayer } = useStreamgageLayers();
+  const { surroundingDischargersLayer } = useDischargersLayers();
+  const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
 
   const navigate = useNavigate();
   const services = useServicesContext();
@@ -739,6 +746,9 @@ function TribalMap({
       ...sharedLayers,
       upstreamLayer,
       selectedTribeLayer,
+      surroundingCyanLayer,
+      surroundingDischargersLayer,
+      surroundingUsgsStreamgagesLayer,
       monitoringLocationsLayer,
       surroundingMonitoringLocationsLayer,
       waterbodyLayer,
@@ -760,7 +770,10 @@ function TribalMap({
     services,
     setLayer,
     setResetHandler,
+    surroundingCyanLayer,
+    surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,
+    surroundingUsgsStreamgagesLayer,
     updateVisibleLayers,
   ]);
 
@@ -875,14 +888,6 @@ function TribalMap({
             let zoomParams = fullExtent;
             let homeParams = { targetGeometry: fullExtent };
 
-            if (pointsExtent.count === 1) {
-              zoomParams = { target: fullExtent, zoom: 15 };
-              homeParams = {
-                targetGeometry: fullExtent,
-                scale: 18056, // same as zoom 15, viewpoint only takes scale
-              };
-            }
-
             mapView.when(() => {
               mapView.goTo(zoomParams).then(() => {
                 setMapLoading(false);
@@ -995,7 +1000,7 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
 
         return (
           <AccordionItem
-            key={index}
+            key={item.uniqueId}
             index={index}
             title={<strong>{item.locationName || 'Unknown'}</strong>}
             subTitle={

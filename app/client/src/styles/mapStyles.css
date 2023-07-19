@@ -60,6 +60,10 @@
   z-index: 0;
 }
 
+.esri-scale-bar__label {
+  overflow: auto;
+}
+
 .esri-view-width-less-than-medium .esri-popup__main-container {
   width: 350px;
 }
@@ -187,6 +191,10 @@
 
 .esri-legend__message {
   display: none;
+}
+
+.esri-attribution__powered-by {
+  overflow: auto;
 }
 
 .hidden {
