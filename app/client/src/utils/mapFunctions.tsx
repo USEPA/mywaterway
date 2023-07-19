@@ -65,7 +65,7 @@ export function getPointFromCoordinates(text: string) {
   const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
   let point = null;
   if (regex.test(text)) {
-    const found: RegExpMatchArray | null = text.match(regex);
+    const found: RegExpMatchArray | null = regex.exec(text);
     if (found && found.length >= 4 && found[1] && found[3]) {
       point = new Point({
         x: parseFloat(found[1]),

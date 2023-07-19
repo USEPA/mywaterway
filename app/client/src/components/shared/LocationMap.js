@@ -25,9 +25,11 @@ import mapPin from 'images/pin.png';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
+  getPointFromCoordinates,
   getPopupContent,
   getPopupTitle,
   getUniqueWaterbodies,
+  splitSuggestedSearch,
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
@@ -73,10 +75,6 @@ import {
   resetCanonicalLink,
   removeJsonLD,
 } from 'utils/utils';
-import {
-  getPointFromCoordinates,
-  splitSuggestedSearch,
-} from 'utils/mapFunctions';
 
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
