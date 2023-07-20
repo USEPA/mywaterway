@@ -8,7 +8,7 @@ import Select from 'react-select';
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
 import ShowLessMore from 'components/shared/ShowLessMore';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';

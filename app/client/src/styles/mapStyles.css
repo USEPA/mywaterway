@@ -8,7 +8,7 @@
   background-color: white;
 }
 
-.esri-widget--panel,
+.hmw-map-layers,
 .esri-view .esri-basemap-gallery {
   min-width: 200px;
   max-width: 200px;
@@ -43,6 +43,12 @@
   border-bottom: none;
   line-height: 1;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.esri-print__header-title {
+  font-size: 1.25em;
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .esri-layer-list__item-title {

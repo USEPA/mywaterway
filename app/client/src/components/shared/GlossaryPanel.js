@@ -50,7 +50,7 @@ const iconStyles = css`
 
 const panelStyles = css`
   position: fixed;
-  z-index: 1000;
+  z-index: 1001;
   top: 0;
   right: 0;
   overflow-y: auto;

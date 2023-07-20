@@ -12,7 +12,7 @@ import Monitoring from 'components/pages/Community.Tabs.Monitoring';
 import IdentifiedIssues from 'components/pages/Community.Tabs.IdentifiedIssues';
 import Restore from 'components/pages/Community.Tabs.Restore';
 import Protect from 'components/pages/Community.Tabs.Protect';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';

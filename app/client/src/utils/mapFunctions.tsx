@@ -19,6 +19,7 @@ import type {
   ExtendedLayer,
   Feature,
   ImpairmentFields,
+  LookupFile,
   ParentLayer,
   PopupAttributes,
   ScaledLayer,
@@ -582,6 +583,7 @@ export const openPopup = (
   feature: __esri.Graphic,
   fields: __esri.Field[],
   services: ServicesState,
+  stateNationalUses: LookupFile,
   navigate: NavigateFunction,
 ) => {
   const fieldName = feature.attributes?.fieldName;
@@ -599,6 +601,7 @@ export const openPopup = (
           fields,
           fieldName,
           services,
+          stateNationalUses,
           navigate,
         }),
     });
@@ -740,6 +743,7 @@ export function getPopupContent({
   mapView,
   resetData,
   services,
+  stateNationalUses,
   fields,
   navigate,
 }: {
@@ -750,6 +754,7 @@ export function getPopupContent({
   mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
+  stateNationalUses?: LookupFile;
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
 }) {
@@ -858,6 +863,7 @@ export function getPopupContent({
       mapView={mapView}
       resetData={resetData}
       services={services}
+      stateNationalUses={stateNationalUses}
       fields={fields}
       navigate={navigate}
     />
