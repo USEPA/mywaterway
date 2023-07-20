@@ -24,6 +24,12 @@ import { Sparkline } from 'components/shared/Sparkline';
 import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
+import {
+  createRelativeDailyTimestampRange,
+  epochToMonthDay,
+  getDayOfYear,
+  yearDayStringToEpoch,
+} from 'utils/dateUtils';
 import { useAbort } from 'utils/hooks';
 import {
   getWaterbodyCondition,
@@ -1438,36 +1444,12 @@ function barChartDataPoint(
   };
 }
 
-// Converts CyAN `year dayOfYear` format to epoch timestamp
-function cyanDateToEpoch(yearDay: string) {
-  const yearAndDay = yearDay.split(' ');
-  if (yearAndDay.length !== 2) return null;
-  const year = parseInt(yearAndDay[0]);
-  const day = parseInt(yearAndDay[1]);
-  if (Number.isFinite(year) && Number.isFinite(day)) {
-    return new Date(year, 0, day).getTime();
-  }
-  return null;
-}
-
-function epochToMonthDay(epoch: number) {
-  const date = new Date(epoch);
-  return `${date.getMonth() + 1}/${date.getDate()}`;
-}
-
 function formatDate(epoch: number) {
   return new Date(epoch).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   });
-}
-
-function getDayOfYear(day: Date) {
-  const firstOfYear = new Date(day.getFullYear(), 0, 0);
-  const diff =
-    day.getTime() - firstOfYear.getTime() + getTzOffsetMsecs(firstOfYear, day);
-  return Math.floor(diff / oneDay);
 }
 
 function getAverageNonLandPixelArea(data: CellConcentrationData) {
@@ -1495,12 +1477,6 @@ function getTotalNonLandPixels(
 ) {
   const { belowDetection, measurements, noData } = data;
   return sum(belowDetection, noData, ...measurements);
-}
-
-function getTzOffsetMsecs(previous: Date, current: Date) {
-  return (
-    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
-  );
 }
 
 function squareKmToSquareMi(km: number) {
@@ -1686,11 +1662,18 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   useEffect(() => {
     if (services?.status !== 'success') return;
 
-    const startDateRaw = new Date(today.getTime() - 7 * oneDay);
-    const startDate = new Date(
-      startDateRaw.getTime() + getTzOffsetMsecs(startDateRaw, today),
+    const dateRange = createRelativeDailyTimestampRange(today, -7, -1);
+    const newData = dateRange.reduce<CellConcentrationData>(
+      (dataObj, timestamp) => {
+        return {
+          ...dataObj,
+          [timestamp]: null,
+        };
+      },
+      {},
     );
 
+    const startDate = new Date(dateRange[0]);
     const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
       attributes.oid ?? attributes.OBJECTID
     }&start_year=${startDate.getFullYear()}&start_day=${getDayOfYear(
@@ -1708,21 +1691,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
     fetcher(dataUrl, getSignal())
       .then((res: { data: { [date: string]: number[] } }) => {
-        const newData: CellConcentrationData = {};
-        let currentDate = startDate.getTime();
-        const yesterdayRaw = today.getTime() - oneDay;
-        const yesterday =
-          yesterdayRaw + getTzOffsetMsecs(new Date(yesterdayRaw), today);
-        while (currentDate <= yesterday) {
-          newData[currentDate] = null;
-          const nextDate = currentDate + oneDay;
-          currentDate =
-            nextDate -
-            getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
-        }
         Object.entries(res.data).forEach(([date, values]) => {
           if (values.length !== 256) return;
-          const epochDate = cyanDateToEpoch(date);
+          const epochDate = yearDayStringToEpoch(date);
           // Indices 0, 254, & 255 represent indetectable pixels
           if (epochDate !== null && newData.hasOwnProperty(epochDate)) {
             const measurements = values.slice(1, 254);

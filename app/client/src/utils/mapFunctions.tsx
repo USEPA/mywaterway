@@ -2,6 +2,7 @@ import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
+import Point from '@arcgis/core/geometry/Point';
 import PopupTemplate from '@arcgis/core/PopupTemplate';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
@@ -57,6 +58,45 @@ export function getTypeFromAttributes(graphic: __esri.Graphic) {
   }
 
   return type;
+}
+
+// Determines if the input text is a string representing coordinates.
+// If so the coordinates are converted to an Esri Point object.
+export function getPointFromCoordinates(text: string) {
+  const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
+  let point = null;
+  if (regex.test(text)) {
+    const found: RegExpMatchArray | null = regex.exec(text);
+    if (found && found.length >= 4 && found[1] && found[3]) {
+      point = new Point({
+        x: parseFloat(found[1]),
+        y: parseFloat(found[3]),
+      });
+    }
+  }
+
+  return point;
+}
+
+// Determines if the input text is a string that contains coordinates.
+// The return value is an object containing the esri point for the coordinates (coordinatesPart)
+// and any remaining text (searchPart).
+export function splitSuggestedSearch(text: string) {
+  // split search
+  const parts = text.split('|');
+
+  // get the coordinates part (is last item)
+  const tempCoords = parts[parts.length - 1];
+  const coordinatesPart = getPointFromCoordinates(tempCoords);
+
+  // remove the coordinates part from initial array
+  const coordinatesString = coordinatesPart ? parts.pop() ?? '' : '';
+
+  // get the point from the coordinates part
+  return {
+    searchPart: parts.length > 0 ? parts.join('|') : coordinatesString,
+    coordinatesPart,
+  };
 }
 
 export function getWaterbodyCondition<
