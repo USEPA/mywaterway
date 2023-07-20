@@ -679,7 +679,7 @@ function WaterbodyInfo({
                                               min-width: 100px;
                                             `}
                                           >
-                                            {['F', 'N', 'I'].includes(
+                                            {['F', 'N', 'I', 'X'].includes(
                                               useCode,
                                             ) ? (
                                               <GlossaryTerm
@@ -694,7 +694,7 @@ function WaterbodyInfo({
                                                 {value}
                                               </GlossaryTerm>
                                             ) : (
-                                              use.useName
+                                              use.useAttainmentCodeName
                                             )}
                                           </td>
                                         </tr>
