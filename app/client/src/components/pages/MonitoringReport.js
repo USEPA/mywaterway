@@ -431,23 +431,7 @@ const shadedBoxSectionStyles = css`
 `;
 
 const sliderContainerStyles = css`
-  ${boxSectionStyles}
-  display: flex;
-  justify-content: center;
-  height: 4.5em;
-  width: 100%;
-  span {
-    margin-bottom: 0.1em;
-    &:first-of-type {
-      margin-left: 1em;
-    }
-    &:last-of-type {
-      margin-right: 1em;
-    }
-  }
-  .container {
-    border-bottom: 1px solid #d8dfe2;
-  }
+  margin: 1em;
 `;
 
 const treeStyles = (level, styles) => {
