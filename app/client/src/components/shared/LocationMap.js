@@ -712,9 +712,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
-        getPopupContent({ feature: feature.graphic, services, navigate }),
+        getPopupContent({
+          feature: feature.graphic,
+          navigate,
+          services,
+          stateNationalUses,
+        }),
     };
-  }, [services, navigate]);
+  }, [navigate, services, stateNationalUses]);
 
   const handleMapServiceError = useCallback(
     (err) => {
@@ -1424,9 +1429,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // Check if the search text contains coordinates.
       // First see if coordinates are part of a non-esri suggestion and
       // then see if the full text is coordinates
-      let point = coordinatesPart
-        ? coordinatesPart
-        : getPointFromCoordinates(searchText);
+      let point = coordinatesPart ?? getPointFromCoordinates(searchText);
 
       let getCandidates;
       const url = services.data.locatorUrl;

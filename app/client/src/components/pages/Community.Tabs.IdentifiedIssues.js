@@ -14,7 +14,7 @@ import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import { impairmentFields } from 'config/attainsToHmwMapping';
 import Switch from 'components/shared/Switch';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';

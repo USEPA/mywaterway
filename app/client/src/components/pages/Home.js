@@ -12,7 +12,7 @@ import {
   EatingFishIcon,
   SwimmingIcon,
 } from 'components/shared/Icons';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 // styled components
 import {
   topicButtonContainer,
