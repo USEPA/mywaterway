@@ -375,7 +375,7 @@ function Page({ children }: Props) {
           </button>
 
           <p css={subtitleStyles}>
-            Informing the conversation about your waters.
+            Explore, Discover and Learn about your water.
           </p>
         </div>
       </div>
