@@ -175,6 +175,15 @@ const measurementTableStyles = css`
   }
 `;
 
+const modalTableStyles = css`
+  ${measurementTableStyles};
+  margin-bottom: 0;
+
+  th {
+    border-top: none;
+  }
+`;
+
 const modifiedDisclaimerStyles = css`
   ${disclaimerStyles};
 
@@ -615,7 +624,7 @@ function WaterbodyInfo({
                             onClose={() => setSelectedUseField(null)}
                             triggerElm={
                               <i
-                                className="fas fa-question-circle"
+                                className="fas fa-info-circle"
                                 css={detailedUsesIconStyles}
                                 title={`View detailed uses for ${useField.label}`}
                                 onClick={() => {
@@ -632,7 +641,7 @@ function WaterbodyInfo({
                             {selectedUseField &&
                               useAttainments.status === 'success' && (
                                 <table
-                                  css={measurementTableStyles}
+                                  css={modalTableStyles}
                                   className="table"
                                 >
                                   <thead>
