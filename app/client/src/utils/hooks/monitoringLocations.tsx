@@ -1,11 +1,9 @@
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
-import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductionCluster';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { render } from 'react-dom';
 // contexts
 import {
   useFetchedDataDispatch,
@@ -328,7 +326,6 @@ function buildLayer(
         },
       }),
     }),
-    featureReduction: monitoringClusterSettings,
     popupTemplate: {
       outFields: ['*'],
       title: getTitle,
@@ -458,50 +455,3 @@ const dataKeys = ['siteId', 'orgId', 'stationProviderName'] as Array<
   keyof MonitoringLocationAttributes
 >;
 const minScale = 400_000;
-
-export const monitoringClusterSettings = new FeatureReductionCluster({
-  clusterRadius: '100px',
-  clusterMinSize: '24px',
-  clusterMaxSize: '60px',
-  popupEnabled: true,
-  popupTemplate: {
-    title: 'Cluster summary',
-    content: (feature: Feature) => {
-      const content = (
-        <div style={{ margin: '0.625em' }}>
-          This cluster represents {feature.graphic.attributes.cluster_count}{' '}
-          stations
-        </div>
-      );
-
-      const contentContainer = document.createElement('div');
-      render(content, contentContainer);
-
-      // return an esri popup item
-      return contentContainer;
-    },
-    fieldInfos: [
-      {
-        fieldName: 'cluster_count',
-        format: {
-          places: 0,
-          digitSeparator: true,
-        },
-      },
-    ],
-  },
-  labelingInfo: [
-    {
-      deconflictionStrategy: 'none',
-      labelExpressionInfo: {
-        expression: "Text($feature.cluster_count, '#,###')",
-      },
-      symbol: {
-        type: 'text',
-        color: '#000000',
-        font: { size: 10, weight: 'bold' },
-      },
-      labelPlacement: 'center-center',
-    },
-  ],
-});

@@ -11,10 +11,6 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
-import {
-  monitoringClusterSettings,
-  useMonitoringLocations,
-} from 'utils/hooks/monitoringLocations';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // types
 import type {
@@ -149,10 +145,7 @@ function updateGraphics(
 ) {
   if (!updates || !graphics) return;
   graphics.forEach((graphic) => {
-    if (
-      graphic.layer?.id === 'monitoringLocationsLayer' &&
-      !graphic.isAggregate
-    ) {
+    if (graphic.layer?.id === 'monitoringLocationsLayer') {
       updateAttributes(graphic, updates);
     }
   });
@@ -172,18 +165,11 @@ function MapMouseEvents({ view }: Props) {
   const services = useServicesContext();
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
 
-  const { getHucBoundaries, homeWidget, monitoringFeatureUpdates, resetData } =
-    useContext(LocationSearchContext);
+  const { getHucBoundaries, monitoringFeatureUpdates, resetData } = useContext(
+    LocationSearchContext,
+  );
 
-  const {
-    monitoringLocationsLayer,
-    protectedAreasLayer,
-    resetLayers,
-    surroundingMonitoringLocationsLayer,
-  } = useLayers();
-
-  const { monitoringLocations, monitoringLocationsStatus } =
-    useMonitoringLocations();
+  const { protectedAreasLayer, resetLayers } = useLayers();
 
   const onTribePage = window.location.pathname.startsWith('/tribe/');
   const onMonitoringPanel = window.location.pathname.endsWith('/monitoring');
@@ -220,23 +206,6 @@ function MapMouseEvents({ view }: Props) {
           const graphic = graphics?.length ? graphics[0] : null;
 
           if (graphic?.attributes) {
-            if (
-              graphic.layer.id === 'monitoringLocationsLayer' &&
-              graphic.isAggregate
-            ) {
-              if (!monitoringLocationsLayer) return;
-              monitoringLocationsLayer.featureReduction = null;
-              return;
-            }
-            if (
-              graphic.layer.id === 'surroundingMonitoringLocationsLayer' &&
-              graphic.isAggregate
-            ) {
-              if (!surroundingMonitoringLocationsLayer) return;
-              surroundingMonitoringLocationsLayer.featureReduction = null;
-              return;
-            }
-
             updateGraphics(graphics, updates?.current);
             if (onTribePage) prioritizePopup(graphics);
             setSelectedGraphic(graphic);
@@ -332,14 +301,12 @@ function MapMouseEvents({ view }: Props) {
     [
       fetchedDataDispatch,
       getHucBoundaries,
-      monitoringLocationsLayer,
       navigate,
       protectedAreasLayer,
       resetData,
       resetLayers,
       services,
       setSelectedGraphic,
-      surroundingMonitoringLocationsLayer,
     ],
   );
 
@@ -399,65 +366,6 @@ function MapMouseEvents({ view }: Props) {
 
     setInitialized(true);
   }, [handleMapClick, initialized, services, setHighlightedGraphic, view]);
-
-  // recalculates stored total location count on change of location
-  const [locationCount, setLocationCount] = useState<number | null>(null);
-  useEffect(() => {
-    if (monitoringLocationsStatus !== 'success' || !monitoringLocations.length)
-      return;
-    setLocationCount(monitoringLocations.length);
-    return function cleanup() {
-      setLocationCount(null);
-    };
-  }, [monitoringLocations, monitoringLocationsStatus]);
-
-  // restores cluster settings on change of location
-  useEffect(() => {
-    if (surroundingMonitoringLocationsLayer)
-      surroundingMonitoringLocationsLayer.featureReduction =
-        monitoringClusterSettings;
-    if (monitoringLocationsLayer)
-      monitoringLocationsLayer.featureReduction =
-        locationCount && locationCount >= 20 ? monitoringClusterSettings : null;
-  }, [
-    locationCount,
-    monitoringLocationsLayer,
-    surroundingMonitoringLocationsLayer,
-  ]);
-
-  // sets an event listener on the home widget, and
-  // restores cluster settings if clicked
-  const [homeClickHandler, setHomeClickHandler] = useState<IHandle | null>(
-    null,
-  );
-  useEffect(() => {
-    return function cleanup() {
-      homeClickHandler?.remove();
-    };
-  }, [homeClickHandler]);
-
-  useEffect(() => {
-    if (!homeWidget) return;
-    const handler: IHandle = homeWidget.on('go', (_ev: any) => {
-      if (surroundingMonitoringLocationsLayer)
-        surroundingMonitoringLocationsLayer.featureReduction =
-          monitoringClusterSettings;
-      if (monitoringLocationsLayer)
-        monitoringLocationsLayer.featureReduction =
-          locationCount && locationCount >= 20
-            ? monitoringClusterSettings
-            : null;
-    });
-    setHomeClickHandler(handler);
-    return function cleanup() {
-      setHomeClickHandler(null);
-    };
-  }, [
-    homeWidget,
-    locationCount,
-    monitoringLocationsLayer,
-    surroundingMonitoringLocationsLayer,
-  ]);
 
   return null;
 }
