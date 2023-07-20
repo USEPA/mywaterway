@@ -75,7 +75,6 @@ import {
   resetCanonicalLink,
   removeJsonLD,
 } from 'utils/utils';
-
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
