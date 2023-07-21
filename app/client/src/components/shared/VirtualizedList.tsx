@@ -1,37 +1,45 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useWindowSize } from '@reach/window-size';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { VariableSizeList } from 'react-window';
 import throttle from 'lodash/throttle';
+import uniqueId from 'lodash/uniqueId';
 // utils
 import { useOnScreen } from 'utils/hooks';
-// types
-import type { MutableRefObject } from 'react';
 
 type RowRendererProps = {
   index: number;
-  width: number;
-  listRef: MutableRefObject<VariableSizeList<any> | null>;
-  setSize: Function;
+  listId: string;
   renderer: Function;
+  resizeObserver: ResizeObserver;
 };
 
 function RowRenderer({
   index,
-  width,
-  listRef,
-  setSize,
+  listId,
   renderer,
+  resizeObserver,
 }: RowRendererProps) {
   const rowRef = useRef<HTMLDivElement | null>(null);
 
-  // keep track of the height of the rows to autosize rows
   useEffect(() => {
-    if (!rowRef?.current) return;
+    return function cleanup() {
+      if (rowRef.current) resizeObserver.unobserve(rowRef.current);
+    };
+  }, [resizeObserver]);
 
-    setSize(index, rowRef.current.getBoundingClientRect().height, listRef);
-  }, [setSize, index, width, listRef]);
+  const callbackRef = useCallback(
+    (node) => {
+      if (!node) return;
+      resizeObserver.observe(node);
+      rowRef.current = node;
+    },
+    [resizeObserver],
+  );
 
-  return <div ref={rowRef}>{renderer({ index })}</div>;
+  return (
+    <div id={`${listId}-row-${index}`} ref={callbackRef}>
+      {renderer({ index })}
+    </div>
+  );
 }
 
 type Props = {
@@ -43,12 +51,33 @@ function VirtualizedListInner({ items, renderer }: Props) {
   const innerRef = useRef<VariableSizeList<any> | null>(null);
   const outerRef = useRef();
   const sizeMap = useRef<{ [index: string]: number }>({});
-  const setSize = useCallback((index: number, size: number, listRef: any) => {
+  const setSize = useCallback((index: number, size: number) => {
     sizeMap.current = { ...sizeMap.current, [index]: size };
-    listRef.current.resetAfterIndex(index);
+    innerRef.current?.resetAfterIndex(index);
   }, []);
   const getSize = (index: number) => sizeMap.current[index] || 150;
-  const { width } = useWindowSize();
+  const [listId] = useState(uniqueId('list-'));
+
+  const resizeObserver = useMemo(
+    () =>
+      new ResizeObserver((entries) => {
+        entries.forEach((entry) => {
+          const index = parseInt(entry.target.id.split('-')[3]);
+          if (entry.borderBoxSize?.length) {
+            setSize(index, entry.borderBoxSize[0].blockSize);
+          } else {
+            setSize(index, entry.contentRect.height);
+          }
+        });
+      }),
+    [setSize],
+  );
+
+  useEffect(() => {
+    return function cleanup() {
+      resizeObserver.disconnect();
+    };
+  }, [resizeObserver]);
 
   // make the virtualized list use the window's scroll bar
   useEffect(() => {
@@ -90,11 +119,10 @@ function VirtualizedListInner({ items, renderer }: Props) {
       {({ index, style }) => (
         <div style={{ ...style, overflowX: 'hidden' }}>
           <RowRenderer
-            listRef={innerRef}
+            listId={listId}
             index={index}
-            setSize={setSize}
-            width={width}
             renderer={renderer}
+            resizeObserver={resizeObserver}
           />
         </div>
       )}

@@ -140,7 +140,7 @@ function Overview() {
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
-  const [cyanDisplayed, setCyanDisplayed] = useState(true);
+  const [cyanDisplayed, setCyanDisplayed] = useState(false);
 
   const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
     useState(false);
@@ -185,6 +185,7 @@ function Overview() {
       setMonitoringLocationsDisplayed(checked);
       setCyanDisplayed(checked);
       updateVisibleLayers({
+        cyanLayer: checked,
         usgsStreamgagesLayer: checked,
         monitoringLocationsLayer: checked,
       });
@@ -292,7 +293,7 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {totalPermittedDischargers ? totalPermittedDischargers : 'N/A'}
+                {totalPermittedDischargers ?? 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <div>
