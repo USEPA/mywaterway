@@ -2,7 +2,7 @@
 
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
+import { css } from 'styled-components/macro';
 // components
 import {
   AccordionList,
@@ -25,11 +25,7 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-  textBoxStyles,
-} from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -128,23 +124,6 @@ const showLessMoreStyles = css`
 `;
 
 const sliderContainerStyles = css`
-  align-items: flex-end;
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  width: 100%;
-  span {
-    &:first-of-type {
-      margin-left: 1em;
-    }
-    &:last-of-type {
-      margin-right: 1em;
-    }
-  }
-`;
-
-const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
-  ${styles}
   margin: 1em 0;
 `;
 
@@ -1183,25 +1162,26 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 &nbsp;Past Water Conditions&nbsp;
               </span>
             </div>
-            <div css={marginBoxStyles(textBoxStyles)}>
-              <p css={subheadingStyles}>
-                <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-                &nbsp;&nbsp; Date range for the <em>{watershed}</em> watershed{' '}
-              </p>
 
-              <div css={sliderContainerStyles}>
-                {!monitoringYearsRange ? (
-                  <LoadingSpinner />
-                ) : (
-                  <DateSlider
-                    max={maxYear}
-                    min={minYear}
-                    disabled={!Object.keys(annualData).length}
-                    onChange={handleDateSliderChange}
-                    range={monitoringYearsRange}
-                  />
-                )}
-              </div>
+            <div css={sliderContainerStyles}>
+              {!monitoringYearsRange ? (
+                <LoadingSpinner />
+              ) : (
+                <DateSlider
+                  max={maxYear}
+                  min={minYear}
+                  disabled={!Object.keys(annualData).length}
+                  onChange={handleDateSliderChange}
+                  range={monitoringYearsRange}
+                  headerElm={
+                    <p css={subheadingStyles}>
+                      <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
+                      &nbsp;&nbsp; Date range for the <em>{watershed}</em>{' '}
+                      watershed{' '}
+                    </p>
+                  }
+                />
+              )}
             </div>
 
             <table
