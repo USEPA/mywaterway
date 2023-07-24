@@ -86,7 +86,7 @@ const sliderStyles = css`
 const tickLabelStyles = css`
   position: absolute;
   font-size: 1em;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.6);
   top: 100%;
   transform: translate(-50%, 1.2rem);
   white-space: nowrap;
@@ -213,12 +213,13 @@ function DateSlider({
                   })}
                   {!disabled &&
                     handles.map(({ value, active, getHandleProps }, i) => (
-                      <button
+                      <div
                         aria-labelledby={`slider-${sliderId}-handle-${i}`}
                         {...getHandleProps({
                           key: i,
                           style: active ? handleStylesActive : handleStyles,
                         })}
+                        tabIndex={0}
                       >
                         <div
                           id={`slider-${sliderId}-handle-${i}`}
@@ -226,7 +227,7 @@ function DateSlider({
                         >
                           {value}
                         </div>
-                      </button>
+                      </div>
                     ))}
                 </div>
               </div>
