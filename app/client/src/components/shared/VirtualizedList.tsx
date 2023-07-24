@@ -86,7 +86,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
       const { offsetTop } = outerRef.current || { offsetTop: 0 };
 
       const scrollPosition =
-        window['pageYOffset'] ||
+        window['scrollY'] ||
         document.documentElement['scrollTop'] ||
         document.body['scrollTop'] ||
         0;
@@ -117,7 +117,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
       }}
     >
       {({ index, style }) => (
-        <div style={{ ...style, overflowX: 'hidden' }}>
+        <div style={style}>
           <RowRenderer
             listId={listId}
             index={index}
