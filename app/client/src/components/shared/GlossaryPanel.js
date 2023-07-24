@@ -52,7 +52,7 @@ const panelStyles = css`
   position: fixed;
   z-index: 1001;
   top: 0;
-  right: 0;
+  right: -22.375rem;
   overflow-y: auto;
   width: 22rem;
   height: 100%;
@@ -60,8 +60,8 @@ const panelStyles = css`
   box-shadow: -0.375em -0.375em 0.625em -0.375em ${colors.black(0.25)};
   transition: right 0.2s;
 
-  &[aria-hidden='true'] {
-    right: -22.375rem;
+  &[aria-hidden='false'] {
+    right: 0;
   }
 
   @media (max-width: 400px) {

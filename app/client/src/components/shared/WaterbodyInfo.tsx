@@ -59,6 +59,7 @@ import {
   colors,
   disclaimerStyles,
   fonts,
+  iconButtonStyles,
   iconStyles,
   modifiedTableStyles,
   tableStyles,
@@ -135,11 +136,6 @@ function labelValue(
 /*
 ## Styles
 */
-const detailedUsesIconStyles = css`
-  margin-right: 0.25rem;
-  color: #485566;
-`;
-
 const linkSectionStyles = css`
   p {
     padding-bottom: 1.5em;
@@ -148,6 +144,12 @@ const linkSectionStyles = css`
   small {
     display: inline-block;
   }
+`;
+
+const modifiedIconButtonStyles = css`
+  ${iconButtonStyles}
+  margin-right: 0.25rem;
+  color: #485566;
 `;
 
 const popupContainerStyles = css`
@@ -629,15 +631,19 @@ function WaterbodyInfo({
                             maxWidth="35rem"
                             onClose={() => setSelectedUseField(null)}
                             triggerElm={
-                              <i
-                                className="fas fa-info-circle"
-                                css={detailedUsesIconStyles}
-                                title={`View detailed uses for ${useField.label}`}
-                                onClick={() => {
-                                  setSelectedUseField(useField);
-                                  fetchDetailedUses();
-                                }}
-                              ></i>
+                              <button
+                                aria-label={`View detailed uses for ${useField.label}`}
+                                css={modifiedIconButtonStyles}
+                              >
+                                <i
+                                  aria-hidden
+                                  className="fas fa-info-circle"
+                                  onClick={() => {
+                                    setSelectedUseField(useField);
+                                    fetchDetailedUses();
+                                  }}
+                                ></i>
+                              </button>
                             }
                           >
                             {useAttainments.status === 'fetching' && (
@@ -646,10 +652,7 @@ function WaterbodyInfo({
 
                             {selectedUseField &&
                               useAttainments.status === 'success' && (
-                                <table
-                                  css={modalTableStyles}
-                                  className="table"
-                                >
+                                <table css={modalTableStyles} className="table">
                                   <thead>
                                     <tr>
                                       <th>

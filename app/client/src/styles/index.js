@@ -55,6 +55,15 @@ const downloadLinksStyles = css`
   }
 `;
 
+const iconButtonStyles = css`
+  background: none;
+  border: none;
+  color: inherit;
+  margin: 0;
+  outline: inherit;
+  padding: 0;
+`;
+
 const iconStyles = css`
   margin-right: 5px;
 `;
@@ -143,6 +152,7 @@ export {
   disclaimerStyles,
   downloadLinksStyles,
   fonts,
+  iconButtonStyles,
   iconStyles,
   modifiedTableStyles,
   reactSelectStyles,
