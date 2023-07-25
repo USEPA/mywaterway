@@ -1714,6 +1714,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         });
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         setCellConcentration({
           status: 'failure',
@@ -1794,6 +1795,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const propsPromise = fetcher(propertiesUrl, abortController.signal);
     Promise.all([imagePromise, propsPromise])
       .then(([blob, propsRes]) => {
+        if (blob.type !== 'image/png') {
+          setImageStatus('idle');
+          return;
+        }
         // read the image blob to convert it to base64
         const reader = new FileReader();
         reader.readAsDataURL(blob);

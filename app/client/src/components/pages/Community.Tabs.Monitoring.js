@@ -575,7 +575,7 @@ function CurrentConditionsTab({
           <div css={legendItemsStyles}>
             <span>
               {waterwayIcon({ color: '#6c95ce' })}
-              &nbsp;CyAN Satellite Imagery&nbsp;
+              &nbsp;Harmful Algal Blooms (HABs)&nbsp;
             </span>
             <span>
               {squareIcon({ color: '#fffe00' })}
@@ -619,7 +619,7 @@ function CurrentConditionsTab({
                         cyanWaterbodies.length === 0
                       }
                     />
-                    <span>CyAN Satellite Imagery</span>
+                    <span>Harmful Algal Blooms (HABs)</span>
                   </label>
                 </td>
                 <td>{cyanWaterbodies.length ?? 'N/A'}</td>
@@ -996,10 +996,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       ? displayedLocations.sort((a, b) => {
           if (sortBy === 'totalMeasurements') {
             return b.totalMeasurements - a.totalMeasurements;
-          }
-
-          if (sortBy === 'siteId') {
-            return a.siteId.localeCompare(b.siteId);
           }
 
           return a[sortBy].localeCompare(b[sortBy]);

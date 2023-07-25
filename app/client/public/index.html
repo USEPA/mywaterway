@@ -404,8 +404,18 @@
         });
 
         window.addEventListener('error', function (event) {
+          if (
+            event.message ===
+              'ResizeObserver loop completed with undelivered notifications.' ||
+            event.message === 'ResizeObserver loop limit exceeded'
+          ) {
+            event.stopImmediatePropagation();
+            return;
+          }
           window.logToGa('send', 'exception', {
-            exDescription: `${event.error.message}${event.error.stack}`,
+            exDescription: event.error
+              ? `${event.error.message}${event.error.stack}`
+              : event.message,
             exFatal: true,
           });
 
