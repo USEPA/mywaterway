@@ -301,14 +301,13 @@ function ReactTable({
                   {...row.getRowProps()}
                 >
                   {row.cells.map((cell) => {
-                    const column = cell.column;
                     return (
                       <div
                         className="rt-td"
                         role="gridcell"
                         {...cell.getCellProps()}
                       >
-                        {column.Render ? column.Render(cell) : cell.value}
+                        {cell.render('Cell')}
                       </div>
                     );
                   })}
