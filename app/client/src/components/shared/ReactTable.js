@@ -132,6 +132,10 @@ const containerStyles = css`
       flex-wrap: wrap;
       justify-content: space-between;
       padding: 2px;
+
+      span:first-of-type {
+        margin-bottom: 10px;
+      }
     }
 
     .rt-filter {
@@ -256,7 +260,7 @@ function ReactTable({
                   >
                     <div className="rt-th-content">
                       <div className="rt-col-title">
-                        {column.render('Header')}
+                        <span>{column.render('Header')}</span>
                         <span>
                           {column.isSorted ? (
                             column.isSortedDesc ? (

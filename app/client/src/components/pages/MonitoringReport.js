@@ -61,7 +61,12 @@ import {
   boxHeadingStyles,
   boxSectionStyles,
 } from 'components/shared/Box';
-import { colors, disclaimerStyles, reactSelectStyles } from 'styles';
+import {
+  colors,
+  disclaimerStyles,
+  iconButtonStyles,
+  reactSelectStyles,
+} from 'styles';
 
 /*
 ## Styles
@@ -260,6 +265,10 @@ const infoBoxHeadingStyles = css`
     margin-top: auto;
   }
 
+  & > span {
+    flex-shrink: 0;
+  }
+
   button {
     font-size: 1rem;
   }
@@ -312,6 +321,11 @@ const modifiedDisclaimerStyles = css`
   ${disclaimerStyles};
 
   padding-bottom: 0;
+`;
+
+const modifiedIconButtonStyles = css`
+  ${iconButtonStyles};
+  margin-right: 0.25em;
 `;
 
 const modifiedSplitLayoutColumnsStyles = css`
@@ -868,7 +882,13 @@ async function zoomToStation(layer, mapView, signal) {
 ## Components
 */
 
-function CharacteristicChartSection({ charcName, charcsStatus, records }) {
+function CharacteristicChartSection({
+  charcName,
+  charcsStatus,
+  records,
+  shiftDown,
+  shiftUp,
+}) {
   const [measurements, setMeasurements] = useState(null);
 
   // Selected and available units
@@ -1074,7 +1094,29 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName ? 'Selected Characteristic' : charcName}
-        <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
+        <span>
+          {shiftDown && (
+            <button
+              aria-label="Shift chart down"
+              css={modifiedIconButtonStyles}
+              type="button"
+              onClick={() => shiftDown(charcName)}
+            >
+              <i aria-hidden className="fas fa-arrow-down" />
+            </button>
+          )}
+          {shiftUp && (
+            <button
+              aria-label="Shift chart up"
+              css={modifiedIconButtonStyles}
+              type="button"
+              onClick={() => shiftUp(charcName)}
+            >
+              <i aria-hidden className="fas fa-arrow-up" />
+            </button>
+          )}
+          <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
+        </span>
       </h2>
       <StatusContent
         empty={
@@ -1264,7 +1306,7 @@ function CharacteristicsTableSection({
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [charcs, selected, setSelected]);
+  }, [charcs, selected]);
 
   const onChange = (ev) => {
     if (ev.target.checked) {
@@ -1277,7 +1319,32 @@ function CharacteristicsTableSection({
     }
   };
 
-  const checkboxCell = ({ row, value }) => {
+  const headerCheckbox = () => {
+    const allSelected = selected.length === Object.keys(charcs).length;
+    return (
+      <div>
+        <input
+          checked={allSelected}
+          css={checkboxStyles}
+          onChange={(ev) => {
+            if (!selected.length) {
+              setSelected(Object.values(charcs).map((charc) => charc.name));
+            } else {
+              setSelected([]);
+            }
+          }}
+          onClick={(ev) => ev.stopPropagation()}
+          ref={(input) => {
+            if (input)
+              input.indeterminate = !allSelected && selected.length > 0;
+          }}
+          type="checkbox"
+        />
+      </div>
+    );
+  };
+
+  const rowCheckbox = ({ row, value }) => {
     const charcName = row.values['name'];
     return (
       <div>
@@ -1319,8 +1386,11 @@ function CharacteristicsTableSection({
           status={charcsStatus}
         >
           <FlexRow
-            label="Selected Characteristic(s)"
-            value={selected.join(', ') || 'None'}
+            label={'Selected Characteristic(s)'}
+            value={
+              selected.join(' | ') ||
+              'Select the checkboxes in the table below to plot the measurements of the corresponding characteristics.'
+            }
             styles={flexRowStyles}
           />
           <ReactTable
@@ -1333,15 +1403,14 @@ function CharacteristicsTableSection({
             getColumns={(tableWidth) => {
               const columnWidth = 2 * (tableWidth / 7) - 6;
               const halfColumnWidth = tableWidth / 7 - 6;
-
               return [
                 {
-                  Header: '',
-                  Cell: checkboxCell,
+                  Header: headerCheckbox,
+                  Cell: rowCheckbox,
                   accessor: 'selected',
-                  minWidth: 24,
+                  minWidth: 28,
                   sortType: selectSortBy,
-                  width: 24,
+                  width: 28,
                   filterable: false,
                 },
                 {
@@ -1885,6 +1954,28 @@ function MonitoringReportContent() {
   );
   const [selectedCharcs, setSelectedCharcs] = useState([]);
 
+  const shiftDown = (charcName) => {
+    const position = selectedCharcs.indexOf(charcName);
+    if (position === -1 || position === selectedCharcs.length - 1) return;
+    setSelectedCharcs((prev) => [
+      ...prev.slice(0, position),
+      prev[position + 1],
+      charcName,
+      ...prev.slice(position + 2),
+    ]);
+  };
+
+  const shiftUp = (charcName) => {
+    const position = selectedCharcs.indexOf(charcName);
+    if (position <= 0) return;
+    setSelectedCharcs((prev) => [
+      ...prev.slice(0, position - 1),
+      charcName,
+      prev[position - 1],
+      ...prev.slice(position + 1),
+    ]);
+  };
+
   const [mapWidth, setMapWidth] = useState(0);
   const widthRef = useCallback((node) => {
     if (!node) return;
@@ -1997,12 +2088,16 @@ function MonitoringReportContent() {
                     selected={selectedCharcs}
                     setSelected={setSelectedCharcs}
                   />
-                  {selectedCharcs.map((charc) => (
+                  {selectedCharcs.map((charc, i) => (
                     <CharacteristicChartSection
                       charcName={charc}
                       charcsStatus={characteristicsStatus}
                       key={charc}
                       records={characteristics[charc].records}
+                      shiftDown={
+                        i === selectedCharcs.length - 1 ? undefined : shiftDown
+                      }
+                      shiftUp={i === 0 ? undefined : shiftUp}
                     />
                   ))}
                 </div>
