@@ -1416,7 +1416,7 @@ function CharacteristicsTableSection({
               const halfColumnWidth = tableWidth / 7 - 6;
               return [
                 {
-                  Header: '',
+                  Header: () => <p className="sr-only">Selected</p>,
                   Cell: rowCheckbox,
                   accessor: 'selected',
                   minWidth: 25,
@@ -1964,15 +1964,14 @@ function MonitoringReportContent() {
     siteId,
   );
   const [selectedCharcs, setSelectedCharcs] = useState([]);
-  const [focusedChartIndex, setFocusedChartIndex] = useState(null);
+  const [nextChartIndexTarget, setNextChartIndexTarget] = useState(null);
 
   useEffect(() => {
-    if (focusedChartIndex === null) return;
+    if (nextChartIndexTarget === null) return;
 
-    setFocusedChartIndex(null);
     const charts = Array.from(document.querySelectorAll('.charc-chart'));
-    charts[focusedChartIndex].scrollIntoView({ behavior: 'smooth' });
-  }, [focusedChartIndex]);
+    charts[nextChartIndexTarget].scrollIntoView({ behavior: 'smooth' });
+  }, [nextChartIndexTarget]);
 
   const shiftDown = (charcName) => {
     const position = selectedCharcs.indexOf(charcName);
@@ -1983,7 +1982,7 @@ function MonitoringReportContent() {
       charcName,
       ...prev.slice(position + 2),
     ]);
-    setFocusedChartIndex(position + 1);
+    setNextChartIndexTarget(position + 1);
   };
 
   const shiftUp = (charcName) => {
@@ -1995,7 +1994,7 @@ function MonitoringReportContent() {
       prev[position - 1],
       ...prev.slice(position + 1),
     ]);
-    setFocusedChartIndex(position - 1);
+    setNextChartIndexTarget(position - 1);
   };
 
   const [mapWidth, setMapWidth] = useState(0);
