@@ -1343,6 +1343,8 @@ function CharacteristicsTableSection({
     }
   };
 
+  const selectColumnHeader = () => <p className="sr-only">Selected</p>;
+
   const rowCheckbox = ({ row, value }) => {
     const charcName = row.values['name'];
     return (
@@ -1390,7 +1392,7 @@ function CharacteristicsTableSection({
             <div css={selectedCharacteristicStyles}>
               <ul>
                 {selected.map((charcName) => (
-                  <li>{charcName}</li>
+                  <li key={charcName}>{charcName}</li>
                 ))}
               </ul>
               <button type="button" onClick={() => setSelected([])}>
@@ -1416,7 +1418,7 @@ function CharacteristicsTableSection({
               const halfColumnWidth = tableWidth / 7 - 6;
               return [
                 {
-                  Header: () => <p className="sr-only">Selected</p>,
+                  Header: selectColumnHeader,
                   Cell: rowCheckbox,
                   accessor: 'selected',
                   minWidth: 25,
