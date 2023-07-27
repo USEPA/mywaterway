@@ -2750,7 +2750,7 @@ function MonitoringLocationsContent({
               className="fas fa-file-alt"
               aria-hidden="true"
             />
-            View Monitoring Report
+            View Water Monitoring Report
           </a>
           &nbsp;&nbsp;
           <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
