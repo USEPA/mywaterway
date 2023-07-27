@@ -132,10 +132,6 @@ const containerStyles = css`
       flex-wrap: wrap;
       justify-content: space-between;
       padding: 2px;
-
-      span:first-of-type {
-        margin-bottom: 10px;
-      }
     }
 
     .rt-filter {
