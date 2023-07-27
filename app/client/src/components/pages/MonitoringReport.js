@@ -1973,7 +1973,7 @@ function MonitoringReportContent() {
     charts[nextChartIndexTarget].scrollIntoView({ behavior: 'smooth' });
   }, [nextChartIndexTarget]);
 
-  const shiftDown = (charcName) => {
+  const shiftChartDown = (charcName) => {
     const position = selectedCharcs.indexOf(charcName);
     if (position === -1 || position === selectedCharcs.length - 1) return;
     setSelectedCharcs((prev) => [
@@ -1985,7 +1985,7 @@ function MonitoringReportContent() {
     setNextChartIndexTarget(position + 1);
   };
 
-  const shiftUp = (charcName) => {
+  const shiftChartUp = (charcName) => {
     const position = selectedCharcs.indexOf(charcName);
     if (position <= 0) return;
     setSelectedCharcs((prev) => [
@@ -2116,9 +2116,11 @@ function MonitoringReportContent() {
                       key={charc}
                       records={characteristics[charc].records}
                       shiftDown={
-                        i === selectedCharcs.length - 1 ? undefined : shiftDown
+                        i === selectedCharcs.length - 1
+                          ? undefined
+                          : shiftChartDown
                       }
-                      shiftUp={i === 0 ? undefined : shiftUp}
+                      shiftUp={i === 0 ? undefined : shiftChartUp}
                     />
                   ))}
                 </div>
