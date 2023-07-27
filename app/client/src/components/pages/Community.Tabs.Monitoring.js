@@ -574,7 +574,7 @@ function CurrentConditionsTab({
           <div css={legendItemsStyles}>
             <span>
               {waterwayIcon({ color: '#6c95ce' })}
-              &nbsp;Harmful Algal Blooms (HABs)&nbsp;
+              &nbsp;Potential Harmful Algal Blooms (HABs)&nbsp;
             </span>
             <span>
               {squareIcon({ color: '#fffe00' })}
@@ -618,7 +618,7 @@ function CurrentConditionsTab({
                         cyanWaterbodies.length === 0
                       }
                     />
-                    <span>Harmful Algal Blooms (HABs)</span>
+                    <span>Potential Harmful Algal Blooms (HABs)</span>
                   </label>
                 </td>
                 <td>{cyanWaterbodies.length ?? 'N/A'}</td>

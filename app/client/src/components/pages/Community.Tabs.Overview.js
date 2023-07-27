@@ -416,7 +416,7 @@ function MonitoringAndSensorsTab({
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  // if any of the "USGS Sensors", "Harmful Algal Blooms", or "Past Water Conditions" switches
+  // if any of the "USGS Sensors", "Potential Harmful Algal Blooms", or "Past Water Conditions" switches
   // are turned on, or if all switches are turned off, keep the "Water Monitoring
   // Locations" switch in sync
   useEffect(() => {
@@ -709,7 +709,7 @@ function MonitoringAndSensorsTab({
               </span>
               <span>
                 {waterwayIcon({ color: '#6c95ce' })}
-                &nbsp;Harmful Algal Blooms (HABs)&nbsp;
+                &nbsp;Potential Harmful Algal Blooms (HABs)&nbsp;
               </span>
             </div>
 
@@ -833,7 +833,7 @@ function MonitoringAndSensorsTab({
                         onChange={handleHarmfulAlgalBloomsToggle}
                         disabled={cyanWaterbodies.length === 0}
                       />
-                      <span>Harmful Algal Blooms (HABs)</span>
+                      <span>Potential Harmful Algal Blooms (HABs)</span>
                     </label>
                   </td>
                   <td>{cyanWaterbodies.length}</td>
