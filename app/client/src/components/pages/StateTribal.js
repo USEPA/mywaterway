@@ -198,7 +198,7 @@ function StateTribal() {
   }, [navigate, setErrorType]);
 
   // get tribes from the tribeMapping data
-  const [tribes, setTribes] = useState({ status: 'success', data: [] });
+  const [tribes, setTribes] = useState({ status: 'fetching', data: [] });
   useEffect(() => {
     if (
       organizations.status === 'failure' ||
