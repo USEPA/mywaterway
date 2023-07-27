@@ -325,7 +325,12 @@ const modifiedDisclaimerStyles = css`
 
 const modifiedIconButtonStyles = css`
   ${iconButtonStyles};
-  margin-right: 0.25em;
+  margin-right: 0.5em;
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
 `;
 
 const modifiedSplitLayoutColumnsStyles = css`
@@ -436,13 +441,22 @@ const selectContainerStyles = css`
   }
 `;
 
-const shadedBoxSectionStyles = css`
-  ${boxSectionStyles}
-  background-color: #f0f6f9;
+const selectedCharacteristicStyles = css`
+  button {
+    margin-bottom: 0;
+  }
+
+  ul {
+    padding-bottom: 1em;
+  }
 `;
 
 const sliderContainerStyles = css`
   margin: 1em;
+`;
+
+const statisticsHeadingStyles = css`
+  margin-bottom: 0 !important;
 `;
 
 const treeStyles = (level, styles) => {
@@ -457,7 +471,8 @@ const treeStyles = (level, styles) => {
 ## Helpers
 */
 
-const measurementPrecision = 3;
+const MAX_NUM_CHARTS = 4;
+const MEAUREMENT_PRECISION = 3;
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
@@ -480,7 +495,7 @@ function buildTooltip(unit) {
         <p>{datum.x}:</p>
         <p>
           <em>Measurement</em>:{' '}
-          {`${msmt.value.toFixed(measurementPrecision)} ${unit}`}
+          {`${msmt.value.toFixed(MEAUREMENT_PRECISION)} ${unit}`}
           <br />
           {depth && (
             <>
@@ -1081,40 +1096,40 @@ function CharacteristicChartSection({
 
   let average = '';
   if (mean)
-    average += toFixedFloat(mean, measurementPrecision).toLocaleString('en-US');
+    average += toFixedFloat(mean, MEAUREMENT_PRECISION).toLocaleString('en-US');
   if (stdDev)
     average += ` ${String.fromCharCode(177)} ${toFixedFloat(
       stdDev,
-      measurementPrecision,
+      MEAUREMENT_PRECISION,
     ).toLocaleString()}`;
   average += ` ${displayUnit}`;
 
+  const [statisticsExpanded, setStatisticsExpanded] = useState(true);
+
   return (
-    <div css={modifiedBoxStyles}>
+    <div className="charc-chart" css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName ? 'Selected Characteristic' : charcName}
         <span>
-          {shiftDown && (
-            <button
-              aria-label="Shift chart down"
-              css={modifiedIconButtonStyles}
-              type="button"
-              onClick={() => shiftDown(charcName)}
-            >
-              <i aria-hidden className="fas fa-arrow-down" />
-            </button>
-          )}
-          {shiftUp && (
-            <button
-              aria-label="Shift chart up"
-              css={modifiedIconButtonStyles}
-              type="button"
-              onClick={() => shiftUp(charcName)}
-            >
-              <i aria-hidden className="fas fa-arrow-up" />
-            </button>
-          )}
+          <button
+            aria-label="Shift chart down"
+            css={modifiedIconButtonStyles}
+            disabled={!shiftDown}
+            type="button"
+            onClick={() => shiftDown(charcName)}
+          >
+            <i aria-hidden className="fas fa-arrow-down" />
+          </button>
+          <button
+            aria-label="Shift chart up"
+            css={modifiedIconButtonStyles}
+            disabled={!shiftUp}
+            type="button"
+            onClick={() => shiftUp(charcName)}
+          >
+            <i aria-hidden className="fas fa-arrow-up" />
+          </button>
           <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
         </span>
       </h2>
@@ -1233,48 +1248,57 @@ function CharacteristicChartSection({
               unit={displayUnit}
             />
             {chartData?.length > 0 && (
-              <div css={shadedBoxSectionStyles}>
-                <BoxContent
-                  rows={[
-                    {
-                      label: 'Selected Date Range',
-                      value:
-                        `${new Date(domain[0]).toLocaleDateString(
-                          'en-us',
-                          dateOptions,
-                        )}` +
-                        ` - ${new Date(domain[1]).toLocaleDateString(
-                          'en-us',
-                          dateOptions,
-                        )}`,
-                    },
-                    {
-                      label: 'Number of Measurements Shown',
-                      value: msmtCount.toLocaleString(),
-                    },
-                    {
-                      label: 'Average of Values',
-                      value: average,
-                    },
-                    {
-                      label: 'Median Value',
-                      value: `${toFixedFloat(
-                        median,
-                        measurementPrecision,
-                      ).toLocaleString()} ${displayUnit}`,
-                    },
-                    {
-                      label: 'Minimum Value',
-                      value: `${range[0].toLocaleString()} ${displayUnit}`,
-                    },
-                    {
-                      label: 'Maximum Value',
-                      value: `${range[1].toLocaleString()} ${displayUnit}`,
-                    },
-                  ]}
-                  styles={boxContentStyles}
-                />
-              </div>
+              <AccordionItem
+                allExpanded={true}
+                onChange={setStatisticsExpanded}
+                status={statisticsExpanded ? 'highlighted' : null}
+                title={
+                  <h3 css={statisticsHeadingStyles}>Measurement Statistics</h3>
+                }
+              >
+                <div css={boxSectionStyles}>
+                  <BoxContent
+                    rows={[
+                      {
+                        label: 'Selected Date Range',
+                        value:
+                          `${new Date(domain[0]).toLocaleDateString(
+                            'en-us',
+                            dateOptions,
+                          )}` +
+                          ` - ${new Date(domain[1]).toLocaleDateString(
+                            'en-us',
+                            dateOptions,
+                          )}`,
+                      },
+                      {
+                        label: 'Number of Measurements Shown',
+                        value: msmtCount.toLocaleString(),
+                      },
+                      {
+                        label: 'Average of Values',
+                        value: average,
+                      },
+                      {
+                        label: 'Median Value',
+                        value: `${toFixedFloat(
+                          median,
+                          MEAUREMENT_PRECISION,
+                        ).toLocaleString()} ${displayUnit}`,
+                      },
+                      {
+                        label: 'Minimum Value',
+                        value: `${range[0].toLocaleString()} ${displayUnit}`,
+                      },
+                      {
+                        label: 'Maximum Value',
+                        value: `${range[1].toLocaleString()} ${displayUnit}`,
+                      },
+                    ]}
+                    styles={boxContentStyles}
+                  />
+                </div>
+              </AccordionItem>
             )}
           </>
         )}
@@ -1319,31 +1343,6 @@ function CharacteristicsTableSection({
     }
   };
 
-  const headerCheckbox = () => {
-    const allSelected = selected.length === Object.keys(charcs).length;
-    return (
-      <div>
-        <input
-          checked={allSelected}
-          css={checkboxStyles}
-          onChange={(ev) => {
-            if (!selected.length) {
-              setSelected(Object.values(charcs).map((charc) => charc.name));
-            } else {
-              setSelected([]);
-            }
-          }}
-          onClick={(ev) => ev.stopPropagation()}
-          ref={(input) => {
-            if (input)
-              input.indeterminate = !allSelected && selected.length > 0;
-          }}
-          type="checkbox"
-        />
-      </div>
-    );
-  };
-
   const rowCheckbox = ({ row, value }) => {
     const charcName = row.values['name'];
     return (
@@ -1351,6 +1350,7 @@ function CharacteristicsTableSection({
         <input
           checked={value}
           css={checkboxStyles}
+          disabled={!value && selected.length >= MAX_NUM_CHARTS}
           id={charcName}
           onChange={onChange}
           type="checkbox"
@@ -1385,14 +1385,25 @@ function CharacteristicsTableSection({
           pending={<LoadingSpinner />}
           status={charcsStatus}
         >
-          <FlexRow
-            label={'Selected Characteristic(s)'}
-            value={
-              selected.join(' | ') ||
-              'Select the checkboxes in the table below to plot the measurements of the corresponding characteristics.'
-            }
-            styles={flexRowStyles}
-          />
+          <h3>Selected Characteristic(s)</h3>
+          {selected.length ? (
+            <div css={selectedCharacteristicStyles}>
+              <ul>
+                {selected.map((charcName) => (
+                  <li>{charcName}</li>
+                ))}
+              </ul>
+              <button type="button" onClick={() => setSelected([])}>
+                Clear Selected
+              </button>
+            </div>
+          ) : (
+            <p>
+              Select the checkboxes in the table below to plot the measurements
+              of the corresponding characteristics. Up to {MAX_NUM_CHARTS} plots
+              can be displayed at one time.
+            </p>
+          )}
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
@@ -1405,12 +1416,12 @@ function CharacteristicsTableSection({
               const halfColumnWidth = tableWidth / 7 - 6;
               return [
                 {
-                  Header: headerCheckbox,
+                  Header: '',
                   Cell: rowCheckbox,
                   accessor: 'selected',
-                  minWidth: 28,
+                  minWidth: 25,
                   sortType: selectSortBy,
-                  width: 28,
+                  width: 25,
                   filterable: false,
                 },
                 {
@@ -1953,6 +1964,15 @@ function MonitoringReportContent() {
     siteId,
   );
   const [selectedCharcs, setSelectedCharcs] = useState([]);
+  const [focusedChartIndex, setFocusedChartIndex] = useState(null);
+
+  useEffect(() => {
+    if (focusedChartIndex === null) return;
+
+    setFocusedChartIndex(null);
+    const charts = Array.from(document.querySelectorAll('.charc-chart'));
+    charts[focusedChartIndex].scrollIntoView({ behavior: 'smooth' });
+  }, [focusedChartIndex]);
 
   const shiftDown = (charcName) => {
     const position = selectedCharcs.indexOf(charcName);
@@ -1963,6 +1983,7 @@ function MonitoringReportContent() {
       charcName,
       ...prev.slice(position + 2),
     ]);
+    setFocusedChartIndex(position + 1);
   };
 
   const shiftUp = (charcName) => {
@@ -1974,6 +1995,7 @@ function MonitoringReportContent() {
       prev[position - 1],
       ...prev.slice(position + 1),
     ]);
+    setFocusedChartIndex(position - 1);
   };
 
   const [mapWidth, setMapWidth] = useState(0);
