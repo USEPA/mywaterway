@@ -555,11 +555,10 @@ function CurrentConditionsTab({
                     Areas highlighted light blue are the lakes, reservoirs, and
                     other large waterbodies where CyAN satellite imagery data is
                     available. Daily data are a snapshot of{' '}
-                    <GlossaryTerm term="Cyanobacteria">
-                      cyanobacteria
+                    <GlossaryTerm term="Blue-Green Algae">
+                      blue-green algae
                     </GlossaryTerm>{' '}
-                    (sometimes referred to as blue-green algae) at the time of
-                    detection.
+                    at the time of detection.
                   </span>
 
                   <span css={showLessMoreStyles}>
