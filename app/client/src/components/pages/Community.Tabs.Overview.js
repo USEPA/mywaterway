@@ -1253,15 +1253,11 @@ function PermittedDischargersTab({
                                 }
                                 ariaLabelledBy={componentLabelId}
                               />
-                              {componentLabel === 'Not Specified' ? (
-                                <span id={componentLabelId}>Not Specified</span>
-                              ) : (
-                                <span id={componentLabelId}>
-                                  <GlossaryTerm term={componentLabel}>
-                                    {componentLabel}
-                                  </GlossaryTerm>
-                                </span>
-                              )}
+                              <span id={componentLabelId}>
+                                <GlossaryTerm term={componentLabel}>
+                                  {componentLabel}
+                                </GlossaryTerm>
+                              </span>
                             </div>
                           </td>
                           <td>{component.dischargers.length}</td>
