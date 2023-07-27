@@ -736,8 +736,8 @@ function MonitoringAndSensorsTab({
                     </span>
                     <span css={showLessMoreStyles}>
                       Areas highlighted light blue are the lakes, reservoirs,
-                      and other large waterbodies where CyAN satellite imagery
-                      data is available. Daily data are a snapshot of{' '}
+                      and other large waterbodies where potential harmful algal
+                      bloom data is available. Daily data are a snapshot of{' '}
                       <GlossaryTerm term="Blue-Green Algae">
                         blue-green algae
                       </GlossaryTerm>{' '}

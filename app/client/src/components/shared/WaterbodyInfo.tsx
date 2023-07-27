@@ -1577,13 +1577,15 @@ function CyanDailyContent({
   if (!data) {
     return (
       <p css={marginBoxStyles(infoBoxStyles)}>
-        There is no CyAN data available for the selected date.
+        There is no potential harmful algal bloom data available for the
+        selected date.
       </p>
     );
   } else if (!sum(...data.measurements)) {
     return (
       <p css={marginBoxStyles(infoBoxStyles)}>
-        There is no measureable CyAN data available for the selected date.
+        There is no measureable potential harmful algal bloom data available for
+        the selected date.
       </p>
     );
   } else {
@@ -2178,8 +2180,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
                 {imageStatus === 'failure' && (
                   <p css={marginBoxStyles(errorBoxStyles)}>
-                    There was an error retrieving the CyAN satellite image for
-                    the selected day.
+                    There was an error retrieving the potential harmful algal
+                    bloom satellite imagery for the selected day.
                   </p>
                 )}
 
@@ -2191,8 +2193,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               </>
             ) : (
               <p css={marginBoxStyles(infoBoxStyles)}>
-                There is no measureable CyAN data from the past week for the{' '}
-                {attributes.GNIS_NAME} waterbody.
+                There is no measureable potential harmful algal bloom data from
+                the past week for the {attributes.GNIS_NAME} waterbody.
               </p>
             )}
           </>
