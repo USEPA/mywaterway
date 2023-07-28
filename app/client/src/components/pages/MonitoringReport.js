@@ -61,7 +61,12 @@ import {
   boxHeadingStyles,
   boxSectionStyles,
 } from 'components/shared/Box';
-import { colors, disclaimerStyles, reactSelectStyles } from 'styles';
+import {
+  colors,
+  disclaimerStyles,
+  iconButtonStyles,
+  reactSelectStyles,
+} from 'styles';
 
 /*
 ## Styles
@@ -116,10 +121,6 @@ const boxContentStyles = css`
   }
 `;
 
-const sectionStyles = css`
-  padding: 0.4375rem 0.875rem;
-`;
-
 const charcsTableStyles = css`
   ${boxSectionStyles}
   height: 50vh;
@@ -148,6 +149,10 @@ const chartTooltipStyles = css`
   }
 `;
 
+const checkboxStyles = css`
+  transform: scale(1.2);
+`;
+
 const checkboxInputStyles = css`
   display: flex;
   gap: 1em;
@@ -160,7 +165,7 @@ const checkboxInputStyles = css`
   }
 
   input[type='checkbox'] {
-    transform: scale(1.2);
+    ${checkboxStyles};
   }
 `;
 
@@ -260,6 +265,10 @@ const infoBoxHeadingStyles = css`
     margin-top: auto;
   }
 
+  & > span {
+    flex-shrink: 0;
+  }
+
   button {
     font-size: 1rem;
   }
@@ -314,6 +323,16 @@ const modifiedDisclaimerStyles = css`
   padding-bottom: 0;
 `;
 
+const modifiedIconButtonStyles = css`
+  ${iconButtonStyles};
+  margin-right: 0.5em;
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+`;
+
 const modifiedSplitLayoutColumnsStyles = css`
   ${splitLayoutColumnsStyles};
 
@@ -362,13 +381,6 @@ const radioStyles = css`
   }
 `;
 
-const radioTableStyles = css`
-  ${radioStyles}
-  display: flex;
-  height: 100%;
-  width: 100%;
-`;
-
 const rightColumnStyles = css`
   ${splitLayoutColumnStyles}
 
@@ -383,6 +395,10 @@ const screenLabelStyles = css`
   font-size: 0.875rem;
   font-weight: bold;
   margin-bottom: 0.125rem;
+`;
+
+const sectionStyles = css`
+  padding: 0.4375rem 0.875rem;
 `;
 
 const selectContainerStyles = css`
@@ -425,13 +441,22 @@ const selectContainerStyles = css`
   }
 `;
 
-const shadedBoxSectionStyles = css`
-  ${boxSectionStyles}
-  background-color: #f0f6f9;
+const selectedCharacteristicStyles = css`
+  button {
+    margin-bottom: 0;
+  }
+
+  ul {
+    padding-bottom: 1em;
+  }
 `;
 
 const sliderContainerStyles = css`
   margin: 1em;
+`;
+
+const statisticsHeadingStyles = css`
+  margin-bottom: 0 !important;
 `;
 
 const treeStyles = (level, styles) => {
@@ -446,7 +471,8 @@ const treeStyles = (level, styles) => {
 ## Helpers
 */
 
-const measurementPrecision = 3;
+const MAX_NUM_CHARTS = 4;
+const MEAUREMENT_PRECISION = 3;
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
@@ -469,7 +495,7 @@ function buildTooltip(unit) {
         <p>{datum.x}:</p>
         <p>
           <em>Measurement</em>:{' '}
-          {`${msmt.value.toFixed(measurementPrecision)} ${unit}`}
+          {`${msmt.value.toFixed(MEAUREMENT_PRECISION)} ${unit}`}
           <br />
           {depth && (
             <>
@@ -871,7 +897,13 @@ async function zoomToStation(layer, mapView, signal) {
 ## Components
 */
 
-function CharacteristicChartSection({ charcName, charcsStatus, records }) {
+function CharacteristicChartSection({
+  charcName,
+  charcsStatus,
+  records,
+  shiftDown,
+  shiftUp,
+}) {
   const [measurements, setMeasurements] = useState(null);
 
   // Selected and available units
@@ -1064,20 +1096,42 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
 
   let average = '';
   if (mean)
-    average += toFixedFloat(mean, measurementPrecision).toLocaleString('en-US');
+    average += toFixedFloat(mean, MEAUREMENT_PRECISION).toLocaleString('en-US');
   if (stdDev)
     average += ` ${String.fromCharCode(177)} ${toFixedFloat(
       stdDev,
-      measurementPrecision,
+      MEAUREMENT_PRECISION,
     ).toLocaleString()}`;
   average += ` ${displayUnit}`;
 
+  const [statisticsExpanded, setStatisticsExpanded] = useState(true);
+
   return (
-    <div css={modifiedBoxStyles}>
+    <div className="charc-chart" css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName ? 'Selected Characteristic' : charcName}
-        <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
+        <span>
+          <button
+            aria-label="Shift chart down"
+            css={modifiedIconButtonStyles}
+            disabled={!shiftDown}
+            type="button"
+            onClick={() => shiftDown(charcName)}
+          >
+            <i aria-hidden className="fas fa-arrow-down" />
+          </button>
+          <button
+            aria-label="Shift chart up"
+            css={modifiedIconButtonStyles}
+            disabled={!shiftUp}
+            type="button"
+            onClick={() => shiftUp(charcName)}
+          >
+            <i aria-hidden className="fas fa-arrow-up" />
+          </button>
+          <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
+        </span>
       </h2>
       <StatusContent
         empty={
@@ -1110,7 +1164,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 <Select
                   aria-label="Unit"
                   className="select"
-                  inputId={'unit'}
+                  inputId={`${charcName}-unit`}
                   isSearchable={false}
                   options={units}
                   value={units.find((u) => u.value === unit)}
@@ -1130,7 +1184,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 <Select
                   aria-label="Sample Fraction"
                   className="select"
-                  inputId={'sample-fraction'}
+                  inputId={`${charcName}-sample-fraction`}
                   isSearchable={false}
                   options={fractions}
                   value={fractions.find((f) => f.value === fraction)}
@@ -1147,7 +1201,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 <Select
                   aria-label="Media Name"
                   className="select"
-                  inputId={'media-name'}
+                  inputId={`${charcName}-media-name`}
                   isSearchable={false}
                   options={media}
                   value={media.find((f) => f.value === medium)}
@@ -1165,22 +1219,22 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                   <span>
                     <input
                       checked={scaleType === 'linear'}
-                      id={'linear'}
+                      id={`${charcName}-linear`}
                       onChange={(e) => setScaleType(e.target.value)}
                       type="radio"
-                      value={'linear'}
+                      value="linear"
                     />
-                    <label htmlFor={'linear'}>Linear</label>
+                    <label htmlFor={`${charcName}-linear`}>Linear</label>
                   </span>
                   <span>
                     <input
                       checked={scaleType === 'log'}
-                      id={'log'}
+                      id={`${charcName}-log`}
                       onChange={(e) => setScaleType(e.target.value)}
                       type="radio"
-                      value={'log'}
+                      value="log"
                     />
-                    <label htmlFor={'log'}>Log</label>
+                    <label htmlFor={`${charcName}-log`}>Log</label>
                   </span>
                 </span>
               </span>
@@ -1194,48 +1248,57 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               unit={displayUnit}
             />
             {chartData?.length > 0 && (
-              <div css={shadedBoxSectionStyles}>
-                <BoxContent
-                  rows={[
-                    {
-                      label: 'Selected Date Range',
-                      value:
-                        `${new Date(domain[0]).toLocaleDateString(
-                          'en-us',
-                          dateOptions,
-                        )}` +
-                        ` - ${new Date(domain[1]).toLocaleDateString(
-                          'en-us',
-                          dateOptions,
-                        )}`,
-                    },
-                    {
-                      label: 'Number of Measurements Shown',
-                      value: msmtCount.toLocaleString(),
-                    },
-                    {
-                      label: 'Average of Values',
-                      value: average,
-                    },
-                    {
-                      label: 'Median Value',
-                      value: `${toFixedFloat(
-                        median,
-                        measurementPrecision,
-                      ).toLocaleString()} ${displayUnit}`,
-                    },
-                    {
-                      label: 'Minimum Value',
-                      value: `${range[0].toLocaleString()} ${displayUnit}`,
-                    },
-                    {
-                      label: 'Maximum Value',
-                      value: `${range[1].toLocaleString()} ${displayUnit}`,
-                    },
-                  ]}
-                  styles={boxContentStyles}
-                />
-              </div>
+              <AccordionItem
+                allExpanded={true}
+                onChange={setStatisticsExpanded}
+                status={statisticsExpanded ? 'highlighted' : null}
+                title={
+                  <h3 css={statisticsHeadingStyles}>Measurement Statistics</h3>
+                }
+              >
+                <div css={boxSectionStyles}>
+                  <BoxContent
+                    rows={[
+                      {
+                        label: 'Selected Date Range',
+                        value:
+                          `${new Date(domain[0]).toLocaleDateString(
+                            'en-us',
+                            dateOptions,
+                          )}` +
+                          ` - ${new Date(domain[1]).toLocaleDateString(
+                            'en-us',
+                            dateOptions,
+                          )}`,
+                      },
+                      {
+                        label: 'Number of Measurements Shown',
+                        value: msmtCount.toLocaleString(),
+                      },
+                      {
+                        label: 'Average of Values',
+                        value: average,
+                      },
+                      {
+                        label: 'Median Value',
+                        value: `${toFixedFloat(
+                          median,
+                          MEAUREMENT_PRECISION,
+                        ).toLocaleString()} ${displayUnit}`,
+                      },
+                      {
+                        label: 'Minimum Value',
+                        value: `${range[0].toLocaleString()} ${displayUnit}`,
+                      },
+                      {
+                        label: 'Maximum Value',
+                        value: `${range[1].toLocaleString()} ${displayUnit}`,
+                      },
+                    ]}
+                    styles={boxContentStyles}
+                  />
+                </div>
+              </AccordionItem>
             )}
           </>
         )}
@@ -1253,20 +1316,6 @@ function CharacteristicsTableSection({
   const tableData = useMemo(() => {
     return Object.values(charcs)
       .map((charc) => {
-        const selector = (
-          <div css={radioTableStyles}>
-            <input
-              checked={selected === charc.name}
-              id={charc.name}
-              onChange={(e) => setSelected(e.target.value)}
-              type="radio"
-              value={charc.name}
-            />
-            <label htmlFor={charc.name}>
-              <span className="sr-only">{charc.name}</span>
-            </label>
-          </div>
-        );
         const measurementCount = charc.records.reduce((a, b) => {
           if (Number.isFinite(b.measurement)) return a + 1;
           return a;
@@ -1276,12 +1325,49 @@ function CharacteristicsTableSection({
           measurementCount: measurementCount.toLocaleString(),
           name: charc.name,
           resultCount: charc.count.toLocaleString(),
-          select: selector,
+          selected: selected.includes(charc.name),
           group: charc.group,
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [charcs, selected, setSelected]);
+  }, [charcs, selected]);
+
+  const onChange = (ev) => {
+    if (ev.target.checked) {
+      setSelected((prev) => [ev.target.value, ...prev]);
+    } else {
+      setSelected((prev) => {
+        const i = prev.indexOf(ev.target.value);
+        return [...prev.slice(0, i), ...prev.slice(i + 1)];
+      });
+    }
+  };
+
+  const selectColumnHeader = () => <p className="sr-only">Selected</p>;
+
+  const rowCheckbox = ({ row, value }) => {
+    const charcName = row.values['name'];
+    return (
+      <div>
+        <input
+          checked={value}
+          css={checkboxStyles}
+          disabled={!value && selected.length >= MAX_NUM_CHARTS}
+          id={charcName}
+          onChange={onChange}
+          type="checkbox"
+          value={charcName}
+        />
+        <label htmlFor={charcName}>
+          <span className="sr-only">Select {charcName}</span>
+        </label>
+      </div>
+    );
+  };
+
+  const selectSortBy = useCallback((rowA, _rowB, colId) => {
+    return rowA.values[colId] ? -1 : 1;
+  }, []);
 
   return (
     <div css={boxStyles}>
@@ -1301,11 +1387,25 @@ function CharacteristicsTableSection({
           pending={<LoadingSpinner />}
           status={charcsStatus}
         >
-          <FlexRow
-            label="Selected Characteristic"
-            value={selected ?? 'None'}
-            styles={flexRowStyles}
-          />
+          <h3>Selected Characteristic(s)</h3>
+          {selected.length ? (
+            <div css={selectedCharacteristicStyles}>
+              <ul>
+                {selected.map((charcName) => (
+                  <li key={charcName}>{charcName}</li>
+                ))}
+              </ul>
+              <button type="button" onClick={() => setSelected([])}>
+                Clear Selected
+              </button>
+            </div>
+          ) : (
+            <p>
+              Select the checkboxes in the table below to plot the measurements
+              of the corresponding characteristics. Up to {MAX_NUM_CHARTS} plots
+              can be displayed at one time.
+            </p>
+          )}
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
@@ -1316,13 +1416,14 @@ function CharacteristicsTableSection({
             getColumns={(tableWidth) => {
               const columnWidth = 2 * (tableWidth / 7) - 6;
               const halfColumnWidth = tableWidth / 7 - 6;
-
               return [
                 {
-                  Header: '',
-                  accessor: 'select',
-                  minWidth: 24,
-                  width: 24,
+                  Header: selectColumnHeader,
+                  Cell: rowCheckbox,
+                  accessor: 'selected',
+                  minWidth: 25,
+                  sortType: selectSortBy,
+                  width: 25,
                   filterable: false,
                 },
                 {
@@ -1864,7 +1965,39 @@ function MonitoringReportContent() {
     orgId,
     siteId,
   );
-  const [selectedCharc, setSelectedCharc] = useState(null);
+  const [selectedCharcs, setSelectedCharcs] = useState([]);
+  const [nextChartIndexTarget, setNextChartIndexTarget] = useState(null);
+
+  useEffect(() => {
+    if (nextChartIndexTarget === null) return;
+
+    const charts = Array.from(document.querySelectorAll('.charc-chart'));
+    charts[nextChartIndexTarget].scrollIntoView({ behavior: 'smooth' });
+  }, [nextChartIndexTarget]);
+
+  const shiftChartDown = (charcName) => {
+    const position = selectedCharcs.indexOf(charcName);
+    if (position === -1 || position === selectedCharcs.length - 1) return;
+    setSelectedCharcs((prev) => [
+      ...prev.slice(0, position),
+      prev[position + 1],
+      charcName,
+      ...prev.slice(position + 2),
+    ]);
+    setNextChartIndexTarget(position + 1);
+  };
+
+  const shiftChartUp = (charcName) => {
+    const position = selectedCharcs.indexOf(charcName);
+    if (position <= 0) return;
+    setSelectedCharcs((prev) => [
+      ...prev.slice(0, position - 1),
+      charcName,
+      prev[position - 1],
+      ...prev.slice(position + 1),
+    ]);
+    setNextChartIndexTarget(position - 1);
+  };
 
   const [mapWidth, setMapWidth] = useState(0);
   const widthRef = useCallback((node) => {
@@ -1975,18 +2108,23 @@ function MonitoringReportContent() {
                   <CharacteristicsTableSection
                     charcs={characteristics}
                     charcsStatus={characteristicsStatus}
-                    selected={selectedCharc}
-                    setSelected={setSelectedCharc}
+                    selected={selectedCharcs}
+                    setSelected={setSelectedCharcs}
                   />
-                  <CharacteristicChartSection
-                    charcName={selectedCharc}
-                    charcsStatus={characteristicsStatus}
-                    records={
-                      selectedCharc
-                        ? characteristics[selectedCharc].records
-                        : null
-                    }
-                  />
+                  {selectedCharcs.map((charc, i) => (
+                    <CharacteristicChartSection
+                      charcName={charc}
+                      charcsStatus={characteristicsStatus}
+                      key={charc}
+                      records={characteristics[charc].records}
+                      shiftDown={
+                        i === selectedCharcs.length - 1
+                          ? undefined
+                          : shiftChartDown
+                      }
+                      shiftUp={i === 0 ? undefined : shiftChartUp}
+                    />
+                  ))}
                 </div>
               </div>
             );
