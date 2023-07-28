@@ -613,6 +613,7 @@ function WaterbodyInfo({
                   <tr>
                     <th>What is this water used for?</th>
                     <th>Condition</th>
+                    <th>Detailed Uses</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -626,6 +627,29 @@ function WaterbodyInfo({
                     return (
                       <tr key={useField.value}>
                         <td>
+                          <GlossaryTerm term={useField.term}>
+                            {useField.label}
+                          </GlossaryTerm>
+                        </td>
+                        <td>
+                          <GlossaryTerm
+                            term={
+                              value === 'Good'
+                                ? 'Good Waters'
+                                : value === 'Impaired' ||
+                                  value === 'Impaired (Issues Identified)'
+                                ? 'Impaired Waters'
+                                : 'Condition Unknown'
+                            }
+                          >
+                            {value}
+                          </GlossaryTerm>
+                        </td>
+                        <td
+                          css={css`
+                            text-align: center;
+                          `}
+                        >
                           <Modal
                             label={`Detailed Uses for ${useField.label}`}
                             maxWidth="35rem"
@@ -634,14 +658,14 @@ function WaterbodyInfo({
                               <button
                                 aria-label={`View detailed uses for ${useField.label}`}
                                 css={modifiedIconButtonStyles}
+                                onClick={() => {
+                                  setSelectedUseField(useField);
+                                  fetchDetailedUses();
+                                }}
                               >
                                 <i
                                   aria-hidden
                                   className="fas fa-info-circle"
-                                  onClick={() => {
-                                    setSelectedUseField(useField);
-                                    fetchDetailedUses();
-                                  }}
                                 ></i>
                               </button>
                             }
@@ -707,27 +731,6 @@ function WaterbodyInfo({
                                 </table>
                               )}
                           </Modal>
-                          <GlossaryTerm term={useField.term}>
-                            {useField.label}
-                          </GlossaryTerm>
-                        </td>
-                        <td
-                          css={css`
-                            width: 165px;
-                          `}
-                        >
-                          <GlossaryTerm
-                            term={
-                              value === 'Good'
-                                ? 'Good Waters'
-                                : value === 'Impaired' ||
-                                  value === 'Impaired (Issues Identified)'
-                                ? 'Impaired Waters'
-                                : 'Condition Unknown'
-                            }
-                          >
-                            {value}
-                          </GlossaryTerm>
                         </td>
                       </tr>
                     );
