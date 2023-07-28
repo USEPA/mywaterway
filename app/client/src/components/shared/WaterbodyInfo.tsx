@@ -174,17 +174,17 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-const measurementTableStyles = css`
+const measurementTableStyles = (align: string = 'right') => css`
   ${modifiedTableStyles};
 
   th:last-of-type,
   td:last-of-type {
-    text-align: right;
+    text-align: ${align};
   }
 `;
 
 const modalTableStyles = css`
-  ${measurementTableStyles};
+  ${measurementTableStyles()};
   margin-bottom: 0;
 
   th {
@@ -608,7 +608,7 @@ function WaterbodyInfo({
             )}
 
             {applicableFields.length > 0 && (
-              <table css={measurementTableStyles} className="table">
+              <table css={measurementTableStyles('center')} className="table">
                 <thead>
                   <tr>
                     <th>What is this water used for?</th>
@@ -645,11 +645,7 @@ function WaterbodyInfo({
                             {value}
                           </GlossaryTerm>
                         </td>
-                        <td
-                          css={css`
-                            text-align: center;
-                          `}
-                        >
+                        <td>
                           <Modal
                             label={`Detailed Uses for ${useField.label}`}
                             maxWidth="35rem"
@@ -657,6 +653,7 @@ function WaterbodyInfo({
                             triggerElm={
                               <button
                                 aria-label={`View detailed uses for ${useField.label}`}
+                                title={`View detailed uses for ${useField.label}`}
                                 css={modifiedIconButtonStyles}
                                 onClick={() => {
                                   setSelectedUseField(useField);
@@ -2615,7 +2612,7 @@ function MonitoringLocationsContent({
       {Object.keys(groups).length > 0 && (
         <table
           aria-label="Characteristic Groups Summary"
-          css={measurementTableStyles}
+          css={measurementTableStyles()}
           className="table"
         >
           <thead>
@@ -2874,7 +2871,7 @@ function UsgsStreamgagesContent({
         />
       </div>
 
-      <table css={measurementTableStyles} className="table">
+      <table css={measurementTableStyles()} className="table">
         <thead>
           <tr>
             <th>Category</th>
