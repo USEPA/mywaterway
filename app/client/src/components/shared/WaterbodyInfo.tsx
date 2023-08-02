@@ -2157,8 +2157,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     <HelpTooltip
                       label={
                         <>
-                          Adjust the slider handle to view the day's CyAN
-                          satellite imagery on the map.
+                          Adjust the slider handle to view the day's blue-green
+                          algae satellite imagery on the map.
                           <br />
                           Data for the previous day typically becomes available
                           between 9 - 11am EST.
