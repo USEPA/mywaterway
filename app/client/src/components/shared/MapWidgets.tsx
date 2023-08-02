@@ -916,14 +916,14 @@ function MapWidgets({
     fullScreenWidgetCreated,
   ]);
 
-  // create download widget
-  const downloadWidget = useMemo(() => {
-    if (!view || services.status !== 'success') return null;
-    const container = document.createElement('div');
+  // create the download widget
+  useEffect(() => {
+    if (!view || services.status !== 'success') return;
 
+    const container = document.createElement('div');
     render(<DownloadWidget services={services} view={view} />, container);
 
-    return new Expand({
+    const downloadWidget = new Expand({
       expandIconClass: 'esri-icon-download',
       expandTooltip: 'Open Download Widget',
       collapseTooltip: 'Close Download Widget',
@@ -932,16 +932,13 @@ function MapWidgets({
       autoCollapse: true,
       content: container,
     });
-  }, [services, view]);
 
-  // add the download widget
-  useEffect(() => {
-    if (downloadWidget)
-      view?.ui.add(downloadWidget, { position: 'top-right', index: 3 });
+    view?.ui.add(downloadWidget, { position: 'top-right', index: 3 });
+
     return function cleanup() {
       if (downloadWidget) view?.ui.remove(downloadWidget);
     };
-  }, [downloadWidget, view]);
+  }, [services, view]);
 
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on Tribal page or valid Community page location
@@ -2032,8 +2029,6 @@ type DownloadWidgetProps = {
   view: __esri.MapView;
 };
 
-let enableScaleGlobal = false;
-
 function DownloadWidget({ services, view }: DownloadWidgetProps) {
   const formatOptions: FormatOptionType[] = [
     { value: 'pdf', label: 'PDF', extension: 'pdf' },
@@ -2075,33 +2070,19 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
   const [height, setHeight] = useState(1100);
   const [width, setWidth] = useState(800);
 
-  // Syncs enableScaleGlobal to the react state version of enableScale.
-  // This is a workaround for esri reactiveUtils not getting updated state.
-  useEffect(() => {
-    enableScaleGlobal = enableScale;
-  }, [enableScale]);
-
   // Initializes a watcher to sync the view's scale.
-  const [scaleWatcherInitialized, setScaleWatcherInitialized] = useState(false);
   useEffect(() => {
-    if (scaleWatcherInitialized) return;
-
-    reactiveUtils.watch(
+    const scaleHandle = reactiveUtils.watch(
       () => view.scale,
       () => {
-        if (!enableScaleGlobal) setScale(view.scale);
+        if (!enableScale) setScale(view.scale);
       },
+      { initial: true },
     );
-
-    setScaleWatcherInitialized(true);
-  }, [enableScale, scaleWatcherInitialized, view]);
-
-  useEffect(() => {
     return function cleanup() {
-      setStatus('idle');
-      setErrorMessage('');
+      scaleHandle.remove();
     };
-  }, []);
+  }, [enableScale, view]);
 
   return (
     <div
