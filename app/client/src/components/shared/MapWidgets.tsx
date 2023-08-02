@@ -2148,7 +2148,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       {includeLegend && (
         <div>
           <label>
-            Page setup:
+            Page setup
             <Select
               menuPosition="fixed"
               isSearchable={false}
