@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { createGlobalStyle } from 'styled-components/macro';
-import { curveNatural } from '@visx/curve';
 import {
   Axis,
   buildChartTheme,
@@ -88,7 +87,7 @@ type Props = {
   yTitle?: string;
 };
 
-function ScatterPlot({
+function VisxGraph({
   buildTooltip,
   chartType = 'scatter',
   colors,
@@ -190,7 +189,6 @@ function ScatterPlot({
             />
           ) : (
             <LineSeries
-              curve={curveNatural}
               key={dataKey}
               data={data}
               dataKey={dataKey}
@@ -210,4 +208,4 @@ function ScatterPlot({
   );
 }
 
-export default ScatterPlot;
+export default VisxGraph;

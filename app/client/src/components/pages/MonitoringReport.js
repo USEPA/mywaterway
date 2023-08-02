@@ -22,7 +22,7 @@ import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
-import ScatterPlot from 'components/shared/ScatterPlot';
+import VisxGraph from 'components/shared/VisxGraph';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
@@ -554,8 +554,8 @@ function generateHeatmap(numColors) {
   const result = [];
   const hue = 204;
   for (let i = 0; i < numColors; i++) {
-    const offset = (80 / numColors) * i;
-    const sat = (20 + offset) / 100;
+    const offset = (75 / numColors) * i;
+    const sat = (25 + offset) / 100;
     const val = (100 - offset) / 100;
     result.push(rgb2hex(...hsv2rgb(hue, sat, val)));
   }
@@ -1555,7 +1555,7 @@ function ChartContainer({
 
   return (
     <div ref={chartRef} css={chartContainerStyles}>
-      <ScatterPlot
+      <VisxGraph
         buildTooltip={buildTooltip(unit)}
         chartType={chartType}
         colors={colors}
