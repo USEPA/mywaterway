@@ -554,8 +554,8 @@ function generateHeatmap(numColors) {
   const result = [];
   const hue = 204;
   for (let i = 0; i < numColors; i++) {
-    const offset = (75 / numColors) * i;
-    const sat = (25 + offset) / 100;
+    const offset = (70 / numColors) * i;
+    const sat = (30 + offset) / 100;
     const val = (100 - offset) / 100;
     result.push(rgb2hex(...hsv2rgb(hue, sat, val)));
   }
@@ -715,7 +715,7 @@ function rgb2hex(r, g, b) {
   [r, g, b].forEach((x) => {
     hex += Math.round(x * 255)
       .toString(16)
-      .padStart(2, 0);
+      .padStart(2, '0');
   });
   return hex;
 }
@@ -1007,46 +1007,41 @@ function CharacteristicChartSection({
   const [msmtCount, setMsmtCount] = useState(null);
 
   // Parse the measurements into chartable data points
-  const parseMeasurements = useCallback(
-    (newDomain, newMsmts) => {
-      const newChartData = [];
+  const parseMeasurements = useCallback((newDomain, newMsmts) => {
+    const newChartData = [];
 
-      const allDepths = new Set();
-      newMsmts.forEach((msmt) => allDepths.add(msmt.depth));
-      const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
+    const allDepths = new Set();
+    newMsmts.forEach((msmt) => allDepths.add(msmt.depth));
+    const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
 
-      let curDatum = null;
-      newMsmts.forEach((msmt) => {
-        if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-          const dataPoint = {
-            // Map zero values to the lowest number possible
-            value: msmt.measurement || Number.EPSILON,
-            depth: msmt.depth,
-            depthUnit: msmt.depthUnit,
+    let curDatum = null;
+    newMsmts.forEach((msmt) => {
+      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
+        const dataPoint = {
+          // Map zero values to the lowest number possible
+          value: msmt.measurement || Number.EPSILON,
+          depth: msmt.depth,
+          depthUnit: msmt.depthUnit,
+        };
+        const dataKey = sortedDepths.indexOf(msmt.depth);
+        if (!curDatum || curDatum.x !== msmt.date) {
+          curDatum && newChartData.push(curDatum);
+          curDatum = {
+            x: msmt.date,
+            y: { [dataKey.toString()]: dataPoint },
           };
-          const dataKey = sortedDepths.indexOf(msmt.depth);
-          if (!curDatum || curDatum.x !== msmt.date) {
-            curDatum && newChartData.push(curDatum);
-            curDatum = {
-              x: msmt.date,
-              y: { [dataKey.toString()]: dataPoint },
-            };
-          } else {
-            curDatum.y[dataKey.toString()] = dataPoint;
-          }
+        } else {
+          curDatum.y[dataKey.toString()] = dataPoint;
         }
-      });
-      curDatum && newChartData.push(curDatum);
-      setDataKeys([...Array(allDepths.size).keys()].map((k) => k.toString()));
-      setChartColors(
-        chartType === 'scatter' || allDepths.size <= 1
-          ? '#38a6ee'
-          : generateHeatmap(allDepths.size),
-      );
-      return newChartData;
-    },
-    [chartType],
-  );
+      }
+    });
+    curDatum && newChartData.push(curDatum);
+    setDataKeys([...Array(allDepths.size).keys()].map((k) => k.toString()));
+    setChartColors(
+      allDepths.size <= 1 ? '#38a6ee' : generateHeatmap(allDepths.size),
+    );
+    return newChartData;
+  }, []);
 
   // Get the selected chart data and statistics
   const getChartData = useCallback(
