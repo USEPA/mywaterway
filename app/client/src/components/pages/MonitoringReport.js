@@ -557,6 +557,18 @@ function fetchParseCsv(url) {
   });
 }
 
+function generateHeatmap(numColors) {
+  const result = [];
+  const hue = 204;
+  for (let i = 0; i < numColors; i++) {
+    const offset = (80 / numColors) * i;
+    const sat = (20 + offset) / 100;
+    const val = (100 - offset) / 100;
+    result.push(rgb2hex(...hsv2rgb(hue, sat, val)));
+  }
+  return result;
+}
+
 function getCharcLabel(charcGroup, labelMappings) {
   for (let mapping of labelMappings) {
     if (mapping.groupNames.includes(charcGroup)) return mapping.label;
@@ -635,6 +647,14 @@ function handleCheckbox(id, accessor, dispatch) {
   };
 }
 
+function hsv2rgb(h, s, v) {
+  const f = (n) => {
+    const k = (n + h / 60) % 6;
+    return v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+  };
+  return [f(5), f(3), f(1)];
+}
+
 function loadNewData(data, state) {
   const newCharcs = {};
   const newGroups = {};
@@ -695,6 +715,16 @@ function parseCharcs(charcs, range) {
     }
   });
   return result;
+}
+
+function rgb2hex(r, g, b) {
+  let hex = '#';
+  [r, g, b].forEach((x) => {
+    hex += Math.round(x * 255)
+      .toString(16)
+      .padStart(2, 0);
+  });
+  return hex;
 }
 
 function toggle(state, id, entity, level) {
@@ -970,6 +1000,7 @@ function CharacteristicChartSection({
     setScaleType('linear');
   }, [records]);
 
+  const [chartColors, setChartColors] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [dataKeys, setDataKeys] = useState(null);
   const [domain, setDomain] = useState(null);
@@ -1010,6 +1041,7 @@ function CharacteristicChartSection({
     });
     curDatum && newChartData.push(curDatum);
     setDataKeys([...Array(maxCount).keys()]);
+    setChartColors(maxCount <= 1 ? '#38a6ee' : generateHeatmap(maxCount));
     return newChartData;
   }, []);
 
@@ -1240,6 +1272,7 @@ function CharacteristicChartSection({
               </span>
             </div>
             <ChartContainer
+              colors={chartColors}
               range={range}
               data={chartData}
               scaleType={scaleType}
@@ -1465,7 +1498,15 @@ function CharacteristicsTableSection({
   );
 }
 
-function ChartContainer({ range, data, dataKeys, scaleType, yTitle, unit }) {
+function ChartContainer({
+  colors,
+  range,
+  data,
+  dataKeys,
+  scaleType,
+  yTitle,
+  unit,
+}) {
   const chartRef = useRef(null);
 
   if (!data?.length)
@@ -1488,7 +1529,7 @@ function ChartContainer({ range, data, dataKeys, scaleType, yTitle, unit }) {
     <div ref={chartRef} css={chartContainerStyles}>
       <ScatterPlot
         buildTooltip={buildTooltip(unit)}
-        color="#38a6ee"
+        colors={colors}
         containerRef={chartRef.current}
         data={data}
         dataKeys={dataKeys}

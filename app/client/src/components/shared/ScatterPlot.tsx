@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { createGlobalStyle } from 'styled-components/macro';
+import * as Curve from '@visx/curve';
 import {
   Axis,
   buildChartTheme,
   GlyphSeries,
+  LineSeries,
   Tooltip,
   XYChart,
 } from '@visx/xychart';
@@ -39,7 +41,8 @@ interface Datum {
 /*
 ## Helpers
 */
-const defaultBuildTooltip = (tooltipData?: TooltipData<Datum>) => {
+
+function defaultBuildTooltip(tooltipData?: TooltipData<Datum>) {
   if (!tooltipData?.nearestDatum) return null;
   const dataKey = tooltipData.nearestDatum.key;
   const datum = tooltipData.nearestDatum.datum;
@@ -50,11 +53,11 @@ const defaultBuildTooltip = (tooltipData?: TooltipData<Datum>) => {
       {tooltipData?.nearestDatum && yAccessor(datum)}
     </>
   );
-};
+}
 
-const getYAccessor = (dataKey: string) => {
+function getYAccessor(dataKey: string) {
   return (datum: Datum) => datum.y[dataKey]?.value;
-};
+}
 
 const customTheme = buildChartTheme({
   backgroundColor: '#526571',
@@ -70,8 +73,9 @@ const xAccessor = (d: Datum) => d.x;
 
 type Props = {
   buildTooltip?: (tooltipData?: TooltipData<Datum>) => ReactNode;
+  chartType?: 'scatter' | 'line';
   children: ReactChild | ReactChildren;
-  color?: string;
+  colors?: string | string[];
   containerRef?: HTMLElement | null;
   data: Datum[];
   dataKeys: string[];
@@ -84,7 +88,8 @@ type Props = {
 
 function ScatterPlot({
   buildTooltip,
-  color,
+  chartType = 'line',
+  colors,
   containerRef,
   data,
   dataKeys,
@@ -96,14 +101,13 @@ function ScatterPlot({
 }: Props) {
   const [theme, setTheme] = useState<XYChartTheme>(customTheme);
   useEffect(() => {
-    if (color) {
-      const updatedTheme = {
+    if (colors) {
+      setTheme({
         ...customTheme,
-        colors: [color],
-      };
-      setTheme(updatedTheme);
+        colors: Array.isArray(colors) ? colors : [colors],
+      });
     }
-  }, [color]);
+  }, [colors]);
 
   const [width, setWidth] = useState<number | null>(null);
   useLayoutEffect(() => {
@@ -171,10 +175,20 @@ function ScatterPlot({
           }}
           orientation="left"
           strokeWidth={2}
+          tickFormat={(val) => (val <= Number.EPSILON ? 0 : val)}
         />
         {dataKeys.map((dataKey) => {
-          return (
+          return chartType === 'scatter' ? (
             <GlyphSeries
+              key={dataKey}
+              data={data}
+              dataKey={dataKey}
+              xAccessor={xAccessor}
+              yAccessor={getYAccessor(dataKey)}
+            />
+          ) : (
+            <LineSeries
+              curve={Curve.curveNatural}
               key={dataKey}
               data={data}
               dataKey={dataKey}
