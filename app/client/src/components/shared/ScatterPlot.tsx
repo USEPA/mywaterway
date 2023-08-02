@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { createGlobalStyle } from 'styled-components/macro';
-import * as Curve from '@visx/curve';
+import { curveNatural } from '@visx/curve';
 import {
   Axis,
   buildChartTheme,
@@ -55,13 +55,15 @@ function defaultBuildTooltip(tooltipData?: TooltipData<Datum>) {
   );
 }
 
+const DEFAULT_COLOR = '#2C2E43';
+
 function getYAccessor(dataKey: string) {
   return (datum: Datum) => datum.y[dataKey]?.value;
 }
 
 const customTheme = buildChartTheme({
   backgroundColor: '#526571',
-  colors: ['#2C2E43'],
+  colors: [DEFAULT_COLOR],
   gridColor: '#30475e',
   gridColorDark: '#222831',
   svgLabelSmall: { fill: '#30475e' },
@@ -88,7 +90,7 @@ type Props = {
 
 function ScatterPlot({
   buildTooltip,
-  chartType = 'line',
+  chartType = 'scatter',
   colors,
   containerRef,
   data,
@@ -175,7 +177,7 @@ function ScatterPlot({
           }}
           orientation="left"
           strokeWidth={2}
-          tickFormat={(val) => (val <= Number.EPSILON ? 0 : val)}
+          tickFormat={(val) => (val <= Number.EPSILON ? '0' : val)}
         />
         {dataKeys.map((dataKey) => {
           return chartType === 'scatter' ? (
@@ -188,7 +190,7 @@ function ScatterPlot({
             />
           ) : (
             <LineSeries
-              curve={Curve.curveNatural}
+              curve={curveNatural}
               key={dataKey}
               data={data}
               dataKey={dataKey}

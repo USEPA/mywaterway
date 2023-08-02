@@ -354,7 +354,7 @@ const radioStyles = css`
   }
   input:checked + label:before {
     background-color: #38a6ee;
-    box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
+    box-shadow: 0 0 0 2px ${colors.steel()}, inset 0 0 0 2px ${colors.white()};
   }
   label {
     cursor: pointer;
@@ -365,7 +365,7 @@ const radioStyles = css`
     &:before {
       background: ${colors.white()};
       border-radius: 100%;
-      box-shadow: 0 0 0 1px ${colors.steel()};
+      box-shadow: 0 0 0 2px ${colors.steel()};
       content: ' ';
       display: inline-block;
       height: 1em;
@@ -419,17 +419,10 @@ const selectContainerStyles = css`
   }
 
   .radio-container {
-    display: inline-flex;
-    flex-direction: column;
-    gap: 0.2em;
-  }
-
-  .radios {
     ${radioStyles}
     display: inline-flex;
-    flex-direction: row;
-    gap: 1em;
-    margin: auto;
+    flex-direction: column;
+    gap: 0.5em;
 
     label {
       font-weight: normal;
@@ -960,6 +953,9 @@ function CharacteristicChartSection({
   // Logarithmic or linear
   const [scaleType, setScaleType] = useState('linear');
 
+  // Scatter or line plot
+  const [chartType, setChartType] = useState('scatter');
+
   // Get the records with measurements and their filter options
   useEffect(() => {
     if (!records) return;
@@ -1011,39 +1007,46 @@ function CharacteristicChartSection({
   const [msmtCount, setMsmtCount] = useState(null);
 
   // Parse the measurements into chartable data points
-  const parseMeasurements = useCallback((newDomain, newMsmts) => {
-    const newChartData = [];
+  const parseMeasurements = useCallback(
+    (newDomain, newMsmts) => {
+      const newChartData = [];
 
-    let maxCount = 0;
-    let curDatum = null;
-    let curCount = 0;
-    newMsmts.forEach((msmt) => {
-      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-        const dataPoint = {
-          // Map zero values to the lowest number possible
-          value: msmt.measurement || Number.EPSILON,
-          depth: msmt.depth,
-          depthUnit: msmt.depthUnit,
-        };
-        if (!curDatum || curDatum.x !== msmt.date) {
-          curDatum && newChartData.push(curDatum);
-          curDatum = {
-            x: msmt.date,
-            y: { 0: dataPoint },
+      const allDepths = new Set();
+      newMsmts.forEach((msmt) => allDepths.add(msmt.depth));
+      const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
+
+      let curDatum = null;
+      newMsmts.forEach((msmt) => {
+        if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
+          const dataPoint = {
+            // Map zero values to the lowest number possible
+            value: msmt.measurement || Number.EPSILON,
+            depth: msmt.depth,
+            depthUnit: msmt.depthUnit,
           };
-          curCount = 1;
-        } else {
-          curDatum.y[curCount.toString()] = dataPoint;
-          curCount++;
+          const dataKey = sortedDepths.indexOf(msmt.depth);
+          if (!curDatum || curDatum.x !== msmt.date) {
+            curDatum && newChartData.push(curDatum);
+            curDatum = {
+              x: msmt.date,
+              y: { [dataKey.toString()]: dataPoint },
+            };
+          } else {
+            curDatum.y[dataKey.toString()] = dataPoint;
+          }
         }
-        if (curCount > maxCount) maxCount = curCount;
-      }
-    });
-    curDatum && newChartData.push(curDatum);
-    setDataKeys([...Array(maxCount).keys()]);
-    setChartColors(maxCount <= 1 ? '#38a6ee' : generateHeatmap(maxCount));
-    return newChartData;
-  }, []);
+      });
+      curDatum && newChartData.push(curDatum);
+      setDataKeys([...Array(allDepths.size).keys()].map((k) => k.toString()));
+      setChartColors(
+        chartType === 'scatter' || allDepths.size <= 1
+          ? '#38a6ee'
+          : generateHeatmap(allDepths.size),
+      );
+      return newChartData;
+    },
+    [chartType],
+  );
 
   // Get the selected chart data and statistics
   const getChartData = useCallback(
@@ -1247,31 +1250,55 @@ function CharacteristicChartSection({
                 <span css={screenLabelStyles}>
                   <GlossaryTerm term="Scale Type">Scale Type</GlossaryTerm>:
                 </span>
-                <span className="radios">
-                  <span>
-                    <input
-                      checked={scaleType === 'linear'}
-                      id={`${charcName}-linear`}
-                      onChange={(e) => setScaleType(e.target.value)}
-                      type="radio"
-                      value="linear"
-                    />
-                    <label htmlFor={`${charcName}-linear`}>Linear</label>
-                  </span>
-                  <span>
-                    <input
-                      checked={scaleType === 'log'}
-                      id={`${charcName}-log`}
-                      onChange={(e) => setScaleType(e.target.value)}
-                      type="radio"
-                      value="log"
-                    />
-                    <label htmlFor={`${charcName}-log`}>Log</label>
-                  </span>
+                <span>
+                  <input
+                    checked={scaleType === 'linear'}
+                    id={`${charcName}-linear`}
+                    onChange={(e) => setScaleType(e.target.value)}
+                    type="radio"
+                    value="linear"
+                  />
+                  <label htmlFor={`${charcName}-linear`}>Linear</label>
+                </span>
+                <span>
+                  <input
+                    checked={scaleType === 'log'}
+                    id={`${charcName}-log`}
+                    onChange={(e) => setScaleType(e.target.value)}
+                    type="radio"
+                    value="log"
+                  />
+                  <label htmlFor={`${charcName}-log`}>Log</label>
+                </span>
+              </span>
+              <span className="radio-container">
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Chart Type">Chart Type</GlossaryTerm>:
+                </span>
+                <span>
+                  <input
+                    checked={chartType === 'scatter'}
+                    id={`${charcName}-scatter`}
+                    onChange={(e) => setChartType(e.target.value)}
+                    type="radio"
+                    value="scatter"
+                  />
+                  <label htmlFor={`${charcName}-scatter`}>Scatter</label>
+                </span>
+                <span>
+                  <input
+                    checked={chartType === 'line'}
+                    id={`${charcName}-line`}
+                    onChange={(e) => setChartType(e.target.value)}
+                    type="radio"
+                    value="line"
+                  />
+                  <label htmlFor={`${charcName}-line`}>Line</label>
                 </span>
               </span>
             </div>
             <ChartContainer
+              chartType={chartType}
               colors={chartColors}
               range={range}
               data={chartData}
@@ -1499,6 +1526,7 @@ function CharacteristicsTableSection({
 }
 
 function ChartContainer({
+  chartType,
   colors,
   range,
   data,
@@ -1529,6 +1557,7 @@ function ChartContainer({
     <div ref={chartRef} css={chartContainerStyles}>
       <ScatterPlot
         buildTooltip={buildTooltip(unit)}
+        chartType={chartType}
         colors={colors}
         containerRef={chartRef.current}
         data={data}

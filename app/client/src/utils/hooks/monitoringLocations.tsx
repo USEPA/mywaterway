@@ -330,7 +330,6 @@ function buildLayer(
       outFields: ['*'],
       title: getTitle,
       content: (feature: Feature) => {
-        console.log(JSON.stringify(feature));
         // Parse non-scalar variables
         const structuredProps = ['totalsByGroup', 'timeframe'];
         feature.graphic.attributes = parseAttributes(
