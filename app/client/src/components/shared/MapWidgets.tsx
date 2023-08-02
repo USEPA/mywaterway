@@ -2011,21 +2011,21 @@ const sizeContainerStyles = css`
 `;
 
 type FormatOptionType =
-| { value: 'pdf'; label: 'PDF'; extension: 'pdf' }
-| { value: 'png32'; label: 'PNG'; extension: 'png' }
-| { value: 'jpg'; label: 'JPG'; extension: 'jpg' }
-| { value: 'gif'; label: 'GIF'; extension: 'gif' }
-| { value: 'svg'; label: 'SVG'; extension: 'svg' };
+  | { value: 'pdf'; label: 'PDF'; extension: 'pdf' }
+  | { value: 'png32'; label: 'PNG'; extension: 'png' }
+  | { value: 'jpg'; label: 'JPG'; extension: 'jpg' }
+  | { value: 'gif'; label: 'GIF'; extension: 'gif' }
+  | { value: 'svg'; label: 'SVG'; extension: 'svg' };
 
 type LayoutOptionType =
-| { value: 'a3-landscape'; label: 'A3 Landscape' }
-| { value: 'a3-portrait'; label: 'A3 Portrait' }
-| { value: 'a4-landscape'; label: 'A4 Landscape' }
-| { value: 'a4-portrait'; label: 'A4 Portrait' }
-| { value: 'letter-ansi-a-landscape'; label: 'Letter ANSI A Landscape' }
-| { value: 'letter-ansi-a-portrait'; label: 'Letter ANSI A Portrait' }
-| { value: 'tabloid-ansi-b-landscape'; label: 'Tabloid ANSI B Landscape' }
-| { value: 'tabloid-ansi-b-portrait'; label: 'Tabloid ANSI B Portrait' };
+  | { value: 'a3-landscape'; label: 'A3 Landscape' }
+  | { value: 'a3-portrait'; label: 'A3 Portrait' }
+  | { value: 'a4-landscape'; label: 'A4 Landscape' }
+  | { value: 'a4-portrait'; label: 'A4 Portrait' }
+  | { value: 'letter-ansi-a-landscape'; label: 'Letter ANSI A Landscape' }
+  | { value: 'letter-ansi-a-portrait'; label: 'Letter ANSI A Portrait' }
+  | { value: 'tabloid-ansi-b-landscape'; label: 'Tabloid ANSI B Landscape' }
+  | { value: 'tabloid-ansi-b-portrait'; label: 'Tabloid ANSI B Portrait' };
 
 type DownloadWidgetProps = {
   services: ServicesState;
@@ -2067,7 +2067,9 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       layoutOptions[0],
   );
   const [northArrowVisible, setNorthArrowVisible] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'fetching' | 'success' | 'failure'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'fetching' | 'success' | 'failure'
+  >('idle');
   const [errorMessage, setErrorMessage] = useState<string>();
   const [title, setTitle] = useState('');
   const [height, setHeight] = useState(1100);
@@ -2087,7 +2089,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
     reactiveUtils.watch(
       () => view.scale,
       () => {
-        if(!enableScaleGlobal) setScale(view.scale);
+        if (!enableScaleGlobal) setScale(view.scale);
       },
     );
 
@@ -2098,7 +2100,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
     return function cleanup() {
       setStatus('idle');
       setErrorMessage('');
-    }
+    };
   }, []);
 
   return (
@@ -2200,7 +2202,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
             )}
             <div>
               <label css={checkboxStyles}>
-                <input 
+                <input
                   type="checkbox"
                   checked={enableScale}
                   onChange={() => setEnableScale(!enableScale)}
@@ -2209,7 +2211,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
               </label>
             </div>
             <div css={scaleContainerStyles}>
-              <input 
+              <input
                 css={inputStyles}
                 type="number"
                 aria-label="scale"
@@ -2230,7 +2232,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
                 <div>
                   <label>
                     Author
-                    <input 
+                    <input
                       css={inputStyles}
                       type="text"
                       value={author}
@@ -2241,7 +2243,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
                 <div>
                   <label>
                     Copyright
-                    <input 
+                    <input
                       css={inputStyles}
                       type="text"
                       value={copyright}
@@ -2254,7 +2256,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
             <div>
               <label>
                 DPI
-                <input 
+                <input
                   css={inputStyles}
                   type="number"
                   value={dpi}
@@ -2265,7 +2267,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
             <div>
               {includeLegend ? (
                 <label css={checkboxStyles}>
-                  <input 
+                  <input
                     type="checkbox"
                     checked={northArrowVisible}
                     onChange={() => setNorthArrowVisible(!northArrowVisible)}
@@ -2273,8 +2275,8 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
                   Include north arrow
                 </label>
               ) : (
-                <label css={checkboxStyles} >
-                  <input 
+                <label css={checkboxStyles}>
+                  <input
                     type="checkbox"
                     checked={attributionVisible}
                     onChange={() => setAttributionVisible(!attributionVisible)}
@@ -2288,7 +2290,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       </AccordionList>
 
       {status === 'fetching' && <LoadingSpinner />}
-      
+
       {status === 'success' && (
         <div css={modifiedSuccessBoxStyles}>
           <p>Download succeeded. Please check your download folder.</p>
@@ -2302,6 +2304,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
       <button
         css={downloadButtonStyles}
+        disabled={status === 'fetching'}
         onClick={() => {
           if (!view || services.status !== 'success') return;
 
@@ -2327,10 +2330,10 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
               authorText: author,
               copyrightText: copyright,
               elementOverrides: {
-                "North Arrow": {
+                'North Arrow': {
                   visible: northArrowVisible,
-                }
-              }
+                },
+              },
             },
             outScale: scale,
           });
@@ -2340,21 +2343,37 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
             view,
           });
 
-          printVm
-            .print(template)
-            .then((res) => {
-              saveAs(res.url, `${title}.${format.extension}`);
-              setStatus('success');
-            })
-            .catch((err) => {
-              console.error(err);
-              setStatus('failure');
-              if(err.message) {
-                setErrorMessage(err.message);
-              } else {
-                setErrorMessage('Unknown error. Check developer tools console.');
-              }
-            });
+          function download(retryCount: number = 0) {
+            printVm
+              .print(template)
+              .then((res) => {
+                saveAs(res.url, `${title}.${format.extension}`);
+                setStatus('success');
+              })
+              .catch((err) => {
+                console.error(err);
+
+                // set failure when retry is exceeded
+                if (retryCount === 3) {
+                  setStatus('failure');
+                  if (err.message) {
+                    setErrorMessage(err.message);
+                  } else {
+                    setErrorMessage(
+                      'Unknown error. Check developer tools console.',
+                    );
+                  }
+                } else {
+                  // recursive retry (1 second between retries)
+                  console.log(
+                    `Failed to download. Retrying (${retryCount + 1} of 3)...`,
+                  );
+                  setTimeout(() => download(retryCount + 1), 1000);
+                }
+              });
+          }
+
+          download();
         }}
       >
         Download
