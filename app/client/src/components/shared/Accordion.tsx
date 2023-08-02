@@ -62,12 +62,8 @@ const expandButtonStyles = (includeSort: boolean) => css`
   white-space: nowrap;
 `;
 
-const listHeaderSlimStyles = css`
-  padding: 0;
-`;
-
-const listHeaderStyles = css`
-  padding: 0.625em 0.875em;
+const listHeaderStyles = (includePadding: boolean) => css`
+  padding: ${includePadding ? '0.625em 0.875em' : '0'};
   border-top: 1px solid #d8dfe2;
   border-bottom: 1px solid #d8dfe2;
   background-color: #f0f6f9;
@@ -132,50 +128,53 @@ function AccordionList({
       className={`hmw-accordions ${className}`}
       role="list"
     >
-      <div
-        css={!includeSort && !title ? listHeaderSlimStyles : listHeaderStyles}
-      >
-        {title && <p css={titleStyles}>{title}</p>}
-        <div css={columnsStyles}>
-          <div css={accordionOptionsContainerStyles(includeSort && !!title)}>
-            {includeSort && (
-              <div css={selectContainerStyles}>
-                <label css={selectLabelStyles} htmlFor={`sort-by-${uniqueID}`}>
-                  Sort By:
-                </label>
-                <Select
-                  css={selectStyles}
-                  inputId={`sort-by-${uniqueID}`}
-                  isSearchable={false}
-                  options={sortOptions}
-                  value={sortBy}
-                  onChange={(ev) => {
-                    setSortBy(ev);
-                    onSortChange(ev);
+      {(includeSort || title || contentExpandCollapse || !expandDisabled) && (
+        <div css={listHeaderStyles(includeSort || !!title)}>
+          {title && <p css={titleStyles}>{title}</p>}
+          <div css={columnsStyles}>
+            <div css={accordionOptionsContainerStyles(includeSort && !!title)}>
+              {includeSort && (
+                <div css={selectContainerStyles}>
+                  <label
+                    css={selectLabelStyles}
+                    htmlFor={`sort-by-${uniqueID}`}
+                  >
+                    Sort By:
+                  </label>
+                  <Select
+                    css={selectStyles}
+                    inputId={`sort-by-${uniqueID}`}
+                    isSearchable={false}
+                    options={sortOptions}
+                    value={sortBy}
+                    onChange={(ev) => {
+                      setSortBy(ev);
+                      onSortChange(ev);
+                    }}
+                    styles={reactSelectStyles}
+                  />
+                </div>
+              )}
+
+              {contentExpandCollapse}
+
+              {!expandDisabled && (
+                <button
+                  css={expandButtonStyles(includeSort)}
+                  onClick={(_ev) => {
+                    const newAllExpanded = !allExpanded;
+                    setAllExpanded(newAllExpanded);
+                    onExpandCollapse(newAllExpanded);
                   }}
-                  styles={reactSelectStyles}
-                />
-              </div>
-            )}
-
-            {contentExpandCollapse}
-
-            {!expandDisabled && (
-              <button
-                css={expandButtonStyles(includeSort)}
-                onClick={(_ev) => {
-                  const newAllExpanded = !allExpanded;
-                  setAllExpanded(newAllExpanded);
-                  onExpandCollapse(newAllExpanded);
-                }}
-              >
-                {allExpanded ? 'Collapse All' : 'Expand All'}&nbsp;&nbsp;
-                <i className={iconClassName} aria-hidden="true" />
-              </button>
-            )}
+                >
+                  {allExpanded ? 'Collapse All' : 'Expand All'}&nbsp;&nbsp;
+                  <i className={iconClassName} aria-hidden="true" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {Children.map(children, (childElement) => {
