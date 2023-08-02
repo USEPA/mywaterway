@@ -200,7 +200,9 @@ function buildLayer(
         attributes: { OBJECTID: 1 },
       }),
     ],
-    title: `${type === 'surrounding' ? 'Surrounding ' : ''}CyAN Waterbodies`,
+    title: `${
+      type === 'surrounding' ? 'Surrounding ' : ''
+    }Potential Harmful Algal Blooms (HABs)`,
   });
 
   const cyanImages = new MediaLayer({
@@ -212,12 +214,16 @@ function buildLayer(
     spatialReference: {
       wkid: 102100,
     },
-    title: `${type === 'surrounding' ? 'Surrounding ' : ''}CyAN Images`,
+    title: `${
+      type === 'surrounding' ? 'Surrounding ' : ''
+    }Potential Harmful Algal Bloom Images`,
   });
 
   const newCyanLayer = new GroupLayer({
     id: type === 'enclosed' ? `cyanLayer` : `surroundingCyanLayer`,
-    title: `${type === 'surrounding' ? 'Surrounding ' : ''}CyAN Waterbodies`,
+    title: `${
+      type === 'surrounding' ? 'Surrounding ' : ''
+    }Potential Harmful Algal Blooms (HABs)`,
     listMode: type === 'enclosed' ? 'hide-children' : 'hide',
     visible: type === 'enclosed',
   });

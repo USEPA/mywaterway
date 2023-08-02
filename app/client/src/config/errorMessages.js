@@ -8,7 +8,7 @@ export const echoError =
 
 // cyan.epa.gov
 export const cyanError =
-  'CyAN data is temporarily unavailable, please try again later.';
+  'Potential Harmful Algal Bloom (HAB) data is temporarily unavailable, please try again later.';
 
 // labs.waterdata.usgs.gov - Monitoring Location Service
 export const streamgagesError =

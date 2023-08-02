@@ -2053,7 +2053,7 @@ function MonitoringReportContent() {
 
   const noSiteView = (
     <Page>
-      <NavBar title="Monitoring Report" />
+      <NavBar title="Water Monitoring Report" />
 
       <div css={containerStyles}>
         <div css={pageErrorBoxStyles}>
@@ -2083,7 +2083,7 @@ function MonitoringReportContent() {
 
   const twoColumnView = (
     <Page>
-      <NavBar title="Monitoring Report" />
+      <NavBar title="Water Monitoring Report" />
       <div css={containerStyles} data-content="container">
         <WindowSize>
           {({ width, height }) => {

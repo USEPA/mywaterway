@@ -143,12 +143,12 @@ describe('Monitoring Tab', () => {
       'not.exist',
     );
 
-    cy.findAllByText('Daily Cyanobacteria Estimates for Lake Jackson', {
+    cy.findAllByText('Daily Blue-Green Algae Estimates for Lake Jackson', {
       exact: false,
     }).should('be.visible');
 
     cy.findAllByText(
-      'Cyanobacteria Concentration Histogram and Maximum for Selected Date:',
+      'Blue-Green Algae Concentration Histogram and Maximum for Selected Date:',
       { exact: false },
     ).should('be.visible');
   });

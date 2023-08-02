@@ -13,13 +13,13 @@
       "title": "Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)"
     },
     {
-      "description": "The Cyanobacteria Assessment Network (CyAN) data provides access to <span data-glossary-term data-term='cyanobacteria'>cyanobacterial</span> bloom satellite data for over 2,000 of the largest lakes and reservoirs across the United States.",
+      "description": "The Cyanobacteria Assessment Network (CyAN) data provides access to <span data-glossary-term data-term='Blue-Green Algae'>blue-green algal</span> bloom satellite data for over 2,000 of the largest lakes and reservoirs across the United States.",
       "extraContent": null,
       "id": "cyan",
       "linkHref": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
       "linkLabel": "CyAN Data/System",
       "shortName": "CyAN",
-      "siteLocation": "Information from CyAN can be found on the Community Page in the Water Monitoring tab under Current Water Conditions, CyAN Satellite Imagery.",
+      "siteLocation": "Information from CyAN can be found on the Community Page in the Water Monitoring tab under Current Water Conditions, Potential Harmful Algal Blooms (HABs).",
       "title": "Cyanobacteria Assessment Network (CyAN)"
     },
     {
@@ -79,7 +79,7 @@
       "linkHref": "https://www.waterqualitydata.us/",
       "linkLabel": "WQP Data/System",
       "shortName": "WQP",
-      "siteLocation": "Information from this database can be found on the Community page under the Overview tab under Water Monitoring Locations, Past Water Conditions, and on the Water Monitoring tab under Past Water Conditions, as well as on the Monitoring Report pages.",
+      "siteLocation": "Information from this database can be found on the Community page under the Overview tab under Water Monitoring Locations, Past Water Conditions, and on the Water Monitoring tab under Past Water Conditions, as well as on the Water Monitoring Report pages.",
       "title": "Water Quality Portal (WQP)"
     },
     {

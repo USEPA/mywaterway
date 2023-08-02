@@ -320,7 +320,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         <div css={imageContainerStyles}>
           {waterwayIcon({ color: '#6c95ce' })}
         </div>
-        <span css={labelStyles}>CyAN Satellite Imagery</span>
+        <span css={labelStyles}>Potential Harmful Algal Blooms (HABs)</span>
       </div>
     </li>
   );
