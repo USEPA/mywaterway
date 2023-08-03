@@ -480,7 +480,8 @@ function buildTooltip(unit) {
   return (tooltipData) => {
     if (!tooltipData?.nearestDatum) return null;
     const datum = tooltipData.nearestDatum.datum;
-    const msmt = datum.y[tooltipData.nearestDatum.key];
+    const msmt =
+      datum.type === 'scatter' ? datum : datum.y[tooltipData.nearestDatum.key];
     if (!msmt) return null;
     const depth =
       msmt.depth !== null && msmt.depthUnit !== null
@@ -491,7 +492,9 @@ function buildTooltip(unit) {
         <p>{datum.x}:</p>
         <p>
           <em>Measurement</em>:{' '}
-          {`${msmt.value.toFixed(MEASUREMENT_PRECISION)} ${unit}`}
+          {`${(datum.type === 'scatter' ? msmt.y : msmt.value).toFixed(
+            MEASUREMENT_PRECISION,
+          )} ${unit}`}
           <br />
           {depth && (
             <>
@@ -1017,48 +1020,62 @@ function CharacteristicChartSection({
   const [msmtCount, setMsmtCount] = useState(null);
 
   // Parse the measurements into chartable data points
-  const parseMeasurements = useCallback((newDomain, newMsmts) => {
-    const newChartData = [];
+  const parseMeasurements = useCallback(
+    (newDomain, newMsmts) => {
+      const newChartData = [];
 
-    const allDepths = new Set();
-    newMsmts.forEach(
-      (msmt) => msmt.depth !== null && allDepths.add(msmt.depth),
-    );
-    const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
+      const allDepths = new Set();
+      newMsmts.forEach(
+        (msmt) => msmt.depth !== null && allDepths.add(msmt.depth),
+      );
+      const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
 
-    let curDatum = null;
-    let depthUnit = null;
-    newMsmts.forEach((msmt) => {
-      if (depthUnit && msmt.depthUnit !== depthUnit)
-        console.warn('Depth units differ');
-      depthUnit = msmt.depthUnit;
-      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-        const dataPoint = {
-          // Map zero values to the lowest number possible
-          value: msmt.measurement || Number.EPSILON,
-          depth: msmt.depth,
-          depthUnit: msmt.depthUnit,
-        };
-        const dataKey = sortedDepths.indexOf(msmt.depth);
-        if (!curDatum || curDatum.x !== msmt.date) {
-          curDatum && newChartData.push(curDatum);
-          curDatum = {
-            x: msmt.date,
-            y: { [dataKey.toString()]: dataPoint },
-          };
-        } else {
-          curDatum.y[dataKey.toString()] = dataPoint;
+      let curDatum = null;
+      let depthUnit = null;
+      newMsmts.forEach((msmt) => {
+        if (depthUnit && msmt.depthUnit !== depthUnit)
+          console.warn('Depth units differ');
+        depthUnit = msmt.depthUnit;
+        if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
+          if (chartType === 'scatter') {
+            newChartData.push({
+              type: 'scatter',
+              x: msmt.date,
+              y: msmt.measurement || Number.EPSILON,
+              depth: msmt.depth,
+              depthUnit: msmt.depthUnit,
+            });
+          } else {
+            const dataPoint = {
+              // Map zero values to the lowest number possible
+              value: msmt.measurement || Number.EPSILON,
+              depth: msmt.depth,
+              depthUnit: msmt.depthUnit,
+            };
+            const dataKey = sortedDepths.indexOf(msmt.depth);
+            if (!curDatum || curDatum.x !== msmt.date) {
+              curDatum && newChartData.push(curDatum);
+              curDatum = {
+                type: 'line',
+                x: msmt.date,
+                y: { [dataKey.toString()]: dataPoint },
+              };
+            } else {
+              curDatum.y[dataKey.toString()] = dataPoint;
+            }
+          }
         }
-      }
-    });
-    curDatum && newChartData.push(curDatum);
-    setDataKeys([...Array(allDepths.size).keys()].map((k) => k.toString()));
-    setChartColorKeys(sortedDepths);
-    setChartColors(
-      allDepths.size <= 1 ? ['#38a6ee'] : generateHeatmap(sortedDepths),
-    );
-    return newChartData;
-  }, []);
+      });
+      curDatum && newChartData.push(curDatum);
+      setDataKeys([...Array(allDepths.size).keys()].map((k) => k.toString()));
+      setChartColorKeys(sortedDepths);
+      setChartColors(
+        allDepths.size <= 1 ? ['#38a6ee'] : generateHeatmap(sortedDepths),
+      );
+      return newChartData;
+    },
+    [chartType],
+  );
 
   // Get the selected chart data and statistics
   const getChartData = useCallback(
@@ -1087,7 +1104,8 @@ function CharacteristicChartSection({
 
       const yValues = [];
       newChartData.forEach((datum) => {
-        Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
+        if (chartType === 'scatter') yValues.push(datum.y);
+        else Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
       });
 
       const newRange = [Math.min(...yValues), Math.max(...yValues)];
@@ -1099,7 +1117,7 @@ function CharacteristicChartSection({
       setStdDev(getStdDev(yValues, newMean));
       setMsmtCount(yValues.length);
     },
-    [fraction, medium, parseMeasurements, unit],
+    [chartType, fraction, medium, parseMeasurements, unit],
   );
 
   const [minYear, setMinYear] = useState(null);
@@ -1551,6 +1569,14 @@ function ChartContainer({
   yTitle,
   unit,
 }) {
+  const getGlyphColor = useCallback(
+    (datum) => {
+      const i = colorKeys.indexOf(datum.depth);
+      return colors[i];
+    },
+    [colorKeys, colors],
+  );
+
   const chartRef = useRef(null);
 
   if (!data?.length)
@@ -1574,6 +1600,7 @@ function ChartContainer({
       <VisxGraph
         buildTooltip={buildTooltip(unit)}
         chartType={chartType}
+        colorAccessor={chartType === 'scatter' ? getGlyphColor : undefined}
         colors={colors}
         containerRef={chartRef.current}
         data={data}

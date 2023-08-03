@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useState } from 'react';
 import { createGlobalStyle, css } from 'styled-components/macro';
+import { GlyphDot } from '@visx/glyph';
 import { LegendLabel, LegendLinear, LegendItem } from '@visx/legend';
 import { scaleLinear } from '@visx/scale';
 import {
@@ -13,7 +14,7 @@ import {
 // types
 import type { ReactChildren, ReactChild, ReactNode } from 'react';
 import type { FlattenSimpleInterpolation } from 'styled-components';
-import type { TooltipData, XYChartTheme } from '@visx/xychart';
+import type { GlyphProps, TooltipData, XYChartTheme } from '@visx/xychart';
 
 /*
 ## Styles
@@ -30,7 +31,11 @@ const VisxStyles = createGlobalStyle`
 /*
 ## Types
 */
-interface Datum {
+type ChartType = 'line' | 'scatter';
+type Datum = LineDatum | ScatterDatum;
+
+interface LineDatum {
+  type: 'line';
   x: string;
   y: {
     [dataKey: string]: {
@@ -38,6 +43,13 @@ interface Datum {
       [meta: string]: string | number;
     };
   };
+}
+
+interface ScatterDatum {
+  type: 'scatter';
+  x: string;
+  y: number;
+  [meta: string]: string | number;
 }
 
 /*
@@ -60,7 +72,10 @@ function defaultBuildTooltip(tooltipData?: TooltipData<Datum>) {
 const DEFAULT_COLOR = '#2C2E43';
 
 function getYAccessor(dataKey: string) {
-  return (datum: Datum) => datum.y[dataKey]?.value;
+  return (datum: Datum) => {
+    if (datum.type === 'scatter') return datum.y;
+    return datum.y[dataKey]?.value;
+  };
 }
 
 const customTheme = buildChartTheme({
@@ -77,8 +92,9 @@ const xAccessor = (d: Datum) => d.x;
 
 type Props = {
   buildTooltip?: (tooltipData?: TooltipData<Datum>) => ReactNode;
-  chartType?: 'scatter' | 'line';
+  chartType?: ChartType;
   children: ReactChild | ReactChildren;
+  colorAccessor?: (d: Datum, index: number) => string;
   colors?: string[];
   containerRef?: HTMLElement | null;
   data: Datum[];
@@ -93,6 +109,7 @@ type Props = {
 export function VisxGraph({
   buildTooltip,
   chartType = 'scatter',
+  colorAccessor,
   colors,
   containerRef,
   data,
@@ -145,6 +162,30 @@ export function VisxGraph({
 
   const renderTooltip = buildTooltip ?? defaultBuildTooltip;
 
+  const renderTooltipGlyph = ({
+    color,
+    x,
+    y,
+    size,
+    datum,
+    index,
+    onPointerMove,
+    onPointerOut,
+    onPointerUp,
+  }: GlyphProps<Datum>) => {
+    const handlers = { onPointerMove, onPointerOut, onPointerUp };
+    return (
+      <GlyphDot
+        left={x}
+        top={y}
+        stroke={theme.gridStyles.stroke}
+        fill={colorAccessor ? colorAccessor(datum, index) : color}
+        r={size}
+        {...handlers}
+      />
+    );
+  };
+
   return (
     <>
       <VisxStyles />
@@ -181,16 +222,8 @@ export function VisxGraph({
           strokeWidth={2}
           tickFormat={(val) => (val <= Number.EPSILON ? '0' : val)}
         />
-        {dataKeys.map((dataKey) => {
-          return chartType === 'scatter' ? (
-            <GlyphSeries
-              key={dataKey}
-              data={data}
-              dataKey={dataKey}
-              xAccessor={xAccessor}
-              yAccessor={getYAccessor(dataKey)}
-            />
-          ) : (
+        {chartType === 'line' ? (
+          dataKeys.map((dataKey) => (
             <LineSeries
               key={dataKey}
               data={data}
@@ -198,12 +231,21 @@ export function VisxGraph({
               xAccessor={xAccessor}
               yAccessor={getYAccessor(dataKey)}
             />
-          );
-        })}
+          ))
+        ) : (
+          <GlyphSeries
+            colorAccessor={colorAccessor}
+            data={data}
+            dataKey="scatter"
+            xAccessor={xAccessor}
+            yAccessor={getYAccessor('scatter')}
+          />
+        )}
         <Tooltip<Datum>
           showDatumGlyph
           showVerticalCrosshair
           snapTooltipToDatumX
+          renderGlyph={renderTooltipGlyph}
           renderTooltip={({ tooltipData }) => renderTooltip(tooltipData)}
         />
       </XYChart>
