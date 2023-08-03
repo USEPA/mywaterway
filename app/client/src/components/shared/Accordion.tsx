@@ -10,12 +10,13 @@ const accordionListContainerStyles = css`
   border-bottom: 1px solid #d8dfe2;
 `;
 
-const accordionOptionsContainerStyles = (includeTopMargin: boolean) => css`
+const accordionOptionsContainerStyles = (includeTopMargin: boolean, displayTitleInFlex: boolean) => css`
   display: flex;
   justify-content: flex-end;
   width: 100%;
   margin-bottom: 0;
   ${includeTopMargin ? 'margin-top: 0.625rem;' : ''}
+  ${displayTitleInFlex ? 'justify-content: space-between; align-items: center;' : ''}
 `;
 
 const columnsStyles = css`
@@ -88,6 +89,7 @@ type AccordionListProps = {
   ariaLabel?: string;
   children: ReactNode;
   className?: string;
+  displayTitleInFlex?: boolean;
   title?: ReactNode;
   expandDisabled?: boolean;
   sortOptions?: { value: string; label: string }[];
@@ -100,6 +102,7 @@ function AccordionList({
   ariaLabel = '',
   children,
   className = '',
+  displayTitleInFlex = false,
   title = null,
   expandDisabled = false,
   sortOptions = [],
@@ -130,9 +133,11 @@ function AccordionList({
     >
       {(includeSort || title || contentExpandCollapse || !expandDisabled) && (
         <div css={listHeaderStyles(includeSort || !!title)}>
-          {title && <p css={titleStyles}>{title}</p>}
+          {title && !displayTitleInFlex && <p css={titleStyles}>{title}</p>}
           <div css={columnsStyles}>
-            <div css={accordionOptionsContainerStyles(includeSort && !!title)}>
+            <div css={accordionOptionsContainerStyles(includeSort && !!title, displayTitleInFlex)}>
+              {title && displayTitleInFlex && <p css={titleStyles}>{title}</p>}
+
               {includeSort && (
                 <div css={selectContainerStyles}>
                   <label
