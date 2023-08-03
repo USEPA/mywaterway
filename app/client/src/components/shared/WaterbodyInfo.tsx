@@ -727,6 +727,26 @@ function WaterbodyInfo({
                                   </tbody>
                                 </table>
                               )}
+
+                            <p css={infoBoxStyles}>
+                              For more information view the{' '}
+                              <a
+                                rel="noopener noreferrer"
+                                target="_blank"
+                                href={
+                                  `/waterbody-report/` +
+                                  `${attributes.organizationid}/` +
+                                  `${attributes.assessmentunitidentifier}/` +
+                                  `${attributes.reportingcycle || ''}`
+                                }
+                              >
+                                Waterbody Report
+                              </a>{' '}
+                              <small css={modifiedDisclaimerStyles}>
+                                (opens new browser tab)
+                              </small>
+                              .
+                            </p>
                           </Modal>
                         </td>
                       </tr>
@@ -784,7 +804,11 @@ function WaterbodyInfo({
             value: attributes.CWPPermitTypeDesc,
           },
           {
-            label: <GlossaryTerm term="Permit Components">Permit Components</GlossaryTerm>,
+            label: (
+              <GlossaryTerm term="Permit Components">
+                Permit Components
+              </GlossaryTerm>
+            ),
             value: attributes.PermitComponents ? (
               attributes.PermitComponents.split(', ')
                 .sort()
@@ -794,7 +818,9 @@ function WaterbodyInfo({
                   </GlossaryTerm>
                 ))
             ) : (
-              <GlossaryTerm term="Components Not Specified">Components Not Specified</GlossaryTerm>
+              <GlossaryTerm term="Components Not Specified">
+                Components Not Specified
+              </GlossaryTerm>
             ),
           },
           {
