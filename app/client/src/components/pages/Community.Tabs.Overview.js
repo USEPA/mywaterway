@@ -1221,7 +1221,11 @@ function PermittedDischargersTab({
                         onChange={toggleAll}
                         ariaLabelledBy="all-permit-components-label"
                       />
-                      <span id="all-permit-components-label"><GlossaryTerm term="Permit Components">All Permit Components</GlossaryTerm></span>
+                      <span id="all-permit-components-label">
+                        <GlossaryTerm term="Permit Components">
+                          All Permit Components
+                        </GlossaryTerm>
+                      </span>
                     </div>
                   </th>
                   <th>Count</th>
