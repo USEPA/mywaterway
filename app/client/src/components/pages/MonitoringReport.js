@@ -465,7 +465,7 @@ const treeStyles = (level, styles) => {
 */
 
 const MAX_NUM_CHARTS = 4;
-const MEAUREMENT_PRECISION = 3;
+const MEASUREMENT_PRECISION = 3;
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
@@ -488,7 +488,7 @@ function buildTooltip(unit) {
         <p>{datum.x}:</p>
         <p>
           <em>Measurement</em>:{' '}
-          {`${msmt.value.toFixed(MEAUREMENT_PRECISION)} ${unit}`}
+          {`${msmt.value.toFixed(MEASUREMENT_PRECISION)} ${unit}`}
           <br />
           {depth && (
             <>
@@ -640,6 +640,7 @@ function handleCheckbox(id, accessor, dispatch) {
   };
 }
 
+// Adapted from https://stackoverflow.com/a/54024653
 function hsv2rgb(h, s, v) {
   const f = (n) => {
     const k = (n + h / 60) % 6;
@@ -710,6 +711,7 @@ function parseCharcs(charcs, range) {
   return result;
 }
 
+// Adapted from https://stackoverflow.com/a/54014428
 function rgb2hex(r, g, b) {
   let hex = '#';
   [r, g, b].forEach((x) => {
@@ -1126,11 +1128,13 @@ function CharacteristicChartSection({
 
   let average = '';
   if (mean)
-    average += toFixedFloat(mean, MEAUREMENT_PRECISION).toLocaleString('en-US');
+    average += toFixedFloat(mean, MEASUREMENT_PRECISION).toLocaleString(
+      'en-US',
+    );
   if (stdDev)
     average += ` ${String.fromCharCode(177)} ${toFixedFloat(
       stdDev,
-      MEAUREMENT_PRECISION,
+      MEASUREMENT_PRECISION,
     ).toLocaleString()}`;
   average += ` ${displayUnit}`;
 
@@ -1338,7 +1342,7 @@ function CharacteristicChartSection({
                         label: 'Median Value',
                         value: `${toFixedFloat(
                           median,
-                          MEAUREMENT_PRECISION,
+                          MEASUREMENT_PRECISION,
                         ).toLocaleString()} ${displayUnit}`,
                       },
                       {
@@ -1702,7 +1706,6 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   useEffect(() => {
     if (charcsStatus !== 'success') return;
-    if (minYear || maxYear) return;
     let newMinYear = Infinity;
     let newMaxYear = 0;
     Object.values(charcs).forEach((charc) => {
@@ -1715,7 +1718,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
     setMinYear(newMinYear);
     setMaxYear(newMaxYear);
     setRange([newMinYear, newMaxYear]);
-  }, [charcs, charcsStatus, maxYear, minYear]);
+  }, [charcs, charcsStatus]);
 
   return (
     <div css={boxStyles}>
@@ -1735,13 +1738,14 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         pending={<LoadingSpinner />}
         status={charcsStatus}
       >
-        <SliderContainer
-          disabled={!Object.keys(charcs).length}
-          max={maxYear}
-          min={minYear}
-          onChange={(newRange) => setRange(newRange)}
-          range={range}
-        />
+        {Object.keys(charcs).length > 0 && (
+          <SliderContainer
+            max={maxYear}
+            min={minYear}
+            onChange={(newRange) => setRange(newRange)}
+            range={range}
+          />
+        )}
         <div css={boxSectionStyles}>
           <div css={accordionStyles}>
             <AccordionList
@@ -2224,7 +2228,7 @@ function MonitoringReport() {
   );
 }
 
-function SliderContainer({ min, max, disabled = false, onChange, range }) {
+function SliderContainer({ min, max, onChange, range }) {
   if (!min || !max) return <LoadingSpinner />;
   else if (min === max)
     return (
@@ -2235,13 +2239,7 @@ function SliderContainer({ min, max, disabled = false, onChange, range }) {
 
   return (
     <div css={sliderContainerStyles}>
-      <DateSlider
-        disabled={disabled}
-        min={min}
-        max={max}
-        onChange={onChange}
-        range={range}
-      />
+      <DateSlider min={min} max={max} onChange={onChange} range={range} />
     </div>
   );
 }
