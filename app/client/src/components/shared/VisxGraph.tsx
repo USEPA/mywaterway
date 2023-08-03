@@ -1,5 +1,7 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
-import { createGlobalStyle } from 'styled-components/macro';
+import { Fragment, useEffect, useLayoutEffect, useState } from 'react';
+import { createGlobalStyle, css } from 'styled-components/macro';
+import { LegendLabel, LegendLinear, LegendItem } from '@visx/legend';
+import { scaleLinear } from '@visx/scale';
 import {
   Axis,
   buildChartTheme,
@@ -10,6 +12,7 @@ import {
 } from '@visx/xychart';
 // types
 import type { ReactChildren, ReactChild, ReactNode } from 'react';
+import type { FlattenSimpleInterpolation } from 'styled-components';
 import type { TooltipData, XYChartTheme } from '@visx/xychart';
 
 /*
@@ -76,7 +79,7 @@ type Props = {
   buildTooltip?: (tooltipData?: TooltipData<Datum>) => ReactNode;
   chartType?: 'scatter' | 'line';
   children: ReactChild | ReactChildren;
-  colors?: string | string[];
+  colors?: string[];
   containerRef?: HTMLElement | null;
   data: Datum[];
   dataKeys: string[];
@@ -87,7 +90,7 @@ type Props = {
   yTitle?: string;
 };
 
-function VisxGraph({
+export function VisxGraph({
   buildTooltip,
   chartType = 'scatter',
   colors,
@@ -105,7 +108,7 @@ function VisxGraph({
     if (colors) {
       setTheme({
         ...customTheme,
-        colors: Array.isArray(colors) ? colors : [colors],
+        colors,
       });
     }
   }, [colors]);
@@ -205,6 +208,86 @@ function VisxGraph({
         />
       </XYChart>
     </>
+  );
+}
+
+const legendContainerStyles = (
+  align: string,
+  additionalStyles?: FlattenSimpleInterpolation,
+) => css`
+  ${additionalStyles}
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  justify-content: ${align === 'left' ? 'flex-start' : 'flex-end'};
+`;
+
+const legendStyles = css`
+  display: flex;
+  flex-direction: row;
+`;
+
+interface GradientLegendProps {
+  align: 'left' | 'right';
+  colors: string[];
+  styles?: FlattenSimpleInterpolation;
+  keys: number[];
+  title: string;
+}
+
+export function GradientLegend({
+  align = 'left',
+  colors,
+  styles,
+  keys,
+  title,
+}: GradientLegendProps) {
+  const colorScale = scaleLinear<string>({
+    domain: keys,
+    range: colors,
+  });
+
+  const legendGlyphSize = 15;
+
+  return (
+    <div css={legendContainerStyles(align, styles)}>
+      {align === 'left' && (
+        <LegendLabel flex={0} margin="auto 0.5em auto 0">
+          <strong>{title}</strong>
+        </LegendLabel>
+      )}
+      <LegendLabel flex={0} margin="auto 0">
+        {keys[0].toString()}
+      </LegendLabel>
+      <div css={legendStyles}>
+        <LegendLinear scale={colorScale} steps={20}>
+          {(labels) =>
+            labels.map((label) => (
+              <Fragment key={label.text}>
+                <LegendItem>
+                  <svg width={5} height={legendGlyphSize}>
+                    <rect
+                      width={5}
+                      height={legendGlyphSize}
+                      fill={label.value}
+                      stroke={label.value}
+                    />
+                  </svg>
+                </LegendItem>
+              </Fragment>
+            ))
+          }
+        </LegendLinear>
+      </div>
+      <LegendLabel flex={0} margin="auto 0">
+        {keys[keys.length - 1].toString()}
+      </LegendLabel>
+      {align === 'right' && (
+        <LegendLabel flex={0} margin="auto 0 auto 0.5em">
+          <strong>{title}</strong>
+        </LegendLabel>
+      )}
+    </div>
   );
 }
 

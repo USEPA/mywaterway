@@ -22,7 +22,7 @@ import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
-import VisxGraph from 'components/shared/VisxGraph';
+import { GradientLegend, VisxGraph } from 'components/shared/VisxGraph';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
@@ -135,7 +135,6 @@ const charcsTableStyles = css`
 
 const chartContainerStyles = css`
   margin: 1rem 0.625rem;
-  height: 500px;
 `;
 
 const chartTooltipStyles = css`
@@ -293,6 +292,10 @@ const leftColumnStyles = css`
     width: 50%;
     max-width: 582px;
   }
+`;
+
+const legendStyles = css`
+  margin-top: 1em;
 `;
 
 const mapContainerStyles = css`
@@ -550,16 +553,20 @@ function fetchParseCsv(url) {
   });
 }
 
-function generateHeatmap(numColors) {
-  const result = [];
+function generateHeatmap(data) {
+  const sortedData = data.toSorted((a, b) => a - b);
+  const dataMin = sortedData[0];
+  const dataMax = sortedData[sortedData.length - 1];
+  const svMin = 30;
+  const svMax = 100;
   const hue = 204;
-  for (let i = 0; i < numColors; i++) {
-    const offset = (70 / numColors) * i;
+  return sortedData.map((datum) => {
+    const fractionalPos = (datum - dataMin) / (dataMax - dataMin);
+    const offset = (svMax - svMin) * fractionalPos;
     const sat = (30 + offset) / 100;
     const val = (100 - offset) / 100;
-    result.push(rgb2hex(...hsv2rgb(hue, sat, val)));
-  }
-  return result;
+    return rgb2hex(...hsv2rgb(hue, sat, val));
+  });
 }
 
 function getCharcLabel(charcGroup, labelMappings) {
@@ -999,6 +1006,7 @@ function CharacteristicChartSection({
   }, [records]);
 
   const [chartColors, setChartColors] = useState(null);
+  const [chartColorKeys, setChartColorKeys] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [dataKeys, setDataKeys] = useState(null);
   const [domain, setDomain] = useState(null);
@@ -1013,11 +1021,17 @@ function CharacteristicChartSection({
     const newChartData = [];
 
     const allDepths = new Set();
-    newMsmts.forEach((msmt) => allDepths.add(msmt.depth));
+    newMsmts.forEach(
+      (msmt) => msmt.depth !== null && allDepths.add(msmt.depth),
+    );
     const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
 
     let curDatum = null;
+    let depthUnit = null;
     newMsmts.forEach((msmt) => {
+      if (depthUnit && msmt.depthUnit !== depthUnit)
+        console.warn('Depth units differ');
+      depthUnit = msmt.depthUnit;
       if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
         const dataPoint = {
           // Map zero values to the lowest number possible
@@ -1039,8 +1053,9 @@ function CharacteristicChartSection({
     });
     curDatum && newChartData.push(curDatum);
     setDataKeys([...Array(allDepths.size).keys()].map((k) => k.toString()));
+    setChartColorKeys(sortedDepths);
     setChartColors(
-      allDepths.size <= 1 ? '#38a6ee' : generateHeatmap(allDepths.size),
+      allDepths.size <= 1 ? ['#38a6ee'] : generateHeatmap(sortedDepths),
     );
     return newChartData;
   }, []);
@@ -1299,6 +1314,7 @@ function CharacteristicChartSection({
             <ChartContainer
               chartType={chartType}
               colors={chartColors}
+              colorKeys={chartColorKeys}
               range={range}
               data={chartData}
               scaleType={scaleType}
@@ -1527,6 +1543,7 @@ function CharacteristicsTableSection({
 function ChartContainer({
   chartType,
   colors,
+  colorKeys,
   range,
   data,
   dataKeys,
@@ -1565,6 +1582,13 @@ function ChartContainer({
         xTitle="Date"
         yScale={scaleType}
         yTitle={yTitle}
+      />
+      <GradientLegend
+        align="right"
+        colors={colors}
+        keys={colorKeys}
+        styles={legendStyles}
+        title="Depth"
       />
     </div>
   );
