@@ -784,7 +784,7 @@ function WaterbodyInfo({
             value: attributes.CWPPermitTypeDesc,
           },
           {
-            label: 'Permit Components',
+            label: <GlossaryTerm term="Permit Components">Permit Components</GlossaryTerm>,
             value: attributes.PermitComponents ? (
               attributes.PermitComponents.split(', ')
                 .sort()
@@ -794,7 +794,7 @@ function WaterbodyInfo({
                   </GlossaryTerm>
                 ))
             ) : (
-              <GlossaryTerm term="Not Specified">Not Specified</GlossaryTerm>
+              <GlossaryTerm term="Components Not Specified">Components Not Specified</GlossaryTerm>
             ),
           },
           {
