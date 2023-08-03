@@ -7,7 +7,9 @@ import {
   useState,
 } from 'react';
 import { createPortal, render } from 'react-dom';
+import { saveAs } from 'file-saver';
 import { Rnd } from 'react-rnd';
+import Select from 'react-select';
 import { css } from 'styled-components/macro';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
@@ -18,7 +20,8 @@ import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
 import Point from '@arcgis/core/geometry/Point';
-import Print from '@arcgis/core/widgets/Print.js';
+import PrintTemplate from '@arcgis/core/rest/support/PrintTemplate';
+import PrintVM from '@arcgis/core/widgets/Print/PrintViewModel';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import * as query from '@arcgis/core/rest/query';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
@@ -27,8 +30,14 @@ import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AddSaveDataWidget from 'components/shared/AddSaveDataWidget';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import MapLegend from 'components/shared/MapLegend';
+import {
+  errorBoxStyles,
+  successBoxStyles,
+} from 'components/shared/MessageBoxes';
 import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
@@ -60,6 +69,8 @@ import type {
 } from 'react';
 import type { Container } from 'react-dom';
 import type { Feature, ServicesState } from 'types';
+// styles
+import { fonts } from 'styles';
 
 /*
 ## Styles
@@ -905,35 +916,29 @@ function MapWidgets({
     fullScreenWidgetCreated,
   ]);
 
-  // create print widget
-  const printWidget = useMemo(() => {
-    if (!view || services.status !== 'success') return null;
-    const container = document.createElement('div');
-    const printContent = new Print({
-      view,
-      container,
-      printServiceUrl: services.data.printService,
-    });
+  // create the download widget
+  useEffect(() => {
+    if (!view || services.status !== 'success') return;
 
-    return new Expand({
+    const container = document.createElement('div');
+    render(<DownloadWidget services={services} view={view} />, container);
+
+    const downloadWidget = new Expand({
       expandIconClass: 'esri-icon-download',
       expandTooltip: 'Open Download Widget',
       collapseTooltip: 'Close Download Widget',
       view,
       mode: 'floating',
       autoCollapse: true,
-      content: printContent,
+      content: container,
     });
-  }, [services, view]);
 
-  // add the print widget
-  useEffect(() => {
-    if (printWidget)
-      view?.ui.add(printWidget, { position: 'top-right', index: 3 });
+    view?.ui.add(downloadWidget, { position: 'top-right', index: 3 });
+
     return function cleanup() {
-      if (printWidget) view?.ui.remove(printWidget);
+      if (downloadWidget) view?.ui.remove(downloadWidget);
     };
-  }, [printWidget, view]);
+  }, [services, view]);
 
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on Tribal page or valid Community page location
@@ -1919,6 +1924,442 @@ function ShowSelectedUpstreamWatershed({
         upstreamLoading={upstreamLoading}
       />
     </>
+  );
+}
+
+const advanceContainerStyles = css`
+  padding: 10px;
+`;
+
+const checkboxStyles = css`
+  display: flex;
+  gap: 0.25rem;
+`;
+
+const downloadButtonStyles = css`
+  margin-top: 10px;
+  width: 100%;
+`;
+
+const downloadWidgetContainerStyles = css`
+  padding: 12px 10px 0;
+
+  h1 {
+    font-family: ${fonts.primary};
+    font-size: 1.25em;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0 0 12px 0;
+    padding: 0;
+  }
+
+  label {
+    width: 100%;
+    font-size: 16px;
+    margin-bottom: 0.5rem;
+  }
+`;
+
+const inputStyles = css`
+  width: 100%;
+  height: 36px;
+  padding: 2px 8px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 4px;
+  border-color: hsl(0, 0%, 80%);
+`;
+
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  text-align: center;
+  margin-top: 0.625rem;
+`;
+
+const modifiedSuccessBoxStyles = css`
+  ${successBoxStyles};
+  text-align: center;
+  margin-top: 0.625rem;
+`;
+
+const scaleContainerStyles = css`
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  button {
+    width: 36px;
+    height: 36px;
+  }
+`;
+
+const sizeContainerStyles = css`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  button {
+    background-color: #f0f6f9;
+  }
+
+  div {
+    flex: 0 0 43%;
+  }
+`;
+
+type FormatOptionType =
+  | { value: 'pdf'; label: 'PDF'; extension: 'pdf' }
+  | { value: 'png32'; label: 'PNG'; extension: 'png' }
+  | { value: 'jpg'; label: 'JPG'; extension: 'jpg' }
+  | { value: 'gif'; label: 'GIF'; extension: 'gif' }
+  | { value: 'svg'; label: 'SVG'; extension: 'svg' };
+
+type LayoutOptionType =
+  | { value: 'a3-landscape'; label: 'A3 Landscape' }
+  | { value: 'a3-portrait'; label: 'A3 Portrait' }
+  | { value: 'a4-landscape'; label: 'A4 Landscape' }
+  | { value: 'a4-portrait'; label: 'A4 Portrait' }
+  | { value: 'letter-ansi-a-landscape'; label: 'Letter ANSI A Landscape' }
+  | { value: 'letter-ansi-a-portrait'; label: 'Letter ANSI A Portrait' }
+  | { value: 'tabloid-ansi-b-landscape'; label: 'Tabloid ANSI B Landscape' }
+  | { value: 'tabloid-ansi-b-portrait'; label: 'Tabloid ANSI B Portrait' };
+
+type DownloadWidgetProps = {
+  services: ServicesState;
+  view: __esri.MapView;
+};
+
+function DownloadWidget({ services, view }: DownloadWidgetProps) {
+  const formatOptions: FormatOptionType[] = [
+    { value: 'pdf', label: 'PDF', extension: 'pdf' },
+    { value: 'png32', label: 'PNG', extension: 'png' },
+    { value: 'jpg', label: 'JPG', extension: 'jpg' },
+    { value: 'gif', label: 'GIF', extension: 'gif' },
+    { value: 'svg', label: 'SVG', extension: 'svg' },
+  ];
+
+  const layoutOptions: LayoutOptionType[] = [
+    { value: 'a3-landscape', label: 'A3 Landscape' },
+    { value: 'a3-portrait', label: 'A3 Portrait' },
+    { value: 'a4-landscape', label: 'A4 Landscape' },
+    { value: 'a4-portrait', label: 'A4 Portrait' },
+    { value: 'letter-ansi-a-landscape', label: 'Letter ANSI A Landscape' },
+    { value: 'letter-ansi-a-portrait', label: 'Letter ANSI A Portrait' },
+    { value: 'tabloid-ansi-b-landscape', label: 'Tabloid ANSI B Landscape' },
+    { value: 'tabloid-ansi-b-portrait', label: 'Tabloid ANSI B Portrait' },
+  ];
+
+  const [attributionVisible, setAttributionVisible] = useState(true);
+  const [author, setAuthor] = useState('');
+  const [copyright, setCopyright] = useState('');
+  const [dpi, setDpi] = useState(96);
+  const [enableScale, setEnableScale] = useState(false);
+  const [scale, setScale] = useState(0);
+  const [format, setFormat] = useState<FormatOptionType>(formatOptions[0]);
+  const [includeLegend, setIncludeLegend] = useState(true);
+  const [layout, setLayout] = useState<LayoutOptionType>(
+    layoutOptions.find((o) => o.value === 'letter-ansi-a-landscape') ??
+      layoutOptions[0],
+  );
+  const [northArrowVisible, setNorthArrowVisible] = useState(false);
+  const [status, setStatus] = useState<
+    'idle' | 'fetching' | 'success' | 'failure'
+  >('idle');
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const [title, setTitle] = useState('');
+  const [height, setHeight] = useState(1100);
+  const [width, setWidth] = useState(800);
+
+  // Initializes a watcher to sync the view's scale.
+  useEffect(() => {
+    const scaleHandle = reactiveUtils.watch(
+      () => view.scale,
+      () => {
+        if (!enableScale) setScale(view.scale);
+      },
+      { initial: true },
+    );
+    return function cleanup() {
+      scaleHandle.remove();
+    };
+  }, [enableScale, view]);
+
+  return (
+    <div
+      className="esri-widget esri-widget--panel-height-only"
+      css={downloadWidgetContainerStyles}
+    >
+      <h1>Download</h1>
+      <div>
+        <label>
+          Title
+          <input
+            css={inputStyles}
+            type="text"
+            value={title}
+            onChange={(ev) => setTitle(ev.target.value)}
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          File Format
+          <Select
+            menuPosition="fixed"
+            inputId="url-type-select"
+            isSearchable={false}
+            value={format}
+            onChange={(ev) => {
+              setFormat(ev as FormatOptionType);
+            }}
+            options={formatOptions}
+          />
+        </label>
+      </div>
+      <div>
+        <label css={checkboxStyles}>
+          <input
+            type="checkbox"
+            checked={includeLegend}
+            onChange={() => setIncludeLegend(!includeLegend)}
+          />
+          Include Legend
+        </label>
+      </div>
+      {includeLegend && (
+        <div>
+          <label>
+            Page setup
+            <Select
+              menuPosition="fixed"
+              isSearchable={false}
+              value={layout}
+              onChange={(ev) => {
+                setLayout(ev as LayoutOptionType);
+              }}
+              options={layoutOptions}
+            />
+          </label>
+        </div>
+      )}
+      <AccordionList expandDisabled={true}>
+        <AccordionItem status={'highlighted'} title="Advanced">
+          <div css={advanceContainerStyles}>
+            {!includeLegend && (
+              <div css={sizeContainerStyles}>
+                <div>
+                  <label>
+                    Width:
+                    <input
+                      css={inputStyles}
+                      type="number"
+                      value={width}
+                      onChange={(ev) => setWidth(ev.target.valueAsNumber)}
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label>
+                    Height:
+                    <input
+                      css={inputStyles}
+                      type="number"
+                      value={height}
+                      onChange={(ev) => setHeight(ev.target.valueAsNumber)}
+                    />
+                  </label>
+                </div>
+                <button
+                  className="esri-widget--button esri-print__swap-button esri-icon-swap"
+                  aria-label="swap"
+                  onClick={() => {
+                    const newWidth = height;
+                    const newHeight = width;
+                    setWidth(newWidth);
+                    setHeight(newHeight);
+                  }}
+                />
+              </div>
+            )}
+            <div>
+              <label css={checkboxStyles}>
+                <input
+                  type="checkbox"
+                  checked={enableScale}
+                  onChange={() => setEnableScale(!enableScale)}
+                />
+                Set scale
+              </label>
+            </div>
+            <div css={scaleContainerStyles}>
+              <input
+                css={inputStyles}
+                type="number"
+                aria-label="scale"
+                disabled={!enableScale}
+                value={scale}
+                onChange={(ev) => setScale(ev.target.valueAsNumber)}
+              />
+              <button
+                aria-label="reset scale"
+                className="esri-widget--button esri-print__refresh-button esri-icon-refresh"
+                onClick={() => {
+                  setScale(view.scale);
+                }}
+              />
+            </div>
+            {includeLegend && (
+              <>
+                <div>
+                  <label>
+                    Author
+                    <input
+                      css={inputStyles}
+                      type="text"
+                      value={author}
+                      onChange={(ev) => setAuthor(ev.target.value)}
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label>
+                    Copyright
+                    <input
+                      css={inputStyles}
+                      type="text"
+                      value={copyright}
+                      onChange={(ev) => setCopyright(ev.target.value)}
+                    />
+                  </label>
+                </div>
+              </>
+            )}
+            <div>
+              <label>
+                DPI
+                <input
+                  css={inputStyles}
+                  type="number"
+                  value={dpi}
+                  onChange={(ev) => setDpi(ev.target.valueAsNumber)}
+                />
+              </label>
+            </div>
+            <div>
+              {includeLegend ? (
+                <label css={checkboxStyles}>
+                  <input
+                    type="checkbox"
+                    checked={northArrowVisible}
+                    onChange={() => setNorthArrowVisible(!northArrowVisible)}
+                  />
+                  Include north arrow
+                </label>
+              ) : (
+                <label css={checkboxStyles}>
+                  <input
+                    type="checkbox"
+                    checked={attributionVisible}
+                    onChange={() => setAttributionVisible(!attributionVisible)}
+                  />
+                  Include attribution
+                </label>
+              )}
+            </div>
+          </div>
+        </AccordionItem>
+      </AccordionList>
+
+      {status === 'fetching' && <LoadingSpinner />}
+
+      {status === 'success' && (
+        <div css={modifiedSuccessBoxStyles}>
+          <p>Download succeeded. Please check your download folder.</p>
+        </div>
+      )}
+      {status === 'failure' && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{errorMessage}</p>
+        </div>
+      )}
+
+      <button
+        css={downloadButtonStyles}
+        disabled={status === 'fetching'}
+        onClick={() => {
+          if (!view || services.status !== 'success') return;
+
+          if (!title) {
+            setStatus('failure');
+            setErrorMessage('Please provide a title and try again.');
+            return;
+          }
+
+          setStatus('fetching');
+
+          const template = new PrintTemplate({
+            attributionVisible,
+            exportOptions: {
+              width,
+              height,
+              dpi,
+            },
+            format: format.value,
+            layout: includeLegend ? layout.value : 'map-only',
+            layoutOptions: {
+              titleText: title,
+              authorText: author,
+              copyrightText: copyright,
+              elementOverrides: {
+                'North Arrow': {
+                  visible: northArrowVisible,
+                },
+              },
+            },
+            outScale: scale,
+          });
+
+          const printVm = new PrintVM({
+            printServiceUrl: services.data.printService,
+            view,
+          });
+
+          function download(retryCount: number = 0) {
+            printVm
+              .print(template)
+              .then((res) => {
+                saveAs(res.url, `${title}.${format.extension}`);
+                setStatus('success');
+              })
+              .catch((err) => {
+                console.error(err);
+
+                // set failure when retry is exceeded
+                if (retryCount === 3) {
+                  setStatus('failure');
+                  if (err.message) {
+                    setErrorMessage(err.message);
+                  } else {
+                    setErrorMessage(
+                      'Unknown error. Check developer tools console.',
+                    );
+                  }
+                } else {
+                  // recursive retry (1 second between retries)
+                  console.log(
+                    `Failed to download. Retrying (${retryCount + 1} of 3)...`,
+                  );
+                  setTimeout(() => download(retryCount + 1), 1000);
+                }
+              });
+          }
+
+          download();
+        }}
+      >
+        Download
+      </button>
+    </div>
   );
 }
 

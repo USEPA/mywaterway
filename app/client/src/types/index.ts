@@ -376,6 +376,7 @@ export interface ServicesData {
     getFacilities: string;
     metadata: string;
   };
+  printService: string;
   upstreamWatershed: string;
   usgsDailyValues: string;
   usgsSensorThingsAPI: string;

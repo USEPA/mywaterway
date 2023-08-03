@@ -78,10 +78,10 @@ type AccordionListProps = {
   children: ReactNode;
   className?: string;
   title?: ReactNode;
-  expandDisabled: boolean;
-  sortOptions: { value: string; label: string }[];
-  onSortChange: Function;
-  onExpandCollapse: Function;
+  expandDisabled?: boolean;
+  sortOptions?: { value: string; label: string }[];
+  onSortChange?: Function;
+  onExpandCollapse?: Function;
   contentExpandCollapse?: ReactNode;
 };
 
