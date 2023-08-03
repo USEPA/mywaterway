@@ -76,9 +76,8 @@ const containerStyles = css`
 const containerContentExpandStyles = css`
   display: flex;
   align-items: center;
-  height: 40px;
+  height: 49px;
   width: 100%;
-  margin-left: 0.5rem;
 `;
 
 const infoBoxContainerStyles = css`

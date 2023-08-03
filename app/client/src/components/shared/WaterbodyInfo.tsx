@@ -174,17 +174,17 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-const measurementTableStyles = (align: string = 'right') => css`
+const measurementTableStyles = css`
   ${modifiedTableStyles};
 
   th:last-of-type,
   td:last-of-type {
-    text-align: ${align};
+    text-align: right;
   }
 `;
 
 const modalTableStyles = css`
-  ${measurementTableStyles()};
+  ${measurementTableStyles};
   margin-bottom: 0;
 
   th {
@@ -608,12 +608,11 @@ function WaterbodyInfo({
             )}
 
             {applicableFields.length > 0 && (
-              <table css={measurementTableStyles('center')} className="table">
+              <table css={measurementTableStyles} className="table">
                 <thead>
                   <tr>
                     <th>What is this water used for?</th>
                     <th>Condition</th>
-                    <th>Detailed Uses</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -627,25 +626,6 @@ function WaterbodyInfo({
                     return (
                       <tr key={useField.value}>
                         <td>
-                          <GlossaryTerm term={useField.term}>
-                            {useField.label}
-                          </GlossaryTerm>
-                        </td>
-                        <td>
-                          <GlossaryTerm
-                            term={
-                              value === 'Good'
-                                ? 'Good Waters'
-                                : value === 'Impaired' ||
-                                  value === 'Impaired (Issues Identified)'
-                                ? 'Impaired Waters'
-                                : 'Condition Unknown'
-                            }
-                          >
-                            {value}
-                          </GlossaryTerm>
-                        </td>
-                        <td>
                           <Modal
                             label={`Detailed Uses for ${useField.label}`}
                             maxWidth="35rem"
@@ -653,16 +633,15 @@ function WaterbodyInfo({
                             triggerElm={
                               <button
                                 aria-label={`View detailed uses for ${useField.label}`}
-                                title={`View detailed uses for ${useField.label}`}
                                 css={modifiedIconButtonStyles}
-                                onClick={() => {
-                                  setSelectedUseField(useField);
-                                  fetchDetailedUses();
-                                }}
                               >
                                 <i
                                   aria-hidden
                                   className="fas fa-info-circle"
+                                  onClick={() => {
+                                    setSelectedUseField(useField);
+                                    fetchDetailedUses();
+                                  }}
                                 ></i>
                               </button>
                             }
@@ -728,6 +707,27 @@ function WaterbodyInfo({
                                 </table>
                               )}
                           </Modal>
+                          <GlossaryTerm term={useField.term}>
+                            {useField.label}
+                          </GlossaryTerm>
+                        </td>
+                        <td
+                          css={css`
+                            width: 165px;
+                          `}
+                        >
+                          <GlossaryTerm
+                            term={
+                              value === 'Good'
+                                ? 'Good Waters'
+                                : value === 'Impaired' ||
+                                  value === 'Impaired (Issues Identified)'
+                                ? 'Impaired Waters'
+                                : 'Condition Unknown'
+                            }
+                          >
+                            {value}
+                          </GlossaryTerm>
                         </td>
                       </tr>
                     );
@@ -2612,7 +2612,7 @@ function MonitoringLocationsContent({
       {Object.keys(groups).length > 0 && (
         <table
           aria-label="Characteristic Groups Summary"
-          css={measurementTableStyles()}
+          css={measurementTableStyles}
           className="table"
         >
           <thead>
@@ -2871,7 +2871,7 @@ function UsgsStreamgagesContent({
         />
       </div>
 
-      <table css={measurementTableStyles()} className="table">
+      <table css={measurementTableStyles} className="table">
         <thead>
           <tr>
             <th>Category</th>

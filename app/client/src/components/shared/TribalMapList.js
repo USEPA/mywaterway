@@ -546,7 +546,10 @@ function TribalMapList({
                 {waterbodies.status === 'success' && (
                   <Fragment>
                     {waterbodies.data.length > 0 ? (
-                      <WaterbodyList waterbodies={waterbodies.data} />
+                      <WaterbodyList
+                        waterbodies={waterbodies.data}
+                        title="Waterbodies"
+                      />
                     ) : (
                       <div css={infoBoxStyles}>
                         <p>
