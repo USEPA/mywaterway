@@ -139,6 +139,7 @@ export function createUniqueValueInfos(
 ) {
   return [
     {
+      label: `Good`,
       value: `Fully Supporting`,
       symbol: createWaterbodySymbol({
         condition: 'good',
@@ -148,6 +149,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Impaired`,
       value: `Not Supporting`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -157,6 +159,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Condition Unknown`,
       value: `Insufficient Information`,
       symbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -166,6 +169,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Condition Unknown`,
       value: `Not Assessed`,
       symbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -175,6 +179,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Good`,
       value: `Meeting Criteria`,
       symbol: createWaterbodySymbol({
         condition: 'good',
@@ -184,6 +189,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Impaired`,
       value: `Cause`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -193,6 +199,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Yes`,
       value: `Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -202,6 +209,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `No`,
       value: `N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
