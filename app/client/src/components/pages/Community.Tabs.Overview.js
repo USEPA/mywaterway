@@ -416,7 +416,7 @@ function MonitoringAndSensorsTab({
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  // if any of the "USGS Sensors", "Harmful Algal Blooms", or "Past Water Conditions" switches
+  // if any of the "USGS Sensors", "Potential Harmful Algal Blooms", or "Past Water Conditions" switches
   // are turned on, or if all switches are turned off, keep the "Water Monitoring
   // Locations" switch in sync
   useEffect(() => {
@@ -709,7 +709,7 @@ function MonitoringAndSensorsTab({
               </span>
               <span>
                 {waterwayIcon({ color: '#6c95ce' })}
-                &nbsp;Harmful Algal Blooms (HABs)&nbsp;
+                &nbsp;Potential Harmful Algal Blooms (HABs)&nbsp;
               </span>
             </div>
 
@@ -736,13 +736,12 @@ function MonitoringAndSensorsTab({
                     </span>
                     <span css={showLessMoreStyles}>
                       Areas highlighted light blue are the lakes, reservoirs,
-                      and other large waterbodies where CyAN satellite imagery
-                      data is available. Daily data are a snapshot of{' '}
-                      <GlossaryTerm term="Cyanobacteria">
-                        cyanobacteria
+                      and other large waterbodies where potential harmful algal
+                      bloom data is available. Daily data are a snapshot of{' '}
+                      <GlossaryTerm term="Blue-Green Algae">
+                        blue-green algae
                       </GlossaryTerm>{' '}
-                      (sometimes referred to as blue-green algae) at the time of
-                      detection.
+                      at the time of detection.
                     </span>
                     <span css={showLessMoreStyles}>
                       Click on each monitoring location on the map or in the
@@ -834,7 +833,7 @@ function MonitoringAndSensorsTab({
                         onChange={handleHarmfulAlgalBloomsToggle}
                         disabled={cyanWaterbodies.length === 0}
                       />
-                      <span>Harmful Algal Blooms (HABs)</span>
+                      <span>Potential Harmful Algal Blooms (HABs)</span>
                     </label>
                   </td>
                   <td>{cyanWaterbodies.length}</td>
@@ -1254,15 +1253,11 @@ function PermittedDischargersTab({
                                 }
                                 ariaLabelledBy={componentLabelId}
                               />
-                              {componentLabel === 'Not Specified' ? (
-                                <span id={componentLabelId}>Not Specified</span>
-                              ) : (
-                                <span id={componentLabelId}>
-                                  <GlossaryTerm term={componentLabel}>
-                                    {componentLabel}
-                                  </GlossaryTerm>
-                                </span>
-                              )}
+                              <span id={componentLabelId}>
+                                <GlossaryTerm term={componentLabel}>
+                                  {componentLabel}
+                                </GlossaryTerm>
+                              </span>
                             </div>
                           </td>
                           <td>{component.dischargers.length}</td>

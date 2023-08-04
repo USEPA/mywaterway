@@ -785,15 +785,17 @@ function WaterbodyInfo({
           },
           {
             label: 'Permit Components',
-            value: attributes.PermitComponents
-              ? attributes.PermitComponents.split(', ')
-                  .sort()
-                  .map((term: string) => (
-                    <GlossaryTerm key={term} term={term}>
-                      {term}
-                    </GlossaryTerm>
-                  ))
-              : 'Not Specified',
+            value: attributes.PermitComponents ? (
+              attributes.PermitComponents.split(', ')
+                .sort()
+                .map((term: string) => (
+                  <GlossaryTerm key={term} term={term}>
+                    {term}
+                  </GlossaryTerm>
+                ))
+            ) : (
+              <GlossaryTerm term="Not Specified">Not Specified</GlossaryTerm>
+            ),
           },
           {
             label: 'Significant Effluent Violation within the last 3 years',
@@ -1577,13 +1579,15 @@ function CyanDailyContent({
   if (!data) {
     return (
       <p css={marginBoxStyles(infoBoxStyles)}>
-        There is no CyAN data available for the selected date.
+        There is no potential harmful algal bloom data available for the
+        selected date.
       </p>
     );
   } else if (!sum(...data.measurements)) {
     return (
       <p css={marginBoxStyles(infoBoxStyles)}>
-        There is no measureable CyAN data available for the selected date.
+        There is no measureable potential harmful algal bloom data available for
+        the selected date.
       </p>
     );
   } else {
@@ -1591,8 +1595,8 @@ function CyanDailyContent({
     return (
       <>
         <p css={subheadingStyles}>
-          Cyanobacteria Concentration Histogram and Maximum for Selected Date:{' '}
-          {formatDate(epochDate)}
+          Blue-Green Algae Concentration Histogram and Maximum for Selected
+          Date: {formatDate(epochDate)}
         </p>
 
         {histogramData && (
@@ -1623,7 +1627,7 @@ function CyanDailyContent({
               {
                 label: (
                   <>
-                    <HelpTooltip label="Maximum detected cyanobacteria concentration in the satellite image area shown on map." />
+                    <HelpTooltip label="Maximum detected blue-green algae concentration in the satellite image area shown on map." />
                     &nbsp;&nbsp; Maximum Value
                   </>
                 ),
@@ -2112,9 +2116,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 <StackedColumnChart
                   categories={barChartData.categories}
                   exportFilename="CyAN_StackedBarChart"
-                  legendTitle="Cyanobacteria Concentration Categories:"
+                  legendTitle="Blue-Green Algae Concentration Categories:"
                   series={barChartData.series}
-                  title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
+                  title={`Daily Blue-Green Algae Estimates for ${attributes.GNIS_NAME}`}
                   subtitle={`
                     Total Satellite Image Area: ${pixelArea}
                     <br />
@@ -2153,8 +2157,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     <HelpTooltip
                       label={
                         <>
-                          Adjust the slider handle to view the day's CyAN
-                          satellite imagery on the map.
+                          Adjust the slider handle to view the day's blue-green
+                          algae satellite imagery on the map.
                           <br />
                           Data for the previous day typically becomes available
                           between 9 - 11am EST.
@@ -2178,8 +2182,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
                 {imageStatus === 'failure' && (
                   <p css={marginBoxStyles(errorBoxStyles)}>
-                    There was an error retrieving the CyAN satellite image for
-                    the selected day.
+                    There was an error retrieving the potential harmful algal
+                    bloom satellite imagery for the selected day.
                   </p>
                 )}
 
@@ -2191,8 +2195,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               </>
             ) : (
               <p css={marginBoxStyles(infoBoxStyles)}>
-                There is no measureable CyAN data from the past week for the{' '}
-                {attributes.GNIS_NAME} waterbody.
+                There is no measureable potential harmful algal bloom data from
+                the past week for the {attributes.GNIS_NAME} waterbody.
               </p>
             )}
           </>
@@ -2207,12 +2211,14 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             <>
               <p>
                 Daily data are a snapshot of{' '}
-                <GlossaryTerm term="Cyanobacteria">cyanobacteria</GlossaryTerm>{' '}
-                (historically referred to as blue-green algae) at the time of
-                detection. These are provisional satellite derived measures of
-                cyanobacteria, which may contain errors. Information can be used
-                to identify potential problems related to cyanobacteria in
-                larger lakes and reservoirs within the contiguous United States.
+                <GlossaryTerm term="Blue-Green Algae">
+                  blue-green algae
+                </GlossaryTerm>{' '}
+                at the time of detection. These are provisional satellite
+                derived measures of blue-green algae, which may contain errors.
+                Information can be used to identify potential problems related
+                to blue-green algae in larger lakes and reservoirs within the
+                contiguous United States.
               </p>
 
               <h3>Data Issues include:</h3>
@@ -2235,15 +2241,15 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 </li>
                 <li>
                   <b>Rivers:</b> large flowing waterways are not masked and can
-                  have a cyanobacteria response that is not validated.
+                  have a blue-green algae response that is not validated.
                 </li>
                 <li>
                   A resolvable waterbody is considered to have, at minimum, a
                   3x3 raster cell matrix size (900x900m), with the center pixel
                   being considered valid. Smaller or irregularly shaped
                   waterbodies (i.e., those not having the minimum 900x900m size)
-                  may be evident in the data, and their cyanobacteria responses
-                  are suspect and open to interpretation. See{' '}
+                  may be evident in the data, and their blue-green algae
+                  responses are suspect and open to interpretation. See{' '}
                   <a href={`#near-shore-response-${attributes.FID}`}>
                     “Near-shore response”
                   </a>{' '}
@@ -2275,7 +2281,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   aria-hidden="true"
                 />
               </HelpTooltip>
-              Download Cyanobacteria Data
+              Download Blue-Green Algae Data
             </a>
           </p>
           <p>
@@ -2746,7 +2752,7 @@ function MonitoringLocationsContent({
               className="fas fa-file-alt"
               aria-hidden="true"
             />
-            View Monitoring Report
+            View Water Monitoring Report
           </a>
           &nbsp;&nbsp;
           <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>

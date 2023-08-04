@@ -93,10 +93,8 @@ const accordionStyles = css`
   margin-bottom: 1.25rem;
   width: 100%;
 
-  .accordion-list > p {
-    margin-top: 0;
-    padding-bottom: 0.625em;
-    text-align: left;
+  .accordion-list p {
+    margin-top: 0 !important;
   }
 
   .total-row {
@@ -1828,6 +1826,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
           <div css={accordionStyles}>
             <AccordionList
               className="accordion-list"
+              displayTitleInFlex={true}
               onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
               title={
                 <label css={checkboxTitleStyles}>
@@ -2200,7 +2199,7 @@ function MonitoringReportContent() {
 
   const noSiteView = (
     <Page>
-      <NavBar title="Monitoring Report" />
+      <NavBar title="Water Monitoring Report" />
 
       <div css={containerStyles}>
         <div css={pageErrorBoxStyles}>
@@ -2230,7 +2229,7 @@ function MonitoringReportContent() {
 
   const twoColumnView = (
     <Page>
-      <NavBar title="Monitoring Report" />
+      <NavBar title="Water Monitoring Report" />
       <div css={containerStyles} data-content="container">
         <WindowSize>
           {({ width, height }) => {

@@ -553,13 +553,12 @@ function CurrentConditionsTab({
                 <>
                   <span css={showLessMoreStyles}>
                     Areas highlighted light blue are the lakes, reservoirs, and
-                    other large waterbodies where CyAN satellite imagery data is
-                    available. Daily data are a snapshot of{' '}
-                    <GlossaryTerm term="Cyanobacteria">
-                      cyanobacteria
+                    other large waterbodies where potential harmful algal bloom
+                    data is available. Daily data are a snapshot of{' '}
+                    <GlossaryTerm term="Blue-Green Algae">
+                      blue-green algae
                     </GlossaryTerm>{' '}
-                    (sometimes referred to as blue-green algae) at the time of
-                    detection.
+                    at the time of detection.
                   </span>
 
                   <span css={showLessMoreStyles}>
@@ -575,7 +574,7 @@ function CurrentConditionsTab({
           <div css={legendItemsStyles}>
             <span>
               {waterwayIcon({ color: '#6c95ce' })}
-              &nbsp;Harmful Algal Blooms (HABs)&nbsp;
+              &nbsp;Potential Harmful Algal Blooms (HABs)&nbsp;
             </span>
             <span>
               {squareIcon({ color: '#fffe00' })}
@@ -619,7 +618,7 @@ function CurrentConditionsTab({
                         cyanWaterbodies.length === 0
                       }
                     />
-                    <span>Harmful Algal Blooms (HABs)</span>
+                    <span>Potential Harmful Algal Blooms (HABs)</span>
                   </label>
                 </td>
                 <td>{cyanWaterbodies.length ?? 'N/A'}</td>
