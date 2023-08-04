@@ -64,7 +64,7 @@
     "@reach/tooltip": "0.18.0",
     "@reach/window-size": "0.18.0",
     "@visx/curve": "3.0.0",
-    "@visx/glyph": "^3.3.0",
+    "@visx/glyph": "3.3.0",
     "@visx/legend": "3.3.0",
     "@visx/scale": "3.3.0",
     "@visx/xychart": "3.1.2",

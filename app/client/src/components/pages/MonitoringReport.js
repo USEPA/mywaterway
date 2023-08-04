@@ -305,6 +305,8 @@ const leftColumnStyles = css`
 `;
 
 const legendContainerStyles = css`
+  display: flex;
+  justify-content: flex-start;
   margin-top: 1em;
 `;
 
@@ -500,14 +502,15 @@ function buildTooltip(unit) {
         <p>
           <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
           {`${datum.y.toFixed(MEASUREMENT_PRECISION)} ${unit}`}
-          <br />
           {depth && (
             <>
+              <br />
               <em>{datum.type === 'line' && 'Average '}Depth</em>: {depth}
             </>
           )}
           {datum.activityTypeCode && (
             <>
+              <br />
               <em>Activity Type Code</em>: {datum.activityTypeCode}
             </>
           )}
@@ -1496,6 +1499,23 @@ function ChartContainer({
 }) {
   const chartRef = useRef(null);
 
+  const pointSeries = useMemo(() => {
+    let x = null;
+    let i = 0;
+    return pointData.reduce((obj, point) => {
+      // Reset series index if new day (points are ordered by date)
+      if (point.x === x) i++;
+      else {
+        x = point.x;
+        i = 0;
+      }
+      const key = i.toString();
+      if (key in obj) obj[key].push(point);
+      else obj[key] = [point];
+      return obj;
+    }, {});
+  }, [pointData]);
+
   if (!pointData.length) {
     return (
       <div css={chartContainerStyles}>
@@ -1510,6 +1530,10 @@ function ChartContainer({
   const range = [Math.min(...yValues), Math.max(...yValues)];
   const depthUnit = pointData.find((d) => d.depthUnit !== null)?.depthUnit;
 
+  if (!lineVisible && !pointsVisible) {
+    return <p css={messageBoxStyles(infoBoxStyles)}>No chart type selected.</p>;
+  }
+
   return (
     <div ref={chartRef} css={chartContainerStyles}>
       <VisxGraph
@@ -1519,7 +1543,7 @@ function ChartContainer({
         lineData={lineData}
         lineVisible={lineVisible}
         pointColorAccessor={(datum) => datum.color}
-        pointData={pointData}
+        pointData={pointSeries}
         pointsVisible={pointsVisible}
         range={range}
         xTitle="Date"

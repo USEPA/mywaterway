@@ -13,7 +13,6 @@ import {
 } from '@visx/xychart';
 // types
 import type { ReactNode } from 'react';
-import type { FlattenSimpleInterpolation } from 'styled-components';
 import type { GlyphProps, TooltipData } from '@visx/xychart';
 
 const DEFAULT_COLOR = '#2C2E43';
@@ -22,15 +21,10 @@ const DEFAULT_COLOR = '#2C2E43';
 ## Styles
 */
 
-const legendContainerStyles = (
-  align: string,
-  additionalStyles?: FlattenSimpleInterpolation,
-) => css`
-  ${additionalStyles}
+const legendContainerStyles = css`
   display: flex;
   flex-direction: row;
   gap: 0.5em;
-  justify-content: ${align === 'left' ? 'flex-start' : 'flex-end'};
 `;
 
 const legendStyles = css`
@@ -93,7 +87,7 @@ type VisxGraphProps = {
   lineData?: Datum[];
   lineVisible?: boolean;
   pointColorAccessor?: (d: Datum, index: number) => string;
-  pointData?: Datum[];
+  pointData?: { [key: string]: Datum[] };
   pointsVisible?: boolean;
   range?: number[];
   xTitle?: string;
@@ -114,7 +108,7 @@ export function VisxGraph({
   lineData = [],
   lineVisible = true,
   pointColorAccessor,
-  pointData = [],
+  pointData = {},
   pointsVisible = true,
   range,
   xTitle,
@@ -228,15 +222,17 @@ export function VisxGraph({
             yAccessor={yAccessor}
           />
         )}
-        {pointsVisible && (
-          <GlyphSeries
-            colorAccessor={pointColorAccessor}
-            data={pointData}
-            dataKey="scatter"
-            xAccessor={xAccessor}
-            yAccessor={yAccessor}
-          />
-        )}
+        {pointsVisible &&
+          Object.entries(pointData).map(([dataKey, data]) => (
+            <GlyphSeries
+              colorAccessor={pointColorAccessor}
+              data={data}
+              dataKey={dataKey}
+              key={dataKey}
+              xAccessor={xAccessor}
+              yAccessor={yAccessor}
+            />
+          ))}
         <Tooltip<Datum>
           showDatumGlyph
           showVerticalCrosshair
@@ -250,20 +246,12 @@ export function VisxGraph({
 }
 
 interface GradientLegendProps {
-  align: 'left' | 'right';
   colors: string[];
-  styles?: FlattenSimpleInterpolation;
   keys: number[];
   title: string;
 }
 
-export function GradientLegend({
-  align = 'left',
-  colors,
-  styles,
-  keys,
-  title,
-}: GradientLegendProps) {
+export function GradientLegend({ colors, keys, title }: GradientLegendProps) {
   const colorScale = scaleLinear<string>({
     domain: keys,
     range: colors,
@@ -272,12 +260,10 @@ export function GradientLegend({
   const legendGlyphSize = 15;
 
   return (
-    <div css={legendContainerStyles(align, styles)}>
-      {align === 'left' && (
-        <LegendLabel flex="0 0 auto" margin="auto 0.5em auto 0">
-          <strong>{title}</strong>
-        </LegendLabel>
-      )}
+    <div css={legendContainerStyles}>
+      <LegendLabel flex="0 0 auto" margin="auto 0.5em auto 0">
+        <strong>{title}</strong>
+      </LegendLabel>
       <LegendLabel flex={0} margin="auto 0">
         {keys[0].toString()}
       </LegendLabel>
@@ -304,11 +290,6 @@ export function GradientLegend({
       {keys.length > 1 && (
         <LegendLabel flex={0} margin="auto 0">
           {keys[keys.length - 1].toString()}
-        </LegendLabel>
-      )}
-      {align === 'right' && (
-        <LegendLabel flex="0 0 auto" margin="auto 0 auto 0.5em">
-          <strong>{title}</strong>
         </LegendLabel>
       )}
     </div>
