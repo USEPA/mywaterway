@@ -2324,12 +2324,38 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
             view,
           });
 
+          // temporarily re-enable legend for visible layers being downloaded
+          const layersLegendDisabled: __esri.Layer[] = [];
+          view.map.layers.forEach((layer) => {
+            if(!layer.visible) return;
+
+            if (isGroupLayer(layer)) {
+              layer.layers.forEach((layer) => {
+                if (!layer.visible) return;
+
+                (layer as any).legendEnabled = true;
+                layersLegendDisabled.push(layer);
+              });
+            }
+            
+            (layer as any).legendEnabled = true;
+            layersLegendDisabled.push(layer);
+          })
+
+          // disables the legend for layers where the legend was temporarily enabled
+          function disableLegend() {
+            layersLegendDisabled.forEach((layer) => {
+              (layer as any).legendEnabled = false;
+            });
+          }
+
           function download(retryCount: number = 0) {
             printVm
               .print(template)
               .then((res) => {
                 saveAs(res.url, `${title}.${format.extension}`);
                 setStatus('success');
+                disableLegend();
               })
               .catch((err) => {
                 console.error(err);
@@ -2344,6 +2370,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
                       'Unknown error. Check developer tools console.',
                     );
                   }
+                  disableLegend();
                 } else {
                   // recursive retry (1 second between retries)
                   console.log(
