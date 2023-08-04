@@ -571,17 +571,20 @@ function fetchParseCsv(url) {
 
 // Create a heatmap proportional to the range of the provided numerical data
 function generateHeatmap(data) {
-  const sortedData = data.toSorted((a, b) => a - b);
-  const dataMin = sortedData[0];
-  const dataMax = sortedData[sortedData.length - 1];
   const svMin = 30;
   const svMax = 100;
   const hue = 204;
+
+  if (!data.length) return [rgb2hex(...hsv2rgb(hue, svMin / 100, svMax / 100))];
+
+  const sortedData = data.toSorted((a, b) => a - b);
+  const dataMin = sortedData[0];
+  const dataMax = sortedData[sortedData.length - 1];
   return sortedData.map((datum) => {
     const fractionalPos = (datum - dataMin) / (dataMax - dataMin);
     const offset = (svMax - svMin) * fractionalPos;
-    const sat = (30 + offset) / 100;
-    const val = (100 - offset) / 100;
+    const sat = (svMin + offset) / 100;
+    const val = (svMax - offset) / 100;
     return rgb2hex(...hsv2rgb(hue, sat, val));
   });
 }
@@ -682,6 +685,20 @@ function hsv2rgb(h, s, v) {
   return [f(5), f(3), f(1)];
 }
 
+// Constructs a data point for the line graph by averaging daily measurements
+function lineDatum(dayData) {
+  return {
+    type: 'line',
+    x: dayData[0].x,
+    y: toFixedFloat(getMean(dayData.map((d) => d.y)), MEASUREMENT_PRECISION),
+    depth: toFixedFloat(
+      getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
+      MEASUREMENT_PRECISION,
+    ),
+    depthUnit: dayData.find((d) => d.depthUnit !== null)?.depthUnit,
+  };
+}
+
 function loadNewData(data, state) {
   const newCharcs = {};
   const newGroups = {};
@@ -742,6 +759,19 @@ function parseCharcs(charcs, range) {
     }
   });
   return result;
+}
+
+// Constructs a data point for the scatter plot
+function pointDatum(msmt, colors, depths) {
+  return {
+    type: 'point',
+    x: msmt.date,
+    y: msmt.measurement || Number.EPSILON,
+    activityTypeCode: msmt.activityTypeCode,
+    color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#000000',
+    depth: msmt.depth,
+    depthUnit: msmt.depthUnit,
+  };
 }
 
 // Adapted from https://stackoverflow.com/a/54014428
@@ -1035,48 +1065,22 @@ function CharacteristicChartSection({
     const allDepths = new Set();
     let depthUnit = null;
     newMsmts.forEach((msmt) => {
-      if (msmt.depth === null) return;
       allDepths.add(msmt.depth);
       // Warn if depth units for a characteristic do not align
       if (depthUnit && msmt.depthUnit !== depthUnit)
         console.warn('Depth units differ');
       depthUnit = msmt.depthUnit;
     });
-    const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
-    const chartColors =
-      allDepths.size <= 1 ? ['#38a6ee'] : generateHeatmap(sortedDepths);
-
-    // Constructs a data point for the line graph by averaging daily measurements
-    const lineDatum = (dayData) => ({
-      type: 'line',
-      x: dayData[0].x,
-      y: toFixedFloat(getMean(dayData.map((d) => d.y)), MEASUREMENT_PRECISION),
-      depth: toFixedFloat(
-        getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
-        MEASUREMENT_PRECISION,
-      ),
-      depthUnit,
-    });
-
-    // Constructs a data point for the scatter plot
-    const pointDatum = (msmt) => ({
-      type: 'point',
-      x: msmt.date,
-      y: msmt.measurement || Number.EPSILON,
-      activityTypeCode: msmt.activityTypeCode,
-      color:
-        msmt.depth !== null
-          ? chartColors[sortedDepths.indexOf(msmt.depth)]
-          : '#000000',
-      depth: msmt.depth,
-      depthUnit: msmt.depthUnit,
-    });
+    const sortedDepths = Array.from(allDepths)
+      .filter((d) => d !== null)
+      .sort((a, b) => a - b);
+    const chartColors = generateHeatmap(sortedDepths);
 
     let curDay = null;
     let curDayData = [];
     newMsmts.forEach((msmt) => {
       if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-        const datum = pointDatum(msmt);
+        const datum = pointDatum(msmt, chartColors, sortedDepths);
         newPointData.push(datum);
         if (datum.x !== curDay) {
           // Construct the previous day's data point
