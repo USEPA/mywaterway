@@ -264,9 +264,11 @@ export function GradientLegend({ colors, keys, title }: GradientLegendProps) {
       <LegendLabel flex="0 0 auto" margin="auto 0.5em auto 0">
         <strong>{title}</strong>
       </LegendLabel>
-      <LegendLabel flex={0} margin="auto 0">
-        {keys[0].toString()}
-      </LegendLabel>
+      {keys.length > 0 && (
+        <LegendLabel flex={0} margin="auto 0">
+          {keys[0].toString()}
+        </LegendLabel>
+      )}
       <div css={legendStyles}>
         <LegendLinear scale={colorScale} steps={20}>
           {(labels) =>

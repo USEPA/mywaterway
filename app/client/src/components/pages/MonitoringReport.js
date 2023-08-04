@@ -1028,16 +1028,29 @@ function CharacteristicChartSection({
     const mediumValues = new Set();
 
     records.forEach((record) => {
+      // Remove records with no measurement
       if (!Number.isFinite(record.measurement)) return;
+
+      // Remove QC-related records
+      const badTypeCodes = [
+        'sample-depletion replicate',
+        'sample-negative control',
+        'sample-positive control',
+        'sample-routine resample',
+      ];
+      if (record.activityTypeCode?.toLowerCase().includes('quality')) return;
+      if (badTypeCodes.includes(record.activityTypeCode?.toLowerCase())) return;
 
       // Add record measurement to newMeasurements
       unitValues.add(record.unit);
       fractionValues.add(record.fraction);
       mediumValues.add(record.medium);
 
-      record.date = getDate(record);
-      record.measurement = parseFloat(record.measurement);
-      newMeasurements.push(record);
+      newMeasurements.push({
+        ...record,
+        date: getDate(record),
+        measurement: parseFloat(record.measurement),
+      });
     });
 
     newMeasurements.sort((a, b) => a.day - b.day);
@@ -1124,15 +1137,7 @@ function CharacteristicChartSection({
 
     // `measurements` must be already sorted by date
     const filteredMsmts = measurements.filter((msmt) => {
-      const badTypeCodes = [
-        'sample-depletion replicate',
-        'sample-negative control',
-        'sample-positive control',
-        'sample-routine resample',
-      ];
       return (
-        !msmt.activityTypeCode?.toLowerCase().includes('quality') &&
-        !badTypeCodes.includes(msmt.activityTypeCode?.toLowerCase()) &&
         msmt.fraction === fraction &&
         msmt.unit === unit &&
         msmt.medium === medium
@@ -1150,12 +1155,13 @@ function CharacteristicChartSection({
   if (displayUnit) yTitle += ', ' + unit;
 
   let infoText = null;
-  if (!charcName)
-    infoText =
-      'Select a characteristic from the table above to graph its results.';
-  else if (!measurements.length)
+  if (!measurements.length) {
     infoText =
       'No measurements available to be charted for this characteristic.';
+    if (records.length)
+      infoText +=
+        ' Note that measurements below detection & measurements from QC (quality control) samples are not included in the chart.';
+  }
 
   return (
     <div className="charc-chart" css={modifiedBoxStyles}>
@@ -1531,6 +1537,7 @@ function ChartContainer({
   const yValues = pointData.map((d) => d.y);
   const range = [Math.min(...yValues), Math.max(...yValues)];
   const depthUnit = pointData.find((d) => d.depthUnit !== null)?.depthUnit;
+  const legendTitle = depthUnit ? `Depth (${depthUnit})` : 'Depth';
 
   if (!lineVisible && !pointsVisible) {
     return <p css={messageBoxStyles(infoBoxStyles)}>No chart type selected.</p>;
@@ -1553,12 +1560,11 @@ function ChartContainer({
         yTitle={yTitle}
       />
       <div css={legendContainerStyles}>
-        {pointsVisible && (
+        {pointsVisible && pointLegendValues.length > 0 && (
           <GradientLegend
-            align="right"
             colors={pointLegendColors}
             keys={pointLegendValues}
-            title={`Depth${depthUnit && ' '}(${depthUnit})`}
+            title={legendTitle}
           />
         )}
       </div>
@@ -1607,13 +1613,12 @@ function ChartStatistics({ data, unit }) {
                   'en-us',
                   dateOptions,
                 )}` +
-                  domain.length >
-                1
+                (domain.length > 1
                   ? ` - ${new Date(domain[1]).toLocaleDateString(
                       'en-us',
                       dateOptions,
                     )}`
-                  : '',
+                  : ''),
             },
             {
               label: 'Number of Measurements Shown',
