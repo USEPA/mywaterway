@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useState } from 'react';
+import { Fragment, useLayoutEffect, useState } from 'react';
 import { createGlobalStyle, css } from 'styled-components/macro';
 import { GlyphDot } from '@visx/glyph';
 import { LegendLabel, LegendLinear, LegendItem } from '@visx/legend';
@@ -12,13 +12,32 @@ import {
   XYChart,
 } from '@visx/xychart';
 // types
-import type { ReactChildren, ReactChild, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type { FlattenSimpleInterpolation } from 'styled-components';
-import type { GlyphProps, TooltipData, XYChartTheme } from '@visx/xychart';
+import type { GlyphProps, TooltipData } from '@visx/xychart';
+
+const DEFAULT_COLOR = '#2C2E43';
 
 /*
 ## Styles
 */
+
+const legendContainerStyles = (
+  align: string,
+  additionalStyles?: FlattenSimpleInterpolation,
+) => css`
+  ${additionalStyles}
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  justify-content: ${align === 'left' ? 'flex-start' : 'flex-end'};
+`;
+
+const legendStyles = css`
+  display: flex;
+  flex-direction: row;
+`;
+
 // NOTE: EPA's _reboot.css file causes the tooltip series glyph to be clipped
 const VisxStyles = createGlobalStyle`
   .visx-tooltip-glyph svg {
@@ -31,22 +50,9 @@ const VisxStyles = createGlobalStyle`
 /*
 ## Types
 */
-type ChartType = 'line' | 'scatter';
-type Datum = LineDatum | ScatterDatum;
 
-interface LineDatum {
-  type: 'line';
-  x: string;
-  y: {
-    [dataKey: string]: {
-      value: number;
-      [meta: string]: string | number;
-    };
-  };
-}
-
-interface ScatterDatum {
-  type: 'scatter';
+interface Datum {
+  type: 'point' | 'line';
   x: string;
   y: number;
   [meta: string]: string | number;
@@ -58,27 +64,15 @@ interface ScatterDatum {
 
 function defaultBuildTooltip(tooltipData?: TooltipData<Datum>) {
   if (!tooltipData?.nearestDatum) return null;
-  const dataKey = tooltipData.nearestDatum.key;
-  const datum = tooltipData.nearestDatum.datum;
-  const yAccessor = getYAccessor(dataKey);
   return (
     <>
-      {tooltipData?.nearestDatum && xAccessor(tooltipData.nearestDatum.datum)}:{' '}
-      {tooltipData?.nearestDatum && yAccessor(datum)}
+      {xAccessor(tooltipData.nearestDatum.datum)}:{' '}
+      {yAccessor(tooltipData.nearestDatum.datum)}
     </>
   );
 }
 
-const DEFAULT_COLOR = '#2C2E43';
-
-function getYAccessor(dataKey: string) {
-  return (datum: Datum) => {
-    if (datum.type === 'scatter') return datum.y;
-    return datum.y[dataKey]?.value;
-  };
-}
-
-const customTheme = buildChartTheme({
+const theme = buildChartTheme({
   backgroundColor: '#526571',
   colors: [DEFAULT_COLOR],
   gridColor: '#30475e',
@@ -89,47 +83,44 @@ const customTheme = buildChartTheme({
 });
 
 const xAccessor = (d: Datum) => d.x;
+const yAccessor = (d: Datum) => d.y;
 
-type Props = {
+type VisxGraphProps = {
   buildTooltip?: (tooltipData?: TooltipData<Datum>) => ReactNode;
-  chartType?: ChartType;
-  children: ReactChild | ReactChildren;
-  colorAccessor?: (d: Datum, index: number) => string;
-  colors?: string[];
   containerRef?: HTMLElement | null;
-  data: Datum[];
-  dataKeys: string[];
   height?: number;
+  lineColorAccessor?: () => string;
+  lineData?: Datum[];
+  lineVisible?: boolean;
+  pointColorAccessor?: (d: Datum, index: number) => string;
+  pointData?: Datum[];
+  pointsVisible?: boolean;
   range?: number[];
   xTitle?: string;
   yScale?: 'log' | 'linear';
   yTitle?: string;
 };
 
+/*
+## Components
+*/
+
+export default VisxGraph;
 export function VisxGraph({
   buildTooltip,
-  chartType = 'scatter',
-  colorAccessor,
-  colors,
   containerRef,
-  data,
-  dataKeys,
   height = 500,
+  lineColorAccessor,
+  lineData = [],
+  lineVisible = true,
+  pointColorAccessor,
+  pointData = [],
+  pointsVisible = true,
   range,
   xTitle,
   yScale = 'linear',
   yTitle,
-}: Props) {
-  const [theme, setTheme] = useState<XYChartTheme>(customTheme);
-  useEffect(() => {
-    if (colors) {
-      setTheme({
-        ...customTheme,
-        colors,
-      });
-    }
-  }, [colors]);
-
+}: VisxGraphProps) {
   const [width, setWidth] = useState<number | null>(null);
   useLayoutEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -174,12 +165,18 @@ export function VisxGraph({
     onPointerUp,
   }: GlyphProps<Datum>) => {
     const handlers = { onPointerMove, onPointerOut, onPointerUp };
+
+    let fill = color;
+    if (datum.type === 'point' && pointColorAccessor)
+      fill = pointColorAccessor(datum, index);
+    if (datum.type === 'line' && lineColorAccessor) fill = lineColorAccessor();
+
     return (
       <GlyphDot
         left={x}
         top={y}
         stroke={theme.gridStyles.stroke}
-        fill={colorAccessor ? colorAccessor(datum, index) : color}
+        fill={fill}
         r={size}
         {...handlers}
       />
@@ -222,23 +219,22 @@ export function VisxGraph({
           strokeWidth={2}
           tickFormat={(val) => (val <= Number.EPSILON ? '0' : val)}
         />
-        {chartType === 'line' ? (
-          dataKeys.map((dataKey) => (
-            <LineSeries
-              key={dataKey}
-              data={data}
-              dataKey={dataKey}
-              xAccessor={xAccessor}
-              yAccessor={getYAccessor(dataKey)}
-            />
-          ))
-        ) : (
+        {lineVisible && (
+          <LineSeries
+            colorAccessor={lineColorAccessor}
+            data={lineData}
+            dataKey="line"
+            xAccessor={xAccessor}
+            yAccessor={yAccessor}
+          />
+        )}
+        {pointsVisible && (
           <GlyphSeries
-            colorAccessor={colorAccessor}
-            data={data}
+            colorAccessor={pointColorAccessor}
+            data={pointData}
             dataKey="scatter"
             xAccessor={xAccessor}
-            yAccessor={getYAccessor('scatter')}
+            yAccessor={yAccessor}
           />
         )}
         <Tooltip<Datum>
@@ -252,22 +248,6 @@ export function VisxGraph({
     </>
   );
 }
-
-const legendContainerStyles = (
-  align: string,
-  additionalStyles?: FlattenSimpleInterpolation,
-) => css`
-  ${additionalStyles}
-  display: flex;
-  flex-direction: row;
-  gap: 0.5em;
-  justify-content: ${align === 'left' ? 'flex-start' : 'flex-end'};
-`;
-
-const legendStyles = css`
-  display: flex;
-  flex-direction: row;
-`;
 
 interface GradientLegendProps {
   align: 'left' | 'right';
@@ -294,7 +274,7 @@ export function GradientLegend({
   return (
     <div css={legendContainerStyles(align, styles)}>
       {align === 'left' && (
-        <LegendLabel flex={0} margin="auto 0.5em auto 0">
+        <LegendLabel flex="0 0 auto" margin="auto 0.5em auto 0">
           <strong>{title}</strong>
         </LegendLabel>
       )}
@@ -321,16 +301,16 @@ export function GradientLegend({
           }
         </LegendLinear>
       </div>
-      <LegendLabel flex={0} margin="auto 0">
-        {keys[keys.length - 1].toString()}
-      </LegendLabel>
+      {keys.length > 1 && (
+        <LegendLabel flex={0} margin="auto 0">
+          {keys[keys.length - 1].toString()}
+        </LegendLabel>
+      )}
       {align === 'right' && (
-        <LegendLabel flex={0} margin="auto 0 auto 0.5em">
+        <LegendLabel flex="0 0 auto" margin="auto 0 auto 0.5em">
           <strong>{title}</strong>
         </LegendLabel>
       )}
     </div>
   );
 }
-
-export default VisxGraph;

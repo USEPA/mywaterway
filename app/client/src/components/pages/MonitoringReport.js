@@ -148,24 +148,34 @@ const chartTooltipStyles = css`
   }
 `;
 
-const checkboxStyles = css`
+const checkboxInputStyles = css`
   transform: scale(1.2);
 `;
 
-const checkboxInputStyles = css`
+const checkboxStyles = css`
   display: flex;
-  gap: 1em;
-  font-weight: bold;
+  gap: 0.5em;
   margin-bottom: 0;
+
+  label {
+    cursor: pointer;
+    font-size: inherit;
+  }
 
   & > * {
     margin-bottom: auto;
     margin-top: auto;
   }
 
-  input[type='checkbox'] {
-    ${checkboxStyles};
+  input {
+    ${checkboxInputStyles};
   }
+`;
+
+const checkboxTitleStyles = css`
+  ${checkboxStyles}
+  font-weight: bold;
+  gap: 1em;
 `;
 
 const containerStyles = css`
@@ -294,7 +304,7 @@ const leftColumnStyles = css`
   }
 `;
 
-const legendStyles = css`
+const legendContainerStyles = css`
   margin-top: 1em;
 `;
 
@@ -421,8 +431,7 @@ const selectContainerStyles = css`
     white-space: nowrap;
   }
 
-  .radio-container {
-    ${radioStyles}
+  .column-container {
     display: inline-flex;
     flex-direction: column;
     gap: 0.5em;
@@ -480,25 +489,26 @@ function buildTooltip(unit) {
   return (tooltipData) => {
     if (!tooltipData?.nearestDatum) return null;
     const datum = tooltipData.nearestDatum.datum;
-    const msmt =
-      datum.type === 'scatter' ? datum : datum.y[tooltipData.nearestDatum.key];
-    if (!msmt) return null;
+    if (!datum) return null;
     const depth =
-      msmt.depth !== null && msmt.depthUnit !== null
-        ? `${msmt.depth} ${msmt.depthUnit}`
+      datum.depth !== null && datum.depthUnit !== null
+        ? `${datum.depth} ${datum.depthUnit}`
         : null;
     return (
       <div css={chartTooltipStyles}>
         <p>{datum.x}:</p>
         <p>
-          <em>Measurement</em>:{' '}
-          {`${(datum.type === 'scatter' ? msmt.y : msmt.value).toFixed(
-            MEASUREMENT_PRECISION,
-          )} ${unit}`}
+          <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
+          {`${datum.y.toFixed(MEASUREMENT_PRECISION)} ${unit}`}
           <br />
           {depth && (
             <>
-              <em>Depth</em>: {depth}
+              <em>{datum.type === 'line' && 'Average '}Depth</em>: {depth}
+            </>
+          )}
+          {datum.activityTypeCode && (
+            <>
+              <em>Activity Type Code</em>: {datum.activityTypeCode}
             </>
           )}
         </p>
@@ -556,6 +566,7 @@ function fetchParseCsv(url) {
   });
 }
 
+// Create a heatmap proportional to the range of the provided numerical data
 function generateHeatmap(data) {
   const sortedData = data.toSorted((a, b) => a - b);
   const dataMin = sortedData[0];
@@ -570,6 +581,15 @@ function generateHeatmap(data) {
     const val = (100 - offset) / 100;
     return rgb2hex(...hsv2rgb(hue, sat, val));
   });
+}
+
+// Extract the outermost values from an array into a new array.
+// Returns an array of length 0, 1, or 2.
+function getArrayOuter(arr) {
+  const result = [];
+  if (arr.length) result.push(arr[0]);
+  if (arr.length > 1) result.push(arr[arr.length - 1]);
+  return result;
 }
 
 function getCharcLabel(charcGroup, labelMappings) {
@@ -857,7 +877,6 @@ function useCharacteristics(provider, orgId, siteId) {
       }
       const recordsByCharc = {};
       records.forEach((record) => {
-        if (record.ActivityTypeCode.toLowerCase().includes('control')) return;
         if (!recordsByCharc[record.CharacteristicName]) {
           const charcGroup = getCharcGroup(
             record.CharacteristicName,
@@ -875,11 +894,12 @@ function useCharacteristics(provider, orgId, siteId) {
         curCharc.count += 1;
         const recordDate = record.ActivityStartDate.split('-');
         curCharc.records.push({
+          activityTypeCode: record.ActivityTypeCode,
           day: parseInt(recordDate[2]),
-          depth: record['ResultDepthHeightMeasure/MeasureValue'] ?? null,
+          depth: record['ResultDepthHeightMeasure/MeasureValue'],
           depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
           fraction: record.ResultSampleFractionText || 'None',
-          measurement: record.ResultMeasureValue ?? null,
+          measurement: record.ResultMeasureValue,
           medium: record.ActivityMediaName || 'None',
           month: parseInt(recordDate[1]),
           unit: record['ResultMeasure/MeasureUnitCode'] || 'None',
@@ -939,38 +959,38 @@ function CharacteristicChartSection({
   shiftDown,
   shiftUp,
 }) {
-  const [measurements, setMeasurements] = useState(null);
+  const [measurements, setMeasurements] = useState([]);
 
   // Selected and available units
   const [unit, setUnit] = useState(null);
-  const [units, setUnits] = useState(null);
+  const [units, setUnits] = useState([]);
   useEffect(() => {
-    if (units?.length) setUnit(units[0].value);
+    if (units.length) setUnit(units[0].value);
   }, [units]);
 
   // Selected and available sample fractions
   const [fraction, setFraction] = useState(null);
-  const [fractions, setFractions] = useState(null);
+  const [fractions, setFractions] = useState([]);
   useEffect(() => {
-    if (fractions?.length) setFraction(fractions[0].value);
+    if (fractions.length) setFraction(fractions[0].value);
   }, [fractions]);
 
   // Selected and available activity media names
   const [medium, setMedium] = useState(null);
-  const [media, setMedia] = useState(null);
+  const [media, setMedia] = useState([]);
   useEffect(() => {
-    if (media?.length) setMedium(media[0].value);
+    if (media.length) setMedium(media[0].value);
   }, [media]);
 
   // Logarithmic or linear
   const [scaleType, setScaleType] = useState('linear');
 
-  // Scatter or line plot
-  const [chartType, setChartType] = useState('scatter');
+  // Chart series visibilities
+  const [scatterPlotVisible, setScatterPlotVisible] = useState(true);
+  const [lineGraphVisible, setLineGraphVisible] = useState(false);
 
   // Get the records with measurements and their filter options
   useEffect(() => {
-    if (!records) return;
     const newMeasurements = [];
     const fractionValues = new Set();
     const unitValues = new Set();
@@ -993,140 +1013,94 @@ function CharacteristicChartSection({
     newMeasurements.sort((a, b) => a.month - b.month);
     newMeasurements.sort((a, b) => a.year - b.year);
 
-    if (newMeasurements.length) {
-      setFractions(buildOptions(fractionValues));
-      setUnits(buildOptions(unitValues));
-      setMedia(buildOptions(mediumValues));
-      setMeasurements(newMeasurements);
-    } else {
-      setFractions(null);
-      setUnits(null);
-      setMedia(null);
-      setMeasurements(null);
-    }
-
+    setFractions(buildOptions(fractionValues));
+    setUnits(buildOptions(unitValues));
+    setMedia(buildOptions(mediumValues));
+    setMeasurements(newMeasurements);
     setScaleType('linear');
   }, [records]);
 
-  const [chartColors, setChartColors] = useState(null);
-  const [chartColorKeys, setChartColorKeys] = useState(null);
-  const [chartData, setChartData] = useState(null);
-  const [dataKeys, setDataKeys] = useState(null);
-  const [domain, setDomain] = useState(null);
-  const [range, setRange] = useState(null);
-  const [mean, setMean] = useState(null);
-  const [median, setMedian] = useState(null);
-  const [stdDev, setStdDev] = useState(null);
-  const [msmtCount, setMsmtCount] = useState(null);
+  const [depthColorRange, setDepthColorRange] = useState([]);
+  const [depthValueRange, setDepthValueRange] = useState([]);
 
   // Parse the measurements into chartable data points
-  const parseMeasurements = useCallback(
-    (newDomain, newMsmts) => {
-      const newChartData = [];
+  const parseMeasurements = useCallback((newDomain, newMsmts) => {
+    const newPointData = [];
+    const newLineData = [];
 
-      const allDepths = new Set();
-      newMsmts.forEach(
-        (msmt) => msmt.depth !== null && allDepths.add(msmt.depth),
-      );
-      const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
+    // Create a color range from all depths present
+    const allDepths = new Set();
+    let depthUnit = null;
+    newMsmts.forEach((msmt) => {
+      if (msmt.depth === null) return;
+      allDepths.add(msmt.depth);
+      // Warn if depth units for a characteristic do not align
+      if (depthUnit && msmt.depthUnit !== depthUnit)
+        console.warn('Depth units differ');
+      depthUnit = msmt.depthUnit;
+    });
+    const sortedDepths = Array.from(allDepths).sort((a, b) => a - b);
+    const chartColors =
+      allDepths.size <= 1 ? ['#38a6ee'] : generateHeatmap(sortedDepths);
 
-      let curDatum = null;
-      let depthUnit = null;
-      newMsmts.forEach((msmt) => {
-        if (depthUnit && msmt.depthUnit !== depthUnit)
-          console.warn('Depth units differ');
-        depthUnit = msmt.depthUnit;
-        if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-          if (chartType === 'scatter') {
-            newChartData.push({
-              type: 'scatter',
-              x: msmt.date,
-              y: msmt.measurement || Number.EPSILON,
-              depth: msmt.depth,
-              depthUnit: msmt.depthUnit,
-            });
-          } else {
-            const dataPoint = {
-              // Map zero values to the lowest number possible
-              value: msmt.measurement || Number.EPSILON,
-              depth: msmt.depth,
-              depthUnit: msmt.depthUnit,
-            };
-            const dataKey = sortedDepths.indexOf(msmt.depth);
-            if (!curDatum || curDatum.x !== msmt.date) {
-              curDatum && newChartData.push(curDatum);
-              curDatum = {
-                type: 'line',
-                x: msmt.date,
-                y: { [dataKey.toString()]: dataPoint },
-              };
-            } else {
-              curDatum.y[dataKey.toString()] = dataPoint;
-            }
-          }
+    // Constructs a data point for the line graph by averaging daily measurements
+    const lineDatum = (dayData) => ({
+      type: 'line',
+      x: dayData[0].x,
+      y: toFixedFloat(getMean(dayData.map((d) => d.y)), MEASUREMENT_PRECISION),
+      depth: toFixedFloat(
+        getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
+        MEASUREMENT_PRECISION,
+      ),
+      depthUnit,
+    });
+
+    // Constructs a data point for the scatter plot
+    const pointDatum = (msmt) => ({
+      type: 'point',
+      x: msmt.date,
+      y: msmt.measurement || Number.EPSILON,
+      activityTypeCode: msmt.activityTypeCode,
+      color:
+        msmt.depth !== null
+          ? chartColors[sortedDepths.indexOf(msmt.depth)]
+          : '#000000',
+      depth: msmt.depth,
+      depthUnit: msmt.depthUnit,
+    });
+
+    let curDay = null;
+    let curDayData = [];
+    newMsmts.forEach((msmt) => {
+      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
+        const datum = pointDatum(msmt);
+        newPointData.push(datum);
+        if (datum.x !== curDay) {
+          // Construct the previous day's data point
+          curDayData.length && newLineData.push(lineDatum(curDayData));
+          curDay = datum.x;
+          curDayData = [datum];
+        } else {
+          // Same day, store for processing
+          curDayData.push(datum);
         }
-      });
-      curDatum && newChartData.push(curDatum);
-      setDataKeys([...Array(allDepths.size).keys()].map((k) => k.toString()));
-      setChartColorKeys(sortedDepths);
-      setChartColors(
-        allDepths.size <= 1 ? ['#38a6ee'] : generateHeatmap(sortedDepths),
-      );
-      return newChartData;
-    },
-    [chartType],
-  );
-
-  // Get the selected chart data and statistics
-  const getChartData = useCallback(
-    (newDomain, newMsmts) => {
-      if (!newDomain) {
-        setChartData(null);
-        return;
       }
+    });
+    curDayData.length && newLineData.push(lineDatum(curDayData));
 
-      // newMsmts must already be sorted by date
-      const filteredMsmts =
-        newMsmts?.filter((msmt) => {
-          return (
-            msmt.fraction === fraction &&
-            msmt.unit === unit &&
-            msmt.medium === medium
-          );
-        }) || [];
+    setDepthColorRange(getArrayOuter(chartColors));
+    setDepthValueRange(getArrayOuter(sortedDepths));
 
-      const newChartData = parseMeasurements(newDomain, filteredMsmts);
-      setChartData(newChartData.length ? newChartData : null);
-
-      if (!newChartData.length) return;
-
-      setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
-
-      const yValues = [];
-      newChartData.forEach((datum) => {
-        if (chartType === 'scatter') yValues.push(datum.y);
-        else Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
-      });
-
-      const newRange = [Math.min(...yValues), Math.max(...yValues)];
-      setRange(newRange);
-
-      const newMean = getMean(yValues);
-      setMean(newMean);
-      setMedian(getMedian(yValues));
-      setStdDev(getStdDev(yValues, newMean));
-      setMsmtCount(yValues.length);
-    },
-    [chartType, fraction, medium, parseMeasurements, unit],
-  );
+    return { pointData: newPointData, lineData: newLineData };
+  }, []);
 
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
-  const [selectedYears, setSelectedYears] = useState(null);
+  const [selectedYears, setSelectedYears] = useState([]);
 
   // Initialize the date slider parameters
   useEffect(() => {
-    if (measurements?.length) {
+    if (measurements.length) {
       const yearLow = measurements[0].year;
       const yearHigh = measurements[measurements.length - 1].year;
       setMinYear(yearLow);
@@ -1135,14 +1109,33 @@ function CharacteristicChartSection({
     } else {
       setMinYear(null);
       setMaxYear(null);
-      setSelectedYears(null);
+      setSelectedYears([]);
     }
   }, [measurements]);
 
-  // Update the chart with selected parameters
-  useEffect(() => {
-    getChartData(selectedYears, measurements);
-  }, [getChartData, measurements, selectedYears]);
+  // Get the selected chart data and statistics
+  const chartData = useMemo(() => {
+    if (selectedYears.length !== 2) return { pointData: [], lineData: [] };
+
+    // `measurements` must be already sorted by date
+    const filteredMsmts = measurements.filter((msmt) => {
+      const badTypeCodes = [
+        'sample-depletion replicate',
+        'sample-negative control',
+        'sample-positive control',
+        'sample-routine resample',
+      ];
+      return (
+        !msmt.activityTypeCode?.toLowerCase().includes('quality') &&
+        !badTypeCodes.includes(msmt.activityTypeCode?.toLowerCase()) &&
+        msmt.fraction === fraction &&
+        msmt.unit === unit &&
+        msmt.medium === medium
+      );
+    });
+
+    return parseMeasurements(selectedYears, filteredMsmts);
+  }, [fraction, measurements, medium, parseMeasurements, selectedYears, unit]);
 
   const displayUnit = unit === 'None' ? '' : unit;
 
@@ -1155,23 +1148,9 @@ function CharacteristicChartSection({
   if (!charcName)
     infoText =
       'Select a characteristic from the table above to graph its results.';
-  else if (!measurements)
+  else if (!measurements.length)
     infoText =
       'No measurements available to be charted for this characteristic.';
-
-  let average = '';
-  if (mean)
-    average += toFixedFloat(mean, MEASUREMENT_PRECISION).toLocaleString(
-      'en-US',
-    );
-  if (stdDev)
-    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
-      stdDev,
-      MEASUREMENT_PRECISION,
-    ).toLocaleString()}`;
-  average += ` ${displayUnit}`;
-
-  const [statisticsExpanded, setStatisticsExpanded] = useState(true);
 
   return (
     <div className="charc-chart" css={modifiedBoxStyles}>
@@ -1212,9 +1191,8 @@ function CharacteristicChartSection({
         pending={<LoadingSpinner />}
         status={charcsStatus}
       >
-        {infoText ? (
-          <p css={messageBoxStyles(infoBoxStyles)}>{infoText}</p>
-        ) : (
+        {infoText && <p css={messageBoxStyles(infoBoxStyles)}>{infoText}</p>}
+        {measurements.length > 0 && (
           <>
             <SliderContainer
               min={minYear}
@@ -1278,11 +1256,11 @@ function CharacteristicChartSection({
                   styles={reactSelectStyles}
                 />
               </span>
-              <span className="radio-container">
+              <span className="column-container">
                 <span css={screenLabelStyles}>
                   <GlossaryTerm term="Scale Type">Scale Type</GlossaryTerm>:
                 </span>
-                <span>
+                <span css={radioStyles}>
                   <input
                     checked={scaleType === 'linear'}
                     id={`${charcName}-linear`}
@@ -1292,7 +1270,7 @@ function CharacteristicChartSection({
                   />
                   <label htmlFor={`${charcName}-linear`}>Linear</label>
                 </span>
-                <span>
+                <span css={radioStyles}>
                   <input
                     checked={scaleType === 'log'}
                     id={`${charcName}-log`}
@@ -1303,96 +1281,43 @@ function CharacteristicChartSection({
                   <label htmlFor={`${charcName}-log`}>Log</label>
                 </span>
               </span>
-              <span className="radio-container">
+              <span className="column-container">
                 <span css={screenLabelStyles}>
                   <GlossaryTerm term="Chart Type">Chart Type</GlossaryTerm>:
                 </span>
-                <span>
+                <span css={checkboxStyles}>
                   <input
-                    checked={chartType === 'scatter'}
+                    checked={scatterPlotVisible}
                     id={`${charcName}-scatter`}
-                    onChange={(e) => setChartType(e.target.value)}
-                    type="radio"
-                    value="scatter"
+                    onChange={(e) => setScatterPlotVisible(e.target.checked)}
+                    type="checkbox"
                   />
-                  <label htmlFor={`${charcName}-scatter`}>Scatter</label>
+                  <label htmlFor={`${charcName}-scatter`}>Scatter Plot</label>
                 </span>
-                <span>
+                <span css={checkboxStyles}>
                   <input
-                    checked={chartType === 'line'}
+                    checked={lineGraphVisible}
+                    css={checkboxInputStyles}
                     id={`${charcName}-line`}
-                    onChange={(e) => setChartType(e.target.value)}
-                    type="radio"
-                    value="line"
+                    onChange={(e) => setLineGraphVisible(e.target.checked)}
+                    type="checkbox"
                   />
-                  <label htmlFor={`${charcName}-line`}>Line</label>
+                  <label htmlFor={`${charcName}-line`}>Line Graph</label>
                 </span>
               </span>
             </div>
             <ChartContainer
-              chartType={chartType}
-              colors={chartColors}
-              colorKeys={chartColorKeys}
-              range={range}
-              data={chartData}
+              lineData={chartData.lineData}
+              lineVisible={lineGraphVisible}
+              pointData={chartData.pointData}
+              pointLegendColors={depthColorRange}
+              pointLegendValues={depthValueRange}
+              pointsVisible={scatterPlotVisible}
               scaleType={scaleType}
-              dataKeys={dataKeys}
               yTitle={yTitle}
               unit={displayUnit}
             />
-            {chartData?.length > 0 && (
-              <AccordionItem
-                allExpanded={true}
-                onChange={setStatisticsExpanded}
-                status={statisticsExpanded ? 'highlighted' : null}
-                title={
-                  <h3 css={statisticsHeadingStyles}>Measurement Statistics</h3>
-                }
-              >
-                <div css={boxSectionStyles}>
-                  <BoxContent
-                    rows={[
-                      {
-                        label: 'Selected Date Range',
-                        value:
-                          `${new Date(domain[0]).toLocaleDateString(
-                            'en-us',
-                            dateOptions,
-                          )}` +
-                          ` - ${new Date(domain[1]).toLocaleDateString(
-                            'en-us',
-                            dateOptions,
-                          )}`,
-                      },
-                      {
-                        label: 'Number of Measurements Shown',
-                        value: msmtCount.toLocaleString(),
-                      },
-                      {
-                        label: 'Average of Values',
-                        value: average,
-                      },
-                      {
-                        label: 'Median Value',
-                        value: `${toFixedFloat(
-                          median,
-                          MEASUREMENT_PRECISION,
-                        ).toLocaleString()} ${displayUnit}`,
-                      },
-                      {
-                        label: 'Minimum Value',
-                        value: `${range[0].toLocaleString()} ${displayUnit}`,
-                      },
-                      {
-                        label: 'Maximum Value',
-                        value: `${range[1].toLocaleString()} ${displayUnit}`,
-                      },
-                    ]}
-                    styles={boxContentStyles}
-                  />
-                </div>
-              </AccordionItem>
-            )}
+            <ChartStatistics data={chartData.pointData} unit={displayUnit} />
           </>
         )}
       </StatusContent>
@@ -1444,7 +1369,7 @@ function CharacteristicsTableSection({
       <div>
         <input
           checked={value}
-          css={checkboxStyles}
+          css={checkboxInputStyles}
           disabled={!value && selected.length >= MAX_NUM_CHARTS}
           id={charcName}
           onChange={onChange}
@@ -1559,27 +1484,19 @@ function CharacteristicsTableSection({
 }
 
 function ChartContainer({
-  chartType,
-  colors,
-  colorKeys,
-  range,
-  data,
-  dataKeys,
+  lineData,
+  lineVisible,
+  pointData,
+  pointLegendValues,
+  pointLegendColors,
+  pointsVisible,
   scaleType,
   yTitle,
   unit,
 }) {
-  const getGlyphColor = useCallback(
-    (datum) => {
-      const i = colorKeys.indexOf(datum.depth);
-      return colors[i];
-    },
-    [colorKeys, colors],
-  );
-
   const chartRef = useRef(null);
 
-  if (!data?.length)
+  if (!pointData.length) {
     return (
       <div css={chartContainerStyles}>
         <p css={messageBoxStyles(infoBoxStyles)}>
@@ -1587,37 +1504,119 @@ function ChartContainer({
         </p>
       </div>
     );
+  }
 
-  if (!range)
-    return (
-      <div css={chartContainerStyles}>
-        <LoadingSpinner />
-      </div>
-    );
+  const yValues = pointData.map((d) => d.y);
+  const range = [Math.min(...yValues), Math.max(...yValues)];
+  const depthUnit = pointData.find((d) => d.depthUnit !== null)?.depthUnit;
 
   return (
     <div ref={chartRef} css={chartContainerStyles}>
       <VisxGraph
         buildTooltip={buildTooltip(unit)}
-        chartType={chartType}
-        colorAccessor={chartType === 'scatter' ? getGlyphColor : undefined}
-        colors={colors}
         containerRef={chartRef.current}
-        data={data}
-        dataKeys={dataKeys}
+        lineColorAccessor={() => colors.teal()}
+        lineData={lineData}
+        lineVisible={lineVisible}
+        pointColorAccessor={(datum) => datum.color}
+        pointData={pointData}
+        pointsVisible={pointsVisible}
         range={range}
         xTitle="Date"
         yScale={scaleType}
         yTitle={yTitle}
       />
-      <GradientLegend
-        align="right"
-        colors={colors}
-        keys={colorKeys}
-        styles={legendStyles}
-        title="Depth"
-      />
+      <div css={legendContainerStyles}>
+        {pointsVisible && (
+          <GradientLegend
+            align="right"
+            colors={pointLegendColors}
+            keys={pointLegendValues}
+            title={`Depth${depthUnit && ' '}(${depthUnit})`}
+          />
+        )}
+      </div>
     </div>
+  );
+}
+
+function ChartStatistics({ data, unit }) {
+  const domain = getArrayOuter(data).map((d) => d.x);
+
+  const yValues = data.map((d) => d.y);
+
+  const mean = getMean(yValues);
+  const range = [Math.min(...yValues), Math.max(...yValues)];
+  const median = getMedian(yValues);
+  const stdDev = getStdDev(yValues, mean);
+
+  let average = toFixedFloat(mean, MEASUREMENT_PRECISION).toLocaleString(
+    'en-US',
+  );
+  if (stdDev)
+    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
+      stdDev,
+      MEASUREMENT_PRECISION,
+    ).toLocaleString()}`;
+  average += ` ${unit}`;
+
+  const [statisticsExpanded, setStatisticsExpanded] = useState(true);
+
+  if (!data.length) return null;
+
+  return (
+    <AccordionItem
+      allExpanded={true}
+      onChange={setStatisticsExpanded}
+      status={statisticsExpanded ? 'highlighted' : null}
+      title={<h3 css={statisticsHeadingStyles}>Measurement Statistics</h3>}
+    >
+      <div css={boxSectionStyles}>
+        <BoxContent
+          rows={[
+            {
+              label: 'Selected Date Range',
+              value:
+                `${new Date(domain[0]).toLocaleDateString(
+                  'en-us',
+                  dateOptions,
+                )}` +
+                  domain.length >
+                1
+                  ? ` - ${new Date(domain[1]).toLocaleDateString(
+                      'en-us',
+                      dateOptions,
+                    )}`
+                  : '',
+            },
+            {
+              label: 'Number of Measurements Shown',
+              value: data.length.toLocaleString(),
+            },
+            {
+              label: 'Average of Values',
+              value: average,
+            },
+            {
+              label: 'Median Value',
+              value: `${toFixedFloat(
+                median,
+                MEASUREMENT_PRECISION,
+              ).toLocaleString()} ${unit}`,
+            },
+            {
+              label: 'Minimum Value',
+              value: `${range[0].toLocaleString()} ${unit}`,
+            },
+            {
+              label: 'Maximum Value',
+              value: `${range[1].toLocaleString()} ${unit}`,
+            },
+          ]}
+          styles={boxContentStyles}
+        />
+      </div>
+    </AccordionItem>
   );
 }
 
@@ -1641,7 +1640,7 @@ function CheckboxAccordion({
           <span css={accordionFlexStyles}>
             <label
               onClick={(ev) => ev.stopPropagation()}
-              css={checkboxInputStyles}
+              css={checkboxTitleStyles}
             >
               <input
                 type="checkbox"
@@ -1676,7 +1675,7 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
   const item = state[accessor][id];
   return (
     <div css={treeStyles(level, accordionRowStyles)}>
-      <label css={checkboxInputStyles}>
+      <label css={checkboxTitleStyles}>
         <input
           type="checkbox"
           checked={item.selected === Checkbox.checked}
@@ -1803,7 +1802,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
               className="accordion-list"
               onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
               title={
-                <label css={checkboxInputStyles}>
+                <label css={checkboxTitleStyles}>
                   <input
                     type="checkbox"
                     checked={checkboxes.all === Checkbox.checked}
