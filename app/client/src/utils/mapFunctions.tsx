@@ -231,6 +231,7 @@ export function createUniqueValueInfosIssues(
 ) {
   return [
     {
+      label: 'Impaired',
       value: `Y`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -240,6 +241,7 @@ export function createUniqueValueInfosIssues(
       }),
     },
     {
+      label: 'No',
       value: `N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -261,6 +263,7 @@ export function createUniqueValueInfosRestore(
 ) {
   return [
     {
+      label: 'None',
       value: `N, N, N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -270,6 +273,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, N, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -279,6 +283,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, Y, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -288,6 +293,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, Y, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -297,6 +303,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, N, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -306,6 +313,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, N, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -315,6 +323,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, Y, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -324,6 +333,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, Y, Y`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
