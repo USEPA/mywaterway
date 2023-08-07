@@ -1397,7 +1397,7 @@ function CharacteristicsTableSection({
   return (
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>
-        Select up to 4 Characteristics Below to Plot
+        Select up to {MAX_NUM_CHARTS} Characteristics Below to Plot
       </h2>
       <div css={charcsTableStyles}>
         <StatusContent
