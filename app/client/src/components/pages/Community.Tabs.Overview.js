@@ -1160,7 +1160,7 @@ function PermittedDischargersTab({
               <br />
               Compliance Status: {status}
               <br />
-              Permit Components: {components || 'Not Specified'}
+              Permit Components: {components || 'Components Not Specified'}
             </>
           }
           feature={feature}
@@ -1215,10 +1215,18 @@ function PermittedDischargersTab({
               <thead>
                 <tr>
                   <th>
-                    <label css={toggleStyles}>
-                      <Switch checked={allToggled} onChange={toggleAll} />
-                      <span>All Permit Components</span>
-                    </label>
+                    <div css={toggleStyles}>
+                      <Switch
+                        checked={allToggled}
+                        onChange={toggleAll}
+                        ariaLabelledBy="all-permit-components-label"
+                      />
+                      <span id="all-permit-components-label">
+                        <GlossaryTerm term="Permit Components">
+                          All Permit Components
+                        </GlossaryTerm>
+                      </span>
+                    </div>
                   </th>
                   <th>Count</th>
                 </tr>
@@ -1235,7 +1243,7 @@ function PermittedDischargersTab({
                       const component = dischargerPermitComponents[key];
 
                       const componentLabel = !component.label
-                        ? 'Not Specified'
+                        ? 'Components Not Specified'
                         : component.label;
                       const componentLabelId = `${key.replaceAll(
                         ' ',

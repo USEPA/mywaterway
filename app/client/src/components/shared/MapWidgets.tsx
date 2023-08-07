@@ -925,8 +925,8 @@ function MapWidgets({
 
     const downloadWidget = new Expand({
       expandIconClass: 'esri-icon-download',
-      expandTooltip: 'Open Download Widget',
-      collapseTooltip: 'Close Download Widget',
+      expandTooltip: 'Open Printable Map Widget',
+      collapseTooltip: 'Close Printable Map Widget',
       view,
       mode: 'floating',
       autoCollapse: true,
@@ -2089,7 +2089,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       className="esri-widget esri-widget--panel-height-only"
       css={downloadWidgetContainerStyles}
     >
-      <h1>Download</h1>
+      <h1>Download Printable Map</h1>
       <div>
         <label>
           Title
@@ -2274,7 +2274,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
       {status === 'success' && (
         <div css={modifiedSuccessBoxStyles}>
-          <p>Download succeeded. Please check your download folder.</p>
+          <p>Download succeeded. Please check your destination folder.</p>
         </div>
       )}
       {status === 'failure' && (
@@ -2357,7 +2357,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
           download();
         }}
       >
-        Download
+        Download Printable Map
       </button>
     </div>
   );

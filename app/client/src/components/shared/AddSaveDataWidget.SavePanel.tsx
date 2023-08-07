@@ -628,7 +628,7 @@ function SavePanel({ visible }: Props) {
                 const group = dischargerPermitComponents[key];
                 if (group.label === 'All' || !group.toggled) return;
 
-                filters.push(group.label || 'Not Specified');
+                filters.push(group.label || 'Components Not Specified');
               });
 
             layerDisclaimers.push(`
