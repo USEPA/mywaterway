@@ -30,14 +30,13 @@ import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import NavBar from 'components/shared/NavBar';
 import Page from 'components/shared/Page';
-import ReactTable from 'components/shared/ReactTable';
+import ReactTable, { generateFilterInput } from 'components/shared/ReactTable';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
   splitLayoutColumnStyles,
 } from 'components/shared/SplitLayout';
 // config
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
@@ -330,6 +329,11 @@ const modifiedBoxStyles = css`
   padding-bottom: 0;
 `;
 
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
+  margin-bottom: 0.5em;
+`;
+
 const modifiedDisclaimerStyles = css`
   ${disclaimerStyles};
 
@@ -595,13 +599,6 @@ function getArrayOuter(arr) {
   if (arr.length) result.push(arr[0]);
   if (arr.length > 1) result.push(arr[arr.length - 1]);
   return result;
-}
-
-function getCharcLabel(charcGroup, labelMappings) {
-  for (let mapping of labelMappings) {
-    if (mapping.groupNames.includes(charcGroup)) return mapping.label;
-  }
-  return 'Other';
 }
 
 function getCharcGroup(charcName, groupMappings) {
@@ -916,7 +913,6 @@ function useCharacteristics(provider, orgId, siteId) {
           );
           recordsByCharc[record.CharacteristicName] = {
             name: record.CharacteristicName,
-            label: getCharcLabel(charcGroup, characteristicGroupMappings),
             records: [],
             group: charcGroup,
             count: 0,
@@ -1351,7 +1347,6 @@ function CharacteristicsTableSection({
           return a;
         }, 0);
         return {
-          label: charc.label,
           measurementCount: measurementCount.toLocaleString(),
           name: charc.name,
           resultCount: charc.count.toLocaleString(),
@@ -1401,7 +1396,9 @@ function CharacteristicsTableSection({
 
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>Characteristics</h2>
+      <h2 css={infoBoxHeadingStyles}>
+        Select up to 4 Characteristics Below to Plot
+      </h2>
       <div css={charcsTableStyles}>
         <StatusContent
           empty={
@@ -1417,35 +1414,36 @@ function CharacteristicsTableSection({
           pending={<LoadingSpinner />}
           status={charcsStatus}
         >
-          <h3>Selected Characteristic(s)</h3>
-          {selected.length ? (
-            <div css={selectedCharacteristicStyles}>
-              <ul>
-                {selected.map((charcName) => (
-                  <li key={charcName}>{charcName}</li>
-                ))}
-              </ul>
-              <button type="button" onClick={() => setSelected([])}>
-                Clear Selected
-              </button>
-            </div>
-          ) : (
-            <p>
-              Select the checkboxes in the table below to plot the measurements
-              of the corresponding characteristics. Up to {MAX_NUM_CHARTS} plots
-              can be displayed at one time.
-            </p>
-          )}
+          <div css={modifiedInfoBoxStyles}>
+            <h3>Selected Characteristic(s)</h3>
+            {selected.length ? (
+              <div css={selectedCharacteristicStyles}>
+                <ul>
+                  {selected.map((charcName) => (
+                    <li key={charcName}>{charcName}</li>
+                  ))}
+                </ul>
+                <button type="button" onClick={() => setSelected([])}>
+                  Clear Selected
+                </button>
+              </div>
+            ) : (
+              <p>
+                Select the checkboxes in the table below to plot the
+                measurements of the corresponding characteristics. Up to{' '}
+                {MAX_NUM_CHARTS} plots can be displayed at one time.
+              </p>
+            )}
+          </div>
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
             defaultSort="name"
-            placeholder="Filter..."
             striped={true}
             getColumns={(tableWidth) => {
-              const columnWidth = 2 * (tableWidth / 7) - 6;
-              const halfColumnWidth = tableWidth / 7 - 6;
+              const columnWidth = tableWidth / 3 - 6;
+              const halfColumnWidth = tableWidth / 6 - 6;
               return [
                 {
                   Header: selectColumnHeader,
@@ -1457,21 +1455,19 @@ function CharacteristicsTableSection({
                   filterable: false,
                 },
                 {
-                  Header: 'Name',
+                  Header: 'Characteristic Name',
+                  Filter: generateFilterInput('Filter Characteristic Names...'),
                   accessor: 'name',
                   width: columnWidth,
                   filterable: true,
                 },
                 {
-                  Header: 'Group',
+                  Header: 'Characteristic Group',
+                  Filter: generateFilterInput(
+                    'Filter Characteristic Groups...',
+                  ),
                   accessor: 'group',
                   width: columnWidth,
-                  filterable: true,
-                },
-                {
-                  Header: 'Category',
-                  accessor: 'label',
-                  width: halfColumnWidth,
                   filterable: true,
                 },
                 {
