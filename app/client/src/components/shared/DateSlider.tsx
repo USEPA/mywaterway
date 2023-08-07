@@ -1,12 +1,19 @@
-import { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { css } from 'styled-components/macro';
 import { useRanger } from 'react-ranger';
 import { v4 as uuid } from 'uuid';
 // components
 import { textBoxStyles } from 'components/shared/MessageBoxes';
 
-function getTicks(yearsArray: number[], maxTicks: number) {  
-  if(yearsArray.length <= maxTicks) return yearsArray; 
+function getTicks(yearsArray: number[], maxTicks: number) {
+  if (yearsArray.length <= maxTicks) return yearsArray;
 
   const tickList = [];
   const length = yearsArray.length;
@@ -149,7 +156,7 @@ function DateSlider({
     setMinYear(min);
     setMaxYear(max);
   }, [min, max]);
-  
+
   const [sliderWidth, setSliderWidth] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
   const observer = useMemo(
@@ -160,7 +167,7 @@ function DateSlider({
           setSliderWidth(width);
         }
       }),
-    []
+    [],
   );
   useLayoutEffect(() => {
     if (!sliderRef?.current) return;
@@ -170,10 +177,12 @@ function DateSlider({
     };
   }, [observer, sliderRef]);
 
-
-  const yearsArray = [...Array(max - min + 1).keys()].map(x => x + min);
-  const tickList = getTicks(yearsArray, sliderWidth < 80 ? 1 : sliderWidth < 300 ? 2 : 4);
-  if(tickList.slice(-1)[0] !== max) tickList.push(max);
+  const yearsArray = [...Array(max - min + 1).keys()].map((x) => x + min);
+  const tickList = getTicks(
+    yearsArray,
+    sliderWidth < 80 ? 1 : sliderWidth < 300 ? 2 : 4,
+  );
+  if (tickList.slice(-1)[0] !== max) tickList.push(max);
 
   const { getTrackProps, segments, ticks, handles } = useRanger({
     min: minYear,

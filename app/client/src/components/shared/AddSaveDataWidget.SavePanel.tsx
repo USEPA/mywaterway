@@ -265,7 +265,7 @@ function SavePanel({ visible }: Props) {
   const monitoringYearsRange = useContext(LocationSearchContext)
     .monitoringYearsRange as MonitoringYearsRange | null;
   const monitoringWorkerData = useContext(LocationSearchContext)
-    .monitoringWorkerData as MonitoringWorkerData;
+    .monitoringAnnualRecords.data as MonitoringWorkerData;
   const parameterToggleObject = useContext(LocationSearchContext)
     .parameterToggleObject as ParameterToggleObject;
   const upstreamWatershedResponse = useContext(LocationSearchContext)

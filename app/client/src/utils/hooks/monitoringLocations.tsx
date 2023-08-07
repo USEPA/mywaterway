@@ -34,6 +34,7 @@ import type {
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
   MonitoringLocationsData,
+  MonitoringWorkerData,
   ServicesData,
 } from 'types';
 import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
@@ -85,21 +86,40 @@ export function useMonitoringLocations() {
 }
 
 export function useMonitoringGroups() {
-  const { monitoringGroups, setMonitoringGroups } = useContext(
-    LocationSearchContext,
-  );
+  const { monitoringAnnualRecords, monitoringGroups, setMonitoringGroups } =
+    useContext(LocationSearchContext);
   const { monitoringLocations } = useFetchedDataState();
+
+  // Add the stations historical data to the `dataByYear` property,
+  const addAnnualData = useCallback(
+    (newMonitoringGroups: MonitoringLocationGroups) => {
+      const annualRecords = monitoringAnnualRecords.data.sites;
+      for (const label in newMonitoringGroups) {
+        for (const station of newMonitoringGroups[label].stations) {
+          const id = station.uniqueId;
+          if (id in annualRecords) {
+            station.dataByYear = annualRecords[id];
+          }
+        }
+      }
+
+      return newMonitoringGroups;
+    },
+    [monitoringAnnualRecords],
+  );
 
   useEffect(() => {
     if (monitoringLocations.status !== 'success') return;
 
     setMonitoringGroups(
-      buildMonitoringGroups(
-        monitoringLocations.data,
-        characteristicGroupMappings,
+      addAnnualData(
+        buildMonitoringGroups(
+          monitoringLocations.data,
+          characteristicGroupMappings,
+        ),
       ),
     );
-  }, [monitoringLocations, setMonitoringGroups]);
+  }, [addAnnualData, monitoringLocations, setMonitoringGroups]);
 
   return monitoringGroups;
 }

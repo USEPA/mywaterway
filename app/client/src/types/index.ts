@@ -118,9 +118,11 @@ export interface Feature {
 }
 
 interface FetchEmptyState {
-  status: 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
+  status: FetchEmptyStatus;
   data: {} | [] | null;
 }
+
+type FetchEmptyStatus = 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
 
 export interface FetchSuccessState<Type> {
   status: 'success';
@@ -128,6 +130,8 @@ export interface FetchSuccessState<Type> {
 }
 
 export type FetchState<Type> = FetchEmptyState | FetchSuccessState<Type>;
+
+export type FetchStatus = FetchEmptyStatus | 'success';
 
 export interface ExtendedGraphic extends __esri.Graphic {
   originalGeometry?: __esri.Geometry;
@@ -292,7 +296,11 @@ export type MonitoringYearsRange = number[] | null;
 export type MonitoringWorkerData = {
   minYear: number;
   maxYear: number;
-  annualData: any;
+  sites: {
+    [siteId: string]: {
+      [year: string]: AnnualStationData;
+    };
+  };
 };
 
 export interface NonProfitAttributes {

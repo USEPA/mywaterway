@@ -4,6 +4,7 @@ import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
 import type {
   DischargerPermitComponents,
+  FetchStatus,
   Huc12SummaryData,
   MonitoringLocationGroups,
   MonitoringYearsRange,
@@ -16,7 +17,7 @@ export const LocationSearchContext = createContext();
 export const initialWorkerData = {
   minYear: null,
   maxYear: null,
-  annualData: {},
+  sites: {},
 };
 
 type Props = {
@@ -70,7 +71,7 @@ type State = {
   monitoringGroups: MonitoringLocationGroups | null,
   monitoringFeatureUpdates: ?Object,
   monitoringYearsRange: MonitoringYearsRange | null,
-  monitoringWorkerData: MonitoringWorkerData,
+  monitoringAnnualRecords: { status: FetchStatus, data: MonitoringWorkerData },
 
   // identified issues panel
   showAllPolluted: boolean,
@@ -142,7 +143,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     monitoringGroups: null,
     monitoringFeatureUpdates: null,
     monitoringYearsRange: null,
-    monitoringWorkerData: initialWorkerData,
+    monitoringAnnualRecords: { status: 'idle', data: initialWorkerData },
 
     // identified issues panel
     showAllPolluted: true,
@@ -300,8 +301,8 @@ export class LocationSearchProvider extends Component<Props, State> {
     setMonitoringYearsRange: (monitoringYearsRange) => {
       this.setState({ monitoringYearsRange });
     },
-    setMonitoringWorkerData: (monitoringWorkerData) => {
-      this.setState({ monitoringWorkerData });
+    setMonitoringAnnualRecords: (monitoringAnnualRecords) => {
+      this.setState({ monitoringAnnualRecords });
     },
     setShowAllPolluted: (showAllPolluted) => {
       this.setState({ showAllPolluted });
@@ -376,7 +377,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         monitoringGroups: null,
         monitoringFeatureUpdates: null,
         monitoringYearsRange: null,
-        monitoringWorkerData: initialWorkerData,
+        monitoringAnnualRecords: { status: 'idle', data: initialWorkerData },
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },

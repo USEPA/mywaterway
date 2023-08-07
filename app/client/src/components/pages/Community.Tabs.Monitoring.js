@@ -1,6 +1,7 @@
 // @flow
 
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -173,22 +174,25 @@ const totalRowStyles = css`
 `;
 
 /*
- ** Helpers
- */
+## Helpers
+*/
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
 function usePeriodOfRecordData(filter, param) {
-  const { monitoringWorkerData, setMonitoringWorkerData } = useContext(
-    LocationSearchContext,
-  );
+  const {
+    monitoringAnnualRecords,
+    setMonitoringAnnualRecords,
+    setMonitoringYearsRange,
+  } = useContext(LocationSearchContext);
   const services = useServicesContext();
   const [url, setUrl] = useState(null);
 
   // Clear the data on change of location
   const resetWorkerData = useCallback(() => {
-    setMonitoringWorkerData(initialWorkerData);
-  }, [setMonitoringWorkerData]);
+    setMonitoringAnnualRecords({ status: 'idle', data: initialWorkerData });
+    setMonitoringYearsRange(null);
+  }, [setMonitoringAnnualRecords, setMonitoringYearsRange]);
 
   // Craft the URL
   useEffect(() => {
@@ -214,21 +218,26 @@ function usePeriodOfRecordData(filter, param) {
     }
     const origin = window.location.origin;
     const recordsWorker = new Worker(`${origin}/periodOfRecordWorker.js`);
+    setMonitoringAnnualRecords({ status: 'pending', data: initialWorkerData });
     recordsWorker.postMessage([url, origin, characteristicGroupMappings]);
     recordsWorker.onmessage = (message) => {
       if (message.data && typeof message.data === 'string') {
         const parsedData = JSON.parse(message.data);
-        parsedData.minYear = parseInt(parsedData.minYear);
-        parsedData.maxYear = parseInt(parsedData.maxYear);
-        setMonitoringWorkerData(parsedData);
+        parsedData.data.minYear = parseInt(parsedData.data.minYear);
+        parsedData.data.maxYear = parseInt(parsedData.data.maxYear);
+        setMonitoringYearsRange([
+          parsedData.data.minYear,
+          parsedData.data.maxYear,
+        ]);
+        setMonitoringAnnualRecords(parsedData);
       }
     };
     return function cleanup() {
       recordsWorker.terminate();
     };
-  }, [filter, setMonitoringWorkerData, url]);
+  }, [filter, setMonitoringAnnualRecords, setMonitoringYearsRange, url]);
 
-  return [monitoringWorkerData, resetWorkerData];
+  return [monitoringAnnualRecords, resetWorkerData];
 }
 
 // Dynamically filter the displayed locations
@@ -825,8 +834,11 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   }, [monitoringGroups, groupToggleHandler]);
 
   // The data returned by the worker
-  const [{ minYear, maxYear, annualData }, resetWorkerData] =
-    usePeriodOfRecordData(huc12, 'huc12');
+  const [workerData, resetWorkerData] = usePeriodOfRecordData(huc12, 'huc12');
+  const {
+    data: { minYear, maxYear, sites: annualData },
+    status: workerStatus,
+  } = workerData;
 
   // Reset data if the user switches locations
   useEffect(() => {
@@ -834,18 +846,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
     return function cleanup() {
       resetWorkerData();
-      setMonitoringYearsRange(null);
       setAllToggled(true);
       if (!monitoringLocationsLayer) return;
 
       monitoringLocationsLayer.definitionExpression = '';
     };
-  }, [
-    huc12,
-    monitoringLocationsLayer,
-    resetWorkerData,
-    setMonitoringYearsRange,
-  ]);
+  }, [huc12, monitoringLocationsLayer, resetWorkerData]);
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
   // create the filter string for download links based on active toggles
@@ -920,39 +926,9 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     updateFeatures,
   ]);
 
-  // Add the stations historical data to the `dataByYear` property,
-  // then initializes the date slider
-  const addAnnualData = useCallback(async () => {
-    if (!monitoringGroups) return;
-
-    const updatedMonitoringGroups = { ...monitoringGroups };
-    for (const label in updatedMonitoringGroups) {
-      for (const station of updatedMonitoringGroups[label].stations) {
-        const id = station.uniqueId;
-        if (id in annualData) {
-          station.dataByYear = annualData[id];
-        }
-      }
-    }
-    setMonitoringGroups(updatedMonitoringGroups);
-    setMonitoringYearsRange([minYear, maxYear]);
-  }, [
-    maxYear,
-    minYear,
-    monitoringGroups,
-    annualData,
-    setMonitoringGroups,
-    setMonitoringYearsRange,
-  ]);
-
   const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
   const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
     useState(0);
-  useEffect(() => {
-    if (Object.keys(annualData).length === 0) return;
-    if (monitoringYearsRange) return;
-    addAnnualData();
-  }, [addAnnualData, annualData, monitoringYearsRange]);
 
   // Updates total counts after displayed locations are filtered
   useEffect(() => {
@@ -1002,9 +978,47 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       : [];
   }, [displayedLocations, sortBy]);
 
+  // Gather all available characteristics from the periodOfRecord data
+  const allCharacteristicOptions = useMemo(() => {
+    const uniqueCharacteristics = new Set();
+    Object.values(annualData).forEach((siteData) => {
+      Object.values(siteData).forEach((yearData) => {
+        Object.keys(yearData.totalsByCharacteristic).forEach((characteristic) =>
+          uniqueCharacteristics.add(characteristic),
+        );
+      });
+    });
+    return Array.from(uniqueCharacteristics)
+      .toSorted((a, b) => a.localeCompare(b))
+      .map((charc) => ({ label: charc, value: charc }));
+  }, [annualData]);
+
+  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
+    useState([]);
+
+  // Filter the displayed locations by selected characteristics
+  const filteredMonitoringLocations = useMemo(() => {
+    if (!selectedCharacteristicOptions.length || workerStatus !== 'success')
+      return sortedMonitoringLocations;
+    const selectedCharacteristics = selectedCharacteristicOptions.map(
+      (charc) => charc.value,
+    );
+    return sortedMonitoringLocations.filter((location) => {
+      if (!location.dataByYear) return false;
+      for (let yearData of Object.values(location.dataByYear)) {
+        for (let characteristic of Object.keys(
+          yearData.totalsByCharacteristic,
+        )) {
+          if (selectedCharacteristics.includes(characteristic)) return true;
+        }
+      }
+      return false;
+    });
+  }, [selectedCharacteristicOptions, sortedMonitoringLocations, workerStatus]);
+
   const totalLocationsCount = monitoringGroups?.['All'].stations.length;
   const displayedLocationsCount =
-    sortedMonitoringLocations.length.toLocaleString();
+    filteredMonitoringLocations.length.toLocaleString();
 
   const handleDateSliderChange = useCallback(
     (newRange) => {
@@ -1020,12 +1034,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const handleExpandCollapse = useCallback(
     (allExpanded) => {
       if (allExpanded) {
-        setExpandedRows([...Array(sortedMonitoringLocations.length).keys()]);
+        setExpandedRows([...Array(filteredMonitoringLocations.length).keys()]);
       } else {
         setExpandedRows([]);
       }
     },
-    [sortedMonitoringLocations],
+    [filteredMonitoringLocations],
   );
 
   const accordionItemToggleHandler = useCallback(
@@ -1042,14 +1056,14 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   );
 
   const accordionItemToggleHandlers = useMemo(() => {
-    return sortedMonitoringLocations.map((_item, index) => {
+    return filteredMonitoringLocations.map((_item, index) => {
       return accordionItemToggleHandler(index);
     });
-  }, [accordionItemToggleHandler, sortedMonitoringLocations]);
+  }, [accordionItemToggleHandler, filteredMonitoringLocations]);
 
   const renderListItem = useCallback(
     ({ index }) => {
-      const item = sortedMonitoringLocations[index];
+      const item = filteredMonitoringLocations[index];
 
       const feature = {
         geometry: {
@@ -1098,8 +1112,8 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     [
       accordionItemToggleHandlers,
       expandedRows,
+      filteredMonitoringLocations,
       services,
-      sortedMonitoringLocations,
     ],
   );
 
@@ -1159,9 +1173,16 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
             </div>
 
             <div css={sliderContainerStyles}>
-              {!monitoringYearsRange ? (
-                <LoadingSpinner />
-              ) : (
+              {workerStatus === 'failure' && (
+                <div css={modifiedErrorBoxStyles}>
+                  <p>
+                    Annual Past Water Conditions data is temporarily
+                    unavailable, please try again later.
+                  </p>
+                </div>
+              )}
+              {workerStatus === 'pending' && <LoadingSpinner />}
+              {workerStatus === 'success' && (
                 <DateSlider
                   max={maxYear}
                   min={minYear}
@@ -1318,6 +1339,18 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
             </table>
 
             <AccordionList
+              contentExpandCollapse={
+                <Select
+                  isDisabled={workerStatus === 'failure'}
+                  isLoading={workerStatus === 'pending'}
+                  isMulti
+                  onChange={(options) =>
+                    setSelectedCharacteristicOptions(options)
+                  }
+                  options={allCharacteristicOptions}
+                  placeholder="Select a characteristic..."
+                />
+              }
               title={
                 monitoringYearsRange ? (
                   <span data-testid="monitoring-accordion-title">
@@ -1359,7 +1392,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               ]}
             >
               <VirtualizedList
-                items={sortedMonitoringLocations}
+                items={filteredMonitoringLocations}
                 renderer={renderListItem}
               />
             </AccordionList>
