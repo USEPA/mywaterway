@@ -259,6 +259,8 @@ export function GradientLegend({ colors, keys, title }: GradientLegendProps) {
 
   const legendGlyphSize = 15;
 
+  if (!Math.max(keys.length, colors.length)) return null;
+
   return (
     <div css={legendContainerStyles}>
       <LegendLabel flex="0 0 auto" margin="auto 0.5em auto 0">
@@ -270,24 +272,38 @@ export function GradientLegend({ colors, keys, title }: GradientLegendProps) {
         </LegendLabel>
       )}
       <div css={legendStyles}>
-        <LegendLinear scale={colorScale} steps={20}>
-          {(labels) =>
-            labels.map((label) => (
-              <Fragment key={label.text}>
-                <LegendItem>
-                  <svg width={5} height={legendGlyphSize}>
-                    <rect
-                      width={5}
-                      height={legendGlyphSize}
-                      fill={label.value}
-                      stroke={label.value}
-                    />
-                  </svg>
-                </LegendItem>
-              </Fragment>
-            ))
-          }
-        </LegendLinear>
+        {Math.max(keys.length, colors.length) === 1 ? (
+          <svg width={legendGlyphSize} height={legendGlyphSize}>
+            <rect
+              width={legendGlyphSize}
+              height={legendGlyphSize}
+              fill={colors[0]}
+              stroke={colors[0]}
+            />
+          </svg>
+        ) : (
+          <LegendLinear
+            scale={colorScale as ReturnType<typeof scaleLinear>}
+            steps={20}
+          >
+            {(labels) =>
+              labels.map((label) => (
+                <Fragment key={label.text}>
+                  <LegendItem>
+                    <svg width={5} height={legendGlyphSize}>
+                      <rect
+                        width={5}
+                        height={legendGlyphSize}
+                        fill={label.value as string}
+                        stroke={label.value as string}
+                      />
+                    </svg>
+                  </LegendItem>
+                </Fragment>
+              ))
+            }
+          </LegendLinear>
+        )}
       </div>
       {keys.length > 1 && (
         <LegendLabel flex={0} margin="auto 0">

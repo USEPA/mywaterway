@@ -579,7 +579,8 @@ function generateHeatmap(data) {
   const dataMin = sortedData[0];
   const dataMax = sortedData[sortedData.length - 1];
   return sortedData.map((datum) => {
-    const fractionalPos = (datum - dataMin) / (dataMax - dataMin);
+    const fractionalPos =
+      datum === 0 ? 0 : (datum - dataMin) / (dataMax - dataMin);
     const offset = (svMax - svMin) * fractionalPos;
     const sat = (svMin + offset) / 100;
     const val = (svMax - offset) / 100;
