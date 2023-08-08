@@ -698,19 +698,17 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
   const {
     huc12,
-    monitoringGroups,
     monitoringCharacteristicsStatus,
     monitoringYearsRange,
     selectedMonitoringYearsRange,
     setMonitoringFeatureUpdates,
-    setMonitoringGroups,
     setSelectedMonitoringYearsRange,
     watershed,
   } = useContext(LocationSearchContext);
 
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations } = useFetchedDataState();
-  useMonitoringGroups('huc12', huc12);
+  const { monitoringGroups, setMonitoringGroups } = useMonitoringGroups(huc12);
 
   const updateFeatures = useCallback(
     (locations) => {

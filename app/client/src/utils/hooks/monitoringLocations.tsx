@@ -87,15 +87,15 @@ export function useMonitoringLocations() {
 }
 
 export function useMonitoringGroups(
-  param?: 'huc12' | 'siteId',
   filter?: string,
+  param: 'huc12' | 'siteId' = 'huc12',
 ) {
   const { monitoringGroups, setMonitoringGroups } = useContext(
     LocationSearchContext,
   );
   const { monitoringLocations } = useFetchedDataState();
 
-  const monitoringAnnualRecords = usePeriodOfRecordData(param, filter);
+  const monitoringAnnualRecords = usePeriodOfRecordData(filter, param);
 
   // Add the stations historical data to the `dataByYear` property,
   const addAnnualData = useCallback(
@@ -144,12 +144,15 @@ export function useMonitoringGroups(
     );
   }, [addAnnualData, monitoringLocations, setMonitoringGroups]);
 
-  return monitoringGroups;
+  return { monitoringGroups, setMonitoringGroups };
 }
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
-function usePeriodOfRecordData(param?: 'huc12' | 'siteId', filter?: string) {
+function usePeriodOfRecordData(
+  filter?: string,
+  param: 'huc12' | 'siteId' = 'huc12',
+) {
   const {
     setMonitoringCharacteristicsStatus,
     setMonitoringYearsRange,
