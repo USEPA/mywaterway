@@ -31,6 +31,7 @@ import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type {
   Feature,
+  FetchStatus,
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
   MonitoringLocationsData,
@@ -85,14 +86,22 @@ export function useMonitoringLocations() {
   };
 }
 
-export function useMonitoringGroups() {
-  const { monitoringAnnualRecords, monitoringGroups, setMonitoringGroups } =
-    useContext(LocationSearchContext);
+export function useMonitoringGroups(
+  param?: 'huc12' | 'siteId',
+  filter?: string,
+) {
+  const { monitoringGroups, setMonitoringGroups } = useContext(
+    LocationSearchContext,
+  );
   const { monitoringLocations } = useFetchedDataState();
+
+  const monitoringAnnualRecords = usePeriodOfRecordData(param, filter);
 
   // Add the stations historical data to the `dataByYear` property,
   const addAnnualData = useCallback(
     (newMonitoringGroups: MonitoringLocationGroups) => {
+      if (monitoringAnnualRecords.status !== 'success')
+        return newMonitoringGroups;
       const annualRecords: MonitoringWorkerData['sites'] =
         monitoringAnnualRecords.data.sites;
       for (const label in newMonitoringGroups) {
@@ -100,6 +109,7 @@ export function useMonitoringGroups() {
           const id = station.uniqueId;
           if (id in annualRecords) {
             station.dataByYear = annualRecords[id];
+            // Tally characteristic counts
             station.totalsByCharacteristic = Object.values(
               annualRecords[id],
             ).reduce((totals, yearData) => {
@@ -135,6 +145,94 @@ export function useMonitoringGroups() {
   }, [addAnnualData, monitoringLocations, setMonitoringGroups]);
 
   return monitoringGroups;
+}
+
+// Passes parsing of historical CSV data to a Web Worker,
+// which itself utilizes an external service
+function usePeriodOfRecordData(param?: 'huc12' | 'siteId', filter?: string) {
+  const {
+    setMonitoringCharacteristicsStatus,
+    setMonitoringYearsRange,
+    setSelectedMonitoringYearsRange,
+  } = useContext(LocationSearchContext);
+  const services = useServicesContext();
+
+  const [monitoringAnnualRecords, setMonitoringAnnualRecords] = useState<{
+    status: FetchStatus;
+    data: MonitoringWorkerData;
+  }>({
+    status: 'idle',
+    data: initialWorkerData,
+  });
+
+  useEffect(() => {
+    const { minYear, maxYear } = monitoringAnnualRecords.data;
+    setMonitoringYearsRange([minYear, maxYear]);
+    setSelectedMonitoringYearsRange([minYear, maxYear]);
+    setMonitoringCharacteristicsStatus(monitoringAnnualRecords.status);
+  }, [
+    monitoringAnnualRecords,
+    setMonitoringCharacteristicsStatus,
+    setMonitoringYearsRange,
+    setSelectedMonitoringYearsRange,
+  ]);
+
+  // Craft the URL
+  let url: string | null = null;
+  if (
+    services.status === 'success' &&
+    filter &&
+    (param === 'huc12' || param === 'siteId')
+  ) {
+    url =
+      `${services.data.waterQualityPortal.monitoringLocation}search?` +
+      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
+    url += param === 'huc12' ? `&huc=${filter}` : `&siteid=${filter}`;
+  }
+
+  const recordsWorker = useRef<Worker | null>(null);
+  const [prevUrl, setPrevUrl] = useState<string | null>(null);
+  if (url !== prevUrl) {
+    setPrevUrl(url);
+    setMonitoringAnnualRecords({ status: 'idle', data: initialWorkerData });
+  }
+
+  useEffect(() => {
+    if (!url || monitoringAnnualRecords.status !== 'idle') return;
+    if (!window.Worker) {
+      throw new Error("Your browser doesn't support web workers");
+    }
+    setMonitoringAnnualRecords({
+      status: 'pending',
+      data: initialWorkerData,
+    });
+
+    // Create the worker and assign it a job, then listen for a response
+    if (recordsWorker.current) recordsWorker.current.terminate();
+    const origin = window.location.origin;
+    recordsWorker.current = new Worker(`${origin}/periodOfRecordWorker.js`);
+    recordsWorker.current.postMessage([
+      url,
+      origin,
+      characteristicGroupMappings,
+    ]);
+    recordsWorker.current.onmessage = (message) => {
+      if (message.data && typeof message.data === 'string') {
+        const parsedData = JSON.parse(message.data);
+        parsedData.data.minYear = parseInt(parsedData.data.minYear);
+        parsedData.data.maxYear = parseInt(parsedData.data.maxYear);
+        setMonitoringAnnualRecords(parsedData);
+      }
+    };
+  }, [monitoringAnnualRecords.status, url]);
+
+  useEffect(() => {
+    return function cleanup() {
+      recordsWorker.current?.terminate();
+    };
+  }, [setMonitoringAnnualRecords, setMonitoringYearsRange, url]);
+
+  return monitoringAnnualRecords;
 }
 
 function useUpdateData(localFilter: string | null) {
@@ -230,28 +328,6 @@ function buildFeatures(locations: MonitoringLocationAttributes[]) {
       attributes,
     });
   });
-}
-
-export function tallyCharacteristics(
-  stationDataByYear: MonitoringLocationAttributes['dataByYear'],
-  startYear?: number,
-  endYear?: number,
-) {
-  return Object.entries(stationDataByYear).reduce(
-    (totals, [year, yearData]) => {
-      if (startYear && parseInt(year) < startYear) return totals;
-      if (endYear && parseInt(year) > endYear) return totals;
-      Object.entries(yearData.totalsByCharacteristic).forEach(
-        ([charc, count]) => {
-          if (count <= 0) return;
-          if (charc in totals) totals[charc] += count;
-          else totals[charc] = count;
-        },
-      );
-      return totals;
-    },
-    {} as { [characteristic: string]: number },
-  );
 }
 
 function buildMonitoringGroups(
@@ -508,6 +584,12 @@ function transformServiceData(
 /*
 ## Constants
 */
+
+const initialWorkerData = {
+  minYear: 0,
+  maxYear: 0,
+  sites: {},
+};
 
 const localFetchedDataKey = 'monitoringLocations';
 const surroundingFetchedDataKey = 'surroundingMonitoringLocations';

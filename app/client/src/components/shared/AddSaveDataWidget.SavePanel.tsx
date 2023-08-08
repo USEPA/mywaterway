@@ -33,7 +33,6 @@ import {
   Huc12SummaryData,
   MonitoringLocationGroups,
   MonitoringYearsRange,
-  MonitoringWorkerData,
   ParameterToggleObject,
 } from 'types/index';
 import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
@@ -262,10 +261,10 @@ function SavePanel({ visible }: Props) {
     .mapView as __esri.MapView | null;
   const monitoringGroups = useContext(LocationSearchContext)
     .monitoringGroups as MonitoringLocationGroups | null;
+  const selectedMonitoringYearsRange = useContext(LocationSearchContext)
+    .selectedMonitoringYearsRange as MonitoringYearsRange | null;
   const monitoringYearsRange = useContext(LocationSearchContext)
-    .monitoringYearsRange as MonitoringYearsRange | null;
-  const monitoringWorkerData = useContext(LocationSearchContext)
-    .monitoringAnnualRecords.data as MonitoringWorkerData;
+    .monitoringYearsRange as MonitoringYearsRange;
   const parameterToggleObject = useContext(LocationSearchContext)
     .parameterToggleObject as ParameterToggleObject;
   const upstreamWatershedResponse = useContext(LocationSearchContext)
@@ -558,7 +557,7 @@ function SavePanel({ visible }: Props) {
   }
 
   // Saves the data to ArcGIS Online
-  async function handleSaveAgo(ev: MouseEvent<HTMLButtonElement>) {
+  async function handleSaveAgo(_ev: MouseEvent<HTMLButtonElement>) {
     if (!mapView || !saveLayersList) return;
 
     // check if user provided a name
@@ -644,20 +643,20 @@ function SavePanel({ visible }: Props) {
       if (
         value.id === 'monitoringLocationsLayer' &&
         monitoringGroups &&
-        monitoringYearsRange
+        selectedMonitoringYearsRange
       ) {
         const monitoringGroupsFiltered = Object.values(monitoringGroups).some(
           (a) => !a.toggled,
         );
         const yearsFiltered =
-          monitoringYearsRange &&
-          (monitoringYearsRange[0] !== monitoringWorkerData.minYear ||
-            monitoringYearsRange[1] !== monitoringWorkerData.maxYear);
+          selectedMonitoringYearsRange &&
+          (selectedMonitoringYearsRange[0] !== monitoringYearsRange[0] ||
+            selectedMonitoringYearsRange[1] !== monitoringYearsRange[1]);
         if (monitoringGroupsFiltered || yearsFiltered) {
           const filters: string[] = [];
           if (yearsFiltered) {
             filters.push(
-              `years ${monitoringYearsRange[0]} - ${monitoringYearsRange[1]}`,
+              `years ${selectedMonitoringYearsRange[0]} - ${selectedMonitoringYearsRange[1]}`,
             );
           }
 

@@ -70,6 +70,7 @@ function structureByUniqueId(recordsByYear) {
       dataBySite[id][year] = recordsByYear[year][id];
     });
   }
+  if (minYear > maxYear) minYear = 0;
   return { minYear, maxYear, sites: dataBySite };
 }
 

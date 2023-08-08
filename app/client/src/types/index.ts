@@ -292,7 +292,7 @@ export interface MonitoringLocationsData {
   type: 'FeatureCollection';
 }
 
-export type MonitoringYearsRange = number[] | null;
+export type MonitoringYearsRange = [number, number];
 
 export type MonitoringWorkerData = {
   minYear: number;

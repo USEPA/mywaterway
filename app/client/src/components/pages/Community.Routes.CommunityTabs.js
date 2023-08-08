@@ -433,9 +433,6 @@ function CommunityTabs() {
     // overview panel
     setDischargerPermitComponents(null);
 
-    // monitoring panel
-    setMonitoringGroups(null);
-
     // identified issues panel
     setShowAllPolluted(true);
     setParameterToggleObject({});

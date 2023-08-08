@@ -1,5 +1,7 @@
 import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
+// config
+import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // types
 import type { ReactNode } from 'react';
 import type {
@@ -8,17 +10,23 @@ import type {
   Huc12SummaryData,
   MonitoringLocationGroups,
   MonitoringYearsRange,
-  MonitoringWorkerData,
   ParameterToggleObject,
 } from 'types';
 
-export const LocationSearchContext = createContext();
+const initialMonitoringGroups = characteristicGroupMappings.reduce(
+  (groups, next) => {
+    groups[next.label] = {
+      label: next.label,
+      characteristicGroups: [...next.groupNames],
+      stations: [],
+      toggled: true,
+    };
+    return groups;
+  },
+  {},
+);
 
-export const initialWorkerData = {
-  minYear: null,
-  maxYear: null,
-  sites: {},
-};
+export const LocationSearchContext = createContext();
 
 type Props = {
   children: ReactNode,
@@ -68,10 +76,11 @@ type State = {
   dischargerPermitComponents: DischargerPermitComponents | null,
 
   // monitoring panel
-  monitoringGroups: MonitoringLocationGroups | null,
+  monitoringCharacteristicsStatus: FetchStatus,
+  monitoringGroups: MonitoringLocationGroups,
   monitoringFeatureUpdates: ?Object,
-  monitoringYearsRange: MonitoringYearsRange | null,
-  monitoringAnnualRecords: { status: FetchStatus, data: MonitoringWorkerData },
+  monitoringYearsRange: MonitoringYearsRange,
+  selectedMonitoringYearsRange: MonitoringYearsRange | null,
 
   // identified issues panel
   showAllPolluted: boolean,
@@ -140,10 +149,11 @@ export class LocationSearchProvider extends Component<Props, State> {
     dischargerPermitComponents: null,
 
     // monitoring panel
-    monitoringGroups: null,
+    monitoringCharacteristicsStatus: 'idle',
+    monitoringGroups: initialMonitoringGroups,
     monitoringFeatureUpdates: null,
-    monitoringYearsRange: null,
-    monitoringAnnualRecords: { status: 'idle', data: initialWorkerData },
+    monitoringYearsRange: [0, 0],
+    selectedMonitoringYearsRange: null,
 
     // identified issues panel
     showAllPolluted: true,
@@ -292,6 +302,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setDischargerPermitComponents: (dischargerPermitComponents) => {
       this.setState({ dischargerPermitComponents });
     },
+    setMonitoringCharacteristicsStatus: (monitoringCharacteristicsStatus) => {
+      this.setState({ monitoringCharacteristicsStatus });
+    },
     setMonitoringGroups: (monitoringGroups) => {
       this.setState({ monitoringGroups });
     },
@@ -301,8 +314,8 @@ export class LocationSearchProvider extends Component<Props, State> {
     setMonitoringYearsRange: (monitoringYearsRange) => {
       this.setState({ monitoringYearsRange });
     },
-    setMonitoringAnnualRecords: (monitoringAnnualRecords) => {
-      this.setState({ monitoringAnnualRecords });
+    setSelectedMonitoringYearsRange: (selectedMonitoringYearsRange) => {
+      this.setState({ selectedMonitoringYearsRange });
     },
     setShowAllPolluted: (showAllPolluted) => {
       this.setState({ showAllPolluted });
@@ -374,10 +387,11 @@ export class LocationSearchProvider extends Component<Props, State> {
         atHucBoundaries: false,
         hucBoundaries: '',
         dischargerPermitComponents: null,
-        monitoringGroups: null,
+        monitoringCharacteristicsStatus: 'idle',
+        monitoringGroups: initialMonitoringGroups,
         monitoringFeatureUpdates: null,
-        monitoringYearsRange: null,
-        monitoringAnnualRecords: { status: 'idle', data: initialWorkerData },
+        monitoringYearsRange: [0, 0],
+        selectedMonitoringYearsRange: null,
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },
