@@ -26,6 +26,7 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
+import MenuList from 'components/shared/MenuList';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
@@ -247,27 +248,40 @@ function filterStation(station, timeframe) {
   const result = {
     ...station,
     totalMeasurements: 0,
+    totalsByCharacteristic: {},
     totalsByGroup: {},
     totalsByLabel: {},
     timeframe: [...timeframe],
   };
+  // Include the label in the object even if zero
   characteristicGroupMappings.forEach((mapping) => {
     result.totalsByLabel[mapping.label] = 0;
   });
   for (const year in stationRecords) {
     if (parseInt(year) < timeframe[0]) continue;
-    if (parseInt(year) > timeframe[1]) return result;
+    if (parseInt(year) > timeframe[1]) break;
     result.totalMeasurements += stationRecords[year].totalMeasurements;
+    // Tally characteristic group counts
     const resultGroups = result.totalsByGroup;
     Object.entries(stationRecords[year].totalsByGroup).forEach(
       ([group, count]) => {
-        resultGroups[group] = !resultGroups[group]
-          ? count
-          : resultGroups[group] + count;
+        if (count <= 0) return;
+        if (group in resultGroups) resultGroups[group] += count;
+        else resultGroups[group] = count;
       },
     );
+    // Tally characteristic label counts
     Object.entries(stationRecords[year].totalsByLabel).forEach(
-      ([key, value]) => (result.totalsByLabel[key] += value),
+      ([label, count]) => (result.totalsByLabel[label] += count),
+    );
+    // Tally characteristic counts
+    const resultCharcs = result.totalsByCharacteristic;
+    Object.entries(stationRecords[year].totalsByCharacteristic).forEach(
+      ([charc, count]) => {
+        if (count <= 0) return;
+        if (charc in resultCharcs) resultCharcs[charc] += count;
+        else resultCharcs[charc] = count;
+      },
     );
   }
 
@@ -1004,13 +1018,8 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       (charc) => charc.value,
     );
     return sortedMonitoringLocations.filter((location) => {
-      if (!location.dataByYear) return false;
-      for (let yearData of Object.values(location.dataByYear)) {
-        for (let characteristic of Object.keys(
-          yearData.totalsByCharacteristic,
-        )) {
-          if (selectedCharacteristics.includes(characteristic)) return true;
-        }
+      for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
+        if (selectedCharacteristics.includes(characteristic)) return true;
       }
       return false;
     });
@@ -1338,19 +1347,17 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               </tfoot>
             </table>
 
+            <Select
+              components={{ MenuList }}
+              isDisabled={workerStatus === 'failure'}
+              isLoading={workerStatus === 'pending'}
+              isMulti
+              onChange={(options) => setSelectedCharacteristicOptions(options)}
+              options={allCharacteristicOptions}
+              placeholder="Select a characteristic..."
+              value={selectedCharacteristicOptions}
+            />
             <AccordionList
-              contentExpandCollapse={
-                <Select
-                  isDisabled={workerStatus === 'failure'}
-                  isLoading={workerStatus === 'pending'}
-                  isMulti
-                  onChange={(options) =>
-                    setSelectedCharacteristicOptions(options)
-                  }
-                  options={allCharacteristicOptions}
-                  placeholder="Select a characteristic..."
-                />
-              }
               title={
                 monitoringYearsRange ? (
                   <span data-testid="monitoring-accordion-title">

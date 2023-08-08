@@ -2415,7 +2415,11 @@ function MonitoringLocationsContent({
   const attributes: MonitoringLocationAttributes = feature.attributes;
   const layer = feature.layer;
   const parsed = useMemo(() => {
-    const structuredProps = ['totalsByGroup', 'timeframe'];
+    const structuredProps = [
+      'totalsByCharacteristic',
+      'totalsByGroup',
+      'timeframe',
+    ];
     return parseAttributes<MonitoringLocationAttributes>(
       structuredProps,
       attributes,

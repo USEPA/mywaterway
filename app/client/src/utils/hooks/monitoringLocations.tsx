@@ -93,12 +93,25 @@ export function useMonitoringGroups() {
   // Add the stations historical data to the `dataByYear` property,
   const addAnnualData = useCallback(
     (newMonitoringGroups: MonitoringLocationGroups) => {
-      const annualRecords = monitoringAnnualRecords.data.sites;
+      const annualRecords: MonitoringWorkerData['sites'] =
+        monitoringAnnualRecords.data.sites;
       for (const label in newMonitoringGroups) {
         for (const station of newMonitoringGroups[label].stations) {
           const id = station.uniqueId;
           if (id in annualRecords) {
             station.dataByYear = annualRecords[id];
+            station.totalsByCharacteristic = Object.values(
+              annualRecords[id],
+            ).reduce((totals, yearData) => {
+              Object.entries(yearData.totalsByCharacteristic).forEach(
+                ([charc, count]) => {
+                  if (count <= 0) return;
+                  if (charc in totals) totals[charc] += count;
+                  else totals[charc] = count;
+                },
+              );
+              return totals;
+            }, {} as { [characteristic: string]: number });
           }
         }
       }
@@ -199,7 +212,11 @@ function useUpdateData(localFilter: string | null) {
 */
 
 function buildFeatures(locations: MonitoringLocationAttributes[]) {
-  const structuredProps = ['totalsByGroup', 'timeframe'];
+  const structuredProps = [
+    'totalsByCharacteristic',
+    'totalsByGroup',
+    'timeframe',
+  ];
   return locations.map((location) => {
     const attributes = stringifyAttributes(structuredProps, location);
     return new Graphic({
@@ -213,6 +230,28 @@ function buildFeatures(locations: MonitoringLocationAttributes[]) {
       attributes,
     });
   });
+}
+
+export function tallyCharacteristics(
+  stationDataByYear: MonitoringLocationAttributes['dataByYear'],
+  startYear?: number,
+  endYear?: number,
+) {
+  return Object.entries(stationDataByYear).reduce(
+    (totals, [year, yearData]) => {
+      if (startYear && parseInt(year) < startYear) return totals;
+      if (endYear && parseInt(year) > endYear) return totals;
+      Object.entries(yearData.totalsByCharacteristic).forEach(
+        ([charc, count]) => {
+          if (count <= 0) return;
+          if (charc in totals) totals[charc] += count;
+          else totals[charc] = count;
+        },
+      );
+      return totals;
+    },
+    {} as { [characteristic: string]: number },
+  );
 }
 
 function buildMonitoringGroups(
@@ -319,6 +358,7 @@ function buildLayer(
       { name: 'locationUrlPartial', type: 'string' },
       { name: 'providerName', type: 'string' },
       { name: 'totalSamples', type: 'integer' },
+      { name: 'totalsByCharacteristic', type: 'string' },
       { name: 'totalsByGroup', type: 'string' },
       { name: 'totalMeasurements', type: 'integer' },
       { name: 'timeframe', type: 'string' },
@@ -445,13 +485,14 @@ function transformServiceData(
       locationUrlPartial,
       // monitoring station specific properties:
       state: station.properties.StateName,
-      dataByYear: null,
+      dataByYear: {},
       providerName: station.properties.ProviderName,
       totalSamples: parseInt(station.properties.activityCount),
       totalMeasurements: parseInt(station.properties.resultCount),
+      totalsByCharacteristic: {},
       // counts for each lower-tier characteristic group
       totalsByGroup: station.properties.characteristicGroupResultCount,
-      totalsByLabel: null,
+      totalsByLabel: {},
       timeframe: null,
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id

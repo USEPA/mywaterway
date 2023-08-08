@@ -243,12 +243,13 @@ export interface MonitoringLocationAttributes {
   locationUrl: string;
   locationUrlPartial: string;
   state: string;
-  dataByYear: { [year: string | number]: AnnualStationData } | null;
+  dataByYear: { [year: string | number]: AnnualStationData };
   providerName: string;
   totalSamples: number;
   totalMeasurements: number;
-  totalsByGroup: { [groups: string]: number };
-  totalsByLabel: { [label: string]: number } | null;
+  totalsByCharacteristic: { [characteristic: string]: number };
+  totalsByGroup: { [group: string]: number };
+  totalsByLabel: { [label: string]: number };
   timeframe: [number, number] | null;
   uniqueId: string;
 }
