@@ -408,9 +408,7 @@ function MonitoringAndSensorsTab({
   setCyanDisplayed,
   updateVisibleLayers,
 }) {
-  const { mapView, monitoringCharacteristicsStatus, watershed } = useContext(
-    LocationSearchContext,
-  );
+  const { mapView, watershed } = useContext(LocationSearchContext);
 
   const { cyanLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
     useLayers();
@@ -492,8 +490,7 @@ function MonitoringAndSensorsTab({
     .filter((item) => {
       if (
         item.monitoringType !== 'Past Water Conditions' ||
-        !selectedCharacteristicOptions.length ||
-        monitoringCharacteristicsStatus !== 'success'
+        !selectedCharacteristicOptions.length
       ) {
         return true;
       }
@@ -862,17 +859,31 @@ function MonitoringAndSensorsTab({
               </tbody>
             </table>
 
-            <CharacteristicsSelect
-              selected={selectedCharacteristicOptions}
-              onChange={setSelectedCharacteristicOptions}
-            />
             <AccordionList
               title={
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
                   <strong>{allMonitoringAndSensors.length}</strong> locations
                   with data in the <em>{watershed}</em> watershed.
+                  {selectedCharacteristicOptions.length > 0 && (
+                    <>
+                      <br />
+                      <small>
+                        (Past Water Conditions filtered by one or more
+                        characteristics)
+                      </small>
+                    </>
+                  )}
                 </>
+              }
+              extraListHeaderContent={
+                monitoringLocationsDisplayed && (
+                  <CharacteristicsSelect
+                    label="Filter Past Water Conditions by Characteristic:"
+                    selected={selectedCharacteristicOptions}
+                    onChange={setSelectedCharacteristicOptions}
+                  />
+                )
               }
               onSortChange={handleSortChange}
               onExpandCollapse={handleExpandCollapse}

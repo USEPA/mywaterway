@@ -924,10 +924,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   // Filter the displayed locations by selected characteristics
   const filteredMonitoringLocations = sortedMonitoringLocations.filter(
     (location) => {
-      if (
-        !selectedCharacteristicOptions.length ||
-        monitoringCharacteristicsStatus !== 'success'
-      ) {
+      if (!selectedCharacteristicOptions.length) {
         return true;
       }
       for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
@@ -1266,29 +1263,33 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               </tfoot>
             </table>
 
-            <CharacteristicsSelect
-              selected={selectedCharacteristicOptions}
-              onChange={setSelectedCharacteristicOptions}
-            />
             <AccordionList
               title={
-                selectedMonitoringYearsRange ? (
-                  <span data-testid="monitoring-accordion-title">
-                    <strong>{displayedLocationsCount.toLocaleString()}</strong>{' '}
-                    of <strong>{totalLocationsCount.toLocaleString()}</strong>{' '}
-                    water monitoring sample locations in the{' '}
-                    <em>{watershed}</em> watershed from{' '}
-                    <strong>{selectedMonitoringYearsRange[0]}</strong> to{' '}
-                    <strong>{selectedMonitoringYearsRange[1]}</strong>.
-                  </span>
-                ) : (
-                  <span data-testid="monitoring-accordion-title">
-                    <strong>{displayedLocationsCount.toLocaleString()}</strong>{' '}
-                    of <strong>{totalLocationsCount.toLocaleString()}</strong>{' '}
-                    water monitoring sample locations in the{' '}
-                    <em>{watershed}</em> watershed.
-                  </span>
-                )
+                <span data-testid="monitoring-accordion-title">
+                  <strong>{displayedLocationsCount.toLocaleString()}</strong> of{' '}
+                  <strong>{totalLocationsCount.toLocaleString()}</strong> water
+                  monitoring sample locations{' '}
+                  {selectedCharacteristicOptions.length > 0 &&
+                    'with the selected characteristics '}
+                  in the <em>{watershed}</em> watershed
+                  {selectedMonitoringYearsRange && (
+                    <>
+                      {' '}
+                      from <strong>
+                        {selectedMonitoringYearsRange[0]}
+                      </strong> to{' '}
+                      <strong>{selectedMonitoringYearsRange[1]}</strong>
+                    </>
+                  )}
+                  .
+                </span>
+              }
+              extraListHeaderContent={
+                <CharacteristicsSelect
+                  label="Filter by Characteristic:"
+                  selected={selectedCharacteristicOptions}
+                  onChange={setSelectedCharacteristicOptions}
+                />
               }
               onSortChange={handleSortChange}
               onExpandCollapse={handleExpandCollapse}

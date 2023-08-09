@@ -20,6 +20,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import {
   keyMetricsStyles,
   keyMetricStyles,
@@ -958,20 +959,50 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
     );
   });
 
+  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
+    useState([]);
+
+  const selectedCharacteristics = selectedCharacteristicOptions.map(
+    (charc) => charc.value,
+  );
+
+  // Filter the displayed locations by selected characteristics
+  const filteredMonitoringAndSensors = sortedMonitoringAndSensors.filter(
+    (location) => {
+      if (!selectedCharacteristicOptions.length) return true;
+      for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
+        if (selectedCharacteristics.includes(characteristic)) return true;
+      }
+      return false;
+    },
+  );
+
   const [expandedRows, setExpandedRows] = useState([]);
 
   return (
     <AccordionList
       title={
         <>
-          <strong>{sortedMonitoringAndSensors.length}</strong> locations with
-          data in the <em>{activeState.label}</em> watershed.
+          <strong>{filteredMonitoringAndSensors.length}</strong> locations with{' '}
+          {selectedCharacteristicOptions.length > 0
+            ? 'the selected characteristics'
+            : 'data'}{' '}
+          in the <em>{activeState.label}</em> watershed.
         </>
+      }
+      extraListHeaderContent={
+        <CharacteristicsSelect
+          label="Filter by Characteristic:"
+          selected={selectedCharacteristicOptions}
+          onChange={setSelectedCharacteristicOptions}
+        />
       }
       onSortChange={({ value }) => setMonitoringLocationsSortedBy(value)}
       onExpandCollapse={(allExpanded) => {
         if (allExpanded) {
-          setExpandedRows([...Array(sortedMonitoringAndSensors.length).keys()]);
+          setExpandedRows([
+            ...Array(filteredMonitoringAndSensors.length).keys(),
+          ]);
         } else {
           setExpandedRows([]);
         }
@@ -995,7 +1026,7 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
         },
       ]}
     >
-      {sortedMonitoringAndSensors.map((item, index) => {
+      {filteredMonitoringAndSensors.map((item, index) => {
         const feature = {
           geometry: {
             type: 'point',

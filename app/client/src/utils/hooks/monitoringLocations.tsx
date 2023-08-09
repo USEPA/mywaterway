@@ -111,9 +111,8 @@ export function useMonitoringGroups() {
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
-export function useMonitoringPeriodOfRecord() {
+export function useMonitoringPeriodOfRecord(filter: string | null) {
   const {
-    huc12,
     setMonitoringCharacteristicsStatus,
     setMonitoringYearsRange,
     setSelectedMonitoringYearsRange,
@@ -142,11 +141,10 @@ export function useMonitoringPeriodOfRecord() {
 
   // Craft the URL
   let url: string | null = null;
-  if (services.status === 'success' && huc12) {
+  if (services.status === 'success' && filter) {
     url =
       `${services.data.waterQualityPortal.monitoringLocation}search?` +
-      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
-    url += `&huc=${huc12}`;
+      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&${filter}`;
   }
 
   const recordsWorker = useRef<Worker | null>(null);
@@ -235,7 +233,7 @@ function useUpdateData(localFilter: string | null) {
   }, [fetchedDataDispatch, localFilter, services]);
 
   // Add annual characteristic data to the local data
-  const annualData = useMonitoringPeriodOfRecord();
+  const annualData = useMonitoringPeriodOfRecord(localFilter);
   useEffect(() => {
     if (!localData?.length) return;
     if (annualData.status !== 'success') return;
