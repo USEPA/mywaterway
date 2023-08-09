@@ -1,7 +1,6 @@
 // @flow
 
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -9,6 +8,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
@@ -26,7 +26,6 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
-import MenuList from 'components/shared/MenuList';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
@@ -708,7 +707,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations } = useFetchedDataState();
-  const { monitoringGroups, setMonitoringGroups } = useMonitoringGroups(huc12);
+  const { monitoringGroups, setMonitoringGroups } = useMonitoringGroups();
 
   const updateFeatures = useCallback(
     (locations) => {
@@ -915,48 +914,28 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       : [];
   }, [displayedLocations, sortBy]);
 
-  // Gather all available characteristics from the periodOfRecord data
-  const allCharacteristicOptions = useMemo(() => {
-    if (monitoringCharacteristicsStatus !== 'success') return [];
-
-    const uniqueCharacteristics = new Set();
-    monitoringGroups['All'].stations.forEach((station) => {
-      const siteData = station.dataByYear;
-      Object.values(siteData).forEach((yearData) => {
-        Object.keys(yearData.totalsByCharacteristic).forEach((characteristic) =>
-          uniqueCharacteristics.add(characteristic),
-        );
-      });
-    });
-    return Array.from(uniqueCharacteristics)
-      .toSorted((a, b) => a.localeCompare(b))
-      .map((charc) => ({ label: charc, value: charc }));
-  }, [monitoringCharacteristicsStatus, monitoringGroups]);
-
   const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
     useState([]);
 
+  const selectedCharacteristics = selectedCharacteristicOptions.map(
+    (charc) => charc.value,
+  );
+
   // Filter the displayed locations by selected characteristics
-  const filteredMonitoringLocations = useMemo(() => {
-    if (
-      !selectedCharacteristicOptions.length ||
-      monitoringCharacteristicsStatus !== 'success'
-    )
-      return sortedMonitoringLocations;
-    const selectedCharacteristics = selectedCharacteristicOptions.map(
-      (charc) => charc.value,
-    );
-    return sortedMonitoringLocations.filter((location) => {
+  const filteredMonitoringLocations = sortedMonitoringLocations.filter(
+    (location) => {
+      if (
+        !selectedCharacteristicOptions.length ||
+        monitoringCharacteristicsStatus !== 'success'
+      ) {
+        return true;
+      }
       for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
         if (selectedCharacteristics.includes(characteristic)) return true;
       }
       return false;
-    });
-  }, [
-    monitoringCharacteristicsStatus,
-    selectedCharacteristicOptions,
-    sortedMonitoringLocations,
-  ]);
+    },
+  );
 
   const totalLocationsCount = monitoringGroups['All'].stations.length;
   const displayedLocationsCount =
@@ -1166,7 +1145,10 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
               <tbody>
                 {Object.values(monitoringGroups)
-                  .filter((group) => group.label !== 'All')
+                  .filter(
+                    (group) =>
+                      group.label !== 'All' && group.stations.length > 0,
+                  )
                   .map((group) => {
                     // get the number of measurements for this group type
                     let measurementCount = 0;
@@ -1284,15 +1266,9 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               </tfoot>
             </table>
 
-            <Select
-              components={{ MenuList }}
-              isDisabled={monitoringCharacteristicsStatus === 'failure'}
-              isLoading={monitoringCharacteristicsStatus === 'pending'}
-              isMulti
-              onChange={(options) => setSelectedCharacteristicOptions(options)}
-              options={allCharacteristicOptions}
-              placeholder="Select a characteristic..."
-              value={selectedCharacteristicOptions}
+            <CharacteristicsSelect
+              selected={selectedCharacteristicOptions}
+              onChange={setSelectedCharacteristicOptions}
             />
             <AccordionList
               title={

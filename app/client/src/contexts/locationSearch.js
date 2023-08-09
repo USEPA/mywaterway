@@ -13,8 +13,8 @@ import type {
   ParameterToggleObject,
 } from 'types';
 
-const initialMonitoringGroups = characteristicGroupMappings.reduce(
-  (groups, next) => {
+export const initialMonitoringGroups = () => {
+  return characteristicGroupMappings.reduce((groups, next) => {
     groups[next.label] = {
       label: next.label,
       characteristicGroups: [...next.groupNames],
@@ -22,9 +22,8 @@ const initialMonitoringGroups = characteristicGroupMappings.reduce(
       toggled: true,
     };
     return groups;
-  },
-  {},
-);
+  }, {});
+};
 
 export const LocationSearchContext = createContext();
 
@@ -150,7 +149,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     // monitoring panel
     monitoringCharacteristicsStatus: 'idle',
-    monitoringGroups: initialMonitoringGroups,
+    monitoringGroups: initialMonitoringGroups(),
     monitoringFeatureUpdates: null,
     monitoringYearsRange: [0, 0],
     selectedMonitoringYearsRange: null,
@@ -388,7 +387,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         hucBoundaries: '',
         dischargerPermitComponents: null,
         monitoringCharacteristicsStatus: 'idle',
-        monitoringGroups: initialMonitoringGroups,
+        monitoringGroups: initialMonitoringGroups(),
         monitoringFeatureUpdates: null,
         monitoringYearsRange: [0, 0],
         selectedMonitoringYearsRange: null,

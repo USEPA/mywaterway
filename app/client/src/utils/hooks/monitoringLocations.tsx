@@ -9,7 +9,10 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import {
+  initialMonitoringGroups,
+  LocationSearchContext,
+} from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
@@ -86,74 +89,31 @@ export function useMonitoringLocations() {
   };
 }
 
-export function useMonitoringGroups(
-  filter?: string,
-  param: 'huc12' | 'siteId' = 'huc12',
-) {
+export function useMonitoringGroups() {
   const { monitoringGroups, setMonitoringGroups } = useContext(
     LocationSearchContext,
   );
   const { monitoringLocations } = useFetchedDataState();
 
-  const monitoringAnnualRecords = usePeriodOfRecordData(filter, param);
-
-  // Add the stations historical data to the `dataByYear` property,
-  const addAnnualData = useCallback(
-    (newMonitoringGroups: MonitoringLocationGroups) => {
-      if (monitoringAnnualRecords.status !== 'success')
-        return newMonitoringGroups;
-      const annualRecords: MonitoringWorkerData['sites'] =
-        monitoringAnnualRecords.data.sites;
-      for (const label in newMonitoringGroups) {
-        for (const station of newMonitoringGroups[label].stations) {
-          const id = station.uniqueId;
-          if (id in annualRecords) {
-            station.dataByYear = annualRecords[id];
-            // Tally characteristic counts
-            station.totalsByCharacteristic = Object.values(
-              annualRecords[id],
-            ).reduce((totals, yearData) => {
-              Object.entries(yearData.totalsByCharacteristic).forEach(
-                ([charc, count]) => {
-                  if (count <= 0) return;
-                  if (charc in totals) totals[charc] += count;
-                  else totals[charc] = count;
-                },
-              );
-              return totals;
-            }, {} as { [characteristic: string]: number });
-          }
-        }
-      }
-
-      return newMonitoringGroups;
-    },
-    [monitoringAnnualRecords],
-  );
-
   useEffect(() => {
     if (monitoringLocations.status !== 'success') return;
 
     setMonitoringGroups(
-      addAnnualData(
-        buildMonitoringGroups(
-          monitoringLocations.data,
-          characteristicGroupMappings,
-        ),
+      buildMonitoringGroups(
+        monitoringLocations.data,
+        characteristicGroupMappings,
       ),
     );
-  }, [addAnnualData, monitoringLocations, setMonitoringGroups]);
+  }, [monitoringLocations, setMonitoringGroups]);
 
   return { monitoringGroups, setMonitoringGroups };
 }
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
-function usePeriodOfRecordData(
-  filter?: string,
-  param: 'huc12' | 'siteId' = 'huc12',
-) {
+export function useMonitoringPeriodOfRecord() {
   const {
+    huc12,
     setMonitoringCharacteristicsStatus,
     setMonitoringYearsRange,
     setSelectedMonitoringYearsRange,
@@ -165,14 +125,14 @@ function usePeriodOfRecordData(
     data: MonitoringWorkerData;
   }>({
     status: 'idle',
-    data: initialWorkerData,
+    data: initialWorkerData(),
   });
 
   useEffect(() => {
     const { minYear, maxYear } = monitoringAnnualRecords.data;
     setMonitoringYearsRange([minYear, maxYear]);
     setSelectedMonitoringYearsRange([minYear, maxYear]);
-    setMonitoringCharacteristicsStatus(monitoringAnnualRecords.status);
+    setMonitoringCharacteristicsStatus(monitoringAnnualRecords.status); // Share the status
   }, [
     monitoringAnnualRecords,
     setMonitoringCharacteristicsStatus,
@@ -182,43 +142,39 @@ function usePeriodOfRecordData(
 
   // Craft the URL
   let url: string | null = null;
-  if (
-    services.status === 'success' &&
-    filter &&
-    (param === 'huc12' || param === 'siteId')
-  ) {
+  if (services.status === 'success' && huc12) {
     url =
       `${services.data.waterQualityPortal.monitoringLocation}search?` +
       `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
-    url += param === 'huc12' ? `&huc=${filter}` : `&siteid=${filter}`;
+    url += `&huc=${huc12}`;
   }
 
   const recordsWorker = useRef<Worker | null>(null);
-  const [prevUrl, setPrevUrl] = useState<string | null>(null);
-  if (url !== prevUrl) {
-    setPrevUrl(url);
-    setMonitoringAnnualRecords({ status: 'idle', data: initialWorkerData });
-  }
 
   useEffect(() => {
-    if (!url || monitoringAnnualRecords.status !== 'idle') return;
+    if (!url) {
+      setMonitoringAnnualRecords({ status: 'idle', data: initialWorkerData() });
+      return;
+    }
     if (!window.Worker) {
       throw new Error("Your browser doesn't support web workers");
     }
     setMonitoringAnnualRecords({
       status: 'pending',
-      data: initialWorkerData,
+      data: initialWorkerData(),
     });
 
     // Create the worker and assign it a job, then listen for a response
     if (recordsWorker.current) recordsWorker.current.terminate();
     const origin = window.location.origin;
     recordsWorker.current = new Worker(`${origin}/periodOfRecordWorker.js`);
+    // Tell the worker to start the task
     recordsWorker.current.postMessage([
       url,
       origin,
       characteristicGroupMappings,
     ]);
+    // Handle the worker's response
     recordsWorker.current.onmessage = (message) => {
       if (message.data && typeof message.data === 'string') {
         const parsedData = JSON.parse(message.data);
@@ -227,17 +183,19 @@ function usePeriodOfRecordData(
         setMonitoringAnnualRecords(parsedData);
       }
     };
-  }, [monitoringAnnualRecords.status, url]);
+  }, [url]);
 
   useEffect(() => {
     return function cleanup() {
       recordsWorker.current?.terminate();
     };
-  }, [setMonitoringAnnualRecords, setMonitoringYearsRange, url]);
+  }, []);
 
   return monitoringAnnualRecords;
 }
 
+// Updates local data when the user chooses a new location,
+// and returns a function for updating surrounding data.
 function useUpdateData(localFilter: string | null) {
   // Build the data update function
   const { mapView } = useContext(LocationSearchContext);
@@ -276,6 +234,19 @@ function useUpdateData(localFilter: string | null) {
     };
   }, [fetchedDataDispatch, localFilter, services]);
 
+  // Add annual characteristic data to the local data
+  const annualData = useMonitoringPeriodOfRecord();
+  useEffect(() => {
+    if (!localData?.length) return;
+    if (annualData.status !== 'success') return;
+
+    fetchedDataDispatch({
+      type: 'success',
+      id: localFetchedDataKey,
+      payload: addAnnualData(localData, annualData.data.sites),
+    });
+  }, [localData, annualData, fetchedDataDispatch]);
+
   const extentFilter = useRef<string | null>(null);
 
   const updateSurroundingData = useCallback(
@@ -312,6 +283,38 @@ function useUpdateData(localFilter: string | null) {
 ## Utils
 */
 
+// Add the stations' historical data to the `dataByYear` property,
+function addAnnualData(
+  monitoringLocations: MonitoringLocationAttributes[],
+  annualData: MonitoringWorkerData['sites'],
+) {
+  return monitoringLocations.map((location) => {
+    const id = location.uniqueId;
+    if (id in annualData) {
+      return {
+        ...location,
+        dataByYear: annualData[id],
+        // Tally characteristic counts
+        totalsByCharacteristic: Object.values(annualData[id]).reduce(
+          (totals, yearData) => {
+            Object.entries(yearData.totalsByCharacteristic).forEach(
+              ([charc, count]) => {
+                if (count <= 0) return;
+                if (charc in totals) totals[charc] += count;
+                else totals[charc] = count;
+              },
+            );
+            return totals;
+          },
+          {} as { [characteristic: string]: number },
+        ),
+      };
+    } else {
+      return location;
+    }
+  });
+}
+
 function buildFeatures(locations: MonitoringLocationAttributes[]) {
   const structuredProps = [
     'totalsByCharacteristic',
@@ -338,46 +341,21 @@ function buildMonitoringGroups(
   mappings: typeof characteristicGroupMappings,
 ) {
   // build up monitoring stations, toggles, and groups
-  let locationGroups: MonitoringLocationGroups = {
-    All: {
-      characteristicGroups: [],
-      label: 'All',
-      stations: [],
-      toggled: true,
-    },
-  };
+  let locationGroups: MonitoringLocationGroups = initialMonitoringGroups();
 
   stations.forEach((station) => {
-    // add properties that aren't necessary for the layer
-    station.dataByYear = {};
-    // counts for each top-tier characteristic group
-    station.totalsByLabel = {};
     // build up the monitoringLocationToggles and monitoringLocationGroups
     const subGroupsAdded = new Set();
     mappings
       .filter((mapping) => mapping.label !== 'All')
       .forEach((mapping) => {
-        station.totalsByLabel![mapping.label] = 0;
         for (const subGroup in station.totalsByGroup) {
           // if characteristic group exists in switch config object
           if (!mapping.groupNames.includes(subGroup)) continue;
           subGroupsAdded.add(subGroup);
-          if (!locationGroups[mapping.label]) {
-            // create the group (w/ label key) and add the station
-            locationGroups[mapping.label] = {
-              characteristicGroups: [subGroup],
-              label: mapping.label,
-              stations: [station],
-              toggled: true,
-            };
-          } else {
-            // switch group (w/ label key) already exists, add the stations to it
-            locationGroups[mapping.label].stations.push(station);
-            locationGroups[mapping.label].characteristicGroups.push(subGroup);
-          }
-          // add the lower-tier group counts to the corresponding top-tier group counts
-          station.totalsByLabel![mapping.label] +=
-            station.totalsByGroup[subGroup];
+          // switch group (w/ label key) already exists, add the stations to it
+          locationGroups[mapping.label].stations.push(station);
+          locationGroups[mapping.label].characteristicGroups.push(subGroup);
         }
       });
 
@@ -386,18 +364,8 @@ function buildMonitoringGroups(
     // add any leftover lower-tier group counts to the 'Other' top-tier group
     for (const subGroup in station.totalsByGroup) {
       if (subGroupsAdded.has(subGroup)) continue;
-      if (!locationGroups['Other']) {
-        locationGroups['Other'] = {
-          label: 'Other',
-          stations: [station],
-          toggled: true,
-          characteristicGroups: [subGroup],
-        };
-      } else {
-        locationGroups['Other'].stations.push(station);
-        locationGroups['Other'].characteristicGroups.push(subGroup);
-      }
-      station.totalsByLabel['Other'] += station.totalsByGroup[subGroup];
+      locationGroups['Other'].stations.push(station);
+      locationGroups['Other'].characteristicGroups.push(subGroup);
     }
   });
   Object.keys(locationGroups).forEach((label) => {
@@ -532,6 +500,33 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
   return bBox ? `bBox=${bBox}` : null;
 }
 
+function parseStationLabelTotals(
+  totalsByGroup: MonitoringLocationAttributes['totalsByGroup'],
+) {
+  const subGroupsAdded = new Set();
+  const totalsByLabel: MonitoringLocationAttributes['totalsByLabel'] = {};
+  characteristicGroupMappings
+    .filter((mapping) => mapping.label !== 'All')
+    .forEach((mapping) => {
+      totalsByLabel[mapping.label] = 0;
+      for (const subGroup in totalsByGroup) {
+        // if characteristic group exists in switch config object
+        if (!mapping.groupNames.includes(subGroup)) continue;
+        subGroupsAdded.add(subGroup);
+        // add the lower-tier group counts to the corresponding top-tier group counts
+        totalsByLabel[mapping.label] += totalsByGroup[subGroup];
+      }
+    });
+
+  // add any leftover lower-tier group counts to the 'Other' top-tier group
+  for (const subGroup in totalsByGroup) {
+    if (subGroupsAdded.has(subGroup)) continue;
+    totalsByLabel['Other'] += totalsByGroup[subGroup];
+  }
+
+  return totalsByLabel;
+}
+
 function transformServiceData(
   data: MonitoringLocationsData,
 ): MonitoringLocationAttributes[] {
@@ -571,7 +566,10 @@ function transformServiceData(
       totalsByCharacteristic: {},
       // counts for each lower-tier characteristic group
       totalsByGroup: station.properties.characteristicGroupResultCount,
-      totalsByLabel: {},
+      // counts for each top-tier characteristic group
+      totalsByLabel: parseStationLabelTotals(
+        station.properties.characteristicGroupResultCount,
+      ),
       timeframe: null,
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id
@@ -588,11 +586,11 @@ function transformServiceData(
 ## Constants
 */
 
-const initialWorkerData = {
+const initialWorkerData = () => ({
   minYear: 0,
   maxYear: 0,
   sites: {},
-};
+});
 
 const localFetchedDataKey = 'monitoringLocations';
 const surroundingFetchedDataKey = 'surroundingMonitoringLocations';

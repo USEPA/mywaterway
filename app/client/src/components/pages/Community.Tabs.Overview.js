@@ -8,6 +8,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
@@ -407,7 +408,9 @@ function MonitoringAndSensorsTab({
   setCyanDisplayed,
   updateVisibleLayers,
 }) {
-  const { mapView, watershed } = useContext(LocationSearchContext);
+  const { mapView, monitoringCharacteristicsStatus, watershed } = useContext(
+    LocationSearchContext,
+  );
 
   const { cyanLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
     useLayers();
@@ -462,8 +465,14 @@ function MonitoringAndSensorsTab({
     },
   );
 
-  const filteredMonitoringAndSensors = sortedMonitoringAndSensors.filter(
-    (item) => {
+  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
+    useState([]);
+
+  const selectedCharacteristics = selectedCharacteristicOptions.map(
+    (charc) => charc.value,
+  );
+  const filteredMonitoringAndSensors = sortedMonitoringAndSensors
+    .filter((item) => {
       const displayedTypes = [];
 
       if (usgsStreamgagesDisplayed) {
@@ -479,8 +488,20 @@ function MonitoringAndSensorsTab({
       }
 
       return displayedTypes.includes(item.monitoringType);
-    },
-  );
+    })
+    .filter((item) => {
+      if (
+        item.monitoringType !== 'Past Water Conditions' ||
+        !selectedCharacteristicOptions.length ||
+        monitoringCharacteristicsStatus !== 'success'
+      ) {
+        return true;
+      }
+      for (let characteristic of Object.keys(item.totalsByCharacteristic)) {
+        if (selectedCharacteristics.includes(characteristic)) return true;
+      }
+      return false;
+    });
 
   const handleUsgsSensorsToggle = useCallback(
     (checked) => {
@@ -841,6 +862,10 @@ function MonitoringAndSensorsTab({
               </tbody>
             </table>
 
+            <CharacteristicsSelect
+              selected={selectedCharacteristicOptions}
+              onChange={setSelectedCharacteristicOptions}
+            />
             <AccordionList
               title={
                 <>

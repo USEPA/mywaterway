@@ -1,11 +1,12 @@
 import { useWindowSize } from '@reach/window-size';
 import { useCallback, useEffect, useRef } from 'react';
 import { VariableSizeList } from 'react-window';
+import { components } from 'react-select';
 // types
 import type { MenuListProps } from 'react-select';
 
 export default MenuList;
-export function MenuList(props: MenuListProps) {
+export function MenuList<T>(props: MenuListProps<T>) {
   const { children, maxHeight } = props;
   const { width } = useWindowSize();
   const listRef = useRef<VariableSizeList | null>(null);
@@ -21,7 +22,7 @@ export function MenuList(props: MenuListProps) {
 
   // use the default style dropdown if there is no data
   if (!Array.isArray(children) || children.length === 0) {
-    return children;
+    return <components.MenuList {...props}>{children}</components.MenuList>;
   }
 
   return (
