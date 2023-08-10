@@ -1,4 +1,4 @@
-export const characteristicsByGroup = {
+{
   "Information": [
     "% undercut bank",
     "Abrupt lower boundary present (Y/N) (choicelist)",
@@ -21516,4 +21516,4 @@ export const characteristicsByGroup = {
     "Toxicity, sediment, microtox, Vibrio fischeri, significant (choice list)",
     "Trichloroveretrols"
   ]
-};
+}

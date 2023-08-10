@@ -22,6 +22,8 @@ function getLookupFile(filename: string, setVariable: Function) {
 
 // --- components ---
 type LookupFiles = {
+  characteristicsMapping: LookupFile,
+  setCharacteristicsMapping: Function,
   dataSources: LookupFile,
   documentOrder: LookupFile,
   setDocumentOrder: Function,
@@ -50,6 +52,8 @@ type LookupFiles = {
 };
 
 const LookupFilesContext: Object = createContext<LookupFiles>({
+  characteristicsMapping: { status: 'fetching', data: null },
+  setCharacteristicsMapping: () => {},
   dataSources: { status: 'fetching', data: null },
   setDataSources: () => {},
   documentOrder: { status: 'fetching', data: null },
@@ -83,6 +87,10 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
+  const [characteristicsMapping, setCharacteristicsMapping] = useState({
+    status: 'fetching',
+    data: null,
+  });
   const [dataSources, setDataSources] = useState({
     status: 'fetching',
     data: null,
@@ -138,6 +146,8 @@ function LookupFilesProvider({ children }: Props) {
 
   const state = useMemo(
     () => ({
+      characteristicsMapping,
+      setCharacteristicsMapping,
       dataSources,
       setDataSources,
       documentOrder,
@@ -166,6 +176,7 @@ function LookupFilesProvider({ children }: Props) {
       setWaterTypeOptions,
     }),
     [
+      characteristicsMapping,
       dataSources,
       documentOrder,
       educatorMaterials,
@@ -187,6 +198,22 @@ function LookupFilesProvider({ children }: Props) {
       {children}
     </LookupFilesContext.Provider>
   );
+}
+
+// Custom hook for the characteristicsByGroup.json file,
+// which maps characteristic groups to individual characteristics
+let characteristicsMappingInitialized = false; // global var for ensuring fetch only happens once
+function useCharacteristicsMappingContext() {
+  const { characteristicsMapping, setCharacteristicsMapping } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!characteristicsMappingInitialized) {
+    characteristicsMappingInitialized = true;
+    getLookupFile('wqp/characteristicsByGroup.json', setCharacteristicsMapping);
+  }
+
+  return characteristicsMapping;
 }
 
 // Custom hook for the dataPage.json file.
@@ -432,6 +459,7 @@ function useWaterTypeOptionsContext() {
 export {
   LookupFilesContext,
   LookupFilesProvider,
+  useCharacteristicsMappingContext,
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,

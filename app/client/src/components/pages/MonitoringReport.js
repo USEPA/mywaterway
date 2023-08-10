@@ -38,11 +38,11 @@ import {
 } from 'components/shared/SplitLayout';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
-import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LayersProvider, useLayers } from 'contexts/Layers';
+import { useCharacteristicsMappingContext } from 'contexts/LookupFiles';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
@@ -891,13 +891,14 @@ function updateSelected(charcs, groups) {
 
 function useCharacteristics(provider, orgId, siteId) {
   const services = useServicesContext();
+  const characteristicsByGroup = useCharacteristicsMappingContext();
 
   // charcs => characteristics
   const [charcs, setCharcs] = useState({});
   const [status, setStatus] = useState('idle');
 
   const structureRecords = useCallback(
-    (records) => {
+    (records, charcsByGroup) => {
       if (!records) {
         setCharcs({});
         setStatus('failure');
@@ -912,7 +913,7 @@ function useCharacteristics(provider, orgId, siteId) {
         if (!recordsByCharc[record.CharacteristicName]) {
           const charcGroup = getCharcGroup(
             record.CharacteristicName,
-            characteristicsByGroup,
+            charcsByGroup,
           );
           recordsByCharc[record.CharacteristicName] = {
             name: record.CharacteristicName,
@@ -946,6 +947,10 @@ function useCharacteristics(provider, orgId, siteId) {
 
   useEffect(() => {
     if (services.status !== 'success') return;
+    if (characteristicsByGroup.status !== 'success') {
+      setStatus(characteristicsByGroup.status);
+      return;
+    }
     setStatus('pending');
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
@@ -956,12 +961,21 @@ function useCharacteristics(provider, orgId, siteId) {
         siteId,
       )}`;
     fetchParseCsv(url)
-      .then((results) => structureRecords(results.data))
+      .then((results) =>
+        structureRecords(results.data, characteristicsByGroup.data),
+      )
       .catch((_err) => {
         setStatus('failure');
         console.error('Papa Parse error');
       });
-  }, [orgId, provider, services, siteId, structureRecords]);
+  }, [
+    characteristicsByGroup,
+    orgId,
+    provider,
+    services,
+    siteId,
+    structureRecords,
+  ]);
 
   return [charcs, status];
 }
