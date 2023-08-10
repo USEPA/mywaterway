@@ -607,7 +607,7 @@ function TribalMap({
   }, [activeState]);
 
   const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
-    useMonitoringLocationsLayers(monitoringLocationsFilter);
+    useMonitoringLocationsLayers({ filter: monitoringLocationsFilter });
 
   const { surroundingUsgsStreamgagesLayer } = useStreamgageLayers();
   const { surroundingDischargersLayer } = useDischargersLayers();

@@ -2100,7 +2100,10 @@ function MonitoringReportContent() {
     `&organization=${encodeURIComponent(orgId)}` +
     `&siteid=${encodeURIComponent(siteId)}`;
 
-  useMonitoringLocationsLayers(siteFilter);
+  useMonitoringLocationsLayers({
+    filter: siteFilter,
+    includeAnnualData: false,
+  });
 
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();

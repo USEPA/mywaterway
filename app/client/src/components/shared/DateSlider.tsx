@@ -178,10 +178,10 @@ function DateSlider({
   }, [observer, sliderRef]);
 
   const yearsArray = [...Array(max - min + 1).keys()].map((x) => x + min);
-  const tickList = getTicks(
-    yearsArray,
-    sliderWidth < 80 ? 1 : sliderWidth < 300 ? 2 : 4,
-  );
+  let maxTicks = 4;
+  if (sliderWidth < 80) maxTicks = 1;
+  else if (sliderWidth < 300) maxTicks = 2;
+  const tickList = getTicks(yearsArray, maxTicks);
   if (tickList.slice(-1)[0] !== max) tickList.push(max);
 
   const { getTrackProps, segments, ticks, handles } = useRanger({

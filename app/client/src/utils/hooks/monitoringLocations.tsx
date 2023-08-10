@@ -49,9 +49,13 @@ import { colors } from 'styles';
 ## Hooks
 */
 
-export function useMonitoringLocationsLayers(
-  localFilter: string | null = null,
-) {
+export function useMonitoringLocationsLayers({
+  includeAnnualData = true,
+  filter = null,
+}: {
+  includeAnnualData: boolean;
+  filter: string | null;
+}) {
   const { getTemplate, getTitle } = useDynamicPopup();
 
   // Build the base feature layer
@@ -62,7 +66,7 @@ export function useMonitoringLocationsLayers(
     [getTemplate, getTitle],
   );
 
-  const updateSurroundingData = useUpdateData(localFilter);
+  const updateSurroundingData = useUpdateData(filter, includeAnnualData);
 
   // Build a group layer with toggleable boundaries
   const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
@@ -111,7 +115,10 @@ export function useMonitoringGroups() {
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
-export function useMonitoringPeriodOfRecord(filter: string | null) {
+export function useMonitoringPeriodOfRecord(
+  filter: string | null,
+  enabled: boolean,
+) {
   const {
     setMonitoringPeriodOfRecordStatus,
     setMonitoringYearsRange,
@@ -150,7 +157,7 @@ export function useMonitoringPeriodOfRecord(filter: string | null) {
   const recordsWorker = useRef<Worker | null>(null);
 
   useEffect(() => {
-    if (!url) {
+    if (!enabled || !url) {
       setMonitoringAnnualRecords({ status: 'idle', data: initialWorkerData() });
       return;
     }
@@ -181,7 +188,7 @@ export function useMonitoringPeriodOfRecord(filter: string | null) {
         setMonitoringAnnualRecords(parsedData);
       }
     };
-  }, [url]);
+  }, [enabled, url]);
 
   useEffect(() => {
     return function cleanup() {
@@ -194,7 +201,7 @@ export function useMonitoringPeriodOfRecord(filter: string | null) {
 
 // Updates local data when the user chooses a new location,
 // and returns a function for updating surrounding data.
-function useUpdateData(localFilter: string | null) {
+function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
   // Build the data update function
   const { mapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
@@ -233,7 +240,10 @@ function useUpdateData(localFilter: string | null) {
   }, [fetchedDataDispatch, localFilter, services]);
 
   // Add annual characteristic data to the local data
-  const annualData = useMonitoringPeriodOfRecord(localFilter);
+  const annualData = useMonitoringPeriodOfRecord(
+    localFilter,
+    includeAnnualData,
+  );
   useEffect(() => {
     if (!localData?.length) return;
     if (annualData.status !== 'success') return;

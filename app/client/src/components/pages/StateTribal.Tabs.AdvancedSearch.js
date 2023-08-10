@@ -85,7 +85,8 @@ function retrieveFeatures({
       .executeForIds(url, queryParams)
       .then((objectIds) => {
         // this block sometimes still executes when the request is aborted
-        if (queryParams.signal?.aborted) reject({ name: 'AbortError' });
+        if (queryParams.signal?.aborted)
+          reject(new DOMException('The query was aborted.', 'AbortError'));
         // set the features value of the data to an empty array if no objectIds
         // were returned.
         if (!objectIds) {
