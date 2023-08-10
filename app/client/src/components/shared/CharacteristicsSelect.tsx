@@ -1,5 +1,5 @@
 import uniqueId from 'lodash/uniqueId';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
 // components
@@ -15,14 +15,14 @@ export function CharacteristicsSelect({
   selected,
   onChange,
 }: CharacteristicsSelectProps) {
-  const { monitoringCharacteristicsStatus } = useContext(LocationSearchContext);
+  const { monitoringPeriodOfRecordStatus } = useContext(LocationSearchContext);
   const { monitoringLocations } = useMonitoringLocations();
 
   const [inputId] = useState(uniqueId('characteristic-select-'));
 
   // Gather all available characteristics from the periodOfRecord data
   const allCharacteristicOptions = useMemo(() => {
-    if (monitoringCharacteristicsStatus !== 'success') return [];
+    if (monitoringPeriodOfRecordStatus !== 'success') return [];
 
     const uniqueCharacteristics = new Set<string>();
     monitoringLocations.forEach((location) => {
@@ -36,7 +36,13 @@ export function CharacteristicsSelect({
     return Array.from(uniqueCharacteristics)
       .sort((a, b) => a.localeCompare(b))
       .map((charc) => ({ label: charc, value: charc }));
-  }, [monitoringCharacteristicsStatus, monitoringLocations]);
+  }, [monitoringPeriodOfRecordStatus, monitoringLocations]);
+
+  useEffect(() => {
+    return function cleanup() {
+      onChange([]);
+    };
+  }, [onChange]);
 
   return (
     <div css={selectContainerStyles}>
@@ -47,8 +53,8 @@ export function CharacteristicsSelect({
         components={{ MenuList }}
         css={selectStyles}
         inputId={inputId}
-        isDisabled={monitoringCharacteristicsStatus === 'failure'}
-        isLoading={monitoringCharacteristicsStatus === 'pending'}
+        isDisabled={monitoringPeriodOfRecordStatus === 'failure'}
+        isLoading={monitoringPeriodOfRecordStatus === 'pending'}
         isMulti
         onChange={onChange}
         options={allCharacteristicOptions}

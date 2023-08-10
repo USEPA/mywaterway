@@ -113,7 +113,7 @@ export function useMonitoringGroups() {
 // which itself utilizes an external service
 export function useMonitoringPeriodOfRecord(filter: string | null) {
   const {
-    setMonitoringCharacteristicsStatus,
+    setMonitoringPeriodOfRecordStatus,
     setMonitoringYearsRange,
     setSelectedMonitoringYearsRange,
   } = useContext(LocationSearchContext);
@@ -131,10 +131,10 @@ export function useMonitoringPeriodOfRecord(filter: string | null) {
     const { minYear, maxYear } = monitoringAnnualRecords.data;
     setMonitoringYearsRange([minYear, maxYear]);
     setSelectedMonitoringYearsRange([minYear, maxYear]);
-    setMonitoringCharacteristicsStatus(monitoringAnnualRecords.status); // Share the status
+    setMonitoringPeriodOfRecordStatus(monitoringAnnualRecords.status); // Share the status
   }, [
     monitoringAnnualRecords,
-    setMonitoringCharacteristicsStatus,
+    setMonitoringPeriodOfRecordStatus,
     setMonitoringYearsRange,
     setSelectedMonitoringYearsRange,
   ]);
@@ -568,7 +568,7 @@ function transformServiceData(
       totalsByLabel: parseStationLabelTotals(
         station.properties.characteristicGroupResultCount,
       ),
-      timeframe: null,
+      timeframe: [0, 0],
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id
       // isn't universally unique)

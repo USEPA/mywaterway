@@ -30,6 +30,7 @@ import {
 // types
 import {
   DischargerPermitComponents,
+  FetchStatus,
   Huc12SummaryData,
   MonitoringLocationGroups,
   MonitoringYearsRange,
@@ -259,10 +260,12 @@ function SavePanel({ visible }: Props) {
     .dischargerPermitComponents as DischargerPermitComponents | null;
   const mapView = useContext(LocationSearchContext)
     .mapView as __esri.MapView | null;
+  const monitoringPeriodOfRecordStatus = useContext(LocationSearchContext)
+    .monitoringPeriodOfRecordStatus as FetchStatus;
   const monitoringGroups = useContext(LocationSearchContext)
     .monitoringGroups as MonitoringLocationGroups | null;
   const selectedMonitoringYearsRange = useContext(LocationSearchContext)
-    .selectedMonitoringYearsRange as MonitoringYearsRange | null;
+    .selectedMonitoringYearsRange as MonitoringYearsRange;
   const monitoringYearsRange = useContext(LocationSearchContext)
     .monitoringYearsRange as MonitoringYearsRange;
   const parameterToggleObject = useContext(LocationSearchContext)
@@ -643,15 +646,14 @@ function SavePanel({ visible }: Props) {
       if (
         value.id === 'monitoringLocationsLayer' &&
         monitoringGroups &&
-        selectedMonitoringYearsRange
+        monitoringPeriodOfRecordStatus === 'success'
       ) {
         const monitoringGroupsFiltered = Object.values(monitoringGroups).some(
           (a) => !a.toggled,
         );
         const yearsFiltered =
-          selectedMonitoringYearsRange &&
-          (selectedMonitoringYearsRange[0] !== monitoringYearsRange[0] ||
-            selectedMonitoringYearsRange[1] !== monitoringYearsRange[1]);
+          selectedMonitoringYearsRange[0] !== monitoringYearsRange[0] ||
+          selectedMonitoringYearsRange[1] !== monitoringYearsRange[1];
         if (monitoringGroupsFiltered || yearsFiltered) {
           const filters: string[] = [];
           if (yearsFiltered) {

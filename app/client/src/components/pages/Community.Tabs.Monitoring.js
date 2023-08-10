@@ -697,13 +697,14 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
   const {
     huc12,
-    monitoringCharacteristicsStatus,
+    monitoringPeriodOfRecordStatus,
     monitoringYearsRange,
     selectedMonitoringYearsRange,
     setMonitoringFeatureUpdates,
     setSelectedMonitoringYearsRange,
     watershed,
   } = useContext(LocationSearchContext);
+  const annualRecordsReady = monitoringPeriodOfRecordStatus === 'success';
 
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations } = useFetchedDataState();
@@ -813,13 +814,13 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         }
       }
 
-      if (selectedMonitoringYearsRange) {
+      if (annualRecordsReady) {
         filter += `&startDateLo=01-01-${selectedMonitoringYearsRange[0]}&startDateHi=12-31-${selectedMonitoringYearsRange[1]}`;
       }
 
       setCharGroupFilters(filter);
     },
-    [setCharGroupFilters, selectedMonitoringYearsRange],
+    [setCharGroupFilters, annualRecordsReady, selectedMonitoringYearsRange],
   );
 
   const [displayedLocations, setDisplayedLocations] = useState([]);
@@ -830,11 +831,11 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
-      selectedMonitoringYearsRange,
+      annualRecordsReady ? selectedMonitoringYearsRange : null,
     );
 
     // Add filtered data that's relevent to map popups
-    if (selectedMonitoringYearsRange) {
+    if (annualRecordsReady) {
       updateFeatures(toggledLocations);
     }
 
@@ -858,6 +859,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     setCurrentLocations(allLocations);
     setDisplayedLocations(toggledLocations);
   }, [
+    annualRecordsReady,
     monitoringGroups,
     monitoringLocationsLayer,
     selectedMonitoringYearsRange,
@@ -1091,7 +1093,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
             </div>
 
             <div css={sliderContainerStyles}>
-              {monitoringCharacteristicsStatus === 'failure' && (
+              {monitoringPeriodOfRecordStatus === 'failure' && (
                 <div css={modifiedErrorBoxStyles}>
                   <p>
                     Annual Past Water Conditions data is temporarily
@@ -1099,10 +1101,10 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                   </p>
                 </div>
               )}
-              {monitoringCharacteristicsStatus === 'pending' && (
+              {monitoringPeriodOfRecordStatus === 'pending' && (
                 <LoadingSpinner />
               )}
-              {monitoringCharacteristicsStatus === 'success' && (
+              {monitoringPeriodOfRecordStatus === 'success' && (
                 <DateSlider
                   max={monitoringYearsRange[1]}
                   min={monitoringYearsRange[0]}
@@ -1272,7 +1274,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                   {selectedCharacteristicOptions.length > 0 &&
                     'with the selected characteristics '}
                   in the <em>{watershed}</em> watershed
-                  {selectedMonitoringYearsRange && (
+                  {annualRecordsReady && (
                     <>
                       {' '}
                       from <strong>

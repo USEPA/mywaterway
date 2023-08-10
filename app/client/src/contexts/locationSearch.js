@@ -75,11 +75,11 @@ type State = {
   dischargerPermitComponents: DischargerPermitComponents | null,
 
   // monitoring panel
-  monitoringCharacteristicsStatus: FetchStatus,
+  monitoringPeriodOfRecordStatus: FetchStatus,
   monitoringGroups: MonitoringLocationGroups,
   monitoringFeatureUpdates: ?Object,
   monitoringYearsRange: MonitoringYearsRange,
-  selectedMonitoringYearsRange: MonitoringYearsRange | null,
+  selectedMonitoringYearsRange: MonitoringYearsRange,
 
   // identified issues panel
   showAllPolluted: boolean,
@@ -148,11 +148,11 @@ export class LocationSearchProvider extends Component<Props, State> {
     dischargerPermitComponents: null,
 
     // monitoring panel
-    monitoringCharacteristicsStatus: 'idle',
+    monitoringPeriodOfRecordStatus: 'idle',
     monitoringGroups: initialMonitoringGroups(),
     monitoringFeatureUpdates: null,
     monitoringYearsRange: [0, 0],
-    selectedMonitoringYearsRange: null,
+    selectedMonitoringYearsRange: [0, 0],
 
     // identified issues panel
     showAllPolluted: true,
@@ -301,8 +301,8 @@ export class LocationSearchProvider extends Component<Props, State> {
     setDischargerPermitComponents: (dischargerPermitComponents) => {
       this.setState({ dischargerPermitComponents });
     },
-    setMonitoringCharacteristicsStatus: (monitoringCharacteristicsStatus) => {
-      this.setState({ monitoringCharacteristicsStatus });
+    setMonitoringPeriodOfRecordStatus: (monitoringPeriodOfRecordStatus) => {
+      this.setState({ monitoringPeriodOfRecordStatus });
     },
     setMonitoringGroups: (monitoringGroups) => {
       this.setState({ monitoringGroups });
@@ -386,11 +386,11 @@ export class LocationSearchProvider extends Component<Props, State> {
         atHucBoundaries: false,
         hucBoundaries: '',
         dischargerPermitComponents: null,
-        monitoringCharacteristicsStatus: 'idle',
+        monitoringPeriodOfRecordStatus: 'idle',
         monitoringGroups: initialMonitoringGroups(),
         monitoringFeatureUpdates: null,
         monitoringYearsRange: [0, 0],
-        selectedMonitoringYearsRange: null,
+        selectedMonitoringYearsRange: [0, 0],
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },
