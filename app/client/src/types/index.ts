@@ -250,7 +250,7 @@ export interface MonitoringLocationAttributes {
   totalsByCharacteristic: { [characteristic: string]: number };
   totalsByGroup: { [group: string]: number };
   totalsByLabel: { [label: string]: number };
-  timeframe: [number, number];
+  timeframe: [number, number] | null;
   uniqueId: string;
 }
 

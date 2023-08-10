@@ -446,7 +446,11 @@ function buildLayer(
       title: getTitle,
       content: (feature: Feature) => {
         // Parse non-scalar variables
-        const structuredProps = ['totalsByGroup', 'timeframe'];
+        const structuredProps = [
+          'totalsByCharacteristic',
+          'totalsByGroup',
+          'timeframe',
+        ];
         feature.graphic.attributes = parseAttributes(
           structuredProps,
           feature.graphic.attributes,
@@ -578,7 +582,7 @@ function transformServiceData(
       totalsByLabel: parseStationLabelTotals(
         station.properties.characteristicGroupResultCount,
       ),
-      timeframe: [0, 0],
+      timeframe: null,
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id
       // isn't universally unique)
