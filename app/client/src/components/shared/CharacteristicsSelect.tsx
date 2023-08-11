@@ -1,5 +1,5 @@
 import uniqueId from 'lodash/uniqueId';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
 // components
