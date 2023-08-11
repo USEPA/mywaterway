@@ -38,7 +38,7 @@ import {
   isMediaLayer,
   isUniqueValueRenderer,
 } from 'utils/mapFunctions';
-import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
+import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
   convertDomainCode,
@@ -46,6 +46,7 @@ import {
   getSelectedCommunityTab,
   parseAttributes,
   isAbort,
+  structurePeriodOfRecordData,
   titleCaseWithExceptions,
   toFixedFloat,
 } from 'utils/utils';
@@ -2562,6 +2563,66 @@ function MonitoringLocationsContent({
     setTotalDisplayedMeasurements(selectAll === 0 ? totalMeasurements : 0);
   };
 
+  // A bit confusing, but the toggle table labels are groups of other groups of characteristics
+  const [selectedGroupLabel, setSelectedGroupLabel] = useState('');
+  const [characteristics, setCharacteristics] = useState<
+    FetchState<MonitoringLocationAttributes['totalsByCharacteristic']>
+  >({ status: 'idle', data: {} });
+  const [modalTriggered, setModalTriggered] = useState(false);
+  useEffect(() => {
+    if (!modalTriggered) return;
+    if (characteristics.status === 'success') return;
+    if (Object.keys(totalsByCharacteristic).length) {
+      setCharacteristics({ status: 'success', data: totalsByCharacteristic });
+    } else {
+      if (services?.status !== 'success') {
+        setCharacteristics({ status: services?.status ?? 'failure', data: {} });
+        return;
+      }
+      const url =
+        `${services.data.waterQualityPortal.monitoringLocation}search?` +
+        `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&providers=${providerName}&organization=${orgId}&siteid=${siteId}`;
+      setCharacteristics({ status: 'fetching', data: {} });
+      fetchParseCsv(url)
+        .then((records) => {
+          const dataById = structurePeriodOfRecordData(
+            records,
+            characteristicGroupMappings,
+          );
+        })
+        .catch((_err) => {
+          setCharacteristics({ status: 'failure', data: {} });
+        });
+    }
+  }, []);
+
+  const groupCharacteristics = useMemo(() => {
+    const lookup = characteristicsByGroup;
+    const charcs = characteristics;
+    if (lookup?.status === 'failure' || charcs.status === 'failure')
+      return { status: 'failure', data: {} };
+    if (lookup?.status === 'fetching' || charcs.status === 'fetching')
+      return { status: 'pending', data: {} };
+    if (lookup?.status === 'success' && charcs.status === 'success') {
+      const innerGroups = groups[selectedGroupLabel].characteristicGroups;
+      return {
+        status: 'success',
+        data: Object.entries(charcs.data).reduce(
+          (result, [characteristic, count]) => {
+            for (let innerGroup of innerGroups) {
+              if (lookup.data[innerGroup]?.includes(characteristic)) {
+                return { ...result, [characteristic]: count };
+              }
+            }
+            return result;
+          },
+          {},
+        ),
+      };
+    }
+    return { status: 'idle', data: {} };
+  }, [characteristics, characteristicsByGroup, groups, selectedGroupLabel]);
+
   // if a user has filtered out certain characteristic groups for
   // a given table, that'll be used as additional query string
   // parameters in the download URL string
@@ -2685,6 +2746,7 @@ function MonitoringLocationsContent({
                   Number of Measure&shy;ments
                 </GlossaryTerm>
               </th>
+              <th>Detailed Characteristics</th>
             </tr>
           </thead>
           <tbody>
@@ -2693,7 +2755,6 @@ function MonitoringLocationsContent({
               if (groups[key].resultCount === 0) {
                 return null;
               }
-
               return (
                 <tr key={key}>
                   <td css={checkboxCellStyles}>
@@ -2710,6 +2771,57 @@ function MonitoringLocationsContent({
                   </td>
                   <td>{key}</td>
                   <td>{groups[key].resultCount.toLocaleString()}</td>
+                  <td>
+                    <Modal
+                      label={`Detailed Uses for ${key}`}
+                      maxWidth="35rem"
+                      triggerElm={
+                        <button
+                          aria-label={`View detailed uses for ${key}`}
+                          title={`View detailed uses for ${key}`}
+                          css={modifiedIconButtonStyles}
+                          onClick={() => {
+                            setSelectedGroupLabel(key);
+                            setModalTriggered(true);
+                          }}
+                        >
+                          <i aria-hidden className="fas fa-info-circle"></i>
+                        </button>
+                      }
+                    >
+                      <table css={modalTableStyles} className="table">
+                        <thead>
+                          <tr>
+                            <th>
+                              Detailed <em>{key}</em> Characteristics
+                            </th>
+                            <th>Count</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(groupCharacteristics.data).map(
+                            ([charc, count]) => (
+                              <tr key={charc}>
+                                <td>{charc}</td>
+                                <td>{count}</td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                      {groupCharacteristics.status === 'pending' && (
+                        <LoadingSpinner />
+                      )}
+                      {groupCharacteristics.status === 'failure' && (
+                        <div css={errorBoxStyles}>
+                          <p>
+                            Detailed characteristics could not be retrieved at
+                            this time, please try again later.
+                          </p>
+                        </div>
+                      )}
+                    </Modal>
+                  </td>
                 </tr>
               );
             })}
@@ -3065,3 +3177,45 @@ function UsgsStreamgageParameter({
 export default WaterbodyInfo;
 
 export { MapPopup };
+// <tbody>
+//   {useAttainments.data[
+//     selectedUseField.category
+//   ].map((use: any) => {
+//     const useCode = use.useAttainmentCode;
+//     const value =
+//       useCode === 'F'
+//         ? 'Good'
+//         : useCode === 'N'
+//         ? 'Impaired'
+//         : 'Condition Unknown';
+
+//     return (
+//       <tr key={use.useName}>
+//         <td>{use.useName}</td>
+//         <td
+//           css={css`
+//             min-width: 100px;
+//           `}
+//         >
+//           {['F', 'N', 'I', 'X'].includes(
+//             useCode,
+//           ) ? (
+//             <GlossaryTerm
+//               term={
+//                 value === 'Good'
+//                   ? 'Good Waters'
+//                   : value === 'Impaired'
+//                   ? 'Impaired Waters'
+//                   : 'Condition Unknown'
+//               }
+//             >
+//               {value}
+//             </GlossaryTerm>
+//           ) : (
+//             use.useAttainmentCodeName
+//           )}
+//         </td>
+//       </tr>
+//     );
+//   })}
+// </tbody>

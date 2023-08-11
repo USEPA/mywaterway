@@ -1,7 +1,6 @@
 import Basemap from '@arcgis/core/Basemap';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
-import Papa from 'papaparse';
 import { WindowSize } from '@reach/window-size';
 import {
   useCallback,
@@ -46,7 +45,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
-import { fetchPost } from 'utils/fetchUtils';
+import { fetchParseCsv, fetchPost } from 'utils/fetchUtils';
 import {
   useAbort,
   useMonitoringLocations,
@@ -558,19 +557,6 @@ const dateOptions = {
   day: 'numeric',
 };
 
-function fetchParseCsv(url) {
-  return new Promise((complete, error) => {
-    Papa.parse(url, {
-      complete,
-      download: true,
-      dynamicTyping: true,
-      error,
-      header: true,
-      worker: true,
-    });
-  });
-}
-
 // Create a heatmap proportional to the range of the provided numerical data
 function generateHeatmap(data) {
   const svMin = 30;
@@ -957,9 +943,7 @@ function useCharacteristics(provider, orgId, siteId) {
         siteId,
       )}`;
     fetchParseCsv(url)
-      .then((results) =>
-        structureRecords(results.data, characteristicsByGroup.data),
-      )
+      .then((results) => structureRecords(results, characteristicsByGroup.data))
       .catch((_err) => {
         setStatus('failure');
         console.error('Papa Parse error');
