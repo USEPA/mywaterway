@@ -397,8 +397,8 @@ function StateTribal() {
       <TabLinks />
 
       <div css={containerStyles} className="container" data-content="state">
-        {states.status === 'fetching' ||
-          (tribes.status === 'fetching' && <LoadingSpinner />)}
+        {(states.status === 'fetching' ||
+          tribes.status === 'fetching') && <LoadingSpinner />}
 
         {states.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
