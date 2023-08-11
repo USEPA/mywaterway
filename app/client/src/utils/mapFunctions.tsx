@@ -743,6 +743,7 @@ export function getPopupContent({
   mapView,
   resetData,
   services,
+  characteristicsByGroup,
   stateNationalUses,
   fields,
   navigate,
@@ -754,6 +755,7 @@ export function getPopupContent({
   mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
+  characteristicsByGroup?: LookupFile;
   stateNationalUses?: LookupFile;
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
@@ -863,6 +865,7 @@ export function getPopupContent({
       mapView={mapView}
       resetData={resetData}
       services={services}
+      characteristicsByGroup={characteristicsByGroup}
       stateNationalUses={stateNationalUses}
       fields={fields}
       navigate={navigate}

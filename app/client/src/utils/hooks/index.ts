@@ -30,6 +30,7 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
   useServicesContext,
   useStateNationalUsesContext,
+  useCharacteristicsByGroupContext,
 } from 'contexts/LookupFiles';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
@@ -765,6 +766,7 @@ function useDynamicPopup() {
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
+  const characteristicsByGroup = useCharacteristicsByGroupContext();
   const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
   );

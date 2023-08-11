@@ -149,7 +149,6 @@ const instructionStyles = css`
 
 // workaround for React state variables not being updated inside of
 // esri watch events
-let displayEsriLegendNonState = false;
 let additionalLegendInfoNonState = {
   status: 'fetching',
   data: {},
@@ -380,8 +379,6 @@ function MapWidgets({
     setFullscreenActive, //
   } = useFullscreenState();
 
-  const [mapEventHandlersSet, setMapEventHandlersSet] = useState(false);
-
   const [popupWatcher, setPopupWatcher] = useState<__esri.WatchHandle | null>(
     null,
   );
@@ -592,8 +589,7 @@ function MapWidgets({
         ? esriLegendNode.querySelectorAll('.esri-legend__message')
         : [];
 
-      displayEsriLegendNonState = esriMessages.length === 0;
-      setDisplayEsriLegend(displayEsriLegendNonState);
+      setDisplayEsriLegend(esriMessages.length === 0);
     });
 
     // Start observing the target node for configured mutations
@@ -781,7 +777,7 @@ function MapWidgets({
           uniqueParentItems.push(item.title);
           updateLegend(
             view,
-            displayEsriLegendNonState,
+            displayEsriLegend,
             hmwLegendNode,
             additionalLegendInfoNonState,
           );
@@ -790,7 +786,7 @@ function MapWidgets({
             item.watch('visible', function (_ev) {
               updateLegend(
                 view,
-                displayEsriLegendNonState,
+                displayEsriLegend,
                 hmwLegendNode,
                 additionalLegendInfoNonState,
               );
@@ -854,15 +850,15 @@ function MapWidgets({
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
   useEffect(() => {
-    if (!view || mapEventHandlersSet) return;
+    if (!view) return;
 
     // setup map event handlers
-    reactiveUtils.watch(
+    const zoomHandle = reactiveUtils.watch(
       () => view.zoom,
       () => {
         updateLegend(
           view,
-          displayEsriLegendNonState,
+          displayEsriLegend,
           hmwLegendNode,
           additionalLegendInfoNonState,
         );
@@ -871,21 +867,23 @@ function MapWidgets({
 
     // when basemap changes, update the basemap in context for persistent basemaps
     // across fullscreen and mobile/desktop layout changes
-    view.map.allLayers.on('change', function (_ev) {
-      if (map.basemap !== basemap) {
-        setBasemap(map.basemap);
+    const basemapHandle = view.map.allLayers.on('change', function (_ev) {
+      if (view.map.basemap !== basemap) {
+        setBasemap(view.map.basemap);
       }
     });
 
-    setMapEventHandlersSet(true);
+    return function cleanup() {
+      basemapHandle.remove();
+      zoomHandle.remove();
+    };
   }, [
     additionalLegendInfo,
     basemap,
     setBasemap,
     hmwLegendNode,
-    map,
-    mapEventHandlersSet,
     view,
+    displayEsriLegend,
   ]);
 
   // create the home widget, layers widget, and setup map zoom change listener

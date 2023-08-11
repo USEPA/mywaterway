@@ -38,7 +38,7 @@ import type {
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
   MonitoringLocationsData,
-  MonitoringWorkerData,
+  MonitoringPeriodOfRecordData,
   ServicesData,
 } from 'types';
 import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
@@ -128,7 +128,7 @@ export function useMonitoringPeriodOfRecord(
 
   const [monitoringAnnualRecords, setMonitoringAnnualRecords] = useState<{
     status: FetchStatus;
-    data: MonitoringWorkerData;
+    data: MonitoringPeriodOfRecordData;
   }>({
     status: 'idle',
     data: initialWorkerData(),
@@ -171,14 +171,11 @@ export function useMonitoringPeriodOfRecord(
 
     // Create the worker and assign it a job, then listen for a response
     if (recordsWorker.current) recordsWorker.current.terminate();
-    const origin = window.location.origin;
-    recordsWorker.current = new Worker(`${origin}/periodOfRecordWorker.js`);
+    recordsWorker.current = new Worker(
+      new URL('../tasks/periodOfRecordWorker', import.meta.url),
+    );
     // Tell the worker to start the task
-    recordsWorker.current.postMessage([
-      url,
-      origin,
-      characteristicGroupMappings,
-    ]);
+    recordsWorker.current.postMessage([url, characteristicGroupMappings]);
     // Handle the worker's response
     recordsWorker.current.onmessage = (message) => {
       if (message.data && typeof message.data === 'string') {
@@ -294,7 +291,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
 // Add the stations' historical data to the `dataByYear` property,
 function addAnnualData(
   monitoringLocations: MonitoringLocationAttributes[],
-  annualData: MonitoringWorkerData['sites'],
+  annualData: MonitoringPeriodOfRecordData['sites'],
 ) {
   return monitoringLocations.map((location) => {
     const id = location.uniqueId;

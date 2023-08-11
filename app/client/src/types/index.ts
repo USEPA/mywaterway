@@ -294,7 +294,7 @@ export interface MonitoringLocationsData {
 
 export type MonitoringYearsRange = [number, number];
 
-export type MonitoringWorkerData = {
+export type MonitoringPeriodOfRecordData = {
   minYear: number;
   maxYear: number;
   sites: {

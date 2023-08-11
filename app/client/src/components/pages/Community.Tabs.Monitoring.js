@@ -36,7 +36,10 @@ import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useCharacteristicsByGroupContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import {
   useCyanWaterbodies,
@@ -709,6 +712,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations } = useFetchedDataState();
   const { monitoringGroups, setMonitoringGroups } = useMonitoringGroups();
+  const characteristicsByGroup = useCharacteristicsByGroupContext();
 
   const updateFeatures = useCallback(
     (locations) => {
@@ -1020,6 +1024,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         >
           <div css={accordionContentStyles}>
             <WaterbodyInfo
+              characteristicsByGroup={characteristicsByGroup}
               type="Past Water Conditions"
               feature={feature}
               services={services}
@@ -1031,6 +1036,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     },
     [
       accordionItemToggleHandlers,
+      characteristicsByGroup,
       expandedRows,
       filteredMonitoringLocations,
       services,

@@ -389,6 +389,7 @@ type WaterbodyInfoProps = {
   fields?: __esri.Field[] | null;
   mapView?: __esri.MapView;
   services?: ServicesState;
+  characteristicsByGroup?: LookupFile;
   stateNationalUses?: LookupFile;
   type: string;
 };
@@ -403,6 +404,7 @@ function WaterbodyInfo({
   extraContent,
   mapView,
   services,
+  characteristicsByGroup,
   stateNationalUses,
   fields,
 }: WaterbodyInfoProps) {
@@ -1200,8 +1202,9 @@ function WaterbodyInfo({
   if (type === 'Past Water Conditions') {
     content = (
       <MonitoringLocationsContent
+        characteristicsByGroup={characteristicsByGroup}
         feature={feature}
-        services={services ?? null}
+        services={services}
       />
     );
   }
@@ -1242,6 +1245,7 @@ type MapPopupProps = {
   mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
+  characteristicsByGroup?: LookupFile;
   stateNationalUses?: LookupFile;
   fields?: __esri.Field[] | null;
 };
@@ -1255,6 +1259,7 @@ function MapPopup({
   mapView,
   resetData,
   services,
+  characteristicsByGroup,
   stateNationalUses,
   fields,
   navigate,
@@ -1376,6 +1381,7 @@ function MapPopup({
             extraContent={extraContent}
             mapView={mapView}
             services={services}
+            characteristicsByGroup={characteristicsByGroup}
             stateNationalUses={stateNationalUses}
             fields={fields}
           />
@@ -2398,11 +2404,13 @@ function checkIfGroupInMapping(groupName: string): boolean {
 }
 
 type MonitoringLocationsContentProps = {
+  characteristicsByGroup?: LookupFile;
   feature: __esri.Graphic;
-  services: ServicesState | null;
+  services?: ServicesState;
 };
 
 function MonitoringLocationsContent({
+  characteristicsByGroup,
   feature,
   services,
 }: MonitoringLocationsContentProps) {
@@ -2438,6 +2446,7 @@ function MonitoringLocationsContent({
     siteId,
     providerName,
     totalSamples,
+    totalsByCharacteristic,
     totalsByGroup,
     totalMeasurements,
     timeframe,

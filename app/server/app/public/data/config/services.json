@@ -217,6 +217,11 @@
     },
     {
       "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/wqp/characteristicsByGroup.json",
+      "name": "s3 lookup - WQP characteristicsByGroup"
+    },
+    {
+      "urlLookup": "origin",
       "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/national/NARS.json",
       "name": "s3 lookup - national NARS"
     },
