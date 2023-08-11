@@ -780,18 +780,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     return toggles;
   }, [monitoringGroups, groupToggleHandler]);
 
-  // Reset data if the user switches locations
-  useEffect(() => {
-    if (!huc12) return;
-
-    return function cleanup() {
-      setAllToggled(true);
-      if (!monitoringLocationsLayer) return;
-
-      monitoringLocationsLayer.definitionExpression = '';
-    };
-  }, [huc12, monitoringLocationsLayer]);
-
   const [charGroupFilters, setCharGroupFilters] = useState('');
   // create the filter string for download links based on active toggles
   const buildFilter = useCallback(
@@ -827,8 +815,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   // All stations in the current time range
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
       annualRecordsReady ? selectedMonitoringYearsRange : null,
@@ -839,29 +825,11 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       updateFeatures(toggledLocations);
     }
 
-    // generate a list of location ids
-    const locationIds = [];
-    toggledLocations.forEach((station) => {
-      locationIds.push(station.uniqueId);
-    });
-
-    // update the filters on the layer
-    if (toggledLocations.length === monitoringGroups['All'].stations.length) {
-      monitoringLocationsLayer.definitionExpression = '';
-    } else if (locationIds.length === 0) {
-      monitoringLocationsLayer.definitionExpression = '1=0';
-    } else {
-      monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
-        "','",
-      )}')`;
-    }
-
     setCurrentLocations(allLocations);
     setDisplayedLocations(toggledLocations);
   }, [
     annualRecordsReady,
     monitoringGroups,
-    monitoringLocationsLayer,
     selectedMonitoringYearsRange,
     updateFeatures,
   ]);
@@ -916,17 +884,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       : [];
   }, [displayedLocations, sortBy]);
 
-  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
-    useState([]);
-
-  const selectedCharacteristics = selectedCharacteristicOptions.map(
-    (charc) => charc.value,
-  );
+  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
 
   // Filter the displayed locations by selected characteristics
   const filteredMonitoringLocations = sortedMonitoringLocations.filter(
     (location) => {
-      if (!selectedCharacteristicOptions.length) {
+      if (!selectedCharacteristics.length) {
         return true;
       }
       for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
@@ -1036,6 +999,39 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       services,
     ],
   );
+
+  // Update the filters on the layer
+  const locationIds = filteredMonitoringLocations.map(
+    (location) => location.uniqueId,
+  );
+  let definitionExpression = '';
+  if (locationIds.length === 0) definitionExpression = '1=0';
+  else if (locationIds.length !== monitoringGroups['All'].stations.length) {
+    definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
+  }
+  if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
+
+  // Clear the filter when changing tabs
+  useEffect(() => {
+    return function cleanup() {
+      if (monitoringLocationsLayer) {
+        monitoringLocationsLayer.definitionExpression = '';
+      }
+    };
+  }, [monitoringLocationsLayer]);
+
+  // Reset data if the user switches locations
+  const [prevHuc12, setPrevHuc12] = useState(huc12);
+  if (huc12 !== prevHuc12) {
+    setPrevHuc12(huc12);
+    setAllToggled(true);
+    setSelectedCharacteristics([]);
+  }
 
   if (monitoringLocations.status === 'pending') return <LoadingSpinner />;
 
@@ -1270,10 +1266,11 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 <span data-testid="monitoring-accordion-title">
                   <strong>{displayedLocationsCount.toLocaleString()}</strong> of{' '}
                   <strong>{totalLocationsCount.toLocaleString()}</strong> water
-                  monitoring sample locations{' '}
-                  {selectedCharacteristicOptions.length > 0 &&
-                    'with the selected characteristics '}
-                  in the <em>{watershed}</em> watershed
+                  monitoring sample locations
+                  {selectedCharacteristics.length > 0 &&
+                    ' with the selected characteristic'}
+                  {selectedCharacteristics.length > 1 && 's'} in the{' '}
+                  <em>{watershed}</em> watershed
                   {annualRecordsReady && (
                     <>
                       {' '}
@@ -1289,8 +1286,8 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               extraListHeaderContent={
                 <CharacteristicsSelect
                   label="Filter by Characteristic:"
-                  selected={selectedCharacteristicOptions}
-                  onChange={setSelectedCharacteristicOptions}
+                  selected={selectedCharacteristics}
+                  onChange={setSelectedCharacteristics}
                 />
               }
               onSortChange={handleSortChange}

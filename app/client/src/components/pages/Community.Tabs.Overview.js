@@ -408,7 +408,7 @@ function MonitoringAndSensorsTab({
   setCyanDisplayed,
   updateVisibleLayers,
 }) {
-  const { mapView, watershed } = useContext(LocationSearchContext);
+  const { huc12, mapView, watershed } = useContext(LocationSearchContext);
 
   const { cyanLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
     useLayers();
@@ -463,12 +463,8 @@ function MonitoringAndSensorsTab({
     },
   );
 
-  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
-    useState([]);
+  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
 
-  const selectedCharacteristics = selectedCharacteristicOptions.map(
-    (charc) => charc.value,
-  );
   const filteredMonitoringAndSensors = sortedMonitoringAndSensors
     .filter((item) => {
       const displayedTypes = [];
@@ -490,7 +486,7 @@ function MonitoringAndSensorsTab({
     .filter((item) => {
       if (
         item.monitoringType !== 'Past Water Conditions' ||
-        !selectedCharacteristicOptions.length
+        !selectedCharacteristics.length
       ) {
         return true;
       }
@@ -679,6 +675,39 @@ function MonitoringAndSensorsTab({
     ],
   );
 
+  // Update the filters on the layer
+  const monitoringLocationIds = filteredMonitoringAndSensors
+    .filter((location) => location.monitoringType === 'Past Water Conditions')
+    .map((location) => location.uniqueId);
+  let definitionExpression = '';
+  if (monitoringLocationIds.length === 0) definitionExpression = '1=0';
+  else if (monitoringLocationIds.length !== monitoringLocations.length) {
+    definitionExpression = `uniqueId IN ('${monitoringLocationIds.join(
+      "','",
+    )}')`;
+  }
+  if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
+
+  // Clear the filter when changing tabs
+  useEffect(() => {
+    return function cleanup() {
+      if (monitoringLocationsLayer) {
+        monitoringLocationsLayer.definitionExpression = '';
+      }
+    };
+  }, [monitoringLocationsLayer]);
+
+  // Reset characteristics filter if the user switches locations
+  const [prevHuc12, setPrevHuc12] = useState(huc12);
+  if (huc12 !== prevHuc12) {
+    setPrevHuc12(huc12);
+    setSelectedCharacteristics([]);
+  }
   if (
     cyanWaterbodiesStatus === 'failure' &&
     streamgagesStatus === 'failure' &&
@@ -865,7 +894,7 @@ function MonitoringAndSensorsTab({
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
                   <strong>{allMonitoringAndSensors.length}</strong> locations
                   with data in the <em>{watershed}</em> watershed.
-                  {selectedCharacteristicOptions.length > 0 && (
+                  {selectedCharacteristics.length > 0 && (
                     <>
                       <br />
                       <small>
@@ -880,8 +909,8 @@ function MonitoringAndSensorsTab({
                 monitoringLocationsDisplayed && (
                   <CharacteristicsSelect
                     label="Filter Past Water Conditions by Characteristic:"
-                    selected={selectedCharacteristicOptions}
-                    onChange={setSelectedCharacteristicOptions}
+                    selected={selectedCharacteristics}
+                    onChange={setSelectedCharacteristics}
                   />
                 )
               }
