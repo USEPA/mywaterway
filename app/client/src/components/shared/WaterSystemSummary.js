@@ -374,7 +374,7 @@ function WaterSystemSummary({ state }: Props) {
         <small>(opens new browser tab)</small>. GPRA results are for{' '}
         <strong>Community Water Systems</strong> for{' '}
         <GlossaryTerm term="Drinking Water Health-based Violations">
-          Drinking Water Health Based Violations
+          Drinking Water Health-based Violations
         </GlossaryTerm>{' '}
         only. Drinking water data are submitted quarterly by the Primacy
         Agencies and these summary metrics are then posted by EPA.

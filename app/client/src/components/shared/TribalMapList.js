@@ -82,6 +82,8 @@ import {
 } from 'config/errorMessages';
 // styles
 import { tabsStyles } from 'components/shared/ContentTabs';
+// types
+import type { MonitoringLocationAttributes } from 'types';
 
 const mapPadding = 20;
 
@@ -334,6 +336,20 @@ function TribalMapList({
     setListShown(true);
   }, [width]);
 
+  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
+
+  // Reset data if the user switches locations
+  const [prevState, setPrevState] = useState(activeState);
+  if (activeState !== prevState) {
+    setPrevState(activeState);
+    setSelectedCharacteristics([]);
+    if (monitoringLocationsLayer) {
+      monitoringLocationsLayer.definitionExpression = '';
+    }
+  }
+
+  const [selectedTab, setSelectedTab] = useState(0);
+
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
@@ -533,7 +549,7 @@ function TribalMapList({
 
       {displayMode === 'list' && listShown && (
         <div css={modifiedTabStyles(mapListHeight)}>
-          <Tabs>
+          <Tabs onChange={setSelectedTab} defaultIndex={selectedTab}>
             <TabList>
               <Tab css={largeTabStyles}>Waterbodies</Tab>
               <Tab css={largeTabStyles}>Water Monitoring Locations</Tab>
@@ -562,7 +578,11 @@ function TribalMapList({
                 )}
               </TabPanel>
               <TabPanel>
-                <MonitoringTab activeState={activeState} />
+                <MonitoringTab
+                  activeState={activeState}
+                  selectedCharacteristics={selectedCharacteristics}
+                  setSelectedCharacteristics={setSelectedCharacteristics}
+                />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -935,47 +955,65 @@ function TribalMap({
 
 type MonitoringTabProps = {
   activeState: Object,
+  monitoringLocations: MonitoringLocationAttributes[],
+  selectedCharacteristics: string[],
+  setSelectedCharacteristics: (selected: string[]) => void,
 };
 
-function MonitoringTab({ activeState }: MonitoringTabProps) {
+function MonitoringTab({
+  activeState,
+  selectedCharacteristics,
+  setSelectedCharacteristics,
+}: MonitoringTabProps) {
   const services = useServicesContext();
 
   const { monitoringLocations } = useMonitoringLocations();
+  const { monitoringLocationsLayer } = useLayers();
 
   // sort the monitoring locations
   const [monitoringLocationsSortedBy, setMonitoringLocationsSortedBy] =
     useState('locationName');
-  const sortedMonitoringAndSensors = [...monitoringLocations].sort((a, b) => {
-    if (monitoringLocationsSortedBy === 'totalMeasurements') {
-      return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
-    }
-
-    if (monitoringLocationsSortedBy === 'siteId') {
-      return a.siteId.localeCompare(b.siteId);
-    }
-
-    return a[monitoringLocationsSortedBy].localeCompare(
-      b[monitoringLocationsSortedBy],
-    );
-  });
-
-  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
-    useState([]);
-
-  const selectedCharacteristics = selectedCharacteristicOptions.map(
-    (charc) => charc.value,
-  );
 
   // Filter the displayed locations by selected characteristics
-  const filteredMonitoringAndSensors = sortedMonitoringAndSensors.filter(
-    (location) => {
-      if (!selectedCharacteristicOptions.length) return true;
-      for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
-        if (selectedCharacteristics.includes(characteristic)) return true;
+  const filteredMonitoringLocations = monitoringLocations.filter((location) => {
+    if (!selectedCharacteristics.length) return true;
+    for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
+      if (selectedCharacteristics.includes(characteristic)) return true;
+    }
+    return false;
+  });
+
+  const sortedMonitoringAndSensors = [...filteredMonitoringLocations].sort(
+    (a, b) => {
+      if (monitoringLocationsSortedBy === 'totalMeasurements') {
+        return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
       }
-      return false;
+
+      if (monitoringLocationsSortedBy === 'siteId') {
+        return a.siteId.localeCompare(b.siteId);
+      }
+
+      return a[monitoringLocationsSortedBy].localeCompare(
+        b[monitoringLocationsSortedBy],
+      );
     },
   );
+
+  // Update the filters on the layer
+  const locationIds = filteredMonitoringLocations.map(
+    (location) => location.uniqueId,
+  );
+  let definitionExpression = '';
+  if (locationIds.length === 0) definitionExpression = '1=0';
+  else if (locationIds.length !== monitoringLocations.length) {
+    definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
+  }
+  if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
 
   const [expandedRows, setExpandedRows] = useState([]);
 
@@ -983,26 +1021,26 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
     <AccordionList
       title={
         <>
-          <strong>{filteredMonitoringAndSensors.length}</strong> locations with{' '}
-          {selectedCharacteristicOptions.length > 0
-            ? 'the selected characteristics'
-            : 'data'}{' '}
-          in the <em>{activeState.label}</em> watershed.
+          <strong>{sortedMonitoringAndSensors.length}</strong> of{' '}
+          <strong>{monitoringLocations.length}</strong> locations with{' '}
+          {selectedCharacteristics.length > 0
+            ? 'the selected characteristic'
+            : 'data'}
+          {selectedCharacteristics.length > 1 && 's'} in the{' '}
+          <em>{activeState.label}</em> watershed.
         </>
       }
       extraListHeaderContent={
         <CharacteristicsSelect
           label="Filter by Characteristic:"
-          selected={selectedCharacteristicOptions}
-          onChange={setSelectedCharacteristicOptions}
+          selected={selectedCharacteristics}
+          onChange={setSelectedCharacteristics}
         />
       }
       onSortChange={({ value }) => setMonitoringLocationsSortedBy(value)}
       onExpandCollapse={(allExpanded) => {
         if (allExpanded) {
-          setExpandedRows([
-            ...Array(filteredMonitoringAndSensors.length).keys(),
-          ]);
+          setExpandedRows([...Array(sortedMonitoringAndSensors.length).keys()]);
         } else {
           setExpandedRows([]);
         }
@@ -1026,7 +1064,7 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
         },
       ]}
     >
-      {filteredMonitoringAndSensors.map((item, index) => {
+      {sortedMonitoringAndSensors.map((item, index) => {
         const feature = {
           geometry: {
             type: 'point',

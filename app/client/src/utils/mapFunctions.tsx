@@ -798,7 +798,7 @@ export function getPopupContent({
 
     // CyAN waterbody
     else if ('GNIS_NAME' in attributes) {
-      type = 'CyAN';
+      type = 'Blue-Green Algae';
     }
 
     // usgs streamgage or monitoring location

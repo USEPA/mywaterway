@@ -1222,7 +1222,7 @@ function WaterbodyInfo({
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }
-  if (type === 'CyAN') {
+  if (type === 'Blue-Green Algae') {
     content = (
       <CyanContent
         feature={feature}
@@ -2435,7 +2435,6 @@ function MonitoringLocationsContent({
   }, [attributes]);
 
   const {
-    dataByYear,
     locationLatitude,
     locationLongitude,
     locationName,
@@ -2451,8 +2450,6 @@ function MonitoringLocationsContent({
     totalMeasurements,
     timeframe,
   } = parsed;
-
-  const hasAnnualData = Object.keys(dataByYear).length > 0;
 
   const [groups, setGroups] = useState(() => {
     const { newGroups } = buildGroups(checkIfGroupInMapping, totalsByGroup);
@@ -2492,13 +2489,13 @@ function MonitoringLocationsContent({
         }
       }
 
-      if (hasAnnualData) {
+      if (timeframe) {
         filter += `&startDateLo=01-01-${timeframe[0]}&startDateHi=12-31-${timeframe[1]}`;
       }
 
       setCharGroupFilters(filter);
     },
-    [hasAnnualData, setCharGroupFilters, selectAll, timeframe],
+    [setCharGroupFilters, selectAll, timeframe],
   );
 
   useEffect(() => {
@@ -2627,7 +2624,7 @@ function MonitoringLocationsContent({
               value: (
                 <>
                   {Number(totalSamples).toLocaleString()}
-                  {hasAnnualData ? <small>(all time)</small> : null}
+                  {timeframe ? <small>(all time)</small> : null}
                 </>
               ),
             },
@@ -2640,7 +2637,7 @@ function MonitoringLocationsContent({
               value: (
                 <>
                   {Number(totalMeasurements).toLocaleString()}
-                  {hasAnnualData && (
+                  {timeframe && (
                     <small>
                       ({timeframe[0]} - {timeframe[1]})
                     </small>

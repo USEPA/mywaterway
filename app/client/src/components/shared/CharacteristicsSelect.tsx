@@ -1,5 +1,5 @@
 import uniqueId from 'lodash/uniqueId';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
 // components
@@ -38,11 +38,9 @@ export function CharacteristicsSelect({
       .map((charc) => ({ label: charc, value: charc }));
   }, [monitoringPeriodOfRecordStatus, monitoringLocations]);
 
-  useEffect(() => {
-    return function cleanup() {
-      onChange([]);
-    };
-  }, [onChange]);
+  const selectedOptions = useMemo(() => {
+    return selected.map((s) => ({ label: s, value: s }));
+  }, [selected]);
 
   return (
     <div css={selectContainerStyles}>
@@ -56,10 +54,10 @@ export function CharacteristicsSelect({
         isDisabled={monitoringPeriodOfRecordStatus === 'failure'}
         isLoading={monitoringPeriodOfRecordStatus === 'pending'}
         isMulti
-        onChange={onChange}
+        onChange={(options) => onChange(options.map((option) => option.value))}
         options={allCharacteristicOptions}
         placeholder="Select a characteristic..."
-        value={selected}
+        value={selectedOptions}
       />
     </div>
   );
@@ -67,13 +65,8 @@ export function CharacteristicsSelect({
 
 type CharacteristicsSelectProps = {
   label: string;
-  selected: Option[];
-  onChange: (selected: readonly Option[]) => void;
-};
-
-type Option = {
-  label: string;
-  value: string;
+  selected: string[];
+  onChange: (selected: string[]) => void;
 };
 
 const selectContainerStyles = css`
