@@ -176,7 +176,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   useCyanWaterbodiesLayers();
   useDischargersLayers();
-  useMonitoringLocationsLayers(huc12 ? `huc=${huc12}` : null);
+  useMonitoringLocationsLayers({ filter: huc12 ? `huc=${huc12}` : null });
   useStreamgageLayers();
 
   const stateNationalUses = useStateNationalUsesContext();

@@ -70,7 +70,8 @@ function structureByUniqueId(recordsByYear) {
       dataBySite[id][year] = recordsByYear[year][id];
     });
   }
-  return { minYear, maxYear, annualData: dataBySite };
+  if (minYear > maxYear) minYear = 0;
+  return { minYear, maxYear, sites: dataBySite };
 }
 
 // This makes sure the listener isn't set twice
@@ -99,12 +100,16 @@ if ('function' === typeof importScripts) {
         if (records.length) {
           const recordsByYear = structureByYear(records, mappings);
           const recordsById = structureByUniqueId(recordsByYear);
-          postMessage(JSON.stringify(recordsById));
+          postMessage(JSON.stringify({ status: 'success', data: recordsById }));
         }
       })
       .catch((_err) => {
-        const noData = { minYear: 0, maxYear: 0, annualData: {} };
-        postMessage(JSON.stringify(noData));
+        postMessage(
+          JSON.stringify({
+            status: 'failure',
+            data: { minYear: 0, maxYear: 0, sites: {} },
+          }),
+        );
       });
   };
 }

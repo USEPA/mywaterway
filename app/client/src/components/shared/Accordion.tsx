@@ -10,13 +10,18 @@ const accordionListContainerStyles = css`
   border-bottom: 1px solid #d8dfe2;
 `;
 
-const accordionOptionsContainerStyles = (includeTopMargin: boolean, displayTitleInFlex: boolean) => css`
+const accordionOptionsContainerStyles = (
+  includeTopMargin: boolean,
+  displayTitleInFlex: boolean,
+) => css`
   display: flex;
   justify-content: flex-end;
   width: 100%;
   margin-bottom: 0;
   ${includeTopMargin ? 'margin-top: 0.625rem;' : ''}
-  ${displayTitleInFlex ? 'justify-content: space-between; align-items: center;' : ''}
+  ${displayTitleInFlex
+    ? 'justify-content: space-between; align-items: center;'
+    : ''}
 `;
 
 const columnsStyles = css`
@@ -96,6 +101,7 @@ type AccordionListProps = {
   onSortChange?: Function;
   onExpandCollapse?: Function;
   contentExpandCollapse?: ReactNode;
+  extraListHeaderContent?: ReactNode;
 };
 
 function AccordionList({
@@ -109,6 +115,7 @@ function AccordionList({
   onSortChange = () => {},
   onExpandCollapse = () => {},
   contentExpandCollapse,
+  extraListHeaderContent,
 }: AccordionListProps) {
   const [sortBy, setSortBy] = useState(
     sortOptions.length > 0 ? sortOptions[0] : null,
@@ -135,7 +142,12 @@ function AccordionList({
         <div css={listHeaderStyles(includeSort || !!title)}>
           {title && !displayTitleInFlex && <p css={titleStyles}>{title}</p>}
           <div css={columnsStyles}>
-            <div css={accordionOptionsContainerStyles(includeSort && !!title, displayTitleInFlex)}>
+            <div
+              css={accordionOptionsContainerStyles(
+                includeSort && !!title,
+                displayTitleInFlex,
+              )}
+            >
               {title && displayTitleInFlex && <p css={titleStyles}>{title}</p>}
 
               {includeSort && (
@@ -178,6 +190,12 @@ function AccordionList({
               )}
             </div>
           </div>
+          {extraListHeaderContent && (
+            <>
+              <hr />
+              {extraListHeaderContent}
+            </>
+          )}
         </div>
       )}
 

@@ -8,6 +8,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
@@ -407,7 +408,7 @@ function MonitoringAndSensorsTab({
   setCyanDisplayed,
   updateVisibleLayers,
 }) {
-  const { mapView, watershed } = useContext(LocationSearchContext);
+  const { huc12, mapView, watershed } = useContext(LocationSearchContext);
 
   const { cyanLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
     useLayers();
@@ -462,8 +463,10 @@ function MonitoringAndSensorsTab({
     },
   );
 
-  const filteredMonitoringAndSensors = sortedMonitoringAndSensors.filter(
-    (item) => {
+  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
+
+  const filteredMonitoringAndSensors = sortedMonitoringAndSensors
+    .filter((item) => {
       const displayedTypes = [];
 
       if (usgsStreamgagesDisplayed) {
@@ -479,8 +482,19 @@ function MonitoringAndSensorsTab({
       }
 
       return displayedTypes.includes(item.monitoringType);
-    },
-  );
+    })
+    .filter((item) => {
+      if (
+        item.monitoringType !== 'Past Water Conditions' ||
+        !selectedCharacteristics.length
+      ) {
+        return true;
+      }
+      for (let characteristic of Object.keys(item.totalsByCharacteristic)) {
+        if (selectedCharacteristics.includes(characteristic)) return true;
+      }
+      return false;
+    });
 
   const handleUsgsSensorsToggle = useCallback(
     (checked) => {
@@ -661,6 +675,39 @@ function MonitoringAndSensorsTab({
     ],
   );
 
+  // Update the filters on the layer
+  const monitoringLocationIds = filteredMonitoringAndSensors
+    .filter((location) => location.monitoringType === 'Past Water Conditions')
+    .map((location) => location.uniqueId);
+  let definitionExpression = '';
+  if (monitoringLocationIds.length === 0) definitionExpression = '1=0';
+  else if (monitoringLocationIds.length !== monitoringLocations.length) {
+    definitionExpression = `uniqueId IN ('${monitoringLocationIds.join(
+      "','",
+    )}')`;
+  }
+  if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
+
+  // Clear the filter when changing tabs
+  useEffect(() => {
+    return function cleanup() {
+      if (monitoringLocationsLayer) {
+        monitoringLocationsLayer.definitionExpression = '';
+      }
+    };
+  }, [monitoringLocationsLayer]);
+
+  // Reset characteristics filter if the user switches locations
+  const [prevHuc12, setPrevHuc12] = useState(huc12);
+  if (huc12 !== prevHuc12) {
+    setPrevHuc12(huc12);
+    setSelectedCharacteristics([]);
+  }
   if (
     cyanWaterbodiesStatus === 'failure' &&
     streamgagesStatus === 'failure' &&
@@ -845,9 +892,27 @@ function MonitoringAndSensorsTab({
               title={
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
-                  <strong>{allMonitoringAndSensors.length}</strong> locations
+                  <strong>{allMonitoringAndSensors.length}</strong> locations{' '}
                   with data in the <em>{watershed}</em> watershed.
+                  {selectedCharacteristics.length > 0 && (
+                    <>
+                      <br />
+                      <small>
+                        (Past Water Conditions filtered by one or more
+                        characteristics)
+                      </small>
+                    </>
+                  )}
                 </>
+              }
+              extraListHeaderContent={
+                monitoringLocationsDisplayed && (
+                  <CharacteristicsSelect
+                    label="Filter Past Water Conditions by Characteristic:"
+                    selected={selectedCharacteristics}
+                    onChange={setSelectedCharacteristics}
+                  />
+                )
               }
               onSortChange={handleSortChange}
               onExpandCollapse={handleExpandCollapse}

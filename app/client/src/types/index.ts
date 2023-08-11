@@ -118,9 +118,11 @@ export interface Feature {
 }
 
 interface FetchEmptyState {
-  status: 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
+  status: FetchEmptyStatus;
   data: {} | [] | null;
 }
+
+type FetchEmptyStatus = 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
 
 export interface FetchSuccessState<Type> {
   status: 'success';
@@ -128,6 +130,8 @@ export interface FetchSuccessState<Type> {
 }
 
 export type FetchState<Type> = FetchEmptyState | FetchSuccessState<Type>;
+
+export type FetchStatus = FetchEmptyStatus | 'success';
 
 export interface ExtendedGraphic extends __esri.Graphic {
   originalGeometry?: __esri.Geometry;
@@ -239,12 +243,13 @@ export interface MonitoringLocationAttributes {
   locationUrl: string;
   locationUrlPartial: string;
   state: string;
-  dataByYear: { [year: string | number]: AnnualStationData } | null;
+  dataByYear: { [year: string | number]: AnnualStationData };
   providerName: string;
   totalSamples: number;
   totalMeasurements: number;
-  totalsByGroup: { [groups: string]: number };
-  totalsByLabel: { [label: string]: number } | null;
+  totalsByCharacteristic: { [characteristic: string]: number };
+  totalsByGroup: { [group: string]: number };
+  totalsByLabel: { [label: string]: number };
   timeframe: [number, number] | null;
   uniqueId: string;
 }
@@ -287,12 +292,16 @@ export interface MonitoringLocationsData {
   type: 'FeatureCollection';
 }
 
-export type MonitoringYearsRange = number[] | null;
+export type MonitoringYearsRange = [number, number];
 
 export type MonitoringWorkerData = {
   minYear: number;
   maxYear: number;
-  annualData: any;
+  sites: {
+    [siteId: string]: {
+      [year: string]: AnnualStationData;
+    };
+  };
 };
 
 export interface NonProfitAttributes {
