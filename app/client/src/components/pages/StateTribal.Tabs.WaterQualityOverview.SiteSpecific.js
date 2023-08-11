@@ -11,6 +11,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { DisclaimerModal } from 'components/shared/Modal';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -441,6 +442,11 @@ function SiteSpecific({
             }
           >
             <div css={accordionContentStyles}>
+              <DisclaimerModal>
+                <p>
+                  The impairments listed below do not necessarily affect the <strong>{useSelected}</strong> use but are present in the water and may apply to other Uses.
+                </p>
+              </DisclaimerModal>
               <ul>{parameters}</ul>
             </div>
           </AccordionItem>
