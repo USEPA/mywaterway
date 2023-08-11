@@ -444,7 +444,9 @@ function SiteSpecific({
             <div css={accordionContentStyles}>
               <DisclaimerModal>
                 <p>
-                  The impairments listed below do not necessarily affect the <strong>{useSelected}</strong> use but are present in the water and may apply to other Uses.
+                  The impairments listed below do not necessarily affect the{' '}
+                  <strong>{useSelected}</strong> use but are present in the
+                  water and may apply to other Uses.
                 </p>
               </DisclaimerModal>
               <ul>{parameters}</ul>
