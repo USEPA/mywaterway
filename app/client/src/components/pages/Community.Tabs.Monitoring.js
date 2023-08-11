@@ -1266,7 +1266,8 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 <span data-testid="monitoring-accordion-title">
                   <strong>{displayedLocationsCount.toLocaleString()}</strong> of{' '}
                   <strong>{totalLocationsCount.toLocaleString()}</strong> water
-                  monitoring sample locations
+                  monitoring sample{' '}
+                  {totalLocationsCount === 1 ? 'location' : 'locations'}
                   {selectedCharacteristics.length > 0 &&
                     ' with the selected characteristic'}
                   {selectedCharacteristics.length > 1 && 's'} in the{' '}

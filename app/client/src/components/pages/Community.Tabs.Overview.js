@@ -892,7 +892,10 @@ function MonitoringAndSensorsTab({
               title={
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
-                  <strong>{allMonitoringAndSensors.length}</strong> locations
+                  <strong>{allMonitoringAndSensors.length}</strong>{' '}
+                  {allMonitoringAndSensors.length === 1
+                    ? 'location'
+                    : 'locations'}{' '}
                   with data in the <em>{watershed}</em> watershed.
                   {selectedCharacteristics.length > 0 && (
                     <>
