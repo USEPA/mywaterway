@@ -191,7 +191,11 @@ function createAccordionItem(
             value: item.pws_type,
           },
           {
-            label: 'Drinking Water Health Based Violations',
+            label: (
+              <GlossaryTerm term="Drinking Water Health-based Violations">
+                Drinking Water Health Based Violations
+              </GlossaryTerm>
+            ),
             value: item.violations === 'Y' ? 'Yes' : 'No',
           },
           {
