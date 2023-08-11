@@ -445,7 +445,7 @@ function SiteSpecific({
               <DisclaimerModal>
                 <p>
                   The impairments listed below do not necessarily affect the{' '}
-                  <strong>{useSelected}</strong> use but are present in the
+                  <strong>{useSelected}</strong> Use but are present in the
                   water and may apply to other Uses.
                 </p>
               </DisclaimerModal>

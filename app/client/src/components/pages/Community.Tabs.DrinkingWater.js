@@ -193,7 +193,7 @@ function createAccordionItem(
           {
             label: (
               <GlossaryTerm term="Drinking Water Health-based Violations">
-                Drinking Water Health Based Violations
+                Drinking Water Health-based Violations
               </GlossaryTerm>
             ),
             value: item.violations === 'Y' ? 'Yes' : 'No',
