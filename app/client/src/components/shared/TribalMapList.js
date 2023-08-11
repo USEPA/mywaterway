@@ -347,6 +347,9 @@ function TribalMapList({
       monitoringLocationsLayer.definitionExpression = '';
     }
   }
+
+  const [selectedTab, setSelectedTab] = useState(0);
+
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
@@ -546,7 +549,7 @@ function TribalMapList({
 
       {displayMode === 'list' && listShown && (
         <div css={modifiedTabStyles(mapListHeight)}>
-          <Tabs>
+          <Tabs onChange={setSelectedTab} defaultIndex={selectedTab}>
             <TabList>
               <Tab css={largeTabStyles}>Waterbodies</Tab>
               <Tab css={largeTabStyles}>Water Monitoring Locations</Tab>
