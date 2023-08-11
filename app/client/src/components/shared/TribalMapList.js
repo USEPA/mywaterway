@@ -1022,8 +1022,7 @@ function MonitoringTab({
       title={
         <>
           <strong>{sortedMonitoringAndSensors.length}</strong> of{' '}
-          <strong>{monitoringLocations.length}</strong>{' '}
-          {monitoringLocations.length === 1 ? 'location' : 'locations'} with{' '}
+          <strong>{monitoringLocations.length}</strong> locations with{' '}
           {selectedCharacteristics.length > 0
             ? 'the selected characteristic'
             : 'data'}

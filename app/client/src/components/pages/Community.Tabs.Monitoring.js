@@ -586,9 +586,8 @@ function CurrentConditionsTab({
             title={
               <>
                 <strong>{filteredLocations.length}</strong> of{' '}
-                <strong>{sortedLocations.length}</strong>{' '}
-                {sortedLocations.length === 1 ? 'location' : 'locations'} with
-                data in the <em>{watershed}</em> watershed.
+                <strong>{sortedLocations.length}</strong> locations with data in
+                the <em>{watershed}</em> watershed.
               </>
             }
             onSortChange={handleSortChange}
@@ -1266,8 +1265,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 <span data-testid="monitoring-accordion-title">
                   <strong>{displayedLocationsCount.toLocaleString()}</strong> of{' '}
                   <strong>{totalLocationsCount.toLocaleString()}</strong> water
-                  monitoring sample{' '}
-                  {totalLocationsCount === 1 ? 'location' : 'locations'}
+                  monitoring sample locations
                   {selectedCharacteristics.length > 0 &&
                     ' with the selected characteristic'}
                   {selectedCharacteristics.length > 1 && 's'} in the{' '}
