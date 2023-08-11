@@ -1219,7 +1219,7 @@ function WaterbodyInfo({
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }
-  if (type === 'CyAN') {
+  if (type === 'Blue-Green Algae') {
     content = (
       <CyanContent
         feature={feature}
