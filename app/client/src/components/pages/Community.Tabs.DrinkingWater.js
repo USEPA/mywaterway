@@ -426,7 +426,7 @@ function DrinkingWater() {
 
         if (checkForDuplicates.length === 0) {
           // deepclone item to prevent changing the underlying service data
-          const mergedItem = Object.assign({}, item);
+          const mergedItem = { ...item };
           mergedItem.water_type_calc = 'Ground Water & Surface Water';
           if (bothDisplayed) {
             displayedWithdrawers.push(mergedItem);
