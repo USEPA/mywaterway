@@ -40,9 +40,11 @@ import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LayersProvider, useLayers } from 'contexts/Layers';
-import { useCharacteristicsByGroupContext } from 'contexts/LookupFiles';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useCharacteristicsByGroupContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchParseCsv, fetchPost } from 'utils/fetchUtils';
