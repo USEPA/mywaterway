@@ -2833,6 +2833,23 @@ function MonitoringLocationsContent({
                           </p>
                         </div>
                       )}
+                      {(!onMonitoringReportPage ||
+                        layer.id === 'surroundingMonitoringLocationsLayer') && (
+                        <p css={infoBoxStyles}>
+                          For more information view the{' '}
+                          <a
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            href={locationUrlPartial}
+                          >
+                            Water Monitoring Report
+                          </a>{' '}
+                          <small css={modifiedDisclaimerStyles}>
+                            (opens new browser tab)
+                          </small>
+                          .
+                        </p>
+                      )}
                     </Modal>
                   </td>
                 </tr>

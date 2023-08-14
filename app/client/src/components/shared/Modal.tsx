@@ -48,16 +48,9 @@ const confirmButtonStyles = css`
   }
 `;
 
-const contentContainerStyles = css`
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  z-index: 1000;
-`;
-
 const contentStyles = (maxWidth: string) => css`
   background-color: white;
+  height: fit-content;
   position: relative;
   top: 50%;
   left: 50%;
@@ -105,11 +98,13 @@ const helpIconStyles = css`
 
 const overlayStyles = css`
   background-color: ${colors.black(0.33)};
+  display: grid;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  overflow-y: auto;
   z-index: 1000;
 `;
 
@@ -148,8 +143,7 @@ export default function Modal({
     <Dialog.Root open={dialogShown} onOpenChange={setDialogShown}>
       <Dialog.Trigger asChild>{triggerElm}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay css={overlayStyles} />
-        <div css={contentContainerStyles}>
+        <Dialog.Overlay css={overlayStyles}>
           <Dialog.Content css={contentStyles(maxWidth)} aria-label={label}>
             <Dialog.Title className="sr-only">{label}</Dialog.Title>
             <Dialog.Description className="sr-only">{label}</Dialog.Description>
@@ -203,7 +197,7 @@ export default function Modal({
               </div>
             )}
           </Dialog.Content>
-        </div>
+        </Dialog.Overlay>
       </Dialog.Portal>
     </Dialog.Root>
   );
