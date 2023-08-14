@@ -2817,7 +2817,7 @@ function MonitoringLocationsContent({
                             ([charc, count]) => (
                               <tr key={charc}>
                                 <td>{charc}</td>
-                                <td>{count}</td>
+                                <td>{(count as number).toLocaleString()}</td>
                               </tr>
                             ),
                           )}
@@ -3209,45 +3209,3 @@ function UsgsStreamgageParameter({
 export default WaterbodyInfo;
 
 export { MapPopup };
-// <tbody>
-//   {useAttainments.data[
-//     selectedUseField.category
-//   ].map((use: any) => {
-//     const useCode = use.useAttainmentCode;
-//     const value =
-//       useCode === 'F'
-//         ? 'Good'
-//         : useCode === 'N'
-//         ? 'Impaired'
-//         : 'Condition Unknown';
-
-//     return (
-//       <tr key={use.useName}>
-//         <td>{use.useName}</td>
-//         <td
-//           css={css`
-//             min-width: 100px;
-//           `}
-//         >
-//           {['F', 'N', 'I', 'X'].includes(
-//             useCode,
-//           ) ? (
-//             <GlossaryTerm
-//               term={
-//                 value === 'Good'
-//                   ? 'Good Waters'
-//                   : value === 'Impaired'
-//                   ? 'Impaired Waters'
-//                   : 'Condition Unknown'
-//               }
-//             >
-//               {value}
-//             </GlossaryTerm>
-//           ) : (
-//             use.useAttainmentCodeName
-//           )}
-//         </td>
-//       </tr>
-//     );
-//   })}
-// </tbody>
