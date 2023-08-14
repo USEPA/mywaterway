@@ -222,6 +222,7 @@ export type LookupFile = {
 
 export interface MonitoringFeatureUpdate {
   totalMeasurements: number;
+  totalsByCharacteristic: { [characteristic: string]: number };
   totalsByGroup: { [group: string]: number };
   timeframe: [number, number];
 }

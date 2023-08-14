@@ -719,6 +719,9 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       locations.forEach((location) => {
         stationUpdates[location.uniqueId] = {
           totalMeasurements: location.totalMeasurements,
+          totalsByCharacteristic: JSON.stringify(
+            location.totalsByCharacteristic,
+          ),
           totalsByGroup: JSON.stringify(location.totalsByGroup),
           timeframe: JSON.stringify(location.timeframe),
         };
