@@ -30,7 +30,7 @@ import {
   getDayOfYear,
   yearDayStringToEpoch,
 } from 'utils/dateUtils';
-import { addAnnualData, useAbort } from 'utils/hooks';
+import { useAbort } from 'utils/hooks';
 import {
   getWaterbodyCondition,
   isClassBreaksRenderer,
@@ -40,6 +40,7 @@ import {
 } from 'utils/mapFunctions';
 import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
 import {
+  addAnnualData,
   convertAgencyCode,
   convertDomainCode,
   formatNumber,

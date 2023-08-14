@@ -1,4 +1,3 @@
-import Papa from 'papaparse';
 import { fetchParseCsv } from 'utils/fetchUtils';
 import { structurePeriodOfRecordData } from 'utils/utils';
 

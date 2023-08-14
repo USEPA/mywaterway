@@ -1,7 +1,11 @@
 // types
 import type { CharacteristicGroupMappings } from 'config/characteristicGroupMappings';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import type { AnnualStationData, MonitoringPeriodOfRecordData } from 'types';
+import type {
+  AnnualStationData,
+  MonitoringLocationAttributes,
+  MonitoringPeriodOfRecordData,
+} from 'types';
 
 interface PeriodOfRecordDatum {
   Provider: string;
@@ -12,6 +16,38 @@ interface PeriodOfRecordDatum {
   ActivityCount: number;
   ResultCount: number;
   OrganizationIdentifier: string;
+}
+
+// Add the stations' historical data to the `dataByYear` property,
+export function addAnnualData(
+  monitoringLocations: MonitoringLocationAttributes[],
+  annualData: MonitoringPeriodOfRecordData['sites'],
+) {
+  return monitoringLocations.map((location) => {
+    const id = location.uniqueId;
+    if (id in annualData) {
+      return {
+        ...location,
+        dataByYear: annualData[id],
+        // Tally characteristic counts
+        totalsByCharacteristic: Object.values(annualData[id]).reduce(
+          (totals, yearData) => {
+            Object.entries(yearData.totalsByCharacteristic).forEach(
+              ([charc, count]) => {
+                if (count <= 0) return;
+                if (charc in totals) totals[charc] += count;
+                else totals[charc] = count;
+              },
+            );
+            return totals;
+          },
+          {} as { [characteristic: string]: number },
+        ),
+      };
+    } else {
+      return location;
+    }
+  });
 }
 
 // utility function to split up an array into chunks of a designated length

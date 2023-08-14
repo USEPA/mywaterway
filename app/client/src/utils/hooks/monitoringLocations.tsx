@@ -26,7 +26,7 @@ import {
   useLocalData,
 } from 'utils/hooks/boundariesToggleLayer';
 import { stringifyAttributes } from 'utils/mapFunctions';
-import { parseAttributes } from 'utils/utils';
+import { addAnnualData, parseAttributes } from 'utils/utils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // types
@@ -287,38 +287,6 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
 /*
 ## Utils
 */
-
-// Add the stations' historical data to the `dataByYear` property,
-export function addAnnualData(
-  monitoringLocations: MonitoringLocationAttributes[],
-  annualData: MonitoringPeriodOfRecordData['sites'],
-) {
-  return monitoringLocations.map((location) => {
-    const id = location.uniqueId;
-    if (id in annualData) {
-      return {
-        ...location,
-        dataByYear: annualData[id],
-        // Tally characteristic counts
-        totalsByCharacteristic: Object.values(annualData[id]).reduce(
-          (totals, yearData) => {
-            Object.entries(yearData.totalsByCharacteristic).forEach(
-              ([charc, count]) => {
-                if (count <= 0) return;
-                if (charc in totals) totals[charc] += count;
-                else totals[charc] = count;
-              },
-            );
-            return totals;
-          },
-          {} as { [characteristic: string]: number },
-        ),
-      };
-    } else {
-      return location;
-    }
-  });
-}
 
 function buildFeatures(locations: MonitoringLocationAttributes[]) {
   const structuredProps = [
