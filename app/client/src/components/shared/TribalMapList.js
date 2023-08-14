@@ -47,6 +47,7 @@ import {
 } from 'contexts/locationSearch';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import {
+  useCharacteristicsByGroupContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -969,6 +970,7 @@ function MonitoringTab({
 
   const { monitoringLocations } = useMonitoringLocations();
   const { monitoringLocationsLayer } = useLayers();
+  const characteristicsByGroup = useCharacteristicsByGroupContext();
 
   // sort the monitoring locations
   const [monitoringLocationsSortedBy, setMonitoringLocationsSortedBy] =
@@ -1112,6 +1114,7 @@ function MonitoringTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
+                characteristicsByGroup={characteristicsByGroup}
                 type="Past Water Conditions"
                 feature={feature}
                 services={services}
