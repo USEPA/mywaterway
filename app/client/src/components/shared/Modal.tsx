@@ -50,13 +50,9 @@ const confirmButtonStyles = css`
 
 const contentStyles = (maxWidth: string) => css`
   background-color: white;
-  height: fit-content;
-  position: relative;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   max-width: ${maxWidth};
   padding: 1.5rem;
+  position: relative;
 
   p {
     margin-top: 1rem;
@@ -99,6 +95,7 @@ const helpIconStyles = css`
 const overlayStyles = css`
   background-color: ${colors.black(0.33)};
   display: grid;
+  place-items: center;
   position: fixed;
   top: 0;
   left: 0;
