@@ -478,7 +478,7 @@ function MonitoringAndSensorsTab({
       }
 
       if (cyanDisplayed) {
-        displayedTypes.push('CyAN');
+        displayedTypes.push('Blue-Green Algae');
       }
 
       return displayedTypes.includes(item.monitoringType);
@@ -569,7 +569,7 @@ function MonitoringAndSensorsTab({
     ({ index }) => {
       const item = filteredMonitoringAndSensors[index];
 
-      if (item.monitoringType === 'CyAN') {
+      if (item.monitoringType === 'Blue-Green Algae') {
         const feature = {
           geometry: item.geometry,
           attributes: item,
@@ -596,7 +596,7 @@ function MonitoringAndSensorsTab({
                 feature={feature}
                 mapView={mapView}
                 services={services}
-                type="CyAN"
+                type="Blue-Green Algae"
               />
               <ViewOnMapButton feature={feature} fieldName="FID" />
             </div>

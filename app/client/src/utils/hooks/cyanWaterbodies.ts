@@ -162,7 +162,11 @@ function buildLayer(
       { name: 'FID', type: 'integer' },
       { name: 'GNIS_NAME', type: 'string' },
       { name: 'locationName', type: 'string' },
-      { name: 'monitoringType', type: 'string', defaultValue: 'CyAN' },
+      {
+        name: 'monitoringType',
+        type: 'string',
+        defaultValue: 'Blue-Green Algae',
+      },
       { name: 'OBJECTID', type: 'oid' },
       { name: 'oid', type: 'integer' },
       {
@@ -294,7 +298,7 @@ function transformServiceData(
     GNIS_NAME: feature.attributes.GNIS_NAME,
     geometry: feature.geometry as __esri.Polygon,
     locationName: feature.attributes.GNIS_NAME,
-    monitoringType: 'CyAN',
+    monitoringType: 'Blue-Green Algae',
     oid: feature.attributes.OBJECTID,
     orgName: 'Cyanobacteria Assessment Network (CyAN)',
   }));

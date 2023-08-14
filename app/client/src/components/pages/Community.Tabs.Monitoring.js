@@ -443,7 +443,7 @@ function CurrentConditionsTab({
     }
 
     if (cyanDisplayed) {
-      displayedTypes.push('CyAN');
+      displayedTypes.push('Blue-Green Algae');
     }
 
     return displayedTypes.includes(item.monitoringType);
@@ -651,7 +651,7 @@ function CurrentConditionsTab({
                     </AccordionItem>
                   );
                 }
-                case 'CyAN': {
+                case 'Blue-Green Algae': {
                   const feature = {
                     geometry: item.geometry,
                     attributes: item,
@@ -676,7 +676,7 @@ function CurrentConditionsTab({
                           feature={feature}
                           mapView={mapView}
                           services={services}
-                          type="CyAN"
+                          type="Blue-Green Algae"
                         />
                         <ViewOnMapButton feature={feature} fieldName="FID" />
                       </div>

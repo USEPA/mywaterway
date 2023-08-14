@@ -580,7 +580,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = monitoringLocationsLayer;
     } else if (attributes.monitoringType === 'USGS Sensors') {
       layer = usgsStreamgagesLayer;
-    } else if (attributes.monitoringType === 'CyAN') {
+    } else if (attributes.monitoringType === 'Blue-Green Algae') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
       featureLayerType = 'cyanWaterbodies';
     } else if (attributes.type === 'nonprofit') {

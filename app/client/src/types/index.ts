@@ -80,7 +80,7 @@ export interface CyanWaterbodyAttributes {
   geometry: __esri.Polygon;
   GNIS_NAME: string;
   locationName: string;
-  monitoringType: 'CyAN';
+  monitoringType: 'Blue-Green Algae';
   oid: number;
   orgName: 'Cyanobacteria Assessment Network (CyAN)';
 }
