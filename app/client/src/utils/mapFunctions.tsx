@@ -584,6 +584,7 @@ export const openPopup = (
   fields: __esri.Field[],
   services: ServicesState,
   stateNationalUses: LookupFile,
+  characteristicsByGroup: LookupFile,
   navigate: NavigateFunction,
 ) => {
   const fieldName = feature.attributes?.fieldName;
@@ -597,6 +598,7 @@ export const openPopup = (
       title: getPopupTitle(feature.attributes),
       content: (feature: Feature) =>
         getPopupContent({
+          characteristicsByGroup,
           feature: feature.graphic,
           fields,
           fieldName,

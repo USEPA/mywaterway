@@ -30,6 +30,7 @@ import AlertMessage from 'components/shared/AlertMessage';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import {
+  useCharacteristicsByGroupContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -47,15 +48,21 @@ const modifiedErrorBoxStyles = css`
 function AppRoutes() {
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
+  const characteristicsByGroup = useCharacteristicsByGroupContext();
 
   if (
     services.status === 'fetching' ||
-    stateNationalUses.status === 'fetching'
+    stateNationalUses.status === 'fetching' ||
+    characteristicsByGroup.status === 'fetching'
   ) {
     return <LoadingSpinner />;
   }
 
-  if (services.status === 'failure' || stateNationalUses.status === 'failure') {
+  if (
+    services.status === 'failure' ||
+    stateNationalUses.status === 'failure' ||
+    characteristicsByGroup.status === 'failure'
+  ) {
     return <div css={modifiedErrorBoxStyles}>{servicesLookupServiceError}</div>;
   }
 

@@ -289,7 +289,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
 */
 
 // Add the stations' historical data to the `dataByYear` property,
-function addAnnualData(
+export function addAnnualData(
   monitoringLocations: MonitoringLocationAttributes[],
   annualData: MonitoringPeriodOfRecordData['sites'],
 ) {

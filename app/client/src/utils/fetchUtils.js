@@ -80,7 +80,7 @@ export function lookupFetch(
   });
 }
 
-export function fetchParseCsv(url, { worker = true }) {
+export function fetchParseCsv(url, { worker = true } = {}) {
   return new Promise((resolve, reject) => {
     Papa.parse(url, {
       complete: (res) => resolve(res.data),

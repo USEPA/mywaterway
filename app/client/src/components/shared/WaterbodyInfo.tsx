@@ -30,7 +30,7 @@ import {
   getDayOfYear,
   yearDayStringToEpoch,
 } from 'utils/dateUtils';
-import { useAbort } from 'utils/hooks';
+import { addAnnualData, useAbort } from 'utils/hooks';
 import {
   getWaterbodyCondition,
   isClassBreaksRenderer,
@@ -2421,9 +2421,8 @@ function MonitoringLocationsContent({
     number | null
   >(null);
 
-  const attributes: MonitoringLocationAttributes = feature.attributes;
   const layer = feature.layer;
-  const parsed = useMemo(() => {
+  const attributes: MonitoringLocationAttributes = useMemo(() => {
     const structuredProps = [
       'totalsByCharacteristic',
       'totalsByGroup',
@@ -2431,9 +2430,9 @@ function MonitoringLocationsContent({
     ];
     return parseAttributes<MonitoringLocationAttributes>(
       structuredProps,
-      attributes,
+      feature.attributes,
     );
-  }, [attributes]);
+  }, [feature]);
 
   const {
     locationLatitude,
@@ -2446,11 +2445,12 @@ function MonitoringLocationsContent({
     siteId,
     providerName,
     totalSamples,
-    totalsByCharacteristic,
     totalsByGroup,
     totalMeasurements,
+    totalsByCharacteristic,
     timeframe,
-  } = parsed;
+    uniqueId,
+  } = attributes;
 
   const [groups, setGroups] = useState(() => {
     const { newGroups } = buildGroups(checkIfGroupInMapping, totalsByGroup);
@@ -2563,7 +2563,7 @@ function MonitoringLocationsContent({
     setTotalDisplayedMeasurements(selectAll === 0 ? totalMeasurements : 0);
   };
 
-  // A bit confusing, but the toggle table labels are groups of other groups of characteristics
+  // The toggle table labels are groups of *other* groups of characteristics
   const [selectedGroupLabel, setSelectedGroupLabel] = useState('');
   const [characteristics, setCharacteristics] = useState<
     FetchState<MonitoringLocationAttributes['totalsByCharacteristic']>
@@ -2571,7 +2571,6 @@ function MonitoringLocationsContent({
   const [modalTriggered, setModalTriggered] = useState(false);
   useEffect(() => {
     if (!modalTriggered) return;
-    if (characteristics.status === 'success') return;
     if (Object.keys(totalsByCharacteristic).length) {
       setCharacteristics({ status: 'success', data: totalsByCharacteristic });
     } else {
@@ -2585,16 +2584,30 @@ function MonitoringLocationsContent({
       setCharacteristics({ status: 'fetching', data: {} });
       fetchParseCsv(url)
         .then((records) => {
-          const dataById = structurePeriodOfRecordData(
+          const { sites } = structurePeriodOfRecordData(
             records,
             characteristicGroupMappings,
           );
+          setCharacteristics({
+            status: 'success',
+            data: addAnnualData([attributes], sites).pop()!
+              .totalsByCharacteristic,
+          });
         })
         .catch((_err) => {
           setCharacteristics({ status: 'failure', data: {} });
         });
     }
-  }, []);
+  }, [
+    attributes,
+    modalTriggered,
+    orgId,
+    providerName,
+    services,
+    siteId,
+    totalsByCharacteristic,
+    uniqueId,
+  ]);
 
   const groupCharacteristics = useMemo(() => {
     const lookup = characteristicsByGroup;
@@ -2795,7 +2808,7 @@ function MonitoringLocationsContent({
                             <th>
                               Detailed <em>{key}</em> Characteristics
                             </th>
-                            <th>Count</th>
+                            <th>Number of Measurements</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2829,6 +2842,7 @@ function MonitoringLocationsContent({
               <td></td>
               <td>Total</td>
               <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
+              <td></td>
             </tr>
           </tbody>
 
