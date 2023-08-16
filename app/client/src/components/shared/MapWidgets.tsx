@@ -1984,7 +1984,7 @@ function svgToPng(svgElm: SVGSVGElement): Promise<any> {
       // can use the domUrl function from the browser
       const domUrl = window.URL || window.webkitURL || window;
       if (!domUrl) {
-        reject({ message: 'Browser does not support converting SVG to PNG.' });
+        reject(new Error('Browser does not support converting SVG to PNG.'));
       }
 
       // figure out the height and width from svg text
@@ -1996,7 +1996,7 @@ function svgToPng(svgElm: SVGSVGElement): Promise<any> {
       svgText = svgText.replaceAll('xlink:', '');
 
       // verify it has a namespace
-      if (!svgText.match(/xmlns="/im)) {
+      if (!svgText.includes('xmlns="')) {
         svgText = svgText.replace(
           '<svg ',
           '<svg xmlns="http://www.w3.org/2000/svg" ',
@@ -2035,14 +2035,14 @@ function svgToPng(svgElm: SVGSVGElement): Promise<any> {
 
       img.onerror = function (err) {
         console.error(err);
-        reject({ message: 'Failed to convert svg to png.' });
+        reject(new Error('Failed to convert svg to png.'));
       };
 
       // load the image
       img.src = url;
     } catch (err) {
       console.error(err);
-      reject({ message: 'Failed to convert svg to png.' });
+      reject(new Error('Failed to convert svg to png.'));
     }
   });
 }
@@ -2288,19 +2288,11 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       const textItems = item.getElementsByClassName('hmw-legend__info');
       const text = textItems.length > 0 ? textItems[0].textContent : '';
 
-      if (symbol?.width > 30) {
-        legendItems.push({
-          image: symbol,
-          text,
-          type: 'item',
-        });
-      } else {
-        legendItems.push({
-          image: symbol,
-          text,
-          type: 'item',
-        });
-      }
+      legendItems.push({
+        image: symbol,
+        text,
+        type: 'item',
+      });
     }
 
     // loop through layers of esri legend items
@@ -2408,7 +2400,6 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
       if (['h1', 'h2', 'h3'].includes(type)) lastHeading = type;
       let numberOfIndents = 1;
-      if (lastHeading === 'h1') numberOfIndents = 1;
       if (lastHeading === 'h2') numberOfIndents = 2;
       if (lastHeading === 'h3') numberOfIndents = 3;
       if (type === 'item') numberOfIndents += 1;

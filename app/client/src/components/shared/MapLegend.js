@@ -1,6 +1,6 @@
 // @flow
 
-import React, { Fragment } from 'react';
+import React from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
