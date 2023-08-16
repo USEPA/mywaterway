@@ -1,5 +1,4 @@
 import { render } from 'react-dom';
-import { css } from 'styled-components/macro';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
 import Point from '@arcgis/core/geometry/Point';
@@ -949,24 +948,6 @@ export function graphicComparison(
   return true;
 }
 
-const tickMarkStyles = css`
-  display: flex;
-  align-items: center;
-  width: 100%;
-
-  ::before {
-    content: '';
-    width: 4px;
-    height: 1px;
-    background-color: #999;
-  }
-
-  p {
-    padding-left: 0.25em;
-    font-size: 0.875em !important;
-  }
-`;
-
 export function GradientIcon({
   id,
   stops,
@@ -977,15 +958,15 @@ export function GradientIcon({
   const divisions = stops.length - 1;
   return (
     <div css={{ display: 'flex', margin: 'auto' }}>
-      <div css={{ margin: '15px 0', border: '1px solid #999' }}>
-        <svg width={20} height={30 * divisions}>
+      <div css={{ margin: '15px 0' }}>
+        <svg width={50} height={(25 * divisions) + 20}>
           <defs>
             <linearGradient
               id={id}
               x1={0}
               y1={0}
               x2={0}
-              y2={30 * divisions}
+              y2={25 * divisions}
               gradientUnits="userSpaceOnUse"
             >
               {stops.map((stop, index) => (
@@ -1000,20 +981,16 @@ export function GradientIcon({
 
           <rect
             x={0}
-            y={0}
+            y={10}
             width={20}
-            height={30 * divisions}
+            height={25 * divisions}
             fill={`url(#${id})`}
           />
-        </svg>
-      </div>
 
-      <div css={{ display: 'flex', flexWrap: 'wrap', width: '45px' }}>
-        {stops.map((stop) => (
-          <div key={stop.label} css={tickMarkStyles}>
-            <p>{stop.label}</p>
-          </div>
-        ))}
+          {stops.map((stop, index) => (
+            <text key={stop.label} x="20" y={(25 * index) + 14} fontSize="smaller">-{stop.label}</text>
+          ))}
+        </svg>
       </div>
     </div>
   );
