@@ -2123,20 +2123,6 @@ const scaleContainerStyles = css`
   }
 `;
 
-const sizeContainerStyles = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  button {
-    background-color: #f0f6f9;
-  }
-
-  div {
-    flex: 0 0 43%;
-  }
-`;
-
 type LayoutOptionType =
   | {
       value: 'a3-landscape';
@@ -2212,7 +2198,6 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
     },
   ];
 
-  const [attributionVisible, setAttributionVisible] = useState(true);
   const [author, setAuthor] = useState('');
   const [copyright, setCopyright] = useState('');
   const [enableScale, setEnableScale] = useState(false);
@@ -2228,8 +2213,6 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
   >('idle');
   const [errorMessage, setErrorMessage] = useState<string>();
   const [title, setTitle] = useState('');
-  const [height, setHeight] = useState(1100);
-  const [width, setWidth] = useState(800);
 
   // Initializes a watcher to sync the view's scale.
   useEffect(() => {
@@ -2495,61 +2478,23 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
           Include Legend
         </label>
       </div>
-      {includeLegend && (
-        <div>
-          <label>
-            Page setup
-            <Select
-              menuPosition="fixed"
-              isSearchable={false}
-              value={layout}
-              onChange={(ev) => {
-                setLayout(ev as LayoutOptionType);
-              }}
-              options={layoutOptions}
-            />
-          </label>
-        </div>
-      )}
+      <div>
+        <label>
+          Page setup
+          <Select
+            menuPosition="fixed"
+            isSearchable={false}
+            value={layout}
+            onChange={(ev) => {
+              setLayout(ev as LayoutOptionType);
+            }}
+            options={layoutOptions}
+          />
+        </label>
+      </div>
       <AccordionList expandDisabled={true}>
         <AccordionItem status={'highlighted'} title="Advanced">
           <div css={advanceContainerStyles}>
-            {!includeLegend && (
-              <div css={sizeContainerStyles}>
-                <div>
-                  <label>
-                    Width:
-                    <input
-                      css={inputStyles}
-                      type="number"
-                      value={width}
-                      onChange={(ev) => setWidth(ev.target.valueAsNumber)}
-                    />
-                  </label>
-                </div>
-                <div>
-                  <label>
-                    Height:
-                    <input
-                      css={inputStyles}
-                      type="number"
-                      value={height}
-                      onChange={(ev) => setHeight(ev.target.valueAsNumber)}
-                    />
-                  </label>
-                </div>
-                <button
-                  className="esri-widget--button esri-print__swap-button esri-icon-swap"
-                  aria-label="swap"
-                  onClick={() => {
-                    const newWidth = height;
-                    const newHeight = width;
-                    setWidth(newWidth);
-                    setHeight(newHeight);
-                  }}
-                />
-              </div>
-            )}
             <div>
               <label css={checkboxStyles}>
                 <input
@@ -2577,52 +2522,37 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
                 }}
               />
             </div>
-            {includeLegend && (
-              <>
-                <div>
-                  <label>
-                    Author
-                    <input
-                      css={inputStyles}
-                      type="text"
-                      value={author}
-                      onChange={(ev) => setAuthor(ev.target.value)}
-                    />
-                  </label>
-                </div>
-                <div>
-                  <label>
-                    Copyright
-                    <input
-                      css={inputStyles}
-                      type="text"
-                      value={copyright}
-                      onChange={(ev) => setCopyright(ev.target.value)}
-                    />
-                  </label>
-                </div>
-              </>
-            )}
             <div>
-              {includeLegend ? (
-                <label css={checkboxStyles}>
-                  <input
-                    type="checkbox"
-                    checked={northArrowVisible}
-                    onChange={() => setNorthArrowVisible(!northArrowVisible)}
-                  />
-                  Include north arrow
-                </label>
-              ) : (
-                <label css={checkboxStyles}>
-                  <input
-                    type="checkbox"
-                    checked={attributionVisible}
-                    onChange={() => setAttributionVisible(!attributionVisible)}
-                  />
-                  Include attribution
-                </label>
-              )}
+              <label>
+                Author
+                <input
+                  css={inputStyles}
+                  type="text"
+                  value={author}
+                  onChange={(ev) => setAuthor(ev.target.value)}
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                Copyright
+                <input
+                  css={inputStyles}
+                  type="text"
+                  value={copyright}
+                  onChange={(ev) => setCopyright(ev.target.value)}
+                />
+              </label>
+            </div>
+            <div>
+              <label css={checkboxStyles}>
+                <input
+                  type="checkbox"
+                  checked={northArrowVisible}
+                  onChange={() => setNorthArrowVisible(!northArrowVisible)}
+                />
+                Include north arrow
+              </label>
             </div>
           </div>
         </AccordionItem>
@@ -2657,11 +2587,6 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
           try {
             const template = new PrintTemplate({
-              attributionVisible,
-              exportOptions: {
-                width,
-                height,
-              },
               format: 'pdf',
               layout: layout.value,
               layoutOptions: {
