@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { createPortal, render } from 'react-dom';
 import { saveAs } from 'file-saver';
+import { PageSizes, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Rnd } from 'react-rnd';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
@@ -1927,6 +1928,135 @@ function ShowSelectedUpstreamWatershed({
   );
 }
 
+/**
+ * Adds a pdf document to an existing pdf document.
+ *
+ * @param doc PDFDocument to load provided pdfFile into.
+ * @param pdfFile PDF file to load into provided doc.
+ */
+async function addDocument(doc: PDFDocument, pdfFile: ArrayBuffer) {
+  const src = await PDFDocument.load(pdfFile);
+  const copiedPages = await doc.copyPages(src, src.getPageIndices());
+  copiedPages.forEach((page) => {
+    doc.addPage(page);
+  });
+}
+
+/**
+ * Gets a symbol and converts it to a base64 PNG.
+ *
+ * @param parentElement Element to find symbol in.
+ * @param searchClass Class of symbol being searched for.
+ * @returns code as base64 PNG and height/width of image.
+ */
+async function getSymbol(parentElement: Element, searchClass: string) {
+  // get the symbol
+  const symbols = parentElement.getElementsByClassName(searchClass);
+  const symbol = symbols.length > 0 ? symbols[0] : null;
+  const svgs =
+    symbol?.tagName === 'SVG'
+      ? [symbol as SVGSVGElement]
+      : symbol?.getElementsByTagName('svg');
+  const svgTemp = svgs && svgs.length > 0 ? svgs[0] : null;
+  const png = svgTemp ? await svgToPng(svgTemp) : null;
+  if (png) return png;
+
+  const imgs =
+    symbol?.tagName === 'IMG'
+      ? [symbol as HTMLImageElement]
+      : symbol?.getElementsByTagName('img');
+  const img = imgs && imgs.length > 0 ? imgs[0] : null;
+  if (img) return { code: img.src, height: img.height, width: img.width };
+
+  return null;
+}
+
+/**
+ * Converts an svg string to base64 png using the domUrl.
+ *
+ * @param svgText the string representation of the SVG.
+ * @return a promise to the bas64 png image.
+ */
+function svgToPng(svgElm: SVGSVGElement): Promise<any> {
+  // convert an svg text to png using the browser
+  return new Promise(function (resolve, reject) {
+    try {
+      // can use the domUrl function from the browser
+      const domUrl = window.URL || window.webkitURL || window;
+      if (!domUrl) {
+        reject({ message: 'Browser does not support converting SVG to PNG.' });
+      }
+
+      // figure out the height and width from svg text
+      const height = svgElm.height.baseVal.value;
+      const width = svgElm.width.baseVal.value;
+
+      let svgText = svgElm.outerHTML;
+      // remove "xlink:"" from "xlink:href" as it is not proper SVG syntax
+      svgText = svgText.replaceAll('xlink:', '');
+
+      // verify it has a namespace
+      if (!svgText.match(/xmlns="/im)) {
+        svgText = svgText.replace(
+          '<svg ',
+          '<svg xmlns="http://www.w3.org/2000/svg" ',
+        );
+      }
+
+      // create a canvas element to pass through
+      let canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      // make a blob from the svg
+      const svg = new Blob([svgText], {
+        type: 'image/svg+xml;charset=utf-8',
+      });
+
+      // create a dom object for that image
+      const url = domUrl.createObjectURL(svg);
+
+      // create a new image to hold it the converted type
+      const img = new Image();
+
+      // when the image is loaded we can get it as base64 url
+      img.onload = function () {
+        if (!ctx) return;
+
+        // draw it to the canvas
+        ctx.drawImage(img, 0, 0);
+
+        // we don't need the original any more
+        domUrl.revokeObjectURL(url);
+        // now we can resolve the promise, passing the base64 url
+        resolve({ code: canvas.toDataURL(), width, height });
+      };
+
+      img.onerror = function (err) {
+        console.error(err);
+        reject({ message: 'Failed to convert svg to png.' });
+      };
+
+      // load the image
+      img.src = url;
+    } catch (err) {
+      console.error(err);
+      reject({ message: 'Failed to convert svg to png.' });
+    }
+  });
+}
+
+/**
+ * A wrapper for setTimeout, which allows async/await syntax.
+ *
+ * @param ms Milliseconds to wait for
+ * @returns Promise
+ */
+function timeout(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const advanceContainerStyles = css`
   padding: 10px;
 `;
@@ -2007,22 +2137,39 @@ const sizeContainerStyles = css`
   }
 `;
 
-type FormatOptionType =
-  | { value: 'pdf'; label: 'PDF'; extension: 'pdf' }
-  | { value: 'png32'; label: 'PNG'; extension: 'png' }
-  | { value: 'jpg'; label: 'JPG'; extension: 'jpg' }
-  | { value: 'gif'; label: 'GIF'; extension: 'gif' }
-  | { value: 'svg'; label: 'SVG'; extension: 'svg' };
-
 type LayoutOptionType =
-  | { value: 'a3-landscape'; label: 'A3 Landscape' }
-  | { value: 'a3-portrait'; label: 'A3 Portrait' }
-  | { value: 'a4-landscape'; label: 'A4 Landscape' }
-  | { value: 'a4-portrait'; label: 'A4 Portrait' }
-  | { value: 'letter-ansi-a-landscape'; label: 'Letter ANSI A Landscape' }
-  | { value: 'letter-ansi-a-portrait'; label: 'Letter ANSI A Portrait' }
-  | { value: 'tabloid-ansi-b-landscape'; label: 'Tabloid ANSI B Landscape' }
-  | { value: 'tabloid-ansi-b-portrait'; label: 'Tabloid ANSI B Portrait' };
+  | {
+      value: 'a3-landscape';
+      label: 'A3 Landscape';
+      dimensions: [number, number];
+    }
+  | { value: 'a3-portrait'; label: 'A3 Portrait'; dimensions: [number, number] }
+  | {
+      value: 'a4-landscape';
+      label: 'A4 Landscape';
+      dimensions: [number, number];
+    }
+  | { value: 'a4-portrait'; label: 'A4 Portrait'; dimensions: [number, number] }
+  | {
+      value: 'letter-ansi-a-landscape';
+      label: 'Letter ANSI A Landscape';
+      dimensions: [number, number];
+    }
+  | {
+      value: 'letter-ansi-a-portrait';
+      label: 'Letter ANSI A Portrait';
+      dimensions: [number, number];
+    }
+  | {
+      value: 'tabloid-ansi-b-landscape';
+      label: 'Tabloid ANSI B Landscape';
+      dimensions: [number, number];
+    }
+  | {
+      value: 'tabloid-ansi-b-portrait';
+      label: 'Tabloid ANSI B Portrait';
+      dimensions: [number, number];
+    };
 
 type DownloadWidgetProps = {
   services: ServicesState;
@@ -2030,32 +2177,46 @@ type DownloadWidgetProps = {
 };
 
 function DownloadWidget({ services, view }: DownloadWidgetProps) {
-  const formatOptions: FormatOptionType[] = [
-    { value: 'pdf', label: 'PDF', extension: 'pdf' },
-    { value: 'png32', label: 'PNG', extension: 'png' },
-    { value: 'jpg', label: 'JPG', extension: 'jpg' },
-    { value: 'gif', label: 'GIF', extension: 'gif' },
-    { value: 'svg', label: 'SVG', extension: 'svg' },
-  ];
-
   const layoutOptions: LayoutOptionType[] = [
-    { value: 'a3-landscape', label: 'A3 Landscape' },
-    { value: 'a3-portrait', label: 'A3 Portrait' },
-    { value: 'a4-landscape', label: 'A4 Landscape' },
-    { value: 'a4-portrait', label: 'A4 Portrait' },
-    { value: 'letter-ansi-a-landscape', label: 'Letter ANSI A Landscape' },
-    { value: 'letter-ansi-a-portrait', label: 'Letter ANSI A Portrait' },
-    { value: 'tabloid-ansi-b-landscape', label: 'Tabloid ANSI B Landscape' },
-    { value: 'tabloid-ansi-b-portrait', label: 'Tabloid ANSI B Portrait' },
+    {
+      value: 'a3-landscape',
+      label: 'A3 Landscape',
+      dimensions: [...PageSizes.A3].reverse() as [number, number],
+    },
+    { value: 'a3-portrait', label: 'A3 Portrait', dimensions: PageSizes.A3 },
+    {
+      value: 'a4-landscape',
+      label: 'A4 Landscape',
+      dimensions: [...PageSizes.A4].reverse() as [number, number],
+    },
+    { value: 'a4-portrait', label: 'A4 Portrait', dimensions: PageSizes.A4 },
+    {
+      value: 'letter-ansi-a-landscape',
+      label: 'Letter ANSI A Landscape',
+      dimensions: [...PageSizes.Letter].reverse() as [number, number],
+    },
+    {
+      value: 'letter-ansi-a-portrait',
+      label: 'Letter ANSI A Portrait',
+      dimensions: PageSizes.Letter,
+    },
+    {
+      value: 'tabloid-ansi-b-landscape',
+      label: 'Tabloid ANSI B Landscape',
+      dimensions: [...PageSizes.Tabloid].reverse() as [number, number],
+    },
+    {
+      value: 'tabloid-ansi-b-portrait',
+      label: 'Tabloid ANSI B Portrait',
+      dimensions: PageSizes.Tabloid,
+    },
   ];
 
   const [attributionVisible, setAttributionVisible] = useState(true);
   const [author, setAuthor] = useState('');
   const [copyright, setCopyright] = useState('');
-  const [dpi, setDpi] = useState(96);
   const [enableScale, setEnableScale] = useState(false);
   const [scale, setScale] = useState(0);
-  const [format, setFormat] = useState<FormatOptionType>(formatOptions[0]);
   const [includeLegend, setIncludeLegend] = useState(true);
   const [layout, setLayout] = useState<LayoutOptionType>(
     layoutOptions.find((o) => o.value === 'letter-ansi-a-landscape') ??
@@ -2084,6 +2245,238 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
     };
   }, [enableScale, view]);
 
+  async function generateMapPdf(
+    printVm: PrintVM,
+    template: PrintTemplate,
+    retryCount: number = 0,
+  ): Promise<ArrayBuffer | null> {
+    try {
+      const printRes = await printVm.print(template);
+      const res = await fetch(printRes.url);
+
+      // convert to array buffer and return
+      return await (await res.blob()).arrayBuffer();
+    } catch (err: any) {
+      console.error(err);
+
+      // set failure when retry is exceeded
+      if (retryCount === 3) {
+        setStatus('failure');
+        if (err.message) {
+          setErrorMessage(err.message);
+        } else {
+          setErrorMessage('Unknown error. Check developer tools console.');
+        }
+        throw err;
+      } else {
+        // recursive retry (1 second between retries)
+        console.log(`Failed to download. Retrying (${retryCount + 1} of 3)...`);
+        await timeout(1000);
+        return await generateMapPdf(printVm, template, retryCount + 1);
+      }
+    }
+  }
+
+  async function generateLegendPdf(doc: PDFDocument) {
+    const legendItems = [];
+    // loop through individual rows of hmw legend items
+    const listItems = document.getElementsByClassName('hmw-legend__item');
+    for (let item of listItems) {
+      const symbol = await getSymbol(item, 'hmw-legend__symbol');
+
+      // get the text
+      const textItems = item.getElementsByClassName('hmw-legend__info');
+      const text = textItems.length > 0 ? textItems[0].textContent : '';
+
+      if (symbol?.width > 30) {
+        legendItems.push({
+          image: symbol,
+          text,
+          type: 'item',
+        });
+      } else {
+        legendItems.push({
+          image: symbol,
+          text,
+          type: 'item',
+        });
+      }
+    }
+
+    // loop through layers of esri legend items
+    const legendServices = document.querySelectorAll(
+      '.esri-legend__service:not(.esri-legend__group-layer-child)',
+    );
+    for (let legendService of legendServices) {
+      let hasHighestLevel = false;
+      const groups = Array.from(
+        legendService.getElementsByClassName('esri-legend__group-layer-child'),
+      );
+      if (groups.length === 0) groups.push(legendService);
+      else {
+        const textItems = legendService.getElementsByClassName(
+          'esri-legend__service-label',
+        );
+        const text = textItems.length > 0 ? textItems[0].textContent : '';
+        legendItems.push({
+          text,
+          type: 'h1',
+        });
+        hasHighestLevel = true;
+      }
+
+      for (let group of groups) {
+        // get main title
+        const textItems = group.getElementsByClassName(
+          'esri-legend__service-label',
+        );
+        const text = textItems.length > 0 ? textItems[0].textContent : '';
+        if (text) {
+          legendItems.push({
+            text,
+            type: hasHighestLevel ? 'h2' : 'h1',
+          });
+        }
+
+        // get layer level content
+        const layers = group.getElementsByClassName('esri-legend__layer');
+        for (let layer of layers) {
+          // get captions
+          const textItems = layer.getElementsByClassName(
+            'esri-legend__layer-caption',
+          );
+          for (let textItem of textItems) {
+            const text = textItem.textContent;
+            if (text) {
+              legendItems.push({
+                text,
+                type: hasHighestLevel ? 'h3' : 'h2',
+              });
+            }
+          }
+
+          // get row level content
+          const rows = layer.getElementsByClassName('esri-legend__layer-row');
+          for (let row of rows) {
+            const symbol = await getSymbol(row, 'esri-legend__symbol');
+
+            // get the text
+            const textItems = row.getElementsByClassName(
+              'esri-legend__layer-cell--info',
+            );
+            const text = textItems.length > 0 ? textItems[0].textContent : '';
+
+            if (text) {
+              legendItems.push({
+                image: symbol,
+                text,
+                type: 'item',
+              });
+            } else {
+              legendItems.push({
+                image: symbol,
+                type: 'item',
+              });
+            }
+          }
+        }
+      }
+    }
+
+    let currentPage = doc.addPage(layout.dimensions);
+    const helveticaFont = doc.embedStandardFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = doc.embedStandardFont(
+      StandardFonts.HelveticaBold,
+    );
+    const { height } = currentPage.getSize();
+    const topMargin = 10;
+    const leftMargin = 10;
+    const fontSize = 10;
+
+    // add header
+    let verticalPosition = height - 18 - topMargin * 2;
+    currentPage.drawText('Legend', {
+      x: leftMargin,
+      y: verticalPosition,
+      font: helveticaBoldFont,
+      size: 18,
+    });
+
+    let lastHeading = 'h1';
+    for (const item of legendItems) {
+      const { image, text, type } = item;
+
+      if (['h1', 'h2', 'h3'].includes(type)) lastHeading = type;
+      let numberOfIndents = 1;
+      if (lastHeading === 'h1') numberOfIndents = 1;
+      if (lastHeading === 'h2') numberOfIndents = 2;
+      if (lastHeading === 'h3') numberOfIndents = 3;
+      if (type === 'item') numberOfIndents += 1;
+
+      // positioning logic
+      const imageScaleFactor = 0.75;
+      let x = leftMargin * numberOfIndents;
+      const rowHeight = Math.max(
+        fontSize,
+        (image?.height || 0) * imageScaleFactor,
+      );
+      const tempY = verticalPosition - rowHeight - topMargin;
+      if (tempY < topMargin) {
+        currentPage = doc.addPage(layout.dimensions);
+        verticalPosition = height - rowHeight - topMargin * 2;
+      } else {
+        verticalPosition = tempY;
+      }
+
+      if (image) {
+        try {
+          if (!image.code.includes(';base64,')) {
+            image.code = await (await fetch(image.code)).arrayBuffer();
+          }
+
+          const pdfImage = await doc.embedPng(image.code);
+          const imageDims = pdfImage.scale(imageScaleFactor);
+          currentPage.drawImage(pdfImage, {
+            x,
+            y: verticalPosition,
+            width: imageDims.width,
+            height: imageDims.height,
+          });
+
+          x = x + leftMargin + imageDims.width;
+        } catch (err) {
+          console.error(err);
+          const message = 'Failed to load image.';
+          currentPage.drawText(message, {
+            x,
+            y:
+              verticalPosition +
+              ((image?.height || 0) * imageScaleFactor) / 2 -
+              topMargin / 2,
+            color: rgb(1, 0, 0),
+            font: helveticaFont,
+            size: fontSize,
+          });
+
+          x =
+            x + leftMargin + helveticaFont.widthOfTextAtSize(message, fontSize);
+        }
+      }
+
+      if (text) {
+        currentPage.drawText(text, {
+          x,
+          y:
+            verticalPosition +
+            ((image?.height || 0) * imageScaleFactor) / 2 -
+            topMargin / 2,
+          font: ['h1', 'h2'].includes(type) ? helveticaBoldFont : helveticaFont,
+          size: fontSize,
+        });
+      }
+    }
+  }
+
   return (
     <div
       className="esri-widget esri-widget--panel-height-only"
@@ -2098,21 +2491,6 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
             type="text"
             value={title}
             onChange={(ev) => setTitle(ev.target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          File Format
-          <Select
-            menuPosition="fixed"
-            inputId="url-type-select"
-            isSearchable={false}
-            value={format}
-            onChange={(ev) => {
-              setFormat(ev as FormatOptionType);
-            }}
-            options={formatOptions}
           />
         </label>
       </div>
@@ -2235,17 +2613,6 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
               </>
             )}
             <div>
-              <label>
-                DPI
-                <input
-                  css={inputStyles}
-                  type="number"
-                  value={dpi}
-                  onChange={(ev) => setDpi(ev.target.valueAsNumber)}
-                />
-              </label>
-            </div>
-            <div>
               {includeLegend ? (
                 <label css={checkboxStyles}>
                   <input
@@ -2286,7 +2653,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       <button
         css={downloadButtonStyles}
         disabled={status === 'fetching'}
-        onClick={() => {
+        onClick={async () => {
           if (!view || services.status !== 'success') return;
 
           if (!title) {
@@ -2297,91 +2664,79 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
           setStatus('fetching');
 
-          const template = new PrintTemplate({
-            attributionVisible,
-            exportOptions: {
-              width,
-              height,
-              dpi,
-            },
-            format: format.value,
-            layout: includeLegend ? layout.value : 'map-only',
-            layoutOptions: {
-              titleText: title,
-              authorText: author,
-              copyrightText: copyright,
-              elementOverrides: {
-                'North Arrow': {
-                  visible: northArrowVisible,
+          try {
+            const template = new PrintTemplate({
+              attributionVisible,
+              exportOptions: {
+                width,
+                height,
+              },
+              format: 'pdf',
+              layout: layout.value,
+              layoutOptions: {
+                titleText: title,
+                authorText: author,
+                copyrightText: copyright,
+                legendLayers: [], // hide legend since it has a bug
+                elementOverrides: {
+                  'North Arrow': {
+                    visible: northArrowVisible,
+                  },
                 },
               },
-            },
-            outScale: scale,
-          });
-
-          const printVm = new PrintVM({
-            printServiceUrl: services.data.printService,
-            view,
-          });
-
-          // temporarily re-enable legend for visible layers being downloaded
-          const layersLegendDisabled: __esri.Layer[] = [];
-          view.map.layers.forEach((layer) => {
-            if(!layer.visible) return;
-
-            if (isGroupLayer(layer)) {
-              layer.layers.forEach((layer) => {
-                if (!layer.visible) return;
-
-                (layer as any).legendEnabled = true;
-                layersLegendDisabled.push(layer);
-              });
-            }
-            
-            (layer as any).legendEnabled = true;
-            layersLegendDisabled.push(layer);
-          })
-
-          // disables the legend for layers where the legend was temporarily enabled
-          function disableLegend() {
-            layersLegendDisabled.forEach((layer) => {
-              (layer as any).legendEnabled = false;
+              outScale: scale,
             });
+
+            const printVm = new PrintVM({
+              printServiceUrl: services.data.printService,
+              view,
+            });
+
+            // get parts of pdf
+            const mapPdf = await generateMapPdf(printVm, template);
+            if (!mapPdf) return;
+
+            // merge the parts together
+            const doc = await PDFDocument.create();
+            const creator = `U.S. EPA How's My Waterway`;
+            doc.setTitle(title);
+            doc.setAuthor(`${author || creator}`);
+            doc.setSubject(title);
+            doc.setKeywords([
+              'MyWaterway',
+              'HMWv2',
+              'WATERS',
+              'RAD',
+              'ATTAINS',
+              'GRTS',
+              'STORET',
+              'WQP',
+              'WQX',
+            ]);
+            doc.setProducer(creator);
+            doc.setCreator(creator);
+            doc.setCreationDate(new Date());
+            doc.setModificationDate(new Date());
+
+            await addDocument(doc, mapPdf);
+
+            // get legend part if necessary
+            if (includeLegend) await generateLegendPdf(doc);
+
+            // save from browser
+            const mergedPdf = new Blob([await doc.save()]);
+            saveAs(mergedPdf, `${title}.pdf`);
+
+            setStatus('success');
+          } catch (err: any) {
+            console.error(err);
+            setStatus('failure');
+            if (err.message) {
+              setErrorMessage(err.message);
+            } else {
+              setErrorMessage('Unknown error. Check developer tools console.');
+            }
           }
-
-          function download(retryCount: number = 0) {
-            printVm
-              .print(template)
-              .then((res) => {
-                saveAs(res.url, `${title}.${format.extension}`);
-                setStatus('success');
-                disableLegend();
-              })
-              .catch((err) => {
-                console.error(err);
-
-                // set failure when retry is exceeded
-                if (retryCount === 3) {
-                  setStatus('failure');
-                  if (err.message) {
-                    setErrorMessage(err.message);
-                  } else {
-                    setErrorMessage(
-                      'Unknown error. Check developer tools console.',
-                    );
-                  }
-                  disableLegend();
-                } else {
-                  // recursive retry (1 second between retries)
-                  console.log(
-                    `Failed to download. Retrying (${retryCount + 1} of 3)...`,
-                  );
-                  setTimeout(() => download(retryCount + 1), 1000);
-                }
-              });
-          }
-
-          download();
         }}
       >
         Download

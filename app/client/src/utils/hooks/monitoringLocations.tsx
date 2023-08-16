@@ -317,6 +317,7 @@ function buildLayer(
       }),
     ],
     renderer: new SimpleRenderer({
+      label: 'Location',
       symbol: new SimpleMarkerSymbol({
         style: 'circle',
         color: colors.lightPurple(type === 'enclosed' ? 0.5 : 0.3),
