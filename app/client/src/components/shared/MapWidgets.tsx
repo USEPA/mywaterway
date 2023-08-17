@@ -1948,7 +1948,7 @@ type PdfLegendImage = {
   width: number;
 };
 
-type PdfLegendItemType = 'h1' | 'h2' | 'h3' | 'item';
+type PdfLegendItemType = 'h1' | 'h2' | 'h3' | 'item' | 'imageItem';
 
 type PdfLegendItem = {
   image?: PdfLegendImage | null;
@@ -2044,7 +2044,7 @@ async function appendHmwLegendItems(legendItems: PdfLegendItem[]) {
       element: item,
       symbolClass: 'hmw-legend__symbol',
       textClass: 'hmw-legend__info',
-      type: 'item',
+      type: 'imageItem',
     });
   }
 }
@@ -2154,12 +2154,13 @@ function calculatePositioning({
   imageScaledHeight: number;
 }) {
   const { height, width } = currentPage.getSize();
+  const { dimensions, pageMargin } = layout;
 
   const rowHeight = Math.max(textHeight, imageScaledHeight);
   const tempY = verticalPosition - rowHeight - topMargin;
   if (tempY < topMargin) {
     // determine whether to start a new column or page
-    if (horizontalPosition + columnWidth * 2 + leftMargin * 2 < width) {
+    if (horizontalPosition + columnWidth * 2 + pageMargin * 2 < width) {
       // start a new column on the same page
       verticalPosition = height - rowHeight - topMargin * 2;
       if (pageIndex === 0)
@@ -2168,10 +2169,10 @@ function calculatePositioning({
       x = horizontalPosition + leftMargin * numberOfIndents;
     } else {
       // start a new page
-      currentPage = doc.addPage(layout.dimensions);
+      currentPage = doc.addPage(dimensions);
       pageIndex += 1;
       horizontalPosition = 0;
-      x = leftMargin * numberOfIndents;
+      x = pageMargin + leftMargin * numberOfIndents;
       verticalPosition = height - rowHeight - topMargin * 2;
     }
   } else {
@@ -2525,39 +2526,12 @@ const scaleContainerStyles = css`
   }
 `;
 
-type LayoutOptionType =
-  | {
-      value: 'a3-landscape';
-      label: 'A3 Landscape';
-      dimensions: [number, number];
-    }
-  | { value: 'a3-portrait'; label: 'A3 Portrait'; dimensions: [number, number] }
-  | {
-      value: 'a4-landscape';
-      label: 'A4 Landscape';
-      dimensions: [number, number];
-    }
-  | { value: 'a4-portrait'; label: 'A4 Portrait'; dimensions: [number, number] }
-  | {
-      value: 'letter-ansi-a-landscape';
-      label: 'Letter ANSI A Landscape';
-      dimensions: [number, number];
-    }
-  | {
-      value: 'letter-ansi-a-portrait';
-      label: 'Letter ANSI A Portrait';
-      dimensions: [number, number];
-    }
-  | {
-      value: 'tabloid-ansi-b-landscape';
-      label: 'Tabloid ANSI B Landscape';
-      dimensions: [number, number];
-    }
-  | {
-      value: 'tabloid-ansi-b-portrait';
-      label: 'Tabloid ANSI B Portrait';
-      dimensions: [number, number];
-    };
+type LayoutOptionType = {
+  value: string;
+  label: string;
+  dimensions: [number, number];
+  pageMargin: number;
+};
 
 type DownloadWidgetProps = {
   services: ServicesState;
@@ -2570,33 +2544,49 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       value: 'a3-landscape',
       label: 'A3 Landscape',
       dimensions: [...PageSizes.A3].reverse() as [number, number],
+      pageMargin: 18,
     },
-    { value: 'a3-portrait', label: 'A3 Portrait', dimensions: PageSizes.A3 },
+    {
+      value: 'a3-portrait',
+      label: 'A3 Portrait',
+      dimensions: PageSizes.A3,
+      pageMargin: 18,
+    },
     {
       value: 'a4-landscape',
       label: 'A4 Landscape',
       dimensions: [...PageSizes.A4].reverse() as [number, number],
+      pageMargin: 17,
     },
-    { value: 'a4-portrait', label: 'A4 Portrait', dimensions: PageSizes.A4 },
+    {
+      value: 'a4-portrait',
+      label: 'A4 Portrait',
+      dimensions: PageSizes.A4,
+      pageMargin: 17,
+    },
     {
       value: 'letter-ansi-a-landscape',
       label: 'Letter ANSI A Landscape',
       dimensions: [...PageSizes.Letter].reverse() as [number, number],
+      pageMargin: 25,
     },
     {
       value: 'letter-ansi-a-portrait',
       label: 'Letter ANSI A Portrait',
       dimensions: PageSizes.Letter,
+      pageMargin: 25,
     },
     {
       value: 'tabloid-ansi-b-landscape',
       label: 'Tabloid ANSI B Landscape',
       dimensions: [...PageSizes.Tabloid].reverse() as [number, number],
+      pageMargin: 25,
     },
     {
       value: 'tabloid-ansi-b-portrait',
       label: 'Tabloid ANSI B Portrait',
       dimensions: PageSizes.Tabloid,
+      pageMargin: 25,
     },
   ];
 
@@ -2699,7 +2689,8 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
         : helveticaFont;
 
       // set x starting position
-      let x = horizontalPosition + leftMargin * numberOfIndents;
+      let x =
+        horizontalPosition + layout.pageMargin + leftMargin * numberOfIndents;
 
       // get image dimensions after scaling
       const { pdfImage, imageScaledHeight, imageScaledWidth } =
