@@ -20,12 +20,12 @@ import {
   updateFeatureLayer,
   useBoundariesToggleLayer,
   useLocalData,
-} from 'utils/hooks/boundariesToggleLayer';
+} from 'utils/boundariesToggleLayer';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type { CyanWaterbodyAttributes, Feature, ServicesData } from 'types';
-import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 
 /*
 ## Hooks

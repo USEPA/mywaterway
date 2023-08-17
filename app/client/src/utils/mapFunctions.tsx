@@ -584,7 +584,6 @@ export const openPopup = (
   fields: __esri.Field[],
   services: ServicesState,
   stateNationalUses: LookupFile,
-  characteristicsByGroup: LookupFile,
   navigate: NavigateFunction,
 ) => {
   const fieldName = feature.attributes?.fieldName;
@@ -598,7 +597,6 @@ export const openPopup = (
       title: getPopupTitle(feature.attributes),
       content: (feature: Feature) =>
         getPopupContent({
-          characteristicsByGroup,
           feature: feature.graphic,
           fields,
           fieldName,
@@ -745,7 +743,6 @@ export function getPopupContent({
   mapView,
   resetData,
   services,
-  characteristicsByGroup,
   stateNationalUses,
   fields,
   navigate,
@@ -757,7 +754,6 @@ export function getPopupContent({
   mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
-  characteristicsByGroup?: LookupFile;
   stateNationalUses?: LookupFile;
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
@@ -860,7 +856,6 @@ export function getPopupContent({
       mapView={mapView}
       resetData={resetData}
       services={services}
-      characteristicsByGroup={characteristicsByGroup}
       stateNationalUses={stateNationalUses}
       fields={fields}
       navigate={navigate}

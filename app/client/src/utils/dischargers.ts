@@ -17,7 +17,7 @@ import {
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
-} from 'utils/hooks/boundariesToggleLayer';
+} from 'utils/boundariesToggleLayer';
 // config
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
@@ -28,7 +28,7 @@ import type {
   PermittedDischargersData,
   ServicesData,
 } from 'types';
-import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
 import { colors } from 'styles';
 

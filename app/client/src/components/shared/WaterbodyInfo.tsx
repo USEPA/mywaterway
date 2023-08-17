@@ -41,13 +41,15 @@ import {
 import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
 import {
   addAnnualData,
+  structurePeriodOfRecordData,
+} from 'utils/monitoringLocations';
+import {
   convertAgencyCode,
   convertDomainCode,
   formatNumber,
   getSelectedCommunityTab,
   parseAttributes,
   isAbort,
-  structurePeriodOfRecordData,
   titleCaseWithExceptions,
   toFixedFloat,
 } from 'utils/utils';
@@ -76,6 +78,7 @@ import type {
   ChangeLocationAttributes,
   ClickedHucState,
   FetchState,
+  FetchStateWithDefault,
   LookupFile,
   MonitoringLocationAttributes,
   ServicesState,
@@ -391,7 +394,6 @@ type WaterbodyInfoProps = {
   fields?: __esri.Field[] | null;
   mapView?: __esri.MapView;
   services?: ServicesState;
-  characteristicsByGroup?: LookupFile;
   stateNationalUses?: LookupFile;
   type: string;
 };
@@ -406,7 +408,6 @@ function WaterbodyInfo({
   extraContent,
   mapView,
   services,
-  characteristicsByGroup,
   stateNationalUses,
   fields,
 }: WaterbodyInfoProps) {
@@ -1203,11 +1204,7 @@ function WaterbodyInfo({
   }
   if (type === 'Past Water Conditions') {
     content = (
-      <MonitoringLocationsContent
-        characteristicsByGroup={characteristicsByGroup}
-        feature={feature}
-        services={services}
-      />
+      <MonitoringLocationsContent feature={feature} services={services} />
     );
   }
   if (type === 'Nonprofit') content = nonprofitContent;
@@ -1247,7 +1244,6 @@ type MapPopupProps = {
   mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
-  characteristicsByGroup?: LookupFile;
   stateNationalUses?: LookupFile;
   fields?: __esri.Field[] | null;
 };
@@ -1261,7 +1257,6 @@ function MapPopup({
   mapView,
   resetData,
   services,
-  characteristicsByGroup,
   stateNationalUses,
   fields,
   navigate,
@@ -1383,7 +1378,6 @@ function MapPopup({
             extraContent={extraContent}
             mapView={mapView}
             services={services}
-            characteristicsByGroup={characteristicsByGroup}
             stateNationalUses={stateNationalUses}
             fields={fields}
           />
@@ -2406,13 +2400,11 @@ function checkIfGroupInMapping(groupName: string): boolean {
 }
 
 type MonitoringLocationsContentProps = {
-  characteristicsByGroup?: LookupFile;
   feature: __esri.Graphic;
   services?: ServicesState;
 };
 
 function MonitoringLocationsContent({
-  characteristicsByGroup,
   feature,
   services,
 }: MonitoringLocationsContentProps) {
@@ -2425,6 +2417,7 @@ function MonitoringLocationsContent({
   const layer = feature.layer;
   const attributes: MonitoringLocationAttributes = useMemo(() => {
     const structuredProps = [
+      'characteristicsByGroup',
       'totalsByCharacteristic',
       'totalsByGroup',
       'timeframe',
@@ -2436,6 +2429,7 @@ function MonitoringLocationsContent({
   }, [feature]);
 
   const {
+    characteristicsByGroup,
     locationLatitude,
     locationLongitude,
     locationName,
@@ -2566,41 +2560,67 @@ function MonitoringLocationsContent({
 
   // The toggle table labels are groups of *other* groups of characteristics
   const [selectedGroupLabel, setSelectedGroupLabel] = useState('');
+  const characteristicsDefaultData = () => ({
+    characteristicsByGroup: {},
+    totalsByCharacteristic: {},
+  });
   const [characteristics, setCharacteristics] = useState<
-    FetchState<MonitoringLocationAttributes['totalsByCharacteristic']>
-  >({ status: 'idle', data: {} });
+    FetchStateWithDefault<{
+      characteristicsByGroup: MonitoringLocationAttributes['characteristicsByGroup'];
+      totalsByCharacteristic: MonitoringLocationAttributes['totalsByCharacteristic'];
+    }>
+  >({ status: 'idle', data: characteristicsDefaultData() });
   const [modalTriggered, setModalTriggered] = useState(false);
   useEffect(() => {
     if (!modalTriggered) return;
     if (Object.keys(totalsByCharacteristic).length) {
-      setCharacteristics({ status: 'success', data: totalsByCharacteristic });
+      setCharacteristics({
+        status: 'success',
+        data: { characteristicsByGroup, totalsByCharacteristic },
+      });
     } else {
       if (services?.status !== 'success') {
-        setCharacteristics({ status: services?.status ?? 'failure', data: {} });
+        setCharacteristics({
+          status:
+            services?.status === 'fetching'
+              ? 'pending'
+              : services?.status ?? 'failure',
+          data: characteristicsDefaultData(),
+        });
         return;
       }
       const url =
         `${services.data.waterQualityPortal.monitoringLocation}search?` +
         `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&providers=${providerName}&organization=${orgId}&siteid=${siteId}`;
-      setCharacteristics({ status: 'fetching', data: {} });
+      setCharacteristics({
+        status: 'pending',
+        data: characteristicsDefaultData(),
+      });
       fetchParseCsv(url)
         .then((records) => {
           const { sites } = structurePeriodOfRecordData(
             records,
             characteristicGroupMappings,
           );
+          const updatedAttributes = addAnnualData([attributes], sites).pop()!;
           setCharacteristics({
             status: 'success',
-            data: addAnnualData([attributes], sites).pop()!
-              .totalsByCharacteristic,
+            data: {
+              characteristicsByGroup: updatedAttributes.characteristicsByGroup,
+              totalsByCharacteristic: updatedAttributes.totalsByCharacteristic,
+            },
           });
         })
         .catch((_err) => {
-          setCharacteristics({ status: 'failure', data: {} });
+          setCharacteristics({
+            status: 'failure',
+            data: characteristicsDefaultData(),
+          });
         });
     }
   }, [
     attributes,
+    characteristicsByGroup,
     modalTriggered,
     orgId,
     providerName,
@@ -2610,32 +2630,19 @@ function MonitoringLocationsContent({
     uniqueId,
   ]);
 
-  const groupCharacteristics = useMemo(() => {
-    const lookup = characteristicsByGroup;
-    const charcs = characteristics;
-    if (lookup?.status === 'failure' || charcs.status === 'failure')
-      return { status: 'failure', data: {} };
-    if (lookup?.status === 'fetching' || charcs.status === 'fetching')
-      return { status: 'pending', data: {} };
-    if (lookup?.status === 'success' && charcs.status === 'success') {
-      const innerGroups = groups[selectedGroupLabel].characteristicGroups;
-      return {
-        status: 'success',
-        data: Object.entries(charcs.data).reduce(
-          (result, [characteristic, count]) => {
-            for (let innerGroup of innerGroups) {
-              if (lookup.data[innerGroup]?.includes(characteristic)) {
-                return { ...result, [characteristic]: count };
-              }
-            }
-            return result;
-          },
-          {},
-        ),
-      };
+  const innerGroups = groups[selectedGroupLabel]?.characteristicGroups;
+  const groupCharacteristics = Object.entries(
+    characteristics.data.totalsByCharacteristic,
+  ).reduce((result, [charc, count]) => {
+    for (let innerGroup of innerGroups) {
+      if (
+        characteristics.data.characteristicsByGroup[innerGroup]?.includes(charc)
+      ) {
+        return { ...result, [charc]: count };
+      }
     }
-    return { status: 'idle', data: {} };
-  }, [characteristics, characteristicsByGroup, groups, selectedGroupLabel]);
+    return result;
+  }, {});
 
   // if a user has filtered out certain characteristic groups for
   // a given table, that'll be used as additional query string
@@ -2813,7 +2820,7 @@ function MonitoringLocationsContent({
                           </tr>
                         </thead>
                         <tbody>
-                          {Object.entries(groupCharacteristics.data).map(
+                          {Object.entries(groupCharacteristics).map(
                             ([charc, count]) => (
                               <tr key={charc}>
                                 <td>{charc}</td>
@@ -2823,10 +2830,10 @@ function MonitoringLocationsContent({
                           )}
                         </tbody>
                       </table>
-                      {groupCharacteristics.status === 'pending' && (
+                      {characteristics.status === 'pending' && (
                         <LoadingSpinner />
                       )}
-                      {groupCharacteristics.status === 'failure' && (
+                      {characteristics.status === 'failure' && (
                         <div css={errorBoxStyles}>
                           <p>
                             Detailed characteristics could not be retrieved at

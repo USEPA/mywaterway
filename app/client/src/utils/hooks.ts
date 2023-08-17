@@ -30,7 +30,6 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
   useServicesContext,
   useStateNationalUsesContext,
-  useCharacteristicsByGroupContext,
 } from 'contexts/LookupFiles';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
@@ -430,7 +429,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
-  const characteristicsByGroup = useCharacteristicsByGroupContext();
   const navigate = useNavigate();
 
   // Handles zooming to a selected graphic when "View on Map" is clicked.
@@ -470,18 +468,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         dynamicPopupFields,
         services,
         stateNationalUses,
-        characteristicsByGroup,
         navigate,
       );
     });
-  }, [
-    characteristicsByGroup,
-    mapView,
-    navigate,
-    selectedGraphic,
-    services,
-    stateNationalUses,
-  ]);
+  }, [mapView, navigate, selectedGraphic, services, stateNationalUses]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);
@@ -775,7 +765,6 @@ function useDynamicPopup() {
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
-  const characteristicsByGroup = useCharacteristicsByGroupContext();
   const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
   );
@@ -848,7 +837,6 @@ function useDynamicPopup() {
           hucBoundaries.features[0].geometry.contains(location))
       ) {
         return getPopupContent({
-          characteristicsByGroup,
           feature: graphic.graphic,
           fields,
           mapView,
@@ -859,7 +847,6 @@ function useDynamicPopup() {
       }
 
       return getPopupContent({
-        characteristicsByGroup,
         feature: graphic.graphic,
         fields,
         getClickedHuc: getClickedHuc(location),
@@ -871,7 +858,6 @@ function useDynamicPopup() {
       });
     },
     [
-      characteristicsByGroup,
       getClickedHuc,
       getHucBoundaries,
       getMapView,
@@ -1801,9 +1787,15 @@ export {
   useWaterbodyHighlight,
 };
 
-export * from './allWaterbodies';
-export * from './boundariesToggleLayer';
-export * from './cyanWaterbodies';
-export * from './dischargers';
-export * from './monitoringLocations';
-export * from './streamgages';
+export { useAllWaterbodiesLayer } from './allWaterbodies';
+export {
+  useCyanWaterbodies,
+  useCyanWaterbodiesLayers,
+} from './cyanWaterbodies';
+export { useDischargers, useDischargersLayers } from './dischargers';
+export {
+  useMonitoringGroups,
+  useMonitoringLocations,
+  useMonitoringLocationsLayers,
+} from './monitoringLocations';
+export { useStreamgages, useStreamgageLayers } from './streamgages';

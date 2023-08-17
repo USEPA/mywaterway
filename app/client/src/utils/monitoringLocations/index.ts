@@ -24,9 +24,9 @@ import {
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
-} from 'utils/hooks/boundariesToggleLayer';
+} from 'utils/boundariesToggleLayer';
 import { stringifyAttributes } from 'utils/mapFunctions';
-import { addAnnualData, parseAttributes } from 'utils/utils';
+import { parseAttributes } from 'utils/utils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // types
@@ -38,10 +38,10 @@ import type {
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
   MonitoringLocationsData,
-  MonitoringPeriodOfRecordData,
   ServicesData,
 } from 'types';
-import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+import type { MonitoringPeriodOfRecordData } from './periodOfRecord';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
 import { colors } from 'styles';
 
@@ -115,10 +115,7 @@ export function useMonitoringGroups() {
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
-export function useMonitoringPeriodOfRecord(
-  filter: string | null,
-  enabled: boolean,
-) {
+function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
   const {
     setMonitoringPeriodOfRecordStatus,
     setMonitoringYearsRange,
@@ -172,7 +169,7 @@ export function useMonitoringPeriodOfRecord(
     // Create the worker and assign it a job, then listen for a response
     if (recordsWorker.current) recordsWorker.current.terminate();
     recordsWorker.current = new Worker(
-      new URL('../tasks/periodOfRecordWorker', import.meta.url),
+      new URL('./periodOfRecord', import.meta.url),
     );
     // Tell the worker to start the task
     recordsWorker.current.postMessage([url, characteristicGroupMappings]);
@@ -288,8 +285,55 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
 ## Utils
 */
 
+// Add the stations' historical data to the `dataByYear` property,
+export function addAnnualData(
+  monitoringLocations: MonitoringLocationAttributes[],
+  annualData: MonitoringPeriodOfRecordData['sites'],
+) {
+  return monitoringLocations.map((location) => {
+    const id = location.uniqueId;
+    if (id in annualData) {
+      return {
+        ...location,
+        dataByYear: annualData[id],
+        // Get all-time characteristics by group
+        characteristicsByGroup: Object.values(annualData[id]).reduce(
+          (groups, yearData) => {
+            Object.entries(yearData.characteristicsByGroup).forEach(
+              ([group, charcList]) => {
+                groups[group] = Array.from(
+                  new Set(charcList.concat(groups[group] ?? [])),
+                );
+              },
+            );
+            return groups;
+          },
+          {} as { [group: string]: string[] },
+        ),
+        // Tally characteristic counts
+        totalsByCharacteristic: Object.values(annualData[id]).reduce(
+          (totals, yearData) => {
+            Object.entries(yearData.totalsByCharacteristic).forEach(
+              ([charc, count]) => {
+                if (count <= 0) return;
+                if (charc in totals) totals[charc] += count;
+                else totals[charc] = count;
+              },
+            );
+            return totals;
+          },
+          {} as { [characteristic: string]: number },
+        ),
+      };
+    } else {
+      return location;
+    }
+  });
+}
+
 function buildFeatures(locations: MonitoringLocationAttributes[]) {
   const structuredProps = [
+    'characteristicsByGroup',
     'totalsByCharacteristic',
     'totalsByGroup',
     'timeframe',
@@ -366,6 +410,7 @@ function buildLayer(
     legendEnabled: true,
     fields: [
       { name: 'OBJECTID', type: 'oid' },
+      { name: 'characteristicsByGroup', type: 'string' },
       { name: 'monitoringType', type: 'string' },
       { name: 'siteId', type: 'string' },
       { name: 'orgId', type: 'string' },
@@ -412,6 +457,7 @@ function buildLayer(
       content: (feature: Feature) => {
         // Parse non-scalar variables
         const structuredProps = [
+          'characteristicsByGroup',
           'totalsByCharacteristic',
           'totalsByGroup',
           'timeframe',
@@ -523,6 +569,7 @@ function transformServiceData(
       `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
       `${encodeURIComponent(station.properties.MonitoringLocationIdentifier)}/`;
     return {
+      characteristicsByGroup: {},
       county: station.properties.CountyName,
       monitoringType: 'Past Water Conditions' as const,
       siteId: station.properties.MonitoringLocationIdentifier,
@@ -575,3 +622,5 @@ const dataKeys = ['siteId', 'orgId', 'stationProviderName'] as Array<
   keyof MonitoringLocationAttributes
 >;
 const minScale = 400_000;
+
+export { structurePeriodOfRecordData } from './periodOfRecord';

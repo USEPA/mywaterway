@@ -9,6 +9,7 @@ export interface AllotmentAttributes {
 }
 
 export interface AnnualStationData {
+  characteristicsByGroup: { [group: string]: string[] };
   uniqueId: string;
   totalMeasurements: number;
   totalSamples: number;
@@ -131,6 +132,11 @@ export interface FetchSuccessState<Type> {
 
 export type FetchState<Type> = FetchEmptyState | FetchSuccessState<Type>;
 
+export type FetchStateWithDefault<Type> = {
+  status: Exclude<FetchStatus, 'empty' | 'fetching'>;
+  data: Type;
+};
+
 export type FetchStatus = FetchEmptyStatus | 'success';
 
 export interface ExtendedGraphic extends __esri.Graphic {
@@ -221,6 +227,7 @@ export type LookupFile = {
 };
 
 export interface MonitoringFeatureUpdate {
+  characteristicsByGroup: { [group: string]: string[] };
   totalMeasurements: number;
   totalsByCharacteristic: { [characteristic: string]: number };
   totalsByGroup: { [group: string]: number };
@@ -232,6 +239,7 @@ export type MonitoringFeatureUpdates = {
 } | null;
 
 export interface MonitoringLocationAttributes {
+  characteristicsByGroup: { [group: string]: string[] };
   county: string;
   monitoringType: 'Past Water Conditions';
   siteId: string;
@@ -294,16 +302,6 @@ export interface MonitoringLocationsData {
 }
 
 export type MonitoringYearsRange = [number, number];
-
-export type MonitoringPeriodOfRecordData = {
-  minYear: number;
-  maxYear: number;
-  sites: {
-    [siteId: string]: {
-      [year: string]: AnnualStationData;
-    };
-  };
-};
 
 export interface NonProfitAttributes {
   Name?: string;

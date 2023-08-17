@@ -35,10 +35,7 @@ import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  useCharacteristicsByGroupContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
   useCyanWaterbodies,
@@ -439,8 +436,6 @@ function MonitoringAndSensorsTab({
     useMonitoringLocations();
   const { cyanWaterbodies, cyanWaterbodiesStatus } = useCyanWaterbodies();
 
-  const characteristicsByGroup = useCharacteristicsByGroupContext();
-
   const allMonitoringAndSensors = [
     ...streamgages,
     ...monitoringLocations,
@@ -661,7 +656,6 @@ function MonitoringAndSensorsTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
-                characteristicsByGroup={characteristicsByGroup}
                 type={monitoringType}
                 feature={feature}
                 services={services}
@@ -673,7 +667,6 @@ function MonitoringAndSensorsTab({
       }
     },
     [
-      characteristicsByGroup,
       accordionItemToggleHandlers,
       expandedRows,
       filteredMonitoringAndSensors,

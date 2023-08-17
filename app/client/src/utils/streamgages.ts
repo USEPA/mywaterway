@@ -18,7 +18,7 @@ import {
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
-} from 'utils/hooks/boundariesToggleLayer';
+} from 'utils/boundariesToggleLayer';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
@@ -34,7 +34,7 @@ import type {
   Feature,
   FetchSuccessState,
 } from 'types';
-import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
 import { colors } from 'styles';
 

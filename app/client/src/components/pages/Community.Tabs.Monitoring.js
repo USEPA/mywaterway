@@ -36,10 +36,7 @@ import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  useCharacteristicsByGroupContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
   useCyanWaterbodies,
@@ -183,6 +180,7 @@ function filterStation(station, timeframe) {
   const stationRecords = station.dataByYear;
   const result = {
     ...station,
+    characteristicsByGroup: {},
     totalMeasurements: 0,
     totalsByCharacteristic: {},
     totalsByGroup: {},
@@ -217,6 +215,14 @@ function filterStation(station, timeframe) {
         if (count <= 0) return;
         if (charc in resultCharcs) resultCharcs[charc] += count;
         else resultCharcs[charc] = count;
+      },
+    );
+    // Get timeframe characteristics by group
+    Object.entries(stationRecords[year].characteristicsByGroup).forEach(
+      ([group, charcList]) => {
+        result.characteristicsByGroup[group] = Array.from(
+          new Set(charcList.concat(result.characteristicsByGroup[group] ?? [])),
+        );
       },
     );
   }
@@ -711,13 +717,15 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations } = useFetchedDataState();
   const { monitoringGroups, setMonitoringGroups } = useMonitoringGroups();
-  const characteristicsByGroup = useCharacteristicsByGroupContext();
 
   const updateFeatures = useCallback(
     (locations) => {
       const stationUpdates = {};
       locations.forEach((location) => {
         stationUpdates[location.uniqueId] = {
+          characteristicsByGroup: JSON.stringify(
+            location.characteristicsByGroup,
+          ),
           totalMeasurements: location.totalMeasurements,
           totalsByCharacteristic: JSON.stringify(
             location.totalsByCharacteristic,
@@ -989,7 +997,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         >
           <div css={accordionContentStyles}>
             <WaterbodyInfo
-              characteristicsByGroup={characteristicsByGroup}
               type="Past Water Conditions"
               feature={feature}
               services={services}
@@ -1001,7 +1008,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     },
     [
       accordionItemToggleHandlers,
-      characteristicsByGroup,
       expandedRows,
       filteredMonitoringLocations,
       services,
