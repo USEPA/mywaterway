@@ -1935,6 +1935,20 @@ function ShowSelectedUpstreamWatershed({
   );
 }
 
+type PdfLegendImage = {
+  code: string | ArrayBuffer;
+  height: number;
+  width: number;
+}
+
+type PdfLegendItemType = 'h1' | 'h2' | 'h3' | 'item';
+
+type PdfLegendItem = {
+  image?: PdfLegendImage | null;
+  text?: string | null;
+  type: PdfLegendItemType;
+}
+
 /**
  * Adds a pdf document to an existing pdf document.
  *
@@ -1950,13 +1964,152 @@ async function addDocument(doc: PDFDocument, pdfFile: ArrayBuffer) {
 }
 
 /**
+ * Gets the symbol and text for the provided combination of 
+ * element, symbolClass and textClass.
+ * 
+ * @param legendItems Array to add legend item to
+ * @param element Element to search in
+ * @param symbolClass Class for selecting the symbol part
+ * @param textClass Class for selecting the text part
+ * @param type Type of legend item (h1, h2, h3 or item)
+ * @param firstOnly Only include the first text item
+ */
+async function addLegendItem({
+  legendItems,
+  element,
+  symbolClass,
+  textClass,
+  type,
+  firstOnly = true,
+} : {
+  legendItems: PdfLegendItem[],
+  element: Element,
+  symbolClass?: string,
+  textClass: string,
+  type: PdfLegendItemType,
+  firstOnly?: boolean,
+}) {
+  const image = !symbolClass ? null : await getImage(element, symbolClass);
+
+  // get captions
+  const textItems = element.getElementsByClassName(
+    textClass,
+  );
+
+  if (textItems.length === 0 && image) {
+    legendItems.push({
+      image,
+      type,
+    });
+    return;
+  }
+
+  for (let textItem of textItems) {
+    const text = textItem.textContent;
+    if (text) {
+      legendItems.push({
+        image,
+        text,
+        type,
+      });
+    }
+
+    if(firstOnly) return;
+  }
+}
+
+/**
+ * Parses the dom and adds the HMW portion of the legend to the 
+ * provided legendItems array.
+ * @param legendItems Array to add legend items to
+ */
+async function appendHmwLegend(legendItems: PdfLegendItem[]) {
+  // loop through individual rows of hmw legend items
+  const listItems = document.getElementsByClassName('hmw-legend__item');
+  for (let item of listItems) {
+    // get the text
+    await addLegendItem({
+      legendItems,
+      element: item,
+      symbolClass: 'hmw-legend__symbol',
+      textClass: 'hmw-legend__info',
+      type: 'item',
+    });
+  }
+}
+
+/**
+ * Parses the dom and adds the Esri portion of the legend to the 
+ * provided legendItems array.
+ * @param legendItems Array to add legend items to
+ */
+async function appendEsriLegend(legendItems: PdfLegendItem[]) {
+  // loop through layers of esri legend items
+  const legendServices = document.querySelectorAll(
+    '.esri-legend__service:not(.esri-legend__group-layer-child)',
+  );
+  for (let legendService of legendServices) {
+    let hasHighestLevel = false;
+    const groups = Array.from(
+      legendService.getElementsByClassName('esri-legend__group-layer-child'),
+    );
+    if (groups.length === 0) groups.push(legendService);
+    else {
+      await addLegendItem({
+        legendItems,
+        element: legendService,
+        textClass: 'esri-legend__service-label',
+        type: 'h1',
+      });
+      hasHighestLevel = true;
+    }
+
+    for (let group of groups) {
+      // get main title
+      await addLegendItem({
+        legendItems,
+        element: legendService,
+        textClass: 'esri-legend__service-label',
+        type: hasHighestLevel ? 'h2' : 'h1',
+      });
+
+      // get layer level content
+      const layers = group.getElementsByClassName('esri-legend__layer');
+      for (let layer of layers) {
+        // get captions
+        await addLegendItem({
+          legendItems,
+          element: layer,
+          textClass: 'esri-legend__layer-caption',
+          type: hasHighestLevel ? 'h3' : 'h2',
+          firstOnly: false,
+        });
+
+        // get row level content
+        const rows = layer.getElementsByClassName('esri-legend__layer-row');
+        for (let row of rows) {
+          // get the text
+          await addLegendItem({
+            legendItems,
+            element: row,
+            symbolClass: 'esri-legend__symbol',
+            textClass: 'esri-legend__layer-cell--info',
+            type: 'item',
+          });
+        }
+      }
+    }
+  }
+}
+
+/**
  * Gets a symbol and converts it to a base64 PNG.
  *
  * @param parentElement Element to find symbol in.
  * @param searchClass Class of symbol being searched for.
  * @returns code as base64 PNG and height/width of image.
  */
-async function getSymbol(parentElement: Element, searchClass: string) {
+async function getImage(parentElement: Element, searchClass: string) {
   // get the symbol
   const symbols = parentElement.getElementsByClassName(searchClass);
   const symbol = symbols.length > 0 ? symbols[0] : null;
@@ -1996,7 +2149,7 @@ function handleError(error: unknown) {
  */
 function svgToPng(
   svgElm: SVGSVGElement,
-): Promise<{ code: string | ArrayBuffer; height: number; width: number }> {
+): Promise<PdfLegendImage> {
   // convert an svg text to png using the browser
   return new Promise(function (resolve, reject) {
     try {
@@ -2276,102 +2429,9 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
   }
 
   async function generateLegendPdf(doc: PDFDocument) {
-    const legendItems = [];
-    // loop through individual rows of hmw legend items
-    const listItems = document.getElementsByClassName('hmw-legend__item');
-    for (let item of listItems) {
-      const symbol = await getSymbol(item, 'hmw-legend__symbol');
-
-      // get the text
-      const textItems = item.getElementsByClassName('hmw-legend__info');
-      const text = textItems.length > 0 ? textItems[0].textContent : '';
-
-      legendItems.push({
-        image: symbol,
-        text,
-        type: 'item',
-      });
-    }
-
-    // loop through layers of esri legend items
-    const legendServices = document.querySelectorAll(
-      '.esri-legend__service:not(.esri-legend__group-layer-child)',
-    );
-    for (let legendService of legendServices) {
-      let hasHighestLevel = false;
-      const groups = Array.from(
-        legendService.getElementsByClassName('esri-legend__group-layer-child'),
-      );
-      if (groups.length === 0) groups.push(legendService);
-      else {
-        const textItems = legendService.getElementsByClassName(
-          'esri-legend__service-label',
-        );
-        const text = textItems.length > 0 ? textItems[0].textContent : '';
-        legendItems.push({
-          text,
-          type: 'h1',
-        });
-        hasHighestLevel = true;
-      }
-
-      for (let group of groups) {
-        // get main title
-        const textItems = group.getElementsByClassName(
-          'esri-legend__service-label',
-        );
-        const text = textItems.length > 0 ? textItems[0].textContent : '';
-        if (text) {
-          legendItems.push({
-            text,
-            type: hasHighestLevel ? 'h2' : 'h1',
-          });
-        }
-
-        // get layer level content
-        const layers = group.getElementsByClassName('esri-legend__layer');
-        for (let layer of layers) {
-          // get captions
-          const textItems = layer.getElementsByClassName(
-            'esri-legend__layer-caption',
-          );
-          for (let textItem of textItems) {
-            const text = textItem.textContent;
-            if (text) {
-              legendItems.push({
-                text,
-                type: hasHighestLevel ? 'h3' : 'h2',
-              });
-            }
-          }
-
-          // get row level content
-          const rows = layer.getElementsByClassName('esri-legend__layer-row');
-          for (let row of rows) {
-            const symbol = await getSymbol(row, 'esri-legend__symbol');
-
-            // get the text
-            const textItems = row.getElementsByClassName(
-              'esri-legend__layer-cell--info',
-            );
-            const text = textItems.length > 0 ? textItems[0].textContent : '';
-
-            if (text) {
-              legendItems.push({
-                image: symbol,
-                text,
-                type: 'item',
-              });
-            } else {
-              legendItems.push({
-                image: symbol,
-                type: 'item',
-              });
-            }
-          }
-        }
-      }
-    }
+    const legendItems: PdfLegendItem[] = [];
+    await appendHmwLegend(legendItems);
+    await appendEsriLegend(legendItems);
 
     // add a page and set the font
     let currentPage = doc.addPage(layout.dimensions);
