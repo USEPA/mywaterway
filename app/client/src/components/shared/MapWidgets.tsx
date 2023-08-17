@@ -2116,7 +2116,7 @@ async function appendEsriLegendItems(legendItems: PdfLegendItem[]) {
 /**
  * Calculates where items should be positioned next. This could be in a new column
  * on the same page or a new page.
- * 
+ *
  * @param doc PDFDocument adding to
  * @param currentPage Current page of pdf
  * @param layout Layout chosen by user
@@ -2127,7 +2127,7 @@ async function appendEsriLegendItems(legendItems: PdfLegendItem[]) {
  * @param numberOfIndents Level of indentation
  * @param textHeight Height of current text
  * @param imageScaledHeight Scaled height of current image
- * @returns new values for currentPage, horizontalPosition, verticalPosition, verticalPositionImage, 
+ * @returns new values for currentPage, horizontalPosition, verticalPosition, verticalPositionImage,
  *          verticalPositionText and x
  */
 function calculatePositioning({
@@ -2193,6 +2193,7 @@ function calculatePositioning({
   return {
     currentPage,
     horizontalPosition,
+    pageIndex,
     verticalPosition,
     verticalPositionImage,
     verticalPositionText,
@@ -2202,7 +2203,7 @@ function calculatePositioning({
 
 /**
  * Draws multiline text on page.
- * 
+ *
  * @param currentPage Current page of pdf
  * @param multiLineText Multiline text to draw
  * @param font Font of text
@@ -2238,7 +2239,7 @@ function drawMultilineText(
 /**
  * Embeds the scaled image into the document and returns the pdfImage,
  * scaled height and scaled width of the image.
- * 
+ *
  * @param doc PDFDocument adding to
  * @param image Image to embed in PDF
  * @returns The pdfImage, scaled height and scaled width
@@ -2345,7 +2346,7 @@ function getMultilineText({
 /**
  * Determines how far to indent items based on the
  * last heading level.
- * 
+ *
  * @param lastHeading Last heading level
  * @param type Current item type
  * @returns number of indents
@@ -2730,7 +2731,8 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
         textHeight,
       });
 
-      ({ currentPage, horizontalPosition, verticalPosition, x } = newPosition);
+      ({ currentPage, horizontalPosition, pageIndex, verticalPosition, x } =
+        newPosition);
 
       const { verticalPositionImage, verticalPositionText } = newPosition;
 
