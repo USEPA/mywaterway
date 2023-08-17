@@ -8,7 +8,14 @@ import {
 } from 'react';
 import { createPortal, render } from 'react-dom';
 import { saveAs } from 'file-saver';
-import { PageSizes, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import {
+  layoutMultilineText,
+  PageSizes,
+  PDFDocument,
+  rgb,
+  StandardFonts,
+  TextAlignment,
+} from 'pdf-lib';
 import { Rnd } from 'react-rnd';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
@@ -1971,13 +1978,25 @@ async function getSymbol(parentElement: Element, searchClass: string) {
   return null;
 }
 
+function handleError(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  } else if (typeof error === 'string') {
+    return error;
+  } else {
+    return 'Unknown error. Check developer tools console.';
+  }
+}
+
 /**
  * Converts an svg string to base64 png using the domUrl.
  *
  * @param svgText the string representation of the SVG.
  * @return a promise to the bas64 png image.
  */
-function svgToPng(svgElm: SVGSVGElement): Promise<any> {
+function svgToPng(
+  svgElm: SVGSVGElement,
+): Promise<{ code: string | ArrayBuffer; height: number; width: number }> {
   // convert an svg text to png using the browser
   return new Promise(function (resolve, reject) {
     try {
@@ -2232,24 +2251,20 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
     printVm: PrintVM,
     template: PrintTemplate,
     retryCount: number = 0,
-  ): Promise<ArrayBuffer | null> {
+  ): Promise<ArrayBuffer> {
     try {
       const printRes = await printVm.print(template);
       const res = await fetch(printRes.url);
 
       // convert to array buffer and return
       return await (await res.blob()).arrayBuffer();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
 
       // set failure when retry is exceeded
       if (retryCount === 3) {
         setStatus('failure');
-        if (err.message) {
-          setErrorMessage(err.message);
-        } else {
-          setErrorMessage('Unknown error. Check developer tools console.');
-        }
+        setErrorMessage(handleError(err));
         throw err;
       } else {
         // recursive retry (1 second between retries)
@@ -2358,26 +2373,35 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       }
     }
 
+    // add a page and set the font
     let currentPage = doc.addPage(layout.dimensions);
     const helveticaFont = doc.embedStandardFont(StandardFonts.Helvetica);
     const helveticaBoldFont = doc.embedStandardFont(
       StandardFonts.HelveticaBold,
     );
-    const { height } = currentPage.getSize();
+
+    // get the size of the document
+    const { height, width } = currentPage.getSize();
+    const titleSize = 18;
+    const fontSize = 10;
     const topMargin = 10;
     const leftMargin = 10;
-    const fontSize = 10;
+    const columnWidth = 287;
 
-    // add header
-    let verticalPosition = height - 18 - topMargin * 2;
+    // add centered header
+    let verticalPosition = height - titleSize - topMargin * 2;
+    const titleWidth = helveticaBoldFont.widthOfTextAtSize('Legend', titleSize);
     currentPage.drawText('Legend', {
-      x: leftMargin,
+      x: width / 2 - titleWidth / 2,
       y: verticalPosition,
       font: helveticaBoldFont,
-      size: 18,
+      size: titleSize,
     });
 
+    // add items to legend
     let lastHeading = 'h1';
+    let horizontalPosition = 0;
+    let pageIndex = 0;
     for (const item of legendItems) {
       const { image, text, type } = item;
 
@@ -2387,46 +2411,104 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       if (lastHeading === 'h3') numberOfIndents = 3;
       if (type === 'item') numberOfIndents += 1;
 
-      // positioning logic
+      const font = ['h1', 'h2'].includes(type)
+        ? helveticaBoldFont
+        : helveticaFont;
+
+      // set x starting position
+      let x = horizontalPosition + leftMargin * numberOfIndents;
+
+      // get image dimensions after scaling
       const imageScaleFactor = 0.75;
-      let x = leftMargin * numberOfIndents;
-      const rowHeight = Math.max(
-        fontSize,
-        (image?.height || 0) * imageScaleFactor,
-      );
+      const imageScaledHeight = (image?.height || 0) * imageScaleFactor;
+      const imageScaledWidth = (image?.width || 0) * imageScaleFactor;
+
+      // wrap text and calculate height of text
+      let textHeight = 0;
+      let multiLineText = null;
+      if (text) {
+        multiLineText = layoutMultilineText(text, {
+          alignment: TextAlignment.Left,
+          font,
+          fontSize: fontSize,
+          bounds: {
+            x,
+            y: verticalPosition - topMargin,
+            width: columnWidth - imageScaledWidth,
+            height,
+          },
+        });
+
+        // calculate height of multiline text
+        multiLineText.lines.forEach(
+          (l) => (textHeight += font.heightAtSize(fontSize)),
+        );
+      }
+
+      const rowHeight = Math.max(textHeight, imageScaledHeight);
       const tempY = verticalPosition - rowHeight - topMargin;
       if (tempY < topMargin) {
-        currentPage = doc.addPage(layout.dimensions);
-        verticalPosition = height - rowHeight - topMargin * 2;
+        // determine whether to start a new column or page
+        if (horizontalPosition + columnWidth * 2 + leftMargin * 2 < width) {
+          // start a new column on the same page
+          verticalPosition = height - rowHeight - topMargin * 2;
+          if (pageIndex === 0)
+            verticalPosition = verticalPosition - titleSize - topMargin;
+          horizontalPosition += columnWidth + leftMargin;
+          x = horizontalPosition + leftMargin * numberOfIndents;
+        } else {
+          // start a new page
+          currentPage = doc.addPage(layout.dimensions);
+          pageIndex += 1;
+          horizontalPosition = 0;
+          x = leftMargin * numberOfIndents;
+          verticalPosition = height - rowHeight - topMargin * 2;
+        }
       } else {
         verticalPosition = tempY;
       }
 
+      // figure out how to align center the image and text
+      let verticalPositionImage = verticalPosition;
+      let verticalPositionText = verticalPosition;
+      if (imageScaledHeight > textHeight) {
+        verticalPositionText =
+          verticalPosition + (imageScaledHeight - textHeight) / 2;
+      }
+      if (imageScaledHeight < textHeight) {
+        verticalPositionImage =
+          verticalPosition + (textHeight - imageScaledHeight) / 2;
+      }
+
+      // draw the image
       if (image) {
         try {
-          if (!image.code.includes(';base64,')) {
+          // if the image code is a url, then fetch the image
+          if (
+            typeof image.code === 'string' &&
+            !image.code.includes(';base64,')
+          ) {
             image.code = await (await fetch(image.code)).arrayBuffer();
           }
 
+          // embed, scale and draw the image
           const pdfImage = await doc.embedPng(image.code);
           const imageDims = pdfImage.scale(imageScaleFactor);
           currentPage.drawImage(pdfImage, {
             x,
-            y: verticalPosition,
+            y: verticalPositionImage,
             width: imageDims.width,
             height: imageDims.height,
           });
 
+          // shift x to the right of the image for text
           x = x + leftMargin + imageDims.width;
         } catch (err) {
           console.error(err);
           const message = 'Failed to load image.';
           currentPage.drawText(message, {
             x,
-            y:
-              verticalPosition +
-              ((image?.height || 0) * imageScaleFactor) / 2 -
-              topMargin / 2,
+            y: verticalPositionText,
             color: rgb(1, 0, 0),
             font: helveticaFont,
             size: fontSize,
@@ -2437,16 +2519,21 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
         }
       }
 
-      if (text) {
-        currentPage.drawText(text, {
-          x,
-          y:
-            verticalPosition +
-            ((image?.height || 0) * imageScaleFactor) / 2 -
-            topMargin / 2,
-          font: ['h1', 'h2'].includes(type) ? helveticaBoldFont : helveticaFont,
-          size: fontSize,
-        });
+      // draw the text which can be multiple lines
+      if (multiLineText) {
+        // pdf-lib has y=0 start at the bottom of the page, so
+        // we have to reverse the lines and work our way up
+        let tempVerticalPositionText = verticalPositionText;
+        for (const l of [...multiLineText.lines].reverse()) {
+          currentPage.drawText(l.text, {
+            x,
+            y: tempVerticalPositionText,
+            font,
+            size: fontSize,
+          });
+
+          tempVerticalPositionText = tempVerticalPositionText + l.height;
+        }
       }
     }
   }
@@ -2608,11 +2695,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
               view,
             });
 
-            // get parts of pdf
-            const mapPdf = await generateMapPdf(printVm, template);
-            if (!mapPdf) return;
-
-            // merge the parts together
+            // create the PDF document with metadata
             const doc = await PDFDocument.create();
             const creator = `U.S. EPA How's My Waterway`;
             doc.setTitle(title);
@@ -2634,6 +2717,8 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
             doc.setCreationDate(new Date());
             doc.setModificationDate(new Date());
 
+            // get map part and add it to the document
+            const mapPdf = await generateMapPdf(printVm, template);
             await addDocument(doc, mapPdf);
 
             // get legend part if necessary
@@ -2644,14 +2729,10 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
             saveAs(mergedPdf, `${title}.pdf`);
 
             setStatus('success');
-          } catch (err: any) {
+          } catch (err) {
             console.error(err);
             setStatus('failure');
-            if (err.message) {
-              setErrorMessage(err.message);
-            } else {
-              setErrorMessage('Unknown error. Check developer tools console.');
-            }
+            setErrorMessage(handleError(err));
           }
         }}
       >
