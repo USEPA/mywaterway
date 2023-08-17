@@ -41,10 +41,7 @@ import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  useCharacteristicsByGroupContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
+import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchParseCsv, fetchPost } from 'utils/fetchUtils';
@@ -874,9 +871,8 @@ function updateSelected(charcs, groups) {
   return getCheckedStatus(groupsSelected, Object.keys(groups));
 }
 
-function useCharacteristics(provider, orgId, siteId) {
+function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
   const services = useServicesContext();
-  const characteristicsByGroup = useCharacteristicsByGroupContext();
 
   // charcs => characteristics
   const [charcs, setCharcs] = useState({});
@@ -929,10 +925,11 @@ function useCharacteristics(provider, orgId, siteId) {
     [setCharcs, setStatus],
   );
 
+  const { monitoringPeriodOfRecordStatus } = useContext(LocationSearchContext);
   useEffect(() => {
     if (services.status !== 'success') return;
-    if (characteristicsByGroup.status !== 'success') {
-      setStatus(characteristicsByGroup.status);
+    if (monitoringPeriodOfRecordStatus !== 'success') {
+      setStatus(monitoringPeriodOfRecordStatus);
       return;
     }
     setStatus('pending');
@@ -945,13 +942,14 @@ function useCharacteristics(provider, orgId, siteId) {
         siteId,
       )}`;
     fetchParseCsv(url)
-      .then((results) => structureRecords(results, characteristicsByGroup.data))
+      .then((results) => structureRecords(results, characteristicsByGroup))
       .catch((_err) => {
         setStatus('failure');
         console.error('Papa Parse error');
       });
   }, [
     characteristicsByGroup,
+    monitoringPeriodOfRecordStatus,
     orgId,
     provider,
     services,
@@ -2098,7 +2096,6 @@ function MonitoringReportContent() {
 
   useMonitoringLocationsLayers({
     filter: siteFilter,
-    includeAnnualData: false,
   });
 
   const { monitoringLocations, monitoringLocationsStatus } =
@@ -2115,6 +2112,7 @@ function MonitoringReportContent() {
     provider,
     orgId,
     siteId,
+    site.characteristicsByGroup ?? {},
   );
   const [selectedCharcs, setSelectedCharcs] = useState([]);
   const [nextChartIndexTarget, setNextChartIndexTarget] = useState(null);
