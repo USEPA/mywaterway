@@ -2420,8 +2420,8 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
       // get image dimensions after scaling
       const imageScaleFactor = 0.75;
-      const imageScaledHeight = (image?.height || 0) * imageScaleFactor;
-      const imageScaledWidth = (image?.width || 0) * imageScaleFactor;
+      const imageScaledHeight = (image?.height ?? 0) * imageScaleFactor;
+      const imageScaledWidth = (image?.width ?? 0) * imageScaleFactor;
 
       // wrap text and calculate height of text
       let textHeight = 0;
