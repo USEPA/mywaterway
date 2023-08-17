@@ -244,13 +244,13 @@ function useWaterbodyFeatures() {
 
     // combine lines, area, and points features
     let featuresArray: Array<__esri.Graphic> = [];
-    if (linesData.features && linesData.features.length > 0) {
+    if (linesData.features?.length > 0) {
       featuresArray = featuresArray.concat(linesData.features);
     }
-    if (areasData.features && areasData.features.length > 0) {
+    if (areasData.features?.length > 0) {
       featuresArray = featuresArray.concat(areasData.features);
     }
-    if (pointsData.features && pointsData.features.length > 0) {
+    if (pointsData.features?.length > 0) {
       featuresArray = featuresArray.concat(pointsData.features);
     }
     if (
@@ -336,7 +336,7 @@ function useWaterbodyOnMap(
           geometryType,
           alpha,
         }),
-        field: attribute ? attribute : 'overallstatus',
+        field: attribute ?? 'overallstatus',
         fieldDelimiter: ', ',
         uniqueValueInfos: createUniqueValueInfos(geometryType, alpha).map(
           (info) => new UniqueValueInfo(info),
