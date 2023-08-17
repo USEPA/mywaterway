@@ -12,6 +12,7 @@ import {
   layoutMultilineText,
   PageSizes,
   PDFDocument,
+  PDFImage,
   rgb,
   StandardFonts,
   TextAlignment,
@@ -77,6 +78,12 @@ import type {
 } from 'react';
 import type { Container } from 'react-dom';
 import type { Feature, ServicesState } from 'types';
+import type {
+  LayoutBounds,
+  MultilineTextLayout,
+  PDFFont,
+  PDFPage,
+} from 'pdf-lib';
 // styles
 import { fonts } from 'styles';
 
@@ -1939,7 +1946,7 @@ type PdfLegendImage = {
   code: string | ArrayBuffer;
   height: number;
   width: number;
-}
+};
 
 type PdfLegendItemType = 'h1' | 'h2' | 'h3' | 'item';
 
@@ -1947,7 +1954,12 @@ type PdfLegendItem = {
   image?: PdfLegendImage | null;
   text?: string | null;
   type: PdfLegendItemType;
-}
+};
+
+const columnWidth = 287;
+const leftMargin = 10;
+const topMargin = 10;
+const titleSize = 18;
 
 /**
  * Adds a pdf document to an existing pdf document.
@@ -1964,9 +1976,9 @@ async function addDocument(doc: PDFDocument, pdfFile: ArrayBuffer) {
 }
 
 /**
- * Gets the symbol and text for the provided combination of 
+ * Gets the symbol and text for the provided combination of
  * element, symbolClass and textClass.
- * 
+ *
  * @param legendItems Array to add legend item to
  * @param element Element to search in
  * @param symbolClass Class for selecting the symbol part
@@ -1981,32 +1993,24 @@ async function addLegendItem({
   textClass,
   type,
   firstOnly = true,
-} : {
-  legendItems: PdfLegendItem[],
-  element: Element,
-  symbolClass?: string,
-  textClass: string,
-  type: PdfLegendItemType,
-  firstOnly?: boolean,
+}: {
+  legendItems: PdfLegendItem[];
+  element: Element;
+  symbolClass?: string;
+  textClass: string;
+  type: PdfLegendItemType;
+  firstOnly?: boolean;
 }) {
   const image = !symbolClass ? null : await getImage(element, symbolClass);
 
   // get captions
-  const textItems = element.getElementsByClassName(
-    textClass,
-  );
+  const textItems = element.getElementsByClassName(textClass);
 
-  if (textItems.length === 0 && image) {
-    legendItems.push({
-      image,
-      type,
-    });
-    return;
-  }
-
+  let itemsAdded = 0;
   for (let textItem of textItems) {
     const text = textItem.textContent;
     if (text) {
+      itemsAdded += 1;
       legendItems.push({
         image,
         text,
@@ -2014,16 +2018,23 @@ async function addLegendItem({
       });
     }
 
-    if(firstOnly) return;
+    if (firstOnly) break;
+  }
+
+  if (itemsAdded === 0 && image) {
+    legendItems.push({
+      image,
+      type,
+    });
   }
 }
 
 /**
- * Parses the dom and adds the HMW portion of the legend to the 
+ * Parses the dom and adds the HMW portion of the legend to the
  * provided legendItems array.
  * @param legendItems Array to add legend items to
  */
-async function appendHmwLegend(legendItems: PdfLegendItem[]) {
+async function appendHmwLegendItems(legendItems: PdfLegendItem[]) {
   // loop through individual rows of hmw legend items
   const listItems = document.getElementsByClassName('hmw-legend__item');
   for (let item of listItems) {
@@ -2039,11 +2050,11 @@ async function appendHmwLegend(legendItems: PdfLegendItem[]) {
 }
 
 /**
- * Parses the dom and adds the Esri portion of the legend to the 
+ * Parses the dom and adds the Esri portion of the legend to the
  * provided legendItems array.
  * @param legendItems Array to add legend items to
  */
-async function appendEsriLegend(legendItems: PdfLegendItem[]) {
+async function appendEsriLegendItems(legendItems: PdfLegendItem[]) {
   // loop through layers of esri legend items
   const legendServices = document.querySelectorAll(
     '.esri-legend__service:not(.esri-legend__group-layer-child)',
@@ -2103,6 +2114,166 @@ async function appendEsriLegend(legendItems: PdfLegendItem[]) {
 }
 
 /**
+ * Calculates where items should be positioned next. This could be in a new column
+ * on the same page or a new page.
+ * 
+ * @param doc PDFDocument adding to
+ * @param currentPage Current page of pdf
+ * @param layout Layout chosen by user
+ * @param pageIndex Index of the current page
+ * @param horizontalPosition Current horizontal position
+ * @param verticalPosition Current vertical position
+ * @param x Current x value
+ * @param numberOfIndents Level of indentation
+ * @param textHeight Height of current text
+ * @param imageScaledHeight Scaled height of current image
+ * @returns new values for currentPage, horizontalPosition, verticalPosition, verticalPositionImage, 
+ *          verticalPositionText and x
+ */
+function calculatePositioning({
+  doc,
+  currentPage,
+  layout,
+  pageIndex,
+  horizontalPosition,
+  verticalPosition,
+  x,
+  numberOfIndents,
+  textHeight,
+  imageScaledHeight,
+}: {
+  doc: PDFDocument;
+  currentPage: PDFPage;
+  layout: LayoutOptionType;
+  pageIndex: number;
+  horizontalPosition: number;
+  verticalPosition: number;
+  x: number;
+  numberOfIndents: number;
+  textHeight: number;
+  imageScaledHeight: number;
+}) {
+  const { height, width } = currentPage.getSize();
+
+  const rowHeight = Math.max(textHeight, imageScaledHeight);
+  const tempY = verticalPosition - rowHeight - topMargin;
+  if (tempY < topMargin) {
+    // determine whether to start a new column or page
+    if (horizontalPosition + columnWidth * 2 + leftMargin * 2 < width) {
+      // start a new column on the same page
+      verticalPosition = height - rowHeight - topMargin * 2;
+      if (pageIndex === 0)
+        verticalPosition = verticalPosition - titleSize - topMargin;
+      horizontalPosition += columnWidth + leftMargin;
+      x = horizontalPosition + leftMargin * numberOfIndents;
+    } else {
+      // start a new page
+      currentPage = doc.addPage(layout.dimensions);
+      pageIndex += 1;
+      horizontalPosition = 0;
+      x = leftMargin * numberOfIndents;
+      verticalPosition = height - rowHeight - topMargin * 2;
+    }
+  } else {
+    verticalPosition = tempY;
+  }
+
+  // figure out how to align center the image and text
+  let verticalPositionImage = verticalPosition;
+  let verticalPositionText = verticalPosition;
+  if (imageScaledHeight > textHeight) {
+    verticalPositionText =
+      verticalPosition + (imageScaledHeight - textHeight) / 2;
+  }
+  if (imageScaledHeight < textHeight) {
+    verticalPositionImage =
+      verticalPosition + (textHeight - imageScaledHeight) / 2;
+  }
+
+  return {
+    currentPage,
+    horizontalPosition,
+    verticalPosition,
+    verticalPositionImage,
+    verticalPositionText,
+    x,
+  };
+}
+
+/**
+ * Draws multiline text on page.
+ * 
+ * @param currentPage Current page of pdf
+ * @param multiLineText Multiline text to draw
+ * @param font Font of text
+ * @param fontSize Font size of text
+ * @param x Horizontal value to start drawing text
+ * @param verticalPositionText Vertical position to start drawing text
+ */
+function drawMultilineText(
+  currentPage: PDFPage,
+  multiLineText: MultilineTextLayout | null,
+  font: PDFFont,
+  fontSize: number,
+  x: number,
+  verticalPositionText: number,
+) {
+  if (!multiLineText) return;
+
+  // pdf-lib has y=0 start at the bottom of the page, so
+  // we have to reverse the lines and work our way up
+  let tempVerticalPositionText = verticalPositionText;
+  for (const l of [...multiLineText.lines].reverse()) {
+    currentPage.drawText(l.text, {
+      x,
+      y: tempVerticalPositionText,
+      font,
+      size: fontSize,
+    });
+
+    tempVerticalPositionText = tempVerticalPositionText + l.height;
+  }
+}
+
+/**
+ * Embeds the scaled image into the document and returns the pdfImage,
+ * scaled height and scaled width of the image.
+ * 
+ * @param doc PDFDocument adding to
+ * @param image Image to embed in PDF
+ * @returns The pdfImage, scaled height and scaled width
+ */
+async function embedImage(doc: PDFDocument, image?: PdfLegendImage | null) {
+  if (!image)
+    return { pdfImage: null, imageScaledHeight: 0, imageScaledWidth: 0 };
+
+  const imageScaleFactor = 0.75;
+  try {
+    // if the image code is a url, then fetch the image
+    if (typeof image.code === 'string' && !image.code.includes(';base64,')) {
+      image.code = await (await fetch(image.code)).arrayBuffer();
+    }
+
+    // embed, scale and draw the image
+    const pdfImage = await doc.embedPng(image.code);
+    const dimensions = pdfImage.scale(imageScaleFactor);
+
+    return {
+      pdfImage,
+      imageScaledHeight: dimensions.height,
+      imageScaledWidth: dimensions.width,
+    };
+  } catch (err) {
+    console.error(err);
+    return {
+      pdfImage: 'Failed to load image.',
+      imageScaledHeight: 0,
+      imageScaledWidth: 0,
+    };
+  }
+}
+
+/**
  * Gets a symbol and converts it to a base64 PNG.
  *
  * @param parentElement Element to find symbol in.
@@ -2131,6 +2302,66 @@ async function getImage(parentElement: Element, searchClass: string) {
   return null;
 }
 
+/**
+ * Wraps the text across multiple lines and calculates the height of the text.
+ *
+ * @param text Text to convert to multi line text
+ * @param font Font of text
+ * @param fontSize Font size of text
+ * @param bounds Bounding box for multi line text to fit in
+ * @returns multiLineText object and the textHeight
+ */
+function getMultilineText({
+  bounds,
+  font,
+  fontSize,
+  text,
+}: {
+  bounds: LayoutBounds;
+  font: PDFFont;
+  fontSize: number;
+  text?: string | null;
+}) {
+  let textHeight = 0;
+  let multiLineText: MultilineTextLayout | null = null;
+
+  if (text) {
+    multiLineText = layoutMultilineText(text, {
+      alignment: TextAlignment.Left,
+      font,
+      fontSize,
+      bounds,
+    });
+
+    // calculate height of multiline text
+    multiLineText.lines.forEach(
+      (l) => (textHeight += font.heightAtSize(fontSize)),
+    );
+  }
+
+  return { multiLineText, textHeight };
+}
+
+/**
+ * Determines how far to indent items based on the
+ * last heading level.
+ * 
+ * @param lastHeading Last heading level
+ * @param type Current item type
+ * @returns number of indents
+ */
+function getNumberOfIndents(
+  lastHeading: PdfLegendItemType,
+  type: PdfLegendItemType,
+) {
+  let numberOfIndents = 1;
+  if (lastHeading === 'h2') numberOfIndents = 2;
+  if (lastHeading === 'h3') numberOfIndents = 3;
+  if (type === 'item') numberOfIndents += 1;
+
+  return numberOfIndents;
+}
+
 function handleError(error: unknown) {
   if (error instanceof Error) {
     return error.message;
@@ -2147,9 +2378,7 @@ function handleError(error: unknown) {
  * @param svgText the string representation of the SVG.
  * @return a promise to the bas64 png image.
  */
-function svgToPng(
-  svgElm: SVGSVGElement,
-): Promise<PdfLegendImage> {
+function svgToPng(svgElm: SVGSVGElement): Promise<PdfLegendImage> {
   // convert an svg text to png using the browser
   return new Promise(function (resolve, reject) {
     try {
@@ -2430,8 +2659,8 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
   async function generateLegendPdf(doc: PDFDocument) {
     const legendItems: PdfLegendItem[] = [];
-    await appendHmwLegend(legendItems);
-    await appendEsriLegend(legendItems);
+    await appendHmwLegendItems(legendItems);
+    await appendEsriLegendItems(legendItems);
 
     // add a page and set the font
     let currentPage = doc.addPage(layout.dimensions);
@@ -2442,11 +2671,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
     // get the size of the document
     const { height, width } = currentPage.getSize();
-    const titleSize = 18;
     const fontSize = 10;
-    const topMargin = 10;
-    const leftMargin = 10;
-    const columnWidth = 287;
 
     // add centered header
     let verticalPosition = height - titleSize - topMargin * 2;
@@ -2459,17 +2684,14 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
     });
 
     // add items to legend
-    let lastHeading = 'h1';
+    let lastHeading: PdfLegendItemType = 'h1';
     let horizontalPosition = 0;
     let pageIndex = 0;
     for (const item of legendItems) {
       const { image, text, type } = item;
 
       if (['h1', 'h2', 'h3'].includes(type)) lastHeading = type;
-      let numberOfIndents = 1;
-      if (lastHeading === 'h2') numberOfIndents = 2;
-      if (lastHeading === 'h3') numberOfIndents = 3;
-      if (type === 'item') numberOfIndents += 1;
+      const numberOfIndents = getNumberOfIndents(lastHeading, type);
 
       const font = ['h1', 'h2'].includes(type)
         ? helveticaBoldFont
@@ -2479,122 +2701,73 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       let x = horizontalPosition + leftMargin * numberOfIndents;
 
       // get image dimensions after scaling
-      const imageScaleFactor = 0.75;
-      const imageScaledHeight = (image?.height ?? 0) * imageScaleFactor;
-      const imageScaledWidth = (image?.width ?? 0) * imageScaleFactor;
+      const { pdfImage, imageScaledHeight, imageScaledWidth } =
+        await embedImage(doc, image);
 
       // wrap text and calculate height of text
-      let textHeight = 0;
-      let multiLineText = null;
-      if (text) {
-        multiLineText = layoutMultilineText(text, {
-          alignment: TextAlignment.Left,
-          font,
-          fontSize: fontSize,
-          bounds: {
-            x,
-            y: verticalPosition - topMargin,
-            width: columnWidth - imageScaledWidth,
-            height,
-          },
-        });
+      const { multiLineText, textHeight } = getMultilineText({
+        text,
+        font,
+        fontSize,
+        bounds: {
+          x,
+          y: verticalPosition - topMargin,
+          width: columnWidth - imageScaledWidth,
+          height,
+        },
+      });
 
-        // calculate height of multiline text
-        multiLineText.lines.forEach(
-          (l) => (textHeight += font.heightAtSize(fontSize)),
-        );
-      }
+      const newPosition = calculatePositioning({
+        doc,
+        currentPage,
+        layout,
+        pageIndex,
+        horizontalPosition,
+        verticalPosition,
+        x,
+        numberOfIndents,
+        imageScaledHeight,
+        textHeight,
+      });
 
-      const rowHeight = Math.max(textHeight, imageScaledHeight);
-      const tempY = verticalPosition - rowHeight - topMargin;
-      if (tempY < topMargin) {
-        // determine whether to start a new column or page
-        if (horizontalPosition + columnWidth * 2 + leftMargin * 2 < width) {
-          // start a new column on the same page
-          verticalPosition = height - rowHeight - topMargin * 2;
-          if (pageIndex === 0)
-            verticalPosition = verticalPosition - titleSize - topMargin;
-          horizontalPosition += columnWidth + leftMargin;
-          x = horizontalPosition + leftMargin * numberOfIndents;
-        } else {
-          // start a new page
-          currentPage = doc.addPage(layout.dimensions);
-          pageIndex += 1;
-          horizontalPosition = 0;
-          x = leftMargin * numberOfIndents;
-          verticalPosition = height - rowHeight - topMargin * 2;
-        }
-      } else {
-        verticalPosition = tempY;
-      }
+      ({ currentPage, horizontalPosition, verticalPosition, x } = newPosition);
 
-      // figure out how to align center the image and text
-      let verticalPositionImage = verticalPosition;
-      let verticalPositionText = verticalPosition;
-      if (imageScaledHeight > textHeight) {
-        verticalPositionText =
-          verticalPosition + (imageScaledHeight - textHeight) / 2;
-      }
-      if (imageScaledHeight < textHeight) {
-        verticalPositionImage =
-          verticalPosition + (textHeight - imageScaledHeight) / 2;
-      }
+      const { verticalPositionImage, verticalPositionText } = newPosition;
 
       // draw the image
-      if (image) {
-        try {
-          // if the image code is a url, then fetch the image
-          if (
-            typeof image.code === 'string' &&
-            !image.code.includes(';base64,')
-          ) {
-            image.code = await (await fetch(image.code)).arrayBuffer();
-          }
+      if (pdfImage instanceof PDFImage) {
+        currentPage.drawImage(pdfImage, {
+          x,
+          y: verticalPositionImage,
+          width: imageScaledWidth,
+          height: imageScaledHeight,
+        });
 
-          // embed, scale and draw the image
-          const pdfImage = await doc.embedPng(image.code);
-          const imageDims = pdfImage.scale(imageScaleFactor);
-          currentPage.drawImage(pdfImage, {
-            x,
-            y: verticalPositionImage,
-            width: imageDims.width,
-            height: imageDims.height,
-          });
+        // shift x to the right of the image for text
+        x = x + leftMargin + imageScaledWidth;
+      }
+      if (typeof pdfImage === 'string') {
+        currentPage.drawText(pdfImage, {
+          x,
+          y: verticalPositionText,
+          color: rgb(1, 0, 0),
+          font: helveticaFont,
+          size: fontSize,
+        });
 
-          // shift x to the right of the image for text
-          x = x + leftMargin + imageDims.width;
-        } catch (err) {
-          console.error(err);
-          const message = 'Failed to load image.';
-          currentPage.drawText(message, {
-            x,
-            y: verticalPositionText,
-            color: rgb(1, 0, 0),
-            font: helveticaFont,
-            size: fontSize,
-          });
-
-          x =
-            x + leftMargin + helveticaFont.widthOfTextAtSize(message, fontSize);
-        }
+        x =
+          x + leftMargin + helveticaFont.widthOfTextAtSize(pdfImage, fontSize);
       }
 
       // draw the text which can be multiple lines
-      if (multiLineText) {
-        // pdf-lib has y=0 start at the bottom of the page, so
-        // we have to reverse the lines and work our way up
-        let tempVerticalPositionText = verticalPositionText;
-        for (const l of [...multiLineText.lines].reverse()) {
-          currentPage.drawText(l.text, {
-            x,
-            y: tempVerticalPositionText,
-            font,
-            size: fontSize,
-          });
-
-          tempVerticalPositionText = tempVerticalPositionText + l.height;
-        }
-      }
+      drawMultilineText(
+        currentPage,
+        multiLineText,
+        font,
+        fontSize,
+        x,
+        verticalPositionText,
+      );
     }
   }
 
