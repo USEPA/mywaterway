@@ -382,7 +382,7 @@ function FilePanel() {
   useEffect(() => {
     if (!mapView?.map || !file?.file?.esriFileType || featuresAdded) return;
     if (!generateResponse?.featureCollection?.layers?.length) {
-      setUploadStatus('no-data');
+      if (generateResponse) setUploadStatus('no-data');
       return;
     }
 

@@ -7,7 +7,6 @@ import {
   useState,
 } from 'react';
 import { createPortal, render } from 'react-dom';
-import { saveAs } from 'file-saver';
 import { Rnd } from 'react-rnd';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
@@ -20,8 +19,6 @@ import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
 import Point from '@arcgis/core/geometry/Point';
-import PrintTemplate from '@arcgis/core/rest/support/PrintTemplate';
-import PrintVM from '@arcgis/core/widgets/Print/PrintViewModel';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import * as query from '@arcgis/core/rest/query';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
@@ -60,7 +57,16 @@ import { useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
+import type PrintTemplateType from '@arcgis/core/rest/support/PrintTemplate';
+import type PrintVMType from '@arcgis/core/widgets/Print/PrintViewModel';
 import type { LayersState } from 'contexts/Layers';
+import type {
+  LayoutBounds,
+  MultilineTextLayout,
+  PDFDocument as PDFDocumentType,
+  PDFFont,
+  PDFPage,
+} from 'pdf-lib';
 import type {
   CSSProperties,
   Dispatch,
@@ -1925,6 +1931,822 @@ function ShowSelectedUpstreamWatershed({
   );
 }
 
+type PdfLegendImage = {
+  code: string | ArrayBuffer;
+  height: number;
+  width: number;
+};
+
+type PdfLegendItemType = 'h1' | 'h2' | 'h3' | 'item' | 'imageItem';
+
+type PdfLegendItem = {
+  image?: PdfLegendImage | null;
+  text?: string | null;
+  type: PdfLegendItemType;
+};
+
+const leftMargin = 10;
+const topMargin = 10;
+const titleSize = 18;
+
+function handleError(error: unknown) {
+  if (error instanceof Error || typeof error === 'object') {
+    return (error as any)?.message;
+  } else if (typeof error === 'string') {
+    return error;
+  } else {
+    return 'Unknown error. Check developer tools console.';
+  }
+}
+
+export async function generateAndDownloadPdf({
+  layout,
+  title,
+  author,
+  copyright,
+  northArrowVisible,
+  scale,
+  services,
+  view,
+  includeLegend,
+}: {
+  layout: LayoutOptionType;
+  title: string;
+  author: string;
+  copyright: string;
+  northArrowVisible: boolean;
+  scale: number;
+  services: ServicesState;
+  view: __esri.MapView;
+  includeLegend: boolean;
+}) {
+  if (services.status !== 'success') return;
+  
+  const {
+    layoutMultilineText,
+    PageSizes,
+    PDFDocument,
+    PDFImage,
+    rgb,
+    StandardFonts,
+    TextAlignment,
+  } = await import('pdf-lib');
+
+  const PrintTemplate = (
+    await import('@arcgis/core/rest/support/PrintTemplate.js')
+  ).default;
+  const PrintVM = (await import('@arcgis/core/widgets/Print/PrintViewModel'))
+    .default;
+
+  const layoutOptions = {
+    'a3-landscape': {
+      columnWidth: 280,
+      dimensions: [...PageSizes.A3].reverse() as [number, number],
+      pageMargin: 18,
+    },
+    'a3-portrait': {
+      columnWidth: 260,
+      dimensions: PageSizes.A3,
+      pageMargin: 18,
+    },
+    'a4-landscape': {
+      columnWidth: 260,
+      dimensions: [...PageSizes.A4].reverse() as [number, number],
+      pageMargin: 17,
+    },
+    'a4-portrait': {
+      columnWidth: 275,
+      dimensions: PageSizes.A4,
+      pageMargin: 17,
+    },
+    'letter-ansi-a-landscape': {
+      columnWidth: 240,
+      dimensions: [...PageSizes.Letter].reverse() as [number, number],
+      pageMargin: 25,
+    },
+    'letter-ansi-a-portrait': {
+      columnWidth: 280,
+      dimensions: PageSizes.Letter,
+      pageMargin: 25,
+    },
+    'tabloid-ansi-b-landscape': {
+      columnWidth: 287,
+      dimensions: [...PageSizes.Tabloid].reverse() as [number, number],
+      pageMargin: 25,
+    },
+    'tabloid-ansi-b-portrait': {
+      columnWidth: 240,
+      dimensions: PageSizes.Tabloid,
+      pageMargin: 25,
+    },
+  };
+
+  /**
+   * Adds a pdf document to an existing pdf document.
+   *
+   * @param doc PDFDocument to load provided pdfFile into.
+   * @param pdfFile PDF file to load into provided doc.
+   */
+  async function addDocument(doc: PDFDocumentType, pdfFile: ArrayBuffer) {
+    const src = await PDFDocument.load(pdfFile);
+    const copiedPages = await doc.copyPages(src, src.getPageIndices());
+    copiedPages.forEach((page) => {
+      doc.addPage(page);
+    });
+  }
+
+  /**
+   * Gets the symbol and text for the provided combination of
+   * element, symbolClass and textClass.
+   *
+   * @param legendItems Array to add legend item to
+   * @param element Element to search in
+   * @param symbolClass Class for selecting the symbol part
+   * @param textClass Class for selecting the text part
+   * @param type Type of legend item (h1, h2, h3 or item)
+   * @param firstOnly Only include the first text item
+   */
+  async function addLegendItem({
+    legendItems,
+    element,
+    symbolClass,
+    textClass,
+    type,
+    firstOnly = true,
+  }: {
+    legendItems: PdfLegendItem[];
+    element: Element;
+    symbolClass?: string;
+    textClass: string;
+    type: PdfLegendItemType;
+    firstOnly?: boolean;
+  }) {
+    const image = !symbolClass ? null : await getImage(element, symbolClass);
+
+    // get captions
+    const textItems = element.getElementsByClassName(textClass);
+
+    let itemsAdded = 0;
+    for (let textItem of textItems) {
+      const text = textItem.textContent;
+      if (text) {
+        itemsAdded += 1;
+        legendItems.push({
+          image,
+          text,
+          type,
+        });
+      }
+
+      if (firstOnly) break;
+    }
+
+    if (itemsAdded === 0 && image) {
+      legendItems.push({
+        image,
+        type,
+      });
+    }
+  }
+
+  /**
+   * Parses the dom and adds the HMW portion of the legend to the
+   * provided legendItems array.
+   * @param legendItems Array to add legend items to
+   */
+  async function appendHmwLegendItems(legendItems: PdfLegendItem[]) {
+    // loop through individual rows of hmw legend items
+    const listItems = document.getElementsByClassName('hmw-legend__item');
+    for (let item of listItems) {
+      // get the text
+      await addLegendItem({
+        legendItems,
+        element: item,
+        symbolClass: 'hmw-legend__symbol',
+        textClass: 'hmw-legend__info',
+        type: 'imageItem',
+      });
+    }
+  }
+
+  /**
+   * Parses the dom and adds the Esri portion of the legend to the
+   * provided legendItems array.
+   * @param legendItems Array to add legend items to
+   */
+  async function appendEsriLegendItems(legendItems: PdfLegendItem[]) {
+    // loop through layers of esri legend items
+    const legendServices = document.querySelectorAll(
+      '.esri-legend__service:not(.esri-legend__group-layer-child)',
+    );
+    for (let legendService of legendServices) {
+      let hasHighestLevel = false;
+      const groups = Array.from(
+        legendService.getElementsByClassName('esri-legend__group-layer-child'),
+      );
+      if (groups.length === 0) groups.push(legendService);
+      else {
+        await addLegendItem({
+          legendItems,
+          element: legendService,
+          textClass: 'esri-legend__service-label',
+          type: 'h1',
+        });
+        hasHighestLevel = true;
+      }
+
+      for (let group of groups) {
+        // get main title
+        await addLegendItem({
+          legendItems,
+          element: legendService,
+          textClass: 'esri-legend__service-label',
+          type: hasHighestLevel ? 'h2' : 'h1',
+        });
+
+        // get layer level content
+        const layers = group.getElementsByClassName('esri-legend__layer');
+        for (let layer of layers) {
+          // get captions
+          await addLegendItem({
+            legendItems,
+            element: layer,
+            textClass: 'esri-legend__layer-caption',
+            type: hasHighestLevel ? 'h3' : 'h2',
+            firstOnly: false,
+          });
+
+          // get row level content
+          const rows = layer.getElementsByClassName('esri-legend__layer-row');
+          for (let row of rows) {
+            // get the text
+            await addLegendItem({
+              legendItems,
+              element: row,
+              symbolClass: 'esri-legend__symbol',
+              textClass: 'esri-legend__layer-cell--info',
+              type: 'item',
+            });
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Calculates where items should be positioned next. This could be in a new column
+   * on the same page or a new page.
+   *
+   * @param doc PDFDocument adding to
+   * @param currentPage Current page of pdf
+   * @param layout Layout chosen by user
+   * @param pageIndex Index of the current page
+   * @param horizontalPosition Current horizontal position
+   * @param verticalPosition Current vertical position
+   * @param x Current x value
+   * @param numberOfIndents Level of indentation
+   * @param textHeight Height of current text
+   * @param imageScaledHeight Scaled height of current image
+   * @returns new values for currentPage, horizontalPosition, verticalPosition, verticalPositionImage,
+   *          verticalPositionText and x
+   */
+  function calculatePositioning({
+    doc,
+    currentPage,
+    layout,
+    pageIndex,
+    horizontalPosition,
+    verticalPosition,
+    x,
+    numberOfIndents,
+    textHeight,
+    imageScaledHeight,
+  }: {
+    doc: PDFDocumentType;
+    currentPage: PDFPage;
+    layout: LayoutOptionType;
+    pageIndex: number;
+    horizontalPosition: number;
+    verticalPosition: number;
+    x: number;
+    numberOfIndents: number;
+    textHeight: number;
+    imageScaledHeight: number;
+  }) {
+    const { height, width } = currentPage.getSize();
+    const { columnWidth, dimensions, pageMargin } = layoutOptions[layout.value];
+
+    const rowHeight = Math.max(textHeight, imageScaledHeight);
+    const tempY = verticalPosition - rowHeight - topMargin;
+    if (tempY < topMargin) {
+      // determine whether to start a new column or page
+      if (horizontalPosition + columnWidth * 2 + pageMargin * 2 < width) {
+        // start a new column on the same page
+        verticalPosition = height - rowHeight - topMargin * 2;
+        if (pageIndex === 0)
+          verticalPosition = verticalPosition - titleSize - topMargin;
+        horizontalPosition += columnWidth + leftMargin;
+        x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
+      } else {
+        // start a new page
+        currentPage = doc.addPage(dimensions);
+        pageIndex += 1;
+        horizontalPosition = 0;
+        x = pageMargin + leftMargin * numberOfIndents;
+        verticalPosition = height - rowHeight - topMargin * 2;
+      }
+    } else {
+      verticalPosition = tempY;
+    }
+
+    // figure out how to align center the image and text
+    let verticalPositionImage = verticalPosition;
+    let verticalPositionText = verticalPosition;
+    if (imageScaledHeight > textHeight) {
+      verticalPositionText =
+        verticalPosition + (imageScaledHeight - textHeight) / 2;
+    }
+    if (imageScaledHeight < textHeight) {
+      verticalPositionImage =
+        verticalPosition + (textHeight - imageScaledHeight) / 2;
+    }
+
+    return {
+      currentPage,
+      horizontalPosition,
+      pageIndex,
+      verticalPosition,
+      verticalPositionImage,
+      verticalPositionText,
+      x,
+    };
+  }
+
+  /**
+   * Draws multiline text on page.
+   *
+   * @param currentPage Current page of pdf
+   * @param multiLineText Multiline text to draw
+   * @param font Font of text
+   * @param fontSize Font size of text
+   * @param x Horizontal value to start drawing text
+   * @param verticalPositionText Vertical position to start drawing text
+   */
+  function drawMultilineText(
+    currentPage: PDFPage,
+    multiLineText: MultilineTextLayout | null,
+    font: PDFFont,
+    fontSize: number,
+    x: number,
+    verticalPositionText: number,
+  ) {
+    if (!multiLineText) return;
+
+    // pdf-lib has y=0 start at the bottom of the page, so
+    // we have to reverse the lines and work our way up
+    let tempVerticalPositionText = verticalPositionText;
+    for (const l of [...multiLineText.lines].reverse()) {
+      currentPage.drawText(l.text, {
+        x,
+        y: tempVerticalPositionText,
+        font,
+        size: fontSize,
+      });
+
+      tempVerticalPositionText = tempVerticalPositionText + l.height;
+    }
+  }
+
+  /**
+   * Embeds the scaled image into the document and returns the pdfImage,
+   * scaled height and scaled width of the image.
+   *
+   * @param doc PDFDocument adding to
+   * @param image Image to embed in PDF
+   * @returns The pdfImage, scaled height and scaled width
+   */
+  async function embedImage(doc: PDFDocumentType, image?: PdfLegendImage | null) {
+    if (!image)
+      return { pdfImage: null, imageScaledHeight: 0, imageScaledWidth: 0 };
+
+    const imageScaleFactor = 0.75;
+    try {
+      // if the image code is a url, then fetch the image
+      if (typeof image.code === 'string' && !image.code.includes(';base64,')) {
+        image.code = await (await fetch(image.code)).arrayBuffer();
+      }
+
+      // embed, scale and draw the image
+      const pdfImage = await doc.embedPng(image.code);
+      const dimensions = pdfImage.scale(imageScaleFactor);
+
+      return {
+        pdfImage,
+        imageScaledHeight: dimensions.height,
+        imageScaledWidth: dimensions.width,
+      };
+    } catch (err) {
+      console.error(err);
+      return {
+        pdfImage: 'Failed to load image.',
+        imageScaledHeight: 0,
+        imageScaledWidth: 0,
+      };
+    }
+  }
+
+  /**
+   * Gets a symbol and converts it to a base64 PNG.
+   *
+   * @param parentElement Element to find symbol in.
+   * @param searchClass Class of symbol being searched for.
+   * @returns code as base64 PNG and height/width of image.
+   */
+  async function getImage(parentElement: Element, searchClass: string) {
+    // get the symbol
+    const symbols = parentElement.getElementsByClassName(searchClass);
+    const symbol = symbols.length > 0 ? symbols[0] : null;
+    const svgs =
+      symbol?.tagName === 'SVG'
+        ? [symbol as SVGSVGElement]
+        : symbol?.getElementsByTagName('svg');
+    const svgTemp = svgs && svgs.length > 0 ? svgs[0] : null;
+    const png = svgTemp ? await svgToPng(svgTemp) : null;
+    if (png) return png;
+
+    const imgs =
+      symbol?.tagName === 'IMG'
+        ? [symbol as HTMLImageElement]
+        : symbol?.getElementsByTagName('img');
+    const img = imgs && imgs.length > 0 ? imgs[0] : null;
+    if (img) return { code: img.src, height: img.height, width: img.width };
+
+    return null;
+  }
+
+  /**
+   * Wraps the text across multiple lines and calculates the height of the text.
+   *
+   * @param text Text to convert to multi line text
+   * @param font Font of text
+   * @param fontSize Font size of text
+   * @param bounds Bounding box for multi line text to fit in
+   * @returns multiLineText object and the textHeight
+   */
+  function getMultilineText({
+    bounds,
+    font,
+    fontSize,
+    text,
+  }: {
+    bounds: LayoutBounds;
+    font: PDFFont;
+    fontSize: number;
+    text?: string | null;
+  }) {
+    let textHeight = 0;
+    let multiLineText: MultilineTextLayout | null = null;
+
+    if (text) {
+      multiLineText = layoutMultilineText(text, {
+        alignment: TextAlignment.Left,
+        font,
+        fontSize,
+        bounds,
+      });
+
+      // calculate height of multiline text
+      multiLineText.lines.forEach(
+        () => (textHeight += font.heightAtSize(fontSize)),
+      );
+    }
+
+    return { multiLineText, textHeight };
+  }
+
+  /**
+   * Determines how far to indent items based on the
+   * last heading level.
+   *
+   * @param lastHeading Last heading level
+   * @param type Current item type
+   * @returns number of indents
+   */
+  function getNumberOfIndents(
+    lastHeading: PdfLegendItemType,
+    type: PdfLegendItemType,
+  ) {
+    let numberOfIndents = 1;
+    if (lastHeading === 'h2') numberOfIndents = 2;
+    if (lastHeading === 'h3') numberOfIndents = 3;
+    if (type === 'item') numberOfIndents += 1;
+
+    return numberOfIndents;
+  }
+
+  /**
+   * Converts an svg string to base64 png using the domUrl.
+   *
+   * @param svgText the string representation of the SVG.
+   * @return a promise to the bas64 png image.
+   */
+  function svgToPng(svgElm: SVGSVGElement): Promise<PdfLegendImage> {
+    // convert an svg text to png using the browser
+    return new Promise(function (resolve, reject) {
+      try {
+        // can use the domUrl function from the browser
+        const domUrl = window.URL || window.webkitURL || window;
+        if (!domUrl) {
+          reject(new Error('Browser does not support converting SVG to PNG.'));
+        }
+
+        // figure out the height and width from svg text
+        const height = svgElm.height.baseVal.value;
+        const width = svgElm.width.baseVal.value;
+
+        let svgText = svgElm.outerHTML;
+        // remove "xlink:"" from "xlink:href" as it is not proper SVG syntax
+        svgText = svgText.replaceAll('xlink:', '');
+
+        // verify it has a namespace
+        if (!svgText.includes('xmlns="')) {
+          svgText = svgText.replace(
+            '<svg ',
+            '<svg xmlns="http://www.w3.org/2000/svg" ',
+          );
+        }
+
+        // create a canvas element to pass through
+        let canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // make a blob from the svg
+        const svg = new Blob([svgText], {
+          type: 'image/svg+xml;charset=utf-8',
+        });
+
+        // create a dom object for that image
+        const url = domUrl.createObjectURL(svg);
+
+        // create a new image to hold it the converted type
+        const img = new Image();
+
+        // when the image is loaded we can get it as base64 url
+        img.onload = function () {
+          if (!ctx) return;
+
+          // draw it to the canvas
+          ctx.drawImage(img, 0, 0);
+
+          // we don't need the original any more
+          domUrl.revokeObjectURL(url);
+          // now we can resolve the promise, passing the base64 url
+          resolve({ code: canvas.toDataURL(), width, height });
+        };
+
+        img.onerror = function (err) {
+          console.error(err);
+          reject(new Error('Failed to convert svg to png.'));
+        };
+
+        // load the image
+        img.src = url;
+      } catch (err) {
+        console.error(err);
+        reject(new Error('Failed to convert svg to png.'));
+      }
+    });
+  }
+
+  /**
+   * A wrapper for setTimeout, which allows async/await syntax.
+   *
+   * @param ms Milliseconds to wait for
+   * @returns Promise
+   */
+  function timeout(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Generates the map portion of the PDF using the esri
+   * print service.
+   *
+   * @param printVm PrintViewModel used for calling esri print service
+   * @param template PrintTemplate used for formatting the map
+   * @param retryCount Retry count for handling failures
+   * @returns ArrayBuffer of the map portion of the PDF
+   */
+  async function generateMapPdf(
+    printVm: PrintVMType,
+    template: PrintTemplateType,
+    retryCount: number = 0,
+  ): Promise<ArrayBuffer> {
+    try {
+      const printRes = await printVm.print(template);
+      const res = await fetch(printRes.url);
+
+      // convert to array buffer and return
+      return await (await res.blob()).arrayBuffer();
+    } catch (err) {
+      console.error(err);
+
+      // set failure when retry is exceeded
+      if (retryCount === 3) {
+        throw err;
+      } else {
+        // recursive retry (1 second between retries)
+        console.log(`Failed to download. Retrying (${retryCount + 1} of 3)...`);
+        await timeout(1000);
+        return await generateMapPdf(printVm, template, retryCount + 1);
+      }
+    }
+  }
+
+  /**
+   * Generates the legend portion of the PDF file.
+   *
+   * @param doc PDFDocument to add legend to
+   */
+  async function generateLegendPdf(doc: PDFDocumentType) {
+    const legendItems: PdfLegendItem[] = [];
+    await appendHmwLegendItems(legendItems);
+    await appendEsriLegendItems(legendItems);
+
+    // add a page and set the font
+    let currentPage = doc.addPage(
+      layoutOptions[layout.value].dimensions,
+    );
+    const helveticaFont = doc.embedStandardFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = doc.embedStandardFont(
+      StandardFonts.HelveticaBold,
+    );
+
+    // get the size of the document
+    const { height, width } = currentPage.getSize();
+    const fontSize = 12;
+
+    // add centered header
+    let verticalPosition = height - titleSize - topMargin * 2;
+    const titleWidth = helveticaBoldFont.widthOfTextAtSize('Legend', titleSize);
+    currentPage.drawText('Legend', {
+      x: width / 2 - titleWidth / 2,
+      y: verticalPosition,
+      font: helveticaBoldFont,
+      size: titleSize,
+    });
+
+    // add items to legend
+    let lastHeading: PdfLegendItemType = 'h1';
+    let horizontalPosition = 0;
+    let pageIndex = 0;
+    for (const item of legendItems) {
+      const { image, text, type } = item;
+
+      if (['h1', 'h2', 'h3'].includes(type)) lastHeading = type;
+      const numberOfIndents = getNumberOfIndents(lastHeading, type);
+
+      const font = ['h1', 'h2'].includes(type)
+        ? helveticaBoldFont
+        : helveticaFont;
+
+      const { pageMargin, columnWidth } =
+        layoutOptions[layout.value];
+
+      // set x starting position
+      let x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
+
+      // get image dimensions after scaling
+      const { pdfImage, imageScaledHeight, imageScaledWidth } =
+        await embedImage(doc, image);
+
+      // wrap text and calculate height of text
+      const { multiLineText, textHeight } = getMultilineText({
+        text,
+        font,
+        fontSize,
+        bounds: {
+          x,
+          y: verticalPosition - topMargin,
+          width: columnWidth - imageScaledWidth - leftMargin * numberOfIndents,
+          height,
+        },
+      });
+
+      const newPosition = calculatePositioning({
+        doc,
+        currentPage,
+        layout,
+        pageIndex,
+        horizontalPosition,
+        verticalPosition,
+        x,
+        numberOfIndents,
+        imageScaledHeight,
+        textHeight,
+      });
+
+      ({ currentPage, horizontalPosition, pageIndex, verticalPosition, x } =
+        newPosition);
+
+      const { verticalPositionImage, verticalPositionText } = newPosition;
+
+      // draw the image
+      if (pdfImage instanceof PDFImage) {
+        currentPage.drawImage(pdfImage, {
+          x,
+          y: verticalPositionImage,
+          width: imageScaledWidth,
+          height: imageScaledHeight,
+        });
+
+        // shift x to the right of the image for text
+        x = x + leftMargin + imageScaledWidth;
+      }
+      if (typeof pdfImage === 'string') {
+        currentPage.drawText(pdfImage, {
+          x,
+          y: verticalPositionText,
+          color: rgb(1, 0, 0),
+          font: helveticaFont,
+          size: fontSize,
+        });
+
+        x =
+          x + leftMargin + helveticaFont.widthOfTextAtSize(pdfImage, fontSize);
+      }
+
+      // draw the text which can be multiple lines
+      drawMultilineText(
+        currentPage,
+        multiLineText,
+        font,
+        fontSize,
+        x,
+        verticalPositionText,
+      );
+    }
+  }
+
+  const template = new PrintTemplate({
+    format: 'pdf',
+    layout: layout.value,
+    layoutOptions: {
+      titleText: title,
+      authorText: author,
+      copyrightText: copyright,
+      legendLayers: [], // hide legend since it has a bug
+      elementOverrides: {
+        'North Arrow': {
+          visible: northArrowVisible,
+        },
+      },
+    },
+    outScale: scale,
+  });
+
+  const printVm = new PrintVM({
+    printServiceUrl: services.data.printService,
+    view,
+  });
+
+  // create the PDF document with metadata
+  const doc = await PDFDocument.create();
+  const creator = `U.S. EPA How's My Waterway`;
+  doc.setTitle(title);
+  doc.setAuthor(`${author || creator}`);
+  doc.setSubject(title);
+  doc.setKeywords([
+    'MyWaterway',
+    'HMWv2',
+    'WATERS',
+    'RAD',
+    'ATTAINS',
+    'GRTS',
+    'STORET',
+    'WQP',
+    'WQX',
+  ]);
+  doc.setProducer(creator);
+  doc.setCreator(creator);
+  doc.setCreationDate(new Date());
+  doc.setModificationDate(new Date());
+
+  // get map part and add it to the document
+  const mapPdf = await generateMapPdf(printVm, template);
+  await addDocument(doc, mapPdf);
+
+  // get legend part if necessary
+  if (includeLegend) await generateLegendPdf(doc);
+
+  // save from browser
+  const mergedPdf = new Blob([await doc.save()]);
+  const { saveAs } = (await import('file-saver')).default;
+  saveAs(mergedPdf, `${title}.pdf`);
+}
+
 const advanceContainerStyles = css`
   padding: 10px;
 `;
@@ -1991,36 +2813,39 @@ const scaleContainerStyles = css`
   }
 `;
 
-const sizeContainerStyles = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  button {
-    background-color: #f0f6f9;
-  }
-
-  div {
-    flex: 0 0 43%;
-  }
-`;
-
-type FormatOptionType =
-  | { value: 'pdf'; label: 'PDF'; extension: 'pdf' }
-  | { value: 'png32'; label: 'PNG'; extension: 'png' }
-  | { value: 'jpg'; label: 'JPG'; extension: 'jpg' }
-  | { value: 'gif'; label: 'GIF'; extension: 'gif' }
-  | { value: 'svg'; label: 'SVG'; extension: 'svg' };
-
 type LayoutOptionType =
-  | { value: 'a3-landscape'; label: 'A3 Landscape' }
-  | { value: 'a3-portrait'; label: 'A3 Portrait' }
-  | { value: 'a4-landscape'; label: 'A4 Landscape' }
-  | { value: 'a4-portrait'; label: 'A4 Portrait' }
-  | { value: 'letter-ansi-a-landscape'; label: 'Letter ANSI A Landscape' }
-  | { value: 'letter-ansi-a-portrait'; label: 'Letter ANSI A Portrait' }
-  | { value: 'tabloid-ansi-b-landscape'; label: 'Tabloid ANSI B Landscape' }
-  | { value: 'tabloid-ansi-b-portrait'; label: 'Tabloid ANSI B Portrait' };
+  | {
+      value: 'a3-landscape';
+      label: 'A3 Landscape';
+    }
+  | {
+      value: 'a3-portrait';
+      label: 'A3 Portrait';
+    }
+  | {
+      value: 'a4-landscape';
+      label: 'A4 Landscape';
+    }
+  | {
+      value: 'a4-portrait';
+      label: 'A4 Portrait';
+    }
+  | {
+      value: 'letter-ansi-a-landscape';
+      label: 'Letter ANSI A Landscape';
+    }
+  | {
+      value: 'letter-ansi-a-portrait';
+      label: 'Letter ANSI A Portrait';
+    }
+  | {
+      value: 'tabloid-ansi-b-landscape';
+      label: 'Tabloid ANSI B Landscape';
+    }
+  | {
+      value: 'tabloid-ansi-b-portrait';
+      label: 'Tabloid ANSI B Portrait';
+    };
 
 type DownloadWidgetProps = {
   services: ServicesState;
@@ -2028,32 +2853,45 @@ type DownloadWidgetProps = {
 };
 
 function DownloadWidget({ services, view }: DownloadWidgetProps) {
-  const formatOptions: FormatOptionType[] = [
-    { value: 'pdf', label: 'PDF', extension: 'pdf' },
-    { value: 'png32', label: 'PNG', extension: 'png' },
-    { value: 'jpg', label: 'JPG', extension: 'jpg' },
-    { value: 'gif', label: 'GIF', extension: 'gif' },
-    { value: 'svg', label: 'SVG', extension: 'svg' },
-  ];
-
   const layoutOptions: LayoutOptionType[] = [
-    { value: 'a3-landscape', label: 'A3 Landscape' },
-    { value: 'a3-portrait', label: 'A3 Portrait' },
-    { value: 'a4-landscape', label: 'A4 Landscape' },
-    { value: 'a4-portrait', label: 'A4 Portrait' },
-    { value: 'letter-ansi-a-landscape', label: 'Letter ANSI A Landscape' },
-    { value: 'letter-ansi-a-portrait', label: 'Letter ANSI A Portrait' },
-    { value: 'tabloid-ansi-b-landscape', label: 'Tabloid ANSI B Landscape' },
-    { value: 'tabloid-ansi-b-portrait', label: 'Tabloid ANSI B Portrait' },
+    {
+      value: 'a3-landscape',
+      label: 'A3 Landscape',
+    },
+    {
+      value: 'a3-portrait',
+      label: 'A3 Portrait',
+    },
+    {
+      value: 'a4-landscape',
+      label: 'A4 Landscape',
+    },
+    {
+      value: 'a4-portrait',
+      label: 'A4 Portrait',
+    },
+    {
+      value: 'letter-ansi-a-landscape',
+      label: 'Letter ANSI A Landscape',
+    },
+    {
+      value: 'letter-ansi-a-portrait',
+      label: 'Letter ANSI A Portrait',
+    },
+    {
+      value: 'tabloid-ansi-b-landscape',
+      label: 'Tabloid ANSI B Landscape',
+    },
+    {
+      value: 'tabloid-ansi-b-portrait',
+      label: 'Tabloid ANSI B Portrait',
+    },
   ];
 
-  const [attributionVisible, setAttributionVisible] = useState(true);
   const [author, setAuthor] = useState('');
   const [copyright, setCopyright] = useState('');
-  const [dpi, setDpi] = useState(96);
   const [enableScale, setEnableScale] = useState(false);
   const [scale, setScale] = useState(0);
-  const [format, setFormat] = useState<FormatOptionType>(formatOptions[0]);
   const [includeLegend, setIncludeLegend] = useState(true);
   const [layout, setLayout] = useState<LayoutOptionType>(
     layoutOptions.find((o) => o.value === 'letter-ansi-a-landscape') ??
@@ -2065,8 +2903,6 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
   >('idle');
   const [errorMessage, setErrorMessage] = useState<string>();
   const [title, setTitle] = useState('');
-  const [height, setHeight] = useState(1100);
-  const [width, setWidth] = useState(800);
 
   // Initializes a watcher to sync the view's scale.
   useEffect(() => {
@@ -2100,21 +2936,6 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
         </label>
       </div>
       <div>
-        <label>
-          File Format
-          <Select
-            menuPosition="fixed"
-            inputId="url-type-select"
-            isSearchable={false}
-            value={format}
-            onChange={(ev) => {
-              setFormat(ev as FormatOptionType);
-            }}
-            options={formatOptions}
-          />
-        </label>
-      </div>
-      <div>
         <label css={checkboxStyles}>
           <input
             type="checkbox"
@@ -2124,61 +2945,23 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
           Include Legend
         </label>
       </div>
-      {includeLegend && (
-        <div>
-          <label>
-            Page setup
-            <Select
-              menuPosition="fixed"
-              isSearchable={false}
-              value={layout}
-              onChange={(ev) => {
-                setLayout(ev as LayoutOptionType);
-              }}
-              options={layoutOptions}
-            />
-          </label>
-        </div>
-      )}
+      <div>
+        <label>
+          Page setup
+          <Select
+            menuPosition="fixed"
+            isSearchable={false}
+            value={layout}
+            onChange={(ev) => {
+              setLayout(ev as LayoutOptionType);
+            }}
+            options={layoutOptions}
+          />
+        </label>
+      </div>
       <AccordionList expandDisabled={true}>
         <AccordionItem status={'highlighted'} title="Advanced">
           <div css={advanceContainerStyles}>
-            {!includeLegend && (
-              <div css={sizeContainerStyles}>
-                <div>
-                  <label>
-                    Width:
-                    <input
-                      css={inputStyles}
-                      type="number"
-                      value={width}
-                      onChange={(ev) => setWidth(ev.target.valueAsNumber)}
-                    />
-                  </label>
-                </div>
-                <div>
-                  <label>
-                    Height:
-                    <input
-                      css={inputStyles}
-                      type="number"
-                      value={height}
-                      onChange={(ev) => setHeight(ev.target.valueAsNumber)}
-                    />
-                  </label>
-                </div>
-                <button
-                  className="esri-widget--button esri-print__swap-button esri-icon-swap"
-                  aria-label="swap"
-                  onClick={() => {
-                    const newWidth = height;
-                    const newHeight = width;
-                    setWidth(newWidth);
-                    setHeight(newHeight);
-                  }}
-                />
-              </div>
-            )}
             <div>
               <label css={checkboxStyles}>
                 <input
@@ -2206,63 +2989,37 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
                 }}
               />
             </div>
-            {includeLegend && (
-              <>
-                <div>
-                  <label>
-                    Author
-                    <input
-                      css={inputStyles}
-                      type="text"
-                      value={author}
-                      onChange={(ev) => setAuthor(ev.target.value)}
-                    />
-                  </label>
-                </div>
-                <div>
-                  <label>
-                    Copyright
-                    <input
-                      css={inputStyles}
-                      type="text"
-                      value={copyright}
-                      onChange={(ev) => setCopyright(ev.target.value)}
-                    />
-                  </label>
-                </div>
-              </>
-            )}
             <div>
               <label>
-                DPI
+                Author
                 <input
                   css={inputStyles}
-                  type="number"
-                  value={dpi}
-                  onChange={(ev) => setDpi(ev.target.valueAsNumber)}
+                  type="text"
+                  value={author}
+                  onChange={(ev) => setAuthor(ev.target.value)}
                 />
               </label>
             </div>
             <div>
-              {includeLegend ? (
-                <label css={checkboxStyles}>
-                  <input
-                    type="checkbox"
-                    checked={northArrowVisible}
-                    onChange={() => setNorthArrowVisible(!northArrowVisible)}
-                  />
-                  Include north arrow
-                </label>
-              ) : (
-                <label css={checkboxStyles}>
-                  <input
-                    type="checkbox"
-                    checked={attributionVisible}
-                    onChange={() => setAttributionVisible(!attributionVisible)}
-                  />
-                  Include attribution
-                </label>
-              )}
+              <label>
+                Copyright
+                <input
+                  css={inputStyles}
+                  type="text"
+                  value={copyright}
+                  onChange={(ev) => setCopyright(ev.target.value)}
+                />
+              </label>
+            </div>
+            <div>
+              <label css={checkboxStyles}>
+                <input
+                  type="checkbox"
+                  checked={northArrowVisible}
+                  onChange={() => setNorthArrowVisible(!northArrowVisible)}
+                />
+                Include north arrow
+              </label>
             </div>
           </div>
         </AccordionItem>
@@ -2284,7 +3041,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       <button
         css={downloadButtonStyles}
         disabled={status === 'fetching'}
-        onClick={() => {
+        onClick={async () => {
           if (!view || services.status !== 'success') return;
 
           if (!title) {
@@ -2295,64 +3052,25 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
           setStatus('fetching');
 
-          const template = new PrintTemplate({
-            attributionVisible,
-            exportOptions: {
-              width,
-              height,
-              dpi,
-            },
-            format: format.value,
-            layout: includeLegend ? layout.value : 'map-only',
-            layoutOptions: {
-              titleText: title,
-              authorText: author,
-              copyrightText: copyright,
-              elementOverrides: {
-                'North Arrow': {
-                  visible: northArrowVisible,
-                },
-              },
-            },
-            outScale: scale,
-          });
+          try {
+            await generateAndDownloadPdf({
+              layout,
+              title,
+              author,
+              copyright,
+              northArrowVisible,
+              scale,
+              services,
+              view,
+              includeLegend,
+            });
 
-          const printVm = new PrintVM({
-            printServiceUrl: services.data.printService,
-            view,
-          });
-
-          function download(retryCount: number = 0) {
-            printVm
-              .print(template)
-              .then((res) => {
-                saveAs(res.url, `${title}.${format.extension}`);
-                setStatus('success');
-              })
-              .catch((err) => {
-                console.error(err);
-
-                // set failure when retry is exceeded
-                if (retryCount === 3) {
-                  setStatus('failure');
-                  if (err.message) {
-                    setErrorMessage(err.message);
-                  } else {
-                    setErrorMessage(
-                      'Unknown error. Check developer tools console.',
-                    );
-                  }
-                } else {
-                  // recursive retry (1 second between retries)
-                  console.log(
-                    `Failed to download. Retrying (${retryCount + 1} of 3)...`,
-                  );
-                  setTimeout(() => download(retryCount + 1), 1000);
-                }
-              });
+            setStatus('success');
+          } catch (err) {
+            console.error(err);
+            setStatus('failure');
+            setErrorMessage(handleError(err));
           }
-
-          download();
         }}
       >
         Download Printable Map

@@ -1,5 +1,4 @@
 import { render } from 'react-dom';
-import { css } from 'styled-components/macro';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
 import Point from '@arcgis/core/geometry/Point';
@@ -139,6 +138,7 @@ export function createUniqueValueInfos(
 ) {
   return [
     {
+      label: `Good`,
       value: `Fully Supporting`,
       symbol: createWaterbodySymbol({
         condition: 'good',
@@ -148,6 +148,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Impaired`,
       value: `Not Supporting`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -157,6 +158,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Condition Unknown`,
       value: `Insufficient Information`,
       symbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -166,6 +168,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Condition Unknown`,
       value: `Not Assessed`,
       symbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -175,6 +178,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Good`,
       value: `Meeting Criteria`,
       symbol: createWaterbodySymbol({
         condition: 'good',
@@ -184,6 +188,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Impaired`,
       value: `Cause`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -193,6 +198,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Yes`,
       value: `Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -202,6 +208,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `No`,
       value: `N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -223,6 +230,7 @@ export function createUniqueValueInfosIssues(
 ) {
   return [
     {
+      label: 'Impaired',
       value: `Y`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -232,6 +240,7 @@ export function createUniqueValueInfosIssues(
       }),
     },
     {
+      label: 'No',
       value: `N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -253,6 +262,7 @@ export function createUniqueValueInfosRestore(
 ) {
   return [
     {
+      label: 'None',
       value: `N, N, N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -262,6 +272,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, N, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -271,6 +282,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, Y, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -280,6 +292,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, Y, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -289,6 +302,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, N, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -298,6 +312,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, N, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -307,6 +322,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, Y, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -316,6 +332,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, Y, Y`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -924,24 +941,6 @@ export function graphicComparison(
   return true;
 }
 
-const tickMarkStyles = css`
-  display: flex;
-  align-items: center;
-  width: 100%;
-
-  ::before {
-    content: '';
-    width: 4px;
-    height: 1px;
-    background-color: #999;
-  }
-
-  p {
-    padding-left: 0.25em;
-    font-size: 0.875em !important;
-  }
-`;
-
 export function GradientIcon({
   id,
   stops,
@@ -952,15 +951,15 @@ export function GradientIcon({
   const divisions = stops.length - 1;
   return (
     <div css={{ display: 'flex', margin: 'auto' }}>
-      <div css={{ margin: '15px 0', border: '1px solid #999' }}>
-        <svg width={20} height={30 * divisions}>
+      <div css={{ margin: '15px 0' }}>
+        <svg width={50} height={(25 * divisions) + 20}>
           <defs>
             <linearGradient
               id={id}
               x1={0}
               y1={0}
               x2={0}
-              y2={30 * divisions}
+              y2={25 * divisions}
               gradientUnits="userSpaceOnUse"
             >
               {stops.map((stop, index) => (
@@ -975,20 +974,16 @@ export function GradientIcon({
 
           <rect
             x={0}
-            y={0}
+            y={10}
             width={20}
-            height={30 * divisions}
+            height={25 * divisions}
             fill={`url(#${id})`}
           />
-        </svg>
-      </div>
 
-      <div css={{ display: 'flex', flexWrap: 'wrap', width: '45px' }}>
-        {stops.map((stop) => (
-          <div key={stop.label} css={tickMarkStyles}>
-            <p>{stop.label}</p>
-          </div>
-        ))}
+          {stops.map((stop, index) => (
+            <text key={stop.label} x="20" y={(25 * index) + 14} fontSize="smaller">-{stop.label}</text>
+          ))}
+        </svg>
       </div>
     </div>
   );
