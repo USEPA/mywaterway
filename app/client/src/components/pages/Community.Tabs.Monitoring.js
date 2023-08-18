@@ -180,6 +180,7 @@ function filterStation(station, timeframe) {
   const stationRecords = station.dataByYear;
   const result = {
     ...station,
+    characteristicsByGroup: {},
     totalMeasurements: 0,
     totalsByCharacteristic: {},
     totalsByGroup: {},
@@ -214,6 +215,14 @@ function filterStation(station, timeframe) {
         if (count <= 0) return;
         if (charc in resultCharcs) resultCharcs[charc] += count;
         else resultCharcs[charc] = count;
+      },
+    );
+    // Get timeframe characteristics by group
+    Object.entries(stationRecords[year].characteristicsByGroup).forEach(
+      ([group, charcList]) => {
+        result.characteristicsByGroup[group] = Array.from(
+          new Set(charcList.concat(result.characteristicsByGroup[group] ?? [])),
+        );
       },
     );
   }
@@ -440,7 +449,7 @@ function CurrentConditionsTab({
     }
 
     if (cyanDisplayed) {
-      displayedTypes.push('CyAN');
+      displayedTypes.push('Blue-Green Algae');
     }
 
     return displayedTypes.includes(item.monitoringType);
@@ -648,7 +657,7 @@ function CurrentConditionsTab({
                     </AccordionItem>
                   );
                 }
-                case 'CyAN': {
+                case 'Blue-Green Algae': {
                   const feature = {
                     geometry: item.geometry,
                     attributes: item,
@@ -673,7 +682,7 @@ function CurrentConditionsTab({
                           feature={feature}
                           mapView={mapView}
                           services={services}
-                          type="CyAN"
+                          type="Blue-Green Algae"
                         />
                         <ViewOnMapButton feature={feature} fieldName="FID" />
                       </div>
@@ -714,7 +723,13 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       const stationUpdates = {};
       locations.forEach((location) => {
         stationUpdates[location.uniqueId] = {
+          characteristicsByGroup: JSON.stringify(
+            location.characteristicsByGroup,
+          ),
           totalMeasurements: location.totalMeasurements,
+          totalsByCharacteristic: JSON.stringify(
+            location.totalsByCharacteristic,
+          ),
           totalsByGroup: JSON.stringify(location.totalsByGroup),
           timeframe: JSON.stringify(location.timeframe),
         };

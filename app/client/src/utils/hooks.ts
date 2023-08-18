@@ -244,13 +244,13 @@ function useWaterbodyFeatures() {
 
     // combine lines, area, and points features
     let featuresArray: Array<__esri.Graphic> = [];
-    if (linesData.features && linesData.features.length > 0) {
+    if (linesData.features?.length > 0) {
       featuresArray = featuresArray.concat(linesData.features);
     }
-    if (areasData.features && areasData.features.length > 0) {
+    if (areasData.features?.length > 0) {
       featuresArray = featuresArray.concat(areasData.features);
     }
-    if (pointsData.features && pointsData.features.length > 0) {
+    if (pointsData.features?.length > 0) {
       featuresArray = featuresArray.concat(pointsData.features);
     }
     if (
@@ -336,7 +336,7 @@ function useWaterbodyOnMap(
           geometryType,
           alpha,
         }),
-        field: attribute ? attribute : 'overallstatus',
+        field: attribute ?? 'overallstatus',
         fieldDelimiter: ', ',
         uniqueValueInfos: createUniqueValueInfos(geometryType, alpha).map(
           (info) => new UniqueValueInfo(info),
@@ -570,7 +570,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = monitoringLocationsLayer;
     } else if (attributes.monitoringType === 'USGS Sensors') {
       layer = usgsStreamgagesLayer;
-    } else if (attributes.monitoringType === 'CyAN') {
+    } else if (attributes.monitoringType === 'Blue-Green Algae') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
       featureLayerType = 'cyanWaterbodies';
     } else if (attributes.type === 'nonprofit') {
@@ -1787,9 +1787,15 @@ export {
   useWaterbodyHighlight,
 };
 
-export * from './allWaterbodies';
-export * from './boundariesToggleLayer';
-export * from './cyanWaterbodies';
-export * from './dischargers';
-export * from './monitoringLocations';
-export * from './streamgages';
+export { useAllWaterbodiesLayer } from './allWaterbodies';
+export {
+  useCyanWaterbodies,
+  useCyanWaterbodiesLayers,
+} from './cyanWaterbodies';
+export { useDischargers, useDischargersLayers } from './dischargers';
+export {
+  useMonitoringGroups,
+  useMonitoringLocations,
+  useMonitoringLocationsLayers,
+} from './monitoringLocations';
+export { useStreamgages, useStreamgageLayers } from './streamgages';

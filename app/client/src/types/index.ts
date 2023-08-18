@@ -9,6 +9,7 @@ export interface AllotmentAttributes {
 }
 
 export interface AnnualStationData {
+  characteristicsByGroup: { [group: string]: string[] };
   uniqueId: string;
   totalMeasurements: number;
   totalSamples: number;
@@ -80,7 +81,7 @@ export interface CyanWaterbodyAttributes {
   geometry: __esri.Polygon;
   GNIS_NAME: string;
   locationName: string;
-  monitoringType: 'CyAN';
+  monitoringType: 'Blue-Green Algae';
   oid: number;
   orgName: 'Cyanobacteria Assessment Network (CyAN)';
 }
@@ -130,6 +131,11 @@ export interface FetchSuccessState<Type> {
 }
 
 export type FetchState<Type> = FetchEmptyState | FetchSuccessState<Type>;
+
+export type FetchStateWithDefault<Type> = {
+  status: Exclude<FetchStatus, 'empty' | 'fetching'>;
+  data: Type;
+};
 
 export type FetchStatus = FetchEmptyStatus | 'success';
 
@@ -221,7 +227,9 @@ export type LookupFile = {
 };
 
 export interface MonitoringFeatureUpdate {
+  characteristicsByGroup: { [group: string]: string[] };
   totalMeasurements: number;
+  totalsByCharacteristic: { [characteristic: string]: number };
   totalsByGroup: { [group: string]: number };
   timeframe: [number, number];
 }
@@ -231,6 +239,7 @@ export type MonitoringFeatureUpdates = {
 } | null;
 
 export interface MonitoringLocationAttributes {
+  characteristicsByGroup: { [group: string]: string[] };
   county: string;
   monitoringType: 'Past Water Conditions';
   siteId: string;
@@ -293,16 +302,6 @@ export interface MonitoringLocationsData {
 }
 
 export type MonitoringYearsRange = [number, number];
-
-export type MonitoringWorkerData = {
-  minYear: number;
-  maxYear: number;
-  sites: {
-    [siteId: string]: {
-      [year: string]: AnnualStationData;
-    };
-  };
-};
 
 export interface NonProfitAttributes {
   Name?: string;

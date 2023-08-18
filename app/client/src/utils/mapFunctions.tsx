@@ -794,16 +794,9 @@ export function getPopupContent({
       type = 'Permitted Discharger';
     }
 
-    // CyAN waterbody
-    else if ('GNIS_NAME' in attributes) {
-      type = 'Blue-Green Algae';
-    }
-
-    // usgs streamgage or monitoring location
+    // CyAN waterbody or usgs streamgage or monitoring location
     else if ('monitoringType' in attributes) {
-      if (attributes.monitoringType === 'USGS Sensors') type = 'USGS Sensors';
-      else if (attributes.monitoringType === 'Past Water Conditions')
-        type = 'Past Water Conditions';
+      type = attributes.monitoringType;
     }
 
     // protect tab teal nonprofits

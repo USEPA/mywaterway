@@ -38,7 +38,11 @@ import {
   isMediaLayer,
   isUniqueValueRenderer,
 } from 'utils/mapFunctions';
-import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
+import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
+import {
+  addAnnualData,
+  structurePeriodOfRecordData,
+} from 'utils/monitoringLocations';
 import {
   convertAgencyCode,
   convertDomainCode,
@@ -74,6 +78,7 @@ import type {
   ChangeLocationAttributes,
   ClickedHucState,
   FetchState,
+  FetchStateWithDefault,
   LookupFile,
   MonitoringLocationAttributes,
   ServicesState,
@@ -1199,10 +1204,7 @@ function WaterbodyInfo({
   }
   if (type === 'Past Water Conditions') {
     content = (
-      <MonitoringLocationsContent
-        feature={feature}
-        services={services ?? null}
-      />
+      <MonitoringLocationsContent feature={feature} services={services} />
     );
   }
   if (type === 'Nonprofit') content = nonprofitContent;
@@ -2399,7 +2401,7 @@ function checkIfGroupInMapping(groupName: string): boolean {
 
 type MonitoringLocationsContentProps = {
   feature: __esri.Graphic;
-  services: ServicesState | null;
+  services?: ServicesState;
 };
 
 function MonitoringLocationsContent({
@@ -2412,21 +2414,22 @@ function MonitoringLocationsContent({
     number | null
   >(null);
 
-  const attributes: MonitoringLocationAttributes = feature.attributes;
   const layer = feature.layer;
-  const parsed = useMemo(() => {
+  const attributes: MonitoringLocationAttributes = useMemo(() => {
     const structuredProps = [
+      'characteristicsByGroup',
       'totalsByCharacteristic',
       'totalsByGroup',
       'timeframe',
     ];
     return parseAttributes<MonitoringLocationAttributes>(
       structuredProps,
-      attributes,
+      feature.attributes,
     );
-  }, [attributes]);
+  }, [feature]);
 
   const {
+    characteristicsByGroup,
     locationLatitude,
     locationLongitude,
     locationName,
@@ -2439,8 +2442,10 @@ function MonitoringLocationsContent({
     totalSamples,
     totalsByGroup,
     totalMeasurements,
+    totalsByCharacteristic,
     timeframe,
-  } = parsed;
+    uniqueId,
+  } = attributes;
 
   const [groups, setGroups] = useState(() => {
     const { newGroups } = buildGroups(checkIfGroupInMapping, totalsByGroup);
@@ -2552,6 +2557,92 @@ function MonitoringLocationsContent({
     setSelectAll(selectAll === 0 ? 1 : 0);
     setTotalDisplayedMeasurements(selectAll === 0 ? totalMeasurements : 0);
   };
+
+  // The toggle table labels are groups of *other* groups of characteristics
+  const [selectedGroupLabel, setSelectedGroupLabel] = useState('');
+  const characteristicsDefaultData = () => ({
+    characteristicsByGroup: {},
+    totalsByCharacteristic: {},
+  });
+  const [characteristics, setCharacteristics] = useState<
+    FetchStateWithDefault<{
+      characteristicsByGroup: MonitoringLocationAttributes['characteristicsByGroup'];
+      totalsByCharacteristic: MonitoringLocationAttributes['totalsByCharacteristic'];
+    }>
+  >({ status: 'idle', data: characteristicsDefaultData() });
+  const [modalTriggered, setModalTriggered] = useState(false);
+  useEffect(() => {
+    if (!modalTriggered) return;
+    if (Object.keys(totalsByCharacteristic).length) {
+      setCharacteristics({
+        status: 'success',
+        data: { characteristicsByGroup, totalsByCharacteristic },
+      });
+    } else {
+      if (services?.status !== 'success') {
+        setCharacteristics({
+          status:
+            services?.status === 'fetching'
+              ? 'pending'
+              : services?.status ?? 'failure',
+          data: characteristicsDefaultData(),
+        });
+        return;
+      }
+      const url =
+        `${services.data.waterQualityPortal.monitoringLocation}search?` +
+        `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&providers=${providerName}&organization=${orgId}&siteid=${siteId}`;
+      setCharacteristics({
+        status: 'pending',
+        data: characteristicsDefaultData(),
+      });
+      fetchParseCsv(url)
+        .then((records) => {
+          const { sites } = structurePeriodOfRecordData(
+            records,
+            characteristicGroupMappings,
+          );
+          const updatedAttributes = addAnnualData([attributes], sites).pop()!;
+          setCharacteristics({
+            status: 'success',
+            data: {
+              characteristicsByGroup: updatedAttributes.characteristicsByGroup,
+              totalsByCharacteristic: updatedAttributes.totalsByCharacteristic,
+            },
+          });
+        })
+        .catch((_err) => {
+          setCharacteristics({
+            status: 'failure',
+            data: characteristicsDefaultData(),
+          });
+        });
+    }
+  }, [
+    attributes,
+    characteristicsByGroup,
+    modalTriggered,
+    orgId,
+    providerName,
+    services,
+    siteId,
+    totalsByCharacteristic,
+    uniqueId,
+  ]);
+
+  const innerGroups = groups[selectedGroupLabel]?.characteristicGroups;
+  const groupCharacteristics = Object.entries(
+    characteristics.data.totalsByCharacteristic,
+  ).reduce((result, [charc, count]) => {
+    for (let innerGroup of innerGroups) {
+      if (
+        characteristics.data.characteristicsByGroup[innerGroup]?.includes(charc)
+      ) {
+        return { ...result, [charc]: count };
+      }
+    }
+    return result;
+  }, {});
 
   // if a user has filtered out certain characteristic groups for
   // a given table, that'll be used as additional query string
@@ -2676,6 +2767,7 @@ function MonitoringLocationsContent({
                   Number of Measure&shy;ments
                 </GlossaryTerm>
               </th>
+              <th>Detailed Characteristics</th>
             </tr>
           </thead>
           <tbody>
@@ -2684,7 +2776,6 @@ function MonitoringLocationsContent({
               if (groups[key].resultCount === 0) {
                 return null;
               }
-
               return (
                 <tr key={key}>
                   <td css={checkboxCellStyles}>
@@ -2701,6 +2792,74 @@ function MonitoringLocationsContent({
                   </td>
                   <td>{key}</td>
                   <td>{groups[key].resultCount.toLocaleString()}</td>
+                  <td>
+                    <Modal
+                      label={`Detailed Uses for ${key}`}
+                      maxWidth="35rem"
+                      triggerElm={
+                        <button
+                          aria-label={`View detailed uses for ${key}`}
+                          title={`View detailed uses for ${key}`}
+                          css={modifiedIconButtonStyles}
+                          onClick={() => {
+                            setSelectedGroupLabel(key);
+                            setModalTriggered(true);
+                          }}
+                        >
+                          <i aria-hidden className="fas fa-info-circle"></i>
+                        </button>
+                      }
+                    >
+                      <table css={modalTableStyles} className="table">
+                        <thead>
+                          <tr>
+                            <th>
+                              Detailed <em>{key}</em> Characteristics
+                            </th>
+                            <th>Number of Measurements</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(groupCharacteristics).map(
+                            ([charc, count]) => (
+                              <tr key={charc}>
+                                <td>{charc}</td>
+                                <td>{(count as number).toLocaleString()}</td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                      {characteristics.status === 'pending' && (
+                        <LoadingSpinner />
+                      )}
+                      {characteristics.status === 'failure' && (
+                        <div css={errorBoxStyles}>
+                          <p>
+                            Detailed characteristics could not be retrieved at
+                            this time, please try again later.
+                          </p>
+                        </div>
+                      )}
+                      {(!onMonitoringReportPage ||
+                        layer.id === 'surroundingMonitoringLocationsLayer') && (
+                        <p css={infoBoxStyles}>
+                          For more information view the{' '}
+                          <a
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            href={locationUrlPartial}
+                          >
+                            Water Monitoring Report
+                          </a>{' '}
+                          <small css={modifiedDisclaimerStyles}>
+                            (opens new browser tab)
+                          </small>
+                          .
+                        </p>
+                      )}
+                    </Modal>
+                  </td>
                 </tr>
               );
             })}
@@ -2708,6 +2867,7 @@ function MonitoringLocationsContent({
               <td></td>
               <td>Total</td>
               <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
+              <td></td>
             </tr>
           </tbody>
 
