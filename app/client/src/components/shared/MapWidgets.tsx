@@ -2526,12 +2526,55 @@ const scaleContainerStyles = css`
   }
 `;
 
-type LayoutOptionType = {
-  value: string;
-  label: string;
-  dimensions: [number, number];
-  pageMargin: number;
-};
+type LayoutOptionType =
+  | {
+      value: 'a3-landscape';
+      label: 'A3 Landscape';
+      dimensions: [number, number];
+      pageMargin: number;
+    }
+  | {
+      value: 'a3-portrait';
+      label: 'A3 Portrait';
+      dimensions: [number, number];
+      pageMargin: number;
+    }
+  | {
+      value: 'a4-landscape';
+      label: 'A4 Landscape';
+      dimensions: [number, number];
+      pageMargin: number;
+    }
+  | {
+      value: 'a4-portrait';
+      label: 'A4 Portrait';
+      dimensions: [number, number];
+      pageMargin: number;
+    }
+  | {
+      value: 'letter-ansi-a-landscape';
+      label: 'Letter ANSI A Landscape';
+      dimensions: [number, number];
+      pageMargin: number;
+    }
+  | {
+      value: 'letter-ansi-a-portrait';
+      label: 'Letter ANSI A Portrait';
+      dimensions: [number, number];
+      pageMargin: number;
+    }
+  | {
+      value: 'tabloid-ansi-b-landscape';
+      label: 'Tabloid ANSI B Landscape';
+      dimensions: [number, number];
+      pageMargin: number;
+    }
+  | {
+      value: 'tabloid-ansi-b-portrait';
+      label: 'Tabloid ANSI B Portrait';
+      dimensions: [number, number];
+      pageMargin: number;
+    };
 
 type DownloadWidgetProps = {
   services: ServicesState;
@@ -2662,7 +2705,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
 
     // get the size of the document
     const { height, width } = currentPage.getSize();
-    const fontSize = 10;
+    const fontSize = 12;
 
     // add centered header
     let verticalPosition = height - titleSize - topMargin * 2;
