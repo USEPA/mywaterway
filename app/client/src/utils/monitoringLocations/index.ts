@@ -9,7 +9,10 @@ import {
   useFetchedDataDispatch,
   useFetchedDataState,
 } from 'contexts/FetchedData';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import {
+  initialMonitoringGroups,
+  LocationSearchContext,
+} from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
@@ -21,7 +24,7 @@ import {
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
-} from 'utils/hooks/boundariesToggleLayer';
+} from 'utils/boundariesToggleLayer';
 import { stringifyAttributes } from 'utils/mapFunctions';
 import { parseAttributes } from 'utils/utils';
 // config
@@ -31,12 +34,14 @@ import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type {
   Feature,
+  FetchStatus,
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
   MonitoringLocationsData,
   ServicesData,
 } from 'types';
-import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+import type { MonitoringPeriodOfRecordData } from './periodOfRecord';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
 import { colors } from 'styles';
 
@@ -44,9 +49,13 @@ import { colors } from 'styles';
 ## Hooks
 */
 
-export function useMonitoringLocationsLayers(
-  localFilter: string | null = null,
-) {
+export function useMonitoringLocationsLayers({
+  includeAnnualData = true,
+  filter = null,
+}: {
+  includeAnnualData: boolean;
+  filter: string | null;
+}) {
   const { getTemplate, getTitle } = useDynamicPopup();
 
   // Build the base feature layer
@@ -57,7 +66,7 @@ export function useMonitoringLocationsLayers(
     [getTemplate, getTitle],
   );
 
-  const updateSurroundingData = useUpdateData(localFilter);
+  const updateSurroundingData = useUpdateData(filter, includeAnnualData);
 
   // Build a group layer with toggleable boundaries
   const { enclosedLayer, surroundingLayer } = useAllFeaturesLayers({
@@ -101,10 +110,92 @@ export function useMonitoringGroups() {
     );
   }, [monitoringLocations, setMonitoringGroups]);
 
-  return monitoringGroups;
+  return { monitoringGroups, setMonitoringGroups };
 }
 
-function useUpdateData(localFilter: string | null) {
+// Passes parsing of historical CSV data to a Web Worker,
+// which itself utilizes an external service
+function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
+  const {
+    setMonitoringPeriodOfRecordStatus,
+    setMonitoringYearsRange,
+    setSelectedMonitoringYearsRange,
+  } = useContext(LocationSearchContext);
+  const services = useServicesContext();
+
+  const [monitoringAnnualRecords, setMonitoringAnnualRecords] = useState<{
+    status: FetchStatus;
+    data: MonitoringPeriodOfRecordData;
+  }>({
+    status: 'idle',
+    data: initialWorkerData(),
+  });
+
+  useEffect(() => {
+    const { minYear, maxYear } = monitoringAnnualRecords.data;
+    setMonitoringYearsRange([minYear, maxYear]);
+    setSelectedMonitoringYearsRange([minYear, maxYear]);
+    setMonitoringPeriodOfRecordStatus(monitoringAnnualRecords.status); // Share the status
+  }, [
+    monitoringAnnualRecords,
+    setMonitoringPeriodOfRecordStatus,
+    setMonitoringYearsRange,
+    setSelectedMonitoringYearsRange,
+  ]);
+
+  // Craft the URL
+  let url: string | null = null;
+  if (services.status === 'success' && filter) {
+    url =
+      `${services.data.waterQualityPortal.monitoringLocation}search?` +
+      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&${filter}`;
+  }
+
+  const recordsWorker = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    if (!enabled || !url) {
+      setMonitoringAnnualRecords({ status: 'idle', data: initialWorkerData() });
+      return;
+    }
+    if (!window.Worker) {
+      throw new Error("Your browser doesn't support web workers");
+    }
+    setMonitoringAnnualRecords({
+      status: 'pending',
+      data: initialWorkerData(),
+    });
+
+    // Create the worker and assign it a job, then listen for a response
+    if (recordsWorker.current) recordsWorker.current.terminate();
+    recordsWorker.current = new Worker(
+      new URL('./periodOfRecord', import.meta.url),
+    );
+    // Tell the worker to start the task
+    recordsWorker.current.postMessage([url, characteristicGroupMappings]);
+    // Handle the worker's response
+    recordsWorker.current.onmessage = (message) => {
+      if (message.data && typeof message.data === 'string') {
+        const parsedData = JSON.parse(message.data);
+        parsedData.data.minYear = parseInt(parsedData.data.minYear);
+        parsedData.data.maxYear = parseInt(parsedData.data.maxYear);
+        setMonitoringAnnualRecords(parsedData);
+      }
+    };
+  }, [enabled, url]);
+
+  useEffect(() => {
+    return function cleanup() {
+      recordsWorker.current?.terminate();
+    };
+  }, []);
+
+  return monitoringAnnualRecords;
+}
+
+// Updates local data when the user chooses a new location,
+// and returns a function for updating surrounding data.
+function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
   // Build the data update function
   const { mapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
@@ -142,6 +233,22 @@ function useUpdateData(localFilter: string | null) {
     };
   }, [fetchedDataDispatch, localFilter, services]);
 
+  // Add annual characteristic data to the local data
+  const annualData = useMonitoringPeriodOfRecord(
+    localFilter,
+    includeAnnualData,
+  );
+  useEffect(() => {
+    if (!localData?.length) return;
+    if (annualData.status !== 'success') return;
+
+    fetchedDataDispatch({
+      type: 'success',
+      id: localFetchedDataKey,
+      payload: addAnnualData(localData, annualData.data.sites),
+    });
+  }, [localData, annualData, fetchedDataDispatch]);
+
   const extentFilter = useRef<string | null>(null);
 
   const updateSurroundingData = useCallback(
@@ -178,8 +285,59 @@ function useUpdateData(localFilter: string | null) {
 ## Utils
 */
 
+// Add the stations' historical data to the `dataByYear` property,
+export function addAnnualData(
+  monitoringLocations: MonitoringLocationAttributes[],
+  annualData: MonitoringPeriodOfRecordData['sites'],
+) {
+  return monitoringLocations.map((location) => {
+    const id = location.uniqueId;
+    if (id in annualData) {
+      return {
+        ...location,
+        dataByYear: annualData[id],
+        // Get all-time characteristics by group
+        characteristicsByGroup: Object.values(annualData[id]).reduce(
+          (groups, yearData) => {
+            Object.entries(yearData.characteristicsByGroup).forEach(
+              ([group, charcList]) => {
+                groups[group] = Array.from(
+                  new Set(charcList.concat(groups[group] ?? [])),
+                );
+              },
+            );
+            return groups;
+          },
+          {} as { [group: string]: string[] },
+        ),
+        // Tally characteristic counts
+        totalsByCharacteristic: Object.values(annualData[id]).reduce(
+          (totals, yearData) => {
+            Object.entries(yearData.totalsByCharacteristic).forEach(
+              ([charc, count]) => {
+                if (count <= 0) return;
+                if (charc in totals) totals[charc] += count;
+                else totals[charc] = count;
+              },
+            );
+            return totals;
+          },
+          {} as { [characteristic: string]: number },
+        ),
+      };
+    } else {
+      return location;
+    }
+  });
+}
+
 function buildFeatures(locations: MonitoringLocationAttributes[]) {
-  const structuredProps = ['totalsByGroup', 'timeframe'];
+  const structuredProps = [
+    'characteristicsByGroup',
+    'totalsByCharacteristic',
+    'totalsByGroup',
+    'timeframe',
+  ];
   return locations.map((location) => {
     const attributes = stringifyAttributes(structuredProps, location);
     return new Graphic({
@@ -200,46 +358,21 @@ function buildMonitoringGroups(
   mappings: typeof characteristicGroupMappings,
 ) {
   // build up monitoring stations, toggles, and groups
-  let locationGroups: MonitoringLocationGroups = {
-    All: {
-      characteristicGroups: [],
-      label: 'All',
-      stations: [],
-      toggled: true,
-    },
-  };
+  let locationGroups: MonitoringLocationGroups = initialMonitoringGroups();
 
   stations.forEach((station) => {
-    // add properties that aren't necessary for the layer
-    station.dataByYear = {};
-    // counts for each top-tier characteristic group
-    station.totalsByLabel = {};
     // build up the monitoringLocationToggles and monitoringLocationGroups
     const subGroupsAdded = new Set();
     mappings
       .filter((mapping) => mapping.label !== 'All')
       .forEach((mapping) => {
-        station.totalsByLabel![mapping.label] = 0;
         for (const subGroup in station.totalsByGroup) {
           // if characteristic group exists in switch config object
           if (!mapping.groupNames.includes(subGroup)) continue;
           subGroupsAdded.add(subGroup);
-          if (!locationGroups[mapping.label]) {
-            // create the group (w/ label key) and add the station
-            locationGroups[mapping.label] = {
-              characteristicGroups: [subGroup],
-              label: mapping.label,
-              stations: [station],
-              toggled: true,
-            };
-          } else {
-            // switch group (w/ label key) already exists, add the stations to it
-            locationGroups[mapping.label].stations.push(station);
-            locationGroups[mapping.label].characteristicGroups.push(subGroup);
-          }
-          // add the lower-tier group counts to the corresponding top-tier group counts
-          station.totalsByLabel![mapping.label] +=
-            station.totalsByGroup[subGroup];
+          // switch group (w/ label key) already exists, add the stations to it
+          locationGroups[mapping.label].stations.push(station);
+          locationGroups[mapping.label].characteristicGroups.push(subGroup);
         }
       });
 
@@ -248,18 +381,8 @@ function buildMonitoringGroups(
     // add any leftover lower-tier group counts to the 'Other' top-tier group
     for (const subGroup in station.totalsByGroup) {
       if (subGroupsAdded.has(subGroup)) continue;
-      if (!locationGroups['Other']) {
-        locationGroups['Other'] = {
-          label: 'Other',
-          stations: [station],
-          toggled: true,
-          characteristicGroups: [subGroup],
-        };
-      } else {
-        locationGroups['Other'].stations.push(station);
-        locationGroups['Other'].characteristicGroups.push(subGroup);
-      }
-      station.totalsByLabel['Other'] += station.totalsByGroup[subGroup];
+      locationGroups['Other'].stations.push(station);
+      locationGroups['Other'].characteristicGroups.push(subGroup);
     }
   });
   Object.keys(locationGroups).forEach((label) => {
@@ -287,6 +410,7 @@ function buildLayer(
     legendEnabled: true,
     fields: [
       { name: 'OBJECTID', type: 'oid' },
+      { name: 'characteristicsByGroup', type: 'string' },
       { name: 'monitoringType', type: 'string' },
       { name: 'siteId', type: 'string' },
       { name: 'orgId', type: 'string' },
@@ -299,6 +423,7 @@ function buildLayer(
       { name: 'locationUrlPartial', type: 'string' },
       { name: 'providerName', type: 'string' },
       { name: 'totalSamples', type: 'integer' },
+      { name: 'totalsByCharacteristic', type: 'string' },
       { name: 'totalsByGroup', type: 'string' },
       { name: 'totalMeasurements', type: 'integer' },
       { name: 'timeframe', type: 'string' },
@@ -331,9 +456,13 @@ function buildLayer(
       outFields: ['*'],
       title: getTitle,
       content: (feature: Feature) => {
-        console.log(JSON.stringify(feature));
         // Parse non-scalar variables
-        const structuredProps = ['totalsByGroup', 'timeframe'];
+        const structuredProps = [
+          'characteristicsByGroup',
+          'totalsByCharacteristic',
+          'totalsByGroup',
+          'timeframe',
+        ];
         feature.graphic.attributes = parseAttributes(
           structuredProps,
           feature.graphic.attributes,
@@ -395,6 +524,33 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
   return bBox ? `bBox=${bBox}` : null;
 }
 
+function parseStationLabelTotals(
+  totalsByGroup: MonitoringLocationAttributes['totalsByGroup'],
+) {
+  const subGroupsAdded = new Set();
+  const totalsByLabel: MonitoringLocationAttributes['totalsByLabel'] = {};
+  characteristicGroupMappings
+    .filter((mapping) => mapping.label !== 'All')
+    .forEach((mapping) => {
+      totalsByLabel[mapping.label] = 0;
+      for (const subGroup in totalsByGroup) {
+        // if characteristic group exists in switch config object
+        if (!mapping.groupNames.includes(subGroup)) continue;
+        subGroupsAdded.add(subGroup);
+        // add the lower-tier group counts to the corresponding top-tier group counts
+        totalsByLabel[mapping.label] += totalsByGroup[subGroup];
+      }
+    });
+
+  // add any leftover lower-tier group counts to the 'Other' top-tier group
+  for (const subGroup in totalsByGroup) {
+    if (subGroupsAdded.has(subGroup)) continue;
+    totalsByLabel['Other'] += totalsByGroup[subGroup];
+  }
+
+  return totalsByLabel;
+}
+
 function transformServiceData(
   data: MonitoringLocationsData,
 ): MonitoringLocationAttributes[] {
@@ -414,6 +570,7 @@ function transformServiceData(
       `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
       `${encodeURIComponent(station.properties.MonitoringLocationIdentifier)}/`;
     return {
+      characteristicsByGroup: {},
       county: station.properties.CountyName,
       monitoringType: 'Past Water Conditions' as const,
       siteId: station.properties.MonitoringLocationIdentifier,
@@ -427,13 +584,17 @@ function transformServiceData(
       locationUrlPartial,
       // monitoring station specific properties:
       state: station.properties.StateName,
-      dataByYear: null,
+      dataByYear: {},
       providerName: station.properties.ProviderName,
       totalSamples: parseInt(station.properties.activityCount),
       totalMeasurements: parseInt(station.properties.resultCount),
+      totalsByCharacteristic: {},
       // counts for each lower-tier characteristic group
       totalsByGroup: station.properties.characteristicGroupResultCount,
-      totalsByLabel: null,
+      // counts for each top-tier characteristic group
+      totalsByLabel: parseStationLabelTotals(
+        station.properties.characteristicGroupResultCount,
+      ),
       timeframe: null,
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id
@@ -450,9 +611,17 @@ function transformServiceData(
 ## Constants
 */
 
+const initialWorkerData = () => ({
+  minYear: 0,
+  maxYear: 0,
+  sites: {},
+});
+
 const localFetchedDataKey = 'monitoringLocations';
 const surroundingFetchedDataKey = 'surroundingMonitoringLocations';
 const dataKeys = ['siteId', 'orgId', 'stationProviderName'] as Array<
   keyof MonitoringLocationAttributes
 >;
 const minScale = 400_000;
+
+export { structurePeriodOfRecordData } from './periodOfRecord';

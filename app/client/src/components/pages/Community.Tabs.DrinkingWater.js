@@ -191,7 +191,11 @@ function createAccordionItem(
             value: item.pws_type,
           },
           {
-            label: 'Drinking Water Health Based Violations',
+            label: (
+              <GlossaryTerm term="Drinking Water Health-based Violations">
+                Drinking Water Health-based Violations
+              </GlossaryTerm>
+            ),
             value: item.violations === 'Y' ? 'Yes' : 'No',
           },
           {
@@ -422,7 +426,7 @@ function DrinkingWater() {
 
         if (checkForDuplicates.length === 0) {
           // deepclone item to prevent changing the underlying service data
-          const mergedItem = Object.assign({}, item);
+          const mergedItem = { ...item };
           mergedItem.water_type_calc = 'Ground Water & Surface Water';
           if (bothDisplayed) {
             displayedWithdrawers.push(mergedItem);

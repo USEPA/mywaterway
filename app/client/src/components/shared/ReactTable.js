@@ -32,8 +32,8 @@ const clearFiltersContainerStyles = (margin: string) => {
   `;
 };
 
-function generateFilterInput(placeholder = 'Filter column...') {
-  return ({ column: { filterValue, preFilteredRows, setFilter } }) => {
+export function generateFilterInput(placeholder = 'Filter column...') {
+  return ({ column: { filterValue, setFilter } }) => {
     return (
       <input
         css={inputStyles}
@@ -44,7 +44,7 @@ function generateFilterInput(placeholder = 'Filter column...') {
         onChange={
           (event) => setFilter(event.target.value || undefined) // Set undefined to remove the filter entirely
         }
-        aria-label="Filter column..."
+        aria-label={placeholder}
       />
     );
   };

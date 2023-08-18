@@ -15,7 +15,10 @@ import Switch from 'components/shared/Switch';
 import { PinIcon } from 'components/shared/Icons';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import {
+  initialMonitoringGroups,
+  LocationSearchContext,
+} from 'contexts/locationSearch';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -434,7 +437,7 @@ function CommunityTabs() {
     setDischargerPermitComponents(null);
 
     // monitoring panel
-    setMonitoringGroups(null);
+    setMonitoringGroups(initialMonitoringGroups());
 
     // identified issues panel
     setShowAllPolluted(true);

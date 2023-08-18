@@ -9,6 +9,7 @@ export interface AllotmentAttributes {
 }
 
 export interface AnnualStationData {
+  characteristicsByGroup: { [group: string]: string[] };
   uniqueId: string;
   totalMeasurements: number;
   totalSamples: number;
@@ -80,7 +81,7 @@ export interface CyanWaterbodyAttributes {
   geometry: __esri.Polygon;
   GNIS_NAME: string;
   locationName: string;
-  monitoringType: 'CyAN';
+  monitoringType: 'Blue-Green Algae';
   oid: number;
   orgName: 'Cyanobacteria Assessment Network (CyAN)';
 }
@@ -118,9 +119,11 @@ export interface Feature {
 }
 
 interface FetchEmptyState {
-  status: 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
+  status: FetchEmptyStatus;
   data: {} | [] | null;
 }
+
+type FetchEmptyStatus = 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
 
 export interface FetchSuccessState<Type> {
   status: 'success';
@@ -128,6 +131,13 @@ export interface FetchSuccessState<Type> {
 }
 
 export type FetchState<Type> = FetchEmptyState | FetchSuccessState<Type>;
+
+export type FetchStateWithDefault<Type> = {
+  status: Exclude<FetchStatus, 'empty' | 'fetching'>;
+  data: Type;
+};
+
+export type FetchStatus = FetchEmptyStatus | 'success';
 
 export interface ExtendedGraphic extends __esri.Graphic {
   originalGeometry?: __esri.Geometry;
@@ -217,7 +227,9 @@ export type LookupFile = {
 };
 
 export interface MonitoringFeatureUpdate {
+  characteristicsByGroup: { [group: string]: string[] };
   totalMeasurements: number;
+  totalsByCharacteristic: { [characteristic: string]: number };
   totalsByGroup: { [group: string]: number };
   timeframe: [number, number];
 }
@@ -227,6 +239,7 @@ export type MonitoringFeatureUpdates = {
 } | null;
 
 export interface MonitoringLocationAttributes {
+  characteristicsByGroup: { [group: string]: string[] };
   county: string;
   monitoringType: 'Past Water Conditions';
   siteId: string;
@@ -239,12 +252,13 @@ export interface MonitoringLocationAttributes {
   locationUrl: string;
   locationUrlPartial: string;
   state: string;
-  dataByYear: { [year: string | number]: AnnualStationData } | null;
+  dataByYear: { [year: string | number]: AnnualStationData };
   providerName: string;
   totalSamples: number;
   totalMeasurements: number;
-  totalsByGroup: { [groups: string]: number };
-  totalsByLabel: { [label: string]: number } | null;
+  totalsByCharacteristic: { [characteristic: string]: number };
+  totalsByGroup: { [group: string]: number };
+  totalsByLabel: { [label: string]: number };
   timeframe: [number, number] | null;
   uniqueId: string;
 }
@@ -287,13 +301,7 @@ export interface MonitoringLocationsData {
   type: 'FeatureCollection';
 }
 
-export type MonitoringYearsRange = number[] | null;
-
-export type MonitoringWorkerData = {
-  minYear: number;
-  maxYear: number;
-  annualData: any;
-};
+export type MonitoringYearsRange = [number, number];
 
 export interface NonProfitAttributes {
   Name?: string;

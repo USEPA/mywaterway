@@ -1,5 +1,6 @@
 // @flow
 
+import Papa from 'papaparse';
 import { escapeRegex, isAbort } from 'utils/utils';
 
 const defaultTimeout = 60000;
@@ -76,6 +77,19 @@ export function lookupFetch(
     };
 
     fetchLookup();
+  });
+}
+
+export function fetchParseCsv(url, { worker = true } = {}) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(url, {
+      complete: (res) => resolve(res.data),
+      download: true,
+      dynamicTyping: true,
+      error: (err) => reject(err),
+      header: true,
+      worker,
+    });
   });
 }
 

@@ -1,7 +1,6 @@
 import Basemap from '@arcgis/core/Basemap';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
-import Papa from 'papaparse';
 import { WindowSize } from '@reach/window-size';
 import {
   useCallback,
@@ -22,7 +21,7 @@ import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
-import ScatterPlot from 'components/shared/ScatterPlot';
+import { GradientLegend, VisxGraph } from 'components/shared/VisxGraph';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
@@ -30,15 +29,13 @@ import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import NavBar from 'components/shared/NavBar';
 import Page from 'components/shared/Page';
-import ReactTable from 'components/shared/ReactTable';
+import ReactTable, { generateFilterInput } from 'components/shared/ReactTable';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
   splitLayoutColumnStyles,
 } from 'components/shared/SplitLayout';
 // config
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
-import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
@@ -47,7 +44,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
-import { fetchPost } from 'utils/fetchUtils';
+import { fetchParseCsv, fetchPost } from 'utils/fetchUtils';
 import {
   useAbort,
   useMonitoringLocations,
@@ -133,7 +130,6 @@ const charcsTableStyles = css`
 
 const chartContainerStyles = css`
   margin: 1rem 0.625rem;
-  height: 500px;
 `;
 
 const chartTooltipStyles = css`
@@ -147,24 +143,34 @@ const chartTooltipStyles = css`
   }
 `;
 
-const checkboxStyles = css`
+const checkboxInputStyles = css`
   transform: scale(1.2);
 `;
 
-const checkboxInputStyles = css`
+const checkboxStyles = css`
   display: flex;
-  gap: 1em;
-  font-weight: bold;
+  gap: 0.5em;
   margin-bottom: 0;
+
+  label {
+    cursor: pointer;
+    font-size: inherit;
+  }
 
   & > * {
     margin-bottom: auto;
     margin-top: auto;
   }
 
-  input[type='checkbox'] {
-    ${checkboxStyles};
+  input {
+    ${checkboxInputStyles};
   }
+`;
+
+const checkboxTitleStyles = css`
+  ${checkboxStyles}
+  font-weight: bold;
+  gap: 1em;
 `;
 
 const containerStyles = css`
@@ -293,6 +299,12 @@ const leftColumnStyles = css`
   }
 `;
 
+const legendContainerStyles = css`
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 1em;
+`;
+
 const mapContainerStyles = css`
   display: flex;
   height: 100%;
@@ -313,6 +325,11 @@ const messageBoxStyles = (baseStyles) => {
 const modifiedBoxStyles = css`
   ${boxStyles}
   padding-bottom: 0;
+`;
+
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
+  margin-bottom: 0.5em;
 `;
 
 const modifiedDisclaimerStyles = css`
@@ -352,7 +369,7 @@ const radioStyles = css`
   }
   input:checked + label:before {
     background-color: #38a6ee;
-    box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
+    box-shadow: 0 0 0 2px ${colors.steel()}, inset 0 0 0 2px ${colors.white()};
   }
   label {
     cursor: pointer;
@@ -363,7 +380,7 @@ const radioStyles = css`
     &:before {
       background: ${colors.white()};
       border-radius: 100%;
-      box-shadow: 0 0 0 1px ${colors.steel()};
+      box-shadow: 0 0 0 2px ${colors.steel()};
       content: ' ';
       display: inline-block;
       height: 1em;
@@ -416,18 +433,10 @@ const selectContainerStyles = css`
     white-space: nowrap;
   }
 
-  .radio-container {
+  .column-container {
     display: inline-flex;
     flex-direction: column;
-    gap: 0.2em;
-  }
-
-  .radios {
-    ${radioStyles}
-    display: inline-flex;
-    flex-direction: row;
-    gap: 1em;
-    margin: auto;
+    gap: 0.5em;
 
     label {
       font-weight: normal;
@@ -470,7 +479,7 @@ const treeStyles = (level, styles) => {
 */
 
 const MAX_NUM_CHARTS = 4;
-const MEAUREMENT_PRECISION = 3;
+const MEASUREMENT_PRECISION = 3;
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
@@ -482,22 +491,27 @@ function buildTooltip(unit) {
   return (tooltipData) => {
     if (!tooltipData?.nearestDatum) return null;
     const datum = tooltipData.nearestDatum.datum;
-    const msmt = datum.y[tooltipData.nearestDatum.key];
-    if (!msmt) return null;
+    if (!datum) return null;
     const depth =
-      msmt.depth !== null && msmt.depthUnit !== null
-        ? `${msmt.depth} ${msmt.depthUnit}`
+      datum.depth !== null && datum.depthUnit !== null
+        ? `${datum.depth} ${datum.depthUnit}`
         : null;
     return (
       <div css={chartTooltipStyles}>
         <p>{datum.x}:</p>
         <p>
-          <em>Measurement</em>:{' '}
-          {`${msmt.value.toFixed(MEAUREMENT_PRECISION)} ${unit}`}
-          <br />
+          <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
+          {`${datum.y.toFixed(MEASUREMENT_PRECISION)} ${unit}`}
           {depth && (
             <>
-              <em>Depth</em>: {depth}
+              <br />
+              <em>{datum.type === 'line' && 'Average '}Depth</em>: {depth}
+            </>
+          )}
+          {datum.activityTypeCode && (
+            <>
+              <br />
+              <em>Activity Type Code</em>: {datum.activityTypeCode}
             </>
           )}
         </p>
@@ -542,24 +556,34 @@ const dateOptions = {
   day: 'numeric',
 };
 
-function fetchParseCsv(url) {
-  return new Promise((complete, error) => {
-    Papa.parse(url, {
-      complete,
-      download: true,
-      dynamicTyping: true,
-      error,
-      header: true,
-      worker: true,
-    });
+// Create a heatmap proportional to the range of the provided numerical data
+function generateHeatmap(data) {
+  const svMin = 30;
+  const svMax = 100;
+  const hue = 204;
+
+  if (!data.length) return [rgb2hex(...hsv2rgb(hue, svMin / 100, svMax / 100))];
+
+  const sortedData = data.toSorted((a, b) => a - b);
+  const dataMin = sortedData[0];
+  const dataMax = sortedData[sortedData.length - 1];
+  return sortedData.map((datum) => {
+    const fractionalPos =
+      datum === 0 ? 0 : (datum - dataMin) / (dataMax - dataMin);
+    const offset = (svMax - svMin) * fractionalPos;
+    const sat = (svMin + offset) / 100;
+    const val = (svMax - offset) / 100;
+    return rgb2hex(...hsv2rgb(hue, sat, val));
   });
 }
 
-function getCharcLabel(charcGroup, labelMappings) {
-  for (let mapping of labelMappings) {
-    if (mapping.groupNames.includes(charcGroup)) return mapping.label;
-  }
-  return 'Other';
+// Extract the outermost values from an array into a new array.
+// Returns an array of length 0, 1, or 2.
+function getArrayOuter(arr) {
+  const result = [];
+  if (arr.length) result.push(arr[0]);
+  if (arr.length > 1) result.push(arr[arr.length - 1]);
+  return result;
 }
 
 function getCharcGroup(charcName, groupMappings) {
@@ -633,6 +657,29 @@ function handleCheckbox(id, accessor, dispatch) {
   };
 }
 
+// Adapted from https://stackoverflow.com/a/54024653
+function hsv2rgb(h, s, v) {
+  const f = (n) => {
+    const k = (n + h / 60) % 6;
+    return v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+  };
+  return [f(5), f(3), f(1)];
+}
+
+// Constructs a data point for the line graph by averaging daily measurements
+function lineDatum(dayData) {
+  return {
+    type: 'line',
+    x: dayData[0].x,
+    y: toFixedFloat(getMean(dayData.map((d) => d.y)), MEASUREMENT_PRECISION),
+    depth: toFixedFloat(
+      getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
+      MEASUREMENT_PRECISION,
+    ),
+    depthUnit: dayData.find((d) => d.depthUnit !== null)?.depthUnit,
+  };
+}
+
 function loadNewData(data, state) {
   const newCharcs = {};
   const newGroups = {};
@@ -693,6 +740,30 @@ function parseCharcs(charcs, range) {
     }
   });
   return result;
+}
+
+// Constructs a data point for the scatter plot
+function pointDatum(msmt, colors, depths) {
+  return {
+    type: 'point',
+    x: msmt.date,
+    y: msmt.measurement || Number.EPSILON,
+    activityTypeCode: msmt.activityTypeCode,
+    color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#000000',
+    depth: msmt.depth,
+    depthUnit: msmt.depthUnit,
+  };
+}
+
+// Adapted from https://stackoverflow.com/a/54014428
+function rgb2hex(r, g, b) {
+  let hex = '#';
+  [r, g, b].forEach((x) => {
+    hex += Math.round(x * 255)
+      .toString(16)
+      .padStart(2, '0');
+  });
+  return hex;
 }
 
 function toggle(state, id, entity, level) {
@@ -800,7 +871,7 @@ function updateSelected(charcs, groups) {
   return getCheckedStatus(groupsSelected, Object.keys(groups));
 }
 
-function useCharacteristics(provider, orgId, siteId) {
+function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
   const services = useServicesContext();
 
   // charcs => characteristics
@@ -808,7 +879,7 @@ function useCharacteristics(provider, orgId, siteId) {
   const [status, setStatus] = useState('idle');
 
   const structureRecords = useCallback(
-    (records) => {
+    (records, charcsByGroup) => {
       if (!records) {
         setCharcs({});
         setStatus('failure');
@@ -820,15 +891,13 @@ function useCharacteristics(provider, orgId, siteId) {
       }
       const recordsByCharc = {};
       records.forEach((record) => {
-        if (record.ActivityTypeCode.toLowerCase().includes('control')) return;
         if (!recordsByCharc[record.CharacteristicName]) {
           const charcGroup = getCharcGroup(
             record.CharacteristicName,
-            characteristicsByGroup,
+            charcsByGroup,
           );
           recordsByCharc[record.CharacteristicName] = {
             name: record.CharacteristicName,
-            label: getCharcLabel(charcGroup, characteristicGroupMappings),
             records: [],
             group: charcGroup,
             count: 0,
@@ -838,11 +907,12 @@ function useCharacteristics(provider, orgId, siteId) {
         curCharc.count += 1;
         const recordDate = record.ActivityStartDate.split('-');
         curCharc.records.push({
+          activityTypeCode: record.ActivityTypeCode,
           day: parseInt(recordDate[2]),
-          depth: record['ResultDepthHeightMeasure/MeasureValue'] ?? null,
+          depth: record['ResultDepthHeightMeasure/MeasureValue'],
           depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
           fraction: record.ResultSampleFractionText || 'None',
-          measurement: record.ResultMeasureValue ?? null,
+          measurement: record.ResultMeasureValue,
           medium: record.ActivityMediaName || 'None',
           month: parseInt(recordDate[1]),
           unit: record['ResultMeasure/MeasureUnitCode'] || 'None',
@@ -855,8 +925,13 @@ function useCharacteristics(provider, orgId, siteId) {
     [setCharcs, setStatus],
   );
 
+  const { monitoringPeriodOfRecordStatus } = useContext(LocationSearchContext);
   useEffect(() => {
     if (services.status !== 'success') return;
+    if (monitoringPeriodOfRecordStatus !== 'success') {
+      setStatus(monitoringPeriodOfRecordStatus);
+      return;
+    }
     setStatus('pending');
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
@@ -867,12 +942,20 @@ function useCharacteristics(provider, orgId, siteId) {
         siteId,
       )}`;
     fetchParseCsv(url)
-      .then((results) => structureRecords(results.data))
+      .then((results) => structureRecords(results, characteristicsByGroup))
       .catch((_err) => {
         setStatus('failure');
         console.error('Papa Parse error');
       });
-  }, [orgId, provider, services, siteId, structureRecords]);
+  }, [
+    characteristicsByGroup,
+    monitoringPeriodOfRecordStatus,
+    orgId,
+    provider,
+    services,
+    siteId,
+    structureRecords,
+  ]);
 
   return [charcs, status];
 }
@@ -902,164 +985,135 @@ function CharacteristicChartSection({
   shiftDown,
   shiftUp,
 }) {
-  const [measurements, setMeasurements] = useState(null);
+  const [measurements, setMeasurements] = useState([]);
 
   // Selected and available units
   const [unit, setUnit] = useState(null);
-  const [units, setUnits] = useState(null);
+  const [units, setUnits] = useState([]);
   useEffect(() => {
-    if (units?.length) setUnit(units[0].value);
+    if (units.length) setUnit(units[0].value);
   }, [units]);
 
   // Selected and available sample fractions
   const [fraction, setFraction] = useState(null);
-  const [fractions, setFractions] = useState(null);
+  const [fractions, setFractions] = useState([]);
   useEffect(() => {
-    if (fractions?.length) setFraction(fractions[0].value);
+    if (fractions.length) setFraction(fractions[0].value);
   }, [fractions]);
 
   // Selected and available activity media names
   const [medium, setMedium] = useState(null);
-  const [media, setMedia] = useState(null);
+  const [media, setMedia] = useState([]);
   useEffect(() => {
-    if (media?.length) setMedium(media[0].value);
+    if (media.length) setMedium(media[0].value);
   }, [media]);
 
   // Logarithmic or linear
   const [scaleType, setScaleType] = useState('linear');
 
+  // Chart series visibilities
+  const [scatterPlotVisible, setScatterPlotVisible] = useState(true);
+  const [lineGraphVisible, setLineGraphVisible] = useState(false);
+
   // Get the records with measurements and their filter options
   useEffect(() => {
-    if (!records) return;
     const newMeasurements = [];
     const fractionValues = new Set();
     const unitValues = new Set();
     const mediumValues = new Set();
 
     records.forEach((record) => {
+      // Remove records with no measurement
       if (!Number.isFinite(record.measurement)) return;
+
+      // Remove QC-related records
+      const badTypeCodes = [
+        'sample-depletion replicate',
+        'sample-negative control',
+        'sample-positive control',
+        'sample-routine resample',
+      ];
+      if (record.activityTypeCode?.toLowerCase().includes('quality')) return;
+      if (badTypeCodes.includes(record.activityTypeCode?.toLowerCase())) return;
 
       // Add record measurement to newMeasurements
       unitValues.add(record.unit);
       fractionValues.add(record.fraction);
       mediumValues.add(record.medium);
 
-      record.date = getDate(record);
-      record.measurement = parseFloat(record.measurement);
-      newMeasurements.push(record);
+      newMeasurements.push({
+        ...record,
+        date: getDate(record),
+        measurement: parseFloat(record.measurement),
+      });
     });
 
     newMeasurements.sort((a, b) => a.day - b.day);
     newMeasurements.sort((a, b) => a.month - b.month);
     newMeasurements.sort((a, b) => a.year - b.year);
 
-    if (newMeasurements.length) {
-      setFractions(buildOptions(fractionValues));
-      setUnits(buildOptions(unitValues));
-      setMedia(buildOptions(mediumValues));
-      setMeasurements(newMeasurements);
-    } else {
-      setFractions(null);
-      setUnits(null);
-      setMedia(null);
-      setMeasurements(null);
-    }
-
+    setFractions(buildOptions(fractionValues));
+    setUnits(buildOptions(unitValues));
+    setMedia(buildOptions(mediumValues));
+    setMeasurements(newMeasurements);
     setScaleType('linear');
   }, [records]);
 
-  const [chartData, setChartData] = useState(null);
-  const [dataKeys, setDataKeys] = useState(null);
-  const [domain, setDomain] = useState(null);
-  const [range, setRange] = useState(null);
-  const [mean, setMean] = useState(null);
-  const [median, setMedian] = useState(null);
-  const [stdDev, setStdDev] = useState(null);
-  const [msmtCount, setMsmtCount] = useState(null);
+  const [depthColorRange, setDepthColorRange] = useState([]);
+  const [depthValueRange, setDepthValueRange] = useState([]);
 
   // Parse the measurements into chartable data points
   const parseMeasurements = useCallback((newDomain, newMsmts) => {
-    const newChartData = [];
+    const newPointData = [];
+    const newLineData = [];
 
-    let maxCount = 0;
-    let curDatum = null;
-    let curCount = 0;
+    // Create a color range from all depths present
+    const allDepths = new Set();
+    let depthUnit = null;
+    newMsmts.forEach((msmt) => {
+      allDepths.add(msmt.depth);
+      // Warn if depth units for a characteristic do not align
+      if (depthUnit && msmt.depthUnit !== depthUnit)
+        console.warn('Depth units differ');
+      depthUnit = msmt.depthUnit;
+    });
+    const sortedDepths = Array.from(allDepths)
+      .filter((d) => d !== null)
+      .sort((a, b) => a - b);
+    const chartColors = generateHeatmap(sortedDepths);
+
+    let curDay = null;
+    let curDayData = [];
     newMsmts.forEach((msmt) => {
       if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-        const dataPoint = {
-          // Map zero values to the lowest number possible
-          value: msmt.measurement || Number.EPSILON,
-          depth: msmt.depth,
-          depthUnit: msmt.depthUnit,
-        };
-        if (!curDatum || curDatum.x !== msmt.date) {
-          curDatum && newChartData.push(curDatum);
-          curDatum = {
-            x: msmt.date,
-            y: { 0: dataPoint },
-          };
-          curCount = 1;
+        const datum = pointDatum(msmt, chartColors, sortedDepths);
+        newPointData.push(datum);
+        if (datum.x !== curDay) {
+          // Construct the previous day's data point
+          curDayData.length && newLineData.push(lineDatum(curDayData));
+          curDay = datum.x;
+          curDayData = [datum];
         } else {
-          curDatum.y[curCount.toString()] = dataPoint;
-          curCount++;
+          // Same day, store for processing
+          curDayData.push(datum);
         }
-        if (curCount > maxCount) maxCount = curCount;
       }
     });
-    curDatum && newChartData.push(curDatum);
-    setDataKeys([...Array(maxCount).keys()]);
-    return newChartData;
+    curDayData.length && newLineData.push(lineDatum(curDayData));
+
+    setDepthColorRange(getArrayOuter(chartColors));
+    setDepthValueRange(getArrayOuter(sortedDepths));
+
+    return { pointData: newPointData, lineData: newLineData };
   }, []);
-
-  // Get the selected chart data and statistics
-  const getChartData = useCallback(
-    (newDomain, newMsmts) => {
-      if (!newDomain) {
-        setChartData(null);
-        return;
-      }
-
-      // newMsmts must already be sorted by date
-      const filteredMsmts =
-        newMsmts?.filter((msmt) => {
-          return (
-            msmt.fraction === fraction &&
-            msmt.unit === unit &&
-            msmt.medium === medium
-          );
-        }) || [];
-
-      const newChartData = parseMeasurements(newDomain, filteredMsmts);
-      setChartData(newChartData.length ? newChartData : null);
-
-      if (!newChartData.length) return;
-
-      setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
-
-      const yValues = [];
-      newChartData.forEach((datum) => {
-        Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
-      });
-
-      const newRange = [Math.min(...yValues), Math.max(...yValues)];
-      setRange(newRange);
-
-      const newMean = getMean(yValues);
-      setMean(newMean);
-      setMedian(getMedian(yValues));
-      setStdDev(getStdDev(yValues, newMean));
-      setMsmtCount(yValues.length);
-    },
-    [fraction, medium, parseMeasurements, unit],
-  );
 
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
-  const [selectedYears, setSelectedYears] = useState(null);
+  const [selectedYears, setSelectedYears] = useState([]);
 
   // Initialize the date slider parameters
   useEffect(() => {
-    if (measurements?.length) {
+    if (measurements.length) {
       const yearLow = measurements[0].year;
       const yearHigh = measurements[measurements.length - 1].year;
       setMinYear(yearLow);
@@ -1068,14 +1122,25 @@ function CharacteristicChartSection({
     } else {
       setMinYear(null);
       setMaxYear(null);
-      setSelectedYears(null);
+      setSelectedYears([]);
     }
   }, [measurements]);
 
-  // Update the chart with selected parameters
-  useEffect(() => {
-    getChartData(selectedYears, measurements);
-  }, [getChartData, measurements, selectedYears]);
+  // Get the selected chart data and statistics
+  const chartData = useMemo(() => {
+    if (selectedYears.length !== 2) return { pointData: [], lineData: [] };
+
+    // `measurements` must be already sorted by date
+    const filteredMsmts = measurements.filter((msmt) => {
+      return (
+        msmt.fraction === fraction &&
+        msmt.unit === unit &&
+        msmt.medium === medium
+      );
+    });
+
+    return parseMeasurements(selectedYears, filteredMsmts);
+  }, [fraction, measurements, medium, parseMeasurements, selectedYears, unit]);
 
   const displayUnit = unit === 'None' ? '' : unit;
 
@@ -1085,24 +1150,13 @@ function CharacteristicChartSection({
   if (displayUnit) yTitle += ', ' + unit;
 
   let infoText = null;
-  if (!charcName)
-    infoText =
-      'Select a characteristic from the table above to graph its results.';
-  else if (!measurements)
+  if (!measurements.length) {
     infoText =
       'No measurements available to be charted for this characteristic.';
-
-  let average = '';
-  if (mean)
-    average += toFixedFloat(mean, MEAUREMENT_PRECISION).toLocaleString('en-US');
-  if (stdDev)
-    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
-      stdDev,
-      MEAUREMENT_PRECISION,
-    ).toLocaleString()}`;
-  average += ` ${displayUnit}`;
-
-  const [statisticsExpanded, setStatisticsExpanded] = useState(true);
+    if (records.length)
+      infoText +=
+        ' Note that measurements below detection & measurements from QC (quality control) samples are not included in the chart.';
+  }
 
   return (
     <div className="charc-chart" css={modifiedBoxStyles}>
@@ -1143,9 +1197,8 @@ function CharacteristicChartSection({
         pending={<LoadingSpinner />}
         status={charcsStatus}
       >
-        {infoText ? (
-          <p css={messageBoxStyles(infoBoxStyles)}>{infoText}</p>
-        ) : (
+        {infoText && <p css={messageBoxStyles(infoBoxStyles)}>{infoText}</p>}
+        {measurements.length > 0 && (
           <>
             <SliderContainer
               min={minYear}
@@ -1209,95 +1262,68 @@ function CharacteristicChartSection({
                   styles={reactSelectStyles}
                 />
               </span>
-              <span className="radio-container">
+              <span className="column-container">
                 <span css={screenLabelStyles}>
                   <GlossaryTerm term="Scale Type">Scale Type</GlossaryTerm>:
                 </span>
-                <span className="radios">
-                  <span>
-                    <input
-                      checked={scaleType === 'linear'}
-                      id={`${charcName}-linear`}
-                      onChange={(e) => setScaleType(e.target.value)}
-                      type="radio"
-                      value="linear"
-                    />
-                    <label htmlFor={`${charcName}-linear`}>Linear</label>
-                  </span>
-                  <span>
-                    <input
-                      checked={scaleType === 'log'}
-                      id={`${charcName}-log`}
-                      onChange={(e) => setScaleType(e.target.value)}
-                      type="radio"
-                      value="log"
-                    />
-                    <label htmlFor={`${charcName}-log`}>Log</label>
-                  </span>
+                <span css={radioStyles}>
+                  <input
+                    checked={scaleType === 'linear'}
+                    id={`${charcName}-linear`}
+                    onChange={(e) => setScaleType(e.target.value)}
+                    type="radio"
+                    value="linear"
+                  />
+                  <label htmlFor={`${charcName}-linear`}>Linear</label>
+                </span>
+                <span css={radioStyles}>
+                  <input
+                    checked={scaleType === 'log'}
+                    id={`${charcName}-log`}
+                    onChange={(e) => setScaleType(e.target.value)}
+                    type="radio"
+                    value="log"
+                  />
+                  <label htmlFor={`${charcName}-log`}>Log</label>
+                </span>
+              </span>
+              <span className="column-container">
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Chart Type">Chart Type</GlossaryTerm>:
+                </span>
+                <span css={checkboxStyles}>
+                  <input
+                    checked={scatterPlotVisible}
+                    id={`${charcName}-scatter`}
+                    onChange={(e) => setScatterPlotVisible(e.target.checked)}
+                    type="checkbox"
+                  />
+                  <label htmlFor={`${charcName}-scatter`}>Scatter Plot</label>
+                </span>
+                <span css={checkboxStyles}>
+                  <input
+                    checked={lineGraphVisible}
+                    css={checkboxInputStyles}
+                    id={`${charcName}-line`}
+                    onChange={(e) => setLineGraphVisible(e.target.checked)}
+                    type="checkbox"
+                  />
+                  <label htmlFor={`${charcName}-line`}>Line Graph</label>
                 </span>
               </span>
             </div>
             <ChartContainer
-              range={range}
-              data={chartData}
+              lineData={chartData.lineData}
+              lineVisible={lineGraphVisible}
+              pointData={chartData.pointData}
+              pointLegendColors={depthColorRange}
+              pointLegendValues={depthValueRange}
+              pointsVisible={scatterPlotVisible}
               scaleType={scaleType}
-              dataKeys={dataKeys}
               yTitle={yTitle}
               unit={displayUnit}
             />
-            {chartData?.length > 0 && (
-              <AccordionItem
-                allExpanded={true}
-                onChange={setStatisticsExpanded}
-                status={statisticsExpanded ? 'highlighted' : null}
-                title={
-                  <h3 css={statisticsHeadingStyles}>Measurement Statistics</h3>
-                }
-              >
-                <div css={boxSectionStyles}>
-                  <BoxContent
-                    rows={[
-                      {
-                        label: 'Selected Date Range',
-                        value:
-                          `${new Date(domain[0]).toLocaleDateString(
-                            'en-us',
-                            dateOptions,
-                          )}` +
-                          ` - ${new Date(domain[1]).toLocaleDateString(
-                            'en-us',
-                            dateOptions,
-                          )}`,
-                      },
-                      {
-                        label: 'Number of Measurements Shown',
-                        value: msmtCount.toLocaleString(),
-                      },
-                      {
-                        label: 'Average of Values',
-                        value: average,
-                      },
-                      {
-                        label: 'Median Value',
-                        value: `${toFixedFloat(
-                          median,
-                          MEAUREMENT_PRECISION,
-                        ).toLocaleString()} ${displayUnit}`,
-                      },
-                      {
-                        label: 'Minimum Value',
-                        value: `${range[0].toLocaleString()} ${displayUnit}`,
-                      },
-                      {
-                        label: 'Maximum Value',
-                        value: `${range[1].toLocaleString()} ${displayUnit}`,
-                      },
-                    ]}
-                    styles={boxContentStyles}
-                  />
-                </div>
-              </AccordionItem>
-            )}
+            <ChartStatistics data={chartData.pointData} unit={displayUnit} />
           </>
         )}
       </StatusContent>
@@ -1319,7 +1345,6 @@ function CharacteristicsTableSection({
           return a;
         }, 0);
         return {
-          label: charc.label,
           measurementCount: measurementCount.toLocaleString(),
           name: charc.name,
           resultCount: charc.count.toLocaleString(),
@@ -1349,7 +1374,7 @@ function CharacteristicsTableSection({
       <div>
         <input
           checked={value}
-          css={checkboxStyles}
+          css={checkboxInputStyles}
           disabled={!value && selected.length >= MAX_NUM_CHARTS}
           id={charcName}
           onChange={onChange}
@@ -1369,7 +1394,9 @@ function CharacteristicsTableSection({
 
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>Characteristics</h2>
+      <h2 css={infoBoxHeadingStyles}>
+        Select up to {MAX_NUM_CHARTS} Characteristics Below to Plot
+      </h2>
       <div css={charcsTableStyles}>
         <StatusContent
           empty={
@@ -1385,35 +1412,36 @@ function CharacteristicsTableSection({
           pending={<LoadingSpinner />}
           status={charcsStatus}
         >
-          <h3>Selected Characteristic(s)</h3>
-          {selected.length ? (
-            <div css={selectedCharacteristicStyles}>
-              <ul>
-                {selected.map((charcName) => (
-                  <li key={charcName}>{charcName}</li>
-                ))}
-              </ul>
-              <button type="button" onClick={() => setSelected([])}>
-                Clear Selected
-              </button>
-            </div>
-          ) : (
-            <p>
-              Select the checkboxes in the table below to plot the measurements
-              of the corresponding characteristics. Up to {MAX_NUM_CHARTS} plots
-              can be displayed at one time.
-            </p>
-          )}
+          <div css={modifiedInfoBoxStyles}>
+            <h3>Selected Characteristic(s)</h3>
+            {selected.length ? (
+              <div css={selectedCharacteristicStyles}>
+                <ul>
+                  {selected.map((charcName) => (
+                    <li key={charcName}>{charcName}</li>
+                  ))}
+                </ul>
+                <button type="button" onClick={() => setSelected([])}>
+                  Clear Selected
+                </button>
+              </div>
+            ) : (
+              <p>
+                Select the checkboxes in the table below to plot the
+                measurements of the corresponding characteristics. Up to{' '}
+                {MAX_NUM_CHARTS} plots can be displayed at one time.
+              </p>
+            )}
+          </div>
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
             defaultSort="name"
-            placeholder="Filter..."
             striped={true}
             getColumns={(tableWidth) => {
-              const columnWidth = 2 * (tableWidth / 7) - 6;
-              const halfColumnWidth = tableWidth / 7 - 6;
+              const columnWidth = tableWidth / 3 - 6;
+              const halfColumnWidth = tableWidth / 6 - 6;
               return [
                 {
                   Header: selectColumnHeader,
@@ -1425,21 +1453,19 @@ function CharacteristicsTableSection({
                   filterable: false,
                 },
                 {
-                  Header: 'Name',
+                  Header: 'Characteristic Name',
+                  Filter: generateFilterInput('Filter Characteristic Names...'),
                   accessor: 'name',
                   width: columnWidth,
                   filterable: true,
                 },
                 {
-                  Header: 'Group',
+                  Header: 'Characteristic Group',
+                  Filter: generateFilterInput(
+                    'Filter Characteristic Groups...',
+                  ),
                   accessor: 'group',
                   width: columnWidth,
-                  filterable: true,
-                },
-                {
-                  Header: 'Category',
-                  accessor: 'label',
-                  width: halfColumnWidth,
                   filterable: true,
                 },
                 {
@@ -1463,10 +1489,37 @@ function CharacteristicsTableSection({
   );
 }
 
-function ChartContainer({ range, data, dataKeys, scaleType, yTitle, unit }) {
+function ChartContainer({
+  lineData,
+  lineVisible,
+  pointData,
+  pointLegendValues,
+  pointLegendColors,
+  pointsVisible,
+  scaleType,
+  yTitle,
+  unit,
+}) {
   const chartRef = useRef(null);
 
-  if (!data?.length)
+  const pointSeries = useMemo(() => {
+    let x = null;
+    let i = 0;
+    return pointData.reduce((obj, point) => {
+      // Reset series index if new day (points are ordered by date)
+      if (point.x === x) i++;
+      else {
+        x = point.x;
+        i = 0;
+      }
+      const key = i.toString();
+      if (key in obj) obj[key].push(point);
+      else obj[key] = [point];
+      return obj;
+    }, {});
+  }, [pointData]);
+
+  if (!pointData.length) {
     return (
       <div css={chartContainerStyles}>
         <p css={messageBoxStyles(infoBoxStyles)}>
@@ -1474,28 +1527,122 @@ function ChartContainer({ range, data, dataKeys, scaleType, yTitle, unit }) {
         </p>
       </div>
     );
+  }
 
-  if (!range)
-    return (
-      <div css={chartContainerStyles}>
-        <LoadingSpinner />
-      </div>
-    );
+  const yValues = pointData.map((d) => d.y);
+  const range = [Math.min(...yValues), Math.max(...yValues)];
+  const depthUnit = pointData.find((d) => d.depthUnit !== null)?.depthUnit;
+  const legendTitle = depthUnit ? `Depth (${depthUnit})` : 'Depth';
+
+  if (!lineVisible && !pointsVisible) {
+    return <p css={messageBoxStyles(infoBoxStyles)}>No chart type selected.</p>;
+  }
 
   return (
     <div ref={chartRef} css={chartContainerStyles}>
-      <ScatterPlot
+      <VisxGraph
         buildTooltip={buildTooltip(unit)}
-        color="#38a6ee"
         containerRef={chartRef.current}
-        data={data}
-        dataKeys={dataKeys}
+        lineColorAccessor={() => colors.teal()}
+        lineData={lineData}
+        lineVisible={lineVisible}
+        pointColorAccessor={(datum) => datum.color}
+        pointData={pointSeries}
+        pointsVisible={pointsVisible}
         range={range}
         xTitle="Date"
         yScale={scaleType}
         yTitle={yTitle}
       />
+      <div css={legendContainerStyles}>
+        {pointsVisible && pointLegendValues.length > 0 && (
+          <GradientLegend
+            colors={pointLegendColors}
+            keys={pointLegendValues}
+            title={legendTitle}
+          />
+        )}
+      </div>
     </div>
+  );
+}
+
+function ChartStatistics({ data, unit }) {
+  const domain = getArrayOuter(data).map((d) => d.x);
+
+  const yValues = data.map((d) => d.y);
+
+  const mean = getMean(yValues);
+  const range = [Math.min(...yValues), Math.max(...yValues)];
+  const median = getMedian(yValues);
+  const stdDev = getStdDev(yValues, mean);
+
+  let average = toFixedFloat(mean, MEASUREMENT_PRECISION).toLocaleString(
+    'en-US',
+  );
+  if (stdDev)
+    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
+      stdDev,
+      MEASUREMENT_PRECISION,
+    ).toLocaleString()}`;
+  average += ` ${unit}`;
+
+  const [statisticsExpanded, setStatisticsExpanded] = useState(true);
+
+  if (!data.length) return null;
+
+  return (
+    <AccordionItem
+      allExpanded={true}
+      onChange={setStatisticsExpanded}
+      status={statisticsExpanded ? 'highlighted' : null}
+      title={<h3 css={statisticsHeadingStyles}>Measurement Statistics</h3>}
+    >
+      <div css={boxSectionStyles}>
+        <BoxContent
+          rows={[
+            {
+              label: 'Selected Date Range',
+              value:
+                `${new Date(domain[0]).toLocaleDateString(
+                  'en-us',
+                  dateOptions,
+                )}` +
+                (domain.length > 1
+                  ? ` - ${new Date(domain[1]).toLocaleDateString(
+                      'en-us',
+                      dateOptions,
+                    )}`
+                  : ''),
+            },
+            {
+              label: 'Number of Measurements Shown',
+              value: data.length.toLocaleString(),
+            },
+            {
+              label: 'Average of Values',
+              value: average,
+            },
+            {
+              label: 'Median Value',
+              value: `${toFixedFloat(
+                median,
+                MEASUREMENT_PRECISION,
+              ).toLocaleString()} ${unit}`,
+            },
+            {
+              label: 'Minimum Value',
+              value: `${range[0].toLocaleString()} ${unit}`,
+            },
+            {
+              label: 'Maximum Value',
+              value: `${range[1].toLocaleString()} ${unit}`,
+            },
+          ]}
+          styles={boxContentStyles}
+        />
+      </div>
+    </AccordionItem>
   );
 }
 
@@ -1519,7 +1666,7 @@ function CheckboxAccordion({
           <span css={accordionFlexStyles}>
             <label
               onClick={(ev) => ev.stopPropagation()}
-              css={checkboxInputStyles}
+              css={checkboxTitleStyles}
             >
               <input
                 type="checkbox"
@@ -1554,7 +1701,7 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
   const item = state[accessor][id];
   return (
     <div css={treeStyles(level, accordionRowStyles)}>
-      <label css={checkboxInputStyles}>
+      <label css={checkboxTitleStyles}>
         <input
           type="checkbox"
           checked={item.selected === Checkbox.checked}
@@ -1635,7 +1782,6 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   useEffect(() => {
     if (charcsStatus !== 'success') return;
-    if (minYear || maxYear) return;
     let newMinYear = Infinity;
     let newMaxYear = 0;
     Object.values(charcs).forEach((charc) => {
@@ -1648,7 +1794,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
     setMinYear(newMinYear);
     setMaxYear(newMaxYear);
     setRange([newMinYear, newMaxYear]);
-  }, [charcs, charcsStatus, maxYear, minYear]);
+  }, [charcs, charcsStatus]);
 
   return (
     <div css={boxStyles}>
@@ -1668,13 +1814,14 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         pending={<LoadingSpinner />}
         status={charcsStatus}
       >
-        <SliderContainer
-          disabled={!Object.keys(charcs).length}
-          max={maxYear}
-          min={minYear}
-          onChange={(newRange) => setRange(newRange)}
-          range={range}
-        />
+        {Object.keys(charcs).length > 0 && (
+          <SliderContainer
+            max={maxYear}
+            min={minYear}
+            onChange={(newRange) => setRange(newRange)}
+            range={range}
+          />
+        )}
         <div css={boxSectionStyles}>
           <div css={accordionStyles}>
             <AccordionList
@@ -1682,7 +1829,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
               displayTitleInFlex={true}
               onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
               title={
-                <label css={checkboxInputStyles}>
+                <label css={checkboxTitleStyles}>
                   <input
                     type="checkbox"
                     checked={checkboxes.all === Checkbox.checked}
@@ -1947,7 +2094,9 @@ function MonitoringReportContent() {
     `&organization=${encodeURIComponent(orgId)}` +
     `&siteid=${encodeURIComponent(siteId)}`;
 
-  useMonitoringLocationsLayers(siteFilter);
+  useMonitoringLocationsLayers({
+    filter: siteFilter,
+  });
 
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
@@ -1963,6 +2112,7 @@ function MonitoringReportContent() {
     provider,
     orgId,
     siteId,
+    site.characteristicsByGroup ?? {},
   );
   const [selectedCharcs, setSelectedCharcs] = useState([]);
   const [nextChartIndexTarget, setNextChartIndexTarget] = useState(null);
@@ -2158,7 +2308,7 @@ function MonitoringReport() {
   );
 }
 
-function SliderContainer({ min, max, disabled = false, onChange, range }) {
+function SliderContainer({ min, max, onChange, range }) {
   if (!min || !max) return <LoadingSpinner />;
   else if (min === max)
     return (
@@ -2169,13 +2319,7 @@ function SliderContainer({ min, max, disabled = false, onChange, range }) {
 
   return (
     <div css={sliderContainerStyles}>
-      <DateSlider
-        disabled={disabled}
-        min={min}
-        max={max}
-        onChange={onChange}
-        range={range}
-      />
+      <DateSlider min={min} max={max} onChange={onChange} range={range} />
     </div>
   );
 }
