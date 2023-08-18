@@ -1956,7 +1956,6 @@ type PdfLegendItem = {
   type: PdfLegendItemType;
 };
 
-const columnWidth = 287;
 const leftMargin = 10;
 const topMargin = 10;
 const titleSize = 18;
@@ -2154,7 +2153,7 @@ function calculatePositioning({
   imageScaledHeight: number;
 }) {
   const { height, width } = currentPage.getSize();
-  const { dimensions, pageMargin } = layout;
+  const { columnWidth, dimensions, pageMargin } = layout;
 
   const rowHeight = Math.max(textHeight, imageScaledHeight);
   const tempY = verticalPosition - rowHeight - topMargin;
@@ -2166,7 +2165,7 @@ function calculatePositioning({
       if (pageIndex === 0)
         verticalPosition = verticalPosition - titleSize - topMargin;
       horizontalPosition += columnWidth + leftMargin;
-      x = horizontalPosition + leftMargin * numberOfIndents;
+      x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
     } else {
       // start a new page
       currentPage = doc.addPage(dimensions);
@@ -2530,48 +2529,56 @@ type LayoutOptionType =
   | {
       value: 'a3-landscape';
       label: 'A3 Landscape';
+      columnWidth: number;
       dimensions: [number, number];
       pageMargin: number;
     }
   | {
       value: 'a3-portrait';
       label: 'A3 Portrait';
+      columnWidth: number;
       dimensions: [number, number];
       pageMargin: number;
     }
   | {
       value: 'a4-landscape';
       label: 'A4 Landscape';
+      columnWidth: number;
       dimensions: [number, number];
       pageMargin: number;
     }
   | {
       value: 'a4-portrait';
       label: 'A4 Portrait';
+      columnWidth: number;
       dimensions: [number, number];
       pageMargin: number;
     }
   | {
       value: 'letter-ansi-a-landscape';
       label: 'Letter ANSI A Landscape';
+      columnWidth: number;
       dimensions: [number, number];
       pageMargin: number;
     }
   | {
       value: 'letter-ansi-a-portrait';
       label: 'Letter ANSI A Portrait';
+      columnWidth: number;
       dimensions: [number, number];
       pageMargin: number;
     }
   | {
       value: 'tabloid-ansi-b-landscape';
       label: 'Tabloid ANSI B Landscape';
+      columnWidth: number;
       dimensions: [number, number];
       pageMargin: number;
     }
   | {
       value: 'tabloid-ansi-b-portrait';
       label: 'Tabloid ANSI B Portrait';
+      columnWidth: number;
       dimensions: [number, number];
       pageMargin: number;
     };
@@ -2586,48 +2593,56 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
     {
       value: 'a3-landscape',
       label: 'A3 Landscape',
+      columnWidth: 280,
       dimensions: [...PageSizes.A3].reverse() as [number, number],
       pageMargin: 18,
     },
     {
       value: 'a3-portrait',
       label: 'A3 Portrait',
+      columnWidth: 260,
       dimensions: PageSizes.A3,
       pageMargin: 18,
     },
     {
       value: 'a4-landscape',
       label: 'A4 Landscape',
+      columnWidth: 260,
       dimensions: [...PageSizes.A4].reverse() as [number, number],
       pageMargin: 17,
     },
     {
       value: 'a4-portrait',
       label: 'A4 Portrait',
+      columnWidth: 275,
       dimensions: PageSizes.A4,
       pageMargin: 17,
     },
     {
       value: 'letter-ansi-a-landscape',
       label: 'Letter ANSI A Landscape',
+      columnWidth: 240,
       dimensions: [...PageSizes.Letter].reverse() as [number, number],
       pageMargin: 25,
     },
     {
       value: 'letter-ansi-a-portrait',
       label: 'Letter ANSI A Portrait',
+      columnWidth: 280,
       dimensions: PageSizes.Letter,
       pageMargin: 25,
     },
     {
       value: 'tabloid-ansi-b-landscape',
       label: 'Tabloid ANSI B Landscape',
+      columnWidth: 287,
       dimensions: [...PageSizes.Tabloid].reverse() as [number, number],
       pageMargin: 25,
     },
     {
       value: 'tabloid-ansi-b-portrait',
       label: 'Tabloid ANSI B Portrait',
+      columnWidth: 240,
       dimensions: PageSizes.Tabloid,
       pageMargin: 25,
     },
@@ -2747,7 +2762,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
         bounds: {
           x,
           y: verticalPosition - topMargin,
-          width: columnWidth - imageScaledWidth,
+          width: layout.columnWidth - imageScaledWidth - (leftMargin * numberOfIndents),
           height,
         },
       });
