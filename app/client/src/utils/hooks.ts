@@ -313,8 +313,8 @@ type WaterbodyCondition =
   | 'nostatus';
 
 function useWaterbodyOnMap(
-  attributeName: string = '',
-  allWaterbodiesAttribute: string = '',
+  attributeName?: string,
+  allWaterbodiesAttribute?: string,
   defaultCondition: WaterbodyCondition = 'hidden',
 ) {
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
