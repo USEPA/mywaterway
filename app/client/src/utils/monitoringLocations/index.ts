@@ -53,9 +53,9 @@ export function useMonitoringLocationsLayers({
   includeAnnualData = true,
   filter = null,
 }: {
-  includeAnnualData: boolean;
-  filter: string | null;
-}) {
+  includeAnnualData?: boolean;
+  filter?: string | null;
+} = {}) {
   const { getTemplate, getTitle } = useDynamicPopup();
 
   // Build the base feature layer

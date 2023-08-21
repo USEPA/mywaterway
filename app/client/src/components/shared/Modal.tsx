@@ -53,6 +53,7 @@ const contentStyles = (maxWidth: string) => css`
   max-width: ${maxWidth};
   padding: 1.5rem;
   position: relative;
+  width: 100%;
 
   p {
     margin-top: 1rem;
