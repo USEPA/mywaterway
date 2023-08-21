@@ -313,8 +313,8 @@ type WaterbodyCondition =
   | 'nostatus';
 
 function useWaterbodyOnMap(
-  attributeName?: string,
-  allWaterbodiesAttribute?: string,
+  attributeName: string = '',
+  allWaterbodiesAttribute: string = '',
   defaultCondition: WaterbodyCondition = 'hidden',
 ) {
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
@@ -336,7 +336,7 @@ function useWaterbodyOnMap(
           geometryType,
           alpha,
         }),
-        field: attribute ?? 'overallstatus',
+        field: attribute || 'overallstatus',
         fieldDelimiter: ', ',
         uniqueValueInfos: createUniqueValueInfos(geometryType, alpha).map(
           (info) => new UniqueValueInfo(info),
@@ -389,7 +389,7 @@ function useWaterbodyOnMap(
     if (!allWaterbodiesLayer) return;
 
     const layers = allWaterbodiesLayer.layers;
-    const attribute = allWaterbodiesAttribute ?? attributeName;
+    const attribute = allWaterbodiesAttribute || attributeName;
 
     setRenderer(layers.at(2), 'point', attribute, allWaterbodiesAlpha);
     setRenderer(layers.at(1), 'polyline', attribute, allWaterbodiesAlpha);
