@@ -21,6 +21,7 @@ import {
   useBoundariesToggleLayer,
   useLocalData,
 } from 'utils/boundariesToggleLayer';
+import { colors } from 'styles';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
@@ -189,9 +190,9 @@ function buildLayer(
     renderer: new SimpleRenderer({
       symbol: new SimpleFillSymbol({
         style: 'solid',
-        color: new Color([108, 149, 206, 0.4]),
+        color: new Color(colors.darkCyan(0.4)),
         outline: {
-          color: [0, 0, 0, 0],
+          color: colors.black(0),
           width: 0.75,
           style: 'solid',
         },

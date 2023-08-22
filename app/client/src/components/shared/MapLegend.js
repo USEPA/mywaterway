@@ -343,7 +343,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     <li className="hmw-legend__item">
       <div css={legendItemStyles}>
         <div className="hmw-legend__symbol" css={imageContainerStyles}>
-          {waterwayIcon({ color: '#6c95ce' })}
+          {waterwayIcon({ color: colors.darkCyan() })}
         </div>
         <span className="hmw-legend__info" css={labelStyles}>
           Potential Harmful Algal Blooms (HABs)
@@ -357,7 +357,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     <li className="hmw-legend__item">
       <div css={legendItemStyles}>
         <div className="hmw-legend__symbol" css={imageContainerStyles}>
-          {squareIcon({ color: '#fffe00' })}
+          {squareIcon({ color: colors.yellow() })}
         </div>
         <span className="hmw-legend__info" css={labelStyles}>
           USGS Sensors
