@@ -908,7 +908,6 @@ function MonitoringAndSensorsTab({
               extraListHeaderContent={
                 monitoringLocationsDisplayed && (
                   <CharacteristicsSelect
-                    label="Filter Past Water Conditions by Characteristic:"
                     selected={selectedCharacteristics}
                     onChange={setSelectedCharacteristics}
                   />

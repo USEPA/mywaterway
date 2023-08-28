@@ -11,7 +11,6 @@ import { useMonitoringLocations } from 'utils/hooks';
 
 export default CharacteristicsSelect;
 export function CharacteristicsSelect({
-  label,
   selected,
   onChange,
 }: CharacteristicsSelectProps) {
@@ -45,7 +44,7 @@ export function CharacteristicsSelect({
   return (
     <div css={selectContainerStyles}>
       <label css={selectLabelStyles} htmlFor={inputId}>
-        {label}
+        Filter by Characteristics:
       </label>
       <Select
         components={{ MenuList }}
@@ -56,7 +55,7 @@ export function CharacteristicsSelect({
         isMulti
         onChange={(options) => onChange(options.map((option) => option.value))}
         options={allCharacteristicOptions}
-        placeholder="Select a characteristic..."
+        placeholder="Select one or more characteristics..."
         value={selectedOptions}
       />
     </div>
@@ -64,7 +63,6 @@ export function CharacteristicsSelect({
 }
 
 type CharacteristicsSelectProps = {
-  label: string;
   selected: string[];
   onChange: (selected: string[]) => void;
 };

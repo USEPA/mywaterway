@@ -1299,7 +1299,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               }
               extraListHeaderContent={
                 <CharacteristicsSelect
-                  label="Filter by Characteristic:"
                   selected={selectedCharacteristics}
                   onChange={setSelectedCharacteristics}
                 />
