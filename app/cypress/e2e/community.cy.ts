@@ -93,7 +93,7 @@ describe('Community page map legend', () => {
     cy.visit('/community');
   });
 
-  it('Clicking the "Mapped Water (all)" layer visibility button should populate the legend', () => {
+  it('Clicking the "Mapped Water (NHD)" layer visibility button should populate the legend', () => {
     // navigate to Monitoring tab of Community page
     cy.findByRole('textbox', { name: 'Search' }).type('San Antonio, TX');
     cy.findByRole('button', { name: 'Go' }).click();
@@ -107,10 +107,10 @@ describe('Community page map legend', () => {
     cy.wait(2000);
 
     cy.findByRole('button', { name: 'Open Basemaps and Layers' }).click();
-    cy.findAllByRole('switch', { name: 'Mapped Water (all)' }).click({ force: true });
+    cy.findAllByRole('switch', { name: 'Mapped Water (NHD)' }).click({ force: true });
     cy.findByRole('button', { name: 'Close Basemaps and Layers' }).click();
     cy.findByRole('button', { name: 'Open Legend' }).click();
-    cy.findAllByText('Mapped Water (all)').should('be.visible');
+    cy.findAllByText('Mapped Water (NHD)').should('be.visible');
   });
 });
 
