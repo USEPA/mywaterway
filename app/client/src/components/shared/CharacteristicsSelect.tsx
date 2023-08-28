@@ -1,13 +1,15 @@
-import uniqueId from 'lodash/uniqueId';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useMemo } from 'react';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
 // components
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import MenuList from 'components/shared/MenuList';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useMonitoringLocations } from 'utils/hooks';
+// styles
+import { reactSelectStyles } from 'styles/index.js';
 
 export default CharacteristicsSelect;
 export function CharacteristicsSelect({
@@ -16,8 +18,6 @@ export function CharacteristicsSelect({
 }: CharacteristicsSelectProps) {
   const { monitoringPeriodOfRecordStatus } = useContext(LocationSearchContext);
   const { monitoringLocations } = useMonitoringLocations();
-
-  const [inputId] = useState(uniqueId('characteristic-select-'));
 
   // Gather all available characteristics from the periodOfRecord data
   const allCharacteristicOptions = useMemo(() => {
@@ -43,19 +43,19 @@ export function CharacteristicsSelect({
 
   return (
     <div css={selectContainerStyles}>
-      <label css={selectLabelStyles} htmlFor={inputId}>
-        Filter by Characteristics:
-      </label>
+      <span css={selectLabelStyles}>
+        Filter by <GlossaryTerm term="Characteristic">Characteristics</GlossaryTerm>:
+      </span>
       <Select
+        aria-label="Filter by Characteristics"
         components={{ MenuList }}
-        css={selectStyles}
-        inputId={inputId}
         isDisabled={monitoringPeriodOfRecordStatus === 'failure'}
         isLoading={monitoringPeriodOfRecordStatus === 'pending'}
         isMulti
         onChange={(options) => onChange(options.map((option) => option.value))}
         options={allCharacteristicOptions}
         placeholder="Select one or more characteristics..."
+        styles={reactSelectStyles}
         value={selectedOptions}
       />
     </div>
@@ -72,11 +72,8 @@ const selectContainerStyles = css`
 `;
 
 const selectLabelStyles = css`
-  margin-bottom: 0.125rem;
+  display: inline-block;
+  margin-bottom: 0.25rem;
   font-size: 0.875rem;
   font-weight: bold;
-`;
-
-const selectStyles = css`
-  width: 100%;
 `;
