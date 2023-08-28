@@ -928,7 +928,7 @@ function MapWidgets({
     render(<DownloadWidget services={services} view={view} />, container);
 
     const downloadWidget = new Expand({
-      expandIconClass: 'esri-icon-download',
+      expandIconClass: 'esri-icon-printer',
       expandTooltip: 'Open Printable Map Widget',
       collapseTooltip: 'Close Printable Map Widget',
       view,
