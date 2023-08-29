@@ -62,7 +62,7 @@ export function CharacteristicsSelect({
     <div css={selectContainerStyles}>
       <span css={selectLabelStyles}>
         Filter by{' '}
-        <GlossaryTerm term="Characteristic">Characteristics</GlossaryTerm>:
+        <GlossaryTerm term="Characteristics">Characteristics</GlossaryTerm>:
       </span>
       <Select
         aria-label="Filter by Characteristics"
