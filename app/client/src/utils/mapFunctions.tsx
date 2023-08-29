@@ -429,8 +429,8 @@ export function createWaterbodySymbol({
   });
 
   if (condition === 'hidden') {
-    symbol.outline = new SimpleLineSymbol({ color: colors.black(), width: 0 });
-    symbol.color.setColor(colors.black());
+    symbol.outline = new SimpleLineSymbol({ color: [0, 0, 0, 0], width: 0 });
+    symbol.color.setColor([0, 0, 0, 0]);
     return symbol;
   }
 

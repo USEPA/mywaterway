@@ -9,13 +9,13 @@ const colors = {
   blue: (alpha: number = 1) => `rgba(0, 113, 187, ${alpha})`, // #0071bb
   skyBlue: (alpha: number = 1) => `rgba(0, 123, 255, ${alpha})`, // #007bff
   navyBlue: (alpha: number = 1) => `rgba(64, 97, 142, ${alpha})`, // #40618e
-  orange: (alpha: number = 1) => `rgba(230, 97, 0, ${alpha})`, // #e66100
+  orange: (alpha: number = 1) => `rgba(255, 176, 0, ${alpha})`, // #ffb000
   cyan: (alpha: number = 1) => `rgba(0, 255, 255, ${alpha})`, // #00ffff
   teal: (alpha: number = 1) => `rgba(80, 210, 194, ${alpha})`, // #50d2c2
   gold: (alpha: number = 1) => `rgba(252, 171, 83, ${alpha})`, // #fcab53
   magenta: (alpha: number = 1) => `rgba(255, 51, 102, ${alpha})`, // #ff3366
   red: (alpha: number = 1) => `rgba(216, 12, 119, ${alpha})`, // #d80c77
-  green: (alpha: number = 1) => `rgba(0, 255, 28, ${alpha})`, // #00ff1c
+  green: (alpha: number = 1) => `rgba(0, 138, 1, ${alpha})`, // #008a01
   purple: (alpha: number = 1) => `rgba(92, 26, 158, ${alpha})`, // #5c1a9e
   lightPurple: (alpha: number = 1) => `rgba(216, 119, 255, ${alpha})`, // #d877ff
   steel: (alpha: number = 1) => `rgba(82, 101, 113, ${alpha})`, // #526571

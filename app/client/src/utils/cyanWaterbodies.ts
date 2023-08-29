@@ -192,7 +192,7 @@ function buildLayer(
         style: 'solid',
         color: new Color(colors.darkCyan(0.4)),
         outline: {
-          color: colors.black(0),
+          color: [0, 0, 0, 0],
           width: 0.75,
           style: 'solid',
         },
