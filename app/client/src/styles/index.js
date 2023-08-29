@@ -7,7 +7,7 @@ const colors = {
   white: (alpha: number = 1) => `rgba(255, 255, 255, ${alpha})`, // #fff
   slate: (alpha: number = 1) => `rgba(53, 61, 71, ${alpha})`, // #353d47
   blue: (alpha: number = 1) => `rgba(0, 113, 187, ${alpha})`, // #0071bb
-  skyBlue: (alpha: number = 1) => `rgba(0, 123, 255, ${alpha})`, // #007bff
+  skyBlue: (alpha: number = 1) => `rgba(26, 133, 255, ${alpha})`, // #1a85ff
   navyBlue: (alpha: number = 1) => `rgba(64, 97, 142, ${alpha})`, // #40618e
   orange: (alpha: number = 1) => `rgba(255, 176, 0, ${alpha})`, // #ffb000
   cyan: (alpha: number = 1) => `rgba(0, 255, 255, ${alpha})`, // #00ffff
