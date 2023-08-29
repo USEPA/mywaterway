@@ -20,9 +20,10 @@ const cancelButtonStyles = css`
 `;
 
 const closeButtonStyles = css`
+  border-radius: 6px;
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 6px;
+  right: 6px;
   padding: 0;
   border: none;
   width: 1.5rem;
@@ -48,10 +49,17 @@ const confirmButtonStyles = css`
   }
 `;
 
-const contentStyles = (maxWidth: string) => css`
+const contentStyles = (
+  maxWidth: string = '100%',
+  maxHeight: string = '100%',
+) => css`
   background-color: white;
-  max-width: ${maxWidth};
+  border-radius: 6px;
+  max-height: min(80%, ${maxHeight});
+  max-width: min(90%, ${maxWidth});
+  overflow-y: auto;
   padding: 1.5rem;
+  padding-top: calc(1.5rem + 6px);
   position: relative;
   width: 100%;
 
@@ -64,6 +72,7 @@ const contentStyles = (maxWidth: string) => css`
 
     &:first-of-type {
       margin-top: 0;
+    }
   }
 `;
 
@@ -102,7 +111,6 @@ const overlayStyles = css`
   left: 0;
   right: 0;
   bottom: 0;
-  overflow-y: auto;
   z-index: 1000;
 `;
 
