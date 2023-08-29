@@ -21,6 +21,7 @@ import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
+import { DisclaimerModal } from 'components/shared/Modal';
 import { GradientLegend, VisxGraph } from 'components/shared/VisxGraph';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
@@ -191,6 +192,23 @@ const containerStyles = css`
     margin-top: 0.125rem;
     margin-bottom: 0.875rem;
     border-top-color: #aebac3;
+  }
+`;
+
+const disclaimerButtonStyles = css`
+  margin-left: 1em;
+`;
+
+const disclaimerModalStyles = css`
+  li {
+    padding-bottom: 0.5em;
+  }
+
+  ul {
+    list-style-type: lower-alpha;
+    margin: 0;
+    padding-bottom: 0;
+    padding-top: 0.5em;
   }
 `;
 
@@ -749,7 +767,7 @@ function pointDatum(msmt, colors, depths) {
     x: msmt.date,
     y: msmt.measurement || Number.EPSILON,
     activityTypeCode: msmt.activityTypeCode,
-    color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#000000',
+    color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#4d4d4d',
     depth: msmt.depth,
     depthUnit: msmt.depthUnit,
   };
@@ -1311,6 +1329,39 @@ function CharacteristicChartSection({
                   <label htmlFor={`${charcName}-line`}>Line Graph</label>
                 </span>
               </span>
+            </div>
+            <div css={disclaimerButtonStyles}>
+              <DisclaimerModal>
+                <div css={disclaimerModalStyles}>
+                  <p>
+                    When multiple samples or measurements are available for the
+                    same day for a single characteristic, the line shown is
+                    drawn through the average of the results. Multiple samples
+                    or measurements for a single characteristic may be available
+                    for the same day if:
+                    <ul>
+                      <li>
+                        Multiple were taken over time that day (e.g. in the
+                        morning, afternoon, and at night).
+                      </li>
+                      <li>
+                        Multiple were taken at the same relative time but at
+                        varying depths (e.g. the surface, middle or bottom of a
+                        lake).
+                      </li>
+                      <li>
+                        Quality control samples or measurements were also taken.
+                      </li>
+                    </ul>
+                    Quality control data, such as blanks or replicates
+                    identified via the <i>Activity Type Code</i>, are not
+                    included in this chart but will still be available in the
+                    data download. Therefore, the averaging is only performed
+                    across depth or time within a single day, and for
+                    visualization purposes only.
+                  </p>
+                </div>
+              </DisclaimerModal>
             </div>
             <ChartContainer
               lineData={chartData.lineData}
@@ -2329,7 +2380,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
   const [mapLoading, setMapLoading] = useState(true);
 
   const getSharedLayers = useSharedLayers();
-  const { homeWidget, mapView, resetData } = useContext(LocationSearchContext);
+  const { homeWidget, mapView } = useContext(LocationSearchContext);
 
   const {
     monitoringLocationsLayer,
@@ -2394,13 +2445,6 @@ function SiteMap({ layout, siteStatus, widthRef }) {
     monitoringLocationsLayer,
     siteStatus,
   ]);
-
-  // Function for resetting the LocationSearch context when the map is removed
-  useEffect(() => {
-    return function cleanup() {
-      resetData();
-    };
-  }, [resetData]);
 
   // Scrolls to the map when switching layouts
   useEffect(() => {
