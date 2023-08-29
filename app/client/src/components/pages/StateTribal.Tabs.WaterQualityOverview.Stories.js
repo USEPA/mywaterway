@@ -10,7 +10,7 @@ import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 // errors
 import { stateStoriesError } from 'config/errorMessages';
 

@@ -4,7 +4,7 @@ import React from 'react';
 import { css } from 'styled-components/macro';
 import { useLocation } from 'react-router-dom';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 // contexts
 import { useNotificationsContext } from 'contexts/LookupFiles';
 // utilities

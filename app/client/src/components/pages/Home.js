@@ -22,7 +22,7 @@ import {
   fourButtonLinkStyles,
 } from 'components/shared/ButtonLinks';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   margin-bottom: 2.5em;

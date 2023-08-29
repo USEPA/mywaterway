@@ -55,7 +55,7 @@ import {
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
-import { colors, toggleTableStyles } from 'styles/index.js';
+import { colors, toggleTableStyles } from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {

@@ -67,7 +67,7 @@ import {
   iconStyles,
   modifiedTableStyles,
   tableStyles,
-} from 'styles/index.js';
+} from 'styles/index';
 // types
 import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';

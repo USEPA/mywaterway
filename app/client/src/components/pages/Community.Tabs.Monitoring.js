@@ -58,7 +58,7 @@ import {
   disclaimerStyles,
   iconStyles,
   toggleTableStyles,
-} from 'styles/index.js';
+} from 'styles/index';
 
 /*
  * Styles

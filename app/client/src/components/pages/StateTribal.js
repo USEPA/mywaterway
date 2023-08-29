@@ -33,7 +33,7 @@ import {
 import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
 // styles
-import { colors, fonts, reactSelectStyles } from 'styles/index.js';
+import { colors, fonts, reactSelectStyles } from 'styles/index';
 // errors
 import {
   stateListError,

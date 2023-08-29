@@ -30,7 +30,7 @@ import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 // styles
-import { toggleTableStyles } from 'styles/index.js';
+import { toggleTableStyles } from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {
