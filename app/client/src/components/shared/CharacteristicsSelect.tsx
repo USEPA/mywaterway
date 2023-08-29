@@ -1,4 +1,5 @@
-import { useContext, useMemo } from 'react';
+import uniqueId from 'lodash/uniqueId';
+import { useContext, useMemo, useState } from 'react';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
 // components
@@ -18,6 +19,7 @@ export function CharacteristicsSelect({
 }: CharacteristicsSelectProps) {
   const { monitoringPeriodOfRecordStatus } = useContext(LocationSearchContext);
   const { monitoringLocations } = useMonitoringLocations();
+  const [inputId] = useState(uniqueId('characteristic-select-'));
 
   // Gather all available characteristics from the periodOfRecord data
   const allCharacteristicOptions = useMemo(() => {
@@ -60,13 +62,13 @@ export function CharacteristicsSelect({
 
   return (
     <div css={selectContainerStyles}>
-      <span css={selectLabelStyles}>
-        Filter by{' '}
-        <GlossaryTerm term="Characteristics">Characteristics</GlossaryTerm>:
-      </span>
+      <label css={selectLabelStyles} htmlFor={inputId}>
+        Filter by
+      </label>{' '}
+      <GlossaryTerm term="Characteristics">Characteristics</GlossaryTerm>:
       <Select
-        aria-label="Filter by Characteristics"
         components={{ MenuList }}
+        inputId={inputId}
         formatGroupLabel={formatGroupLabel}
         formatOptionLabel={formatOptionLabel}
         isDisabled={monitoringPeriodOfRecordStatus === 'failure'}
