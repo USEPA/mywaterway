@@ -664,7 +664,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   );
 
   const mappedWaterLegend = () => {
-    const layerName = 'Mapped Water (NHD)';
+    const layerName = 'All Mapped Water (NHD)';
 
     const sublayerIds = view.map.layers.items
       .filter((item) => item.id === 'mappedWaterLayer')

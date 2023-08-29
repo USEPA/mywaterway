@@ -1295,7 +1295,7 @@ function useSharedLayers({
       // but this doesn't match the actual behavior
       minScale: 144448,
       url: services.data.mappedWater,
-      title: 'Mapped Water (NHD)',
+      title: 'All Mapped Water (NHD)',
       sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
       legendEnabled: false,
       listMode: 'hide-children',
