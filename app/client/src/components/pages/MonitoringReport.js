@@ -195,10 +195,6 @@ const containerStyles = css`
   }
 `;
 
-const disclaimerButtonStyles = css`
-  margin-left: 1em;
-`;
-
 const disclaimerModalStyles = css`
   li {
     padding-bottom: 0.5em;
@@ -319,7 +315,7 @@ const leftColumnStyles = css`
 
 const legendContainerStyles = css`
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   margin-top: 1em;
 `;
 
@@ -1330,39 +1326,6 @@ function CharacteristicChartSection({
                 </span>
               </span>
             </div>
-            <div css={disclaimerButtonStyles}>
-              <DisclaimerModal>
-                <div css={disclaimerModalStyles}>
-                  <p>
-                    When multiple samples or measurements are available for the
-                    same day for a single characteristic, the line shown is
-                    drawn through the average of the results. Multiple samples
-                    or measurements for a single characteristic may be available
-                    for the same day if:
-                    <ul>
-                      <li>
-                        Multiple were taken over time that day (e.g. in the
-                        morning, afternoon, and at night).
-                      </li>
-                      <li>
-                        Multiple were taken at the same relative time but at
-                        varying depths (e.g. the surface, middle or bottom of a
-                        lake).
-                      </li>
-                      <li>
-                        Quality control samples or measurements were also taken.
-                      </li>
-                    </ul>
-                    Quality control data, such as blanks or replicates
-                    identified via the <i>Activity Type Code</i>, are not
-                    included in this chart but will still be available in the
-                    data download. Therefore, the averaging is only performed
-                    across depth or time within a single day, and for
-                    visualization purposes only.
-                  </p>
-                </div>
-              </DisclaimerModal>
-            </div>
             <ChartContainer
               lineData={chartData.lineData}
               lineVisible={lineGraphVisible}
@@ -1606,12 +1569,46 @@ function ChartContainer({
         yTitle={yTitle}
       />
       <div css={legendContainerStyles}>
-        {pointsVisible && pointLegendValues.length > 0 && (
+        {pointsVisible && pointLegendValues.length > 0 ? (
           <GradientLegend
             colors={pointLegendColors}
             keys={pointLegendValues}
             title={legendTitle}
           />
+        ) : (
+          <div />
+        )}
+        {lineVisible ? (
+          <DisclaimerModal>
+            <div css={disclaimerModalStyles}>
+              <p>
+                When multiple samples or measurements are available for the same
+                day for a single characteristic, the line shown is drawn through
+                the average of the results. Multiple samples or measurements for
+                a single characteristic may be available for the same day if:
+                <ul>
+                  <li>
+                    Multiple were taken over time that day (e.g. in the morning,
+                    afternoon, and at night).
+                  </li>
+                  <li>
+                    Multiple were taken at the same relative time but at varying
+                    depths (e.g. the surface, middle or bottom of a lake).
+                  </li>
+                  <li>
+                    Quality control samples or measurements were also taken.
+                  </li>
+                </ul>
+                Quality control data, such as blanks or replicates identified
+                via the <i>Activity Type Code</i>, are not included in this
+                chart but will still be available in the data download.
+                Therefore, the averaging is only performed across depth or time
+                within a single day, and for visualization purposes only.
+              </p>
+            </div>
+          </DisclaimerModal>
+        ) : (
+          <div />
         )}
       </div>
     </div>
@@ -2348,6 +2345,13 @@ function MonitoringReportContent() {
 }
 
 function MonitoringReport() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData();
+    };
+  }, [resetData]);
+
   return (
     <LayersProvider>
       <FullscreenProvider>
@@ -2380,7 +2384,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
   const [mapLoading, setMapLoading] = useState(true);
 
   const getSharedLayers = useSharedLayers();
-  const { homeWidget, mapView } = useContext(LocationSearchContext);
+  const { homeWidget, mapView, setBasemap } = useContext(LocationSearchContext);
 
   const {
     monitoringLocationsLayer,
@@ -2398,8 +2402,9 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
     return function cleanup() {
       mapView.map.basemap = 'gray-vector';
+      setBasemap('gray-vector');
     };
-  }, [mapView]);
+  }, [mapView, setBasemap]);
 
   // Initialize the layers
   useEffect(() => {
