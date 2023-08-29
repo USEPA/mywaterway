@@ -2767,7 +2767,11 @@ function MonitoringLocationsContent({
                   Number of Measure&shy;ments
                 </GlossaryTerm>
               </th>
-              <th>Detailed Characteristics</th>
+              <th>
+                <GlossaryTerm term="Characteristics">
+                  Detailed Characteristics
+                </GlossaryTerm>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -2814,7 +2818,10 @@ function MonitoringLocationsContent({
                         <thead>
                           <tr>
                             <th>
-                              Detailed <em>{key}</em> Characteristics
+                              Detailed <em>{key}</em>{' '}
+                              <GlossaryTerm term="Characteristics">
+                                Characteristics
+                              </GlossaryTerm>
                             </th>
                             <th>Number of Measurements</th>
                           </tr>

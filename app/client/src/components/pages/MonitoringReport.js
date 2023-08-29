@@ -1395,7 +1395,11 @@ function CharacteristicsTableSection({
   return (
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>
-        Select up to {MAX_NUM_CHARTS} Characteristics Below to Plot
+        <div>
+          Select up to {MAX_NUM_CHARTS}{' '}
+          <GlossaryTerm term="Characteristics">Characteristics</GlossaryTerm>{' '}
+          Below to Plot
+        </div>
       </h2>
       <div css={charcsTableStyles}>
         <StatusContent
@@ -1413,7 +1417,12 @@ function CharacteristicsTableSection({
           status={charcsStatus}
         >
           <div css={modifiedInfoBoxStyles}>
-            <h3>Selected Characteristic(s)</h3>
+            <h3>
+              Selected{' '}
+              <GlossaryTerm term="Characteristics">
+                Characteristic(s)
+              </GlossaryTerm>
+            </h3>
             {selected.length ? (
               <div css={selectedCharacteristicStyles}>
                 <ul>
