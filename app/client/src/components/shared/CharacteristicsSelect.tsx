@@ -67,23 +67,8 @@ export function CharacteristicsSelect({
       <Select
         aria-label="Filter by Characteristics"
         components={{ MenuList }}
-        formatGroupLabel={() => {
-          return (
-            <div css={gridHeaderStyles}>
-              <div>Characteristic</div>
-              <div># of Locations with Characteristic</div>
-            </div>
-          );
-        }}
-        formatOptionLabel={(option: OptionType) => {
-          if (!option.count) return option.label;
-          return (
-            <div css={gridStyles}>
-              <div>{option.label}</div>
-              <div>{option.count}</div>
-            </div>
-          );
-        }}
+        formatGroupLabel={formatGroupLabel}
+        formatOptionLabel={formatOptionLabel}
         isDisabled={monitoringPeriodOfRecordStatus === 'failure'}
         isLoading={monitoringPeriodOfRecordStatus === 'pending'}
         isMulti
@@ -103,6 +88,25 @@ export function CharacteristicsSelect({
         }}
         value={selectedOptions}
       />
+    </div>
+  );
+}
+
+function formatGroupLabel() {
+  return (
+    <div css={gridHeaderStyles}>
+      <div>Characteristic</div>
+      <div># of Locations with Characteristic</div>
+    </div>
+  );
+}
+
+function formatOptionLabel(option: OptionType) {
+  if (!option.count) return option.label;
+  return (
+    <div css={gridStyles}>
+      <div>{option.label}</div>
+      <div>{option.count}</div>
     </div>
   );
 }
