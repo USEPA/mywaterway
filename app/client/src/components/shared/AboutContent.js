@@ -8,7 +8,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // styles
-import { fonts } from 'styles/index.js';
+import { fonts } from 'styles/index';
 
 const containerStyles = css`
   padding: 1rem;

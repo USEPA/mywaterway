@@ -14,7 +14,7 @@ import { getSelectedCommunityTab } from 'utils/utils';
 // errors
 import { legendUnavailableError } from 'config/errorMessages';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   width: 240px;

@@ -36,7 +36,7 @@ import { useDischargers, useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
 // styles
-import { fonts, toggleTableStyles } from 'styles/index.js';
+import { fonts, toggleTableStyles } from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {

@@ -1,6 +1,6 @@
 import { css, keyframes } from 'styled-components/macro';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const rotate = keyframes`
   0% {

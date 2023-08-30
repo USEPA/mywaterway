@@ -26,7 +26,7 @@ import { useKeyPress } from 'utils/hooks';
 import { containsScriptTag, indicesOf, isHuc12 } from 'utils/utils';
 import { splitSuggestedSearch } from 'utils/mapFunctions';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 // errors
 import {
   invalidSearchError,

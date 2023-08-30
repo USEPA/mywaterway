@@ -20,7 +20,7 @@ import {
   logCallToGoogleAnalytics,
 } from 'utils/fetchUtils';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 // images
 import waterPhoto from 'images/water.jpg';
 

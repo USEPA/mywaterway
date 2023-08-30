@@ -58,7 +58,7 @@ import {
   disclaimerStyles,
   iconStyles,
   toggleTableStyles,
-} from 'styles/index.js';
+} from 'styles/index';
 
 /*
  * Styles
@@ -1299,7 +1299,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               }
               extraListHeaderContent={
                 <CharacteristicsSelect
-                  label="Filter by Characteristic:"
                   selected={selectedCharacteristics}
                   onChange={setSelectedCharacteristics}
                 />

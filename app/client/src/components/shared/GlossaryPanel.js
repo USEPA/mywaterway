@@ -8,7 +8,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useGlossaryState } from 'contexts/Glossary';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 // errors
 import { glossaryError } from 'config/errorMessages';
 // helpers

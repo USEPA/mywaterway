@@ -5,7 +5,7 @@ import { css } from 'styled-components/macro';
 import { useLayers } from 'contexts/Layers';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const buttonStyles = css`
   margin-bottom: 0;

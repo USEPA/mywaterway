@@ -5,7 +5,7 @@ import { css } from 'styled-components/macro';
 // contexts
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const buttonContainerStyles = css`
   text-align: right;

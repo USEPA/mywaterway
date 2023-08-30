@@ -26,7 +26,7 @@ import {
   titleCaseWithExceptions,
 } from 'utils/utils';
 // styles
-import { fonts, colors, reactSelectStyles } from 'styles/index.js';
+import { fonts, colors, reactSelectStyles } from 'styles/index';
 // errors
 import { stateSurveySectionError } from 'config/errorMessages';
 

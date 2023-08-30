@@ -38,7 +38,7 @@ import {
 // data
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 // styles
-import { reactSelectStyles } from 'styles/index.js';
+import { reactSelectStyles } from 'styles/index';
 // errors
 import {
   stateGeneralError,

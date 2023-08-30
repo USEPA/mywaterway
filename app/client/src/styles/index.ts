@@ -1,8 +1,7 @@
-// @flow
-
 import { css } from 'styled-components/macro';
+import { CSSObjectWithLabel } from 'react-select';
 
-const colors = {
+export const colors = {
   black: (alpha: number = 1) => `rgba(0, 0, 0, ${alpha})`, // #000
   white: (alpha: number = 1) => `rgba(255, 255, 255, ${alpha})`, // #fff
   slate: (alpha: number = 1) => `rgba(53, 61, 71, ${alpha})`, // #353d47
@@ -33,12 +32,12 @@ const colors = {
   graye: '#eee',
 };
 
-const disclaimerStyles = css`
+export const disclaimerStyles = css`
   display: inline-block;
   padding-bottom: 1.5em;
 `;
 
-const downloadLinksStyles = css`
+export const downloadLinksStyles = css`
   span {
     display: inline-block;
     width: 100%;
@@ -55,7 +54,7 @@ const downloadLinksStyles = css`
   }
 `;
 
-const iconButtonStyles = css`
+export const iconButtonStyles = css`
   background: none;
   border: none;
   color: inherit;
@@ -64,34 +63,50 @@ const iconButtonStyles = css`
   padding: 0;
 `;
 
-const iconStyles = css`
+export const iconStyles = css`
   margin-right: 5px;
 `;
 
-const fonts = {
+export const fonts = {
   primary: `'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial', sans-serif`,
   secondary: `'Roboto Slab', serif`,
 };
 
-const reactSelectStyles = {
-  group: (defaultStyles) => ({ ...defaultStyles, padding: 0 }),
-  groupHeading: (defaultStyles) => ({
-    ...defaultStyles,
-    margin: 0,
-    padding: '6px 12px',
-    color: '#fff',
-    backgroundColor: '#4c4c4c',
-    lineHeight: '16px',
-    fontSize: '16px',
-    fontWeight: '400',
-    textTransform: 'none',
-  }),
-  menuList: (defaultStyles) => ({ ...defaultStyles, padding: 0 }),
-  placeholder: (defaultStyles) => ({ ...defaultStyles, color: '#495057' }),
-  singleValue: (defaultStyles) => ({ ...defaultStyles, lineHeight: 2 }),
+export const groupHeadingStyles: CSSObjectWithLabel = {
+  margin: 0,
+  padding: '6px 12px',
+  color: '#fff',
+  backgroundColor: '#4c4c4c',
+  lineHeight: '16px',
+  fontSize: '16px',
+  fontWeight: '400',
+  textTransform: 'none',
 };
 
-const tableStyles = css`
+export const reactSelectStyles = {
+  group: (defaultStyles: CSSObjectWithLabel) => ({
+    ...defaultStyles,
+    padding: 0,
+  }),
+  groupHeading: (defaultStyles: CSSObjectWithLabel) => ({
+    ...defaultStyles,
+    ...groupHeadingStyles,
+  }),
+  menuList: (defaultStyles: CSSObjectWithLabel) => ({
+    ...defaultStyles,
+    padding: 0,
+  }),
+  placeholder: (defaultStyles: CSSObjectWithLabel) => ({
+    ...defaultStyles,
+    color: '#495057',
+  }),
+  singleValue: (defaultStyles: CSSObjectWithLabel) => ({
+    ...defaultStyles,
+    lineHeight: 2,
+  }),
+};
+
+export const tableStyles = css`
   th,
   td {
     font-size: 0.875em;
@@ -103,7 +118,7 @@ const tableStyles = css`
   }
 `;
 
-const modifiedTableStyles = css`
+export const modifiedTableStyles = css`
   ${tableStyles}
 
   thead th {
@@ -125,7 +140,7 @@ const modifiedTableStyles = css`
   }
 `;
 
-const toggleTableStyles = css`
+export const toggleTableStyles = css`
   ${tableStyles}
 
   thead {
@@ -146,16 +161,3 @@ const toggleTableStyles = css`
     word-break: break-word;
   }
 `;
-
-export {
-  colors,
-  disclaimerStyles,
-  downloadLinksStyles,
-  fonts,
-  iconButtonStyles,
-  iconStyles,
-  modifiedTableStyles,
-  reactSelectStyles,
-  tableStyles,
-  toggleTableStyles,
-};

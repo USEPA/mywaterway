@@ -24,7 +24,7 @@ import Stories from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Stor
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
-import { colors, reactSelectStyles } from 'styles/index.js';
+import { colors, reactSelectStyles } from 'styles/index';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import {

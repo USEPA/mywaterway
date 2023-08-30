@@ -26,7 +26,7 @@ import { useSurroundingsState } from 'contexts/Surroundings';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 
 const columnsStyles = css`
   display: flex;

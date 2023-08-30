@@ -37,7 +37,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { titleCaseWithExceptions } from 'utils/utils';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
 
