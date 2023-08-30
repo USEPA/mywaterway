@@ -1,6 +1,6 @@
 // @flow
 
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -207,30 +207,12 @@ function IdentifiedIssues() {
     setPollutionParameters,
   ]);
 
-  // emulate componentdidupdate
-  const mounted = useRef();
   useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-    } else {
-      checkWaterbodiesToDisplay();
+    checkWaterbodiesToDisplay();
 
-      if (
-        showIssuesLayer !== visibleLayers['issuesLayer'] ||
-        showDischargersLayer !== visibleLayers['dischargersLayer']
-      ) {
-        setShowIssuesLayer(visibleLayers['issuesLayer']);
-        setShowDischargersLayer(visibleLayers['dischargersLayer']);
-      }
-    }
-  }, [
-    checkWaterbodiesToDisplay,
-    dischargersLayer,
-    issuesLayer,
-    showIssuesLayer,
-    visibleLayers,
-    showDischargersLayer,
-  ]);
+    setShowIssuesLayer(visibleLayers['issuesLayer']);
+    setShowDischargersLayer(visibleLayers['dischargersLayer']);
+  }, [checkWaterbodiesToDisplay, visibleLayers]);
 
   // check the data quality and log a non-fatal exception to Google Analytics
   // if necessary
@@ -380,30 +362,6 @@ function IdentifiedIssues() {
         toggleOn();
       }
     }
-    // if switch under number of Dischargers in violation is switched
-    else if (checkedSwitch === 'Toggle Dischargers Layer') {
-      setShowDischargersLayer(!showDischargersLayer);
-      setShowViolatingDischargers(!showDischargersLayer);
-      setShowCompliantDischargers(!showDischargersLayer);
-
-      updateVisibleLayers({ dischargersLayer: !showDischargersLayer });
-    }
-    // if Dischargers with significant effluent violations switch is toggled
-    else if (checkedSwitch === 'Toggle Violating Dischargers') {
-      setShowViolatingDischargers(!showViolatingDischargers);
-      const newShowDischargersLayer =
-        !showViolatingDischargers || showCompliantDischargers;
-      setShowDischargersLayer(newShowDischargersLayer);
-      updateVisibleLayers({ dischargersLayer: newShowDischargersLayer });
-    }
-    // if Dischargers without significant violations switch is toggled
-    else if (checkedSwitch === 'Toggle Compliant Dischargers') {
-      setShowCompliantDischargers(!showCompliantDischargers);
-      const newShowDischargersLayer =
-        !showCompliantDischargers || showViolatingDischargers;
-      setShowDischargersLayer(newShowDischargersLayer);
-      updateVisibleLayers({ dischargersLayer: newShowDischargersLayer });
-    }
     // one of the parameters is switched
     else {
       tempParameterToggleObject[checkedSwitch] =
@@ -415,6 +373,37 @@ function IdentifiedIssues() {
     // update the object holding the toggle states and check if any waterbodies need to be hidden or shown
     setPollutionParameters(tempParameterToggleObject);
     setParameterToggleObject(tempParameterToggleObject);
+  };
+
+  // Switch under number of Dischargers is switched
+  const toggleDischargersLayer = () => {
+    setShowDischargersLayer(!showDischargersLayer);
+    setShowViolatingDischargers(!showDischargersLayer);
+    setShowCompliantDischargers(!showDischargersLayer);
+
+    updateVisibleLayers({ dischargersLayer: !showDischargersLayer });
+  };
+
+  // Dischargers with significant effluent violations switch is toggled
+  const toggleViolatingDischargers = () => {
+    setShowViolatingDischargers(!showViolatingDischargers);
+    const newShowDischargersLayer =
+      !showViolatingDischargers || showCompliantDischargers;
+    setShowDischargersLayer(newShowDischargersLayer);
+    if (newShowDischargersLayer !== showDischargersLayer) {
+      updateVisibleLayers({ dischargersLayer: newShowDischargersLayer });
+    }
+  };
+
+  // Dischargers without significant violations switch is toggled
+  const toggleCompliantDischargers = () => {
+    setShowCompliantDischargers(!showCompliantDischargers);
+    const newShowDischargersLayer =
+      !showCompliantDischargers || showViolatingDischargers;
+    setShowDischargersLayer(newShowDischargersLayer);
+    if (newShowDischargersLayer !== showDischargersLayer) {
+      updateVisibleLayers({ dischargersLayer: newShowDischargersLayer });
+    }
   };
 
   const cipServiceReady =
@@ -477,8 +466,7 @@ function IdentifiedIssues() {
   function handleTabClick(index) {
     if (index === 0 && !toggleIssuesChecked)
       toggleSwitch('Toggle Issues Layer');
-    if (index === 1 && !toggleDischargersChecked)
-      toggleSwitch('Toggle Dischargers Layer');
+    if (index === 1 && !toggleDischargersChecked) toggleDischargersLayer();
   }
 
   function getImpairedWatersPercent() {
@@ -493,7 +481,6 @@ function IdentifiedIssues() {
     };
   }, [dischargersLayer]);
 
-  // Separate the dischargers into violating and compliant groups
   const violatingDischargers = [];
   const compliantDischargers = [];
   dischargers.forEach((discharger) => {
@@ -567,7 +554,7 @@ function IdentifiedIssues() {
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <Switch
                 checked={toggleDischargersChecked}
-                onChange={() => toggleSwitch('Toggle Dischargers Layer')}
+                onChange={toggleDischargersLayer}
                 disabled={zeroDischargers}
               />
             </label>
@@ -821,9 +808,7 @@ function IdentifiedIssues() {
                               <label css={toggleStyles}>
                                 <Switch
                                   checked={showViolatingDischargers}
-                                  onChange={() =>
-                                    toggleSwitch('Toggle Violating Dischargers')
-                                  }
+                                  onChange={toggleViolatingDischargers}
                                   disabled={!violatingDischargers.length}
                                 />
                                 <span>
@@ -844,9 +829,7 @@ function IdentifiedIssues() {
                               <label css={toggleStyles}>
                                 <Switch
                                   checked={showCompliantDischargers}
-                                  onChange={() =>
-                                    toggleSwitch('Toggle Compliant Dischargers')
-                                  }
+                                  onChange={toggleCompliantDischargers}
                                   disabled={!compliantDischargers.length}
                                 />
                                 <span>
