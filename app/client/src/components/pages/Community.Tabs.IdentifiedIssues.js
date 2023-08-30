@@ -104,6 +104,7 @@ function IdentifiedIssues() {
     watershed,
     parameterToggleObject,
     setParameterToggleObject,
+    setEffluentToggleObject,
   } = useContext(LocationSearchContext);
 
   const {
@@ -376,19 +377,22 @@ function IdentifiedIssues() {
   };
 
   // Switch under number of Dischargers is switched
-  const toggleDischargersLayer = () => {
-    setShowDischargersLayer(!showDischargersLayer);
-    setShowViolatingDischargers(!showDischargersLayer);
-    setShowCompliantDischargers(!showDischargersLayer);
-
-    updateVisibleLayers({ dischargersLayer: !showDischargersLayer });
+  const toggleDischargersLayer = (checked) => {
+    setShowDischargersLayer(checked);
+    setShowViolatingDischargers(checked);
+    setShowCompliantDischargers(checked);
+    setEffluentToggleObject({ compliant: checked, violating: checked });
+    updateVisibleLayers({ dischargersLayer: checked });
   };
 
   // Dischargers with significant effluent violations switch is toggled
-  const toggleViolatingDischargers = () => {
-    setShowViolatingDischargers(!showViolatingDischargers);
-    const newShowDischargersLayer =
-      !showViolatingDischargers || showCompliantDischargers;
+  const toggleViolatingDischargers = (checked) => {
+    setShowViolatingDischargers(checked);
+    setEffluentToggleObject({
+      compliant: showCompliantDischargers,
+      violating: checked,
+    });
+    const newShowDischargersLayer = checked || showCompliantDischargers;
     setShowDischargersLayer(newShowDischargersLayer);
     if (newShowDischargersLayer !== showDischargersLayer) {
       updateVisibleLayers({ dischargersLayer: newShowDischargersLayer });
@@ -396,10 +400,13 @@ function IdentifiedIssues() {
   };
 
   // Dischargers without significant violations switch is toggled
-  const toggleCompliantDischargers = () => {
-    setShowCompliantDischargers(!showCompliantDischargers);
-    const newShowDischargersLayer =
-      !showCompliantDischargers || showViolatingDischargers;
+  const toggleCompliantDischargers = (checked) => {
+    setShowCompliantDischargers(checked);
+    setEffluentToggleObject({
+      compliant: checked,
+      violating: showViolatingDischargers,
+    });
+    const newShowDischargersLayer = checked || showViolatingDischargers;
     setShowDischargersLayer(newShowDischargersLayer);
     if (newShowDischargersLayer !== showDischargersLayer) {
       updateVisibleLayers({ dischargersLayer: newShowDischargersLayer });
@@ -466,7 +473,7 @@ function IdentifiedIssues() {
   function handleTabClick(index) {
     if (index === 0 && !toggleIssuesChecked)
       toggleSwitch('Toggle Issues Layer');
-    if (index === 1 && !toggleDischargersChecked) toggleDischargersLayer();
+    if (index === 1 && !toggleDischargersChecked) toggleDischargersLayer(true);
   }
 
   function getImpairedWatersPercent() {
@@ -478,8 +485,9 @@ function IdentifiedIssues() {
   useEffect(() => {
     return function cleanup() {
       if (dischargersLayer) dischargersLayer.definitionExpression = '';
+      setEffluentToggleObject(null);
     };
-  }, [dischargersLayer]);
+  }, [dischargersLayer, setEffluentToggleObject]);
 
   const violatingDischargers = [];
   const compliantDischargers = [];
@@ -514,8 +522,8 @@ function IdentifiedIssues() {
     dischargersLayer &&
     dischargersLayerFilter !== prevDischargersLayerFilter
   ) {
-    setPrevDischagersLayerFilter(dischargersLayerFilter);
     dischargersLayer.definitionExpression = dischargersLayerFilter;
+    setPrevDischagersLayerFilter(dischargersLayerFilter);
   }
 
   return (
