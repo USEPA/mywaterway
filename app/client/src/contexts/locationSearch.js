@@ -85,7 +85,6 @@ type State = {
   showAllPolluted: boolean,
   parameterToggleObject: ParameterToggleObject,
   pollutionParameters: Object | null,
-  violatingDischargersOnly: boolean,
 };
 
 export class LocationSearchProvider extends Component<Props, State> {
@@ -158,7 +157,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     showAllPolluted: true,
     parameterToggleObject: {},
     pollutionParameters: null,
-    violatingDischargersOnly: false,
 
     // current drinking water subtab (0, 1, or 2)
     drinkingWaterTabIndex: 0,
@@ -330,9 +328,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setFIPS: (FIPS) => {
       this.setState({ FIPS });
-    },
-    setViolatingDischargersOnly: (violatingDischargersOnly) => {
-      this.setState({ violatingDischargersOnly });
     },
 
     /////// Functions that do more than just set a single state ////////

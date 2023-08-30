@@ -72,9 +72,7 @@ export function useDischargers() {
 
 function useUpdateData() {
   // Build the data update function
-  const { huc12, mapView, violatingDischargersOnly } = useContext(
-    LocationSearchContext,
-  );
+  const { huc12, mapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
@@ -106,7 +104,6 @@ function useUpdateData() {
       fetchedDataDispatch,
       localFetchedDataKey,
       null,
-      violatingDischargersOnly,
     ).then((data) => {
       setHucData(data);
     });
@@ -114,7 +111,7 @@ function useUpdateData() {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, services, violatingDischargersOnly]);
+  }, [fetchedDataDispatch, huc12, services]);
 
   const extentFilter = useRef<string | null>(null);
 
@@ -238,7 +235,6 @@ async function fetchAndTransformData(
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'dischargers' | 'surroundingDischargers',
   dataToExclude?: DischargerAttributes[] | null,
-  violatingOnly = false,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
@@ -246,13 +242,9 @@ async function fetchAndTransformData(
   if (response.status === 'success') {
     const permittedDischargers = transformServiceData(response.data) ?? [];
 
-    const includedData = dataToExclude
+    const payload = dataToExclude
       ? filterData(permittedDischargers, dataToExclude, dataKeys)
       : permittedDischargers;
-
-    const payload = violatingOnly
-      ? filterViolatingFacilities(includedData)
-      : includedData;
 
     dispatch({
       type: 'success',
@@ -325,14 +317,6 @@ async function fetchPermittedDischargers(
   } catch (err) {
     return handleFetchError(err);
   }
-}
-
-function filterViolatingFacilities(facilities: DischargerAttributes[]) {
-  return facilities.filter(
-    (facility) =>
-      facility['CWPSNCStatus'] !== null &&
-      facility['CWPSNCStatus']?.toLowerCase().indexOf('effluent') !== -1,
-  );
 }
 
 async function getExtentFilter(mapView: __esri.MapView | '') {

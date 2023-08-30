@@ -55,28 +55,11 @@ import {
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
-import { colors, toggleTableStyles } from 'styles/index';
+import { colors, tabLegendStyles, toggleTableStyles } from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
-  }
-`;
-
-const legendItemsStyles = css`
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-around;
-
-  span {
-    display: flex;
-    align-items: center;
-    font-size: 0.875em;
-    margin-bottom: 1em;
-
-    @media (min-width: 560px) {
-      font-size: 1em;
-    }
   }
 `;
 
@@ -745,7 +728,7 @@ function MonitoringAndSensorsTab({
               concerns.
             </p>
 
-            <div css={legendItemsStyles}>
+            <div css={tabLegendStyles}>
               <span>
                 {circleIcon({ color: colors.lightPurple() })}
                 &nbsp;Past Water Conditions&nbsp;
@@ -1268,7 +1251,7 @@ function PermittedDischargersTab({
 
         {totalPermittedDischargers > 0 && (
           <>
-            <div css={legendItemsStyles}>
+            <div css={tabLegendStyles}>
               <span>
                 {diamondIcon({ color: colors.orange() })}
                 &nbsp;Permitted Dischargers&nbsp;
