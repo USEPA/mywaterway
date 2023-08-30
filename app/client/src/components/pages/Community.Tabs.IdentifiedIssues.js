@@ -520,6 +520,7 @@ function IdentifiedIssues() {
     useState('');
   if (
     dischargersLayer &&
+    showDischargersLayer &&
     dischargersLayerFilter !== prevDischargersLayerFilter
   ) {
     dischargersLayer.definitionExpression = dischargersLayerFilter;
