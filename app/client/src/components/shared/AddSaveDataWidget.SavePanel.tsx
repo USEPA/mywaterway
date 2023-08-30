@@ -623,7 +623,7 @@ function SavePanel({ visible }: Props) {
                   ([key, _toggled]) =>
                     `dischargers with${
                       key === 'compliant' ? 'out' : ''
-                    } significant violations`,
+                    } significant effluent violations`,
                 ),
             )}.
             `);

@@ -829,7 +829,13 @@ function WaterbodyInfo({
             ),
           },
           {
-            label: 'Significant Effluent Violation within the last 3 years',
+            label: (
+              <>
+                Significant{' '}
+                <GlossaryTerm term="Effluent">Effluent</GlossaryTerm> Violation
+                within the last 3 years
+              </>
+            ),
             value: hasEffluentViolations ? 'Yes' : 'No',
           },
           {

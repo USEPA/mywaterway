@@ -821,11 +821,7 @@ function IdentifiedIssues() {
                                   disabled={!violatingDischargers.length}
                                 />
                                 <span>
-                                  Dischargers with Significant{' '}
-                                  <GlossaryTerm term="Effluent">
-                                    Effluent
-                                  </GlossaryTerm>{' '}
-                                  Violations
+                                  Dischargers with Significant Violations
                                 </span>
                               </label>
                             </td>
