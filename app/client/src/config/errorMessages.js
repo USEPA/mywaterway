@@ -62,7 +62,7 @@ export const protectNonpointSourceError =
 
 // grts.epa.gov - GRTS Service for restore tab
 export const restoreNonpointSourceError =
-  'The clean water act section 319 projects are temporarily unavailable, please try again later.';
+  'The nonpoint source projects are temporarily unavailable, please try again later.';
 
 // attains.epa.gov - Plans Service
 export const restorationPlanError =
