@@ -1947,7 +1947,6 @@ type PdfLegendItem = {
 
 const leftMargin = 10;
 const topMargin = 10;
-const titleSize = 18;
 
 function handleError(error: unknown) {
   if (error instanceof Error || typeof error === 'object') {
@@ -2243,8 +2242,6 @@ export async function generateAndDownloadPdf({
       if (horizontalPosition + columnWidth * 2 + pageMargin * 2 < width) {
         // start a new column on the same page
         verticalPosition = height - rowHeight - topMargin * 2;
-        if (pageIndex === 0)
-          verticalPosition = verticalPosition - titleSize - topMargin;
         horizontalPosition += columnWidth + leftMargin;
         x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
       } else {
@@ -2585,22 +2582,13 @@ export async function generateAndDownloadPdf({
     );
 
     // get the size of the document
-    const { height, width } = currentPage.getSize();
+    const { height } = currentPage.getSize();
     const fontSize = 12;
-
-    // add centered header
-    let verticalPosition = height - titleSize - topMargin * 2;
-    const titleWidth = helveticaBoldFont.widthOfTextAtSize('Legend', titleSize);
-    currentPage.drawText('Legend', {
-      x: width / 2 - titleWidth / 2,
-      y: verticalPosition,
-      font: helveticaBoldFont,
-      size: titleSize,
-    });
 
     // add items to legend
     let lastHeading: PdfLegendItemType = 'h1';
     let horizontalPosition = 0;
+    let verticalPosition = height - topMargin;
     let pageIndex = 0;
     for (const item of legendItems) {
       const { image, text, type } = item;
