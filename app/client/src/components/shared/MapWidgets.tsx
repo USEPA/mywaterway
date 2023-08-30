@@ -1980,7 +1980,7 @@ export async function generateAndDownloadPdf({
   includeLegend: boolean;
 }) {
   if (services.status !== 'success') return;
-  
+
   const {
     layoutMultilineText,
     PageSizes,
@@ -2001,41 +2001,49 @@ export async function generateAndDownloadPdf({
     'a3-landscape': {
       columnWidth: 280,
       dimensions: [...PageSizes.A3].reverse() as [number, number],
+      dimensionsMapPageLegend: { height: 170, width: 1160 },
       pageMargin: 18,
     },
     'a3-portrait': {
       columnWidth: 260,
       dimensions: PageSizes.A3,
+      dimensionsMapPageLegend: { height: 180, width: 690 },
       pageMargin: 18,
     },
     'a4-landscape': {
       columnWidth: 260,
       dimensions: [...PageSizes.A4].reverse() as [number, number],
+      dimensionsMapPageLegend: { height: 100, width: 720 },
       pageMargin: 17,
     },
     'a4-portrait': {
       columnWidth: 275,
       dimensions: PageSizes.A4,
+      dimensionsMapPageLegend: { height: 155, width: 420 },
       pageMargin: 17,
     },
     'letter-ansi-a-landscape': {
       columnWidth: 240,
       dimensions: [...PageSizes.Letter].reverse() as [number, number],
+      dimensionsMapPageLegend: { height: 100, width: 660 },
       pageMargin: 25,
     },
     'letter-ansi-a-portrait': {
       columnWidth: 280,
       dimensions: PageSizes.Letter,
+      dimensionsMapPageLegend: { height: 155, width: 420 },
       pageMargin: 25,
     },
     'tabloid-ansi-b-landscape': {
       columnWidth: 287,
       dimensions: [...PageSizes.Tabloid].reverse() as [number, number],
+      dimensionsMapPageLegend: { height: 170, width: 1130 },
       pageMargin: 25,
     },
     'tabloid-ansi-b-portrait': {
       columnWidth: 240,
       dimensions: PageSizes.Tabloid,
+      dimensionsMapPageLegend: { height: 185, width: 600 },
       pageMargin: 25,
     },
   };
@@ -2233,15 +2241,27 @@ export async function generateAndDownloadPdf({
     imageScaledHeight: number;
   }) {
     const { height, width } = currentPage.getSize();
-    const { columnWidth, dimensions, pageMargin } = layoutOptions[layout.value];
+    const { columnWidth, dimensions, dimensionsMapPageLegend, pageMargin } =
+      layoutOptions[layout.value];
+
+    // if on map page (1st page) use dimensions of the blank space on map page
+    // otherwise use the document dimensions
+    const maxHeight = pageIndex === 0 ? dimensionsMapPageLegend.height : height;
+    const maxWidth = pageIndex === 0 ? dimensionsMapPageLegend.width : width;
 
     const rowHeight = Math.max(textHeight, imageScaledHeight);
-    const tempY = verticalPosition - rowHeight - topMargin;
+    let tempY = verticalPosition - rowHeight - topMargin;
     if (tempY < topMargin) {
+      // update tempY to be top of next column
+      tempY = maxHeight - rowHeight - topMargin * 2;
+
       // determine whether to start a new column or page
-      if (horizontalPosition + columnWidth * 2 + pageMargin * 2 < width) {
-        // start a new column on the same page
-        verticalPosition = height - rowHeight - topMargin * 2;
+      if (
+        horizontalPosition + columnWidth * 2 + pageMargin * 2 < maxWidth &&
+        tempY > topMargin
+      ) {
+        // start a new column on the same page since both height and width check out
+        verticalPosition = tempY;
         horizontalPosition += columnWidth + leftMargin;
         x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
       } else {
@@ -2322,7 +2342,10 @@ export async function generateAndDownloadPdf({
    * @param image Image to embed in PDF
    * @returns The pdfImage, scaled height and scaled width
    */
-  async function embedImage(doc: PDFDocumentType, image?: PdfLegendImage | null) {
+  async function embedImage(
+    doc: PDFDocumentType,
+    image?: PdfLegendImage | null,
+  ) {
     if (!image)
       return { pdfImage: null, imageScaledHeight: 0, imageScaledWidth: 0 };
 
@@ -2573,9 +2596,7 @@ export async function generateAndDownloadPdf({
     await appendEsriLegendItems(legendItems);
 
     // add a page and set the font
-    let currentPage = doc.addPage(
-      layoutOptions[layout.value].dimensions,
-    );
+    let currentPage = doc.getPage(0);
     const helveticaFont = doc.embedStandardFont(StandardFonts.Helvetica);
     const helveticaBoldFont = doc.embedStandardFont(
       StandardFonts.HelveticaBold,
@@ -2585,10 +2606,13 @@ export async function generateAndDownloadPdf({
     const { height } = currentPage.getSize();
     const fontSize = 12;
 
+    const { columnWidth, dimensionsMapPageLegend, pageMargin } =
+      layoutOptions[layout.value];
+
     // add items to legend
     let lastHeading: PdfLegendItemType = 'h1';
     let horizontalPosition = 0;
-    let verticalPosition = height - topMargin;
+    let verticalPosition = dimensionsMapPageLegend.height - topMargin;
     let pageIndex = 0;
     for (const item of legendItems) {
       const { image, text, type } = item;
@@ -2599,9 +2623,6 @@ export async function generateAndDownloadPdf({
       const font = ['h1', 'h2'].includes(type)
         ? helveticaBoldFont
         : helveticaFont;
-
-      const { pageMargin, columnWidth } =
-        layoutOptions[layout.value];
 
       // set x starting position
       let x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
