@@ -274,7 +274,11 @@ function IdentifiedIssuesUpper() {
     <p>
       Waters can be impacted by a variety of impairments. Below you can see
       impairments degrading certain uses of these waters and those dischargers
-      in significant violation of their permit.
+      in{' '}
+      <GlossaryTerm term="Significant Violations">
+        significant violation
+      </GlossaryTerm>{' '}
+      of their permit.
     </p>
   );
 }
