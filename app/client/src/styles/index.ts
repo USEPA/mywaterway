@@ -145,7 +145,7 @@ export const tabLegendStyles = css`
   flex-flow: row wrap;
   justify-content: space-around;
 
-  span {
+  > span {
     display: flex;
     align-items: center;
     font-size: 0.875em;

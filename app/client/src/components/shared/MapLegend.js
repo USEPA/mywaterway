@@ -345,9 +345,12 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         <div className="hmw-legend__symbol" css={imageContainerStyles}>
           {waterwayIcon({ color: '#6c95ce' })}
         </div>
-        <span className="hmw-legend__info" css={labelStyles}>
+        <GlossaryTerm
+          className="hmw-legend__info"
+          term="Potential Harmful Algal Blooms (HABs)"
+        >
           Potential Harmful Algal Blooms (HABs)
-        </span>
+        </GlossaryTerm>
       </div>
     </li>
   );

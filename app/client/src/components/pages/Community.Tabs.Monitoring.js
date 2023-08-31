@@ -1,5 +1,6 @@
 // @flow
 
+import uniqueId from 'lodash/uniqueId';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -457,6 +458,8 @@ function CurrentConditionsTab({
 
   const handleSortChange = useCallback(({ value }) => setSortedBy(value), []);
 
+  const [switchId] = useState(uniqueId('habs-switch-'));
+
   if (streamgagesStatus === 'pending') return <LoadingSpinner />;
 
   return (
@@ -502,7 +505,10 @@ function CurrentConditionsTab({
                 <>
                   <span css={showLessMoreStyles}>
                     Areas highlighted light blue are the lakes, reservoirs, and
-                    other large waterbodies where potential harmful algal bloom
+                    other large waterbodies where{' '}
+                    <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
+                      potential harmful algal bloom
+                    </GlossaryTerm>{' '}
                     data is available. Daily data are a snapshot of{' '}
                     <GlossaryTerm term="Blue-Green Algae">
                       blue-green algae
@@ -523,7 +529,11 @@ function CurrentConditionsTab({
           <div css={tabLegendStyles}>
             <span>
               {waterwayIcon({ color: '#6c95ce' })}
-              &nbsp;Potential Harmful Algal Blooms (HABs)&nbsp;
+              &nbsp;
+              <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
+                Potential Harmful Algal Blooms (HABs)
+              </GlossaryTerm>
+              &nbsp;
             </span>
             <span>
               {squareIcon({ color: '#fffe00' })}
@@ -558,8 +568,9 @@ function CurrentConditionsTab({
               </tr>
               <tr>
                 <td>
-                  <label css={toggleStyles}>
+                  <div css={toggleStyles}>
                     <Switch
+                      ariaLabelledBy={switchId}
                       checked={cyanWaterbodies.length > 0 && cyanDisplayed}
                       onChange={handleCyanWaterbodiesToggle}
                       disabled={
@@ -567,8 +578,13 @@ function CurrentConditionsTab({
                         cyanWaterbodies.length === 0
                       }
                     />
-                    <span>Potential Harmful Algal Blooms (HABs)</span>
-                  </label>
+                    <GlossaryTerm
+                      id={switchId}
+                      term="Potential Harmful Algal Blooms (HABs)"
+                    >
+                      Potential Harmful Algal Blooms (HABs)
+                    </GlossaryTerm>
+                  </div>
                 </td>
                 <td>{cyanWaterbodies.length ?? 'N/A'}</td>
               </tr>

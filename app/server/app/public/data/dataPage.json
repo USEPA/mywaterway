@@ -19,7 +19,7 @@
       "linkHref": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
       "linkLabel": "CyAN Data/System",
       "shortName": "CyAN",
-      "siteLocation": "Information from CyAN can be found on the Community Page in the Water Monitoring tab under Current Water Conditions, Potential Harmful Algal Blooms (HABs).",
+      "siteLocation": "Information from CyAN can be found on the Community Page in the Water Monitoring tab under Current Water Conditions, <span data-glossary-term data-term='Potential Harmful Algal Blooms (HABs)'>Potential Harmful Algal Blooms (HABs)</span>.",
       "title": "Cyanobacteria Assessment Network (CyAN)"
     },
     {

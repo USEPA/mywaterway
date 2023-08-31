@@ -277,11 +277,12 @@ export default GlossaryPanel;
 type Props = {
   term: string,
   className?: string,
+  id?: string,
   style?: Object,
   children: Node,
 };
 
-function GlossaryTerm({ term, className, style, children }: Props) {
+function GlossaryTerm({ term, className, id, style, children }: Props) {
   const [status, setStatus] = useState('fetching');
 
   if (window.hasOwnProperty('fetchGlossaryTerms')) {
@@ -295,6 +296,7 @@ function GlossaryTerm({ term, className, style, children }: Props) {
 
   return (
     <span
+      id={id}
       data-term={term}
       data-disabled={status === 'fetching'}
       title="Click to define"
