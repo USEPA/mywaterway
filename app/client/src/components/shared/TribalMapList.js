@@ -1032,7 +1032,6 @@ function MonitoringTab({
       }
       extraListHeaderContent={
         <CharacteristicsSelect
-          label="Filter by Characteristic:"
           selected={selectedCharacteristics}
           onChange={setSelectedCharacteristics}
         />

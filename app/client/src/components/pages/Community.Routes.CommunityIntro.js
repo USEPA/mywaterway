@@ -5,7 +5,7 @@ import { css } from 'styled-components/macro';
 // contexts
 import { useLayers } from 'contexts/Layers';
 // styles
-import { fonts } from 'styles/index.js';
+import { fonts } from 'styles/index';
 // images
 import overviewIcon from 'images/overview.png';
 import drinkingWaterIcon from 'images/drinking-water.png';

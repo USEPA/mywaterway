@@ -45,7 +45,7 @@ import {
 } from 'utils/mapFunctions';
 import { chunkArrayCharLength } from 'utils/utils';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 // errors
 import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
 

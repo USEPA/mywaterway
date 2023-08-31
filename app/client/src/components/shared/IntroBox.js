@@ -2,7 +2,7 @@
 
 import { css } from 'styled-components/macro';
 // styles
-import { fonts } from 'styles/index.js';
+import { fonts } from 'styles/index';
 
 const introBoxStyles = css`
   padding: 1.5rem;

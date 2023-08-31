@@ -139,6 +139,11 @@ export type FetchStateWithDefault<Type> = {
 
 export type FetchStatus = FetchEmptyStatus | 'success';
 
+export type EffluentToggleObject = {
+  compliant: boolean;
+  violating: boolean;
+};
+
 export interface ExtendedGraphic extends __esri.Graphic {
   originalGeometry?: __esri.Geometry;
 }

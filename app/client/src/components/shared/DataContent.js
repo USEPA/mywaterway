@@ -17,7 +17,7 @@ import {
   infoBoxStyles,
   textBoxStyles,
 } from 'components/shared/MessageBoxes';
-import { fonts } from 'styles/index.js';
+import { fonts } from 'styles/index';
 
 function scrollToItem(id: string) {
   const item = document.getElementById(id);

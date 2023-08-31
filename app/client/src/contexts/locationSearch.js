@@ -6,6 +6,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 import type { ReactNode } from 'react';
 import type {
   DischargerPermitComponents,
+  EffluentToggleObject,
   FetchStatus,
   Huc12SummaryData,
   MonitoringLocationGroups,
@@ -85,7 +86,7 @@ type State = {
   showAllPolluted: boolean,
   parameterToggleObject: ParameterToggleObject,
   pollutionParameters: Object | null,
-  violatingDischargersOnly: boolean,
+  effluentToggleObject: EffluentToggleObject | null,
 };
 
 export class LocationSearchProvider extends Component<Props, State> {
@@ -158,7 +159,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     showAllPolluted: true,
     parameterToggleObject: {},
     pollutionParameters: null,
-    violatingDischargersOnly: false,
+    effluentToggleObject: null,
 
     // current drinking water subtab (0, 1, or 2)
     drinkingWaterTabIndex: 0,
@@ -325,14 +326,14 @@ export class LocationSearchProvider extends Component<Props, State> {
     setPollutionParameters: (pollutionParameters) => {
       this.setState({ pollutionParameters });
     },
+    setEffluentToggleObject: (effluentToggleObject) => {
+      this.setState({ effluentToggleObject });
+    },
     setDrinkingWaterTabIndex: (drinkingWaterTabIndex) => {
       this.setState({ drinkingWaterTabIndex });
     },
     setFIPS: (FIPS) => {
       this.setState({ FIPS });
-    },
-    setViolatingDischargersOnly: (violatingDischargersOnly) => {
-      this.setState({ violatingDischargersOnly });
     },
 
     /////// Functions that do more than just set a single state ////////

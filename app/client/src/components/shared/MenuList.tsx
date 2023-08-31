@@ -25,25 +25,36 @@ export function MenuList<T>(props: MenuListProps<T>) {
     return <components.MenuList {...props}>{children}</components.MenuList>;
   }
 
+  // determine if this is a group and get the children accordingly
+  let childrenToDisplay = children;
+  const hasSubChildren =
+    Array.isArray(children) &&
+    children.length === 1 &&
+    children[0].props?.children;
+  if (hasSubChildren) childrenToDisplay = children[0].props.children;
+
   return (
-    <VariableSizeList
-      ref={listRef}
-      width="100%"
-      height={maxHeight}
-      itemCount={children.length}
-      itemSize={getSize}
-    >
-      {({ index, style }) => (
-        <div style={{ ...style, overflowX: 'hidden' }}>
-          <MenuItem
-            index={index}
-            width={width}
-            setSize={setSize}
-            value={children[index]}
-          />
-        </div>
-      )}
-    </VariableSizeList>
+    <>
+      {hasSubChildren && children[0].props.label}
+      <VariableSizeList
+        ref={listRef}
+        width="100%"
+        height={maxHeight}
+        itemCount={childrenToDisplay.length}
+        itemSize={getSize}
+      >
+        {({ index, style }) => (
+          <div style={{ ...style, overflowX: 'hidden' }}>
+            <MenuItem
+              index={index}
+              width={width}
+              setSize={setSize}
+              value={childrenToDisplay[index]}
+            />
+          </div>
+        )}
+      </VariableSizeList>
+    </>
   );
 }
 

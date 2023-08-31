@@ -16,7 +16,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useNarsContext } from 'contexts/LookupFiles';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 // images
 import nutrientPollutionPhoto from 'images/national-nutrient-pollution.jpg';
 import riversPhoto from 'images/learn-more-rivers.jpg';

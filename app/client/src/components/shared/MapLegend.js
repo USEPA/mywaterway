@@ -14,7 +14,7 @@ import { getSelectedCommunityTab } from 'utils/utils';
 // errors
 import { legendUnavailableError } from 'config/errorMessages';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   width: 240px;
@@ -664,7 +664,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   );
 
   const mappedWaterLegend = () => {
-    const layerName = 'Mapped Water (all)';
+    const layerName = 'All Mapped Water (NHD)';
 
     const sublayerIds = view.map.layers.items
       .filter((item) => item.id === 'mappedWaterLayer')

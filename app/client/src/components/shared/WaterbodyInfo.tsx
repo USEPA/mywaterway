@@ -67,7 +67,7 @@ import {
   iconStyles,
   modifiedTableStyles,
   tableStyles,
-} from 'styles/index.js';
+} from 'styles/index';
 // types
 import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
@@ -829,7 +829,13 @@ function WaterbodyInfo({
             ),
           },
           {
-            label: 'Significant Effluent Violation within the last 3 years',
+            label: (
+              <>
+                Significant{' '}
+                <GlossaryTerm term="Effluent">Effluent</GlossaryTerm> Violation
+                within the last 3 years
+              </>
+            ),
             value: hasEffluentViolations ? 'Yes' : 'No',
           },
           {
@@ -2767,7 +2773,11 @@ function MonitoringLocationsContent({
                   Number of Measure&shy;ments
                 </GlossaryTerm>
               </th>
-              <th>Detailed Characteristics</th>
+              <th>
+                <GlossaryTerm term="Characteristics">
+                  Detailed Characteristics
+                </GlossaryTerm>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -2814,7 +2824,10 @@ function MonitoringLocationsContent({
                         <thead>
                           <tr>
                             <th>
-                              Detailed <em>{key}</em> Characteristics
+                              Detailed <em>{key}</em>{' '}
+                              <GlossaryTerm term="Characteristics">
+                                Characteristics
+                              </GlossaryTerm>
                             </th>
                             <th>Number of Measurements</th>
                           </tr>

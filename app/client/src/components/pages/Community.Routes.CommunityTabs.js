@@ -22,7 +22,7 @@ import {
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 import '@reach/tabs/styles.css';
 
 const lightBlue = '#f0f6f9';

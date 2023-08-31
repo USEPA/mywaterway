@@ -21,7 +21,7 @@ import { formatNumber } from 'utils/utils';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
-import { fonts, colors } from 'styles/index.js';
+import { fonts, colors } from 'styles/index';
 // errors
 import { fishingAdvisoryError } from 'config/errorMessages';
 

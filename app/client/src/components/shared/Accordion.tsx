@@ -2,7 +2,7 @@ import { Children, cloneElement, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // styles
-import { colors, reactSelectStyles } from 'styles/index.js';
+import { colors, reactSelectStyles } from 'styles/index';
 // types
 import type { ReactElement, ReactNode } from 'react';
 
