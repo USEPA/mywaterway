@@ -140,6 +140,23 @@ export const modifiedTableStyles = css`
   }
 `;
 
+export const tabLegendStyles = css`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+
+  span {
+    display: flex;
+    align-items: center;
+    font-size: 0.875em;
+    margin-bottom: 1em;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
+  }
+`;
+
 export const toggleTableStyles = css`
   ${tableStyles}
 

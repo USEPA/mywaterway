@@ -30,6 +30,7 @@ import {
 // types
 import {
   DischargerPermitComponents,
+  EffluentToggleObject,
   FetchStatus,
   Huc12SummaryData,
   MonitoringLocationGroups,
@@ -258,6 +259,8 @@ function SavePanel({ visible }: Props) {
   };
   const dischargerPermitComponents = useContext(LocationSearchContext)
     .dischargerPermitComponents as DischargerPermitComponents | null;
+  const effluentToggleObject = useContext(LocationSearchContext)
+    .effluentToggleObject as EffluentToggleObject | null;
   const mapView = useContext(LocationSearchContext)
     .mapView as __esri.MapView | null;
   const monitoringPeriodOfRecordStatus = useContext(LocationSearchContext)
@@ -610,10 +613,21 @@ function SavePanel({ visible }: Props) {
 
       // build the filter disclaimer for the dischargers layer
       if (value.id === 'dischargersLayer') {
-        if (window.location.pathname.includes('/identified-issues')) {
-          layerDisclaimers.push(`
-            <i>${value.label}</i> is filtered to dischargers with significant violations.
-          `);
+        if (effluentToggleObject) {
+          if (Object.values(effluentToggleObject).some((t) => !t)) {
+            layerDisclaimers.push(`
+              <i>${value.label}</i> is filtered to ${buildFilterString(
+              Object.entries(effluentToggleObject)
+                .filter(([_key, toggled]) => toggled)
+                .map(
+                  ([key, _toggled]) =>
+                    `dischargers with${
+                      key === 'compliant' ? 'out' : ''
+                    } significant effluent violations`,
+                ),
+            )}.
+            `);
+          }
         } else if (dischargerPermitComponents) {
           const dischargersFiltered = Object.values(
             dischargerPermitComponents,

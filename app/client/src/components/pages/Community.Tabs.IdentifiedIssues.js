@@ -1,6 +1,6 @@
 // @flow
 
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +25,8 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import { diamondIcon } from 'components/shared/MapLegend';
+import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useLayers } from 'contexts/Layers';
@@ -36,7 +38,12 @@ import { useDischargers, useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
 // styles
-import { fonts, toggleTableStyles } from 'styles/index';
+import {
+  tabLegendStyles,
+  colors,
+  fonts,
+  toggleTableStyles,
+} from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -68,7 +75,7 @@ const toggleStyles = css`
     margin-bottom: 0;
   }
 
-  span {
+  & > span {
     margin-left: 0.5rem;
   }
 `;
@@ -93,11 +100,11 @@ function IdentifiedIssues() {
     setPollutionParameters,
     getAllFeatures,
     setShowAllPolluted,
-    setViolatingDischargersOnly,
     cipSummary,
     watershed,
     parameterToggleObject,
     setParameterToggleObject,
+    setEffluentToggleObject,
   } = useContext(LocationSearchContext);
 
   const {
@@ -108,8 +115,7 @@ function IdentifiedIssues() {
     waterbodyLayer,
   } = useLayers();
 
-  const { dischargers: violatingDischargers, dischargersStatus } =
-    useDischargers();
+  const { dischargers, dischargersStatus } = useDischargers();
 
   const [showAllParameters, setShowAllParameters] = useState(false);
 
@@ -117,13 +123,10 @@ function IdentifiedIssues() {
 
   const [showDischargersLayer, setShowDischargersLayer] = useState(false);
 
-  // Only show violating facilities on this tab
-  useEffect(() => {
-    setViolatingDischargersOnly(true);
-    return function cleanup() {
-      setViolatingDischargersOnly(false);
-    };
-  }, [setViolatingDischargersOnly]);
+  const [showCompliantDischargers, setShowCompliantDischargers] =
+    useState(false);
+  const [showViolatingDischargers, setShowViolatingDischargers] =
+    useState(true);
 
   // Hide the waterbody layer from the list view on this tab
   useEffect(() => {
@@ -205,30 +208,12 @@ function IdentifiedIssues() {
     setPollutionParameters,
   ]);
 
-  // emulate componentdidupdate
-  const mounted = useRef();
   useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-    } else {
-      checkWaterbodiesToDisplay();
+    checkWaterbodiesToDisplay();
 
-      if (
-        showIssuesLayer !== visibleLayers['issuesLayer'] ||
-        showDischargersLayer !== visibleLayers['dischargersLayer']
-      ) {
-        setShowIssuesLayer(visibleLayers['issuesLayer']);
-        setShowDischargersLayer(visibleLayers['dischargersLayer']);
-      }
-    }
-  }, [
-    checkWaterbodiesToDisplay,
-    dischargersLayer,
-    issuesLayer,
-    showIssuesLayer,
-    visibleLayers,
-    showDischargersLayer,
-  ]);
+    setShowIssuesLayer(visibleLayers['issuesLayer']);
+    setShowDischargersLayer(visibleLayers['dischargersLayer']);
+  }, [checkWaterbodiesToDisplay, visibleLayers]);
 
   // check the data quality and log a non-fatal exception to Google Analytics
   // if necessary
@@ -328,7 +313,7 @@ function IdentifiedIssues() {
     }
   };
 
-  const toggleSwitch = (checkedSwitch: SwitchNames) => {
+  const toggleSwitch = (checkedSwitch) => {
     // create a temporary object with the previous state
     const tempParameterToggleObject = { ...parameterToggleObject };
 
@@ -378,12 +363,6 @@ function IdentifiedIssues() {
         toggleOn();
       }
     }
-    // if switch under number of Dischargers in violation is switched
-    else if (checkedSwitch === 'Toggle Dischargers Layer') {
-      setShowDischargersLayer(!showDischargersLayer);
-
-      updateVisibleLayers({ dischargersLayer: !showDischargersLayer });
-    }
     // one of the parameters is switched
     else {
       tempParameterToggleObject[checkedSwitch] =
@@ -395,6 +374,43 @@ function IdentifiedIssues() {
     // update the object holding the toggle states and check if any waterbodies need to be hidden or shown
     setPollutionParameters(tempParameterToggleObject);
     setParameterToggleObject(tempParameterToggleObject);
+  };
+
+  // Switch under number of Dischargers is switched
+  const toggleDischargersLayer = (checked) => {
+    setShowDischargersLayer(checked);
+    setShowViolatingDischargers(checked);
+    setShowCompliantDischargers(checked);
+    setEffluentToggleObject({ compliant: checked, violating: checked });
+    updateVisibleLayers({ dischargersLayer: checked });
+  };
+
+  // Dischargers with significant effluent violations switch is toggled
+  const toggleViolatingDischargers = (checked) => {
+    setShowViolatingDischargers(checked);
+    setEffluentToggleObject({
+      compliant: showCompliantDischargers,
+      violating: checked,
+    });
+    const newShowDischargersLayer = checked || showCompliantDischargers;
+    setShowDischargersLayer(newShowDischargersLayer);
+    if (newShowDischargersLayer !== showDischargersLayer) {
+      updateVisibleLayers({ dischargersLayer: newShowDischargersLayer });
+    }
+  };
+
+  // Dischargers without significant violations switch is toggled
+  const toggleCompliantDischargers = (checked) => {
+    setShowCompliantDischargers(checked);
+    setEffluentToggleObject({
+      compliant: checked,
+      violating: showViolatingDischargers,
+    });
+    const newShowDischargersLayer = checked || showViolatingDischargers;
+    setShowDischargersLayer(newShowDischargersLayer);
+    if (newShowDischargersLayer !== showDischargersLayer) {
+      updateVisibleLayers({ dischargersLayer: newShowDischargersLayer });
+    }
   };
 
   const cipServiceReady =
@@ -439,7 +455,7 @@ function IdentifiedIssues() {
   }
 
   // true if 0 facilities in violation are found
-  const zeroDischargers = !violatingDischargers.length;
+  const zeroDischargers = !dischargers.length;
 
   let toggleDischargersChecked;
 
@@ -457,13 +473,58 @@ function IdentifiedIssues() {
   function handleTabClick(index) {
     if (index === 0 && !toggleIssuesChecked)
       toggleSwitch('Toggle Issues Layer');
-    if (index === 1 && !toggleDischargersChecked)
-      toggleSwitch('Toggle Dischargers Layer');
+    if (index === 1 && !toggleDischargersChecked) toggleDischargersLayer(true);
   }
 
   function getImpairedWatersPercent() {
     if (cipSummary.status === 'failure') return 'N/A';
     return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent ?? 0}%`;
+  }
+
+  // Reset the dischargers layer filter when leaving the tab
+  useEffect(() => {
+    return function cleanup() {
+      if (dischargersLayer) dischargersLayer.definitionExpression = '';
+      setEffluentToggleObject(null);
+    };
+  }, [dischargersLayer, setEffluentToggleObject]);
+
+  const violatingDischargers = [];
+  const compliantDischargers = [];
+  dischargers.forEach((discharger) => {
+    if (discharger['CWPSNCStatus']?.toLowerCase().includes('effluent')) {
+      violatingDischargers.push(discharger);
+    } else {
+      compliantDischargers.push(discharger);
+    }
+  });
+
+  const displayedDischargers = [
+    ...(showViolatingDischargers ? violatingDischargers : []),
+    ...(showCompliantDischargers ? compliantDischargers : []),
+  ];
+
+  const displayedDischargerIds = displayedDischargers.map(
+    (discharger) => discharger.uniqueId,
+  );
+
+  let dischargersLayerFilter = '';
+  if (displayedDischargerIds.length === 0) dischargersLayerFilter = '1=0';
+  else if (displayedDischargerIds.length !== dischargers.length) {
+    dischargersLayerFilter = `uniqueId IN ('${displayedDischargerIds.join(
+      "','",
+    )}')`;
+  }
+
+  const [prevDischargersLayerFilter, setPrevDischagersLayerFilter] =
+    useState('');
+  if (
+    dischargersLayer &&
+    showDischargersLayer &&
+    dischargersLayerFilter !== prevDischargersLayerFilter
+  ) {
+    dischargersLayer.definitionExpression = dischargersLayerFilter;
+    setPrevDischagersLayerFilter(dischargersLayerFilter);
   }
 
   return (
@@ -497,14 +558,12 @@ function IdentifiedIssues() {
               <span css={keyMetricNumberStyles}>
                 {dischargersStatus === 'failure'
                   ? 'N/A'
-                  : violatingDischargers.length.toLocaleString()}
+                  : dischargers.length.toLocaleString()}
               </span>
-              <p css={keyMetricLabelStyles}>
-                Dischargers with Significant Violations
-              </p>
+              <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <Switch
                 checked={toggleDischargersChecked}
-                onChange={() => toggleSwitch('Toggle Dischargers Layer')}
+                onChange={toggleDischargersLayer}
                 disabled={zeroDischargers}
               />
             </label>
@@ -516,9 +575,7 @@ function IdentifiedIssues() {
         <Tabs onChange={handleTabClick}>
           <TabList>
             <Tab>Impaired Assessed Waters</Tab>
-            <Tab data-testid="hmw-dischargers">
-              Dischargers with Significant Violations
-            </Tab>
+            <Tab data-testid="hmw-dischargers">Permitted Dischargers</Tab>
           </TabList>
 
           <TabPanels>
@@ -612,6 +669,16 @@ function IdentifiedIssues() {
                         {!emptyCategoriesWithPercent &&
                           !zeroPollutedWaterbodies && (
                             <>
+                              <div css={tabLegendStyles}>
+                                <span>
+                                  <WaterbodyIcon
+                                    condition="polluted"
+                                    selected={false}
+                                  />
+                                  &nbsp;Impaired Assessed Waters&nbsp;
+                                </span>
+                              </div>
+
                               <p>
                                 Impairment categories in the{' '}
                                 <em>{watershed}</em> watershed.
@@ -717,76 +784,128 @@ function IdentifiedIssues() {
 
               {dischargersStatus === 'success' && (
                 <>
-                  {!violatingDischargers.length && (
+                  {!dischargers.length && (
                     <div css={infoBoxStyles}>
                       <p css={centeredTextStyles}>
-                        There are no dischargers with significant{' '}
-                        <GlossaryTerm term="Effluent">effluent</GlossaryTerm>{' '}
-                        violations in the <em>{watershed}</em> watershed.
+                        There are no dischargers in the <em>{watershed}</em>{' '}
+                        watershed.
                       </p>
                     </div>
                   )}
 
-                  {violatingDischargers.length > 0 && (
-                    <AccordionList
-                      title={
-                        <>
-                          There{' '}
-                          {violatingDischargers.length === 1 ? 'is' : 'are'}{' '}
-                          <strong>
-                            {violatingDischargers.length.toLocaleString()}
-                          </strong>{' '}
-                          {violatingDischargers.length === 1
-                            ? 'discharger'
-                            : 'dischargers'}{' '}
-                          with significant{' '}
-                          <GlossaryTerm term="Effluent">effluent</GlossaryTerm>{' '}
-                          violations in the <em>{watershed}</em> watershed.
-                        </>
-                      }
-                    >
-                      {violatingDischargers.map((discharger) => {
-                        const {
-                          uniqueId: id,
-                          CWPName: name,
-                          PermitComponents: components,
-                        } = discharger;
+                  {dischargers.length > 0 && (
+                    <>
+                      <div css={tabLegendStyles}>
+                        <span>
+                          {diamondIcon({ color: colors.orange() })}
+                          &nbsp;Permitted Dischargers&nbsp;
+                        </span>
+                      </div>
 
-                        const feature = {
-                          geometry: {
-                            type: 'point',
-                            longitude: discharger.FacLong,
-                            latitude: discharger.FacLat,
-                          },
-                          attributes: discharger,
-                        };
+                      <table css={toggleTableStyles} className="table">
+                        <thead>
+                          <tr>
+                            <th>
+                              <span>All Permitted Dischargers</span>
+                            </th>
+                            <th>Count</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <label css={toggleStyles}>
+                                <Switch
+                                  checked={showViolatingDischargers}
+                                  onChange={toggleViolatingDischargers}
+                                  disabled={!violatingDischargers.length}
+                                />
+                                <span>
+                                  Dischargers with Significant Violations
+                                </span>
+                              </label>
+                            </td>
+                            <td>
+                              {violatingDischargers.length.toLocaleString()}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <label css={toggleStyles}>
+                                <Switch
+                                  checked={showCompliantDischargers}
+                                  onChange={toggleCompliantDischargers}
+                                  disabled={!compliantDischargers.length}
+                                />
+                                <span>
+                                  Dischargers without Significant Violations
+                                </span>
+                              </label>
+                            </td>
+                            <td>
+                              {compliantDischargers.length.toLocaleString()}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <AccordionList
+                        title={
+                          <>
+                            <strong>
+                              {displayedDischargers.length.toLocaleString()}
+                            </strong>{' '}
+                            of{' '}
+                            <strong>
+                              {dischargers.length.toLocaleString()}
+                            </strong>{' '}
+                            permitted dischargers in the <em>{watershed}</em>{' '}
+                            watershed.
+                          </>
+                        }
+                      >
+                        {displayedDischargers.map((discharger) => {
+                          const {
+                            uniqueId: id,
+                            CWPName: name,
+                            PermitComponents: components,
+                          } = discharger;
 
-                        return (
-                          <AccordionItem
-                            key={id}
-                            title={<strong>{name || 'Unknown'}</strong>}
-                            subTitle={
-                              <>
-                                NPDES ID: {id}
-                                <br />
-                                Permit Components:{' '}
-                                {components || 'Components Not Specified'}
-                              </>
-                            }
-                            feature={feature}
-                            idKey="uniqueId"
-                          >
-                            <div css={accordionContentStyles}>
-                              <WaterbodyInfo
-                                type="Permitted Discharger"
-                                feature={feature}
-                              />
-                              <ViewOnMapButton feature={feature} />
-                            </div>
-                          </AccordionItem>
-                        );
-                      })}
-                    </AccordionList>
+                          const feature = {
+                            geometry: {
+                              type: 'point',
+                              longitude: discharger.FacLong,
+                              latitude: discharger.FacLat,
+                            },
+                            attributes: discharger,
+                          };
+
+                          return (
+                            <AccordionItem
+                              key={id}
+                              title={<strong>{name || 'Unknown'}</strong>}
+                              subTitle={
+                                <>
+                                  NPDES ID: {id}
+                                  <br />
+                                  Permit Components:{' '}
+                                  {components || 'Components Not Specified'}
+                                </>
+                              }
+                              feature={feature}
+                              idKey="uniqueId"
+                            >
+                              <div css={accordionContentStyles}>
+                                <WaterbodyInfo
+                                  type="Permitted Discharger"
+                                  feature={feature}
+                                />
+                                <ViewOnMapButton feature={feature} />
+                              </div>
+                            </AccordionItem>
+                          );
+                        })}
+                      </AccordionList>
+                    </>
                   )}
                 </>
               )}
