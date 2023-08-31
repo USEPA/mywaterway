@@ -115,6 +115,14 @@ function Restore() {
           <TabPanels>
             <TabPanel>
               <>
+                <p>
+                  <GlossaryTerm term="Nonpoint Source Pollution">
+                    Nonpoint Source pollution
+                  </GlossaryTerm>{' '}
+                  generally results from land runoff, precipitation, atmospheric
+                  deposition, drainage, seepage or hydrologic modification.
+                </p>
+
                 {grts.status === 'fetching' && <LoadingSpinner />}
 
                 {grts.status === 'failure' && (
@@ -143,9 +151,13 @@ function Restore() {
                               <strong>
                                 {sortedGrtsData.length.toLocaleString()}
                               </strong>{' '}
-                              EPA Funded{' '}
-                              {sortedGrtsData.length === 1 ? 'grant' : 'grants'}{' '}
-                              under the{' '}
+                              <GlossaryTerm term="Nonpoint Source Pollution">
+                                Nonpoint Source
+                              </GlossaryTerm>{' '}
+                              {sortedGrtsData.length === 1
+                                ? 'project'
+                                : 'projects'}{' '}
+                              funded from EPA grants under the{' '}
                               <GlossaryTerm term="Clean Water Act Section 319 Projects">
                                 Clean Water Act Section 319
                               </GlossaryTerm>{' '}
