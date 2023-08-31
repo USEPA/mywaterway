@@ -1981,7 +1981,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       series: [
         {
           name: 'Very Low',
-          color: '#6c95ce',
+          color: '#00caca',
           custom: {
             description: '< 6,500 cells/mL',
           },
