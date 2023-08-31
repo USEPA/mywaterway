@@ -2805,7 +2805,7 @@ function MonitoringLocationsContent({
                   <td>
                     <Modal
                       label={`Detailed Uses for ${key}`}
-                      maxWidth="35rem"
+                      maxWidth="36em"
                       triggerElm={
                         <button
                           aria-label={`View detailed uses for ${key}`}
