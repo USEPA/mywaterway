@@ -8,6 +8,7 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 // components
 import { MapPopup } from 'components/shared/WaterbodyInfo';
+import { colors } from 'styles';
 // utilities
 import { getSelectedCommunityTab } from 'utils/utils';
 // types
@@ -361,7 +362,7 @@ export function createWaterbodySymbol({
 }) {
   // handle Actions page
   if (window.location.pathname.includes('/plan-summary')) {
-    let color: __esri.Color = new Color({ r: 0, g: 123, b: 255 });
+    let color: __esri.Color = new Color(colors.skyBlue());
     if (geometryType === 'polygon') color.a = 0.75;
 
     let planSummarySymbol;
@@ -395,21 +396,21 @@ export function createWaterbodySymbol({
   }
 
   const outline = selected
-    ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 1 }
-    : { color: [0, 0, 0, alpha ? alpha.outline : 1], width: 1 };
+    ? { color: colors.cyan(alpha ? alpha.outline : 0.5), width: 1 }
+    : { color: colors.black(alpha ? alpha.outline : 1), width: 1 };
 
   // from colors.highlightedPurple() and colors.purple()
-  let rgb = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
+  let rgb = selected ? colors.highlightedPurple() : colors.purple();
   if (condition === 'good') {
     // from colors.highlightedGreen() and colors.green()
-    rgb = selected ? { r: 70, g: 227, b: 159 } : { r: 32, g: 128, b: 12 };
+    rgb = selected ? colors.highlightedGreen() : colors.green();
   }
   if (condition === 'polluted') {
     // from colors.highlightedRed() and colors.red()
-    rgb = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
+    rgb = selected ? colors.highlightedRed() : colors.red();
   }
   if (condition === 'nostatus') {
-    rgb = selected ? { r: 93, g: 153, b: 227 } : { r: 0, g: 123, b: 255 };
+    rgb = selected ? colors.highlightedBlue() : colors.skyBlue();
   }
 
   let color = new Color(rgb);
@@ -459,7 +460,7 @@ export function createWaterbodySymbol({
 
   if (geometryType === 'polygon') {
     const polyOutline = selected
-      ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 3 }
+      ? { color: colors.cyan(alpha ? alpha.outline : 0.5), width: 3 }
       : undefined;
 
     return new SimpleFillSymbol({
@@ -952,7 +953,7 @@ export function GradientIcon({
   return (
     <div css={{ display: 'flex', margin: 'auto' }}>
       <div css={{ margin: '15px 0' }}>
-        <svg width={50} height={(25 * divisions) + 20}>
+        <svg width={50} height={25 * divisions + 20}>
           <defs>
             <linearGradient
               id={id}
@@ -981,7 +982,14 @@ export function GradientIcon({
           />
 
           {stops.map((stop, index) => (
-            <text key={stop.label} x="20" y={(25 * index) + 14} fontSize="smaller">-{stop.label}</text>
+            <text
+              key={stop.label}
+              x="20"
+              y={25 * index + 14}
+              fontSize="smaller"
+            >
+              -{stop.label}
+            </text>
           ))}
         </svg>
       </div>

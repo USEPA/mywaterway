@@ -522,11 +522,11 @@ function CurrentConditionsTab({
 
           <div css={tabLegendStyles}>
             <span>
-              {waterwayIcon({ color: '#6c95ce' })}
+              {waterwayIcon({ color: colors.darkCyan() })}
               &nbsp;Potential Harmful Algal Blooms (HABs)&nbsp;
             </span>
             <span>
-              {squareIcon({ color: '#fffe00' })}
+              {squareIcon({ color: colors.yellow() })}
               &nbsp;USGS Sensors&nbsp;
             </span>
           </div>
@@ -614,7 +614,7 @@ function CurrentConditionsTab({
                   return (
                     <AccordionItem
                       ariaLabel={item.locationName}
-                      icon={squareIcon({ color: '#fffe00' })}
+                      icon={squareIcon({ color: colors.yellow() })}
                       key={item.uniqueId}
                       title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
@@ -649,7 +649,7 @@ function CurrentConditionsTab({
                   return (
                     <AccordionItem
                       ariaLabel={item.GNIS_NAME}
-                      icon={waterwayIcon({ color: '#6c95ce' })}
+                      icon={waterwayIcon({ color: colors.darkCyan() })}
                       key={item.FID}
                       title={<strong>{item.GNIS_NAME || 'Unknown'}</strong>}
                       subTitle={
