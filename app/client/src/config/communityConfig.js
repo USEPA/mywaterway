@@ -274,7 +274,11 @@ function IdentifiedIssuesUpper() {
     <p>
       Waters can be impacted by a variety of impairments. Below you can see
       impairments degrading certain uses of these waters and those dischargers
-      in significant violation of their permit.
+      in{' '}
+      <GlossaryTerm term="Significant Violations">
+        significant violation
+      </GlossaryTerm>{' '}
+      of their permit.
     </p>
   );
 }
@@ -284,7 +288,11 @@ function RestoreUpper() {
     <p>
       Efforts are underway to restore your community’s water through grants and
       clean-up plans at the local, state, and federal level. View restoration
-      plans and EPA funded restoration projects.
+      plans and EPA funded{' '}
+      <GlossaryTerm term="Nonpoint Source Pollution">
+        Nonpoint Source
+      </GlossaryTerm>{' '}
+      restoration projects.
     </p>
   );
 }

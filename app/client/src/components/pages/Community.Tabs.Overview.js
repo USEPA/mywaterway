@@ -1,5 +1,6 @@
 // @flow
 
+import uniqueId from 'lodash/uniqueId';
 import { useEffect, useCallback, useContext, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -685,6 +686,8 @@ function MonitoringAndSensorsTab({
     };
   }, [monitoringLocationsLayer]);
 
+  const [switchId] = useState(uniqueId('habs-switch-'));
+
   // Reset characteristics filter if the user switches locations
   const [prevHuc12, setPrevHuc12] = useState(huc12);
   if (huc12 !== prevHuc12) {
@@ -739,7 +742,11 @@ function MonitoringAndSensorsTab({
               </span>
               <span>
                 {waterwayIcon({ color: colors.darkCyan() })}
-                &nbsp;Potential Harmful Algal Blooms (HABs)&nbsp;
+                &nbsp;
+                <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
+                  Potential Harmful Algal Blooms (HABs)
+                </GlossaryTerm>
+                &nbsp;
               </span>
             </div>
 
@@ -766,8 +773,11 @@ function MonitoringAndSensorsTab({
                     </span>
                     <span css={showLessMoreStyles}>
                       Areas highlighted light blue are the lakes, reservoirs,
-                      and other large waterbodies where potential harmful algal
-                      bloom data is available. Daily data are a snapshot of{' '}
+                      and other large waterbodies where{' '}
+                      <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
+                        potential harmful algal bloom
+                      </GlossaryTerm>{' '}
+                      data is available. Daily data are a snapshot of{' '}
                       <GlossaryTerm term="Blue-Green Algae">
                         blue-green algae
                       </GlossaryTerm>{' '}
@@ -857,14 +867,20 @@ function MonitoringAndSensorsTab({
                 </tr>
                 <tr>
                   <td>
-                    <label css={toggleStyles}>
+                    <div css={toggleStyles}>
                       <Switch
+                        ariaLabelledBy={switchId}
                         checked={cyanWaterbodies.length > 0 && cyanDisplayed}
                         onChange={handleHarmfulAlgalBloomsToggle}
                         disabled={cyanWaterbodies.length === 0}
                       />
-                      <span>Potential Harmful Algal Blooms (HABs)</span>
-                    </label>
+                      <GlossaryTerm
+                        id={switchId}
+                        term="Potential Harmful Algal Blooms (HABs)"
+                      >
+                        Potential Harmful Algal Blooms (HABs)
+                      </GlossaryTerm>
+                    </div>
                   </td>
                   <td>{cyanWaterbodies.length}</td>
                 </tr>

@@ -1,5 +1,6 @@
 // @flow
 
+import uniqueId from 'lodash/uniqueId';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -527,6 +528,8 @@ function IdentifiedIssues() {
     setPrevDischagersLayerFilter(dischargersLayerFilter);
   }
 
+  const [switchId] = useState(uniqueId('effluent-violations-switch-'));
+
   return (
     <div css={containerStyles}>
       <div css={keyMetricsStyles}>
@@ -814,16 +817,21 @@ function IdentifiedIssues() {
                         <tbody>
                           <tr>
                             <td>
-                              <label css={toggleStyles}>
+                              <div css={toggleStyles}>
                                 <Switch
+                                  ariaLabelledBy={switchId}
                                   checked={showViolatingDischargers}
                                   onChange={toggleViolatingDischargers}
                                   disabled={!violatingDischargers.length}
                                 />
                                 <span>
-                                  Dischargers with Significant Violations
+                                  Dischargers with Significant{' '}
+                                  <GlossaryTerm id={switchId} term="Effluent">
+                                    Effluent
+                                  </GlossaryTerm>{' '}
+                                  Violations
                                 </span>
-                              </label>
+                              </div>
                             </td>
                             <td>
                               {violatingDischargers.length.toLocaleString()}
@@ -837,9 +845,7 @@ function IdentifiedIssues() {
                                   onChange={toggleCompliantDischargers}
                                   disabled={!compliantDischargers.length}
                                 />
-                                <span>
-                                  Dischargers without Significant Violations
-                                </span>
+                                <span>All Other Permitted Dischargers</span>
                               </label>
                             </td>
                             <td>
