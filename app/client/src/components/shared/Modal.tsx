@@ -158,7 +158,7 @@ export default function Modal({
               title={closeTitle ?? 'Close'}
               onClick={close}
             >
-              ×
+              <i className="fas fa-times" aria-hidden="true" />
             </button>
 
             {children}

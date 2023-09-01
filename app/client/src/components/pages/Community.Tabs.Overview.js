@@ -561,7 +561,7 @@ function MonitoringAndSensorsTab({
         return (
           <AccordionItem
             ariaLabel={item.GNIS_NAME}
-            icon={waterwayIcon({ color: '#6c95ce' })}
+            icon={waterwayIcon({ color: colors.darkCyan() })}
             key={item.FID}
             title={<strong>{item.GNIS_NAME || 'Unknown'}</strong>}
             subTitle={
@@ -597,7 +597,7 @@ function MonitoringAndSensorsTab({
 
         let icon = circleIcon({ color: colors.lightPurple() });
         if (monitoringType === 'USGS Sensors')
-          icon = squareIcon({ color: '#fffe00' });
+          icon = squareIcon({ color: colors.yellow() });
 
         const feature = {
           geometry: {
@@ -737,11 +737,11 @@ function MonitoringAndSensorsTab({
                 &nbsp;Past Water Conditions&nbsp;
               </span>
               <span>
-                {squareIcon({ color: '#fffe00' })}
+                {squareIcon({ color: colors.yellow() })}
                 &nbsp;USGS Sensors&nbsp;
               </span>
               <span>
-                {waterwayIcon({ color: '#6c95ce' })}
+                {waterwayIcon({ color: colors.darkCyan() })}
                 &nbsp;
                 <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
                   Potential Harmful Algal Blooms (HABs)

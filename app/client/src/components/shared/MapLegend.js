@@ -343,7 +343,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     <li className="hmw-legend__item">
       <div css={legendItemStyles}>
         <div className="hmw-legend__symbol" css={imageContainerStyles}>
-          {waterwayIcon({ color: '#6c95ce' })}
+          {waterwayIcon({ color: colors.darkCyan() })}
         </div>
         <GlossaryTerm
           className="hmw-legend__info"
@@ -360,7 +360,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     <li className="hmw-legend__item">
       <div css={legendItemStyles}>
         <div className="hmw-legend__symbol" css={imageContainerStyles}>
-          {squareIcon({ color: '#fffe00' })}
+          {squareIcon({ color: colors.yellow() })}
         </div>
         <span className="hmw-legend__info" css={labelStyles}>
           USGS Sensors
