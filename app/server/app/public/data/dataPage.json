@@ -19,7 +19,7 @@
       "linkHref": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
       "linkLabel": "CyAN Data/System",
       "shortName": "CyAN",
-      "siteLocation": "Information from CyAN can be found on the Community Page in the Water Monitoring tab under Current Water Conditions, Potential Harmful Algal Blooms (HABs).",
+      "siteLocation": "Information from CyAN can be found on the Community Page in the Water Monitoring tab under Current Water Conditions, <span data-glossary-term data-term='Potential Harmful Algal Blooms (HABs)'>Potential Harmful Algal Blooms (HABs)</span>.",
       "title": "Cyanobacteria Assessment Network (CyAN)"
     },
     {
@@ -33,13 +33,13 @@
       "title": "Enforcement and Compliance History Online (ECHO)"
     },
     {
-      "description": "GRTS is the primary tool for management and oversight of the EPA’s Nonpoint Source (NPS) Pollution Control Program. Under Clean Water Act Section 319(h), EPA awards grants for implementation of state NPS management programs.",
+      "description": "GRTS is the primary tool for management and oversight of the EPA’s <span data-glossary-term data-term='Nonpoint Source Pollution'>Nonpoint Source (NPS) Pollution</span> Control Program. Under Clean Water Act Section 319(h), EPA awards grants for implementation of state NPS management programs.",
       "extraContent": null,
       "id": "grts",
       "linkHref": "https://iaspub.epa.gov/apex/grts/f?p=grts:95",
       "linkLabel": "GRTS Data/System",
       "shortName": "GRTS",
-      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Restore (Nonpoint Source Projects), Protect, Watershed Health and Protection (Protection Projects). On the State page under Water Stories.",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Restore (<span data-glossary-term data-term='Nonpoint Source Pollution'>Nonpoint Source</span> Projects), Protect, Watershed Health and Protection (Protection Projects). On the State page under Water Stories.",
       "title": "Grants Reporting and Tracking System (GRTS)"
     },
     {
