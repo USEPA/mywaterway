@@ -311,7 +311,7 @@ function AboutContent() {
                 ), including which waters are assessed and impaired or good
                 based on the most recent state reporting under the Clean Water
                 Act. Selecting a specific waterway from the list or map shows
-                the impairment reported, existing restoration plans, and
+                the impairment reported, existing restoration plans, and{' '}
                 <GlossaryTerm term="nonpoint source pollution">
                   nonpoint source
                 </GlossaryTerm>{' '}
