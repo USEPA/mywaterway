@@ -388,8 +388,8 @@ export async function updateFeatureLayer(
     addFeatures: features,
     deleteFeatures: featureSet.features,
   });
-  const layerView = await mapView.whenLayerView(layer);
-  await reactiveUtils.whenOnce(() => !layerView.updating);
+  const layerView = await mapView.whenLayerView(layer).catch((_err) => null);
+  await reactiveUtils.whenOnce(() => !layerView?.updating);
   lock.current = false;
 
   const next = queue.shift();
