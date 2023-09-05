@@ -24,9 +24,9 @@ import {
 import { colors } from 'styles';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
-import type { Dispatch, MutableRefObject } from 'react';
+import type { Dispatch } from 'react';
 import type { CyanWaterbodyAttributes, Feature, ServicesData } from 'types';
-import type { SublayerType, UpdateQueue } from 'utils/boundariesToggleLayer';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 
 /*
 ## Hooks
@@ -306,22 +306,14 @@ function transformServiceData(
 }
 
 async function updateCyanFeatureLayer(
-  layer: __esri.GroupLayer,
-  mapView: __esri.MapView,
-  features: __esri.Graphic[],
-  lock: MutableRefObject<boolean>,
-  queue: UpdateQueue,
+  layer: __esri.GroupLayer | null,
+  features?: __esri.Graphic[] | null,
 ) {
+  if (!layer) return;
+
   const featureLayer = (layer.layers.find((l) => l.type === 'feature') ??
     null) as __esri.FeatureLayer | null;
-  if (featureLayer)
-    return await updateFeatureLayer(
-      featureLayer,
-      mapView,
-      features,
-      lock,
-      queue,
-    );
+  return await updateFeatureLayer(featureLayer, features);
 }
 
 /*
