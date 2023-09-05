@@ -1740,7 +1740,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setCurrentExtent(currentViewpoint);
 
     homeWidget.viewpoint = currentViewpoint;
-    mapView.popup.close();
+    mapView.closePopup();
 
     // zoom to the graphic, and update the home widget, and close any popups
     mapView.when(() => {

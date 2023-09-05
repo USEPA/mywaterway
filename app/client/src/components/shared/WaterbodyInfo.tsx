@@ -1,3 +1,4 @@
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import ControlPointsGeoreference from '@arcgis/core/layers/support/ControlPointsGeoreference';
 import Extent from '@arcgis/core/geometry/Extent';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
@@ -1935,40 +1936,49 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     );
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
-    // Remove the satellite image when the popup is closed
-    const popupVisibilityWatchHandle = mapView.popup.watch(
-      'visible',
-      (visible: boolean) => {
-        if (visible) return;
-        mapView.popup.features.forEach((feature) => {
-          if (
-            feature.layer?.id === 'cyanWaterbodies' ||
-            feature.layer?.id === 'surroundingCyanWaterbodies'
-          ) {
+    let popupVisibilityWatchHandle: __esri.WatchHandle | null = null;
+    let popupFeaturesWatchHandle: __esri.WatchHandle | null = null;
+
+    reactiveUtils
+      .once(() => mapView.popup)
+      .then(() => {
+        console.log('popup opened...');
+        // Remove the satellite image when the popup is closed
+        popupVisibilityWatchHandle = reactiveUtils.watch(
+          () => mapView.popup.visible,
+          () => {
+            if (mapView.popup.visible) return;
+            console.log('do cyan popup stuff');
+            mapView.popup.features.forEach((feature) => {
+              if (
+                feature.layer?.id === 'cyanWaterbodies' ||
+                feature.layer?.id === 'surroundingCyanWaterbodies'
+              ) {
+                (
+                  cyanImageLayer.source as __esri.LocalMediaElementSource
+                ).elements.removeAll();
+              }
+            });
+          },
+        );
+
+        // Remove the satellite image when a new location is clicked
+        popupFeaturesWatchHandle = mapView.popup.watch(
+          'features',
+          (_features: __esri.Graphic[]) => {
             (
               cyanImageLayer.source as __esri.LocalMediaElementSource
             ).elements.removeAll();
-          }
-        });
-      },
-    );
-
-    // Remove the satellite image when a new location is clicked
-    const popupFeaturesWatchHandle = mapView.popup.watch(
-      'features',
-      (_features: __esri.Graphic[]) => {
-        (
-          cyanImageLayer.source as __esri.LocalMediaElementSource
-        ).elements.removeAll();
-      },
-    );
+          },
+        );
+      });
 
     return function cleanup() {
       (
         cyanImageLayer.source as __esri.LocalMediaElementSource
       ).elements.removeAll();
-      popupVisibilityWatchHandle.remove();
-      popupFeaturesWatchHandle.remove();
+      popupVisibilityWatchHandle?.remove();
+      popupFeaturesWatchHandle?.remove();
     };
   }, [layerId, mapView]);
 

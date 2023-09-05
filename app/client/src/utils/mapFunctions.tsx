@@ -6,6 +6,7 @@ import PopupTemplate from '@arcgis/core/PopupTemplate';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import Popup from '@arcgis/core/widgets/Popup';
 // components
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
@@ -16,7 +17,6 @@ import type { NavigateFunction } from 'react-router-dom';
 import type {
   ChangeLocationAttributes,
   ClickedHucState,
-  ExtendedLayer,
   Feature,
   ImpairmentFields,
   LookupFile,
@@ -642,9 +642,11 @@ export const openPopup = (
   }
 
   // open the popup
-  view.popup.open({
+  view.popup = new Popup({
+    collapseEnabled: false,
     features: [feature],
     location: popupPoint,
+    visible: true,
   });
 };
 
@@ -778,7 +780,7 @@ export function getPopupContent({
 }) {
   let type = 'Unknown';
   const attributes: PopupAttributes | null = feature.attributes;
-  if (!attributes) return null;
+  if (!attributes) return undefined;
 
   // stand alone change location popup
   if ('changelocationpopup' in attributes) {
@@ -794,7 +796,7 @@ export function getPopupContent({
     else if ('assessmentunitname' in attributes) {
       const communityTab = getSelectedCommunityTab();
       const pathname = window.location.pathname;
-      const parent = (feature.layer as ExtendedLayer)?.parent;
+      const parent = feature.layer?.parent;
       const isAllWaterbodiesLayer =
         parent && 'id' in parent && parent.id === 'allWaterbodiesLayer';
 
@@ -881,7 +883,7 @@ export function getPopupContent({
   );
 
   // wrap the content for esri
-  const contentContainer = document.createElement('div');
+  const contentContainer = document.createElement('div') as HTMLElement;
   render(content, contentContainer);
 
   // return an esri popup item
@@ -1044,7 +1046,7 @@ export function isInScale(
     // get sublayers included in the parentlayer
     // note: the sublayer has maxScale and minScale, but these are always 0
     //       even if the sublayer does actually have a min/max scale.
-    const sublayerIds: number[] = [];
+    const sublayerIds: (string | number)[] = [];
     layer.sublayers.forEach((sublayer) => {
       if ('id' in sublayer) sublayerIds.push(sublayer.id);
     });

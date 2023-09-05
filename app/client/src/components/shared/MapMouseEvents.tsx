@@ -4,6 +4,7 @@ import Point from '@arcgis/core/geometry/Point';
 import * as query from '@arcgis/core/rest/query';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
+import Popup from '@arcgis/core/widgets/Popup';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useMapHighlightState } from 'contexts/MapHighlight';
@@ -13,11 +14,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // types
-import type {
-  MonitoringFeatureUpdate,
-  MonitoringFeatureUpdates,
-  ExtendedLayer,
-} from 'types';
+import type { MonitoringFeatureUpdate, MonitoringFeatureUpdates } from 'types';
 
 // --- types ---
 interface ClickEvent {
@@ -56,7 +53,7 @@ function getGraphicsFromResponse(
   const matches = res.results.filter((result) => {
     if (result.type !== 'graphic') return null;
 
-    const layer = result.graphic.layer as ExtendedLayer;
+    const layer = result.graphic.layer;
     // ignore huc 12 boundaries, map-marker, highlight and provider graphics
     const excludedLayers = [
       'stateBoundariesLayer',
@@ -173,16 +170,18 @@ function MapMouseEvents({ view }: Props) {
 
   const onTribePage = window.location.pathname.startsWith('/tribe/');
   const onMonitoringPanel = window.location.pathname.endsWith('/monitoring');
-  if (onTribePage || onMonitoringPanel) view.popup.autoOpenEnabled = false;
-  else view.popup.autoOpenEnabled = true;
+  if (view.popup) {
+    if (onTribePage || onMonitoringPanel) view.popupEnabled = false;
+    else view.popupEnabled = true;
+  }
 
   // reference to a dictionary of date-filtered updates
   // applicable to graphics visible on the map
   const updates = useRef(null);
   useEffect(() => {
-    if (view?.popup.visible) view.popup.close();
+    if (view?.popup.visible) view.closePopup();
     updates.current = monitoringFeatureUpdates;
-  }, [monitoringFeatureUpdates, view.popup]);
+  }, [monitoringFeatureUpdates, view]);
 
   const handleMapClick = useCallback(
     (event, view) => {
@@ -209,10 +208,15 @@ function MapMouseEvents({ view }: Props) {
             updateGraphics(graphics, updates?.current);
             if (onTribePage) prioritizePopup(graphics);
             setSelectedGraphic(graphic);
-            view.popup.open({ features: graphics, location: point });
+            view.popup = new Popup({
+              collapseEnabled: false,
+              features: graphics ?? undefined,
+              location: point,
+              visible: true,
+            });
           } else {
             setSelectedGraphic(null);
-            view.popup.close();
+            view.closePopup();
           }
 
           // get the currently selected huc boundaries, if applicable
@@ -240,10 +244,12 @@ function MapMouseEvents({ view }: Props) {
                 // Opens the change location popup
                 function openChangeLocationPopup() {
                   const { attributes } = boundaries.features[0];
-                  view.popup.close();
-                  view.popup.open({
+                  view.closePopup();
+                  view.popup = new Popup({
+                    collapseEnabled: false,
                     location: point,
                     title: 'Change to this location?',
+                    visible: true,
                     content: getPopupContent({
                       navigate,
                       resetData: () => {
@@ -357,11 +363,6 @@ function MapMouseEvents({ view }: Props) {
 
     view.on('pointer-move', (event: PointerMoveEvent) => {
       handleMapMouseOver(event, view);
-    });
-
-    // auto expands the popup when it is first opened
-    view.popup.watch('visible', (_graphic: __esri.Graphic) => {
-      if (view.popup.visible) view.popup.collapsed = false;
     });
 
     setInitialized(true);

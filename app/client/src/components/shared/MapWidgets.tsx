@@ -385,13 +385,10 @@ function MapWidgets({
     setFullscreenActive, //
   } = useFullscreenState();
 
-  const [popupWatcher, setPopupWatcher] = useState<__esri.WatchHandle | null>(
-    null,
-  );
   useEffect(() => {
-    if (!view || popupWatcher) return;
+    if (!view?.popup) return;
 
-    const watcher = reactiveUtils.watch(
+    const popupWatcher = reactiveUtils.watch(
       () => view.popup.features,
       () => {
         const features = view.popup.features;
@@ -418,15 +415,17 @@ function MapWidgets({
         });
 
         if (newFeatures.length === 0) {
-          view.popup.close();
+          view.closePopup();
         } else if (newFeatures.length !== view.popup.features.length) {
           view.popup.features = newFeatures;
         }
       },
     );
 
-    setPopupWatcher(watcher);
-  }, [getHucBoundaries, popupWatcher, view]);
+    return function cleanup() {
+      popupWatcher.remove();
+    }
+}, [getHucBoundaries, view]);
 
   // add the layers to the map
   useEffect(() => {
@@ -1325,7 +1324,7 @@ function retrieveUpstreamWatershed(
   abortSignal: AbortSignal,
   getCurrentExtent: () => __esri.Extent,
   getHuc12: () => string,
-  getTemplate: (graphic: Feature) => HTMLDivElement | null,
+  getTemplate: (graphic: Feature) => HTMLElement | undefined,
   getUpstreamExtent: () => __esri.Extent,
   upstreamLayer: __esri.GraphicsLayer | null,
   getUpstreamWidgetDisabled: () => boolean,
@@ -1566,7 +1565,7 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   abortSignal: AbortSignal;
   getCurrentExtent: () => __esri.Extent;
   getHuc12: () => string;
-  getTemplate: (graphic: Feature) => HTMLDivElement | null;
+  getTemplate: (graphic: Feature) => HTMLElement | undefined;
   getUpstreamExtent: () => __esri.Extent;
   upstreamLayer: __esri.GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;
