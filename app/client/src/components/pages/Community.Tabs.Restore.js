@@ -151,9 +151,7 @@ function Restore() {
                               <strong>
                                 {sortedGrtsData.length.toLocaleString()}
                               </strong>{' '}
-                              <GlossaryTerm term="Nonpoint Source Pollution">
-                                Nonpoint Source
-                              </GlossaryTerm>{' '}
+                              Nonpoint Source{' '}
                               {sortedGrtsData.length === 1
                                 ? 'project'
                                 : 'projects'}{' '}
