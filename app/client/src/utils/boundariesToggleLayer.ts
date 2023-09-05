@@ -1,6 +1,13 @@
 import Graphic from '@arcgis/core/Graphic';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { v4 as uuid } from 'uuid';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
@@ -18,6 +25,7 @@ import {
 import { useAbort } from 'utils/hooks';
 import { isAbort, isClick, toFixedFloat } from 'utils/utils';
 // types
+import type { MutableRefObject } from 'react';
 import type {
   EmptyFetchState,
   FetchedData,
@@ -185,20 +193,42 @@ export function useBoundariesToggleLayer<
   const surroundingFetchedDataState =
     fetchedDataState[surroundingFetchedDataKey];
 
+  const enclosedUpdating = useRef(false);
+  const enclosedQueue = useRef<__esri.Graphic[][]>([]);
+
   // Update layer features when new data is available
   useEffect(() => {
-    if (enclosedFetchedDataState.status !== 'success') return;
-    updateLayer(enclosedLayer, buildFeatures(enclosedFetchedDataState.data));
-  }, [buildFeatures, enclosedFetchedDataState, enclosedLayer, updateLayer]);
-
-  useEffect(() => {
-    if (surroundingFetchedDataState.status !== 'success') return;
+    if (!mapView || enclosedFetchedDataState.status !== 'success') return;
     updateLayer(
-      surroundingLayer,
-      buildFeatures(surroundingFetchedDataState.data),
+      enclosedLayer,
+      mapView,
+      buildFeatures(enclosedFetchedDataState.data),
+      enclosedUpdating,
+      enclosedQueue.current,
     );
   }, [
     buildFeatures,
+    enclosedFetchedDataState,
+    enclosedLayer,
+    mapView,
+    updateLayer,
+  ]);
+
+  const surroundingUpdating = useRef(false);
+  const surroundingQueue = useRef<__esri.Graphic[][]>([]);
+
+  useEffect(() => {
+    if (!mapView || surroundingFetchedDataState.status !== 'success') return;
+    updateLayer(
+      surroundingLayer,
+      mapView,
+      buildFeatures(surroundingFetchedDataState.data),
+      surroundingUpdating,
+      surroundingQueue.current,
+    );
+  }, [
+    buildFeatures,
+    mapView,
     surroundingFetchedDataState,
     surroundingLayer,
     updateLayer,
@@ -327,20 +357,31 @@ export function filterData<T>(
 }
 
 export async function updateFeatureLayer(
-  layer: __esri.FeatureLayer | null,
-  features?: __esri.Graphic[] | null,
+  layer: __esri.FeatureLayer,
+  mapView: __esri.MapView,
+  features: __esri.Graphic[],
+  lock: MutableRefObject<boolean>,
+  queue: __esri.Graphic[][],
 ) {
-  if (!layer) return;
+  if (lock.current) {
+    queue.push(features);
+    return;
+  }
 
+  lock.current = true;
   const featureSet = await layer.queryFeatures();
-  const edits: {
-    addFeatures?: __esri.Graphic[];
-    deleteFeatures: __esri.Graphic[];
-  } = {
+  await layer.applyEdits({
+    addFeatures: features,
     deleteFeatures: featureSet.features,
-  };
-  if (features) edits.addFeatures = features;
-  layer.applyEdits(edits);
+  });
+  const layerView = await mapView.whenLayerView(layer);
+  await reactiveUtils.whenOnce(() => !layerView.updating);
+  lock.current = false;
+
+  const nextFeatures = queue.shift();
+  if (nextFeatures) {
+    updateFeatureLayer(layer, mapView, nextFeatures, lock, queue);
+  }
 }
 
 /*
@@ -366,7 +407,13 @@ type UseBoundariesToggleLayerParams<
   minScale?: number;
   surroundingFetchedDataKey: S;
   updateSurroundingData: (abortSignal: AbortSignal) => Promise<void>;
-  updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
+  updateLayer: (
+    layer: T,
+    mapView: __esri.MapView,
+    features: __esri.Graphic[],
+    lock: MutableRefObject<boolean>,
+    queue: __esri.Graphic[][],
+  ) => Promise<void>;
 };
 
 type UseAllFeaturesLayersParams<
