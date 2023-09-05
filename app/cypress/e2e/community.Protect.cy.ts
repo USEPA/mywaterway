@@ -18,7 +18,7 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a GRTS project
     cy.findByText('Protect').click();
     cy.findByText('Watershed Health and Protection').click();
-    cy.get('.hmw-accordion').then((elms) => {
+    cy.get('.hmw-accordion').filter(':visible').then((elms) => {
       cy.wrap(elms[3]).click();
     });
     cy.findAllByText('Cypress Creek WPP Imp - Years 1-3');
@@ -53,7 +53,7 @@ describe('Protect Tab', () => {
     cy.findByText('Protect').click();
     cy.findByText('You can help keep your water clean.', { exact: false });
     cy.findByText('Watershed Health and Protection').click();
-    cy.get('.hmw-accordion').then((elms) => {
+    cy.get('.hmw-accordion').filter(':visible').then((elms) => {
       cy.wrap(elms[3]).click();
     });
     cy.findByText('There are no EPA funded protection projects in the', {
@@ -76,7 +76,7 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
-    cy.get('.hmw-accordion').first().click();
+    cy.get('.hmw-accordion').filter(':visible').first().click();
     cy.findByText('Where might the healthier watersheds be located', {
       exact: false,
     });
@@ -97,7 +97,7 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
-    cy.get('.hmw-accordion').then((elms) => {
+    cy.get('.hmw-accordion').filter(':visible').then((elms) => {
       cy.wrap(elms[1]).click();
     });
     cy.findByText(
@@ -123,7 +123,7 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
-    cy.get('.hmw-accordion').then((elms) => {
+    cy.get('.hmw-accordion').filter(':visible').then((elms) => {
       cy.wrap(elms[2]).click();
     });
     cy.findByText(

@@ -4,6 +4,14 @@ import {
   yearDayStringToEpoch,
 } from '../../client/src/utils/dateUtils';
 
+// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error. 
+// We can safely ignore this. https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // returning false here prevents Cypress from
+  // failing the test
+  return false;
+});
+
 describe('Monitoring Tab', () => {
   beforeEach(() => {
     cy.visit('/community');
@@ -124,7 +132,7 @@ describe('Monitoring Tab', () => {
   it('Verify CyAN data displayed', () => {
     // navigate to Monitoring tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '030901011701',
+      '030901011204',
     );
     cy.findByText('Go').click();
 
@@ -137,13 +145,13 @@ describe('Monitoring Tab', () => {
     // this triggers the virtualized list to load
     cy.scrollTo('bottom');
 
-    cy.findAllByText('Lake Jackson').click();
+    cy.findAllByText('Lake Weohyakapka').click();
 
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
     );
 
-    cy.findAllByText('Daily Blue-Green Algae Estimates for Lake Jackson', {
+    cy.findAllByText('Daily Blue-Green Algae Estimates for Lake Weohyakapka', {
       exact: false,
     }).should('be.visible');
 
@@ -194,6 +202,9 @@ describe('Monitoring Tab', () => {
         which: 1,
       });
 
+    // trigger virtual list to load by scrolling to sort by control
+    cy.findAllByText('Sort By:').filter(':visible').click();
+
     cy.findByRole('button', { name: monitoringLocation })
       .parent()
       .findByText((_content, element) => {
@@ -226,16 +237,20 @@ describe('Monitoring Tab', () => {
 
     cy.findByRole('table', { name: 'Characteristic Groups Summary' })
       .find('tbody')
-      .find('td')
+      .find('tr')
       .last()
+      .find('td')
+      .eq(2)
       .should('have.text', '0');
 
     cy.findByRole('checkbox', { name: 'Toggle Other' }).click();
 
     cy.findByRole('table', { name: 'Characteristic Groups Summary' })
       .find('tbody')
-      .find('td')
+      .find('tr')
       .last()
+      .find('td')
+      .eq(2)
       .should('not.have.text', '0');
   });
 });

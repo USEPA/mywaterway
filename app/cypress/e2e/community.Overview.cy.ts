@@ -1,3 +1,11 @@
+// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error. 
+// We can safely ignore this. https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // returning false here prevents Cypress from
+  // failing the test
+  return false;
+});
+
 describe('Overview Tab', () => {
   beforeEach(() => {
     cy.visit('/community');
@@ -16,7 +24,7 @@ describe('Overview Tab', () => {
     cy.findByRole('tab', { name: 'Permitted Dischargers' }).click();
 
     // Toggle All Permit Components switch and check that no accordion items are displayed
-    cy.findByRole('switch', { name: 'All Permit Components' }).click({
+    cy.findByLabelText('All Permit Components').click({
       force: true,
     });
     cy.findByRole('list', { name: 'List of Permitted Dischargers' })

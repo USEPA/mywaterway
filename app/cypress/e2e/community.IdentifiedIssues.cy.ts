@@ -48,10 +48,10 @@ describe('Identified Issues Tab', () => {
 
     cy.findByRole('tab', { name: 'Identified Issues' }).click();
 
-    cy.findByLabelText(/Dischargers with Significant Violations/).click({
+    cy.findByRole('tab', { name: /Permitted Dischargers/ }).click({
       force: true,
     });
-    cy.findByLabelText(/Dischargers with Significant Violations/).should(
+    cy.findByRole('switch', { name: /81 Permitted Dischargers/ }).should(
       'have.attr',
       'aria-checked',
       'true',
