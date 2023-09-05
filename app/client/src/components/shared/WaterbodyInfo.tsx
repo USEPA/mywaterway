@@ -41,6 +41,7 @@ import {
 import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
 import {
   addAnnualData,
+  complexProps,
   structurePeriodOfRecordData,
 } from 'utils/monitoringLocations';
 import {
@@ -2422,14 +2423,8 @@ function MonitoringLocationsContent({
 
   const layer = feature.layer;
   const attributes: MonitoringLocationAttributes = useMemo(() => {
-    const structuredProps = [
-      'characteristicsByGroup',
-      'totalsByCharacteristic',
-      'totalsByGroup',
-      'timeframe',
-    ];
     return parseAttributes<MonitoringLocationAttributes>(
-      structuredProps,
+      complexProps,
       feature.attributes,
     );
   }, [feature]);

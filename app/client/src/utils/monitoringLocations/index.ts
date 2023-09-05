@@ -332,14 +332,8 @@ export function addAnnualData(
 }
 
 function buildFeatures(locations: MonitoringLocationAttributes[]) {
-  const structuredProps = [
-    'characteristicsByGroup',
-    'totalsByCharacteristic',
-    'totalsByGroup',
-    'timeframe',
-  ];
   return locations.map((location) => {
-    const attributes = stringifyAttributes(structuredProps, location);
+    const attributes = stringifyAttributes(complexProps, location);
     return new Graphic({
       geometry: new Point({
         longitude: attributes.locationLongitude,
@@ -411,6 +405,7 @@ function buildLayer(
     fields: [
       { name: 'OBJECTID', type: 'oid' },
       { name: 'characteristicsByGroup', type: 'string' },
+      { name: 'dataByYear', type: 'string' },
       { name: 'monitoringType', type: 'string' },
       { name: 'siteId', type: 'string' },
       { name: 'orgId', type: 'string' },
@@ -425,6 +420,7 @@ function buildLayer(
       { name: 'totalSamples', type: 'integer' },
       { name: 'totalsByCharacteristic', type: 'string' },
       { name: 'totalsByGroup', type: 'string' },
+      { name: 'totalsByLabel', type: 'string' },
       { name: 'totalMeasurements', type: 'integer' },
       { name: 'timeframe', type: 'string' },
       { name: 'uniqueId', type: 'string' },
@@ -457,14 +453,8 @@ function buildLayer(
       title: getTitle,
       content: (feature: Feature) => {
         // Parse non-scalar variables
-        const structuredProps = [
-          'characteristicsByGroup',
-          'totalsByCharacteristic',
-          'totalsByGroup',
-          'timeframe',
-        ];
         feature.graphic.attributes = parseAttributes(
-          structuredProps,
+          complexProps,
           feature.graphic.attributes,
         );
         return getTemplate(feature);
@@ -610,6 +600,15 @@ function transformServiceData(
 /*
 ## Constants
 */
+
+export const complexProps = [
+  'characteristicsByGroup',
+  'dataByYear',
+  'totalsByCharacteristic',
+  'totalsByGroup',
+  'totalsByLabel',
+  'timeframe',
+];
 
 const initialWorkerData = () => ({
   minYear: 0,
