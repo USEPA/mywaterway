@@ -194,7 +194,7 @@ export function useBoundariesToggleLayer<
     fetchedDataState[surroundingFetchedDataKey];
 
   const enclosedUpdating = useRef(false);
-  const enclosedQueue = useRef<__esri.Graphic[][]>([]);
+  const enclosedQueue = useRef<UpdateQueue>([]);
 
   // Update layer features when new data is available
   useEffect(() => {
@@ -215,7 +215,7 @@ export function useBoundariesToggleLayer<
   ]);
 
   const surroundingUpdating = useRef(false);
-  const surroundingQueue = useRef<__esri.Graphic[][]>([]);
+  const surroundingQueue = useRef<UpdateQueue>([]);
 
   useEffect(() => {
     if (!mapView || surroundingFetchedDataState.status !== 'success') return;
@@ -356,21 +356,35 @@ export function filterData<T>(
   });
 }
 
+// Wrapper around a promise to capture the resolve/reject function.
+function createDeferred<T>() {
+  let resolve: null | ((value: T | PromiseLike<T>) => void) = null;
+  let reject: null | ((reason?: any) => void) = null;
+
+  const promise = new Promise<T>((success, error) => {
+    resolve = success;
+    reject = error;
+  });
+
+  return { promise, resolve: resolve!, reject: reject! };
+}
+
 export async function updateFeatureLayer(
   layer: __esri.FeatureLayer,
   mapView: __esri.MapView,
   features: __esri.Graphic[],
   lock: MutableRefObject<boolean>,
-  queue: __esri.Graphic[][],
+  queue: UpdateQueue,
 ) {
   if (lock.current) {
-    queue.push(features);
-    return;
+    const deferred = createDeferred<__esri.EditsResult>();
+    queue.push([deferred, features]);
+    return deferred.promise;
   }
 
   lock.current = true;
   const featureSet = await layer.queryFeatures();
-  await layer.applyEdits({
+  const editResults = await layer.applyEdits({
     addFeatures: features,
     deleteFeatures: featureSet.features,
   });
@@ -378,10 +392,20 @@ export async function updateFeatureLayer(
   await reactiveUtils.whenOnce(() => !layerView.updating);
   lock.current = false;
 
-  const nextFeatures = queue.shift();
-  if (nextFeatures) {
-    updateFeatureLayer(layer, mapView, nextFeatures, lock, queue);
+  const next = queue.shift();
+  if (next) {
+    const [deferred, nextFeatures] = next;
+    const nextEditResults = await updateFeatureLayer(
+      layer,
+      mapView,
+      nextFeatures,
+      lock,
+      queue,
+    );
+    deferred.resolve(nextEditResults);
   }
+
+  return editResults;
 }
 
 /*
@@ -393,8 +417,13 @@ const defaultMinScale = 577791;
 /*
 ## Types
 */
+type Deferred<T> = ReturnType<typeof createDeferred<T>>;
 
 export type SublayerType = 'enclosed' | 'surrounding';
+
+export type UpdateQueue = Array<
+  [Deferred<__esri.EditsResult>, __esri.Graphic[]]
+>;
 
 type UseBoundariesToggleLayerParams<
   T extends __esri.FeatureLayer | __esri.GraphicsLayer | __esri.GroupLayer,
@@ -412,8 +441,8 @@ type UseBoundariesToggleLayerParams<
     mapView: __esri.MapView,
     features: __esri.Graphic[],
     lock: MutableRefObject<boolean>,
-    queue: __esri.Graphic[][],
-  ) => Promise<void>;
+    queue: UpdateQueue,
+  ) => Promise<__esri.EditsResult | void>;
 };
 
 type UseAllFeaturesLayersParams<

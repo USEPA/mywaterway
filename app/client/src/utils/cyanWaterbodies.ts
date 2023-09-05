@@ -26,7 +26,7 @@ import { colors } from 'styles';
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch, MutableRefObject } from 'react';
 import type { CyanWaterbodyAttributes, Feature, ServicesData } from 'types';
-import type { SublayerType } from 'utils/boundariesToggleLayer';
+import type { SublayerType, UpdateQueue } from 'utils/boundariesToggleLayer';
 
 /*
 ## Hooks
@@ -310,7 +310,7 @@ async function updateCyanFeatureLayer(
   mapView: __esri.MapView,
   features: __esri.Graphic[],
   lock: MutableRefObject<boolean>,
-  queue: __esri.Graphic[][],
+  queue: UpdateQueue,
 ) {
   const featureLayer = (layer.layers.find((l) => l.type === 'feature') ??
     null) as __esri.FeatureLayer | null;
