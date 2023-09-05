@@ -242,11 +242,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
     if (!localData?.length) return;
     if (annualData.status !== 'success') return;
 
-    fetchedDataDispatch({
-      type: 'success',
-      id: localFetchedDataKey,
-      payload: addAnnualData(localData, annualData.data.sites),
-    });
+    addAnnualData(localData, annualData.data.sites);
   }, [localData, annualData, fetchedDataDispatch]);
 
   const extentFilter = useRef<string | null>(null);
@@ -290,43 +286,38 @@ export function addAnnualData(
   monitoringLocations: MonitoringLocationAttributes[],
   annualData: MonitoringPeriodOfRecordData['sites'],
 ) {
-  return monitoringLocations.map((location) => {
+  monitoringLocations.forEach((location) => {
     const id = location.uniqueId;
     if (id in annualData) {
-      return {
-        ...location,
-        dataByYear: annualData[id],
-        // Get all-time characteristics by group
-        characteristicsByGroup: Object.values(annualData[id]).reduce(
-          (groups, yearData) => {
-            Object.entries(yearData.characteristicsByGroup).forEach(
-              ([group, charcList]) => {
-                groups[group] = Array.from(
-                  new Set(charcList.concat(groups[group] ?? [])),
-                );
-              },
-            );
-            return groups;
-          },
-          {} as { [group: string]: string[] },
-        ),
-        // Tally characteristic counts
-        totalsByCharacteristic: Object.values(annualData[id]).reduce(
-          (totals, yearData) => {
-            Object.entries(yearData.totalsByCharacteristic).forEach(
-              ([charc, count]) => {
-                if (count <= 0) return;
-                if (charc in totals) totals[charc] += count;
-                else totals[charc] = count;
-              },
-            );
-            return totals;
-          },
-          {} as { [characteristic: string]: number },
-        ),
-      };
-    } else {
-      return location;
+      location.dataByYear = annualData[id];
+      // Get all-time characteristics by group
+      location.characteristicsByGroup = Object.values(annualData[id]).reduce(
+        (groups, yearData) => {
+          Object.entries(yearData.characteristicsByGroup).forEach(
+            ([group, charcList]) => {
+              groups[group] = Array.from(
+                new Set(charcList.concat(groups[group] ?? [])),
+              );
+            },
+          );
+          return groups;
+        },
+        {} as { [group: string]: string[] },
+      );
+      // Tally characteristic counts
+      location.totalsByCharacteristic = Object.values(annualData[id]).reduce(
+        (totals, yearData) => {
+          Object.entries(yearData.totalsByCharacteristic).forEach(
+            ([charc, count]) => {
+              if (count <= 0) return;
+              if (charc in totals) totals[charc] += count;
+              else totals[charc] = count;
+            },
+          );
+          return totals;
+        },
+        {} as { [characteristic: string]: number },
+      );
     }
   });
 }

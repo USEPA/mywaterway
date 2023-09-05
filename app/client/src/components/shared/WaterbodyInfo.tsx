@@ -2603,12 +2603,12 @@ function MonitoringLocationsContent({
             records,
             characteristicGroupMappings,
           );
-          const updatedAttributes = addAnnualData([attributes], sites).pop()!;
+          addAnnualData([attributes], sites);
           setCharacteristics({
             status: 'success',
             data: {
-              characteristicsByGroup: updatedAttributes.characteristicsByGroup,
-              totalsByCharacteristic: updatedAttributes.totalsByCharacteristic,
+              characteristicsByGroup: attributes.characteristicsByGroup,
+              totalsByCharacteristic: attributes.totalsByCharacteristic,
             },
           });
         })
