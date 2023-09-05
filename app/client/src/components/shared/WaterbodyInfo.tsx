@@ -1942,13 +1942,11 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     reactiveUtils
       .once(() => mapView.popup)
       .then(() => {
-        console.log('popup opened...');
         // Remove the satellite image when the popup is closed
         popupVisibilityWatchHandle = reactiveUtils.watch(
           () => mapView.popup.visible,
           () => {
             if (mapView.popup.visible) return;
-            console.log('do cyan popup stuff');
             mapView.popup.features.forEach((feature) => {
               if (
                 feature.layer?.id === 'cyanWaterbodies' ||
@@ -1963,9 +1961,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         );
 
         // Remove the satellite image when a new location is clicked
-        popupFeaturesWatchHandle = mapView.popup.watch(
-          'features',
-          (_features: __esri.Graphic[]) => {
+        popupFeaturesWatchHandle = reactiveUtils.watch(
+          () => mapView.popup.features,
+          () => {
             (
               cyanImageLayer.source as __esri.LocalMediaElementSource
             ).elements.removeAll();
@@ -2167,8 +2165,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     Total Satellite Image Area: ${pixelArea}
                     <br />
                     ${formatDate(dates[0])} - ${formatDate(
-                    dates[dates.length - 1],
-                  )}
+                      dates[dates.length - 1],
+                    )}
                   `}
                   yTitle={`
                   Percent of Satellite Image Area
