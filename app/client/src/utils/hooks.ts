@@ -51,12 +51,7 @@ import {
 } from 'utils/mapFunctions';
 // types
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import type {
-  ClickedHucState,
-  ExtendedGraphic,
-  ExtendedLayer,
-  Feature,
-} from 'types';
+import type { ClickedHucState, ExtendedGraphic, Feature } from 'types';
 
 declare global {
   interface Window {
@@ -92,7 +87,7 @@ function closePopup({
   setSelectedGraphic(null);
 
   // close the popup
-  if (mapView) mapView.popup.close();
+  if (mapView) mapView.closePopup();
 }
 
 // Gets all features in the layer that match the provided organizationid and
@@ -579,7 +574,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     if (!layer) return;
 
-    const parent = (graphic.layer as ExtendedLayer)?.parent;
+    const parent = graphic.layer?.parent;
     if (parent && 'id' in parent && parent.id === 'allWaterbodiesLayer') return;
 
     // remove the highlights
@@ -1017,9 +1012,9 @@ function useSharedLayers({
     reactiveUtils.watch(
       () => wsioHealthIndexLayer.visible,
       () => {
-        const parent = (
-          wsioHealthIndexLayer as __esri.FeatureLayer & ExtendedLayer
-        ).parent;
+        const parent = wsioHealthIndexLayer.parent as
+          | __esri.GroupLayer
+          | __esri.Map;
         if (!parent || (!(parent instanceof Map) && !isGroupLayer(parent)))
           return;
         // find the boundaries layer

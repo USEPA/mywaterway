@@ -169,7 +169,7 @@ function buildFeatures(data: DischargerAttributes[]) {
 function buildLayer(
   type: SublayerType,
   getTitle: (graphic: Feature) => string,
-  getTemplate: (graphic: Feature) => HTMLDivElement | null,
+  getTemplate: (graphic: Feature) => HTMLElement | undefined,
 ) {
   return new FeatureLayer({
     id:

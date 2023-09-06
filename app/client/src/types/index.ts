@@ -148,10 +148,6 @@ export interface ExtendedGraphic extends __esri.Graphic {
   originalGeometry?: __esri.Geometry;
 }
 
-export interface ExtendedLayer extends __esri.Layer {
-  parent?: __esri.Layer | __esri.Map;
-}
-
 export interface Huc12SummaryData {
   count: number;
   items: {

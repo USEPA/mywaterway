@@ -83,6 +83,10 @@
   margin: 0 0 12px 0;
 }
 
+.esri-popup__inline-actions-container {
+  width: 60% !important;
+}
+
 /* small screens (redfin style) docked to the bottom */
 .esri-popup--aligned-bottom-center .esri-popup__content {
   margin: 0 0 0 0;
