@@ -5,7 +5,7 @@ import type { Node } from 'react';
 import { css } from 'styled-components/macro';
 import { Link, matchPath } from 'react-router-dom';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   padding-top: 0.5em;

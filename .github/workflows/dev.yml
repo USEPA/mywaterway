@@ -108,6 +108,7 @@ jobs:
           cf set-env $APP_NAME "GLOSSARY_AUTH" "$GLOSSARY_AUTH" > /dev/null
           cf set-env $APP_NAME "HMW_BASIC_USER_NAME" "$HMW_BASIC_USER_NAME" > /dev/null
           cf set-env $APP_NAME "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
+          cf set-env $APP_NAME "TZ" "America/New_York" > /dev/null
 
       - name: Configure Public AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1-node16

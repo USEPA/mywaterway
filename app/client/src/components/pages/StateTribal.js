@@ -8,7 +8,7 @@ import Select from 'react-select';
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
 import ShowLessMore from 'components/shared/ShowLessMore';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -33,7 +33,7 @@ import {
 import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
 // styles
-import { colors, fonts, reactSelectStyles } from 'styles/index.js';
+import { colors, fonts, reactSelectStyles } from 'styles/index';
 // errors
 import {
   stateListError,
@@ -198,7 +198,7 @@ function StateTribal() {
   }, [navigate, setErrorType]);
 
   // get tribes from the tribeMapping data
-  const [tribes, setTribes] = useState({ status: 'success', data: [] });
+  const [tribes, setTribes] = useState({ status: 'fetching', data: [] });
   useEffect(() => {
     if (
       organizations.status === 'failure' ||
@@ -397,8 +397,9 @@ function StateTribal() {
       <TabLinks />
 
       <div css={containerStyles} className="container" data-content="state">
-        {states.status === 'fetching' ||
-          (tribes.status === 'fetching' && <LoadingSpinner />)}
+        {(states.status === 'fetching' || tribes.status === 'fetching') && (
+          <LoadingSpinner />
+        )}
 
         {states.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
@@ -600,11 +601,7 @@ function StateTribal() {
                             <div css={keyMetricsStyles}>
                               {stateIntro.organizationMetrics.map(
                                 (metric, index) => {
-                                  if (
-                                    !metric ||
-                                    !metric.value ||
-                                    !metric.label
-                                  ) {
+                                  if (!metric?.value || !metric.label) {
                                     return null;
                                   }
 

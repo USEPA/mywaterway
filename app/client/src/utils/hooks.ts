@@ -27,7 +27,10 @@ import WMSLayer from '@arcgis/core/layers/WMSLayer';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
 import {
@@ -48,12 +51,7 @@ import {
 } from 'utils/mapFunctions';
 // types
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import type {
-  ClickedHucState,
-  ExtendedGraphic,
-  ExtendedLayer,
-  Feature,
-} from 'types';
+import type { ClickedHucState, ExtendedGraphic, Feature } from 'types';
 
 declare global {
   interface Window {
@@ -89,7 +87,7 @@ function closePopup({
   setSelectedGraphic(null);
 
   // close the popup
-  if (mapView) mapView.popup.close();
+  if (mapView) mapView.closePopup();
 }
 
 // Gets all features in the layer that match the provided organizationid and
@@ -163,7 +161,6 @@ function highlightFeature({
   });
 }
 
-// TODO: Migrate to this hook, the other doesn't properly reset
 function useAbort() {
   const abortController = useRef(new AbortController());
   const getAbortController = useCallback(() => {
@@ -189,24 +186,6 @@ function useAbort() {
   );
 
   return { abort, getSignal };
-}
-
-function useAbortSignal() {
-  const abortController = useRef(new AbortController());
-
-  useEffect(() => {
-    if (abortController.current.signal.aborted) {
-      abortController.current = new AbortController();
-    }
-  }, [abortController.current.signal.aborted]);
-
-  useEffect(() => {
-    return function abort() {
-      abortController.current.abort();
-    };
-  }, []);
-
-  return abortController.current.signal;
 }
 
 // custom hook that combines lines, area, and points features from context,
@@ -260,13 +239,13 @@ function useWaterbodyFeatures() {
 
     // combine lines, area, and points features
     let featuresArray: Array<__esri.Graphic> = [];
-    if (linesData.features && linesData.features.length > 0) {
+    if (linesData.features?.length > 0) {
       featuresArray = featuresArray.concat(linesData.features);
     }
-    if (areasData.features && areasData.features.length > 0) {
+    if (areasData.features?.length > 0) {
       featuresArray = featuresArray.concat(areasData.features);
     }
-    if (pointsData.features && pointsData.features.length > 0) {
+    if (pointsData.features?.length > 0) {
       featuresArray = featuresArray.concat(pointsData.features);
     }
     if (
@@ -352,7 +331,7 @@ function useWaterbodyOnMap(
           geometryType,
           alpha,
         }),
-        field: attribute ? attribute : 'overallstatus',
+        field: attribute || 'overallstatus',
         fieldDelimiter: ', ',
         uniqueValueInfos: createUniqueValueInfos(geometryType, alpha).map(
           (info) => new UniqueValueInfo(info),
@@ -405,9 +384,7 @@ function useWaterbodyOnMap(
     if (!allWaterbodiesLayer) return;
 
     const layers = allWaterbodiesLayer.layers;
-    const attribute = allWaterbodiesAttribute
-      ? allWaterbodiesAttribute
-      : attributeName;
+    const attribute = allWaterbodiesAttribute || attributeName;
 
     setRenderer(layers.at(2), 'point', attribute, allWaterbodiesAlpha);
     setRenderer(layers.at(1), 'polyline', attribute, allWaterbodiesAlpha);
@@ -446,6 +423,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   } = useLayers();
 
   const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
   const navigate = useNavigate();
 
   // Handles zooming to a selected graphic when "View on Map" is clicked.
@@ -484,10 +462,11 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         selectedGraphic,
         dynamicPopupFields,
         services,
+        stateNationalUses,
         navigate,
       );
     });
-  }, [mapView, selectedGraphic, services, navigate]);
+  }, [mapView, navigate, selectedGraphic, services, stateNationalUses]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);
@@ -527,7 +506,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     let { currentHighlight, currentSelection } = highlightState;
 
     // verify that we have a graphic before continuing
-    if (!graphic || !graphic.attributes) {
+    if (!graphic?.attributes) {
       handles.remove(group);
       mapView.graphics.removeAll();
 
@@ -586,7 +565,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = monitoringLocationsLayer;
     } else if (attributes.monitoringType === 'USGS Sensors') {
       layer = usgsStreamgagesLayer;
-    } else if (attributes.monitoringType === 'CyAN') {
+    } else if (attributes.monitoringType === 'Blue-Green Algae') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
       featureLayerType = 'cyanWaterbodies';
     } else if (attributes.type === 'nonprofit') {
@@ -595,7 +574,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     if (!layer) return;
 
-    const parent = (graphic.layer as ExtendedLayer)?.parent;
+    const parent = graphic.layer?.parent;
     if (parent && 'id' in parent && parent.id === 'allWaterbodiesLayer') return;
 
     // remove the highlights
@@ -710,7 +689,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
       Promise.all(requests).then((responses) => {
         responses.forEach((response) => {
-          if (!response || !response.features) return;
+          if (!response?.features) return;
 
           highlightFeature({
             mapView,
@@ -780,6 +759,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 function useDynamicPopup() {
   const navigate = useNavigate();
   const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
   const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
   );
@@ -856,6 +836,7 @@ function useDynamicPopup() {
           fields,
           mapView,
           services,
+          stateNationalUses,
           navigate,
         });
       }
@@ -867,10 +848,19 @@ function useDynamicPopup() {
         mapView,
         resetData: reset,
         services,
+        stateNationalUses,
         navigate,
       });
     },
-    [getClickedHuc, getHucBoundaries, getMapView, navigate, reset, services],
+    [
+      getClickedHuc,
+      getHucBoundaries,
+      getMapView,
+      navigate,
+      reset,
+      services,
+      stateNationalUses,
+    ],
   );
 
   // Wrapper function for getting the title of the popup
@@ -1022,9 +1012,9 @@ function useSharedLayers({
     reactiveUtils.watch(
       () => wsioHealthIndexLayer.visible,
       () => {
-        const parent = (
-          wsioHealthIndexLayer as __esri.FeatureLayer & ExtendedLayer
-        ).parent;
+        const parent = wsioHealthIndexLayer.parent as
+          | __esri.GroupLayer
+          | __esri.Map;
         if (!parent || (!(parent instanceof Map) && !isGroupLayer(parent)))
           return;
         // find the boundaries layer
@@ -1300,7 +1290,7 @@ function useSharedLayers({
       // but this doesn't match the actual behavior
       minScale: 144448,
       url: services.data.mappedWater,
-      title: 'Mapped Water (all)',
+      title: 'All Mapped Water (NHD)',
       sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
       legendEnabled: false,
       listMode: 'hide-children',
@@ -1497,7 +1487,7 @@ function useSharedLayers({
     });
     const waterbodyPoints = new FeatureLayer({
       id: 'allWaterbodyPoints',
-      title: 'All Waterbodies Points',
+      title: 'Surrounding Waterbodies Points',
       url: services.data.waterbodyService.points,
       outFields: ['*'],
       renderer: pointsRenderer,
@@ -1519,7 +1509,7 @@ function useSharedLayers({
     });
     const waterbodyLines = new FeatureLayer({
       id: 'allWaterbodyLines',
-      title: 'All Waterbodies Lines',
+      title: 'Surrounding Waterbodies Lines',
       url: services.data.waterbodyService.lines,
       outFields: ['*'],
       renderer: linesRenderer,
@@ -1541,7 +1531,7 @@ function useSharedLayers({
     });
     const waterbodyAreas = new FeatureLayer({
       id: 'allWaterbodyAreas',
-      title: 'All Waterbodies Areas',
+      title: 'Surrounding Waterbodies Areas',
       url: services.data.waterbodyService.areas,
       outFields: ['*'],
       renderer: areasRenderer,
@@ -1553,7 +1543,7 @@ function useSharedLayers({
     // Make the waterbody layer into a single layer
     const allWaterbodiesLayer = new GroupLayer({
       id: 'allWaterbodiesLayer',
-      title: 'All Waterbodies',
+      title: 'Surrounding Waterbodies',
       listMode: 'hide',
       visible: false,
       minScale,
@@ -1710,44 +1700,48 @@ function useGeometryUtils() {
 
       // crop any geometry that extends beyond the huc 12
       const requests: Promise<__esri.Geometry>[] = [];
-      resFeatures.forEach((feature,index) => {
+      resFeatures.forEach((feature, index) => {
         // crop the waterbodies that extend outside of the huc
-        requests.push( geometryEngineAsync.difference(
-          feature.geometry,
-          Array.isArray(subtractor) ? subtractor[0] : subtractor,
-        ));
+        requests.push(
+          geometryEngineAsync.difference(
+            feature.geometry,
+            Array.isArray(subtractor) ? subtractor[0] : subtractor,
+          ),
+        );
       });
 
-      Promise.all(requests).then((responses) => {
-        responses.forEach((newGeometry, index) => {
-          const feature = resFeatures[index];
-          feature.geometry = Array.isArray(newGeometry)
-            ? newGeometry[0]
-            : newGeometry;
-          features.push(feature);
-        });
+      Promise.all(requests)
+        .then((responses) => {
+          responses.forEach((newGeometry, index) => {
+            const feature = resFeatures[index];
+            feature.geometry = Array.isArray(newGeometry)
+              ? newGeometry[0]
+              : newGeometry;
+            features.push(feature);
+          });
 
-        // order the features by overall status
-        const sortBy = [
-          'Cause',
-          'Not Supporting',
-          'Insufficient Information',
-          'Not Assessed',
-          'Meeting Criteria',
-          'Fully Supporting',
-        ];
-        features.sort((a, b) => {
-          return (
-            sortBy.indexOf(a.attributes.overallstatus) -
-            sortBy.indexOf(b.attributes.overallstatus)
-          );
-        });
+          // order the features by overall status
+          const sortBy = [
+            'Cause',
+            'Not Supporting',
+            'Insufficient Information',
+            'Not Assessed',
+            'Meeting Criteria',
+            'Fully Supporting',
+          ];
+          features.sort((a, b) => {
+            return (
+              sortBy.indexOf(a.attributes.overallstatus) -
+              sortBy.indexOf(b.attributes.overallstatus)
+            );
+          });
 
-        resolve(features);
-      }).catch((err) => {
-        console.error(err);
-        reject(err);
-      });
+          resolve(features);
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
     });
   };
 
@@ -1777,7 +1771,6 @@ function useOnScreen(node: HTMLDivElement | null) {
 
 export {
   useAbort,
-  useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useKeyPress,
@@ -1789,8 +1782,15 @@ export {
   useWaterbodyHighlight,
 };
 
-export * from './allWaterbodies';
-export * from './boundariesToggleLayer';
-export * from './dischargers';
-export * from './monitoringLocations';
-export * from './streamgages';
+export { useAllWaterbodiesLayer } from './allWaterbodies';
+export {
+  useCyanWaterbodies,
+  useCyanWaterbodiesLayers,
+} from './cyanWaterbodies';
+export { useDischargers, useDischargersLayers } from './dischargers';
+export {
+  useMonitoringGroups,
+  useMonitoringLocations,
+  useMonitoringLocationsLayers,
+} from './monitoringLocations';
+export { useStreamgages, useStreamgageLayers } from './streamgages';

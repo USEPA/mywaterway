@@ -319,7 +319,7 @@ function addSubLayer({
   layersParams.push({
     ...layerProps.data.defaultLayerProps,
     ...properties,
-    name: overrideName || layer.title,
+    name: overrideName ?? layer.title,
     geometryType,
     globalIdField: layer.globalIdField,
     objectIdField: layer.objectIdField,
@@ -802,7 +802,7 @@ type AgoLayerType =
  */
 function getAgoLayerType(layer: LayerType): AgoLayerType | null {
   const layerType = (
-    layer.widgetLayer?.layerType || layer.layer.type
+    layer.widgetLayer?.layerType ?? layer.layer.type
   ).toLowerCase();
 
   let layerTypeOut: AgoLayerType | null = null;
@@ -847,7 +847,7 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
  * @returns Url of the layer
  */
 function getLayerUrl(services: any, layer: LayerType): string {
-  let url = layer.layer?.url || '';
+  let url = layer.layer?.url ?? '';
   if (layer.widgetLayer?.type === 'portal') url = layer.widgetLayer.url;
   if (layer.widgetLayer?.type === 'url') url = layer.widgetLayer.url;
   if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(layer.id))

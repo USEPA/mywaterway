@@ -3,7 +3,7 @@
 import { css } from 'styled-components/macro';
 
 const boxStyles = css`
-  padding: 0.5em 0.75em;
+  padding: 0.5em 0.75em !important;
   border-width: 1px;
   border-style: solid;
   border-radius: 0.25em;

@@ -32,9 +32,19 @@ import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // helpers
-import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import {
+  useCyanWaterbodiesLayers,
+  useDischargersLayers,
+  useMonitoringLocationsLayers,
+  useSharedLayers,
+  useStreamgageLayers,
+  useWaterbodyHighlight,
+} from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // styles
 import 'styles/mapStyles.css';
@@ -80,6 +90,7 @@ function StateMap({
   const navigate = useNavigate();
 
   const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
 
   const { selectedGraphic } = useMapHighlightState();
 
@@ -101,6 +112,11 @@ function StateMap({
   const [noGisDataAvailable, setNoGisDataAvailable] = useState(false);
   const [stateMapLoadError, setStateMapLoadError] = useState(false);
 
+  const { surroundingMonitoringLocationsLayer } =
+    useMonitoringLocationsLayers();
+  const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
+  const { surroundingUsgsStreamgagesLayer } = useStreamgageLayers();
+  const { surroundingDischargersLayer } = useDischargersLayers();
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
 
@@ -113,7 +129,12 @@ function StateMap({
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
-        getPopupContent({ feature: feature.graphic, navigate }),
+        getPopupContent({
+          feature: feature.graphic,
+          navigate,
+          services,
+          stateNationalUses,
+        }),
     };
 
     // Build the feature layers that will make up the waterbody layer
@@ -201,7 +222,14 @@ function StateMap({
       setLayer('waterbodyLayer', null);
     });
 
-    setLayers([...getSharedLayers(), waterbodyLayer]);
+    setLayers([
+      ...getSharedLayers(),
+      surroundingCyanLayer,
+      surroundingDischargersLayer,
+      surroundingMonitoringLocationsLayer,
+      surroundingUsgsStreamgagesLayer,
+      waterbodyLayer,
+    ]);
 
     updateVisibleLayers({ waterbodyLayer: true });
 
@@ -212,6 +240,11 @@ function StateMap({
     setResetHandler,
     layersInitialized,
     services,
+    stateNationalUses,
+    surroundingCyanLayer,
+    surroundingDischargersLayer,
+    surroundingMonitoringLocationsLayer,
+    surroundingUsgsStreamgagesLayer,
     updateVisibleLayers,
     navigate,
   ]);
@@ -411,7 +444,7 @@ function StateMap({
   }, []);
 
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
-  const mapInputsHeight = mapInputs && mapInputs.getBoundingClientRect().height;
+  const mapInputsHeight = mapInputs?.getBoundingClientRect().height;
 
   // jsx
   const mapContent = (

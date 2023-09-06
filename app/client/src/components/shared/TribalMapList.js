@@ -20,6 +20,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import {
   keyMetricsStyles,
   keyMetricStyles,
@@ -45,7 +46,10 @@ import {
   LocationSearchProvider,
 } from 'contexts/locationSearch';
 import { LayersProvider, useLayers } from 'contexts/Layers';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 import {
   useMapHighlightState,
   MapHighlightProvider,
@@ -53,9 +57,12 @@ import {
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import {
+  useCyanWaterbodiesLayers,
+  useDischargersLayers,
   useMonitoringLocations,
   useMonitoringLocationsLayers,
   useSharedLayers,
+  useStreamgageLayers,
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import {
@@ -75,6 +82,8 @@ import {
 } from 'config/errorMessages';
 // styles
 import { tabsStyles } from 'components/shared/ContentTabs';
+// types
+import type { MonitoringLocationAttributes } from 'types';
 
 const mapPadding = 20;
 
@@ -327,6 +336,20 @@ function TribalMapList({
     setListShown(true);
   }, [width]);
 
+  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
+
+  // Reset data if the user switches locations
+  const [prevState, setPrevState] = useState(activeState);
+  if (activeState !== prevState) {
+    setPrevState(activeState);
+    setSelectedCharacteristics([]);
+    if (monitoringLocationsLayer) {
+      monitoringLocationsLayer.definitionExpression = '';
+    }
+  }
+
+  const [selectedTab, setSelectedTab] = useState(0);
+
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
@@ -362,7 +385,7 @@ function TribalMapList({
                       waterbodyLayer: !waterbodiesDisplayed,
                     });
                   }}
-                  disabled={!Boolean(waterbodies.data.length)}
+                  disabled={!waterbodies.data.length}
                   ariaLabel="Waterbodies"
                 />
               </div>
@@ -381,7 +404,7 @@ function TribalMapList({
                   ? monitoringLocations.length
                   : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -400,8 +423,8 @@ function TribalMapList({
                       monitoringLocationsLayer: !monitoringLocationsDisplayed,
                     });
                   }}
-                  disabled={!Boolean(monitoringLocations.length)}
-                  ariaLabel="Monitoring Stations"
+                  disabled={!monitoringLocations.length}
+                  ariaLabel="Water Monitoring Stations"
                 />
               </div>
             </>
@@ -526,10 +549,10 @@ function TribalMapList({
 
       {displayMode === 'list' && listShown && (
         <div css={modifiedTabStyles(mapListHeight)}>
-          <Tabs>
+          <Tabs onChange={setSelectedTab} defaultIndex={selectedTab}>
             <TabList>
               <Tab css={largeTabStyles}>Waterbodies</Tab>
-              <Tab css={largeTabStyles}>Monitoring Locations</Tab>
+              <Tab css={largeTabStyles}>Water Monitoring Locations</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
@@ -540,10 +563,7 @@ function TribalMapList({
                 {waterbodies.status === 'success' && (
                   <Fragment>
                     {waterbodies.data.length > 0 ? (
-                      <WaterbodyList
-                        waterbodies={waterbodies.data}
-                        title="Waterbodies"
-                      />
+                      <WaterbodyList waterbodies={waterbodies.data} />
                     ) : (
                       <div css={infoBoxStyles}>
                         <p>
@@ -558,7 +578,11 @@ function TribalMapList({
                 )}
               </TabPanel>
               <TabPanel>
-                <MonitoringTab activeState={activeState} />
+                <MonitoringTab
+                  activeState={activeState}
+                  selectedCharacteristics={selectedCharacteristics}
+                  setSelectedCharacteristics={setSelectedCharacteristics}
+                />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -603,10 +627,15 @@ function TribalMap({
   }, [activeState]);
 
   const { monitoringLocationsLayer, surroundingMonitoringLocationsLayer } =
-    useMonitoringLocationsLayers(monitoringLocationsFilter);
+    useMonitoringLocationsLayers({ filter: monitoringLocationsFilter });
+
+  const { surroundingUsgsStreamgagesLayer } = useStreamgageLayers();
+  const { surroundingDischargersLayer } = useDischargersLayers();
+  const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
 
   const navigate = useNavigate();
   const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
   useWaterbodyHighlight();
 
   const getSharedLayers = useSharedLayers({
@@ -636,7 +665,12 @@ function TribalMap({
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
-        getPopupContent({ feature: feature.graphic, navigate }),
+        getPopupContent({
+          feature: feature.graphic,
+          navigate,
+          services,
+          stateNationalUses,
+        }),
     };
 
     // Build the feature layers that will make up the waterbody layer
@@ -739,6 +773,9 @@ function TribalMap({
       ...sharedLayers,
       upstreamLayer,
       selectedTribeLayer,
+      surroundingCyanLayer,
+      surroundingDischargersLayer,
+      surroundingUsgsStreamgagesLayer,
       monitoringLocationsLayer,
       surroundingMonitoringLocationsLayer,
       waterbodyLayer,
@@ -760,7 +797,11 @@ function TribalMap({
     services,
     setLayer,
     setResetHandler,
+    stateNationalUses,
+    surroundingCyanLayer,
+    surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,
+    surroundingUsgsStreamgagesLayer,
     updateVisibleLayers,
   ]);
 
@@ -914,29 +955,65 @@ function TribalMap({
 
 type MonitoringTabProps = {
   activeState: Object,
+  monitoringLocations: MonitoringLocationAttributes[],
+  selectedCharacteristics: string[],
+  setSelectedCharacteristics: (selected: string[]) => void,
 };
 
-function MonitoringTab({ activeState }: MonitoringTabProps) {
+function MonitoringTab({
+  activeState,
+  selectedCharacteristics,
+  setSelectedCharacteristics,
+}: MonitoringTabProps) {
   const services = useServicesContext();
 
   const { monitoringLocations } = useMonitoringLocations();
+  const { monitoringLocationsLayer } = useLayers();
 
   // sort the monitoring locations
   const [monitoringLocationsSortedBy, setMonitoringLocationsSortedBy] =
     useState('locationName');
-  const sortedMonitoringAndSensors = [...monitoringLocations].sort((a, b) => {
-    if (monitoringLocationsSortedBy === 'totalMeasurements') {
-      return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
-    }
 
-    if (monitoringLocationsSortedBy === 'siteId') {
-      return a.siteId.localeCompare(b.siteId);
+  // Filter the displayed locations by selected characteristics
+  const filteredMonitoringLocations = monitoringLocations.filter((location) => {
+    if (!selectedCharacteristics.length) return true;
+    for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
+      if (selectedCharacteristics.includes(characteristic)) return true;
     }
-
-    return a[monitoringLocationsSortedBy].localeCompare(
-      b[monitoringLocationsSortedBy],
-    );
+    return false;
   });
+
+  const sortedMonitoringAndSensors = [...filteredMonitoringLocations].sort(
+    (a, b) => {
+      if (monitoringLocationsSortedBy === 'totalMeasurements') {
+        return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
+      }
+
+      if (monitoringLocationsSortedBy === 'siteId') {
+        return a.siteId.localeCompare(b.siteId);
+      }
+
+      return a[monitoringLocationsSortedBy].localeCompare(
+        b[monitoringLocationsSortedBy],
+      );
+    },
+  );
+
+  // Update the filters on the layer
+  const locationIds = filteredMonitoringLocations.map(
+    (location) => location.uniqueId,
+  );
+  let definitionExpression = '';
+  if (locationIds.length === 0) definitionExpression = '1=0';
+  else if (locationIds.length !== monitoringLocations.length) {
+    definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
+  }
+  if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
 
   const [expandedRows, setExpandedRows] = useState([]);
 
@@ -944,9 +1021,20 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
     <AccordionList
       title={
         <>
-          <strong>{sortedMonitoringAndSensors.length}</strong> locations with
-          data in the <em>{activeState.label}</em> watershed.
+          <strong>{sortedMonitoringAndSensors.length}</strong> of{' '}
+          <strong>{monitoringLocations.length}</strong> locations with{' '}
+          {selectedCharacteristics.length > 0
+            ? 'the selected characteristic'
+            : 'data'}
+          {selectedCharacteristics.length > 1 && 's'} in the{' '}
+          <em>{activeState.label}</em> watershed.
         </>
+      }
+      extraListHeaderContent={
+        <CharacteristicsSelect
+          selected={selectedCharacteristics}
+          onChange={setSelectedCharacteristics}
+        />
       }
       onSortChange={({ value }) => setMonitoringLocationsSortedBy(value)}
       onExpandCollapse={(allExpanded) => {
@@ -987,7 +1075,7 @@ function MonitoringTab({ activeState }: MonitoringTabProps) {
 
         return (
           <AccordionItem
-            key={index}
+            key={item.uniqueId}
             index={index}
             title={<strong>{item.locationName || 'Unknown'}</strong>}
             subTitle={

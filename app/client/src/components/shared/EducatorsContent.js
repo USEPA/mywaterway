@@ -10,7 +10,7 @@ import { useEducatorMaterialsContext } from 'contexts/LookupFiles';
 import { educatorContentError } from 'config/errorMessages';
 // styles
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 
 // NOTE: matching styles used in tabs in `AboutContent` component
 const containerStyles = css`
@@ -90,7 +90,7 @@ function EducatorsContent() {
     const href = window.location.href;
 
     // get the pathname without the leading /
-    const pathname = window.location.pathname.substr(1);
+    const pathname = window.location.pathname.slice(1);
 
     // build the url for the current page
     let newHref = '';

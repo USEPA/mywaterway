@@ -1,13 +1,15 @@
 import { render } from 'react-dom';
-import { css } from 'styled-components/macro';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
+import Point from '@arcgis/core/geometry/Point';
 import PopupTemplate from '@arcgis/core/PopupTemplate';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import Popup from '@arcgis/core/widgets/Popup';
 // components
 import { MapPopup } from 'components/shared/WaterbodyInfo';
+import { colors } from 'styles';
 // utilities
 import { getSelectedCommunityTab } from 'utils/utils';
 // types
@@ -15,9 +17,9 @@ import type { NavigateFunction } from 'react-router-dom';
 import type {
   ChangeLocationAttributes,
   ClickedHucState,
-  ExtendedLayer,
   Feature,
   ImpairmentFields,
+  LookupFile,
   ParentLayer,
   PopupAttributes,
   ScaledLayer,
@@ -56,6 +58,45 @@ export function getTypeFromAttributes(graphic: __esri.Graphic) {
   }
 
   return type;
+}
+
+// Determines if the input text is a string representing coordinates.
+// If so the coordinates are converted to an Esri Point object.
+export function getPointFromCoordinates(text: string) {
+  const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
+  let point = null;
+  if (regex.test(text)) {
+    const found: RegExpMatchArray | null = regex.exec(text);
+    if (found && found.length >= 4 && found[1] && found[3]) {
+      point = new Point({
+        x: parseFloat(found[1]),
+        y: parseFloat(found[3]),
+      });
+    }
+  }
+
+  return point;
+}
+
+// Determines if the input text is a string that contains coordinates.
+// The return value is an object containing the esri point for the coordinates (coordinatesPart)
+// and any remaining text (searchPart).
+export function splitSuggestedSearch(text: string) {
+  // split search
+  const parts = text.split('|');
+
+  // get the coordinates part (is last item)
+  const tempCoords = parts[parts.length - 1];
+  const coordinatesPart = getPointFromCoordinates(tempCoords);
+
+  // remove the coordinates part from initial array
+  const coordinatesString = coordinatesPart ? parts.pop() ?? '' : '';
+
+  // get the point from the coordinates part
+  return {
+    searchPart: parts.length > 0 ? parts.join('|') : coordinatesString,
+    coordinatesPart,
+  };
 }
 
 export function getWaterbodyCondition<
@@ -98,6 +139,7 @@ export function createUniqueValueInfos(
 ) {
   return [
     {
+      label: `Good`,
       value: `Fully Supporting`,
       symbol: createWaterbodySymbol({
         condition: 'good',
@@ -107,6 +149,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Impaired`,
       value: `Not Supporting`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -116,6 +159,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Condition Unknown`,
       value: `Insufficient Information`,
       symbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -125,6 +169,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Condition Unknown`,
       value: `Not Assessed`,
       symbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -134,6 +179,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Good`,
       value: `Meeting Criteria`,
       symbol: createWaterbodySymbol({
         condition: 'good',
@@ -143,6 +189,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Impaired`,
       value: `Cause`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -152,6 +199,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `Yes`,
       value: `Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -161,6 +209,7 @@ export function createUniqueValueInfos(
       }),
     },
     {
+      label: `No`,
       value: `N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -182,6 +231,7 @@ export function createUniqueValueInfosIssues(
 ) {
   return [
     {
+      label: 'Impaired',
       value: `Y`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
@@ -191,6 +241,7 @@ export function createUniqueValueInfosIssues(
       }),
     },
     {
+      label: 'No',
       value: `N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -212,6 +263,7 @@ export function createUniqueValueInfosRestore(
 ) {
   return [
     {
+      label: 'None',
       value: `N, N, N`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -221,6 +273,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, N, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -230,6 +283,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, Y, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -239,6 +293,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `N, Y, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -248,6 +303,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, N, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -257,6 +313,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, N, Y`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -266,6 +323,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, Y, N`,
       symbol: createWaterbodySymbol({
         condition: 'nostatus',
@@ -275,6 +333,7 @@ export function createUniqueValueInfosRestore(
       }),
     },
     {
+      label: 'Has Restoration Plan',
       value: `Y, Y, Y`,
       symbol: createWaterbodySymbol({
         condition: 'hidden',
@@ -303,7 +362,7 @@ export function createWaterbodySymbol({
 }) {
   // handle Actions page
   if (window.location.pathname.includes('/plan-summary')) {
-    let color: __esri.Color = new Color({ r: 0, g: 123, b: 255 });
+    let color: __esri.Color = new Color(colors.skyBlue());
     if (geometryType === 'polygon') color.a = 0.75;
 
     let planSummarySymbol;
@@ -337,21 +396,21 @@ export function createWaterbodySymbol({
   }
 
   const outline = selected
-    ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 1 }
-    : { color: [0, 0, 0, alpha ? alpha.outline : 1], width: 1 };
+    ? { color: colors.cyan(alpha ? alpha.outline : 0.5), width: 1 }
+    : { color: colors.black(alpha ? alpha.outline : 1), width: 1 };
 
   // from colors.highlightedPurple() and colors.purple()
-  let rgb = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
+  let rgb = selected ? colors.highlightedPurple() : colors.purple();
   if (condition === 'good') {
     // from colors.highlightedGreen() and colors.green()
-    rgb = selected ? { r: 70, g: 227, b: 159 } : { r: 32, g: 128, b: 12 };
+    rgb = selected ? colors.highlightedGreen() : colors.green();
   }
   if (condition === 'polluted') {
     // from colors.highlightedRed() and colors.red()
-    rgb = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
+    rgb = selected ? colors.highlightedRed() : colors.red();
   }
   if (condition === 'nostatus') {
-    rgb = selected ? { r: 93, g: 153, b: 227 } : { r: 0, g: 123, b: 255 };
+    rgb = selected ? colors.highlightedBlue() : colors.skyBlue();
   }
 
   let color = new Color(rgb);
@@ -401,7 +460,7 @@ export function createWaterbodySymbol({
 
   if (geometryType === 'polygon') {
     const polyOutline = selected
-      ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 3 }
+      ? { color: colors.cyan(alpha ? alpha.outline : 0.5), width: 3 }
       : undefined;
 
     return new SimpleFillSymbol({
@@ -542,9 +601,10 @@ export const openPopup = (
   feature: __esri.Graphic,
   fields: __esri.Field[],
   services: ServicesState,
+  stateNationalUses: LookupFile,
   navigate: NavigateFunction,
 ) => {
-  const fieldName = feature.attributes && feature.attributes.fieldName;
+  const fieldName = feature.attributes?.fieldName;
 
   // set the popup template
   if (
@@ -559,6 +619,7 @@ export const openPopup = (
           fields,
           fieldName,
           services,
+          stateNationalUses,
           navigate,
         }),
     });
@@ -581,9 +642,11 @@ export const openPopup = (
   }
 
   // open the popup
-  view.popup.open({
+  view.popup = new Popup({
+    collapseEnabled: false,
     features: [feature],
     location: popupPoint,
+    visible: true,
   });
 };
 
@@ -639,7 +702,7 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
 
   // protect tab teal nonprofits
   else if ('type' in attributes && attributes.type === 'nonprofit') {
-    title = attributes.Name || 'Unknown name';
+    title = attributes.Name ?? 'Unknown name';
   }
 
   // county
@@ -700,6 +763,7 @@ export function getPopupContent({
   mapView,
   resetData,
   services,
+  stateNationalUses,
   fields,
   navigate,
 }: {
@@ -710,12 +774,13 @@ export function getPopupContent({
   mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
+  stateNationalUses?: LookupFile;
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
 }) {
   let type = 'Unknown';
   const attributes: PopupAttributes | null = feature.attributes;
-  if (!attributes) return null;
+  if (!attributes) return undefined;
 
   // stand alone change location popup
   if ('changelocationpopup' in attributes) {
@@ -731,7 +796,7 @@ export function getPopupContent({
     else if ('assessmentunitname' in attributes) {
       const communityTab = getSelectedCommunityTab();
       const pathname = window.location.pathname;
-      const parent = (feature.layer as ExtendedLayer)?.parent;
+      const parent = feature.layer?.parent;
       const isAllWaterbodiesLayer =
         parent && 'id' in parent && parent.id === 'allWaterbodiesLayer';
 
@@ -749,16 +814,9 @@ export function getPopupContent({
       type = 'Permitted Discharger';
     }
 
-    // CyAN waterbody
-    else if ('GNIS_NAME' in attributes) {
-      type = 'CyAN';
-    }
-
-    // usgs streamgage or monitoring location
+    // CyAN waterbody or usgs streamgage or monitoring location
     else if ('monitoringType' in attributes) {
-      if (attributes.monitoringType === 'USGS Sensors') type = 'USGS Sensors';
-      else if (attributes.monitoringType === 'Past Water Conditions')
-        type = 'Past Water Conditions';
+      type = attributes.monitoringType;
     }
 
     // protect tab teal nonprofits
@@ -818,13 +876,14 @@ export function getPopupContent({
       mapView={mapView}
       resetData={resetData}
       services={services}
+      stateNationalUses={stateNationalUses}
       fields={fields}
       navigate={navigate}
     />
   );
 
   // wrap the content for esri
-  const contentContainer = document.createElement('div');
+  const contentContainer = document.createElement('div') as HTMLElement;
   render(content, contentContainer);
 
   // return an esri popup item
@@ -875,10 +934,8 @@ export function graphicComparison(
 
   // change occurred
   if (
-    (graphic1 && graphic1.attributes && !graphic2) ||
-    (graphic1 && graphic1.attributes && graphic2 && !graphic2.attributes) ||
-    (graphic2 && graphic2.attributes && !graphic1) ||
-    (graphic2 && graphic2.attributes && graphic1 && !graphic1.attributes) ||
+    (graphic1?.attributes && !graphic2?.attributes) ||
+    (graphic2?.attributes && !graphic1?.attributes) ||
     !shallowCompare(graphic1?.attributes, graphic2?.attributes)
   ) {
     return false;
@@ -886,24 +943,6 @@ export function graphicComparison(
 
   return true;
 }
-
-const tickMarkStyles = css`
-  display: flex;
-  align-items: center;
-  width: 100%;
-
-  ::before {
-    content: '';
-    width: 4px;
-    height: 1px;
-    background-color: #999;
-  }
-
-  p {
-    padding-left: 0.25em;
-    font-size: 0.875em !important;
-  }
-`;
 
 export function GradientIcon({
   id,
@@ -915,15 +954,15 @@ export function GradientIcon({
   const divisions = stops.length - 1;
   return (
     <div css={{ display: 'flex', margin: 'auto' }}>
-      <div css={{ margin: '15px 0', border: '1px solid #999' }}>
-        <svg width={20} height={30 * divisions}>
+      <div css={{ margin: '15px 0' }}>
+        <svg width={50} height={25 * divisions + 20}>
           <defs>
             <linearGradient
               id={id}
               x1={0}
               y1={0}
               x2={0}
-              y2={30 * divisions}
+              y2={25 * divisions}
               gradientUnits="userSpaceOnUse"
             >
               {stops.map((stop, index) => (
@@ -938,20 +977,23 @@ export function GradientIcon({
 
           <rect
             x={0}
-            y={0}
+            y={10}
             width={20}
-            height={30 * divisions}
+            height={25 * divisions}
             fill={`url(#${id})`}
           />
-        </svg>
-      </div>
 
-      <div css={{ display: 'flex', flexWrap: 'wrap', width: '45px' }}>
-        {stops.map((stop) => (
-          <div key={stop.label} css={tickMarkStyles}>
-            <p>{stop.label}</p>
-          </div>
-        ))}
+          {stops.map((stop, index) => (
+            <text
+              key={stop.label}
+              x="20"
+              y={25 * index + 14}
+              fontSize="smaller"
+            >
+              -{stop.label}
+            </text>
+          ))}
+        </svg>
       </div>
     </div>
   );
@@ -1004,7 +1046,7 @@ export function isInScale(
     // get sublayers included in the parentlayer
     // note: the sublayer has maxScale and minScale, but these are always 0
     //       even if the sublayer does actually have a min/max scale.
-    const sublayerIds: number[] = [];
+    const sublayerIds: (string | number)[] = [];
     layer.sublayers.forEach((sublayer) => {
       if ('id' in sublayer) sublayerIds.push(sublayer.id);
     });

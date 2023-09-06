@@ -1,0 +1,3 @@
+{
+  "ignore": ["app/public/data/cache/**"]
+}

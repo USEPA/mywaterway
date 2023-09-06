@@ -55,8 +55,8 @@ export function useAllFeaturesLayers<
   });
 }
 
-function useBoundariesToggleLayer<
-  T extends __esri.FeatureLayer | __esri.GraphicsLayer,
+export function useBoundariesToggleLayer<
+  T extends __esri.FeatureLayer | __esri.GraphicsLayer | __esri.GroupLayer,
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 >({
@@ -326,7 +326,7 @@ export function filterData<T>(
   });
 }
 
-async function updateFeatureLayer(
+export async function updateFeatureLayer(
   layer: __esri.FeatureLayer | null,
   features?: __esri.Graphic[] | null,
 ) {
@@ -356,7 +356,7 @@ const defaultMinScale = 577791;
 export type SublayerType = 'enclosed' | 'surrounding';
 
 type UseBoundariesToggleLayerParams<
-  T extends __esri.FeatureLayer | __esri.GraphicsLayer,
+  T extends __esri.FeatureLayer | __esri.GraphicsLayer | __esri.GroupLayer,
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = {

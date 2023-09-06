@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -11,6 +11,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { DisclaimerModal } from 'components/shared/Modal';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -20,7 +21,7 @@ import { formatNumber } from 'utils/utils';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
-import { fonts, colors } from 'styles/index.js';
+import { fonts, colors } from 'styles/index';
 // errors
 import { fishingAdvisoryError } from 'config/errorMessages';
 
@@ -111,16 +112,11 @@ function SiteSpecific({
 }: Props) {
   const { currentReportingCycle } = useContext(StateTribalTabsContext);
 
-  const [waterTypeUnits, setWaterTypeUnits] = useState('');
-  useEffect(() => {
-    if (!waterTypeData || waterTypeData.length === 0) {
-      if (waterTypeUnits) setWaterTypeUnits(null);
-      return;
-    }
-
+  let waterTypeUnits = null;
+  if (waterTypeData?.length) {
     // check the use to see if it is using counts or not
     let usesCounts = false;
-    let tempUnits = waterTypeData[0].unitsCode;
+    waterTypeUnits = waterTypeData[0].unitsCode;
     waterTypeData.forEach((waterTypeOption) => {
       waterTypeOption['useAttainments']
         .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
@@ -138,12 +134,8 @@ function SiteSpecific({
         });
     });
 
-    if (usesCounts) tempUnits = 'Waters';
-
-    if (tempUnits !== waterTypeUnits) {
-      setWaterTypeUnits(tempUnits);
-    }
-  }, [waterType, waterTypeData, waterTypeUnits, useSelected]);
+    if (usesCounts) waterTypeUnits = 'Waters';
+  }
 
   // adds up the total amount (miles, acres, square miles) of waters for each
   // support category (fully supporting, not supporting, etc.) accross
@@ -157,7 +149,7 @@ function SiteSpecific({
       total: 0,
     };
 
-    if (!waterTypeData || waterTypeData.length === 0) return support;
+    if (!waterTypeData?.length) return support;
 
     // loop through the use categories in the watertypes and add up each support item
     waterTypeData.forEach((waterTypeOption) => {
@@ -215,7 +207,7 @@ function SiteSpecific({
       .sort((a, b) => {
         return parseFloat(parameterCalc[b]) - parseFloat(parameterCalc[a]);
       })
-      .map((param, index) => {
+      .map((param) => {
         const percent = formatNumber(
           (parameterCalc[param] /
             (calculatedSupport.total - calculatedSupport.notAssessed)) *
@@ -239,7 +231,7 @@ function SiteSpecific({
         );
 
         return (
-          <li key={index}>
+          <li key={param}>
             <span css={percentStyles}>{percent}%</span> or {number} {units}{' '}
             {match ? sentence : <strong>{param}</strong>}.
           </li>
@@ -276,12 +268,9 @@ function SiteSpecific({
   const responsiveBarChartHeight =
     barChartData.length === 1 ? 75 : barChartData.length * 60;
 
-  const responsiveBarChartFontSize =
-    window.innerWidth < 350
-      ? '10px'
-      : window.innerWidth < 450
-      ? '11.5px'
-      : '15px';
+  let responsiveBarChartFontSize = '15px';
+  if (window.innerWidth < 350) responsiveBarChartFontSize = '10px';
+  else if (window.innerWidth < 450) responsiveBarChartFontSize = '11.5px';
 
   return (
     <>
@@ -302,7 +291,7 @@ function SiteSpecific({
             <p>
               <GlossaryTerm term="Surface Water">Surface water</GlossaryTerm>{' '}
               (streams, rivers, and lakes) or{' '}
-              <GlossaryTerm term="Groundwater">ground water</GlossaryTerm>{' '}
+              <GlossaryTerm term="Ground Water">ground water</GlossaryTerm>{' '}
               (aquifers) can serve as sources of drinking water, referred to as{' '}
               source water. Public utilities treat source water that is used for
               public drinking water supplies. The graphic below shows the
@@ -436,7 +425,7 @@ function SiteSpecific({
         </>
       )}
 
-      {parameters && parameters.length > 0 && (
+      {parameters?.length > 0 && (
         <AccordionList expandDisabled={true}>
           <AccordionItem
             title={
@@ -453,6 +442,13 @@ function SiteSpecific({
             }
           >
             <div css={accordionContentStyles}>
+              <DisclaimerModal>
+                <p>
+                  The impairments listed below do not necessarily affect the{' '}
+                  <strong>{useSelected}</strong> Use but are present in the
+                  water and may apply to other Uses.
+                </p>
+              </DisclaimerModal>
               <ul>{parameters}</ul>
             </div>
           </AccordionItem>

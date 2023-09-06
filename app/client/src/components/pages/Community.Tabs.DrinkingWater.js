@@ -30,7 +30,7 @@ import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 // styles
-import { toggleTableStyles } from 'styles/index.js';
+import { toggleTableStyles } from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -191,7 +191,11 @@ function createAccordionItem(
             value: item.pws_type,
           },
           {
-            label: 'Drinking Water Health Based Violations',
+            label: (
+              <GlossaryTerm term="Drinking Water Health-based Violations">
+                Drinking Water Health-based Violations
+              </GlossaryTerm>
+            ),
             value: item.violations === 'Y' ? 'Yes' : 'No',
           },
           {
@@ -422,7 +426,7 @@ function DrinkingWater() {
 
         if (checkForDuplicates.length === 0) {
           // deepclone item to prevent changing the underlying service data
-          const mergedItem = Object.assign({}, item);
+          const mergedItem = { ...item };
           mergedItem.water_type_calc = 'Ground Water & Surface Water';
           if (bothDisplayed) {
             displayedWithdrawers.push(mergedItem);
@@ -453,11 +457,7 @@ function DrinkingWater() {
   }
 
   let county = '';
-  if (
-    countyBoundaries &&
-    countyBoundaries.features &&
-    countyBoundaries.features.length > 0
-  ) {
+  if (countyBoundaries?.features?.length > 0) {
     county = countyBoundaries.features[0].attributes.NAME;
   }
 
@@ -731,7 +731,9 @@ function DrinkingWater() {
                       Surface water
                     </GlossaryTerm>{' '}
                     (streams, rivers, and lakes) or{' '}
-                    <GlossaryTerm term="Groundwater">ground water</GlossaryTerm>{' '}
+                    <GlossaryTerm term="Ground Water">
+                      ground water
+                    </GlossaryTerm>{' '}
                     (aquifers) can serve as sources of drinking water, referred
                     to as source water.
                   </p>
@@ -937,7 +939,7 @@ function DrinkingWater() {
                     Surface water
                   </GlossaryTerm>{' '}
                   (streams, rivers, and lakes) or{' '}
-                  <GlossaryTerm term="Groundwater">ground water</GlossaryTerm>{' '}
+                  <GlossaryTerm term="Ground Water">ground water</GlossaryTerm>{' '}
                   (aquifers) can serve as sources of drinking water, referred to
                   as source water. EPA, states, and tribes may monitor and
                   conduct an{' '}

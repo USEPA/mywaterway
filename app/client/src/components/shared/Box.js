@@ -2,7 +2,7 @@
 
 import { css } from 'styled-components/macro';
 // styles
-import { fonts } from 'styles/index.js';
+import { fonts } from 'styles/index';
 
 const boxStyles = css`
   margin-bottom: 1.5em;

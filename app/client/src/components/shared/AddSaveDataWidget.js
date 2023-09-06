@@ -5,7 +5,7 @@ import { css } from 'styled-components/macro';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import { linkButtonStyles } from 'components/shared/LinkButton';
 import FilePanel from 'components/shared/AddSaveDataWidget.FilePanel';
 import SavePanel from 'components/shared/AddSaveDataWidget.SavePanel';

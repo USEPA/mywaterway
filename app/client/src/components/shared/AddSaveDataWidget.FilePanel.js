@@ -9,12 +9,12 @@ import React, {
 } from 'react';
 import { css } from 'styled-components/macro';
 import { useDropzone } from 'react-dropzone';
-import { DialogOverlay, DialogContent } from '@reach/dialog';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Field from '@arcgis/core/layers/support/Field';
 import Graphic from '@arcgis/core/Graphic';
 import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 // components
+import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -32,8 +32,6 @@ import {
   uploadSuccessMessage,
   webServiceErrorMessage,
 } from 'config/errorMessages';
-// styles
-import { colors } from 'styles/index.js';
 
 /**
  * Gets the number from the last parentheses. If the value
@@ -84,60 +82,6 @@ function getLayerName(layers, desiredName) {
 }
 
 // --- styles (FileIcon) ---
-const overlayStyles = css`
-  &[data-reach-dialog-overlay] {
-    z-index: 1000;
-    background-color: ${colors.black(0.75)};
-  }
-`;
-
-const contentStyles = css`
-  &[data-reach-dialog-content] {
-    position: relative;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0;
-    padding: 1.5rem;
-    width: auto;
-    max-width: 25rem;
-  }
-
-  p {
-    margin-top: 1rem;
-    margin-bottom: 0;
-    padding-bottom: 0;
-    font-size: 0.875rem;
-    line-height: 1.375;
-
-    &:first-of-type {
-      margin-top: 0;
-    }
-  }
-
-  ul {
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-`;
-
-const closeButtonStyles = css`
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 0;
-  border: none;
-  width: 1.5rem;
-  height: 1.5rem;
-  color: white;
-  background-color: ${colors.black(0.5)};
-
-  &:hover,
-  &:focus {
-    background-color: ${colors.black(0.75)};
-  }
-`;
-
 const fileIconOuterContainerStyles = css`
   width: 2em;
   line-height: 1;
@@ -174,13 +118,6 @@ const fileIconTextStyles = css`
 
 const checkBoxStyles = css`
   margin-right: 5px;
-`;
-
-const helpIconStyles = css`
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  color: #485566;
 `;
 
 // --- components (FileIcon) ---
@@ -443,15 +380,9 @@ function FilePanel() {
   // types. This is so users can view popups but not edit the features.
   const [newLayerName, setNewLayerName] = useState('');
   useEffect(() => {
-    if (!mapView?.map || !file?.file?.esriFileType || featuresAdded) {
-      return;
-    }
-    if (!generateResponse) return;
-    if (
-      !generateResponse.featureCollection?.layers ||
-      generateResponse.featureCollection.layers.length === 0
-    ) {
-      setUploadStatus('no-data');
+    if (!mapView?.map || !file?.file?.esriFileType || featuresAdded) return;
+    if (!generateResponse?.featureCollection?.layers?.length) {
+      if (generateResponse) setUploadStatus('no-data');
       return;
     }
 
@@ -459,12 +390,7 @@ function FilePanel() {
 
     const featureLayers: WidgetLayer[] = [];
     generateResponse.featureCollection.layers.forEach((layer: any) => {
-      if (
-        !layer?.featureSet?.features ||
-        layer.featureSet.features.length === 0
-      ) {
-        return;
-      }
+      if (!layer?.featureSet?.features?.length) return;
 
       // get the list of fields
       let fields: __esri.Field[] = [];
@@ -598,8 +524,6 @@ function FilePanel() {
 
   const filename = file?.file?.name ? file.file.name : '';
 
-  const [dialogShown, setDialogShown] = useState(false);
-
   return (
     <div css={searchContainerStyles}>
       {uploadStatus === 'fetching' && <LoadingSpinner />}
@@ -666,48 +590,27 @@ function FilePanel() {
               </div>
             )}
 
-            <i
-              css={helpIconStyles}
-              className="fas fa-question-circle"
-              onClick={() => {
-                setDialogShown(true);
-              }}
-            ></i>
+            <DisclaimerModal infoIcon={true}>
+              <label>
+                You can drop or browse for one the following file types:
+              </label>
+              <ul>
+                <li>
+                  A Shapefile (.zip, ZIP archive containing all shapefile files)
+                </li>
+                <li>
+                  A CSV File (.csv, with address or latitude, longitude and
+                  comma, semi-colon or tab delimited)
+                </li>
+                <li>A KML File (.kml)</li>
+                <li>A GPX File (.gpx, GPS Exchange Format)</li>
+                <li>A GeoJSON File (.geo.json or .geojson)</li>
+                <li>A maximum of 1000 features is allowed</li>
+              </ul>
+            </DisclaimerModal>
           </div>
         </Fragment>
       )}
-
-      <DialogOverlay
-        css={overlayStyles}
-        isOpen={dialogShown}
-        onDismiss={() => setDialogShown(false)}
-      >
-        <DialogContent css={contentStyles} aria-label="Disclaimer">
-          <label>
-            You can drop or browse for one the following file types:
-          </label>
-          <ul>
-            <li>
-              A Shapefile (.zip, ZIP archive containing all shapefile files)
-            </li>
-            <li>
-              A CSV File (.csv, with address or latitude, longitude and comma,
-              semi-colon or tab delimited)
-            </li>
-            <li>A KML File (.kml)</li>
-            <li>A GPX File (.gpx, GPS Exchange Format)</li>
-            <li>A GeoJSON File (.geo.json or .geojson)</li>
-            <li>A maximum of 1000 features is allowed</li>
-          </ul>
-          <button
-            css={closeButtonStyles}
-            title="Close disclaimer"
-            onClick={(ev) => setDialogShown(false)}
-          >
-            ×
-          </button>
-        </DialogContent>
-      </DialogOverlay>
     </div>
   );
 }

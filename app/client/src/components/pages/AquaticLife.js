@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LocationSearch from 'components/shared/LocationSearch';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import {
   AquaticLifeIcon,
   DrinkingWaterIcon,

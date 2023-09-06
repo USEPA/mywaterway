@@ -1,6 +1,6 @@
 // @flow
 
-import React, { Fragment } from 'react';
+import React from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -14,7 +14,7 @@ import { getSelectedCommunityTab } from 'utils/utils';
 // errors
 import { legendUnavailableError } from 'config/errorMessages';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   width: 240px;
@@ -37,14 +37,31 @@ const listStyles = css`
     flex-direction: column;
     align-items: start;
     margin-bottom: 0.25rem;
+    padding: 0;
     padding-bottom: 0.25rem;
     border-bottom: 1px solid #eee;
+    word-wrap: normal;
 
     &:last-of-type {
       margin-bottom: 0;
       padding-bottom: 0;
       border-bottom: none;
     }
+  }
+
+  .esri-legend__layer {
+    margin-left: 0;
+  }
+
+  .esri-legend__layer-caption {
+    display: block;
+    padding: 0;
+    word-break: normal;
+  }
+
+  .esri-legend__layer-cell--info {
+    padding: 0;
+    padding-right: 0.625rem;
   }
 `;
 
@@ -118,7 +135,9 @@ function MapLegend({
       (layer.id === 'surroundingUsgsStreamgagesLayer' &&
         visibleLayers.find((l) => l.id === 'usgsStreamgagesLayer')) ||
       (layer.id === 'surroundingDischargersLayer' &&
-        visibleLayers.find((l) => l.id === 'dischargersLayer'))
+        visibleLayers.find((l) => l.id === 'dischargersLayer')) ||
+      (layer.id === 'surroundingCyanLayer' &&
+        visibleLayers.find((l) => l.id === 'cyanLayer'))
     );
   });
 
@@ -242,7 +261,7 @@ export const circleIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
   );
 };
 
-export const waterwayIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
+export const waterwayIcon = ({ color, stroke = 'black' }) => {
   return (
     <svg
       width={boxSize}
@@ -270,30 +289,36 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   // jsx
   const waterbodyLegend = (
     <>
-      <li>
+      <li className="hmw-legend__item">
         <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
+          <div className="hmw-legend__symbol" css={imageContainerStyles}>
             <WaterbodyIcon condition="good" selected={false} />
           </div>
-          <span css={labelStyles}>Waterbody: Good</span>
+          <span className="hmw-legend__info" css={labelStyles}>
+            Waterbody: Good
+          </span>
         </div>
       </li>
 
-      <li>
+      <li className="hmw-legend__item">
         <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
+          <div className="hmw-legend__symbol" css={imageContainerStyles}>
             <WaterbodyIcon condition="polluted" selected={false} />
           </div>
-          <span css={labelStyles}>Waterbody: Impaired</span>
+          <span className="hmw-legend__info" css={labelStyles}>
+            Waterbody: Impaired
+          </span>
         </div>
       </li>
 
-      <li>
+      <li className="hmw-legend__item">
         <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
+          <div className="hmw-legend__symbol" css={imageContainerStyles}>
             <WaterbodyIcon condition="unassessed" selected={false} />
           </div>
-          <span css={labelStyles}>Waterbody: Condition Unknown</span>
+          <span className="hmw-legend__info" css={labelStyles}>
+            Waterbody: Condition Unknown
+          </span>
         </div>
       </li>
     </>
@@ -301,22 +326,45 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
   // jsx
   const issuesLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           <WaterbodyIcon condition="polluted" selected={false} />
         </div>
-        <span css={labelStyles}>Waterbody: Impaired</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          Waterbody: Impaired
+        </span>
+      </div>
+    </li>
+  );
+
+  // jsx
+  const cyanLegend = (
+    <li className="hmw-legend__item">
+      <div css={legendItemStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
+          {waterwayIcon({ color: colors.darkCyan() })}
+        </div>
+        <GlossaryTerm
+          className="hmw-legend__info"
+          term="Potential Harmful Algal Blooms (HABs)"
+        >
+          Potential Harmful Algal Blooms (HABs)
+        </GlossaryTerm>
       </div>
     </li>
   );
 
   // jsx
   const usgsStreamgagesLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>{squareIcon({ color: '#fffe00' })}</div>
-        <span css={labelStyles}>USGS Sensors</span>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
+          {squareIcon({ color: colors.yellow() })}
+        </div>
+        <span className="hmw-legend__info" css={labelStyles}>
+          USGS Sensors
+        </span>
       </div>
     </li>
 
@@ -369,61 +417,69 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
   // jsx
   const dischargersLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           {diamondIcon({ color: colors.orange() })}
         </div>
-        <span css={labelStyles}>Permitted Discharger</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          Permitted Discharger
+        </span>
       </div>
     </li>
   );
 
   // jsx
   const nonprofitsLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>{squareIcon({ color: '#8b6573' })}</div>
-        <span css={labelStyles}>Nonprofit</span>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
+          {squareIcon({ color: '#8b6573' })}
+        </div>
+        <span className="hmw-legend__info" css={labelStyles}>
+          Nonprofit
+        </span>
       </div>
     </li>
   );
 
   // jsx
   const providersLegend = (
-    <>
-      <li>
-        <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
-            {squareIcon({
-              color: '#CBCBCB',
-              strokeWidth: 3,
-              stroke: '#ffff00',
-            })}
-          </div>
-          <span css={labelStyles}>Providers</span>
+    <li className="hmw-legend__item">
+      <div css={legendItemStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
+          {squareIcon({
+            color: '#CBCBCB',
+            strokeWidth: 3,
+            stroke: '#ffff00',
+          })}
         </div>
-      </li>
-    </>
+        <span className="hmw-legend__info" css={labelStyles}>
+          Providers
+        </span>
+      </div>
+    </li>
   );
 
   // jsx
   const searchIconLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           <PinIcon />
         </div>
-        <span css={labelStyles}>Searched Location</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          Searched Location
+        </span>
       </div>
     </li>
   );
 
   // jsx
   const boundariesLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="26"
@@ -435,28 +491,32 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
             <rect x="16" y="12" width="10" height="3" fill="#000" />
           </svg>
         </div>
-        <span css={labelStyles}>HUC12 Boundaries</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          HUC12 Boundaries
+        </span>
       </div>
     </li>
   );
 
   // jsx
   const actionsWaterbodiesLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           {squareIcon({ color: 'rgb(0, 123, 255)', strokeWidth: 0 })}
         </div>
-        <span css={labelStyles}>Waterbody</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          Waterbody
+        </span>
       </div>
     </li>
   );
 
   // jsx
   const congressionalDistrictsLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="26"
@@ -467,7 +527,9 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
             <rect x="0" y="12" width="26" height="3" fill="#FF00C5" />
           </svg>
         </div>
-        <span css={labelStyles}>Congressional Districts</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          Congressional Districts
+        </span>
       </div>
     </li>
   );
@@ -475,30 +537,36 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   // jsx
   const tribalLegend = (
     <>
-      <li>
+      <li className="hmw-legend__item">
         <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
+          <div className="hmw-legend__symbol" css={imageContainerStyles}>
             {squareIcon({ color: 'rgb(154, 154, 154)', stroke: '#6e6e6e' })}
           </div>
-          <span css={labelStyles}>Tribal Lands</span>
+          <span className="hmw-legend__info" css={labelStyles}>
+            Tribal Lands
+          </span>
         </div>
       </li>
 
-      <li>
+      <li className="hmw-legend__item">
         <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
+          <div className="hmw-legend__symbol" css={imageContainerStyles}>
             {circleIcon({ color: 'rgb(158, 0, 124)' })}
           </div>
-          <span css={labelStyles}>Alaska Native Villages</span>
+          <span className="hmw-legend__info" css={labelStyles}>
+            Alaska Native Villages
+          </span>
         </div>
       </li>
 
-      <li>
+      <li className="hmw-legend__item">
         <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
+          <div className="hmw-legend__symbol" css={imageContainerStyles}>
             {circleIcon({ color: 'rgb(168, 112, 0)' })}
           </div>
-          <span css={labelStyles}>Virginia Federally Recognized Tribes</span>
+          <span className="hmw-legend__info" css={labelStyles}>
+            Virginia Federally Recognized Tribes
+          </span>
         </div>
       </li>
     </>
@@ -506,12 +574,8 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
   // jsx
   const healthIndexLegend = (
-    <li>
-      <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
-          {squareIcon({ color: 'rgb(54, 140, 225)', strokeWidth: 0 })}
-        </div>
-        <span css={labelStyles}>State Watershed Health Index Layer</span>
+    <li className="hmw-legend__item">
+      <div className="hmw-legend__symbol" css={legendItemStyles}>
         <GradientIcon
           id="health-index-gradient"
           stops={[
@@ -522,26 +586,31 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
             { label: '0', color: 'rgb(180, 238, 239)' },
           ]}
         />
+        <span className="hmw-legend__info" css={labelStyles}>
+          State Watershed Health Index Layer
+        </span>
       </div>
     </li>
   );
 
   const wildScenicRiversLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           {squareIcon({ color: 'rgb(0, 123, 255)' })}
         </div>
-        <span css={labelStyles}>Wild and Scenic Rivers</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          Wild and Scenic Rivers
+        </span>
       </div>
     </li>
   );
 
   // jsx
   const countyLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="26"
@@ -552,16 +621,18 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
             <rect x="0" y="12" width="26" height="3" fill="#FBA45D" />
           </svg>
         </div>
-        <span css={labelStyles}>County</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          County
+        </span>
       </div>
     </li>
   );
 
   // jsx
   const stateBoundariesLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="26"
@@ -572,19 +643,21 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
             <rect x="0" y="12" width="26" height="3" fill="#000" />
           </svg>
         </div>
-        <span css={labelStyles}>State</span>
+        <span className="hmw-legend__info" css={labelStyles}>
+          State
+        </span>
       </div>
     </li>
   );
 
   // jsx
   const upstreamLegend = (
-    <li>
+    <li className="hmw-legend__item">
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
+        <div className="hmw-legend__symbol" css={imageContainerStyles}>
           {squareIcon({ color: 'rgb(31, 184, 255, 0.2)', strokeWidth: 2 })}
         </div>
-        <span css={labelStyles}>
+        <span className="hmw-legend__info" css={labelStyles}>
           <GlossaryTerm term="Upstream Watershed">
             Upstream Watershed
           </GlossaryTerm>
@@ -594,7 +667,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   );
 
   const mappedWaterLegend = () => {
-    const layerName = 'Mapped Water (all)';
+    const layerName = 'All Mapped Water (NHD)';
 
     const sublayerIds = view.map.layers.items
       .filter((item) => item.id === 'mappedWaterLayer')
@@ -625,7 +698,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     }
 
     return (
-      <li>
+      <li className="esri-legend__service">
         <GlossaryTerm
           term={layerName}
           className="esri-widget__heading esri-legend__service-label"
@@ -638,27 +711,40 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         </GlossaryTerm>
 
         {Object.entries(subLegends).map(([name, legend]) => (
-          <Fragment key={name}>
-            <div css={subLayerLabelStyles}>{name}</div>
+          <div key={name} className="esri-legend__layer">
+            <div
+              className="esri-legend__layer-caption"
+              css={subLayerLabelStyles}
+            >
+              {name}
+            </div>
 
             <ul css={[nestedUl, { marginBottom: '0.5rem' }]}>
               {legend.map((item) => {
                 return (
-                  <li key={item.label}>
+                  <li className="esri-legend__layer-row" key={item.label}>
                     <div css={legendItemStyles}>
-                      <div css={smallImageContainerStyles}>
+                      <div
+                        className="esri-legend__symbol"
+                        css={smallImageContainerStyles}
+                      >
                         <img
                           src={`data:image/png;base64,${item.imageData}`}
                           alt={item.label}
                         />
                       </div>
-                      <span css={labelStyles}>{item.label}</span>
+                      <span
+                        className="esri-legend__layer-cell--info"
+                        css={labelStyles}
+                      >
+                        {item.label}
+                      </span>
                     </div>
                   </li>
                 );
               })}
             </ul>
-          </Fragment>
+          </div>
         ))}
       </li>
     );
@@ -688,28 +774,45 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     }
 
     return (
-      <li>
-        <div css={layerLabelStyles}>{layerName}</div>
+      <li className="esri-legend__service">
+        <div
+          className="esri-widget__heading esri-legend__service-label"
+          css={layerLabelStyles}
+        >
+          {layerName}
+        </div>
 
-        <div css={subLayerLabelStyles}>Protection Category:</div>
+        <div className="esri-legend__layer">
+          <div className="esri-legend__layer-caption" css={subLayerLabelStyles}>
+            Protection Category:
+          </div>
 
-        <ul css={nestedUl}>
-          {padLegend.map((item) => {
-            return (
-              <li key={item.label}>
-                <div css={legendItemStyles}>
-                  <div css={smallImageContainerStyles}>
-                    <img
-                      src={`data:image/png;base64,${item.imageData}`}
-                      alt={item.label}
-                    />
+          <ul css={nestedUl}>
+            {padLegend.map((item) => {
+              return (
+                <li className="esri-legend__layer-row" key={item.label}>
+                  <div css={legendItemStyles}>
+                    <div
+                      className="esri-legend__symbol"
+                      css={smallImageContainerStyles}
+                    >
+                      <img
+                        src={`data:image/png;base64,${item.imageData}`}
+                        alt={item.label}
+                      />
+                    </div>
+                    <span
+                      className="esri-legend__layer-cell--info"
+                      css={labelStyles}
+                    >
+                      {item.label}
+                    </span>
                   </div>
-                  <span css={labelStyles}>{item.label}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </li>
     );
   };
@@ -812,7 +915,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     });
 
     return (
-      <li>
+      <li className="esri-legend__service">
         <GlossaryTerm
           term={layerName}
           className="esri-widget__heading esri-legend__service-label"
@@ -824,33 +927,45 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           {layerName}
         </GlossaryTerm>
 
-        {subtitleParts.length > 0 && (
-          <div css={[subLayerLabelStyles, { marginBottom: '0.5rem' }]}>
-            {subtitleParts.map((part) => {
-              return <div key={part.label}>{part.glossary}</div>;
-            })}
-          </div>
-        )}
-
-        <ul css={nestedUl}>
-          {legend.map((item) => {
-            return (
-              <li key={item.label}>
-                <div css={legendItemStyles}>
-                  <div css={smallImageContainerStyles}>
-                    <img
-                      src={`data:image/png;base64,${item.imageData}`}
-                      alt={item.label.replace('%ile', '%')}
-                    />
+        <div className="esri-legend__layer">
+          {subtitleParts.length > 0 && (
+            <div css={[subLayerLabelStyles, { marginBottom: '0.5rem' }]}>
+              {subtitleParts.map((part) => {
+                return (
+                  <div key={part.label} className="esri-legend__layer-caption">
+                    {part.glossary}
                   </div>
-                  <span css={labelStyles}>
-                    {item.label.replace('%ile', '%')}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                );
+              })}
+            </div>
+          )}
+
+          <ul css={nestedUl}>
+            {legend.map((item) => {
+              return (
+                <li className="esri-legend__layer-row" key={item.label}>
+                  <div css={legendItemStyles}>
+                    <div
+                      className="esri-legend__symbol"
+                      css={smallImageContainerStyles}
+                    >
+                      <img
+                        src={`data:image/png;base64,${item.imageData}`}
+                        alt={item.label.replace('%ile', '%')}
+                      />
+                    </div>
+                    <span
+                      className="esri-legend__layer-cell--info"
+                      css={labelStyles}
+                    >
+                      {item.label.replace('%ile', '%')}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </li>
     );
   };
@@ -871,6 +986,8 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     layer.id === 'surroundingUsgsStreamgagesLayer'
   )
     return usgsStreamgagesLegend;
+  if (layer.id === 'cyanLayer' || layer.id === 'surroundingCyanLayer')
+    return cyanLegend;
   if (
     layer.id === 'dischargersLayer' ||
     layer.id === 'surroundingDischargersLayer'

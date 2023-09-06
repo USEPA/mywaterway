@@ -20,6 +20,10 @@ import {
 } from 'utils/mapFunctions';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
+import {
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // errors
 import { huc12SummaryError } from 'config/errorMessages';
 
@@ -74,6 +78,9 @@ type Props = {
 function WaterbodyList({ waterbodies, title, fieldName }: Props) {
   const { cipSummary } = useContext(LocationSearchContext);
 
+  const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
+
   // if huc12summaryservice is down
   if (cipSummary.status === 'failure') {
     return (
@@ -127,13 +134,13 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
       </div>
 
       <AccordionList title={title}>
-        {sortedWaterbodies.map((graphic, index) => {
+        {sortedWaterbodies.map((graphic) => {
           /* prettier-ignore */
           const condition = getWaterbodyCondition(graphic.attributes, fieldName).condition;
 
           return (
             <AccordionItem
-              key={index}
+              key={graphic.attributes.assessmentunitidentifier}
               title={<strong>{graphic.attributes.assessmentunitname}</strong>}
               subTitle={
                 <>
@@ -156,6 +163,8 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
                   type="Waterbody"
                   feature={graphic}
                   fieldName={fieldName}
+                  services={services}
+                  stateNationalUses={stateNationalUses}
                 />
 
                 <ViewOnMapButton

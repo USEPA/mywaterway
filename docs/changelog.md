@@ -1,6 +1,71 @@
 
 # Change Log
 
+## 2.7.0 (September 2023)
+
+### Added
+
+- Added the CyAN Harmful Algal Blooms (HABs) layer to the Surrounding layers widget.
+
+- Added the CyAN Harmful Algal Blooms (HABs) data to the Overview panel of the Community page.
+
+- Added Surrounding streamgages and dischargers to the Tribal page.
+
+- Added a print widget where user's can download a PDF of the map and legend.
+
+- Added the ability to view detailed characteristics for each characteristic group on a monitoring locations.
+
+- Added the ability to view multiple graphs on the Water Monitoring Report.
+
+- Added a line graph option to the Water Monitoring Report.
+
+- Added the ability to view the detailed uses for each waterbody.
+
+- Added a characteristics filter to the Past Water Conditions lists.
+
+- Added a disclaimer to the State/Tribe pages around the impairments not necessarily affecting the use.
+
+### Changed
+
+- Removed clustering from the Past Water Conditions.
+
+- Updated date sliders so they are all in info boxes so they stand out more.
+
+- Updated the widget icons so they all use the >> icon when the widgets are opened.
+
+- Updated text on the data page and about page.
+
+- Updated the Sort by control to be more prominent.
+
+- Updated the Identified Issues tab to show all permitted dischargers. Also added a filter for dischargers with signficant effluent violations.
+
+- Changed the How's My Waterway banner tagline to "Explore, Discover and Learn about your water." 
+
+- Changed the name of the "Monitoring" tab to "Water Monitoring".
+
+- Changed the name of the "Monitoring Report" page to "Water Monitoring Report".
+
+- Changed "cyanobacteria" text to "blue-green algae".
+
+- Changed "CyAN" to "Harmful Algal Blooms (HABs)".
+
+- Changed the glossary to work off of a cron job, that runs every day and on app startup.
+
+- Changed the "Mapped Water (all)" layer to "All Mapped Water (NHD)". 
+
+- Changed "Clean Water Act Section 319 Projects" to "Nonpoint Source Projects".
+
+- Changed color of the "Past Water Conditions" and "Harmful Algal Blooms (HABs)" layers so they stand out more.
+
+- Improved performance of charts on the State & Tribal page.
+
+- Fixed a bug where the tribal map would zoom to a single monitoring location instead of the extent.
+
+- Fixed various accessibility and SEO issues. 
+
+- Fixed an issue of the loading spinner not being displayed on the State/Tribe page.
+
+
 ## 2.6.1 (June 2023)
 
 ### Changed
