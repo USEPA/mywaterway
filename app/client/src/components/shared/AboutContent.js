@@ -223,17 +223,11 @@ function AboutContent() {
                 to help waters become healthy again. The TMDL serves as a basic
                 game plan for a variety of different restoration activities,
                 including watershed restoration plans. EPA provides funds to
-                States to help control{' '}
-                <GlossaryTerm term="nonpoint source pollution">
-                  nonpoint source pollution
-                </GlossaryTerm>
-                , which generally originate from landscape runoff rather than a
-                single discharge pipe. <em>How’s My Waterway</em> identifies
-                whether an impaired waterway has a TMDL restoration plan or a{' '}
-                <GlossaryTerm term="nonpoint source pollution">
-                  nonpoint source pollution
-                </GlossaryTerm>{' '}
-                project.
+                States to help control nonpoint source pollution , which
+                generally originate from landscape runoff rather than a single
+                discharge pipe. <em>How’s My Waterway</em> identifies whether an
+                impaired waterway has a TMDL restoration plan or a nonpoint
+                source pollution project.
               </p>
 
               <h2>State Page</h2>
@@ -317,10 +311,11 @@ function AboutContent() {
                 ), including which waters are assessed and impaired or good
                 based on the most recent state reporting under the Clean Water
                 Act. Selecting a specific waterway from the list or map shows
-                the impairment reported, existing restoration plans, and
+                the impairment reported, existing restoration plans, and{' '}
                 <GlossaryTerm term="nonpoint source pollution">
                   nonpoint source
-                </GlossaryTerm> projects in the area. Information on permitted{' '}
+                </GlossaryTerm>{' '}
+                projects in the area. Information on permitted{' '}
                 <GlossaryTerm term="dischargers">dischargers</GlossaryTerm>,
                 water monitoring locations and drinking water systems can also
                 be found within a small watershed area after entering a

@@ -242,11 +242,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
     if (!localData?.length) return;
     if (annualData.status !== 'success') return;
 
-    fetchedDataDispatch({
-      type: 'success',
-      id: localFetchedDataKey,
-      payload: addAnnualData(localData, annualData.data.sites),
-    });
+    addAnnualData(localData, annualData.data.sites);
   }, [localData, annualData, fetchedDataDispatch]);
 
   const extentFilter = useRef<string | null>(null);
@@ -290,56 +286,45 @@ export function addAnnualData(
   monitoringLocations: MonitoringLocationAttributes[],
   annualData: MonitoringPeriodOfRecordData['sites'],
 ) {
-  return monitoringLocations.map((location) => {
+  monitoringLocations.forEach((location) => {
     const id = location.uniqueId;
     if (id in annualData) {
-      return {
-        ...location,
-        dataByYear: annualData[id],
-        // Get all-time characteristics by group
-        characteristicsByGroup: Object.values(annualData[id]).reduce(
-          (groups, yearData) => {
-            Object.entries(yearData.characteristicsByGroup).forEach(
-              ([group, charcList]) => {
-                groups[group] = Array.from(
-                  new Set(charcList.concat(groups[group] ?? [])),
-                );
-              },
-            );
-            return groups;
-          },
-          {} as { [group: string]: string[] },
-        ),
-        // Tally characteristic counts
-        totalsByCharacteristic: Object.values(annualData[id]).reduce(
-          (totals, yearData) => {
-            Object.entries(yearData.totalsByCharacteristic).forEach(
-              ([charc, count]) => {
-                if (count <= 0) return;
-                if (charc in totals) totals[charc] += count;
-                else totals[charc] = count;
-              },
-            );
-            return totals;
-          },
-          {} as { [characteristic: string]: number },
-        ),
-      };
-    } else {
-      return location;
+      location.dataByYear = annualData[id];
+      // Get all-time characteristics by group
+      location.characteristicsByGroup = Object.values(annualData[id]).reduce(
+        (groups, yearData) => {
+          Object.entries(yearData.characteristicsByGroup).forEach(
+            ([group, charcList]) => {
+              groups[group] = Array.from(
+                new Set(charcList.concat(groups[group] ?? [])),
+              );
+            },
+          );
+          return groups;
+        },
+        {} as { [group: string]: string[] },
+      );
+      // Tally characteristic counts
+      location.totalsByCharacteristic = Object.values(annualData[id]).reduce(
+        (totals, yearData) => {
+          Object.entries(yearData.totalsByCharacteristic).forEach(
+            ([charc, count]) => {
+              if (count <= 0) return;
+              if (charc in totals) totals[charc] += count;
+              else totals[charc] = count;
+            },
+          );
+          return totals;
+        },
+        {} as { [characteristic: string]: number },
+      );
     }
   });
 }
 
 function buildFeatures(locations: MonitoringLocationAttributes[]) {
-  const structuredProps = [
-    'characteristicsByGroup',
-    'totalsByCharacteristic',
-    'totalsByGroup',
-    'timeframe',
-  ];
   return locations.map((location) => {
-    const attributes = stringifyAttributes(structuredProps, location);
+    const attributes = stringifyAttributes(complexProps, location);
     return new Graphic({
       geometry: new Point({
         longitude: attributes.locationLongitude,
@@ -411,6 +396,7 @@ function buildLayer(
     fields: [
       { name: 'OBJECTID', type: 'oid' },
       { name: 'characteristicsByGroup', type: 'string' },
+      { name: 'dataByYear', type: 'string' },
       { name: 'monitoringType', type: 'string' },
       { name: 'siteId', type: 'string' },
       { name: 'orgId', type: 'string' },
@@ -425,6 +411,7 @@ function buildLayer(
       { name: 'totalSamples', type: 'integer' },
       { name: 'totalsByCharacteristic', type: 'string' },
       { name: 'totalsByGroup', type: 'string' },
+      { name: 'totalsByLabel', type: 'string' },
       { name: 'totalMeasurements', type: 'integer' },
       { name: 'timeframe', type: 'string' },
       { name: 'uniqueId', type: 'string' },
@@ -457,14 +444,8 @@ function buildLayer(
       title: getTitle,
       content: (feature: Feature) => {
         // Parse non-scalar variables
-        const structuredProps = [
-          'characteristicsByGroup',
-          'totalsByCharacteristic',
-          'totalsByGroup',
-          'timeframe',
-        ];
         feature.graphic.attributes = parseAttributes(
-          structuredProps,
+          complexProps,
           feature.graphic.attributes,
         );
         return getTemplate(feature);
@@ -610,6 +591,15 @@ function transformServiceData(
 /*
 ## Constants
 */
+
+export const complexProps = [
+  'characteristicsByGroup',
+  'dataByYear',
+  'totalsByCharacteristic',
+  'totalsByGroup',
+  'totalsByLabel',
+  'timeframe',
+];
 
 const initialWorkerData = () => ({
   minYear: 0,
