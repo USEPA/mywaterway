@@ -8,7 +8,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useGlossaryState } from 'contexts/Glossary';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 // errors
 import { glossaryError } from 'config/errorMessages';
 // helpers
@@ -44,13 +44,15 @@ const TermStyles = createGlobalStyle`
 const iconStyles = css`
   font-weight: 900;
   color: rgba(0, 113, 188, 0.5);
+  margin-right: 0.25em;
+  padding-right: 0 !important;
 `;
 
 const panelStyles = css`
   position: fixed;
-  z-index: 1000;
+  z-index: 1001;
   top: 0;
-  right: 0;
+  right: -22.375rem;
   overflow-y: auto;
   width: 22rem;
   height: 100%;
@@ -58,8 +60,8 @@ const panelStyles = css`
   box-shadow: -0.375em -0.375em 0.625em -0.375em ${colors.black(0.25)};
   transition: right 0.2s;
 
-  &[aria-hidden='true'] {
-    right: -22.375rem;
+  &[aria-hidden='false'] {
+    right: 0;
   }
 
   @media (max-width: 400px) {
@@ -187,7 +189,7 @@ function GlossaryPanel({ path }) {
 
   // initialize Glossary panel
   useEffect(() => {
-    if (!window.fetchGlossaryTerms) return;
+    if (!window.hasOwnProperty('fetchGlossaryTerms')) return;
 
     if (!initialized) {
       setInitialized(true);
@@ -258,7 +260,12 @@ function GlossaryPanel({ path }) {
             />
           )}
 
-          <ul css={listStyles} className="js-glossary-list" />
+          <ul
+            aria-labelledby="glossary-title"
+            css={listStyles}
+            className="js-glossary-list"
+            tabIndex="0"
+          />
         </div>
       </div>
     </>
@@ -270,14 +277,15 @@ export default GlossaryPanel;
 type Props = {
   term: string,
   className?: string,
+  id?: string,
   style?: Object,
   children: Node,
 };
 
-function GlossaryTerm({ term, className, style, children }: Props) {
+function GlossaryTerm({ term, className, id, style, children }: Props) {
   const [status, setStatus] = useState('fetching');
 
-  if (window.fetchGlossaryTerms) {
+  if (window.hasOwnProperty('fetchGlossaryTerms')) {
     window.fetchGlossaryTerms
       .then((terms) => setStatus(terms.status))
       .catch((err) => {
@@ -288,6 +296,7 @@ function GlossaryTerm({ term, className, style, children }: Props) {
 
   return (
     <span
+      id={id}
       data-term={term}
       data-disabled={status === 'fetching'}
       title="Click to define"
@@ -306,7 +315,6 @@ function GlossaryTerm({ term, className, style, children }: Props) {
         status={status}
         aria-hidden="true"
       />
-      &nbsp;
       {children}
     </span>
   );

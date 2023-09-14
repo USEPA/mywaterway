@@ -8,7 +8,7 @@
   background-color: white;
 }
 
-.esri-widget--panel,
+.hmw-map-layers,
 .esri-view .esri-basemap-gallery {
   min-width: 200px;
   max-width: 200px;
@@ -45,6 +45,12 @@
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
+.esri-print__header-title {
+  font-size: 1.25em;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
 .esri-layer-list__item-title {
   align-self: center;
   font-size: 0.8125em;
@@ -52,6 +58,10 @@
 
 .esri-scale-bar {
   z-index: 0;
+}
+
+.esri-scale-bar__label {
+  overflow: auto;
 }
 
 .esri-view-width-less-than-medium .esri-popup__main-container {
@@ -71,6 +81,10 @@
 
 .esri-popup__content {
   margin: 0 0 12px 0;
+}
+
+.esri-popup__inline-actions-container {
+  width: 60% !important;
 }
 
 /* small screens (redfin style) docked to the bottom */
@@ -181,6 +195,10 @@
 
 .esri-legend__message {
   display: none;
+}
+
+.esri-attribution__powered-by {
+  overflow: auto;
 }
 
 .hidden {

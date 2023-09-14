@@ -12,7 +12,7 @@ import Monitoring from 'components/pages/Community.Tabs.Monitoring';
 import IdentifiedIssues from 'components/pages/Community.Tabs.IdentifiedIssues';
 import Restore from 'components/pages/Community.Tabs.Restore';
 import Protect from 'components/pages/Community.Tabs.Protect';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -115,12 +115,10 @@ function EatingFishUpper() {
         {fishingInfo.status === 'success' ? (
           <>
             {fishingInfo.data.map((state, index) => {
-              const seperator =
-                index === 0
-                  ? ''
-                  : index === fishingInfo.data.length - 1
-                  ? ' and '
-                  : ', ';
+              let seperator = ', ';
+              if (index === 0) seperator = '';
+              else if (index === fishingInfo.data.length - 1)
+                seperator = ' and ';
 
               const matchedState = statesData.data.find((s) => {
                 return s.code === state.stateCode;
@@ -276,7 +274,11 @@ function IdentifiedIssuesUpper() {
     <p>
       Waters can be impacted by a variety of impairments. Below you can see
       impairments degrading certain uses of these waters and those dischargers
-      in significant violation of their permit.
+      in{' '}
+      <GlossaryTerm term="Significant Violations">
+        significant violation
+      </GlossaryTerm>{' '}
+      of their permit.
     </p>
   );
 }
@@ -286,7 +288,11 @@ function RestoreUpper() {
     <p>
       Efforts are underway to restore your community’s water through grants and
       clean-up plans at the local, state, and federal level. View restoration
-      plans and EPA funded restoration projects.
+      plans and EPA funded{' '}
+      <GlossaryTerm term="Nonpoint Source Pollution">
+        Nonpoint Source
+      </GlossaryTerm>{' '}
+      restoration projects.
     </p>
   );
 }
@@ -362,7 +368,7 @@ const tabs = [
     },
   },
   {
-    title: 'Monitoring',
+    title: 'Water Monitoring',
     route: '/community/{urlSearch}/monitoring',
     icon: monitoringIcon,
     upper: <MonitoringUpper />,

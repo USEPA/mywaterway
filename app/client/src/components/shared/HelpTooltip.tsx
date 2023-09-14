@@ -3,7 +3,7 @@ import { TooltipPopup, useTooltip } from '@reach/tooltip';
 import { css } from 'styled-components/macro';
 // styles
 import '@reach/tooltip/styles.css';
-import { colors } from 'styles';
+import { colors, iconButtonStyles } from 'styles';
 // types
 import type { Position } from '@reach/tooltip';
 import type { ReactElement, ReactNode, Ref } from 'react';
@@ -15,14 +15,9 @@ const helpIconStyles = css`
   cursor: help;
 `;
 
-const tooltipIconStyles = css`
-  background: none;
-  border: none;
-  color: inherit;
+const modifiedIconButtonStyles = css`
+  ${iconButtonStyles}
   cursor: unset !important;
-  margin: 0;
-  outline: inherit;
-  padding: 0;
 `;
 
 const tooltipStyles = css`
@@ -94,7 +89,7 @@ function HelpTooltip({
   return (
     <Tooltip label={label} triggerRef={triggerRef}>
       <button
-        css={tooltipIconStyles}
+        css={modifiedIconButtonStyles}
         onClick={(_ev) => triggerRef.current?.focus()}
         ref={triggerRef}
       >
@@ -103,7 +98,7 @@ function HelpTooltip({
         ) : (
           <i aria-hidden css={helpIconStyles} className={iconClass} />
         )}
-        <span className="sr-only">{description || 'Information Tooltip'}</span>
+        <span className="sr-only">{description ?? 'Information Tooltip'}</span>
       </button>
     </Tooltip>
   );

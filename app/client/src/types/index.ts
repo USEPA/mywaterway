@@ -9,6 +9,7 @@ export interface AllotmentAttributes {
 }
 
 export interface AnnualStationData {
+  characteristicsByGroup: { [group: string]: string[] };
   uniqueId: string;
   totalMeasurements: number;
   totalSamples: number;
@@ -16,6 +17,44 @@ export interface AnnualStationData {
   totalsByGroup: { [group: string]: number };
   totalsByLabel: { [label: string]: number };
 }
+
+interface AssessmentUseAttainment {
+  agencyCode: string;
+  assessmentMetadata?: {
+    assessmentActivity?: {
+      assessmentDate: string;
+      assessorName?: string;
+    };
+    assessmentBasisCode?: string;
+    assessmentMethodTypes: {
+      methodTypeCode: string;
+      methodTypeContext: string;
+      methodTypeName: string;
+    }[];
+    assessmentTypes?: {
+      assessmentConfidenceCode: string;
+      assessmentTypeCode: string;
+    }[];
+    monitoringActivity?: {
+      monitoringEndDate?: string;
+      monitoringStartDate?: string;
+    };
+  };
+  threatenedIndicator: string;
+  trendCode?: string;
+  useAttainmentCode: string;
+  useAttainmentCodeName: string;
+  useName: string;
+}
+
+export interface AssessmentUseAttainmentByGroup {
+  [useGroup: string]: AssessmentUseAttainment[];
+}
+
+export type AssessmentUseAttainmentState =
+  | { status: 'fetching'; data: null }
+  | { status: 'failure'; data: null }
+  | { status: 'success'; data: AssessmentUseAttainmentByGroup };
 
 export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
@@ -34,6 +73,17 @@ export interface CongressionalDistrictAttributes {
 export interface CountyAttributes {
   CNTY_FIPS: string;
   STATE_NAME: string;
+}
+
+export interface CyanWaterbodyAttributes {
+  AREASQKM: number;
+  FID: number;
+  geometry: __esri.Polygon;
+  GNIS_NAME: string;
+  locationName: string;
+  monitoringType: 'Blue-Green Algae';
+  oid: number;
+  orgName: 'Cyanobacteria Assessment Network (CyAN)';
 }
 
 export interface DischargerAttributes {
@@ -60,13 +110,8 @@ export interface DischargerPermitComponents {
   };
 }
 
-
 export interface EjScreenAttributes {
   T_OVR64PCT: string;
-}
-
-export interface CyanAttributes {
-  GNIS_NAME: string;
 }
 
 export interface Feature {
@@ -74,9 +119,11 @@ export interface Feature {
 }
 
 interface FetchEmptyState {
-  status: 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
+  status: FetchEmptyStatus;
   data: {} | [] | null;
 }
+
+type FetchEmptyStatus = 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
 
 export interface FetchSuccessState<Type> {
   status: 'success';
@@ -85,12 +132,20 @@ export interface FetchSuccessState<Type> {
 
 export type FetchState<Type> = FetchEmptyState | FetchSuccessState<Type>;
 
+export type FetchStateWithDefault<Type> = {
+  status: Exclude<FetchStatus, 'empty' | 'fetching'>;
+  data: Type;
+};
+
+export type FetchStatus = FetchEmptyStatus | 'success';
+
+export type EffluentToggleObject = {
+  compliant: boolean;
+  violating: boolean;
+};
+
 export interface ExtendedGraphic extends __esri.Graphic {
   originalGeometry?: __esri.Geometry;
-}
-
-export interface ExtendedLayer extends __esri.Layer {
-  parent?: __esri.Layer | __esri.Map;
 }
 
 export interface Huc12SummaryData {
@@ -173,7 +228,9 @@ export type LookupFile = {
 };
 
 export interface MonitoringFeatureUpdate {
+  characteristicsByGroup: { [group: string]: string[] };
   totalMeasurements: number;
+  totalsByCharacteristic: { [characteristic: string]: number };
   totalsByGroup: { [group: string]: number };
   timeframe: [number, number];
 }
@@ -183,6 +240,7 @@ export type MonitoringFeatureUpdates = {
 } | null;
 
 export interface MonitoringLocationAttributes {
+  characteristicsByGroup: { [group: string]: string[] };
   county: string;
   monitoringType: 'Past Water Conditions';
   siteId: string;
@@ -195,12 +253,13 @@ export interface MonitoringLocationAttributes {
   locationUrl: string;
   locationUrlPartial: string;
   state: string;
-  dataByYear: { [year: string | number]: AnnualStationData } | null;
+  dataByYear: { [year: string | number]: AnnualStationData };
   providerName: string;
   totalSamples: number;
   totalMeasurements: number;
-  totalsByGroup: { [groups: string]: number };
-  totalsByLabel: { [label: string]: number } | null;
+  totalsByCharacteristic: { [characteristic: string]: number };
+  totalsByGroup: { [group: string]: number };
+  totalsByLabel: { [label: string]: number };
   timeframe: [number, number] | null;
   uniqueId: string;
 }
@@ -243,13 +302,7 @@ export interface MonitoringLocationsData {
   type: 'FeatureCollection';
 }
 
-export type MonitoringYearsRange = number[] | null;
-
-export type MonitoringWorkerData = {
-  minYear: number;
-  maxYear: number;
-  annualData: any;
-};
+export type MonitoringYearsRange = [number, number];
 
 export interface NonProfitAttributes {
   Name?: string;
@@ -306,7 +359,7 @@ export type PopupAttributes =
   | WaterbodyAttributes
   | WildScenicRiverAttributes
   | WsioHealthIndexAttributes
-  | CyanAttributes;
+  | CyanWaterbodyAttributes;
 
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
@@ -332,6 +385,7 @@ export interface ServicesData {
     getFacilities: string;
     metadata: string;
   };
+  printService: string;
   upstreamWatershed: string;
   usgsDailyValues: string;
   usgsSensorThingsAPI: string;

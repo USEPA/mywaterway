@@ -23,14 +23,10 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { useKeyPress } from 'utils/hooks';
-import {
-  containsScriptTag,
-  indicesOf,
-  isHuc12,
-  splitSuggestedSearch,
-} from 'utils/utils';
+import { containsScriptTag, indicesOf, isHuc12 } from 'utils/utils';
+import { splitSuggestedSearch } from 'utils/mapFunctions';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 // errors
 import {
   invalidSearchError,
@@ -876,9 +872,7 @@ function LocationSearch({ route, label }: Props) {
                     watershed &&
                     huc12
                       ? `WATERSHED: ${watershed} (${huc12})`
-                      : inputText.indexOf('|') > -1
-                      ? inputText.split('|')[0]
-                      : inputText
+                      : inputText.split('|')[0]
                   }
                   onChange={(ev) => {
                     setInputText(ev.target.value);

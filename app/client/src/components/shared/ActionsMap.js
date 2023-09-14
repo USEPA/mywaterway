@@ -14,7 +14,10 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -70,6 +73,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const [layers, setLayers] = useState(null);
 
   const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
@@ -138,11 +142,9 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
         'x-tiff',
         'x-windows-bmp',
       ].map((imageType) => `image/${imageType}`);
-      const photo =
-        documents &&
-        documents.find((document) =>
-          allowedTypes.includes(document.documentFileType),
-        );
+      const photo = documents?.find((document) =>
+        allowedTypes.includes(document.documentFileType),
+      );
       return photo ? photo.documentURL : null;
     },
     [services],
@@ -234,6 +236,8 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 feature,
                 extraContent: unitIds[auId](reportingCycle, true),
                 navigate,
+                services,
+                stateNationalUses,
               });
             } else if (includePhoto) {
               const photoLink = await getPhotoLink(
@@ -254,11 +258,18 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 feature,
                 extraContent,
                 navigate,
+                services,
+                stateNationalUses,
               });
             } else {
               // when no content is provided just display the normal community
               // waterbody content
-              content = getPopupContent({ feature, navigate });
+              content = getPopupContent({
+                feature,
+                navigate,
+                services,
+                stateNationalUses,
+              });
             }
 
             return new Graphic({
@@ -330,6 +341,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     onLoad,
     includePhoto,
     services,
+    stateNationalUses,
     unitIds,
   ]);
 
