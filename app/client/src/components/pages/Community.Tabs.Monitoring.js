@@ -1,13 +1,15 @@
 // @flow
 
+import uniqueId from 'lodash/uniqueId';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
+import { css } from 'styled-components/macro';
 // components
 import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
@@ -25,7 +27,7 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
-import { errorBoxStyles, infoBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -34,15 +36,13 @@ import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
-import {
-  initialWorkerData,
-  LocationSearchContext,
-} from 'contexts/locationSearch';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
-  useStreamgages,
+  useCyanWaterbodies,
   useMonitoringGroups,
+  useStreamgages,
   useWaterbodyOnMap,
 } from 'utils/hooks';
 // data
@@ -58,8 +58,9 @@ import {
   colors,
   disclaimerStyles,
   iconStyles,
+  tabLegendStyles,
   toggleTableStyles,
-} from 'styles/index.js';
+} from 'styles/index';
 
 /*
  * Styles
@@ -75,23 +76,6 @@ const centeredTextStyles = css`
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
-  }
-`;
-
-const legendItemsStyles = css`
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-around;
-
-  span {
-    display: flex;
-    align-items: center;
-    font-size: 0.875em;
-    margin-bottom: 1em;
-
-    @media (min-width: 560px) {
-      font-size: 1em;
-    }
   }
 `;
 
@@ -123,23 +107,6 @@ const showLessMoreStyles = css`
 `;
 
 const sliderContainerStyles = css`
-  align-items: flex-end;
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  width: 100%;
-  span {
-    &:first-of-type {
-      margin-left: 1em;
-    }
-    &:last-of-type {
-      margin-right: 1em;
-    }
-  }
-`;
-
-const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
-  ${styles}
   margin: 1em 0;
 `;
 
@@ -150,7 +117,10 @@ const subheadingStyles = css`
 `;
 
 const switchContainerStyles = css`
-  margin-top: 0.5em;
+  margin-bottom: 0;
+  & > div {
+    margin-top: 0.5em;
+  }
 `;
 
 const tableFooterStyles = css`
@@ -172,6 +142,7 @@ const tableFooterStyles = css`
 const toggleStyles = css`
   display: flex;
   align-items: center;
+  margin-bottom: 0;
 
   span {
     margin-left: 0.5rem;
@@ -185,63 +156,8 @@ const totalRowStyles = css`
 `;
 
 /*
- ** Helpers
- */
-
-// Passes parsing of historical CSV data to a Web Worker,
-// which itself utilizes an external service
-function usePeriodOfRecordData(filter, param) {
-  const { monitoringWorkerData, setMonitoringWorkerData } = useContext(
-    LocationSearchContext,
-  );
-  const services = useServicesContext();
-  const [url, setUrl] = useState(null);
-
-  // Clear the data on change of location
-  const resetWorkerData = useCallback(() => {
-    setMonitoringWorkerData(initialWorkerData);
-  }, [setMonitoringWorkerData]);
-
-  // Craft the URL
-  useEffect(() => {
-    if (param !== 'huc12' && param !== 'siteId') return;
-    if (!filter) return;
-
-    let recordUrl = null;
-    if (services.status === 'success') {
-      recordUrl =
-        `${services.data.waterQualityPortal.monitoringLocation}search?` +
-        `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
-      recordUrl += param === 'huc12' ? `&huc=${filter}` : `&siteid=${filter}`;
-      setUrl(recordUrl);
-    }
-  }, [filter, param, services]);
-
-  // Create the worker and assign it a job,
-  // then listen for a response
-  useEffect(() => {
-    if (!filter || !url) return;
-    if (!window.Worker) {
-      throw new Error("Your browser doesn't support web workers");
-    }
-    const origin = window.location.origin;
-    const recordsWorker = new Worker(`${origin}/periodOfRecordWorker.js`);
-    recordsWorker.postMessage([url, origin, characteristicGroupMappings]);
-    recordsWorker.onmessage = (message) => {
-      if (message.data && typeof message.data === 'string') {
-        const parsedData = JSON.parse(message.data);
-        parsedData.minYear = parseInt(parsedData.minYear);
-        parsedData.maxYear = parseInt(parsedData.maxYear);
-        setMonitoringWorkerData(parsedData);
-      }
-    };
-    return function cleanup() {
-      recordsWorker.terminate();
-    };
-  }, [filter, setMonitoringWorkerData, url]);
-
-  return [monitoringWorkerData, resetWorkerData];
-}
+## Helpers
+*/
 
 // Dynamically filter the displayed locations
 function filterStation(station, timeframe) {
@@ -249,28 +165,50 @@ function filterStation(station, timeframe) {
   const stationRecords = station.dataByYear;
   const result = {
     ...station,
+    characteristicsByGroup: {},
     totalMeasurements: 0,
+    totalsByCharacteristic: {},
     totalsByGroup: {},
     totalsByLabel: {},
     timeframe: [...timeframe],
   };
+  // Include the label in the object even if zero
   characteristicGroupMappings.forEach((mapping) => {
     result.totalsByLabel[mapping.label] = 0;
   });
   for (const year in stationRecords) {
     if (parseInt(year) < timeframe[0]) continue;
-    if (parseInt(year) > timeframe[1]) return result;
+    if (parseInt(year) > timeframe[1]) break;
     result.totalMeasurements += stationRecords[year].totalMeasurements;
+    // Tally characteristic group counts
     const resultGroups = result.totalsByGroup;
     Object.entries(stationRecords[year].totalsByGroup).forEach(
       ([group, count]) => {
-        resultGroups[group] = !resultGroups[group]
-          ? count
-          : resultGroups[group] + count;
+        if (count <= 0) return;
+        if (group in resultGroups) resultGroups[group] += count;
+        else resultGroups[group] = count;
       },
     );
+    // Tally characteristic label counts
     Object.entries(stationRecords[year].totalsByLabel).forEach(
-      ([key, value]) => (result.totalsByLabel[key] += value),
+      ([label, count]) => (result.totalsByLabel[label] += count),
+    );
+    // Tally characteristic counts
+    const resultCharcs = result.totalsByCharacteristic;
+    Object.entries(stationRecords[year].totalsByCharacteristic).forEach(
+      ([charc, count]) => {
+        if (count <= 0) return;
+        if (charc in resultCharcs) resultCharcs[charc] += count;
+        else resultCharcs[charc] = count;
+      },
+    );
+    // Get timeframe characteristics by group
+    Object.entries(stationRecords[year].characteristicsByGroup).forEach(
+      ([group, charcList]) => {
+        result.characteristicsByGroup[group] = Array.from(
+          new Set(charcList.concat(result.characteristicsByGroup[group] ?? [])),
+        );
+      },
     );
   }
 
@@ -300,8 +238,6 @@ function filterLocations(groups, timeframe) {
 }
 
 function Monitoring() {
-  const { cyanWaterbodies } = useContext(LocationSearchContext);
-
   const {
     monitoringLocationsLayer,
     updateVisibleLayers,
@@ -309,7 +245,8 @@ function Monitoring() {
     visibleLayers,
   } = useLayers();
 
-  const { monitoringLocations, usgsStreamgages } = useFetchedDataState();
+  const { cyanWaterbodies, monitoringLocations, usgsStreamgages } =
+    useFetchedDataState();
 
   const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
     useState(true);
@@ -377,46 +314,40 @@ function Monitoring() {
           {usgsStreamgages.status === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {totalCurrentWaterConditions || 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Current Water Conditions</p>
-              <div css={switchContainerStyles}>
-                <Switch
-                  checked={
-                    Boolean(totalCurrentWaterConditions) &&
-                    currentWaterConditionsDisplayed
-                  }
-                  onChange={handleCurrentWaterConditionsToggle}
-                  disabled={!Boolean(totalCurrentWaterConditions)}
-                  ariaLabel="Current Water Conditions"
-                />
-              </div>
-            </>
+              <Switch
+                checked={
+                  Boolean(totalCurrentWaterConditions) &&
+                  currentWaterConditionsDisplayed
+                }
+                onChange={handleCurrentWaterConditionsToggle}
+                disabled={!totalCurrentWaterConditions}
+              />
+            </label>
           )}
         </div>
         <div css={keyMetricStyles}>
           {monitoringLocations.status === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {monitoringLocations.data?.length || 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Past Water Conditions</p>
-              <div css={switchContainerStyles}>
-                <Switch
-                  checked={
-                    Boolean(monitoringLocations.data?.length) &&
-                    monitoringDisplayed
-                  }
-                  onChange={handlePastWaterConditionsToggle}
-                  disabled={!Boolean(monitoringLocations.data?.length)}
-                  ariaLabel="Past Water Conditions"
-                />
-              </div>
-            </>
+              <Switch
+                checked={
+                  Boolean(monitoringLocations.data?.length) &&
+                  monitoringDisplayed
+                }
+                onChange={handlePastWaterConditionsToggle}
+                disabled={!monitoringLocations.data?.length}
+              />
+            </label>
           )}
         </div>
       </div>
@@ -481,18 +412,14 @@ function CurrentConditionsTab({
 
   const services = useServicesContext();
 
-  const { cyanWaterbodies, mapView, watershed } = useContext(
-    LocationSearchContext,
-  );
+  const { mapView, watershed } = useContext(LocationSearchContext);
 
+  const { cyanWaterbodies, cyanWaterbodiesStatus } = useCyanWaterbodies();
   const { streamgages, streamgagesStatus } = useStreamgages();
 
   const [sortedBy, setSortedBy] = useState('locationName');
 
-  const sortedLocations = [
-    ...streamgages,
-    ...(cyanWaterbodies.status === 'success' ? cyanWaterbodies.data : []),
-  ].sort((a, b) => {
+  const sortedLocations = [...streamgages, ...cyanWaterbodies].sort((a, b) => {
     if (sortedBy in a && sortedBy in b) {
       return a[sortedBy].localeCompare(b[sortedBy]);
     } else if (sortedBy in a) return -1;
@@ -507,7 +434,7 @@ function CurrentConditionsTab({
     }
 
     if (cyanDisplayed) {
-      displayedTypes.push('CyAN');
+      displayedTypes.push('Blue-Green Algae');
     }
 
     return displayedTypes.includes(item.monitoringType);
@@ -531,6 +458,8 @@ function CurrentConditionsTab({
 
   const handleSortChange = useCallback(({ value }) => setSortedBy(value), []);
 
+  const [switchId] = useState(uniqueId('habs-switch-'));
+
   if (streamgagesStatus === 'pending') return <LoadingSpinner />;
 
   return (
@@ -541,7 +470,7 @@ function CurrentConditionsTab({
         </div>
       )}
 
-      {cyanWaterbodies.status === 'failure' && (
+      {cyanWaterbodiesStatus === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
           <p>{cyanError}</p>
         </div>
@@ -576,13 +505,15 @@ function CurrentConditionsTab({
                 <>
                   <span css={showLessMoreStyles}>
                     Areas highlighted light blue are the lakes, reservoirs, and
-                    other large waterbodies where CyAN satellite imagery data is
-                    available. Daily data are a snapshot of{' '}
-                    <GlossaryTerm term="Cyanobacteria">
-                      cyanobacteria
+                    other large waterbodies where{' '}
+                    <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
+                      potential harmful algal bloom
                     </GlossaryTerm>{' '}
-                    (sometimes referred to as blue-green algae) at the time of
-                    detection.
+                    data is available. Daily data are a snapshot of{' '}
+                    <GlossaryTerm term="Blue-Green Algae">
+                      blue-green algae
+                    </GlossaryTerm>{' '}
+                    at the time of detection.
                   </span>
 
                   <span css={showLessMoreStyles}>
@@ -595,13 +526,17 @@ function CurrentConditionsTab({
             />
           </p>
 
-          <div css={legendItemsStyles}>
+          <div css={tabLegendStyles}>
             <span>
-              {waterwayIcon({ color: '#6c95ce' })}
-              &nbsp;CyAN Satellite Imagery&nbsp;
+              {waterwayIcon({ color: colors.darkCyan() })}
+              &nbsp;
+              <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
+                Potential Harmful Algal Blooms (HABs)
+              </GlossaryTerm>
+              &nbsp;
             </span>
             <span>
-              {squareIcon({ color: '#fffe00' })}
+              {squareIcon({ color: colors.yellow() })}
               &nbsp;USGS Sensors&nbsp;
             </span>
           </div>
@@ -618,17 +553,16 @@ function CurrentConditionsTab({
             <tbody>
               <tr>
                 <td>
-                  <div css={toggleStyles}>
+                  <label css={toggleStyles}>
                     <Switch
                       checked={
                         streamgages.length > 0 && usgsStreamgagesDisplayed
                       }
                       onChange={handleUsgsSensorsToggle}
                       disabled={streamgages.length === 0}
-                      ariaLabel="USGS Sensors"
                     />
                     <span>USGS Sensors</span>
-                  </div>
+                  </label>
                 </td>
                 <td>{streamgages.length}</td>
               </tr>
@@ -636,20 +570,23 @@ function CurrentConditionsTab({
                 <td>
                   <div css={toggleStyles}>
                     <Switch
-                      checked={
-                        cyanWaterbodies.data?.length > 0 && cyanDisplayed
-                      }
+                      ariaLabelledBy={switchId}
+                      checked={cyanWaterbodies.length > 0 && cyanDisplayed}
                       onChange={handleCyanWaterbodiesToggle}
                       disabled={
-                        cyanWaterbodies.status !== 'success' ||
-                        cyanWaterbodies.data?.length === 0
+                        cyanWaterbodiesStatus !== 'success' ||
+                        cyanWaterbodies.length === 0
                       }
-                      ariaLabel="CyAN Satellite Imagery"
                     />
-                    <span>CyAN Satellite Imagery</span>
+                    <GlossaryTerm
+                      id={switchId}
+                      term="Potential Harmful Algal Blooms (HABs)"
+                    >
+                      Potential Harmful Algal Blooms (HABs)
+                    </GlossaryTerm>
                   </div>
                 </td>
-                <td>{cyanWaterbodies.data?.length ?? 'N/A'}</td>
+                <td>{cyanWaterbodies.length ?? 'N/A'}</td>
               </tr>
             </tbody>
           </table>
@@ -658,9 +595,8 @@ function CurrentConditionsTab({
             title={
               <>
                 <strong>{filteredLocations.length}</strong> of{' '}
-                <strong>{sortedLocations.length}</strong>{' '}
-                {sortedLocations.length === 1 ? 'location' : 'locations'} with
-                data in the <em>{watershed}</em> watershed.
+                <strong>{sortedLocations.length}</strong> locations with data in
+                the <em>{watershed}</em> watershed.
               </>
             }
             onSortChange={handleSortChange}
@@ -694,7 +630,7 @@ function CurrentConditionsTab({
                   return (
                     <AccordionItem
                       ariaLabel={item.locationName}
-                      icon={squareIcon({ color: '#fffe00' })}
+                      icon={squareIcon({ color: colors.yellow() })}
                       key={item.uniqueId}
                       title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
@@ -721,7 +657,7 @@ function CurrentConditionsTab({
                     </AccordionItem>
                   );
                 }
-                case 'CyAN': {
+                case 'Blue-Green Algae': {
                   const feature = {
                     geometry: item.geometry,
                     attributes: item,
@@ -729,7 +665,7 @@ function CurrentConditionsTab({
                   return (
                     <AccordionItem
                       ariaLabel={item.GNIS_NAME}
-                      icon={waterwayIcon({ color: '#6c95ce' })}
+                      icon={waterwayIcon({ color: colors.darkCyan() })}
                       key={item.FID}
                       title={<strong>{item.GNIS_NAME || 'Unknown'}</strong>}
                       subTitle={
@@ -746,7 +682,7 @@ function CurrentConditionsTab({
                           feature={feature}
                           mapView={mapView}
                           services={services}
-                          type="CyAN"
+                          type="Blue-Green Algae"
                         />
                         <ViewOnMapButton feature={feature} fieldName="FID" />
                       </div>
@@ -769,24 +705,31 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
   const {
     huc12,
-    monitoringGroups,
+    monitoringPeriodOfRecordStatus,
     monitoringYearsRange,
+    selectedMonitoringYearsRange,
     setMonitoringFeatureUpdates,
-    setMonitoringGroups,
-    setMonitoringYearsRange,
+    setSelectedMonitoringYearsRange,
     watershed,
   } = useContext(LocationSearchContext);
+  const annualRecordsReady = monitoringPeriodOfRecordStatus === 'success';
 
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations } = useFetchedDataState();
-  useMonitoringGroups();
+  const { monitoringGroups, setMonitoringGroups } = useMonitoringGroups();
 
   const updateFeatures = useCallback(
     (locations) => {
       const stationUpdates = {};
       locations.forEach((location) => {
         stationUpdates[location.uniqueId] = {
+          characteristicsByGroup: JSON.stringify(
+            location.characteristicsByGroup,
+          ),
           totalMeasurements: location.totalMeasurements,
+          totalsByCharacteristic: JSON.stringify(
+            location.totalsByCharacteristic,
+          ),
           totalsByGroup: JSON.stringify(location.totalsByGroup),
           timeframe: JSON.stringify(location.timeframe),
         };
@@ -842,7 +785,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   );
 
   const groupToggleHandlers = useMemo(() => {
-    if (!monitoringGroups) return null;
     const toggles = {};
     Object.values(monitoringGroups)
       .filter((group) => group.label !== 'All')
@@ -851,29 +793,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
       });
     return toggles;
   }, [monitoringGroups, groupToggleHandler]);
-
-  // The data returned by the worker
-  const [{ minYear, maxYear, annualData }, resetWorkerData] =
-    usePeriodOfRecordData(huc12, 'huc12');
-
-  // Reset data if the user switches locations
-  useEffect(() => {
-    if (!huc12) return;
-
-    return function cleanup() {
-      resetWorkerData();
-      setMonitoringYearsRange(null);
-      setAllToggled(true);
-      if (!monitoringLocationsLayer) return;
-
-      monitoringLocationsLayer.definitionExpression = '';
-    };
-  }, [
-    huc12,
-    monitoringLocationsLayer,
-    resetWorkerData,
-    setMonitoringYearsRange,
-  ]);
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
   // create the filter string for download links based on active toggles
@@ -897,95 +816,44 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         }
       }
 
-      if (monitoringYearsRange) {
-        filter += `&startDateLo=01-01-${monitoringYearsRange[0]}&startDateHi=12-31-${monitoringYearsRange[1]}`;
+      if (annualRecordsReady) {
+        filter += `&startDateLo=01-01-${selectedMonitoringYearsRange[0]}&startDateHi=12-31-${selectedMonitoringYearsRange[1]}`;
       }
 
       setCharGroupFilters(filter);
     },
-    [setCharGroupFilters, monitoringYearsRange],
+    [setCharGroupFilters, annualRecordsReady, selectedMonitoringYearsRange],
   );
 
   const [displayedLocations, setDisplayedLocations] = useState([]);
   // All stations in the current time range
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
-    if (!monitoringLocationsLayer || !monitoringGroups) return;
-
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
-      monitoringYearsRange,
+      annualRecordsReady ? selectedMonitoringYearsRange : null,
     );
 
     // Add filtered data that's relevent to map popups
-    if (monitoringYearsRange) {
+    if (annualRecordsReady) {
       updateFeatures(toggledLocations);
-    }
-
-    // generate a list of location ids
-    const locationIds = [];
-    toggledLocations.forEach((station) => {
-      locationIds.push(station.uniqueId);
-    });
-
-    // update the filters on the layer
-    if (toggledLocations.length === monitoringGroups?.['All'].stations.length) {
-      monitoringLocationsLayer.definitionExpression = '';
-    } else if (locationIds.length === 0) {
-      monitoringLocationsLayer.definitionExpression = '1=0';
-    } else {
-      monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
-        "','",
-      )}')`;
     }
 
     setCurrentLocations(allLocations);
     setDisplayedLocations(toggledLocations);
   }, [
+    annualRecordsReady,
     monitoringGroups,
-    monitoringLocationsLayer,
-    monitoringYearsRange,
+    selectedMonitoringYearsRange,
     updateFeatures,
-  ]);
-
-  // Add the stations historical data to the `dataByYear` property,
-  // then initializes the date slider
-  const addAnnualData = useCallback(async () => {
-    if (!monitoringGroups) return;
-
-    const updatedMonitoringGroups = { ...monitoringGroups };
-    for (const label in updatedMonitoringGroups) {
-      for (const station of updatedMonitoringGroups[label].stations) {
-        const id = station.uniqueId;
-        if (id in annualData) {
-          station.dataByYear = annualData[id];
-        }
-      }
-    }
-    setMonitoringGroups(updatedMonitoringGroups);
-    setMonitoringYearsRange([minYear, maxYear]);
-  }, [
-    maxYear,
-    minYear,
-    monitoringGroups,
-    annualData,
-    setMonitoringGroups,
-    setMonitoringYearsRange,
   ]);
 
   const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
   const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
     useState(0);
-  useEffect(() => {
-    if (Object.keys(annualData).length === 0) return;
-    if (monitoringYearsRange) return;
-    addAnnualData();
-  }, [addAnnualData, annualData, monitoringYearsRange]);
 
   // Updates total counts after displayed locations are filtered
   useEffect(() => {
-    if (!monitoringGroups) return;
-
     let newTotalLocations = 0;
     let newTotalMeasurements = 0;
 
@@ -1025,24 +893,35 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
             return b.totalMeasurements - a.totalMeasurements;
           }
 
-          if (sortBy === 'siteId') {
-            return a.siteId.localeCompare(b.siteId);
-          }
-
           return a[sortBy].localeCompare(b[sortBy]);
         })
       : [];
   }, [displayedLocations, sortBy]);
 
-  const totalLocationsCount = monitoringGroups?.['All'].stations.length;
+  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
+
+  // Filter the displayed locations by selected characteristics
+  const filteredMonitoringLocations = sortedMonitoringLocations.filter(
+    (location) => {
+      if (!selectedCharacteristics.length) {
+        return true;
+      }
+      for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
+        if (selectedCharacteristics.includes(characteristic)) return true;
+      }
+      return false;
+    },
+  );
+
+  const totalLocationsCount = monitoringGroups['All'].stations.length;
   const displayedLocationsCount =
-    sortedMonitoringLocations.length.toLocaleString();
+    filteredMonitoringLocations.length.toLocaleString();
 
   const handleDateSliderChange = useCallback(
     (newRange) => {
-      setMonitoringYearsRange(newRange);
+      setSelectedMonitoringYearsRange(newRange);
     },
-    [setMonitoringYearsRange],
+    [setSelectedMonitoringYearsRange],
   );
 
   const handleSortChange = useCallback(({ value }) => setSortBy(value), []);
@@ -1052,12 +931,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const handleExpandCollapse = useCallback(
     (allExpanded) => {
       if (allExpanded) {
-        setExpandedRows([...Array(sortedMonitoringLocations.length).keys()]);
+        setExpandedRows([...Array(filteredMonitoringLocations.length).keys()]);
       } else {
         setExpandedRows([]);
       }
     },
-    [sortedMonitoringLocations],
+    [filteredMonitoringLocations],
   );
 
   const accordionItemToggleHandler = useCallback(
@@ -1074,14 +953,14 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   );
 
   const accordionItemToggleHandlers = useMemo(() => {
-    return sortedMonitoringLocations.map((_item, index) => {
+    return filteredMonitoringLocations.map((_item, index) => {
       return accordionItemToggleHandler(index);
     });
-  }, [accordionItemToggleHandler, sortedMonitoringLocations]);
+  }, [accordionItemToggleHandler, filteredMonitoringLocations]);
 
   const renderListItem = useCallback(
     ({ index }) => {
-      const item = sortedMonitoringLocations[index];
+      const item = filteredMonitoringLocations[index];
 
       const feature = {
         geometry: {
@@ -1130,10 +1009,43 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     [
       accordionItemToggleHandlers,
       expandedRows,
+      filteredMonitoringLocations,
       services,
-      sortedMonitoringLocations,
     ],
   );
+
+  // Update the filters on the layer
+  const locationIds = filteredMonitoringLocations.map(
+    (location) => location.uniqueId,
+  );
+  let definitionExpression = '';
+  if (locationIds.length === 0) definitionExpression = '1=0';
+  else if (locationIds.length !== monitoringGroups['All'].stations.length) {
+    definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
+  }
+  if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
+
+  // Clear the filter when changing tabs
+  useEffect(() => {
+    return function cleanup() {
+      if (monitoringLocationsLayer) {
+        monitoringLocationsLayer.definitionExpression = '';
+      }
+    };
+  }, [monitoringLocationsLayer]);
+
+  // Reset data if the user switches locations
+  const [prevHuc12, setPrevHuc12] = useState(huc12);
+  if (huc12 !== prevHuc12) {
+    setPrevHuc12(huc12);
+    setAllToggled(true);
+    setSelectedCharacteristics([]);
+  }
 
   if (monitoringLocations.status === 'pending') return <LoadingSpinner />;
 
@@ -1183,31 +1095,43 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               />
             </p>
 
-            <div css={legendItemsStyles}>
+            <div css={tabLegendStyles}>
               <span>
                 {circleIcon({ color: colors.lightPurple() })}
                 &nbsp;Past Water Conditions&nbsp;
               </span>
             </div>
-            <div css={marginBoxStyles(textBoxStyles)}>
-              <p css={subheadingStyles}>
-                <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-                &nbsp;&nbsp; Date range for the <em>{watershed}</em> watershed{' '}
-              </p>
 
-              <div css={sliderContainerStyles}>
-                {!monitoringYearsRange ? (
-                  <LoadingSpinner />
-                ) : (
-                  <DateSlider
-                    max={maxYear}
-                    min={minYear}
-                    disabled={!Boolean(Object.keys(annualData).length)}
-                    onChange={handleDateSliderChange}
-                    range={monitoringYearsRange}
-                  />
-                )}
-              </div>
+            <div css={sliderContainerStyles}>
+              {monitoringPeriodOfRecordStatus === 'failure' && (
+                <div css={modifiedErrorBoxStyles}>
+                  <p>
+                    Annual Past Water Conditions data is temporarily
+                    unavailable, please try again later.
+                  </p>
+                </div>
+              )}
+              {monitoringPeriodOfRecordStatus === 'pending' && (
+                <LoadingSpinner />
+              )}
+              {monitoringPeriodOfRecordStatus === 'success' && (
+                <DateSlider
+                  max={monitoringYearsRange[1]}
+                  min={monitoringYearsRange[0]}
+                  disabled={
+                    !monitoringYearsRange[0] || !monitoringYearsRange[1]
+                  }
+                  onChange={handleDateSliderChange}
+                  range={selectedMonitoringYearsRange}
+                  headerElm={
+                    <p css={subheadingStyles}>
+                      <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
+                      &nbsp;&nbsp; Date range for the <em>{watershed}</em>{' '}
+                      watershed{' '}
+                    </p>
+                  }
+                />
+              )}
             </div>
 
             <table
@@ -1218,14 +1142,10 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               <thead>
                 <tr>
                   <th>
-                    <div css={toggleStyles}>
-                      <Switch
-                        checked={allToggled}
-                        onChange={toggleAll}
-                        ariaLabel="Toggle all monitoring locations"
-                      />
+                    <label css={toggleStyles}>
+                      <Switch checked={allToggled} onChange={toggleAll} />
                       <span>All Monitoring Locations</span>
-                    </div>
+                    </label>
                   </th>
                   <th colSpan="2">Location Count</th>
                   <th>Measurement Count</th>
@@ -1234,7 +1154,10 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
               <tbody>
                 {Object.values(monitoringGroups)
-                  .filter((group) => group.label !== 'All')
+                  .filter(
+                    (group) =>
+                      group.label !== 'All' && group.stations.length > 0,
+                  )
                   .map((group) => {
                     // get the number of measurements for this group type
                     let measurementCount = 0;
@@ -1249,14 +1172,13 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                     return (
                       <tr key={group.label}>
                         <td>
-                          <div css={toggleStyles}>
+                          <label css={toggleStyles}>
                             <Switch
                               checked={group.toggled}
                               onChange={groupToggleHandlers?.[group.label]}
-                              ariaLabel={`Toggle ${group.label}`}
                             />
                             <span>{group.label}</span>
-                          </div>
+                          </label>
                         </td>
                         <td colSpan="2">{locationCount.toLocaleString()}</td>
                         <td>{measurementCount.toLocaleString()}</td>
@@ -1355,23 +1277,31 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
             <AccordionList
               title={
-                monitoringYearsRange ? (
-                  <span data-testid="monitoring-accordion-title">
-                    <strong>{displayedLocationsCount.toLocaleString()}</strong>{' '}
-                    of <strong>{totalLocationsCount.toLocaleString()}</strong>{' '}
-                    water monitoring sample locations in the{' '}
-                    <em>{watershed}</em> watershed from{' '}
-                    <strong>{monitoringYearsRange[0]}</strong> to{' '}
-                    <strong>{monitoringYearsRange[1]}</strong>.
-                  </span>
-                ) : (
-                  <span data-testid="monitoring-accordion-title">
-                    <strong>{displayedLocationsCount.toLocaleString()}</strong>{' '}
-                    of <strong>{totalLocationsCount.toLocaleString()}</strong>{' '}
-                    water monitoring sample locations in the{' '}
-                    <em>{watershed}</em> watershed.
-                  </span>
-                )
+                <span data-testid="monitoring-accordion-title">
+                  <strong>{displayedLocationsCount.toLocaleString()}</strong> of{' '}
+                  <strong>{totalLocationsCount.toLocaleString()}</strong> water
+                  monitoring sample locations
+                  {selectedCharacteristics.length > 0 &&
+                    ' with the selected characteristic'}
+                  {selectedCharacteristics.length > 1 && 's'} in the{' '}
+                  <em>{watershed}</em> watershed
+                  {annualRecordsReady && (
+                    <>
+                      {' '}
+                      from <strong>
+                        {selectedMonitoringYearsRange[0]}
+                      </strong> to{' '}
+                      <strong>{selectedMonitoringYearsRange[1]}</strong>
+                    </>
+                  )}
+                  .
+                </span>
+              }
+              extraListHeaderContent={
+                <CharacteristicsSelect
+                  selected={selectedCharacteristics}
+                  onChange={setSelectedCharacteristics}
+                />
               }
               onSortChange={handleSortChange}
               onExpandCollapse={handleExpandCollapse}
@@ -1395,7 +1325,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               ]}
             >
               <VirtualizedList
-                items={sortedMonitoringLocations}
+                items={filteredMonitoringLocations}
                 renderer={renderListItem}
               />
             </AccordionList>

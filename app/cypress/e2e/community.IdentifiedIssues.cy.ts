@@ -17,15 +17,17 @@ describe('Identified Issues Tab', () => {
 
     cy.findByRole('tab', { name: 'Identified Issues' }).click();
 
-    cy.findByLabelText('Toggle Issues Layer').click({ force: true });
-    cy.findByLabelText('Toggle Issues Layer').should(
+    cy.findByLabelText(/of Assessed Waters are impaired/).click({
+      force: true,
+    });
+    cy.findByLabelText(/of Assessed Waters are impaired/).should(
       'have.attr',
       'aria-checked',
       'false',
     );
 
     // check that all switches are turned off
-    cy.findByLabelText('Toggle all impairment categories').should(
+    cy.findByRole('switch', { name: 'Identified Issues' }).should(
       'have.attr',
       'aria-checked',
       'false',
@@ -46,8 +48,10 @@ describe('Identified Issues Tab', () => {
 
     cy.findByRole('tab', { name: 'Identified Issues' }).click();
 
-    cy.findByLabelText('Toggle Dischargers Layer').click({ force: true });
-    cy.findByLabelText('Toggle Dischargers Layer').should(
+    cy.findByRole('tab', { name: /Permitted Dischargers/ }).click({
+      force: true,
+    });
+    cy.findByRole('switch', { name: /81 Permitted Dischargers/ }).should(
       'have.attr',
       'aria-checked',
       'true',

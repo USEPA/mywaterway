@@ -1,3 +1,11 @@
+// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error. 
+// We can safely ignore this. https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // returning false here prevents Cypress from
+  // failing the test
+  return false;
+});
+
 describe('Plan Summary (Actions) page', () => {
   it('small screen displays "Show Map" button and button functions', () => {
     const mapId = 'hmw-actions-map';

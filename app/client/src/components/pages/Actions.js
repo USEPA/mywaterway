@@ -45,7 +45,7 @@ import {
 } from 'utils/mapFunctions';
 import { chunkArrayCharLength } from 'utils/utils';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 // errors
 import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
 
@@ -144,7 +144,7 @@ function getPollutantsWaters(action: Object, orgId: string) {
     });
   });
 
-  const sortedWaters = waters.sort((a, b) => {
+  const sortedWaters = waters.toSorted((a, b) => {
     if (a.assessmentUnitName && b.assessmentUnitName) {
       return a.assessmentUnitName.localeCompare(b.assessmentUnitName);
     } else if (!a.assessmentUnitName && b.assessmentUnitName) {
@@ -155,7 +155,7 @@ function getPollutantsWaters(action: Object, orgId: string) {
   });
 
   return {
-    sortedPollutants: pollutants.sort((a, b) => a.localeCompare(b)),
+    sortedPollutants: pollutants.toSorted((a, b) => a.localeCompare(b)),
     sortedWaters,
   };
 }
@@ -405,7 +405,7 @@ function Actions() {
                             <>Not specified.</>
                           ) : (
                             permits.map((permit, index) => (
-                              <Fragment key={index}>
+                              <Fragment key={permit.NPDESIdentifier}>
                                 <a
                                   href={echoUrl + permit.NPDESIdentifier}
                                   target="_blank"

@@ -1,5 +1,6 @@
 // @flow
 
+import uniqueId from 'lodash/uniqueId';
 import { useEffect, useCallback, useContext, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -8,12 +9,14 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   circleIcon,
   diamondIcon,
   squareIcon,
+  waterwayIcon,
 } from 'components/shared/MapLegend';
 import Switch from 'components/shared/Switch';
 import WaterbodyList from 'components/shared/WaterbodyList';
@@ -36,6 +39,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
+  useCyanWaterbodies,
   useDischargers,
   useMonitoringLocations,
   useStreamgages,
@@ -45,34 +49,18 @@ import {
 import { getUniqueWaterbodies } from 'utils/mapFunctions';
 // errors
 import {
+  cyanError,
   echoError,
   streamgagesError,
   monitoringError,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
-import { colors, toggleTableStyles } from 'styles/index.js';
+import { colors, tabLegendStyles, toggleTableStyles } from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
-  }
-`;
-
-const legendItemsStyles = css`
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-around;
-
-  span {
-    display: flex;
-    align-items: center;
-    font-size: 0.875em;
-    margin-bottom: 1em;
-
-    @media (min-width: 560px) {
-      font-size: 1em;
-    }
   }
 `;
 
@@ -83,7 +71,10 @@ const modifiedErrorBoxStyles = css`
 `;
 
 const switchContainerStyles = css`
-  margin-top: 0.5em;
+  margin-bottom: 0;
+  & > div {
+    margin-top: 0.5em;
+  }
 `;
 
 const centeredTextStyles = css`
@@ -94,9 +85,19 @@ const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
 `;
 
+const showLessMoreStyles = css`
+  display: block;
+  padding-top: 1.5em;
+`;
+
 const toggleStyles = css`
   display: flex;
   align-items: center;
+  margin-bottom: 0;
+
+  label {
+    margin-bottom: 0;
+  }
 
   span {
     margin-left: 0.5rem;
@@ -104,12 +105,14 @@ const toggleStyles = css`
 `;
 
 function Overview() {
+  const { cyanWaterbodies, cyanWaterbodiesStatus } = useCyanWaterbodies();
   const { dischargers, dischargersStatus } = useDischargers();
   const { streamgages, streamgagesStatus } = useStreamgages();
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
 
   const {
+    cyanLayer,
     dischargersLayer,
     monitoringLocationsLayer,
     updateVisibleLayers,
@@ -121,6 +124,8 @@ function Overview() {
   const { cipSummary } = useContext(LocationSearchContext);
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
+
+  const [cyanDisplayed, setCyanDisplayed] = useState(false);
 
   const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
     useState(false);
@@ -158,16 +163,24 @@ function Overview() {
     (checked) => {
       if (!usgsStreamgagesLayer) return;
       if (!monitoringLocationsLayer) return;
+      if (!cyanLayer) return;
 
       setMonitoringAndSensorsDisplayed(checked);
       setUsgsStreamgagesDisplayed(checked);
       setMonitoringLocationsDisplayed(checked);
+      setCyanDisplayed(checked);
       updateVisibleLayers({
+        cyanLayer: checked,
         usgsStreamgagesLayer: checked,
         monitoringLocationsLayer: checked,
       });
     },
-    [monitoringLocationsLayer, updateVisibleLayers, usgsStreamgagesLayer],
+    [
+      cyanLayer,
+      monitoringLocationsLayer,
+      updateVisibleLayers,
+      usgsStreamgagesLayer,
+    ],
   );
 
   const handlePermittedDischargersToggle = useCallback(
@@ -200,12 +213,8 @@ function Overview() {
 
   const totalWaterbodies = uniqueWaterbodies.length;
 
-  const totalMonitoringLocations = monitoringLocations.length;
-
-  const totalUsgsStreamgages = streamgages.length;
-
   const totalMonitoringAndSensors =
-    totalMonitoringLocations + totalUsgsStreamgages;
+    monitoringLocations.length + streamgages.length + cyanWaterbodies.length;
 
   const totalPermittedDischargers = dischargers.length;
 
@@ -217,51 +226,49 @@ function Overview() {
           cipSummary.status !== 'failure' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
                 {Boolean(totalWaterbodies) && cipSummary.status === 'success'
                   ? totalWaterbodies.toLocaleString()
                   : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
-              <div css={switchContainerStyles}>
+              <div>
                 <Switch
                   checked={Boolean(totalWaterbodies) && waterbodiesDisplayed}
                   onChange={handleWaterbodiesToggle}
-                  disabled={!Boolean(totalWaterbodies)}
-                  ariaLabel="Waterbodies"
+                  disabled={!totalWaterbodies}
                 />
               </div>
-            </>
+            </label>
           )}
         </div>
 
         <div css={keyMetricStyles}>
-          {!monitoringLocationsLayer ||
+          {!cyanLayer ||
+          !monitoringLocationsLayer ||
           !usgsStreamgagesLayer ||
+          cyanWaterbodiesStatus === 'pending' ||
           monitoringLocationsStatus === 'pending' ||
           streamgagesStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalMonitoringAndSensors)
-                  ? totalMonitoringAndSensors
-                  : 'N/A'}
+                {totalMonitoringAndSensors ?? 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
-              <div css={switchContainerStyles}>
+              <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
+              <div>
                 <Switch
                   checked={
                     Boolean(totalMonitoringAndSensors) &&
                     monitoringAndSensorsDisplayed
                   }
                   onChange={handleMonitoringLocationsToggle}
-                  disabled={!Boolean(totalMonitoringAndSensors)}
-                  ariaLabel="Monitoring Stations"
+                  disabled={!totalMonitoringAndSensors}
                 />
               </div>
-            </>
+            </label>
           )}
         </div>
 
@@ -269,25 +276,22 @@ function Overview() {
           {dischargersStatus === 'pending' ? (
             <LoadingSpinner />
           ) : (
-            <>
+            <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalPermittedDischargers)
-                  ? totalPermittedDischargers
-                  : 'N/A'}
+                {totalPermittedDischargers ?? 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
-              <div css={switchContainerStyles}>
+              <div>
                 <Switch
                   checked={
                     Boolean(totalPermittedDischargers) &&
                     permittedDischargersDisplayed
                   }
                   onChange={handlePermittedDischargersToggle}
-                  disabled={!Boolean(totalPermittedDischargers)}
-                  ariaLabel="Permitted Dischargers"
+                  disabled={!totalPermittedDischargers}
                 />
               </div>
-            </>
+            </label>
           )}
         </div>
       </div>
@@ -296,7 +300,7 @@ function Overview() {
         <Tabs onChange={handleTabClick}>
           <TabList>
             <Tab>Waterbodies</Tab>
-            <Tab>Monitoring Locations</Tab>
+            <Tab>Water Monitoring Locations</Tab>
             <Tab>Permitted Dischargers</Tab>
           </TabList>
 
@@ -316,6 +320,8 @@ function Overview() {
                 }
                 usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
                 setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
+                cyanDisplayed={cyanDisplayed}
+                setCyanDisplayed={setCyanDisplayed}
                 updateVisibleLayers={updateVisibleLayers}
               />
             </TabPanel>
@@ -382,28 +388,28 @@ function MonitoringAndSensorsTab({
   setMonitoringLocationsDisplayed,
   usgsStreamgagesDisplayed,
   setUsgsStreamgagesDisplayed,
+  cyanDisplayed,
+  setCyanDisplayed,
   updateVisibleLayers,
 }) {
-  const { watershed } = useContext(LocationSearchContext);
+  const { huc12, mapView, watershed } = useContext(LocationSearchContext);
 
-  const { monitoringLocationsLayer, usgsStreamgagesLayer } = useLayers();
+  const { cyanLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
+    useLayers();
 
   const services = useServicesContext();
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  // if either of the "USGS Sensors" or "Past Water Conditions" switches
-  // are turned on, or if both switches are turned off, keep the "Monitoring
-  // Stations" switch in sync
+  // if any of the "USGS Sensors", "Potential Harmful Algal Blooms", or "Past Water Conditions" switches
+  // are turned on, or if all switches are turned off, keep the "Water Monitoring
+  // Locations" switch in sync
   useEffect(() => {
-    if (usgsStreamgagesDisplayed || monitoringLocationsDisplayed) {
-      setMonitoringAndSensorsDisplayed(true);
-    }
-
-    if (!usgsStreamgagesDisplayed && !monitoringLocationsDisplayed) {
-      setMonitoringAndSensorsDisplayed(false);
-    }
+    setMonitoringAndSensorsDisplayed(
+      usgsStreamgagesDisplayed || monitoringLocationsDisplayed || cyanDisplayed,
+    );
   }, [
+    cyanDisplayed,
     usgsStreamgagesDisplayed,
     monitoringLocationsDisplayed,
     setMonitoringAndSensorsDisplayed,
@@ -412,8 +418,13 @@ function MonitoringAndSensorsTab({
   const { streamgages, streamgagesStatus } = useStreamgages();
   const { monitoringLocations, monitoringLocationsStatus } =
     useMonitoringLocations();
+  const { cyanWaterbodies, cyanWaterbodiesStatus } = useCyanWaterbodies();
 
-  const allMonitoringAndSensors = [...streamgages, ...monitoringLocations];
+  const allMonitoringAndSensors = [
+    ...streamgages,
+    ...monitoringLocations,
+    ...cyanWaterbodies,
+  ];
 
   const [monitoringAndSensorsSortedBy, setMonitoringAndSensorsSortedBy] =
     useState('locationName');
@@ -424,18 +435,22 @@ function MonitoringAndSensorsTab({
         return (b.totalMeasurements ?? 0) - (a.totalMeasurements ?? 0);
       }
 
-      if (monitoringAndSensorsSortedBy === 'siteId') {
-        return a.siteId.localeCompare(b.siteId);
-      }
-
-      return a[monitoringAndSensorsSortedBy].localeCompare(
-        b[monitoringAndSensorsSortedBy],
-      );
+      if (
+        monitoringAndSensorsSortedBy in a &&
+        monitoringAndSensorsSortedBy in b
+      ) {
+        return a[monitoringAndSensorsSortedBy].localeCompare(
+          b[monitoringAndSensorsSortedBy],
+        );
+      } else if (monitoringAndSensorsSortedBy in a) return -1;
+      else return 1;
     },
   );
 
-  const filteredMonitoringAndSensors = sortedMonitoringAndSensors.filter(
-    (item) => {
+  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
+
+  const filteredMonitoringAndSensors = sortedMonitoringAndSensors
+    .filter((item) => {
       const displayedTypes = [];
 
       if (usgsStreamgagesDisplayed) {
@@ -446,9 +461,24 @@ function MonitoringAndSensorsTab({
         displayedTypes.push('Past Water Conditions');
       }
 
+      if (cyanDisplayed) {
+        displayedTypes.push('Blue-Green Algae');
+      }
+
       return displayedTypes.includes(item.monitoringType);
-    },
-  );
+    })
+    .filter((item) => {
+      if (
+        item.monitoringType !== 'Past Water Conditions' ||
+        !selectedCharacteristics.length
+      ) {
+        return true;
+      }
+      for (let characteristic of Object.keys(item.totalsByCharacteristic)) {
+        if (selectedCharacteristics.includes(characteristic)) return true;
+      }
+      return false;
+    });
 
   const handleUsgsSensorsToggle = useCallback(
     (checked) => {
@@ -472,6 +502,16 @@ function MonitoringAndSensorsTab({
       setMonitoringLocationsDisplayed,
       updateVisibleLayers,
     ],
+  );
+
+  const handleHarmfulAlgalBloomsToggle = useCallback(
+    (checked) => {
+      if (!cyanLayer) return;
+
+      setCyanDisplayed(checked);
+      updateVisibleLayers({ cyanLayer: checked });
+    },
+    [cyanLayer, setCyanDisplayed, updateVisibleLayers],
   );
 
   const handleSortChange = useCallback(
@@ -513,88 +553,155 @@ function MonitoringAndSensorsTab({
     ({ index }) => {
       const item = filteredMonitoringAndSensors[index];
 
-      const { locationName, locationType, monitoringType, orgName, uniqueId } =
-        item;
-
-      let icon = circleIcon({ color: colors.lightPurple() });
-      if (monitoringType === 'USGS Sensors')
-        icon = squareIcon({ color: '#fffe00' });
-
-      const feature = {
-        geometry: {
-          type: 'point',
-          longitude: item.locationLongitude,
-          latitude: item.locationLatitude,
-        },
-        attributes: item,
-      };
-
-      return (
-        <AccordionItem
-          icon={icon}
-          key={uniqueId}
-          index={index}
-          title={<strong>{locationName || 'Unknown'}</strong>}
-          subTitle={
-            <>
-              <em>Monitoring Type:</em>&nbsp;&nbsp;
-              {monitoringType}
-              <br />
-              <em>Organization Name:</em>&nbsp;&nbsp;
-              {orgName}
-              <br />
-              <em>Water Type:</em>&nbsp;&nbsp;
-              {locationType}
-              {monitoringType === 'Past Water Conditions' && (
-                <>
-                  <br />
-                  <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                  {item.totalMeasurements}
-                </>
-              )}
-            </>
-          }
-          feature={feature}
-          idKey="uniqueId"
-          allExpanded={expandedRows.includes(index)}
-          onChange={accordionItemToggleHandlers[index]}
-        >
-          <div css={accordionContentStyles}>
-            {monitoringType === 'USGS Sensors' && (
+      if (item.monitoringType === 'Blue-Green Algae') {
+        const feature = {
+          geometry: item.geometry,
+          attributes: item,
+        };
+        return (
+          <AccordionItem
+            ariaLabel={item.GNIS_NAME}
+            icon={waterwayIcon({ color: colors.darkCyan() })}
+            key={item.FID}
+            title={<strong>{item.GNIS_NAME || 'Unknown'}</strong>}
+            subTitle={
+              <>
+                <em>Organization Name:</em>&nbsp;&nbsp;
+                {item.orgName}
+              </>
+            }
+            feature={feature}
+            idKey="FID"
+            allExpanded={expandedRows.includes(index)}
+            onChange={accordionItemToggleHandlers[index]}
+          >
+            <div css={accordionContentStyles}>
               <WaterbodyInfo
-                type="USGS Sensors"
+                feature={feature}
+                mapView={mapView}
+                services={services}
+                type="Blue-Green Algae"
+              />
+              <ViewOnMapButton feature={feature} fieldName="FID" />
+            </div>
+          </AccordionItem>
+        );
+      } else {
+        const {
+          locationName,
+          locationType,
+          monitoringType,
+          orgName,
+          uniqueId,
+        } = item;
+
+        let icon = circleIcon({ color: colors.lightPurple() });
+        if (monitoringType === 'USGS Sensors')
+          icon = squareIcon({ color: colors.yellow() });
+
+        const feature = {
+          geometry: {
+            type: 'point',
+            longitude: item.locationLongitude,
+            latitude: item.locationLatitude,
+          },
+          attributes: item,
+        };
+
+        return (
+          <AccordionItem
+            icon={icon}
+            key={uniqueId}
+            index={index}
+            title={<strong>{locationName || 'Unknown'}</strong>}
+            subTitle={
+              <>
+                <em>Monitoring Type:</em>&nbsp;&nbsp;
+                {monitoringType}
+                <br />
+                <em>Organization Name:</em>&nbsp;&nbsp;
+                {orgName}
+                <br />
+                <em>Water Type:</em>&nbsp;&nbsp;
+                {locationType}
+                {monitoringType === 'Past Water Conditions' && (
+                  <>
+                    <br />
+                    <em>Monitoring Measurements:</em>&nbsp;&nbsp;
+                    {item.totalMeasurements}
+                  </>
+                )}
+              </>
+            }
+            feature={feature}
+            idKey="uniqueId"
+            allExpanded={expandedRows.includes(index)}
+            onChange={accordionItemToggleHandlers[index]}
+          >
+            <div css={accordionContentStyles}>
+              <WaterbodyInfo
+                type={monitoringType}
                 feature={feature}
                 services={services}
               />
-            )}
-
-            {monitoringType === 'Past Water Conditions' && (
-              <WaterbodyInfo
-                type="Past Water Conditions"
-                feature={feature}
-                services={services}
-              />
-            )}
-
-            <ViewOnMapButton feature={feature} />
-          </div>
-        </AccordionItem>
-      );
+              <ViewOnMapButton feature={feature} />
+            </div>
+          </AccordionItem>
+        );
+      }
     },
     [
       accordionItemToggleHandlers,
       expandedRows,
       filteredMonitoringAndSensors,
+      mapView,
       services,
     ],
   );
 
+  // Update the filters on the layer
+  const monitoringLocationIds = filteredMonitoringAndSensors
+    .filter((location) => location.monitoringType === 'Past Water Conditions')
+    .map((location) => location.uniqueId);
+  let definitionExpression = '';
+  if (monitoringLocationIds.length === 0) definitionExpression = '1=0';
+  else if (monitoringLocationIds.length !== monitoringLocations.length) {
+    definitionExpression = `uniqueId IN ('${monitoringLocationIds.join(
+      "','",
+    )}')`;
+  }
   if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
+
+  // Clear the filter when changing tabs
+  useEffect(() => {
+    return function cleanup() {
+      if (monitoringLocationsLayer) {
+        monitoringLocationsLayer.definitionExpression = '';
+      }
+    };
+  }, [monitoringLocationsLayer]);
+
+  const [switchId] = useState(uniqueId('habs-switch-'));
+
+  // Reset characteristics filter if the user switches locations
+  const [prevHuc12, setPrevHuc12] = useState(huc12);
+  if (huc12 !== prevHuc12) {
+    setPrevHuc12(huc12);
+    setSelectedCharacteristics([]);
+  }
+  if (
+    cyanWaterbodiesStatus === 'failure' &&
     streamgagesStatus === 'failure' &&
     monitoringLocationsStatus === 'failure'
   ) {
     return (
       <div css={errorBoxStyles}>
+        <p>{cyanError}</p>
         <p>{streamgagesError}</p>
         <p>{monitoringError}</p>
       </div>
@@ -602,6 +709,7 @@ function MonitoringAndSensorsTab({
   }
 
   if (
+    cyanWaterbodiesStatus === 'pending' ||
     monitoringLocationsStatus === 'pending' ||
     streamgagesStatus === 'pending'
   ) {
@@ -609,6 +717,7 @@ function MonitoringAndSensorsTab({
   }
 
   if (
+    cyanWaterbodiesStatus === 'success' ||
     monitoringLocationsStatus === 'success' ||
     streamgagesStatus === 'success'
   ) {
@@ -622,14 +731,22 @@ function MonitoringAndSensorsTab({
               concerns.
             </p>
 
-            <div css={legendItemsStyles}>
+            <div css={tabLegendStyles}>
               <span>
                 {circleIcon({ color: colors.lightPurple() })}
                 &nbsp;Past Water Conditions&nbsp;
               </span>
               <span>
-                {squareIcon({ color: '#fffe00' })}
+                {squareIcon({ color: colors.yellow() })}
                 &nbsp;USGS Sensors&nbsp;
+              </span>
+              <span>
+                {waterwayIcon({ color: colors.darkCyan() })}
+                &nbsp;
+                <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
+                  Potential Harmful Algal Blooms (HABs)
+                </GlossaryTerm>
+                &nbsp;
               </span>
             </div>
 
@@ -638,10 +755,41 @@ function MonitoringAndSensorsTab({
               purple circles and yellow squares.
               <ShowLessMore
                 charLimit={0}
-                text=" The yellow squares represent monitoring
-                locations that provide real time water quality measurements for a
-                subset of categories– such as water level, water temperature,
-                dissolved oxygen saturation, and other water quality indicators. The purple circles represent monitoring locations where all other past water conditions data is available. These locations may have monitoring data available from as recently as last week, to multiple decades old, or anywhere in between, depending on the location."
+                text={
+                  <>
+                    <span css={showLessMoreStyles}>
+                      The yellow squares represent monitoring locations that
+                      provide real time water quality measurements for a subset
+                      of categories– such as water level, water temperature,
+                      dissolved oxygen saturation, and other water quality
+                      indicators.
+                    </span>
+                    <span css={showLessMoreStyles}>
+                      The purple circles represent monitoring locations where
+                      all other past water conditions data is available. These
+                      locations may have monitoring data available from as
+                      recently as last week, to multiple decades old, or
+                      anywhere in between, depending on the location.
+                    </span>
+                    <span css={showLessMoreStyles}>
+                      Areas highlighted light blue are the lakes, reservoirs,
+                      and other large waterbodies where{' '}
+                      <GlossaryTerm term="Potential Harmful Algal Blooms (HABs)">
+                        potential harmful algal bloom
+                      </GlossaryTerm>{' '}
+                      data is available. Daily data are a snapshot of{' '}
+                      <GlossaryTerm term="Blue-Green Algae">
+                        blue-green algae
+                      </GlossaryTerm>{' '}
+                      at the time of detection.
+                    </span>
+                    <span css={showLessMoreStyles}>
+                      Click on each monitoring location on the map or in the
+                      list below to find out more about what was monitored at
+                      each location.
+                    </span>
+                  </>
+                }
               />
             </p>
           </>
@@ -656,6 +804,12 @@ function MonitoringAndSensorsTab({
         {monitoringLocationsStatus === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
             <p>{monitoringError}</p>
+          </div>
+        )}
+
+        {cyanWaterbodiesStatus === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{cyanError}</p>
           </div>
         )}
 
@@ -682,23 +836,22 @@ function MonitoringAndSensorsTab({
               <tbody>
                 <tr>
                   <td>
-                    <div css={toggleStyles}>
+                    <label css={toggleStyles}>
                       <Switch
                         checked={
                           streamgages.length > 0 && usgsStreamgagesDisplayed
                         }
                         onChange={handleUsgsSensorsToggle}
                         disabled={streamgages.length === 0}
-                        ariaLabel="USGS Sensors"
                       />
                       <span>USGS Sensors</span>
-                    </div>
+                    </label>
                   </td>
                   <td>{streamgages.length}</td>
                 </tr>
                 <tr>
                   <td>
-                    <div css={toggleStyles}>
+                    <label css={toggleStyles}>
                       <Switch
                         checked={
                           monitoringLocations.length > 0 &&
@@ -706,12 +859,30 @@ function MonitoringAndSensorsTab({
                         }
                         onChange={handlePastWaterConditionsToggle}
                         disabled={monitoringLocations.length === 0}
-                        ariaLabel="Past Water Conditions"
                       />
                       <span>Past Water Conditions</span>
-                    </div>
+                    </label>
                   </td>
                   <td>{monitoringLocations.length}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div css={toggleStyles}>
+                      <Switch
+                        ariaLabelledBy={switchId}
+                        checked={cyanWaterbodies.length > 0 && cyanDisplayed}
+                        onChange={handleHarmfulAlgalBloomsToggle}
+                        disabled={cyanWaterbodies.length === 0}
+                      />
+                      <GlossaryTerm
+                        id={switchId}
+                        term="Potential Harmful Algal Blooms (HABs)"
+                      >
+                        Potential Harmful Algal Blooms (HABs)
+                      </GlossaryTerm>
+                    </div>
+                  </td>
+                  <td>{cyanWaterbodies.length}</td>
                 </tr>
               </tbody>
             </table>
@@ -720,9 +891,26 @@ function MonitoringAndSensorsTab({
               title={
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
-                  <strong>{allMonitoringAndSensors.length}</strong> locations
+                  <strong>{allMonitoringAndSensors.length}</strong> locations{' '}
                   with data in the <em>{watershed}</em> watershed.
+                  {selectedCharacteristics.length > 0 && (
+                    <>
+                      <br />
+                      <small>
+                        (Past Water Conditions filtered by one or more
+                        characteristics)
+                      </small>
+                    </>
+                  )}
                 </>
+              }
+              extraListHeaderContent={
+                monitoringLocationsDisplayed && (
+                  <CharacteristicsSelect
+                    selected={selectedCharacteristics}
+                    onChange={setSelectedCharacteristics}
+                  />
+                )
               }
               onSortChange={handleSortChange}
               onExpandCollapse={handleExpandCollapse}
@@ -1035,7 +1223,7 @@ function PermittedDischargersTab({
               <br />
               Compliance Status: {status}
               <br />
-              Permit Components: {components || 'Not Specified'}
+              Permit Components: {components || 'Components Not Specified'}
             </>
           }
           feature={feature}
@@ -1079,7 +1267,7 @@ function PermittedDischargersTab({
 
         {totalPermittedDischargers > 0 && (
           <>
-            <div css={legendItemsStyles}>
+            <div css={tabLegendStyles}>
               <span>
                 {diamondIcon({ color: colors.orange() })}
                 &nbsp;Permitted Dischargers&nbsp;
@@ -1094,9 +1282,13 @@ function PermittedDischargersTab({
                       <Switch
                         checked={allToggled}
                         onChange={toggleAll}
-                        ariaLabel="Toggle all permit components"
+                        ariaLabelledBy="all-permit-components-label"
                       />
-                      <span>All Permit Components</span>
+                      <span id="all-permit-components-label">
+                        <GlossaryTerm term="Permit Components">
+                          All Permit Components
+                        </GlossaryTerm>
+                      </span>
                     </div>
                   </th>
                   <th>Count</th>
@@ -1106,13 +1298,20 @@ function PermittedDischargersTab({
                 {dischargerPermitComponents &&
                   Object.keys(dischargerPermitComponents)
                     .filter((key) => key !== 'All')
-                    .sort()
+                    .sort((a, b) => {
+                      if (a === 'null') return 1;
+                      return a.localeCompare(b);
+                    })
                     .map((key) => {
                       const component = dischargerPermitComponents[key];
 
                       const componentLabel = !component.label
-                        ? 'Not Specified'
+                        ? 'Components Not Specified'
                         : component.label;
+                      const componentLabelId = `${key.replaceAll(
+                        ' ',
+                        '-',
+                      )}-label`;
 
                       return (
                         <tr key={key}>
@@ -1123,15 +1322,13 @@ function PermittedDischargersTab({
                                 onChange={
                                   groupToggleHandlers?.[component.label]
                                 }
-                                ariaLabel={`Toggle ${componentLabel}`}
+                                ariaLabelledBy={componentLabelId}
                               />
-                              {componentLabel === 'Not Specified' ? (
-                                <span>Not Specified</span>
-                              ) : (
+                              <span id={componentLabelId}>
                                 <GlossaryTerm term={componentLabel}>
                                   {componentLabel}
                                 </GlossaryTerm>
-                              )}
+                              </span>
                             </div>
                           </td>
                           <td>{component.dischargers.length}</td>

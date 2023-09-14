@@ -10,8 +10,8 @@ import AppRoutes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
 import { AddSaveDataWidgetProvider } from 'contexts/AddSaveDataWidget';
-import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
+import { LocationSearchProvider } from 'contexts/locationSearch';
 import { LookupFilesProvider } from 'contexts/LookupFiles';
 import { FetchedDataProvider } from 'contexts/FetchedData';
 import { SurroundingsProvider } from 'contexts/Surroundings';

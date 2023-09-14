@@ -22,27 +22,21 @@ describe('Community Visual Regression Testing', () => {
     cy.get(mapId).matchSnapshot('dc-all-impairment-categories');
 
     // test no impairment categories on
-    cy.get('input[aria-label="Toggle all impairment categories"]').click({
+    cy.findByRole('switch', { name: 'Identified Issues' }).click({
       force: true,
     });
     cy.get(mapId).matchSnapshot('dc-no-impairment-categories');
 
     // test with only acidity on
-    cy.get('input[aria-label="Acidity"]').click({
-      force: true,
-    });
+    cy.findByLabelText('Acidity').click({ force: true });
     cy.get(mapId).matchSnapshot('dc-acidity-impairment-categories');
 
     // test with only acidity and metals on
-    cy.get('input[aria-label="Metals"]').click({
-      force: true,
-    });
+    cy.findByLabelText('Metals').click({ force: true });
     cy.get(mapId).matchSnapshot('dc-acidity-metals-impairment-categories');
 
     // test with only metals on
-    cy.get('input[aria-label="Acidity"]').click({
-      force: true,
-    });
+    cy.findByLabelText('Acidity').click({ force: true });
     cy.get(mapId).matchSnapshot('dc-metals-impairment-categories');
   });
 

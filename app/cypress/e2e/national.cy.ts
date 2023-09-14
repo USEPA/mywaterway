@@ -126,7 +126,7 @@ describe('National Drinking Water tab', () => {
   });
 
   it('Clicking a Glossary Term opens the Glossary panel', () => {
-    cy.findByText(/Drinking Water Health Based Violations/).click();
+    cy.findAllByText(/Drinking Water Health-based Violations/).filter(':visible').click();
     cy.findByText(/Violations of maximum contaminant levels/).should(
       'be.visible',
     );
