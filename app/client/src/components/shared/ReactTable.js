@@ -32,8 +32,8 @@ const clearFiltersContainerStyles = (margin: string) => {
   `;
 };
 
-function generateFilterInput(placeholder = 'Filter column...') {
-  return ({ column: { filterValue, preFilteredRows, setFilter } }) => {
+export function generateFilterInput(placeholder = 'Filter column...') {
+  return ({ column: { filterValue, setFilter } }) => {
     return (
       <input
         css={inputStyles}
@@ -44,7 +44,7 @@ function generateFilterInput(placeholder = 'Filter column...') {
         onChange={
           (event) => setFilter(event.target.value || undefined) // Set undefined to remove the filter entirely
         }
-        aria-label="Filter column..."
+        aria-label={placeholder}
       />
     );
   };
@@ -256,7 +256,7 @@ function ReactTable({
                   >
                     <div className="rt-th-content">
                       <div className="rt-col-title">
-                        {column.render('Header')}
+                        <span>{column.render('Header')}</span>
                         <span>
                           {column.isSorted ? (
                             column.isSortedDesc ? (
@@ -301,14 +301,13 @@ function ReactTable({
                   {...row.getRowProps()}
                 >
                   {row.cells.map((cell) => {
-                    const column = cell.column;
                     return (
                       <div
                         className="rt-td"
                         role="gridcell"
                         {...cell.getCellProps()}
                       >
-                        {column.Render ? column.Render(cell) : cell.value}
+                        {cell.render('Cell')}
                       </div>
                     );
                   })}

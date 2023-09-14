@@ -59,9 +59,6 @@ function Map({ layers = null, startingExtent = null }: Props) {
       map: esriMap,
       extent: startingExtent ?? initialExtent,
       highlightOptions,
-      popup: {
-        collapseEnabled: false,
-      },
     });
 
     setMapView(view);

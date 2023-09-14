@@ -4,13 +4,13 @@ import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
+import { useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   getExtentBoundingBox,
@@ -18,25 +18,23 @@ import {
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
-} from 'utils/hooks/boundariesToggleLayer';
-import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
+} from 'utils/boundariesToggleLayer';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
 import type {
   ServicesData,
-  ServicesState,
   StreamgageMeasurement,
   UsgsDailyAveragesData,
   UsgsPrecipitationData,
   UsgsStreamgageAttributes,
   UsgsStreamgagesData,
+  Feature,
   FetchSuccessState,
 } from 'types';
-import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
 import { colors } from 'styles';
 
@@ -45,15 +43,14 @@ import { colors } from 'styles';
 */
 
 export function useStreamgageLayers() {
-  // Build the base feature layer
-  const services = useServicesContext();
-  const navigate = useNavigate();
+  const { getTemplate, getTitle } = useDynamicPopup();
 
+  // Build the base feature layer
   const buildBaseLayer = useCallback(
     (type: SublayerType) => {
-      return buildLayer(navigate, services, type);
+      return buildLayer(type, getTitle, getTemplate);
     },
-    [navigate, services],
+    [getTemplate, getTitle],
   );
 
   const updateSurroundingData = useUpdateData();
@@ -195,9 +192,9 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
 
 // Builds the base feature layer
 function buildLayer(
-  navigate: NavigateFunction,
-  services: ServicesState,
   type: SublayerType,
+  getTitle: (graphic: Feature) => string,
+  getTemplate: (graphic: Feature) => HTMLElement | undefined,
 ) {
   return new FeatureLayer({
     id:
@@ -248,10 +245,8 @@ function buildLayer(
     }),
     popupTemplate: {
       outFields: ['*'],
-      title: (feature: __esri.Feature) =>
-        getPopupTitle(feature.graphic.attributes),
-      content: (feature: __esri.Feature) =>
-        getPopupContent({ feature: feature.graphic, navigate, services }),
+      title: getTitle,
+      content: getTemplate,
     },
     visible: type === 'enclosed',
   });
@@ -329,15 +324,15 @@ function transformServiceData(
         });
 
         const data = {
-          parameterCategory: matchedParam?.hmwCategory || 'exclude',
-          parameterOrder: matchedParam?.hmwOrder || 0,
-          parameterName: matchedParam?.hmwName || parameterDesc,
-          parameterUsgsName: matchedParam?.staDescription || parameterDesc,
+          parameterCategory: matchedParam?.hmwCategory ?? 'exclude',
+          parameterOrder: matchedParam?.hmwOrder ?? 0,
+          parameterName: matchedParam?.hmwName ?? parameterDesc,
+          parameterUsgsName: matchedParam?.staDescription ?? parameterDesc,
           parameterCode,
           measurement,
           datetime: new Date(observation.phenomenonTime).toLocaleString(),
           dailyAverages: [], // NOTE: will be set below
-          unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
+          unitAbbr: matchedParam?.hmwUnits ?? parameterUnit.symbol,
           unitName: parameterUnit.name,
         };
 

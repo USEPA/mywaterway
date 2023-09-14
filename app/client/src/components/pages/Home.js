@@ -12,7 +12,7 @@ import {
   EatingFishIcon,
   SwimmingIcon,
 } from 'components/shared/Icons';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 // styled components
 import {
   topicButtonContainer,
@@ -22,7 +22,7 @@ import {
   fourButtonLinkStyles,
 } from 'components/shared/ButtonLinks';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   margin-bottom: 2.5em;

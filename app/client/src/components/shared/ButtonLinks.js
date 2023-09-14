@@ -2,7 +2,7 @@
 
 import { css } from 'styled-components/macro';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 const topicButtonContainer = css`
   display: flex;

@@ -8,7 +8,7 @@ export const echoError =
 
 // cyan.epa.gov
 export const cyanError =
-  'CyAN data is temporarily unavailable, please try again later.';
+  'Potential Harmful Algal Bloom (HAB) data is temporarily unavailable, please try again later.';
 
 // labs.waterdata.usgs.gov - Monitoring Location Service
 export const streamgagesError =
@@ -62,7 +62,7 @@ export const protectNonpointSourceError =
 
 // grts.epa.gov - GRTS Service for restore tab
 export const restoreNonpointSourceError =
-  'The clean water act section 319 projects are temporarily unavailable, please try again later.';
+  'The nonpoint source projects are temporarily unavailable, please try again later.';
 
 // attains.epa.gov - Plans Service
 export const restorationPlanError =

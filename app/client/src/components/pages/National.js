@@ -9,14 +9,14 @@ import TabLinks from 'components/shared/TabLinks';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
-import DisclaimerModal from 'components/shared/DisclaimerModal';
+import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { introBoxStyles } from 'components/shared/IntroBox';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useNarsContext } from 'contexts/LookupFiles';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index';
 // images
 import nutrientPollutionPhoto from 'images/national-nutrient-pollution.jpg';
 import riversPhoto from 'images/learn-more-rivers.jpg';

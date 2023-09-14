@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css, keyframes } from 'styled-components/macro';
 import { createPortal, render } from 'react-dom';
 // contexts
 import { useLayersState } from 'contexts/Layers';
@@ -28,7 +28,7 @@ import type {
 ## Components
 */
 
-export function useSurroundingsWidget(triggerVisible: boolean) {
+export function useSurroundingsWidget(triggerVisible = true) {
   const { layers, visible: visibleLayers } = useLayersState();
   const { togglers, disabled, updating, visible } = useSurroundingsState();
 
@@ -96,7 +96,9 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
         </Portal>
       )}
       <SurroundingsWidgetTrigger
+        contentVisible={contentVisible}
         disabled={isEmpty(layers)}
+        expanded={contentVisible}
         forwardedRef={triggerRef}
         onClick={toggleContentVisibility}
         updating={Object.entries(layersUpdating).some(
@@ -113,6 +115,7 @@ function SurroundingsWidget(props: SurroundingsWidgetProps) {
 
 function SurroundingsWidgetContent({
   layers,
+  layersUpdating,
   surroundingsVisible,
   toggles,
   togglesDisabled,
@@ -137,6 +140,10 @@ function SurroundingsWidgetContent({
                 const clickHandler = togglesDisabled[id]
                   ? undefined
                   : toggles[id](!surroundingsVisible[id]);
+                const updating =
+                  layersUpdating[id] &&
+                  surroundingsVisible[id] &&
+                  !togglesDisabled[id];
                 return (
                   <li key={id}>
                     <div title={title}>
@@ -164,6 +171,7 @@ function SurroundingsWidgetContent({
                         </span>
                       </div>
                     </div>
+                    <div css={updating ? loaderStyles : undefined}></div>
                   </li>
                 );
               },
@@ -180,7 +188,9 @@ function Portal({ children, container }: PortalProps) {
 }
 
 function SurroundingsWidgetTrigger({
+  contentVisible,
   disabled,
+  expanded,
   forwardedRef,
   onClick,
   updating,
@@ -188,13 +198,14 @@ function SurroundingsWidgetTrigger({
 }: SurroundingsWidgetTriggerProps) {
   const [hover, setHover] = useState(false);
 
-  let title = disabled
-    ? 'Surrounding Features Widget Not Available'
-    : 'Toggle Surrounding Features';
-
-  let iconClass = updating
-    ? 'esri-icon-loading-indicator esri-rotating'
-    : 'esri-icon esri-icon-globe';
+  let title = 'Open Surrounding Features';
+  let iconClass = 'esri-icon esri-icon-globe';
+  if (contentVisible) {
+    iconClass = 'esri-icon-collapse';
+    title = 'Close Surrounding Features';
+  }
+  if (updating) iconClass = 'esri-icon-loading-indicator esri-rotating';
+  if (disabled) title = 'Surrounding Features Widget Not Available';
 
   if (!visible) return null;
 
@@ -261,6 +272,30 @@ const listItemContentStyles = (disabled: boolean) => css`
   }
 `;
 
+const loader = keyframes`
+   0% {
+      left: 0;
+      transform: translateX(-100%);
+    }
+    100% {
+      left: 100%;
+      transform: translateX(0%);
+    }
+`;
+
+const loaderStyles = css`
+  &::after {
+    content: '';
+    width: 80px;
+    height: 1.5px;
+    background: rgba(110, 110, 110, 0.3);
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: ${loader} 2s linear infinite;
+  }
+`;
+
 const widgetContentStyles = (visible: boolean) => css`
   background-color: white;
   cursor: initial;
@@ -304,9 +339,16 @@ const widgetContentStyles = (visible: boolean) => css`
           line-height: 1;
           margin-bottom: 10px;
 
-          & > div {
+          & > div:first-child {
             border-left: 3px solid transparent;
-            padding: 5px;
+            padding: 5px 5px 3.5px;
+          }
+
+          & > div:last-child {
+            width: 100%;
+            height: 1.5px;
+            position: relative;
+            overflow: hidden;
           }
         }
       }
@@ -324,7 +366,9 @@ type PortalProps = {
 };
 
 type SurroundingsWidgetTriggerProps = {
+  contentVisible: boolean;
   disabled: boolean;
+  expanded: boolean;
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
   onClick: (ev: MouseEvent | KeyboardEvent) => void;
   updating: boolean;

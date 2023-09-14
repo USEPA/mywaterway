@@ -1,23 +1,32 @@
 import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
+// config
+import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // types
 import type { ReactNode } from 'react';
 import type {
   DischargerPermitComponents,
+  EffluentToggleObject,
+  FetchStatus,
   Huc12SummaryData,
   MonitoringLocationGroups,
   MonitoringYearsRange,
-  MonitoringWorkerData,
   ParameterToggleObject,
 } from 'types';
 
-export const LocationSearchContext = createContext();
-
-export const initialWorkerData = {
-  minYear: null,
-  maxYear: null,
-  annualData: {},
+export const initialMonitoringGroups = () => {
+  return characteristicGroupMappings.reduce((groups, next) => {
+    groups[next.label] = {
+      label: next.label,
+      characteristicGroups: [...next.groupNames],
+      stations: [],
+      toggled: true,
+    };
+    return groups;
+  }, {});
 };
+
+export const LocationSearchContext = createContext();
 
 type Props = {
   children: ReactNode,
@@ -67,16 +76,17 @@ type State = {
   dischargerPermitComponents: DischargerPermitComponents | null,
 
   // monitoring panel
-  monitoringGroups: MonitoringLocationGroups | null,
+  monitoringPeriodOfRecordStatus: FetchStatus,
+  monitoringGroups: MonitoringLocationGroups,
   monitoringFeatureUpdates: ?Object,
-  monitoringYearsRange: MonitoringYearsRange | null,
-  monitoringWorkerData: MonitoringWorkerData,
+  monitoringYearsRange: MonitoringYearsRange,
+  selectedMonitoringYearsRange: MonitoringYearsRange,
 
   // identified issues panel
   showAllPolluted: boolean,
   parameterToggleObject: ParameterToggleObject,
   pollutionParameters: Object | null,
-  violatingDischargersOnly: boolean,
+  effluentToggleObject: EffluentToggleObject | null,
 };
 
 export class LocationSearchProvider extends Component<Props, State> {
@@ -139,16 +149,17 @@ export class LocationSearchProvider extends Component<Props, State> {
     dischargerPermitComponents: null,
 
     // monitoring panel
-    monitoringGroups: null,
+    monitoringPeriodOfRecordStatus: 'idle',
+    monitoringGroups: initialMonitoringGroups(),
     monitoringFeatureUpdates: null,
-    monitoringYearsRange: null,
-    monitoringWorkerData: initialWorkerData,
+    monitoringYearsRange: [0, 0],
+    selectedMonitoringYearsRange: [0, 0],
 
     // identified issues panel
     showAllPolluted: true,
     parameterToggleObject: {},
     pollutionParameters: null,
-    violatingDischargersOnly: false,
+    effluentToggleObject: null,
 
     // current drinking water subtab (0, 1, or 2)
     drinkingWaterTabIndex: 0,
@@ -291,6 +302,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setDischargerPermitComponents: (dischargerPermitComponents) => {
       this.setState({ dischargerPermitComponents });
     },
+    setMonitoringPeriodOfRecordStatus: (monitoringPeriodOfRecordStatus) => {
+      this.setState({ monitoringPeriodOfRecordStatus });
+    },
     setMonitoringGroups: (monitoringGroups) => {
       this.setState({ monitoringGroups });
     },
@@ -300,8 +314,8 @@ export class LocationSearchProvider extends Component<Props, State> {
     setMonitoringYearsRange: (monitoringYearsRange) => {
       this.setState({ monitoringYearsRange });
     },
-    setMonitoringWorkerData: (monitoringWorkerData) => {
-      this.setState({ monitoringWorkerData });
+    setSelectedMonitoringYearsRange: (selectedMonitoringYearsRange) => {
+      this.setState({ selectedMonitoringYearsRange });
     },
     setShowAllPolluted: (showAllPolluted) => {
       this.setState({ showAllPolluted });
@@ -312,14 +326,14 @@ export class LocationSearchProvider extends Component<Props, State> {
     setPollutionParameters: (pollutionParameters) => {
       this.setState({ pollutionParameters });
     },
+    setEffluentToggleObject: (effluentToggleObject) => {
+      this.setState({ effluentToggleObject });
+    },
     setDrinkingWaterTabIndex: (drinkingWaterTabIndex) => {
       this.setState({ drinkingWaterTabIndex });
     },
     setFIPS: (FIPS) => {
       this.setState({ FIPS });
-    },
-    setViolatingDischargersOnly: (violatingDischargersOnly) => {
-      this.setState({ violatingDischargersOnly });
     },
 
     /////// Functions that do more than just set a single state ////////
@@ -373,10 +387,11 @@ export class LocationSearchProvider extends Component<Props, State> {
         atHucBoundaries: false,
         hucBoundaries: '',
         dischargerPermitComponents: null,
-        monitoringGroups: null,
+        monitoringPeriodOfRecordStatus: 'idle',
+        monitoringGroups: initialMonitoringGroups(),
         monitoringFeatureUpdates: null,
-        monitoringYearsRange: null,
-        monitoringWorkerData: initialWorkerData,
+        monitoringYearsRange: [0, 0],
+        selectedMonitoringYearsRange: [0, 0],
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },

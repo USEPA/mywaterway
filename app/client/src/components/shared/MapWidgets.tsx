@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { createPortal, render } from 'react-dom';
 import { Rnd } from 'react-rnd';
+import Select from 'react-select';
 import { css } from 'styled-components/macro';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
@@ -26,8 +27,14 @@ import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AddSaveDataWidget from 'components/shared/AddSaveDataWidget';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import MapLegend from 'components/shared/MapLegend';
+import {
+  errorBoxStyles,
+  successBoxStyles,
+} from 'components/shared/MessageBoxes';
 import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
@@ -46,11 +53,20 @@ import {
 } from 'utils/mapFunctions';
 import { isAbort, isClick } from 'utils/utils';
 // helpers
-import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
+import { useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
+import type PrintTemplateType from '@arcgis/core/rest/support/PrintTemplate';
+import type PrintVMType from '@arcgis/core/widgets/Print/PrintViewModel';
 import type { LayersState } from 'contexts/Layers';
+import type {
+  LayoutBounds,
+  MultilineTextLayout,
+  PDFDocument as PDFDocumentType,
+  PDFFont,
+  PDFPage,
+} from 'pdf-lib';
 import type {
   CSSProperties,
   Dispatch,
@@ -59,6 +75,8 @@ import type {
 } from 'react';
 import type { Container } from 'react-dom';
 import type { Feature, ServicesState } from 'types';
+// styles
+import { fonts } from 'styles';
 
 /*
 ## Styles
@@ -137,7 +155,6 @@ const instructionStyles = css`
 
 // workaround for React state variables not being updated inside of
 // esri watch events
-let displayEsriLegendNonState = false;
 let additionalLegendInfoNonState = {
   status: 'fetching',
   data: {},
@@ -183,6 +200,7 @@ const orderedLayers = [
   'dischargersLayer',
   'surroundingDischargersLayer',
   'cyanLayer',
+  'surroundingCyanLayer',
   'nonprofitsLayer',
   'providersLayer',
   'upstreamLayer',
@@ -255,7 +273,8 @@ function updateLegend(
       (layer.visible && layer.id === 'allWaterbodiesLayer') ||
       (layer.visible && layer.id === 'surroundingDischargersLayer') ||
       (layer.visible && layer.id === 'surroundingUsgsStreamgagesLayer') ||
-      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer')
+      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer') ||
+      (layer.visible && layer.id === 'surroundingCyanLayer')
     ) {
       visibleLayers.push(layer);
     }
@@ -316,7 +335,7 @@ function MapWidgets({
   } = useAddSaveDataWidgetState();
 
   const pathname = window.location.pathname;
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
   const watchHandles = useMemo<IHandle[]>(() => [], []);
   const observers = useMemo<MutationObserver[]>(() => [], []);
   useEffect(() => {
@@ -366,15 +385,10 @@ function MapWidgets({
     setFullscreenActive, //
   } = useFullscreenState();
 
-  const [mapEventHandlersSet, setMapEventHandlersSet] = useState(false);
-
-  const [popupWatcher, setPopupWatcher] = useState<__esri.WatchHandle | null>(
-    null,
-  );
   useEffect(() => {
-    if (!view || popupWatcher) return;
+    if (!view?.popup) return;
 
-    const watcher = reactiveUtils.watch(
+    const popupWatcher = reactiveUtils.watch(
       () => view.popup.features,
       () => {
         const features = view.popup.features;
@@ -401,15 +415,17 @@ function MapWidgets({
         });
 
         if (newFeatures.length === 0) {
-          view.popup.close();
+          view.closePopup();
         } else if (newFeatures.length !== view.popup.features.length) {
           view.popup.features = newFeatures;
         }
       },
     );
 
-    setPopupWatcher(watcher);
-  }, [getHucBoundaries, popupWatcher, view]);
+    return function cleanup() {
+      popupWatcher.remove();
+    }
+}, [getHucBoundaries, view]);
 
   // add the layers to the map
   useEffect(() => {
@@ -578,8 +594,7 @@ function MapWidgets({
         ? esriLegendNode.querySelectorAll('.esri-legend__message')
         : [];
 
-      displayEsriLegendNonState = esriMessages.length === 0;
-      setDisplayEsriLegend(displayEsriLegendNonState);
+      setDisplayEsriLegend(esriMessages.length === 0);
     });
 
     // Start observing the target node for configured mutations
@@ -593,8 +608,7 @@ function MapWidgets({
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode, observers]);
 
-  const surroundingsWidgetVisible = !pathname.includes('state');
-  const surroundingsWidget = useSurroundingsWidget(surroundingsWidgetVisible);
+  const surroundingsWidget = useSurroundingsWidget();
   useEffect(() => {
     if (!view?.ui) return;
 
@@ -688,11 +702,11 @@ function MapWidgets({
 
     const requests = [];
     let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
     url = `${services.data.ejscreen}legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
     url = `${services.data.mappedWater}/legend?f=json`;
-    requests.push(fetchCheck(url, abortSignal));
+    requests.push(fetchCheck(url, getSignal()));
 
     Promise.all(requests)
       .then((responses) => {
@@ -715,7 +729,7 @@ function MapWidgets({
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [abortSignal, additionalLegendInitialized, services]);
+  }, [additionalLegendInitialized, getSignal, services]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] =
@@ -768,7 +782,7 @@ function MapWidgets({
           uniqueParentItems.push(item.title);
           updateLegend(
             view,
-            displayEsriLegendNonState,
+            displayEsriLegend,
             hmwLegendNode,
             additionalLegendInfoNonState,
           );
@@ -777,7 +791,7 @@ function MapWidgets({
             item.watch('visible', function (_ev) {
               updateLegend(
                 view,
-                displayEsriLegendNonState,
+                displayEsriLegend,
                 hmwLegendNode,
                 additionalLegendInfoNonState,
               );
@@ -841,15 +855,15 @@ function MapWidgets({
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
   useEffect(() => {
-    if (!view || mapEventHandlersSet) return;
+    if (!view) return;
 
     // setup map event handlers
-    reactiveUtils.watch(
+    const zoomHandle = reactiveUtils.watch(
       () => view.zoom,
       () => {
         updateLegend(
           view,
-          displayEsriLegendNonState,
+          displayEsriLegend,
           hmwLegendNode,
           additionalLegendInfoNonState,
         );
@@ -858,21 +872,23 @@ function MapWidgets({
 
     // when basemap changes, update the basemap in context for persistent basemaps
     // across fullscreen and mobile/desktop layout changes
-    view.map.allLayers.on('change', function (_ev) {
-      if (map.basemap !== basemap) {
-        setBasemap(map.basemap);
+    const basemapHandle = view.map.allLayers.on('change', function (_ev) {
+      if (view.map.basemap !== basemap) {
+        setBasemap(view.map.basemap);
       }
     });
 
-    setMapEventHandlersSet(true);
+    return function cleanup() {
+      basemapHandle.remove();
+      zoomHandle.remove();
+    };
   }, [
     additionalLegendInfo,
     basemap,
     setBasemap,
     hmwLegendNode,
-    map,
-    mapEventHandlersSet,
     view,
+    displayEsriLegend,
   ]);
 
   // create the home widget, layers widget, and setup map zoom change listener
@@ -902,6 +918,30 @@ function MapWidgets({
     setMapView,
     fullScreenWidgetCreated,
   ]);
+
+  // create the download widget
+  useEffect(() => {
+    if (!view || services.status !== 'success') return;
+
+    const container = document.createElement('div');
+    render(<DownloadWidget services={services} view={view} />, container);
+
+    const downloadWidget = new Expand({
+      expandIconClass: 'esri-icon-printer',
+      expandTooltip: 'Open Printable Map Widget',
+      collapseTooltip: 'Close Printable Map Widget',
+      view,
+      mode: 'floating',
+      autoCollapse: true,
+      content: container,
+    });
+
+    view?.ui.add(downloadWidget, { position: 'top-right', index: 3 });
+
+    return function cleanup() {
+      if (downloadWidget) view?.ui.remove(downloadWidget);
+    };
+  }, [services, view]);
 
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on Tribal page or valid Community page location
@@ -954,7 +994,7 @@ function MapWidgets({
 
     const widget = pathname.includes('/community') ? (
       <ShowCurrentUpstreamWatershed
-        abortSignal={abortSignal}
+        abortSignal={getSignal()}
         getCurrentExtent={getCurrentExtent}
         getHuc12={getHuc12}
         getTemplate={getTemplate}
@@ -974,7 +1014,7 @@ function MapWidgets({
       />
     ) : (
       <ShowSelectedUpstreamWatershed
-        abortSignal={abortSignal}
+        abortSignal={getSignal()}
         getCurrentExtent={getCurrentExtent}
         getHuc12={getHuc12}
         getTemplate={getTemplate}
@@ -1000,15 +1040,15 @@ function MapWidgets({
 
     render(widget, node);
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
-    view.ui.add(node, { position: 'top-right', index: 3 });
+    view.ui.add(node, { position: 'top-right', index: 4 });
 
     return function cleanup() {
       view?.ui.remove(node);
     };
   }, [
-    abortSignal,
     getCurrentExtent,
     getHuc12,
+    getSignal,
     getTemplate,
     getUpstreamExtent,
     getUpstreamWidgetDisabled,
@@ -1178,7 +1218,11 @@ function ShowAddSaveDataWidget({
     >
       <span
         aria-hidden="true"
-        className="esri-icon-add-attachment"
+        className={
+          addSaveDataWidgetVisible
+            ? 'esri-icon-collapse'
+            : 'esri-icon-add-attachment'
+        }
         style={hover ? buttonHoverStyle : buttonStyle}
       />
     </div>
@@ -1280,7 +1324,7 @@ function retrieveUpstreamWatershed(
   abortSignal: AbortSignal,
   getCurrentExtent: () => __esri.Extent,
   getHuc12: () => string,
-  getTemplate: (graphic: Feature) => HTMLDivElement | null,
+  getTemplate: (graphic: Feature) => HTMLElement | undefined,
   getUpstreamExtent: () => __esri.Extent,
   upstreamLayer: __esri.GraphicsLayer | null,
   getUpstreamWidgetDisabled: () => boolean,
@@ -1371,7 +1415,7 @@ function retrieveUpstreamWatershed(
       const watershed = getWatershed() || 'Unknown Watershed';
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
-      if (!res || !res.features || res.features.length === 0) {
+      if (!res?.features?.length) {
         setUpstreamLayerErrored(true);
         upstreamLayer.graphics.removeAll();
         canDisable && setUpstreamWidgetDisabled(true);
@@ -1465,14 +1509,31 @@ function ShowUpstreamWatershed({
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
 
+  // This useEffect/watcher is here to ensure the correct title and icon
+  // are being shown. Without this the icon/title don't change until
+  // the user moves the mouse off of the button.
+  const [watcher, setWatcher] = useState<IHandle | null>(null);
+  const [upstreamVisible, setUpstreamVisible] = useState(false);
+  useEffect(() => {
+    if (!upstreamLayer || watcher) return;
+
+    setWatcher(
+      reactiveUtils.watch(
+        () => upstreamLayer.visible,
+        () => setUpstreamVisible(upstreamLayer.visible),
+      ),
+    );
+  }, [upstreamLayer, watcher]);
+
   if (!upstreamLayer) return null;
 
   let title = 'View Upstream Watershed';
   if (upstreamWidgetDisabled) title = 'Upstream Widget Not Available';
-  else if (upstreamLayer.visible) title = 'Hide Upstream Watershed';
+  else if (upstreamVisible) title = 'Hide Upstream Watershed';
   else if (selectionActive) title = 'Cancel Watershed Selection';
 
   let iconClass = 'esri-icon esri-icon-overview-arrow-top-left';
+  if (upstreamVisible) iconClass = 'esri-icon-collapse';
   if (upstreamLoading) iconClass = 'esri-icon-loading-indicator esri-rotating';
 
   return (
@@ -1504,7 +1565,7 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   abortSignal: AbortSignal;
   getCurrentExtent: () => __esri.Extent;
   getHuc12: () => string;
-  getTemplate: (graphic: Feature) => HTMLDivElement | null;
+  getTemplate: (graphic: Feature) => HTMLElement | undefined;
   getUpstreamExtent: () => __esri.Extent;
   upstreamLayer: __esri.GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;
@@ -1866,6 +1927,1163 @@ function ShowSelectedUpstreamWatershed({
         upstreamLoading={upstreamLoading}
       />
     </>
+  );
+}
+
+type PdfLegendImage = {
+  code: string | ArrayBuffer;
+  height: number;
+  width: number;
+};
+
+type PdfLegendItemType = 'h1' | 'h2' | 'h3' | 'item' | 'imageItem';
+
+type PdfLegendItem = {
+  image?: PdfLegendImage | null;
+  text?: string | null;
+  type: PdfLegendItemType;
+};
+
+const leftMargin = 10;
+const topMargin = 10;
+
+function handleError(error: unknown) {
+  if (error instanceof Error || typeof error === 'object') {
+    return (error as any)?.message;
+  } else if (typeof error === 'string') {
+    return error;
+  } else {
+    return 'Unknown error. Check developer tools console.';
+  }
+}
+
+export async function generateAndDownloadPdf({
+  layout,
+  title,
+  author,
+  copyright,
+  northArrowVisible,
+  scale,
+  services,
+  view,
+  includeLegend,
+}: {
+  layout: LayoutOptionType;
+  title: string;
+  author: string;
+  copyright: string;
+  northArrowVisible: boolean;
+  scale: number;
+  services: ServicesState;
+  view: __esri.MapView;
+  includeLegend: boolean;
+}) {
+  if (services.status !== 'success') return;
+
+  const {
+    layoutMultilineText,
+    PageSizes,
+    PDFDocument,
+    PDFImage,
+    rgb,
+    StandardFonts,
+    TextAlignment,
+  } = await import('pdf-lib');
+
+  const PrintTemplate = (
+    await import('@arcgis/core/rest/support/PrintTemplate.js')
+  ).default;
+  const PrintVM = (await import('@arcgis/core/widgets/Print/PrintViewModel'))
+    .default;
+
+  const layoutOptions = {
+    'a3-landscape': {
+      columnWidth: 280,
+      dimensions: [...PageSizes.A3].reverse() as [number, number],
+      dimensionsMapPageLegend: { height: 170, width: 1160 },
+      pageMargin: 18,
+    },
+    'a3-portrait': {
+      columnWidth: 260,
+      dimensions: PageSizes.A3,
+      dimensionsMapPageLegend: { height: 180, width: 690 },
+      pageMargin: 18,
+    },
+    'a4-landscape': {
+      columnWidth: 260,
+      dimensions: [...PageSizes.A4].reverse() as [number, number],
+      dimensionsMapPageLegend: { height: 100, width: 720 },
+      pageMargin: 17,
+    },
+    'a4-portrait': {
+      columnWidth: 275,
+      dimensions: PageSizes.A4,
+      dimensionsMapPageLegend: { height: 155, width: 420 },
+      pageMargin: 17,
+    },
+    'letter-ansi-a-landscape': {
+      columnWidth: 240,
+      dimensions: [...PageSizes.Letter].reverse() as [number, number],
+      dimensionsMapPageLegend: { height: 100, width: 660 },
+      pageMargin: 25,
+    },
+    'letter-ansi-a-portrait': {
+      columnWidth: 280,
+      dimensions: PageSizes.Letter,
+      dimensionsMapPageLegend: { height: 155, width: 420 },
+      pageMargin: 25,
+    },
+    'tabloid-ansi-b-landscape': {
+      columnWidth: 287,
+      dimensions: [...PageSizes.Tabloid].reverse() as [number, number],
+      dimensionsMapPageLegend: { height: 170, width: 1130 },
+      pageMargin: 25,
+    },
+    'tabloid-ansi-b-portrait': {
+      columnWidth: 240,
+      dimensions: PageSizes.Tabloid,
+      dimensionsMapPageLegend: { height: 185, width: 600 },
+      pageMargin: 25,
+    },
+  };
+
+  /**
+   * Adds a pdf document to an existing pdf document.
+   *
+   * @param doc PDFDocument to load provided pdfFile into.
+   * @param pdfFile PDF file to load into provided doc.
+   */
+  async function addDocument(doc: PDFDocumentType, pdfFile: ArrayBuffer) {
+    const src = await PDFDocument.load(pdfFile);
+    const copiedPages = await doc.copyPages(src, src.getPageIndices());
+    copiedPages.forEach((page) => {
+      doc.addPage(page);
+    });
+  }
+
+  /**
+   * Gets the symbol and text for the provided combination of
+   * element, symbolClass and textClass.
+   *
+   * @param legendItems Array to add legend item to
+   * @param element Element to search in
+   * @param symbolClass Class for selecting the symbol part
+   * @param textClass Class for selecting the text part
+   * @param type Type of legend item (h1, h2, h3 or item)
+   * @param firstOnly Only include the first text item
+   */
+  async function addLegendItem({
+    legendItems,
+    element,
+    symbolClass,
+    textClass,
+    type,
+    firstOnly = true,
+  }: {
+    legendItems: PdfLegendItem[];
+    element: Element;
+    symbolClass?: string;
+    textClass: string;
+    type: PdfLegendItemType;
+    firstOnly?: boolean;
+  }) {
+    const image = !symbolClass ? null : await getImage(element, symbolClass);
+
+    // get captions
+    const textItems = element.getElementsByClassName(textClass);
+
+    let itemsAdded = 0;
+    for (let textItem of textItems) {
+      const text = textItem.textContent;
+      if (text) {
+        itemsAdded += 1;
+        legendItems.push({
+          image,
+          text,
+          type,
+        });
+      }
+
+      if (firstOnly) break;
+    }
+
+    if (itemsAdded === 0 && image) {
+      legendItems.push({
+        image,
+        type,
+      });
+    }
+  }
+
+  /**
+   * Parses the dom and adds the HMW portion of the legend to the
+   * provided legendItems array.
+   * @param legendItems Array to add legend items to
+   */
+  async function appendHmwLegendItems(legendItems: PdfLegendItem[]) {
+    // loop through individual rows of hmw legend items
+    const listItems = document.getElementsByClassName('hmw-legend__item');
+    for (let item of listItems) {
+      // get the text
+      await addLegendItem({
+        legendItems,
+        element: item,
+        symbolClass: 'hmw-legend__symbol',
+        textClass: 'hmw-legend__info',
+        type: 'imageItem',
+      });
+    }
+  }
+
+  /**
+   * Parses the dom and adds the Esri portion of the legend to the
+   * provided legendItems array.
+   * @param legendItems Array to add legend items to
+   */
+  async function appendEsriLegendItems(legendItems: PdfLegendItem[]) {
+    // loop through layers of esri legend items
+    const legendServices = document.querySelectorAll(
+      '.esri-legend__service:not(.esri-legend__group-layer-child)',
+    );
+    for (let legendService of legendServices) {
+      let hasHighestLevel = false;
+      const groups = Array.from(
+        legendService.getElementsByClassName('esri-legend__group-layer-child'),
+      );
+      if (groups.length === 0) groups.push(legendService);
+      else {
+        await addLegendItem({
+          legendItems,
+          element: legendService,
+          textClass: 'esri-legend__service-label',
+          type: 'h1',
+        });
+        hasHighestLevel = true;
+      }
+
+      for (let group of groups) {
+        // get main title
+        await addLegendItem({
+          legendItems,
+          element: legendService,
+          textClass: 'esri-legend__service-label',
+          type: hasHighestLevel ? 'h2' : 'h1',
+        });
+
+        // get layer level content
+        const layers = group.getElementsByClassName('esri-legend__layer');
+        for (let layer of layers) {
+          // get captions
+          await addLegendItem({
+            legendItems,
+            element: layer,
+            textClass: 'esri-legend__layer-caption',
+            type: hasHighestLevel ? 'h3' : 'h2',
+            firstOnly: false,
+          });
+
+          // get row level content
+          const rows = layer.getElementsByClassName('esri-legend__layer-row');
+          for (let row of rows) {
+            // get the text
+            await addLegendItem({
+              legendItems,
+              element: row,
+              symbolClass: 'esri-legend__symbol',
+              textClass: 'esri-legend__layer-cell--info',
+              type: 'item',
+            });
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Calculates where items should be positioned next. This could be in a new column
+   * on the same page or a new page.
+   *
+   * @param doc PDFDocument adding to
+   * @param currentPage Current page of pdf
+   * @param layout Layout chosen by user
+   * @param pageIndex Index of the current page
+   * @param horizontalPosition Current horizontal position
+   * @param verticalPosition Current vertical position
+   * @param x Current x value
+   * @param numberOfIndents Level of indentation
+   * @param textHeight Height of current text
+   * @param imageScaledHeight Scaled height of current image
+   * @returns new values for currentPage, horizontalPosition, verticalPosition, verticalPositionImage,
+   *          verticalPositionText and x
+   */
+  function calculatePositioning({
+    doc,
+    currentPage,
+    layout,
+    pageIndex,
+    horizontalPosition,
+    verticalPosition,
+    x,
+    numberOfIndents,
+    textHeight,
+    imageScaledHeight,
+  }: {
+    doc: PDFDocumentType;
+    currentPage: PDFPage;
+    layout: LayoutOptionType;
+    pageIndex: number;
+    horizontalPosition: number;
+    verticalPosition: number;
+    x: number;
+    numberOfIndents: number;
+    textHeight: number;
+    imageScaledHeight: number;
+  }) {
+    const { height, width } = currentPage.getSize();
+    const { columnWidth, dimensions, dimensionsMapPageLegend, pageMargin } =
+      layoutOptions[layout.value];
+
+    // if on map page (1st page) use dimensions of the blank space on map page
+    // otherwise use the document dimensions
+    const maxHeight = pageIndex === 0 ? dimensionsMapPageLegend.height : height;
+    const maxWidth = pageIndex === 0 ? dimensionsMapPageLegend.width : width;
+
+    const rowHeight = Math.max(textHeight, imageScaledHeight);
+    let tempY = verticalPosition - rowHeight - topMargin;
+    if (tempY < topMargin) {
+      // update tempY to be top of next column
+      tempY = maxHeight - rowHeight - topMargin * 2;
+
+      // determine whether to start a new column or page
+      if (
+        horizontalPosition + columnWidth * 2 + pageMargin * 2 < maxWidth &&
+        tempY > topMargin
+      ) {
+        // start a new column on the same page since both height and width check out
+        verticalPosition = tempY;
+        horizontalPosition += columnWidth + leftMargin;
+        x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
+      } else {
+        // start a new page
+        currentPage = doc.addPage(dimensions);
+        pageIndex += 1;
+        horizontalPosition = 0;
+        x = pageMargin + leftMargin * numberOfIndents;
+        verticalPosition = height - rowHeight - topMargin * 2;
+      }
+    } else {
+      verticalPosition = tempY;
+    }
+
+    // figure out how to align center the image and text
+    let verticalPositionImage = verticalPosition;
+    let verticalPositionText = verticalPosition;
+    if (imageScaledHeight > textHeight) {
+      verticalPositionText =
+        verticalPosition + (imageScaledHeight - textHeight) / 2;
+    }
+    if (imageScaledHeight < textHeight) {
+      verticalPositionImage =
+        verticalPosition + (textHeight - imageScaledHeight) / 2;
+    }
+
+    return {
+      currentPage,
+      horizontalPosition,
+      pageIndex,
+      verticalPosition,
+      verticalPositionImage,
+      verticalPositionText,
+      x,
+    };
+  }
+
+  /**
+   * Draws multiline text on page.
+   *
+   * @param currentPage Current page of pdf
+   * @param multiLineText Multiline text to draw
+   * @param font Font of text
+   * @param fontSize Font size of text
+   * @param x Horizontal value to start drawing text
+   * @param verticalPositionText Vertical position to start drawing text
+   */
+  function drawMultilineText(
+    currentPage: PDFPage,
+    multiLineText: MultilineTextLayout | null,
+    font: PDFFont,
+    fontSize: number,
+    x: number,
+    verticalPositionText: number,
+  ) {
+    if (!multiLineText) return;
+
+    // pdf-lib has y=0 start at the bottom of the page, so
+    // we have to reverse the lines and work our way up
+    let tempVerticalPositionText = verticalPositionText;
+    for (const l of [...multiLineText.lines].reverse()) {
+      currentPage.drawText(l.text, {
+        x,
+        y: tempVerticalPositionText,
+        font,
+        size: fontSize,
+      });
+
+      tempVerticalPositionText = tempVerticalPositionText + l.height;
+    }
+  }
+
+  /**
+   * Embeds the scaled image into the document and returns the pdfImage,
+   * scaled height and scaled width of the image.
+   *
+   * @param doc PDFDocument adding to
+   * @param image Image to embed in PDF
+   * @returns The pdfImage, scaled height and scaled width
+   */
+  async function embedImage(
+    doc: PDFDocumentType,
+    image?: PdfLegendImage | null,
+  ) {
+    if (!image)
+      return { pdfImage: null, imageScaledHeight: 0, imageScaledWidth: 0 };
+
+    const imageScaleFactor = 0.75;
+    try {
+      // if the image code is a url, then fetch the image
+      if (typeof image.code === 'string' && !image.code.includes(';base64,')) {
+        image.code = await (await fetch(image.code)).arrayBuffer();
+      }
+
+      // embed, scale and draw the image
+      const pdfImage = await doc.embedPng(image.code);
+      const dimensions = pdfImage.scale(imageScaleFactor);
+
+      return {
+        pdfImage,
+        imageScaledHeight: dimensions.height,
+        imageScaledWidth: dimensions.width,
+      };
+    } catch (err) {
+      console.error(err);
+      return {
+        pdfImage: 'Failed to load image.',
+        imageScaledHeight: 0,
+        imageScaledWidth: 0,
+      };
+    }
+  }
+
+  /**
+   * Gets a symbol and converts it to a base64 PNG.
+   *
+   * @param parentElement Element to find symbol in.
+   * @param searchClass Class of symbol being searched for.
+   * @returns code as base64 PNG and height/width of image.
+   */
+  async function getImage(parentElement: Element, searchClass: string) {
+    // get the symbol
+    const symbols = parentElement.getElementsByClassName(searchClass);
+    const symbol = symbols.length > 0 ? symbols[0] : null;
+    const svgs =
+      symbol?.tagName === 'SVG'
+        ? [symbol as SVGSVGElement]
+        : symbol?.getElementsByTagName('svg');
+    const svgTemp = svgs && svgs.length > 0 ? svgs[0] : null;
+    const png = svgTemp ? await svgToPng(svgTemp) : null;
+    if (png) return png;
+
+    const imgs =
+      symbol?.tagName === 'IMG'
+        ? [symbol as HTMLImageElement]
+        : symbol?.getElementsByTagName('img');
+    const img = imgs && imgs.length > 0 ? imgs[0] : null;
+    if (img) return { code: img.src, height: img.height, width: img.width };
+
+    return null;
+  }
+
+  /**
+   * Wraps the text across multiple lines and calculates the height of the text.
+   *
+   * @param text Text to convert to multi line text
+   * @param font Font of text
+   * @param fontSize Font size of text
+   * @param bounds Bounding box for multi line text to fit in
+   * @returns multiLineText object and the textHeight
+   */
+  function getMultilineText({
+    bounds,
+    font,
+    fontSize,
+    text,
+  }: {
+    bounds: LayoutBounds;
+    font: PDFFont;
+    fontSize: number;
+    text?: string | null;
+  }) {
+    let textHeight = 0;
+    let multiLineText: MultilineTextLayout | null = null;
+
+    if (text) {
+      multiLineText = layoutMultilineText(text, {
+        alignment: TextAlignment.Left,
+        font,
+        fontSize,
+        bounds,
+      });
+
+      // calculate height of multiline text
+      multiLineText.lines.forEach(
+        () => (textHeight += font.heightAtSize(fontSize)),
+      );
+    }
+
+    return { multiLineText, textHeight };
+  }
+
+  /**
+   * Determines how far to indent items based on the
+   * last heading level.
+   *
+   * @param lastHeading Last heading level
+   * @param type Current item type
+   * @returns number of indents
+   */
+  function getNumberOfIndents(
+    lastHeading: PdfLegendItemType,
+    type: PdfLegendItemType,
+  ) {
+    let numberOfIndents = 1;
+    if (lastHeading === 'h2') numberOfIndents = 2;
+    if (lastHeading === 'h3') numberOfIndents = 3;
+    if (type === 'item') numberOfIndents += 1;
+
+    return numberOfIndents;
+  }
+
+  /**
+   * Converts an svg string to base64 png using the domUrl.
+   *
+   * @param svgText the string representation of the SVG.
+   * @return a promise to the bas64 png image.
+   */
+  function svgToPng(svgElm: SVGSVGElement): Promise<PdfLegendImage> {
+    // convert an svg text to png using the browser
+    return new Promise(function (resolve, reject) {
+      try {
+        // can use the domUrl function from the browser
+        const domUrl = window.URL || window.webkitURL || window;
+        if (!domUrl) {
+          reject(new Error('Browser does not support converting SVG to PNG.'));
+        }
+
+        // figure out the height and width from svg text
+        const height = svgElm.height.baseVal.value;
+        const width = svgElm.width.baseVal.value;
+
+        let svgText = svgElm.outerHTML;
+        // remove "xlink:"" from "xlink:href" as it is not proper SVG syntax
+        svgText = svgText.replaceAll('xlink:', '');
+
+        // verify it has a namespace
+        if (!svgText.includes('xmlns="')) {
+          svgText = svgText.replace(
+            '<svg ',
+            '<svg xmlns="http://www.w3.org/2000/svg" ',
+          );
+        }
+
+        // create a canvas element to pass through
+        let canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // make a blob from the svg
+        const svg = new Blob([svgText], {
+          type: 'image/svg+xml;charset=utf-8',
+        });
+
+        // create a dom object for that image
+        const url = domUrl.createObjectURL(svg);
+
+        // create a new image to hold it the converted type
+        const img = new Image();
+
+        // when the image is loaded we can get it as base64 url
+        img.onload = function () {
+          if (!ctx) return;
+
+          // draw it to the canvas
+          ctx.drawImage(img, 0, 0);
+
+          // we don't need the original any more
+          domUrl.revokeObjectURL(url);
+          // now we can resolve the promise, passing the base64 url
+          resolve({ code: canvas.toDataURL(), width, height });
+        };
+
+        img.onerror = function (err) {
+          console.error(err);
+          reject(new Error('Failed to convert svg to png.'));
+        };
+
+        // load the image
+        img.src = url;
+      } catch (err) {
+        console.error(err);
+        reject(new Error('Failed to convert svg to png.'));
+      }
+    });
+  }
+
+  /**
+   * A wrapper for setTimeout, which allows async/await syntax.
+   *
+   * @param ms Milliseconds to wait for
+   * @returns Promise
+   */
+  function timeout(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Generates the map portion of the PDF using the esri
+   * print service.
+   *
+   * @param printVm PrintViewModel used for calling esri print service
+   * @param template PrintTemplate used for formatting the map
+   * @param retryCount Retry count for handling failures
+   * @returns ArrayBuffer of the map portion of the PDF
+   */
+  async function generateMapPdf(
+    printVm: PrintVMType,
+    template: PrintTemplateType,
+    retryCount: number = 0,
+  ): Promise<ArrayBuffer> {
+    try {
+      const printRes = await printVm.print(template);
+      const res = await fetch(printRes.url);
+
+      // convert to array buffer and return
+      return await (await res.blob()).arrayBuffer();
+    } catch (err) {
+      console.error(err);
+
+      // set failure when retry is exceeded
+      if (retryCount === 3) {
+        throw err;
+      } else {
+        // recursive retry (1 second between retries)
+        console.log(`Failed to download. Retrying (${retryCount + 1} of 3)...`);
+        await timeout(1000);
+        return await generateMapPdf(printVm, template, retryCount + 1);
+      }
+    }
+  }
+
+  /**
+   * Generates the legend portion of the PDF file.
+   *
+   * @param doc PDFDocument to add legend to
+   */
+  async function generateLegendPdf(doc: PDFDocumentType) {
+    const legendItems: PdfLegendItem[] = [];
+    await appendHmwLegendItems(legendItems);
+    await appendEsriLegendItems(legendItems);
+
+    // add a page and set the font
+    let currentPage = doc.getPage(0);
+    const helveticaFont = doc.embedStandardFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = doc.embedStandardFont(
+      StandardFonts.HelveticaBold,
+    );
+
+    // get the size of the document
+    const { height } = currentPage.getSize();
+    const fontSize = 12;
+
+    const { columnWidth, dimensionsMapPageLegend, pageMargin } =
+      layoutOptions[layout.value];
+
+    // add items to legend
+    let lastHeading: PdfLegendItemType = 'h1';
+    let horizontalPosition = 0;
+    let verticalPosition = dimensionsMapPageLegend.height - topMargin;
+    let pageIndex = 0;
+    for (const item of legendItems) {
+      const { image, text, type } = item;
+
+      if (['h1', 'h2', 'h3'].includes(type)) lastHeading = type;
+      const numberOfIndents = getNumberOfIndents(lastHeading, type);
+
+      const font = ['h1', 'h2'].includes(type)
+        ? helveticaBoldFont
+        : helveticaFont;
+
+      // set x starting position
+      let x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
+
+      // get image dimensions after scaling
+      const { pdfImage, imageScaledHeight, imageScaledWidth } =
+        await embedImage(doc, image);
+
+      // wrap text and calculate height of text
+      const { multiLineText, textHeight } = getMultilineText({
+        text,
+        font,
+        fontSize,
+        bounds: {
+          x,
+          y: verticalPosition - topMargin,
+          width: columnWidth - imageScaledWidth - leftMargin * numberOfIndents,
+          height,
+        },
+      });
+
+      const newPosition = calculatePositioning({
+        doc,
+        currentPage,
+        layout,
+        pageIndex,
+        horizontalPosition,
+        verticalPosition,
+        x,
+        numberOfIndents,
+        imageScaledHeight,
+        textHeight,
+      });
+
+      ({ currentPage, horizontalPosition, pageIndex, verticalPosition, x } =
+        newPosition);
+
+      const { verticalPositionImage, verticalPositionText } = newPosition;
+
+      // draw the image
+      if (pdfImage instanceof PDFImage) {
+        currentPage.drawImage(pdfImage, {
+          x,
+          y: verticalPositionImage,
+          width: imageScaledWidth,
+          height: imageScaledHeight,
+        });
+
+        // shift x to the right of the image for text
+        x = x + leftMargin + imageScaledWidth;
+      }
+      if (typeof pdfImage === 'string') {
+        currentPage.drawText(pdfImage, {
+          x,
+          y: verticalPositionText,
+          color: rgb(1, 0, 0),
+          font: helveticaFont,
+          size: fontSize,
+        });
+
+        x =
+          x + leftMargin + helveticaFont.widthOfTextAtSize(pdfImage, fontSize);
+      }
+
+      // draw the text which can be multiple lines
+      drawMultilineText(
+        currentPage,
+        multiLineText,
+        font,
+        fontSize,
+        x,
+        verticalPositionText,
+      );
+    }
+  }
+
+  const template = new PrintTemplate({
+    format: 'pdf',
+    layout: layout.value,
+    layoutOptions: {
+      titleText: title,
+      authorText: author,
+      copyrightText: copyright,
+      legendLayers: [], // hide legend since it has a bug
+      elementOverrides: {
+        'North Arrow': {
+          visible: northArrowVisible,
+        },
+      },
+    },
+    outScale: scale,
+  });
+
+  const printVm = new PrintVM({
+    printServiceUrl: services.data.printService,
+    view,
+  });
+
+  // create the PDF document with metadata
+  const doc = await PDFDocument.create();
+  const creator = `U.S. EPA How's My Waterway`;
+  doc.setTitle(title);
+  doc.setAuthor(`${author || creator}`);
+  doc.setSubject(title);
+  doc.setKeywords([
+    'MyWaterway',
+    'HMWv2',
+    'WATERS',
+    'RAD',
+    'ATTAINS',
+    'GRTS',
+    'STORET',
+    'WQP',
+    'WQX',
+  ]);
+  doc.setProducer(creator);
+  doc.setCreator(creator);
+  doc.setCreationDate(new Date());
+  doc.setModificationDate(new Date());
+
+  // get map part and add it to the document
+  const mapPdf = await generateMapPdf(printVm, template);
+  await addDocument(doc, mapPdf);
+
+  // get legend part if necessary
+  if (includeLegend) await generateLegendPdf(doc);
+
+  // save from browser
+  const mergedPdf = new Blob([await doc.save()]);
+  const { saveAs } = (await import('file-saver')).default;
+  saveAs(mergedPdf, `${title}.pdf`);
+}
+
+const advanceContainerStyles = css`
+  padding: 10px;
+`;
+
+const checkboxStyles = css`
+  display: flex;
+  gap: 0.25rem;
+`;
+
+const downloadButtonStyles = css`
+  margin-top: 10px;
+  width: 100%;
+`;
+
+const downloadWidgetContainerStyles = css`
+  padding: 12px 10px 0;
+
+  h1 {
+    font-family: ${fonts.primary};
+    font-size: 1.25em;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0 0 12px 0;
+    padding: 0;
+  }
+
+  label {
+    width: 100%;
+    font-size: 16px;
+    margin-bottom: 0.5rem;
+  }
+`;
+
+const inputStyles = css`
+  width: 100%;
+  height: 36px;
+  padding: 2px 8px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 4px;
+  border-color: hsl(0, 0%, 80%);
+`;
+
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  text-align: center;
+  margin-top: 0.625rem;
+`;
+
+const modifiedSuccessBoxStyles = css`
+  ${successBoxStyles};
+  text-align: center;
+  margin-top: 0.625rem;
+`;
+
+const scaleContainerStyles = css`
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  button {
+    width: 36px;
+    height: 36px;
+  }
+`;
+
+type LayoutOptionType =
+  | {
+      value: 'a3-landscape';
+      label: 'A3 Landscape';
+    }
+  | {
+      value: 'a3-portrait';
+      label: 'A3 Portrait';
+    }
+  | {
+      value: 'a4-landscape';
+      label: 'A4 Landscape';
+    }
+  | {
+      value: 'a4-portrait';
+      label: 'A4 Portrait';
+    }
+  | {
+      value: 'letter-ansi-a-landscape';
+      label: 'Letter ANSI A Landscape';
+    }
+  | {
+      value: 'letter-ansi-a-portrait';
+      label: 'Letter ANSI A Portrait';
+    }
+  | {
+      value: 'tabloid-ansi-b-landscape';
+      label: 'Tabloid ANSI B Landscape';
+    }
+  | {
+      value: 'tabloid-ansi-b-portrait';
+      label: 'Tabloid ANSI B Portrait';
+    };
+
+type DownloadWidgetProps = {
+  services: ServicesState;
+  view: __esri.MapView;
+};
+
+function DownloadWidget({ services, view }: DownloadWidgetProps) {
+  const layoutOptions: LayoutOptionType[] = [
+    {
+      value: 'a3-landscape',
+      label: 'A3 Landscape',
+    },
+    {
+      value: 'a3-portrait',
+      label: 'A3 Portrait',
+    },
+    {
+      value: 'a4-landscape',
+      label: 'A4 Landscape',
+    },
+    {
+      value: 'a4-portrait',
+      label: 'A4 Portrait',
+    },
+    {
+      value: 'letter-ansi-a-landscape',
+      label: 'Letter ANSI A Landscape',
+    },
+    {
+      value: 'letter-ansi-a-portrait',
+      label: 'Letter ANSI A Portrait',
+    },
+    {
+      value: 'tabloid-ansi-b-landscape',
+      label: 'Tabloid ANSI B Landscape',
+    },
+    {
+      value: 'tabloid-ansi-b-portrait',
+      label: 'Tabloid ANSI B Portrait',
+    },
+  ];
+
+  const [author, setAuthor] = useState('');
+  const [copyright, setCopyright] = useState('');
+  const [enableScale, setEnableScale] = useState(false);
+  const [scale, setScale] = useState(0);
+  const [includeLegend, setIncludeLegend] = useState(true);
+  const [layout, setLayout] = useState<LayoutOptionType>(
+    layoutOptions.find((o) => o.value === 'letter-ansi-a-landscape') ??
+      layoutOptions[0],
+  );
+  const [northArrowVisible, setNorthArrowVisible] = useState(false);
+  const [status, setStatus] = useState<
+    'idle' | 'fetching' | 'success' | 'failure'
+  >('idle');
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const [title, setTitle] = useState('');
+
+  // Initializes a watcher to sync the view's scale.
+  useEffect(() => {
+    const scaleHandle = reactiveUtils.watch(
+      () => view.scale,
+      () => {
+        if (!enableScale) setScale(view.scale);
+      },
+      { initial: true },
+    );
+    return function cleanup() {
+      scaleHandle.remove();
+    };
+  }, [enableScale, view]);
+
+  return (
+    <div
+      className="esri-widget esri-widget--panel-height-only"
+      css={downloadWidgetContainerStyles}
+    >
+      <h1>Download Printable Map</h1>
+      <div>
+        <label>
+          Title
+          <input
+            css={inputStyles}
+            type="text"
+            value={title}
+            onChange={(ev) => setTitle(ev.target.value)}
+          />
+        </label>
+      </div>
+      <div>
+        <label css={checkboxStyles}>
+          <input
+            type="checkbox"
+            checked={includeLegend}
+            onChange={() => setIncludeLegend(!includeLegend)}
+          />
+          Include Legend
+        </label>
+      </div>
+      <div>
+        <label>
+          Page setup
+          <Select
+            menuPosition="fixed"
+            isSearchable={false}
+            value={layout}
+            onChange={(ev) => {
+              setLayout(ev as LayoutOptionType);
+            }}
+            options={layoutOptions}
+          />
+        </label>
+      </div>
+      <AccordionList expandDisabled={true}>
+        <AccordionItem status={'highlighted'} title="Advanced">
+          <div css={advanceContainerStyles}>
+            <div>
+              <label css={checkboxStyles}>
+                <input
+                  type="checkbox"
+                  checked={enableScale}
+                  onChange={() => setEnableScale(!enableScale)}
+                />
+                Set scale
+              </label>
+            </div>
+            <div css={scaleContainerStyles}>
+              <input
+                css={inputStyles}
+                type="number"
+                aria-label="scale"
+                disabled={!enableScale}
+                value={scale}
+                onChange={(ev) => setScale(ev.target.valueAsNumber)}
+              />
+              <button
+                aria-label="reset scale"
+                className="esri-widget--button esri-print__refresh-button esri-icon-refresh"
+                onClick={() => {
+                  setScale(view.scale);
+                }}
+              />
+            </div>
+            <div>
+              <label>
+                Author
+                <input
+                  css={inputStyles}
+                  type="text"
+                  value={author}
+                  onChange={(ev) => setAuthor(ev.target.value)}
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                Copyright
+                <input
+                  css={inputStyles}
+                  type="text"
+                  value={copyright}
+                  onChange={(ev) => setCopyright(ev.target.value)}
+                />
+              </label>
+            </div>
+            <div>
+              <label css={checkboxStyles}>
+                <input
+                  type="checkbox"
+                  checked={northArrowVisible}
+                  onChange={() => setNorthArrowVisible(!northArrowVisible)}
+                />
+                Include north arrow
+              </label>
+            </div>
+          </div>
+        </AccordionItem>
+      </AccordionList>
+
+      {status === 'fetching' && <LoadingSpinner />}
+
+      {status === 'success' && (
+        <div css={modifiedSuccessBoxStyles}>
+          <p>Download succeeded. Please check your destination folder.</p>
+        </div>
+      )}
+      {status === 'failure' && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{errorMessage}</p>
+        </div>
+      )}
+
+      <button
+        css={downloadButtonStyles}
+        disabled={status === 'fetching'}
+        onClick={async () => {
+          if (!view || services.status !== 'success') return;
+
+          if (!title) {
+            setStatus('failure');
+            setErrorMessage('Please provide a title and try again.');
+            return;
+          }
+
+          setStatus('fetching');
+
+          try {
+            await generateAndDownloadPdf({
+              layout,
+              title,
+              author,
+              copyright,
+              northArrowVisible,
+              scale,
+              services,
+              view,
+              includeLegend,
+            });
+
+            setStatus('success');
+          } catch (err) {
+            console.error(err);
+            setStatus('failure');
+            setErrorMessage(handleError(err));
+          }
+        }}
+      >
+        Download Printable Map
+      </button>
+    </div>
   );
 }
 

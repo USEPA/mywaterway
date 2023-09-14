@@ -75,7 +75,6 @@
       color="#ffffff"
     />
     <meta name="msapplication-TileColor" content="#2b5797" />
-    <meta name="theme-color" content="#ffffff" />
     <style>
       /* bootstrap style overrides */
       .epa-search .form-text {
@@ -163,7 +162,7 @@
         'drinking-water': "How's My Waterway - Explore - Drinking Water",
         attains: "How's My Waterway - ATTAINS",
         educators: "How's My Waterway - Educators",
-        'monitoring-report': "How's My Waterway - Monitoring Report",
+        'monitoring-report': "How's My Waterway - Water Monitoring Report",
       };
 
       const descriptionMapping = {
@@ -186,7 +185,7 @@
         educators:
           'Find How’s My Waterway resources for educators including lesson plans and other materials.',
         'monitoring-report':
-          'Use the monitoring report page to find information on individual monitoring locations including historical data from the Water Quality Portal.',
+          'Use the water monitoring report page to find information on individual monitoring locations including historical data from the Water Quality Portal.',
       };
 
       // update page title and description using mapping
@@ -405,8 +404,18 @@
         });
 
         window.addEventListener('error', function (event) {
+          if (
+            event.message ===
+              'ResizeObserver loop completed with undelivered notifications.' ||
+            event.message === 'ResizeObserver loop limit exceeded'
+          ) {
+            event.stopImmediatePropagation();
+            return;
+          }
           window.logToGa('send', 'exception', {
-            exDescription: `${event.error.message}${event.error.stack}`,
+            exDescription: event.error
+              ? `${event.error.message}${event.error.stack}`
+              : event.message,
             exFatal: true,
           });
 
@@ -610,7 +619,7 @@
           </button>
         </div>
       </div>
-      <div id="root"></div>
+      <div id="root" role="presentation"></div>
     </section>
 
     <footer class="main-footer clearfix" role="contentinfo">

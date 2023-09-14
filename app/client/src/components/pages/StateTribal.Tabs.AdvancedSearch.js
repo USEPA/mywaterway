@@ -1,23 +1,17 @@
 // @flow
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
-import { VariableSizeList } from 'react-window';
 import * as query from '@arcgis/core/rest/query';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import MenuList from 'components/shared/MenuList';
+import Modal from 'components/shared/Modal';
 import StateMap from 'components/shared/StateMap';
 import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized';
-import ConfirmModal from 'components/shared/ConfirmModal';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -37,14 +31,14 @@ import {
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
 import { chunkArray, isAbort } from 'utils/utils';
 import {
-  useAbortSignal,
+  useAbort,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
 } from 'utils/hooks';
 // data
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 // styles
-import { reactSelectStyles } from 'styles/index.js';
+import { reactSelectStyles } from 'styles/index';
 // errors
 import {
   stateGeneralError,
@@ -91,7 +85,8 @@ function retrieveFeatures({
       .executeForIds(url, queryParams)
       .then((objectIds) => {
         // this block sometimes still executes when the request is aborted
-        if (queryParams.signal?.aborted) reject({ name: 'AbortError' });
+        if (queryParams.signal?.aborted)
+          reject(new DOMException('The query was aborted.', 'AbortError'));
         // set the features value of the data to an empty array if no objectIds
         // were returned.
         if (!objectIds) {
@@ -233,7 +228,7 @@ const screenLabelWithPaddingStyles = css`
 `;
 
 function AdvancedSearch() {
-  const abortSignal = useAbortSignal();
+  const { getSignal } = useAbort();
   const services = useServicesContext();
 
   const {
@@ -311,7 +306,7 @@ function AdvancedSearch() {
   useEffect(() => {
     if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
-    retrieveMaxRecordCount(services.data.wbd, abortSignal)
+    retrieveMaxRecordCount(services.data.wbd, getSignal())
       .then((maxRecordCount) => {
         setWatershedsLayerMaxRecordCount(maxRecordCount);
       })
@@ -323,7 +318,7 @@ function AdvancedSearch() {
         setWatershedMrcError(true);
       });
   }, [
-    abortSignal,
+    getSignal,
     watershedsLayerMaxRecordCount,
     setWatershedsLayerMaxRecordCount,
     watershedMrcError,
@@ -338,7 +333,7 @@ function AdvancedSearch() {
     const queryParams = {
       where: `UPPER(STATES) LIKE '%${activeState.value}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
-      signal: abortSignal,
+      signal: getSignal(),
     };
 
     retrieveFeatures({
@@ -365,14 +360,14 @@ function AdvancedSearch() {
         setServiceError(true);
         setWatersheds([]);
       });
-  }, [abortSignal, activeState, watershedsLayerMaxRecordCount, services]);
+  }, [activeState, getSignal, watershedsLayerMaxRecordCount, services]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
   const [summaryMrcError, setSummaryMrcError] = useState(false);
   useEffect(() => {
     if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
-    retrieveMaxRecordCount(services.data.waterbodyService.summary, abortSignal)
+    retrieveMaxRecordCount(services.data.waterbodyService.summary, getSignal())
       .then((maxRecordCount) => {
         setSummaryLayerMaxRecordCount(maxRecordCount);
       })
@@ -384,7 +379,7 @@ function AdvancedSearch() {
         setSummaryMrcError(true);
       });
   }, [
-    abortSignal,
+    getSignal,
     summaryLayerMaxRecordCount,
     setSummaryLayerMaxRecordCount,
     summaryMrcError,
@@ -412,7 +407,7 @@ function AdvancedSearch() {
           'orgtype',
           'reportingcycle',
         ],
-        signal: abortSignal,
+        signal: getSignal(),
       };
 
       retrieveFeatures({
@@ -460,7 +455,7 @@ function AdvancedSearch() {
         returnGeometry: false,
         where: currentFilter,
         outFields: ['*'],
-        signal: abortSignal,
+        signal: getSignal(),
       };
 
       retrieveFeatures({
@@ -478,7 +473,7 @@ function AdvancedSearch() {
         });
     }
   }, [
-    abortSignal,
+    getSignal,
     setWaterbodyData,
     currentFilter,
     summaryLayerMaxRecordCount,
@@ -533,7 +528,6 @@ function AdvancedSearch() {
   };
 
   const [numberOfRecords, setNumberOfRecords] = useState(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [nextFilter, setNextFilter] = useState('');
   useEffect(() => {
     if (!nextFilter || serviceError) return;
@@ -548,9 +542,8 @@ function AdvancedSearch() {
     query
       .executeForCount(url, queryParams)
       .then((res) => {
-        setNumberOfRecords(res ? res : 0);
+        setNumberOfRecords(res);
         setSearchLoading(false);
-        setConfirmOpen(true);
       })
       .catch((err) => {
         console.error(err);
@@ -575,7 +568,6 @@ function AdvancedSearch() {
   // Resets the filters when the user selects a different state
   useEffect(() => {
     // Reset ui
-    setConfirmOpen(false);
     setServiceError(false);
     setSearchLoading(false);
     setWatershedMrcError(false);
@@ -698,10 +690,6 @@ function AdvancedSearch() {
         setNumberOfRecords(null);
         setNextFilter(newFilter);
       } else {
-        // filter didn't change, re-show the dialog if the numberOfRecords has been
-        // set (i.e. there is not already a query to get the number of records)
-        if (numberOfRecords >= 0) setConfirmOpen(true);
-
         setSearchLoading(false);
       }
     } else {
@@ -727,42 +715,55 @@ function AdvancedSearch() {
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
   const { selectedGraphic } = useMapHighlightState();
-  useEffect(() => {
-    if (!selectedGraphic) return;
-
+  const [prevSelectedGraphic, setPrevSelectedGraphic] =
+    useState(selectedGraphic);
+  if (prevSelectedGraphic !== selectedGraphic) {
+    setPrevSelectedGraphic(selectedGraphic);
     setShowMap(true);
     scrollToMap();
-  }, [selectedGraphic]);
+  }
 
   // Waits until the data is loaded and the map is visible before scrolling
   // to the map
-  useEffect(() => {
-    if (!waterbodyData) return;
-
+  const [prevWaterbodyData, setPrevWaterbodyData] = useState(waterbodyData);
+  if (waterbodyData && prevWaterbodyData !== waterbodyData) {
+    setPrevWaterbodyData(waterbodyData);
     scrollToMap();
-  }, [waterbodyData]);
+  }
 
   // Combines the parameter groups and use groups filters to make the
   // display options.
-  useEffect(() => {
+  const updateDisplayOptions = (newParameterFilter, newUseFilter) => {
     let newDisplayOptions = [defaultDisplayOption];
 
     // if the filter array exists add it to newDisplayOptions
-    if (useFilter) {
+    if (newUseFilter) {
       newDisplayOptions.push({
         label: 'Use Groups',
-        options: useFilter.sort((a, b) => a.label.localeCompare(b.label)),
+        options: newUseFilter.sort((a, b) => a.label.localeCompare(b.label)),
       });
     }
-    if (parameterFilter) {
+    if (newParameterFilter) {
       newDisplayOptions.push({
         label: 'Parameter Groups',
-        options: parameterFilter.sort((a, b) => a.label.localeCompare(b.label)),
+        options: newParameterFilter.sort((a, b) =>
+          a.label.localeCompare(b.label),
+        ),
       });
     }
 
     setNewDisplayOptions(newDisplayOptions);
-  }, [parameterFilter, useFilter]);
+  };
+
+  const updateParameterFilter = (newParameterFilter) => {
+    setParameterFilter(newParameterFilter);
+    updateDisplayOptions(newParameterFilter, useFilter);
+  };
+
+  const updateUseFilter = (newUseFilter) => {
+    setUseFilter(newUseFilter);
+    updateDisplayOptions(parameterFilter, newUseFilter);
+  };
 
   useWaterbodyOnMap(selectedDisplayOption.value, '', 'unassessed');
 
@@ -786,9 +787,9 @@ function AdvancedSearch() {
             isMulti
             isLoading={!parameterGroupOptions}
             isSearchable={false}
-            options={parameterGroupOptions ? parameterGroupOptions : []}
+            options={parameterGroupOptions ?? []}
             value={parameterFilter}
-            onChange={(ev) => setParameterFilter(ev)}
+            onChange={updateParameterFilter}
             styles={reactSelectStyles}
           />
         </div>
@@ -803,7 +804,7 @@ function AdvancedSearch() {
             isSearchable={false}
             options={useFields}
             value={useFilter}
-            onChange={(ev) => setUseFilter(ev)}
+            onChange={updateUseFilter}
             styles={reactSelectStyles}
           />
         </div>
@@ -930,26 +931,55 @@ function AdvancedSearch() {
       </div>
 
       <div css={searchStyles}>
-        <button
-          css={buttonStyles}
-          disabled={searchLoading}
-          onClick={(_ev) => {
-            if (mapView && mapView.popup) mapView.popup.close();
-            executeFilter();
+        <Modal
+          closeTitle="Cancel search"
+          confirmEnabled={numberOfRecords > 0}
+          isConfirm={true}
+          label="Warning about potentially slow search"
+          onConfirm={() => {
+            setCurrentFilter(nextFilter);
+            setWaterbodyData(null);
+            setServiceError(false);
+            // update the possible display options
+            setDisplayOptions(newDisplayOptions);
+            // figure out if the selected display option is available
+            const indexOfDisplay = newDisplayOptions.findIndex((item) => {
+              return item.value === selectedDisplayOption.value;
+            });
+            // set the display back to the default option
+            if (newDisplayOptions.length === 1 || indexOfDisplay === -1) {
+              setSelectedDisplayOption(defaultDisplayOption);
+            }
           }}
-        >
-          {searchLoading ? (
-            <>
-              <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
-              &nbsp;&nbsp;Loading...
-            </>
-          ) : (
-            <>
+          triggerElm={
+            <button
+              css={buttonStyles}
+              disabled={searchLoading}
+              onClick={(_ev) => {
+                mapView?.popup?.close();
+                executeFilter();
+              }}
+            >
               <i className="fas fa-search" aria-hidden="true" />
               &nbsp;&nbsp;Search
+            </button>
+          }
+        >
+          {searchLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              Your search will return{' '}
+              <strong>{numberOfRecords?.toLocaleString() ?? 0}</strong> results.
+              <br />
+              {numberOfRecords > 0 ? (
+                <>Would you like to continue?</>
+              ) : (
+                <>Please change your filter criteria and try again.</>
+              )}
             </>
           )}
-        </button>
+        </Modal>
       </div>
     </>
   );
@@ -1097,41 +1127,6 @@ function AdvancedSearch() {
 
   return (
     <div data-content="stateoverview">
-      <ConfirmModal
-        label="Warning about potentially slow search"
-        isOpen={confirmOpen}
-        confirmEnabled={numberOfRecords > 0}
-        onConfirm={(_ev) => {
-          setConfirmOpen(false);
-          setCurrentFilter(nextFilter);
-          setWaterbodyData(null);
-          setServiceError(false);
-          // update the possible display options
-          setDisplayOptions(newDisplayOptions);
-          // figure out if the selected display option is available
-          const indexOfDisplay = newDisplayOptions.findIndex((item) => {
-            return item.value === selectedDisplayOption.value;
-          });
-          // set the display back to the default option
-          if (newDisplayOptions.length === 1 || indexOfDisplay === -1) {
-            setSelectedDisplayOption(defaultDisplayOption);
-          }
-        }}
-        onCancel={(_ev) => {
-          setConfirmOpen(false);
-        }}
-      >
-        Your search will return{' '}
-        <strong>{numberOfRecords && numberOfRecords.toLocaleString()}</strong>{' '}
-        results.
-        <br />
-        {numberOfRecords > 0 ? (
-          <>Would you like to continue?</>
-        ) : (
-          <>Please change your filter criteria and try again.</>
-        )}
-      </ConfirmModal>
-
       {filterControls}
 
       {currentFilter && resultsContainer}
@@ -1160,66 +1155,6 @@ function AdvancedSearch() {
       )}
     </div>
   );
-}
-
-function MenuList({ ...props }) {
-  const { width } = useWindowSize();
-  const listRef = useRef();
-
-  // keeps track of the size of the virtualized items. This handles
-  // items where the text wraps
-  const sizeMap = useRef({});
-  const setSize = useCallback((index: number, size: number) => {
-    sizeMap.current = { ...sizeMap.current, [index]: size };
-    listRef.current.resetAfterIndex(index);
-  }, []);
-  const getSize = (index: number) => sizeMap.current[index] || 70;
-
-  // use the default style dropdown if there is no data
-  if (!props.children.length || props.children.length === 0) {
-    return props.children;
-  }
-
-  return (
-    <VariableSizeList
-      ref={listRef}
-      width="100%"
-      height={props.maxHeight}
-      itemCount={props.children.length}
-      itemSize={getSize}
-    >
-      {({ index, style }) => (
-        <div style={{ ...style, overflowX: 'hidden' }}>
-          <MenuItem
-            index={index}
-            width={width}
-            setSize={setSize}
-            value={props.children[index]}
-          />
-        </div>
-      )}
-    </VariableSizeList>
-  );
-}
-
-type MenuItemProps = {
-  index: number,
-  width: number,
-  setSize: (index: number, size: number) => void,
-  value: string,
-};
-
-function MenuItem({ index, width, setSize, value }: MenuItemProps) {
-  const rowRef = useRef();
-
-  // keep track of the height of the rows to autosize rows
-  useEffect(() => {
-    if (!rowRef?.current) return;
-
-    setSize(index, rowRef.current.getBoundingClientRect().height);
-  }, [setSize, index, width]);
-
-  return <div ref={rowRef}>{value}</div>;
 }
 
 export default function AdvancedSearchContainer() {

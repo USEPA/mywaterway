@@ -1,6 +1,5 @@
 // flow
 
-import React from 'react';
 import { css } from 'styled-components/macro';
 // styled components
 import {

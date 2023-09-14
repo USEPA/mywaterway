@@ -4,33 +4,31 @@ import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
+import { useDynamicPopup } from 'utils/hooks';
 import {
   getGeographicExtent,
   filterData,
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
-} from 'utils/hooks/boundariesToggleLayer';
-import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
+} from 'utils/boundariesToggleLayer';
 // config
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
 import type {
   DischargerAttributes,
+  Feature,
   PermittedDischargersData,
   ServicesData,
-  ServicesState,
 } from 'types';
-import type { SublayerType } from 'utils/hooks/boundariesToggleLayer';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
 import { colors } from 'styles';
 
@@ -39,15 +37,14 @@ import { colors } from 'styles';
 */
 
 export function useDischargersLayers() {
-  // Build the base feature layer
-  const services = useServicesContext();
-  const navigate = useNavigate();
+  const { getTemplate, getTitle } = useDynamicPopup();
 
+  // Build the base feature layer
   const buildBaseLayer = useCallback(
     (type: SublayerType) => {
-      return buildLayer(navigate, services, type);
+      return buildLayer(type, getTitle, getTemplate);
     },
-    [navigate, services],
+    [getTemplate, getTitle],
   );
 
   const updateSurroundingData = useUpdateData();
@@ -75,9 +72,7 @@ export function useDischargers() {
 
 function useUpdateData() {
   // Build the data update function
-  const { huc12, mapView, violatingDischargersOnly } = useContext(
-    LocationSearchContext,
-  );
+  const { huc12, mapView } = useContext(LocationSearchContext);
   const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
@@ -109,7 +104,6 @@ function useUpdateData() {
       fetchedDataDispatch,
       localFetchedDataKey,
       null,
-      violatingDischargersOnly,
     ).then((data) => {
       setHucData(data);
     });
@@ -117,7 +111,7 @@ function useUpdateData() {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, services, violatingDischargersOnly]);
+  }, [fetchedDataDispatch, huc12, services]);
 
   const extentFilter = useRef<string | null>(null);
 
@@ -173,9 +167,9 @@ function buildFeatures(data: DischargerAttributes[]) {
 
 // Builds the base feature layer
 function buildLayer(
-  navigate: NavigateFunction,
-  services: ServicesState,
   type: SublayerType,
+  getTitle: (graphic: Feature) => string,
+  getTemplate: (graphic: Feature) => HTMLElement | undefined,
 ) {
   return new FeatureLayer({
     id:
@@ -229,10 +223,8 @@ function buildLayer(
     }),
     popupTemplate: {
       outFields: ['*'],
-      title: (feature: __esri.Feature) =>
-        getPopupTitle(feature.graphic.attributes),
-      content: (feature: __esri.Feature) =>
-        getPopupContent({ feature: feature.graphic, navigate, services }),
+      title: getTitle,
+      content: getTemplate,
     },
     visible: type === 'enclosed',
   });
@@ -243,7 +235,6 @@ async function fetchAndTransformData(
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'dischargers' | 'surroundingDischargers',
   dataToExclude?: DischargerAttributes[] | null,
-  violatingOnly = false,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
@@ -251,13 +242,9 @@ async function fetchAndTransformData(
   if (response.status === 'success') {
     const permittedDischargers = transformServiceData(response.data) ?? [];
 
-    const includedData = dataToExclude
+    const payload = dataToExclude
       ? filterData(permittedDischargers, dataToExclude, dataKeys)
       : permittedDischargers;
-
-    const payload = violatingOnly
-      ? filterViolatingFacilities(includedData)
-      : includedData;
 
     dispatch({
       type: 'success',
@@ -330,14 +317,6 @@ async function fetchPermittedDischargers(
   } catch (err) {
     return handleFetchError(err);
   }
-}
-
-function filterViolatingFacilities(facilities: DischargerAttributes[]) {
-  return facilities.filter(
-    (facility) =>
-      facility['CWPSNCStatus'] !== null &&
-      facility['CWPSNCStatus']?.toLowerCase().indexOf('effluent') !== -1,
-  );
 }
 
 async function getExtentFilter(mapView: __esri.MapView | '') {
