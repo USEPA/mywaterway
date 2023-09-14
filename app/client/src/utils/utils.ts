@@ -1,9 +1,8 @@
-import Point from '@arcgis/core/geometry/Point';
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
 
 // utility function to split up an array into chunks of a designated length
-function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
+export function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
   const chunks = [];
   let index = 0;
   while (index < array.length) {
@@ -13,7 +12,7 @@ function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
 }
 
 // utility function to split up an array into chunks of a designated max character length
-function chunkArrayCharLength(
+export function chunkArrayCharLength(
   array: string[],
   charLength: number,
   separator: string = ',',
@@ -21,7 +20,7 @@ function chunkArrayCharLength(
   const chunks: string[] = [];
   let tempString = '';
   let chunkString = '';
-  array.forEach((item: string, index: number) => {
+  array.forEach((item: string) => {
     if (!tempString) tempString = item;
     else tempString += separator + item;
 
@@ -37,7 +36,7 @@ function chunkArrayCharLength(
   return chunks;
 }
 
-function containsScriptTag(string: string) {
+export function containsScriptTag(string: string) {
   string = decodeURI(string.toLowerCase().replaceAll(' ', ''));
 
   return (
@@ -47,7 +46,7 @@ function containsScriptTag(string: string) {
   );
 }
 
-function formatNumber(number: number, digits: number = 0) {
+export function formatNumber(number: number, digits: number = 0) {
   if (!number) return '0';
 
   if (number !== 0 && Math.abs(number) < 1) return '< 1';
@@ -58,25 +57,27 @@ function formatNumber(number: number, digits: number = 0) {
   });
 }
 
-function isAbort(error: unknown) {
+export function isAbort(error: unknown) {
   if (!error || typeof error !== 'object' || !('name' in error)) return false;
   return error.name === 'AbortError';
 }
 
-function isClick(ev: KeyboardEvent | MouseEvent) {
+export function isClick(ev: KeyboardEvent | MouseEvent) {
   if (isKeyboardEvent(ev)) {
     if (ev.key !== ' ' && ev.key !== 'Enter') return false;
   } else if (ev.type !== 'click') return false;
   return true;
 }
 
-function isEmpty<T>(
+export function isEmpty<T>(
   v: T | null | undefined | [] | {},
 ): v is null | undefined | [] | {} {
   return !isNotEmpty(v);
 }
 
-function isKeyboardEvent(ev: KeyboardEvent | MouseEvent): ev is KeyboardEvent {
+export function isKeyboardEvent(
+  ev: KeyboardEvent | MouseEvent,
+): ev is KeyboardEvent {
   return ev.hasOwnProperty('key');
 }
 
@@ -96,7 +97,7 @@ function isNotEmpty<T>(v: T | null | undefined | [] | {}): v is T {
 // Gets the file extension from a url or path. The backup parameter was added
 // because the state page documents section sometimes has the file extension
 // on the documentFileName and other times its on the documentURL attribute.
-function getExtensionFromPath(primary: string, backup: string = '') {
+export function getExtensionFromPath(primary: string, backup: string = '') {
   // Gets the file extension from a url or path
   function getExtension(path: string) {
     if (!path) return null;
@@ -117,9 +118,9 @@ function getExtensionFromPath(primary: string, backup: string = '') {
   return extension;
 }
 
-function titleCase(string: string) {
+export function titleCase(string: string) {
   const smallWords =
-    /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|v.?|vs.?|via)$/i;
+    /^(a[nst]?|and|but|by|en|for|i[fn]|o[fn]|n?or|per|the|to|vs?.?|via)$/i;
   const alphanumericPattern = /([A-Za-z0-9\u00C0-\u00FF])/;
   const wordSeparators = /([ :–—-])/;
 
@@ -161,7 +162,7 @@ function titleCase(string: string) {
     .join('');
 }
 
-function titleCaseWithExceptions(string: string) {
+export function titleCaseWithExceptions(string: string) {
   switch (string) {
     case 'AMMONIA, UN-IONIZED':
       return 'Ammonia, Un-Ionized';
@@ -188,7 +189,7 @@ function titleCaseWithExceptions(string: string) {
 
 // Determines whether or not the input string is a HUC12 or not.
 // Returns true if the string is a HUC12 and false if not.
-function isHuc12(string: string) {
+export function isHuc12(string: string) {
   return /^\d{12}$/.test(string);
 }
 
@@ -205,7 +206,7 @@ function createSchema(huc12: string, watershed: string) {
   };
 }
 
-function createJsonLD(huc12: string, watershed: string) {
+export function createJsonLD(huc12: string, watershed: string) {
   // try removing any existing JSON-LDs
   removeJsonLD();
 
@@ -218,66 +219,27 @@ function createJsonLD(huc12: string, watershed: string) {
   head.appendChild(script);
 }
 
-function updateCanonicalLink(huc12: string) {
+export function updateCanonicalLink(huc12: string) {
   const canonicalLink = document.querySelector('[rel="canonical"]');
   if (canonicalLink && canonicalLink instanceof HTMLAnchorElement) {
     canonicalLink.href = `https://geoconnex.us/epa/hmw/${huc12}`;
   }
 }
 
-function resetCanonicalLink() {
+export function resetCanonicalLink() {
   const canonicalLink = document.querySelector('[rel="canonical"]');
   if (canonicalLink && canonicalLink instanceof HTMLAnchorElement) {
     canonicalLink.href = window.location.href;
   }
 }
 
-function removeJsonLD() {
+export function removeJsonLD() {
   const jsonLD = document.getElementById('jsonLD');
   if (jsonLD) jsonLD.remove();
 }
 
-function createMarkup(message: string) {
+export function createMarkup(message: string) {
   return { __html: message };
-}
-
-// Determines if the input text is a string representing coordinates.
-// If so the coordinates are converted to an Esri Point object.
-function getPointFromCoordinates(text: string) {
-  const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
-  let point = null;
-  if (regex.test(text)) {
-    const found: RegExpMatchArray | null = text.match(regex);
-    if (found && found.length >= 4 && found[1] && found[3]) {
-      point = new Point({
-        x: parseFloat(found[1]),
-        y: parseFloat(found[3]),
-      });
-    }
-  }
-
-  return point;
-}
-
-// Determines if the input text is a string that contains coordinates.
-// The return value is an object containing the esri point for the coordinates (coordinatesPart)
-// and any remaining text (searchPart).
-function splitSuggestedSearch(text: string) {
-  // split search
-  const parts = text.split('|');
-
-  // get the coordinates part (is last item)
-  const tempCoords = parts[parts.length - 1];
-  const coordinatesPart = getPointFromCoordinates(tempCoords);
-
-  // remove the coordinates part from initial array
-  const coordinatesString = coordinatesPart ? parts.pop() ?? '' : '';
-
-  // get the point from the coordinates part
-  return {
-    searchPart: parts.length > 0 ? parts.join('|') : coordinatesString,
-    coordinatesPart,
-  };
 }
 
 /**
@@ -288,7 +250,7 @@ function splitSuggestedSearch(text: string) {
  * @param attributes Attributes to be placed in the popup content
  * @returns the json object to pass to the Esri PopupTemplate constructor.
  */
-function getSimplePopupTemplate(title: string, attributes: any) {
+export function getSimplePopupTemplate(title: string, attributes: any) {
   return {
     title,
     content: [
@@ -303,7 +265,7 @@ function getSimplePopupTemplate(title: string, attributes: any) {
 }
 
 // check user-agent for iOS version, if applicable
-function browserIsCompatibleWithArcGIS() {
+export function browserIsCompatibleWithArcGIS() {
   const agent = window.navigator.userAgent;
   const start = agent.indexOf('OS ');
 
@@ -333,7 +295,7 @@ function browserIsCompatibleWithArcGIS() {
   return true;
 }
 
-function convertAgencyCode(agencyShortCode: string) {
+export function convertAgencyCode(agencyShortCode: string) {
   if (!agencyShortCode) return 'Unknown';
 
   // Wild and Scenic Rivers service returns multiple agencies as a string. ex: 'USFS, FWS, NPS'
@@ -352,7 +314,7 @@ function convertAgencyCode(agencyShortCode: string) {
 
 // Lookup the value of an attribute using domain coded values from
 // the arcgis feature layer fields.
-function convertDomainCode(
+export function convertDomainCode(
   fields: __esri.Field[] | null | undefined,
   name: string,
   value: string,
@@ -377,12 +339,22 @@ function convertDomainCode(
 }
 
 // Escapes special characters for usage with regex
-function escapeRegex(str: string) {
+export function escapeRegex(str: string) {
   return str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
 }
 
+export function getMedian(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const numValues = values.length;
+  if (numValues % 2 === 0) {
+    return (sorted[numValues / 2 - 1] + sorted[numValues / 2]) / 2;
+  } else {
+    return sorted[(numValues - 1) / 2];
+  }
+}
+
 // Gets the selected community tab from the url
-function getSelectedCommunityTab() {
+export function getSelectedCommunityTab() {
   const pathParts = window.location.pathname.substring(1).split('/');
   let selectedCommunityTab = '';
   if (pathParts.length === 3 && pathParts[0] === 'community') {
@@ -393,12 +365,12 @@ function getSelectedCommunityTab() {
 }
 
 // Normalizes string for comparisons.
-function normalizeString(str: string) {
+export function normalizeString(str: string) {
   return str.trim().toUpperCase();
 }
 
 // Summarizes assessment counts by the status of the provided fieldname.
-function summarizeAssessments(
+export function summarizeAssessments(
   waterbodies: __esri.Graphic[],
   fieldName: string,
 ) {
@@ -447,7 +419,7 @@ function summarizeAssessments(
 }
 
 // Finds all occurrences of the provided searchstring within the provided text.
-function indicesOf(text: string, searchString: string) {
+export function indicesOf(text: string, searchString: string) {
   const searchLength = searchString.length;
   if (searchLength === 0) return [];
 
@@ -469,7 +441,7 @@ function indicesOf(text: string, searchString: string) {
 }
 
 // Parses ArcGIS attributes including stringified JSON
-function parseAttributes<Type>(
+export function parseAttributes<Type>(
   structuredAttributes: string[],
   attributes: Type,
 ): Type {
@@ -490,7 +462,7 @@ function parseAttributes<Type>(
 }
 
 // Rounds a float to a specified precision
-function toFixedFloat(num: number, precision: number = 0) {
+export function toFixedFloat(num: number, precision: number = 0) {
   if (precision < 0) return num;
   const offset = 10 ** precision;
   return Math.round((num + Number.EPSILON) * offset) / offset;
@@ -503,7 +475,7 @@ function toFixedFloat(num: number, precision: number = 0) {
  * @param value The ArcGIS Online username or organization id
  * @returns The escaped version of the username or org id.
  */
-function escapeForLucene(value: string) {
+export function escapeForLucene(value: string) {
   const a = [
     '+',
     '-',
@@ -526,37 +498,3 @@ function escapeForLucene(value: string) {
   const r = new RegExp('(\\' + a.join('|\\') + ')', 'g');
   return value.replace(r, '\\$1');
 }
-
-export {
-  chunkArray,
-  chunkArrayCharLength,
-  containsScriptTag,
-  escapeForLucene,
-  escapeRegex,
-  formatNumber,
-  getExtensionFromPath,
-  isAbort,
-  isClick,
-  isEmpty,
-  isHuc12,
-  isKeyboardEvent,
-  titleCase,
-  titleCaseWithExceptions,
-  createJsonLD,
-  updateCanonicalLink,
-  resetCanonicalLink,
-  removeJsonLD,
-  createMarkup,
-  getPointFromCoordinates,
-  splitSuggestedSearch,
-  getSimplePopupTemplate,
-  browserIsCompatibleWithArcGIS,
-  convertAgencyCode,
-  convertDomainCode,
-  getSelectedCommunityTab,
-  normalizeString,
-  summarizeAssessments,
-  indicesOf,
-  parseAttributes,
-  toFixedFloat,
-};

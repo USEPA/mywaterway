@@ -22,7 +22,7 @@ import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // config
 import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
-import { reactSelectStyles } from 'styles/index.js';
+import { reactSelectStyles } from 'styles/index';
 // types
 import type { WidgetLayer } from 'types';
 // utilities

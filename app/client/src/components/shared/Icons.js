@@ -121,6 +121,8 @@ function PinIcon({ ...props }) {
       x="0"
       y="0"
       viewBox="0 0 40 40"
+      width="26"
+      height="26"
       {...props}
       aria-hidden="true"
     >

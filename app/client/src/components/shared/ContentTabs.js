@@ -2,7 +2,7 @@
 
 import { css } from 'styled-components/macro';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 
 // tab borders (via box shadows)
 const left = `inset 1px 0 0 ${colors.black(0.375)}`;

@@ -10,7 +10,7 @@ import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 // errors
 import { stateStoriesError } from 'config/errorMessages';
 
@@ -70,8 +70,8 @@ function Stories({ stories }: Props) {
           )}
           {stories.data.length > 0 && (
             <>
-              {stories.data.slice(0, storiesToLoad).map((story, index) => (
-                <div css={storyStyles} key={index}>
+              {stories.data.slice(0, storiesToLoad).map((story) => (
+                <div css={storyStyles} key={story.ss_seq}>
                   <a
                     href={story.web_link}
                     target="_blank"

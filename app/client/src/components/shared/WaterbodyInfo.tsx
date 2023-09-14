@@ -1,3 +1,4 @@
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import ControlPointsGeoreference from '@arcgis/core/layers/support/ControlPointsGeoreference';
 import Extent from '@arcgis/core/geometry/Extent';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
@@ -18,12 +19,19 @@ import {
   infoBoxStyles,
   textBoxStyles,
 } from 'components/shared/MessageBoxes';
+import Modal from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import { Sparkline } from 'components/shared/Sparkline';
 import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-import { useAbortSignal } from 'utils/hooks';
+import {
+  createRelativeDailyTimestampRange,
+  epochToMonthDay,
+  getDayOfYear,
+  yearDayStringToEpoch,
+} from 'utils/dateUtils';
+import { useAbort } from 'utils/hooks';
 import {
   getWaterbodyCondition,
   isClassBreaksRenderer,
@@ -31,7 +39,12 @@ import {
   isMediaLayer,
   isUniqueValueRenderer,
 } from 'utils/mapFunctions';
-import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
+import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
+import {
+  addAnnualData,
+  complexProps,
+  structurePeriodOfRecordData,
+} from 'utils/monitoringLocations';
 import {
   convertAgencyCode,
   convertDomainCode,
@@ -52,18 +65,23 @@ import {
   colors,
   disclaimerStyles,
   fonts,
+  iconButtonStyles,
   iconStyles,
   modifiedTableStyles,
   tableStyles,
-} from 'styles/index.js';
+} from 'styles/index';
 // types
 import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  AssessmentUseAttainmentByGroup,
+  AssessmentUseAttainmentState,
   ChangeLocationAttributes,
   ClickedHucState,
   FetchState,
+  FetchStateWithDefault,
+  LookupFile,
   MonitoringLocationAttributes,
   ServicesState,
   StreamgageMeasurement,
@@ -135,6 +153,12 @@ const linkSectionStyles = css`
   }
 `;
 
+const modifiedIconButtonStyles = css`
+  ${iconButtonStyles}
+  margin-right: 0.25rem;
+  color: #485566;
+`;
+
 const popupContainerStyles = css`
   margin: 0;
   overflow-y: auto;
@@ -157,12 +181,21 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-const measurementTableStyles = css`
+const measurementTableStyles = (align: string = 'right') => css`
   ${modifiedTableStyles};
 
   th:last-of-type,
   td:last-of-type {
-    text-align: right;
+    text-align: ${align};
+  }
+`;
+
+const modalTableStyles = css`
+  ${measurementTableStyles()};
+  margin-bottom: 0;
+
+  th {
+    border-top: none;
   }
 `;
 
@@ -363,6 +396,7 @@ type WaterbodyInfoProps = {
   fields?: __esri.Field[] | null;
   mapView?: __esri.MapView;
   services?: ServicesState;
+  stateNationalUses?: LookupFile;
   type: string;
 };
 
@@ -376,6 +410,7 @@ function WaterbodyInfo({
   extraContent,
   mapView,
   services,
+  stateNationalUses,
   fields,
 }: WaterbodyInfoProps) {
   const { attributes } = feature;
@@ -430,6 +465,85 @@ function WaterbodyInfo({
       </p>
     );
 
+  const [selectedUseField, setSelectedUseField] = useState<
+    (typeof useFields)[number] | null
+  >(null);
+  const [useAttainments, setUseAttainments] =
+    useState<AssessmentUseAttainmentState>({
+      data: null,
+      status: 'fetching',
+    });
+  const fetchDetailedUses = useCallback(() => {
+    if (type !== 'Waterbody' && type !== 'Waterbody State Overview') return;
+    if (
+      services?.status !== 'success' ||
+      stateNationalUses?.status !== 'success' ||
+      useAttainments?.status === 'success'
+    )
+      return;
+
+    const { assessmentunitidentifier, organizationid, reportingcycle } =
+      feature.attributes;
+
+    const url =
+      services.data.attains.serviceUrl +
+      `assessments?assessmentUnitIdentifier=${assessmentunitidentifier}` +
+      `&organizationId=${organizationid}` +
+      `&reportingCycle=${reportingcycle}` +
+      `&summarize=Y`;
+
+    setUseAttainments({ data: null, status: 'fetching' });
+
+    fetchCheck(url)
+      .then((res) => {
+        if (!res?.items || res.items.length === 0) {
+          setUseAttainments({ data: null, status: 'failure' });
+          return;
+        }
+
+        // find the assessment
+        const assessment = res.items[0].assessments.find(
+          (a: any) => a.assessmentUnitIdentifier === assessmentunitidentifier,
+        );
+        if (!assessment) {
+          setUseAttainments({ data: null, status: 'failure' });
+          return;
+        }
+
+        // search for Other useAttainments
+        const uses: AssessmentUseAttainmentByGroup = {
+          'Drinking Water': [],
+          'Ecological Life': [],
+          'Fish and Shellfish Consumption': [],
+          Recreation: [],
+          Cultural: [],
+          Other: [],
+        };
+        assessment.useAttainments.forEach((useAttainment: any) => {
+          // check if it is other in stateNationalUses
+          const nationalUse = stateNationalUses.data.find(
+            (u: any) =>
+              u.orgId === organizationid && u.name === useAttainment.useName,
+          );
+
+          uses[nationalUse.category].push(useAttainment);
+        });
+
+        setUseAttainments({ data: uses, status: 'success' });
+      })
+      .catch((err) => {
+        console.error(err);
+        setUseAttainments({ data: null, status: 'failure' });
+      });
+  }, [
+    feature,
+    services,
+    setUseAttainments,
+    stateNationalUses,
+    type,
+    useAttainments,
+  ]);
+
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
 
@@ -467,7 +581,7 @@ function WaterbodyInfo({
         return value !== 'Not Applicable';
       }) || [];
 
-    const reportingCycle = attributes && attributes.reportingcycle;
+    const reportingCycle = attributes?.reportingcycle;
     return (
       <>
         {extraContent}
@@ -501,11 +615,12 @@ function WaterbodyInfo({
             )}
 
             {applicableFields.length > 0 && (
-              <table css={modifiedTableStyles} className="table">
+              <table css={measurementTableStyles('center')} className="table">
                 <thead>
                   <tr>
                     <th>What is this water used for?</th>
                     <th>Condition</th>
+                    <th>Detailed Uses</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -536,6 +651,110 @@ function WaterbodyInfo({
                           >
                             {value}
                           </GlossaryTerm>
+                        </td>
+                        <td>
+                          <Modal
+                            label={`Detailed Uses for ${useField.label}`}
+                            maxWidth="35rem"
+                            onClose={() => setSelectedUseField(null)}
+                            triggerElm={
+                              <button
+                                aria-label={`View detailed uses for ${useField.label}`}
+                                title={`View detailed uses for ${useField.label}`}
+                                css={modifiedIconButtonStyles}
+                                onClick={() => {
+                                  setSelectedUseField(useField);
+                                  fetchDetailedUses();
+                                }}
+                              >
+                                <i
+                                  aria-hidden
+                                  className="fas fa-info-circle"
+                                ></i>
+                              </button>
+                            }
+                          >
+                            {useAttainments.status === 'fetching' && (
+                              <LoadingSpinner />
+                            )}
+
+                            {selectedUseField &&
+                              useAttainments.status === 'success' && (
+                                <table css={modalTableStyles} className="table">
+                                  <thead>
+                                    <tr>
+                                      <th>
+                                        Detailed{' '}
+                                        <em>{selectedUseField.label}</em> Uses
+                                      </th>
+                                      <th>Condition</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {useAttainments.data[
+                                      selectedUseField.category
+                                    ].map((use: any) => {
+                                      const useCode = use.useAttainmentCode;
+                                      const value =
+                                        useCode === 'F'
+                                          ? 'Good'
+                                          : useCode === 'N'
+                                          ? 'Impaired'
+                                          : 'Condition Unknown';
+
+                                      return (
+                                        <tr key={use.useName}>
+                                          <td>{use.useName}</td>
+                                          <td
+                                            css={css`
+                                              min-width: 100px;
+                                            `}
+                                          >
+                                            {['F', 'N', 'I', 'X'].includes(
+                                              useCode,
+                                            ) ? (
+                                              <GlossaryTerm
+                                                term={
+                                                  value === 'Good'
+                                                    ? 'Good Waters'
+                                                    : value === 'Impaired'
+                                                    ? 'Impaired Waters'
+                                                    : 'Condition Unknown'
+                                                }
+                                              >
+                                                {value}
+                                              </GlossaryTerm>
+                                            ) : (
+                                              use.useAttainmentCodeName
+                                            )}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              )}
+
+                            <p css={infoBoxStyles}>
+                              For more information view the{' '}
+                              <a
+                                rel="noopener noreferrer"
+                                target="_blank"
+                                href={
+                                  `/waterbody-report/` +
+                                  `${attributes.organizationid}/` +
+                                  `${attributes.assessmentunitidentifier}/` +
+                                  `${attributes.reportingcycle || ''}`
+                                }
+                              >
+                                Waterbody Report
+                              </a>{' '}
+                              <small css={modifiedDisclaimerStyles}>
+                                (opens new browser tab)
+                              </small>
+                              .
+                            </p>
+                          </Modal>
                         </td>
                       </tr>
                     );
@@ -592,19 +811,33 @@ function WaterbodyInfo({
             value: attributes.CWPPermitTypeDesc,
           },
           {
-            label: 'Permit Components',
-            value: attributes.PermitComponents
-              ? attributes.PermitComponents.split(', ')
-                  .sort()
-                  .map((term: string) => (
-                    <GlossaryTerm key={term} term={term}>
-                      {term}
-                    </GlossaryTerm>
-                  ))
-              : 'Not Specified',
+            label: (
+              <GlossaryTerm term="Permit Components">
+                Permit Components
+              </GlossaryTerm>
+            ),
+            value: attributes.PermitComponents ? (
+              attributes.PermitComponents.split(', ')
+                .sort()
+                .map((term: string) => (
+                  <GlossaryTerm key={term} term={term}>
+                    {term}
+                  </GlossaryTerm>
+                ))
+            ) : (
+              <GlossaryTerm term="Components Not Specified">
+                Components Not Specified
+              </GlossaryTerm>
+            ),
           },
           {
-            label: 'Significant Effluent Violation within the last 3 years',
+            label: (
+              <>
+                Significant{' '}
+                <GlossaryTerm term="Effluent">Effluent</GlossaryTerm> Violation
+                within the last 3 years
+              </>
+            ),
             value: hasEffluentViolations ? 'Yes' : 'No',
           },
           {
@@ -979,10 +1212,7 @@ function WaterbodyInfo({
   }
   if (type === 'Past Water Conditions') {
     content = (
-      <MonitoringLocationsContent
-        feature={feature}
-        services={services ?? null}
-      />
+      <MonitoringLocationsContent feature={feature} services={services} />
     );
   }
   if (type === 'Nonprofit') content = nonprofitContent;
@@ -999,7 +1229,7 @@ function WaterbodyInfo({
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }
-  if (type === 'CyAN') {
+  if (type === 'Blue-Green Algae') {
     content = (
       <CyanContent
         feature={feature}
@@ -1022,6 +1252,7 @@ type MapPopupProps = {
   mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
+  stateNationalUses?: LookupFile;
   fields?: __esri.Field[] | null;
 };
 
@@ -1034,6 +1265,7 @@ function MapPopup({
   mapView,
   resetData,
   services,
+  stateNationalUses,
   fields,
   navigate,
 }: MapPopupProps) {
@@ -1154,6 +1386,7 @@ function MapPopup({
             extraContent={extraContent}
             mapView={mapView}
             services={services}
+            stateNationalUses={stateNationalUses}
             fields={fields}
           />
         </div>
@@ -1252,36 +1485,12 @@ function barChartDataPoint(
   };
 }
 
-// Converts CyAN `year dayOfYear` format to epoch timestamp
-function cyanDateToEpoch(yearDay: string) {
-  const yearAndDay = yearDay.split(' ');
-  if (yearAndDay.length !== 2) return null;
-  const year = parseInt(yearAndDay[0]);
-  const day = parseInt(yearAndDay[1]);
-  if (Number.isFinite(year) && Number.isFinite(day)) {
-    return new Date(year, 0, day).getTime();
-  }
-  return null;
-}
-
-function epochToMonthDay(epoch: number) {
-  const date = new Date(epoch);
-  return `${date.getMonth() + 1}/${date.getDate()}`;
-}
-
 function formatDate(epoch: number) {
   return new Date(epoch).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   });
-}
-
-function getDayOfYear(day: Date) {
-  const firstOfYear = new Date(day.getFullYear(), 0, 0);
-  const diff =
-    day.getTime() - firstOfYear.getTime() + getTzOffsetMsecs(firstOfYear, day);
-  return Math.floor(diff / oneDay);
 }
 
 function getAverageNonLandPixelArea(data: CellConcentrationData) {
@@ -1311,12 +1520,6 @@ function getTotalNonLandPixels(
   return sum(belowDetection, noData, ...measurements);
 }
 
-function getTzOffsetMsecs(previous: Date, current: Date) {
-  return (
-    (previous.getTimezoneOffset() - current.getTimezoneOffset()) * 60 * 1000
-  );
-}
-
 function squareKmToSquareMi(km: number) {
   return km * 0.386102;
 }
@@ -1333,9 +1536,9 @@ function sumSlice(nums: number[], start: number, end?: number) {
 
 enum CcIdx {
   Low = 0,
-  Medium = cyanMetadata.findIndex((cc) => cc >= 100_000),
-  High = cyanMetadata.findIndex((cc) => cc >= 300_000),
-  VeryHigh = cyanMetadata.findIndex((cc) => cc >= 1_000_000),
+  Medium = 99,
+  High = 139,
+  VeryHigh = 183,
 }
 
 type CellConcentrationData = {
@@ -1412,13 +1615,15 @@ function CyanDailyContent({
   if (!data) {
     return (
       <p css={marginBoxStyles(infoBoxStyles)}>
-        There is no CyAN data available for the selected date.
+        There is no potential harmful algal bloom data available for the
+        selected date.
       </p>
     );
   } else if (!sum(...data.measurements)) {
     return (
       <p css={marginBoxStyles(infoBoxStyles)}>
-        There is no measureable CyAN data available for the selected date.
+        There is no measureable potential harmful algal bloom data available for
+        the selected date.
       </p>
     );
   } else {
@@ -1426,8 +1631,8 @@ function CyanDailyContent({
     return (
       <>
         <p css={subheadingStyles}>
-          Cyanobacteria Concentration Histogram and Maximum for Selected Date:{' '}
-          {formatDate(epochDate)}
+          Blue-Green Algae Concentration Histogram and Maximum for Selected
+          Date: {formatDate(epochDate)}
         </p>
 
         {histogramData && (
@@ -1458,7 +1663,7 @@ function CyanDailyContent({
               {
                 label: (
                   <>
-                    <HelpTooltip label="Maximum detected cyanobacteria concentration in the satellite image area shown on map." />
+                    <HelpTooltip label="Maximum detected blue-green algae concentration in the satellite image area shown on map." />
                     &nbsp;&nbsp; Maximum Value
                   </>
                 ),
@@ -1482,7 +1687,8 @@ type CyanContentProps = {
 
 function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const { attributes } = feature;
-  const abortSignal = useAbortSignal();
+  const layerId = feature.layer?.id;
+  const { getSignal } = useAbort();
 
   const [today] = useState(() => {
     const now = new Date();
@@ -1499,11 +1705,18 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   useEffect(() => {
     if (services?.status !== 'success') return;
 
-    const startDateRaw = new Date(today.getTime() - 7 * oneDay);
-    const startDate = new Date(
-      startDateRaw.getTime() + getTzOffsetMsecs(startDateRaw, today),
+    const dateRange = createRelativeDailyTimestampRange(today, -7, -1);
+    const newData = dateRange.reduce<CellConcentrationData>(
+      (dataObj, timestamp) => {
+        return {
+          ...dataObj,
+          [timestamp]: null,
+        };
+      },
+      {},
     );
 
+    const startDate = new Date(dateRange[0]);
     const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
       attributes.oid ?? attributes.OBJECTID
     }&start_year=${startDate.getFullYear()}&start_day=${getDayOfYear(
@@ -1519,23 +1732,11 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const fetcher =
       window.location.hostname === 'localhost' ? proxyFetch : fetchCheck;
 
-    fetcher(dataUrl, abortSignal)
+    fetcher(dataUrl, getSignal())
       .then((res: { data: { [date: string]: number[] } }) => {
-        const newData: CellConcentrationData = {};
-        let currentDate = startDate.getTime();
-        const yesterdayRaw = today.getTime() - oneDay;
-        const yesterday =
-          yesterdayRaw + getTzOffsetMsecs(new Date(yesterdayRaw), today);
-        while (currentDate <= yesterday) {
-          newData[currentDate] = null;
-          const nextDate = currentDate + oneDay;
-          currentDate =
-            nextDate -
-            getTzOffsetMsecs(new Date(currentDate), new Date(nextDate));
-        }
         Object.entries(res.data).forEach(([date, values]) => {
           if (values.length !== 256) return;
-          const epochDate = cyanDateToEpoch(date);
+          const epochDate = yearDayStringToEpoch(date);
           // Indices 0, 254, & 255 represent indetectable pixels
           if (epochDate !== null && newData.hasOwnProperty(epochDate)) {
             const measurements = values.slice(1, 254);
@@ -1553,13 +1754,14 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         });
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         setCellConcentration({
           status: 'failure',
           data: null,
         });
       });
-  }, [abortSignal, attributes, today, services]);
+  }, [getSignal, attributes, today, services]);
 
   const [dates, setDates] = useState<number[]>([]);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
@@ -1596,7 +1798,11 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     if (services?.status !== 'success') return;
     if (!mapView) return;
 
-    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
+    const cyanImageLayer = mapView.map.findLayerById(
+      layerId === 'surroundingCyanWaterbodies'
+        ? 'surroundingCyanImages'
+        : 'cyanImages',
+    );
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
     const currentDate = new Date(selectedDate);
@@ -1629,6 +1835,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const propsPromise = fetcher(propertiesUrl, abortController.signal);
     Promise.all([imagePromise, propsPromise])
       .then(([blob, propsRes]) => {
+        if (blob.type !== 'image/png') {
+          setImageStatus('idle');
+          return;
+        }
         // read the image blob to convert it to base64
         const reader = new FileReader();
         reader.readAsDataURL(blob);
@@ -1636,7 +1846,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           // convert the image to a base64 string
           const base64String = reader.result;
           const image = new Image();
-          image.src = base64String?.toString() || '';
+          image.src = base64String?.toString() ?? '';
 
           image.onload = () => {
             setImageStatus('success');
@@ -1714,36 +1924,62 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     return function cleanup() {
       clearTimeout(imageTimeout);
     };
-  }, [attributes, mapView, selectedDate, services]);
+  }, [attributes, layerId, mapView, selectedDate, services]);
 
   // Remove the image when this component unmounts
   useEffect(() => {
     if (!mapView) return;
 
-    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
+    const cyanImageLayer = mapView.map.findLayerById(
+      layerId === 'surroundingCyanWaterbodies'
+        ? 'surroundingCyanImages'
+        : 'cyanImages',
+    );
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
-    const popupWatchHandle = mapView.popup.watch(
-      'visible',
-      (visible: boolean) => {
-        if (visible) return;
-        mapView.popup.features.forEach((feature) => {
-          if (feature.layer?.id === 'cyanWaterbodies') {
+    let popupVisibilityWatchHandle: __esri.WatchHandle | null = null;
+    let popupFeaturesWatchHandle: __esri.WatchHandle | null = null;
+
+    reactiveUtils
+      .once(() => mapView.popup)
+      .then(() => {
+        // Remove the satellite image when the popup is closed
+        popupVisibilityWatchHandle = reactiveUtils.watch(
+          () => mapView.popup.visible,
+          () => {
+            if (mapView.popup.visible) return;
+            mapView.popup.features.forEach((feature) => {
+              if (
+                feature.layer?.id === 'cyanWaterbodies' ||
+                feature.layer?.id === 'surroundingCyanWaterbodies'
+              ) {
+                (
+                  cyanImageLayer.source as __esri.LocalMediaElementSource
+                ).elements.removeAll();
+              }
+            });
+          },
+        );
+
+        // Remove the satellite image when a new location is clicked
+        popupFeaturesWatchHandle = reactiveUtils.watch(
+          () => mapView.popup.features,
+          () => {
             (
               cyanImageLayer.source as __esri.LocalMediaElementSource
             ).elements.removeAll();
-          }
-        });
-      },
-    );
+          },
+        );
+      });
 
     return function cleanup() {
       (
         cyanImageLayer.source as __esri.LocalMediaElementSource
       ).elements.removeAll();
-      popupWatchHandle.remove();
+      popupVisibilityWatchHandle?.remove();
+      popupFeaturesWatchHandle?.remove();
     };
-  }, [mapView]);
+  }, [layerId, mapView]);
 
   const [barChartData, setBarChartData] = useState<ChartData | null>(null);
 
@@ -1923,15 +2159,15 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 <StackedColumnChart
                   categories={barChartData.categories}
                   exportFilename="CyAN_StackedBarChart"
-                  legendTitle="Cyanobacteria Concentration Categories:"
+                  legendTitle="Blue-Green Algae Concentration Categories:"
                   series={barChartData.series}
-                  title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
+                  title={`Daily Blue-Green Algae Estimates for ${attributes.GNIS_NAME}`}
                   subtitle={`
                     Total Satellite Image Area: ${pixelArea}
                     <br />
                     ${formatDate(dates[0])} - ${formatDate(
-                    dates[dates.length - 1],
-                  )}
+                      dates[dates.length - 1],
+                    )}
                   `}
                   yTitle={`
                   Percent of Satellite Image Area
@@ -1964,8 +2200,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     <HelpTooltip
                       label={
                         <>
-                          Adjust the slider handle to view the day's CyAN
-                          satellite imagery on the map.
+                          Adjust the slider handle to view the day's blue-green
+                          algae satellite imagery on the map.
                           <br />
                           Data for the previous day typically becomes available
                           between 9 - 11am EST.
@@ -1989,8 +2225,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
                 {imageStatus === 'failure' && (
                   <p css={marginBoxStyles(errorBoxStyles)}>
-                    There was an error retrieving the CyAN satellite image for
-                    the selected day.
+                    There was an error retrieving the potential harmful algal
+                    bloom satellite imagery for the selected day.
                   </p>
                 )}
 
@@ -2002,8 +2238,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               </>
             ) : (
               <p css={marginBoxStyles(infoBoxStyles)}>
-                There is no measureable CyAN data from the past week for the{' '}
-                {attributes.GNIS_NAME} waterbody.
+                There is no measureable potential harmful algal bloom data from
+                the past week for the {attributes.GNIS_NAME} waterbody.
               </p>
             )}
           </>
@@ -2018,12 +2254,14 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             <>
               <p>
                 Daily data are a snapshot of{' '}
-                <GlossaryTerm term="Cyanobacteria">cyanobacteria</GlossaryTerm>{' '}
-                (historically referred to as blue-green algae) at the time of
-                detection. These are provisional satellite derived measures of
-                cyanobacteria, which may contain errors. Information can be used
-                to identify potential problems related to cyanobacteria in
-                larger lakes and reservoirs within the contiguous United States.
+                <GlossaryTerm term="Blue-Green Algae">
+                  blue-green algae
+                </GlossaryTerm>{' '}
+                at the time of detection. These are provisional satellite
+                derived measures of blue-green algae, which may contain errors.
+                Information can be used to identify potential problems related
+                to blue-green algae in larger lakes and reservoirs within the
+                contiguous United States.
               </p>
 
               <h3>Data Issues include:</h3>
@@ -2046,15 +2284,15 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 </li>
                 <li>
                   <b>Rivers:</b> large flowing waterways are not masked and can
-                  have a cyanobacteria response that is not validated.
+                  have a blue-green algae response that is not validated.
                 </li>
                 <li>
                   A resolvable waterbody is considered to have, at minimum, a
                   3x3 raster cell matrix size (900x900m), with the center pixel
                   being considered valid. Smaller or irregularly shaped
                   waterbodies (i.e., those not having the minimum 900x900m size)
-                  may be evident in the data, and their cyanobacteria responses
-                  are suspect and open to interpretation. See{' '}
+                  may be evident in the data, and their blue-green algae
+                  responses are suspect and open to interpretation. See{' '}
                   <a href={`#near-shore-response-${attributes.FID}`}>
                     “Near-shore response”
                   </a>{' '}
@@ -2086,7 +2324,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   aria-hidden="true"
                 />
               </HelpTooltip>
-              Download Cyanobacteria Data
+              Download Blue-Green Algae Data
             </a>
           </p>
           <p>
@@ -2178,7 +2416,7 @@ function checkIfGroupInMapping(groupName: string): boolean {
 
 type MonitoringLocationsContentProps = {
   feature: __esri.Graphic;
-  services: ServicesState | null;
+  services?: ServicesState;
 };
 
 function MonitoringLocationsContent({
@@ -2191,17 +2429,16 @@ function MonitoringLocationsContent({
     number | null
   >(null);
 
-  const attributes: MonitoringLocationAttributes = feature.attributes;
   const layer = feature.layer;
-  const parsed = useMemo(() => {
-    const structuredProps = ['totalsByGroup', 'timeframe'];
+  const attributes: MonitoringLocationAttributes = useMemo(() => {
     return parseAttributes<MonitoringLocationAttributes>(
-      structuredProps,
-      attributes,
+      complexProps,
+      feature.attributes,
     );
-  }, [attributes]);
+  }, [feature]);
 
   const {
+    characteristicsByGroup,
     locationLatitude,
     locationLongitude,
     locationName,
@@ -2214,8 +2451,10 @@ function MonitoringLocationsContent({
     totalSamples,
     totalsByGroup,
     totalMeasurements,
+    totalsByCharacteristic,
     timeframe,
-  } = parsed;
+    uniqueId,
+  } = attributes;
 
   const [groups, setGroups] = useState(() => {
     const { newGroups } = buildGroups(checkIfGroupInMapping, totalsByGroup);
@@ -2328,6 +2567,92 @@ function MonitoringLocationsContent({
     setTotalDisplayedMeasurements(selectAll === 0 ? totalMeasurements : 0);
   };
 
+  // The toggle table labels are groups of *other* groups of characteristics
+  const [selectedGroupLabel, setSelectedGroupLabel] = useState('');
+  const characteristicsDefaultData = () => ({
+    characteristicsByGroup: {},
+    totalsByCharacteristic: {},
+  });
+  const [characteristics, setCharacteristics] = useState<
+    FetchStateWithDefault<{
+      characteristicsByGroup: MonitoringLocationAttributes['characteristicsByGroup'];
+      totalsByCharacteristic: MonitoringLocationAttributes['totalsByCharacteristic'];
+    }>
+  >({ status: 'idle', data: characteristicsDefaultData() });
+  const [modalTriggered, setModalTriggered] = useState(false);
+  useEffect(() => {
+    if (!modalTriggered) return;
+    if (Object.keys(totalsByCharacteristic).length) {
+      setCharacteristics({
+        status: 'success',
+        data: { characteristicsByGroup, totalsByCharacteristic },
+      });
+    } else {
+      if (services?.status !== 'success') {
+        setCharacteristics({
+          status:
+            services?.status === 'fetching'
+              ? 'pending'
+              : services?.status ?? 'failure',
+          data: characteristicsDefaultData(),
+        });
+        return;
+      }
+      const url =
+        `${services.data.waterQualityPortal.monitoringLocation}search?` +
+        `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&providers=${providerName}&organization=${orgId}&siteid=${siteId}`;
+      setCharacteristics({
+        status: 'pending',
+        data: characteristicsDefaultData(),
+      });
+      fetchParseCsv(url)
+        .then((records) => {
+          const { sites } = structurePeriodOfRecordData(
+            records,
+            characteristicGroupMappings,
+          );
+          addAnnualData([attributes], sites);
+          setCharacteristics({
+            status: 'success',
+            data: {
+              characteristicsByGroup: attributes.characteristicsByGroup,
+              totalsByCharacteristic: attributes.totalsByCharacteristic,
+            },
+          });
+        })
+        .catch((_err) => {
+          setCharacteristics({
+            status: 'failure',
+            data: characteristicsDefaultData(),
+          });
+        });
+    }
+  }, [
+    attributes,
+    characteristicsByGroup,
+    modalTriggered,
+    orgId,
+    providerName,
+    services,
+    siteId,
+    totalsByCharacteristic,
+    uniqueId,
+  ]);
+
+  const innerGroups = groups[selectedGroupLabel]?.characteristicGroups;
+  const groupCharacteristics = Object.entries(
+    characteristics.data.totalsByCharacteristic,
+  ).reduce((result, [charc, count]) => {
+    for (let innerGroup of innerGroups) {
+      if (
+        characteristics.data.characteristicsByGroup[innerGroup]?.includes(charc)
+      ) {
+        return { ...result, [charc]: count };
+      }
+    }
+    return result;
+  }, {});
+
   // if a user has filtered out certain characteristic groups for
   // a given table, that'll be used as additional query string
   // parameters in the download URL string
@@ -2423,7 +2748,7 @@ function MonitoringLocationsContent({
       {Object.keys(groups).length > 0 && (
         <table
           aria-label="Characteristic Groups Summary"
-          css={measurementTableStyles}
+          css={measurementTableStyles()}
           className="table"
         >
           <thead>
@@ -2451,6 +2776,11 @@ function MonitoringLocationsContent({
                   Number of Measure&shy;ments
                 </GlossaryTerm>
               </th>
+              <th>
+                <GlossaryTerm term="Characteristics">
+                  Detailed Characteristics
+                </GlossaryTerm>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -2459,7 +2789,6 @@ function MonitoringLocationsContent({
               if (groups[key].resultCount === 0) {
                 return null;
               }
-
               return (
                 <tr key={key}>
                   <td css={checkboxCellStyles}>
@@ -2476,6 +2805,77 @@ function MonitoringLocationsContent({
                   </td>
                   <td>{key}</td>
                   <td>{groups[key].resultCount.toLocaleString()}</td>
+                  <td>
+                    <Modal
+                      label={`Detailed Uses for ${key}`}
+                      maxWidth="36em"
+                      triggerElm={
+                        <button
+                          aria-label={`View detailed uses for ${key}`}
+                          title={`View detailed uses for ${key}`}
+                          css={modifiedIconButtonStyles}
+                          onClick={() => {
+                            setSelectedGroupLabel(key);
+                            setModalTriggered(true);
+                          }}
+                        >
+                          <i aria-hidden className="fas fa-info-circle"></i>
+                        </button>
+                      }
+                    >
+                      <table css={modalTableStyles} className="table">
+                        <thead>
+                          <tr>
+                            <th>
+                              Detailed <em>{key}</em>{' '}
+                              <GlossaryTerm term="Characteristics">
+                                Characteristics
+                              </GlossaryTerm>
+                            </th>
+                            <th>Number of Measurements</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(groupCharacteristics).map(
+                            ([charc, count]) => (
+                              <tr key={charc}>
+                                <td>{charc}</td>
+                                <td>{(count as number).toLocaleString()}</td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                      {characteristics.status === 'pending' && (
+                        <LoadingSpinner />
+                      )}
+                      {characteristics.status === 'failure' && (
+                        <div css={errorBoxStyles}>
+                          <p>
+                            Detailed characteristics could not be retrieved at
+                            this time, please try again later.
+                          </p>
+                        </div>
+                      )}
+                      {(!onMonitoringReportPage ||
+                        layer.id === 'surroundingMonitoringLocationsLayer') && (
+                        <p css={infoBoxStyles}>
+                          For more information view the{' '}
+                          <a
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            href={locationUrlPartial}
+                          >
+                            Water Monitoring Report
+                          </a>{' '}
+                          <small css={modifiedDisclaimerStyles}>
+                            (opens new browser tab)
+                          </small>
+                          .
+                        </p>
+                      )}
+                    </Modal>
+                  </td>
                 </tr>
               );
             })}
@@ -2483,6 +2883,7 @@ function MonitoringLocationsContent({
               <td></td>
               <td>Total</td>
               <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
+              <td></td>
             </tr>
           </tbody>
 
@@ -2557,7 +2958,7 @@ function MonitoringLocationsContent({
               className="fas fa-file-alt"
               aria-hidden="true"
             />
-            View Monitoring Report
+            View Water Monitoring Report
           </a>
           &nbsp;&nbsp;
           <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
@@ -2682,7 +3083,7 @@ function UsgsStreamgagesContent({
         />
       </div>
 
-      <table css={measurementTableStyles} className="table">
+      <table css={measurementTableStyles()} className="table">
         <thead>
           <tr>
             <th>Category</th>

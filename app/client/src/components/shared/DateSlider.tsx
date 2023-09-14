@@ -1,10 +1,19 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { css } from 'styled-components/macro';
 import { useRanger } from 'react-ranger';
 import { v4 as uuid } from 'uuid';
+// components
+import { textBoxStyles } from 'components/shared/MessageBoxes';
 
-function getTicks(yearsArray: number[], maxTicks: number) {  
-  if(yearsArray.length <= maxTicks) return yearsArray; 
+function getTicks(yearsArray: number[], maxTicks: number) {
+  if (yearsArray.length <= maxTicks) return yearsArray;
 
   const tickList = [];
   const length = yearsArray.length;
@@ -58,6 +67,22 @@ const sliderContainerStyles = css`
   margin: 25px 30px 0;
 `;
 
+const sliderContainerStylesOuter = css`
+  align-items: flex-end;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  width: 100%;
+  span {
+    &:first-of-type {
+      margin-left: 1em;
+    }
+    &:last-of-type {
+      margin-right: 1em;
+    }
+  }
+`;
+
 const sliderStyles = css`
   align-items: flex-end;
   display: inline-flex;
@@ -68,7 +93,7 @@ const sliderStyles = css`
 const tickLabelStyles = css`
   position: absolute;
   font-size: 1em;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.6);
   top: 100%;
   transform: translate(-50%, 1.2rem);
   white-space: nowrap;
@@ -107,6 +132,7 @@ const trackStyles = {
 
 type Props = {
   disabled?: boolean;
+  headerElm?: ReactNode;
   min?: number;
   max?: number;
   onChange: (newValues: number[]) => void;
@@ -115,6 +141,7 @@ type Props = {
 
 function DateSlider({
   disabled = false,
+  headerElm = <></>,
   min = 0,
   max = new Date().getFullYear(),
   onChange,
@@ -129,7 +156,7 @@ function DateSlider({
     setMinYear(min);
     setMaxYear(max);
   }, [min, max]);
-  
+
   const [sliderWidth, setSliderWidth] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
   const observer = useMemo(
@@ -140,7 +167,7 @@ function DateSlider({
           setSliderWidth(width);
         }
       }),
-    []
+    [],
   );
   useLayoutEffect(() => {
     if (!sliderRef?.current) return;
@@ -150,10 +177,12 @@ function DateSlider({
     };
   }, [observer, sliderRef]);
 
-
-  const yearsArray = [...Array(max - min + 1).keys()].map(x => x + min);
-  const tickList = getTicks(yearsArray, sliderWidth < 80 ? 1 : sliderWidth < 300 ? 2 : 4);
-  if(tickList.slice(-1)[0] !== max) tickList.push(max);
+  const yearsArray = [...Array(max - min + 1).keys()].map((x) => x + min);
+  let maxTicks = 4;
+  if (sliderWidth < 80) maxTicks = 1;
+  else if (sliderWidth < 300) maxTicks = 2;
+  const tickList = getTicks(yearsArray, maxTicks);
+  if (tickList.slice(-1)[0] !== max) tickList.push(max);
 
   const { getTrackProps, segments, ticks, handles } = useRanger({
     min: minYear,
@@ -165,50 +194,56 @@ function DateSlider({
   });
 
   return (
-    <div css={sliderContainerStyles} ref={sliderRef}>
-      {minYear !== maxYear && (
-        <>
-          <div css={sliderStyles}>
-            <div {...getTrackProps({ style: trackStyles })}>
-              {segments.map(({ getSegmentProps }, i) => (
-                <div
-                  {...getSegmentProps({
-                    key: i,
-                    style:
-                      !disabled && i === 1
-                        ? segmentStylesActive
-                        : segmentStyles,
-                  })}
-                />
-              ))}
-              {ticks.map(({ value, getTickProps }, i) => {
-                return (
-                  <div css={tickStyles} {...getTickProps({ key: i })}>
-                    <div css={tickLabelStyles}>{value}</div>
-                  </div>
-                );
-              })}
-              {!disabled &&
-                handles.map(({ value, active, getHandleProps }, i) => (
-                  <button
-                    aria-labelledby={`slider-${sliderId}-handle-${i}`}
-                    {...getHandleProps({
-                      key: i,
-                      style: active ? handleStylesActive : handleStyles,
-                    })}
-                  >
+    <div css={textBoxStyles}>
+      {headerElm}
+      <div css={sliderContainerStylesOuter}>
+        <div css={sliderContainerStyles} ref={sliderRef}>
+          {minYear !== maxYear && (
+            <>
+              <div css={sliderStyles}>
+                <div {...getTrackProps({ style: trackStyles })}>
+                  {segments.map(({ getSegmentProps }, i) => (
                     <div
-                      id={`slider-${sliderId}-handle-${i}`}
-                      css={tooltipStyles}
-                    >
-                      {value}
-                    </div>
-                  </button>
-                ))}
-            </div>
-          </div>
-        </>
-      )}
+                      {...getSegmentProps({
+                        key: i,
+                        style:
+                          !disabled && i === 1
+                            ? segmentStylesActive
+                            : segmentStyles,
+                      })}
+                    />
+                  ))}
+                  {ticks.map(({ value, getTickProps }, i) => {
+                    return (
+                      <div css={tickStyles} {...getTickProps({ key: i })}>
+                        <div css={tickLabelStyles}>{value}</div>
+                      </div>
+                    );
+                  })}
+                  {!disabled &&
+                    handles.map(({ value, active, getHandleProps }, i) => (
+                      <div
+                        aria-labelledby={`slider-${sliderId}-handle-${i}`}
+                        {...getHandleProps({
+                          key: i,
+                          style: active ? handleStylesActive : handleStyles,
+                        })}
+                        tabIndex={0}
+                      >
+                        <div
+                          id={`slider-${sliderId}-handle-${i}`}
+                          css={tooltipStyles}
+                        >
+                          {value}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

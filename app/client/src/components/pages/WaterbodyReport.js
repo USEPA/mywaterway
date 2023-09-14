@@ -37,7 +37,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { titleCaseWithExceptions } from 'utils/utils';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
 
@@ -76,8 +76,9 @@ const containerStyles = css`
 const containerContentExpandStyles = css`
   display: flex;
   align-items: center;
-  height: 49px;
+  height: 40px;
   width: 100%;
+  margin-left: 0.5rem;
 `;
 
 const infoBoxContainerStyles = css`
@@ -198,6 +199,12 @@ const parameterStyles = css`
   border-bottom: 1px dotted #eee;
   &:last-of-type {
     border-bottom: none;
+  }
+`;
+
+const tableStyles = css`
+  th {
+    vertical-align: middle !important;
   }
 `;
 
@@ -1367,13 +1374,13 @@ function WaterbodyReport() {
                           ) : (
                             <>
                               <em>Links below open in a new browser tab.</em>
-                              <table className="table">
+                              <table className="table" css={tableStyles}>
                                 <thead>
                                   <tr>
                                     <th>Plan</th>
                                     <th>Impairments</th>
                                     <th>Type</th>
-                                    <th>Date</th>
+                                    <th>Completion Date</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -1381,8 +1388,8 @@ function WaterbodyReport() {
                                     .sort((a, b) =>
                                       a.name.localeCompare(b.name),
                                     )
-                                    .map((action, index) => (
-                                      <tr key={index}>
+                                    .map((action) => (
+                                      <tr key={action.id}>
                                         <td>
                                           <a
                                             href={`/plan-summary/${orgId}/${action.id}`}
@@ -1530,7 +1537,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
           </thead>
           <tbody>
             {pollutants
-              .sort((a, b) => a.name.localeCompare(b.name))
+              .toSorted((a, b) => a.name.localeCompare(b.name))
               .map((pollutant) => (
                 <tr key={pollutant.name}>
                   <td>{titleCaseWithExceptions(pollutant.name)}</td>

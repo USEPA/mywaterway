@@ -8,7 +8,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // styles
-import { fonts } from 'styles/index.js';
+import { fonts } from 'styles/index';
 
 const containerStyles = css`
   padding: 1rem;
@@ -81,7 +81,7 @@ function AboutContent() {
     const href = window.location.href;
 
     // get the pathname without the leading /
-    const pathname = window.location.pathname.substr(1);
+    const pathname = window.location.pathname.slice(1);
 
     // build the url for the data page
     let newHref = '';
@@ -223,7 +223,7 @@ function AboutContent() {
                 to help waters become healthy again. The TMDL serves as a basic
                 game plan for a variety of different restoration activities,
                 including watershed restoration plans. EPA provides funds to
-                States to help control nonpoint source pollution, which
+                States to help control nonpoint source pollution , which
                 generally originate from landscape runoff rather than a single
                 discharge pipe. <em>How’s My Waterway</em> identifies whether an
                 impaired waterway has a TMDL restoration plan or a nonpoint
@@ -245,8 +245,12 @@ function AboutContent() {
                 selections made. This page also provides documents that the
                 state has submitted to EPA’s ATTAINS system as part of the
                 state’s integrated report and statewide statistical surveys (if
-                applicable). Nonpoint source success stories are also found on
-                this page by state (if applicable).
+                applicable).{' '}
+                <GlossaryTerm term="nonpoint source pollution">
+                  Nonpoint source
+                </GlossaryTerm>{' '}
+                success stories are also found on this page by state (if
+                applicable).
               </p>
 
               <h3>Advanced Search</h3>
@@ -307,8 +311,11 @@ function AboutContent() {
                 ), including which waters are assessed and impaired or good
                 based on the most recent state reporting under the Clean Water
                 Act. Selecting a specific waterway from the list or map shows
-                the impairment reported, existing restoration plans, and
-                nonpoint source projects in the area. Information on permitted{' '}
+                the impairment reported, existing restoration plans, and{' '}
+                <GlossaryTerm term="nonpoint source pollution">
+                  nonpoint source
+                </GlossaryTerm>{' '}
+                projects in the area. Information on permitted{' '}
                 <GlossaryTerm term="dischargers">dischargers</GlossaryTerm>,
                 water monitoring locations and drinking water systems can also
                 be found within a small watershed area after entering a

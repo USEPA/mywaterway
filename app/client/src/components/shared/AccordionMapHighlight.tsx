@@ -46,15 +46,13 @@ function AccordionItem({
     if (idKey && feature?.attributes?.[idKey]) {
       const id = feature.attributes[idKey];
 
-      const isSelected =
-        selectedGraphic && selectedGraphic.attributes
-          ? selectedGraphic.attributes[idKey] === id
-          : false;
+      const isSelected = selectedGraphic?.attributes
+        ? selectedGraphic.attributes[idKey] === id
+        : false;
 
-      const isHighlighted =
-        highlightedGraphic && highlightedGraphic.attributes
-          ? highlightedGraphic.attributes[idKey] === id
-          : false;
+      const isHighlighted = highlightedGraphic?.attributes
+        ? highlightedGraphic.attributes[idKey] === id
+        : false;
 
       if (isSelected) setStatus('selected');
       else if (isHighlighted && !isSelected) setStatus('highlighted');

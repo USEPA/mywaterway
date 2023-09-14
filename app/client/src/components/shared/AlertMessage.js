@@ -4,7 +4,7 @@ import React from 'react';
 import { css } from 'styled-components/macro';
 import { useLocation } from 'react-router-dom';
 // styles
-import { colors } from 'styles/index.js';
+import { colors } from 'styles/index';
 // contexts
 import { useNotificationsContext } from 'contexts/LookupFiles';
 // utilities
@@ -48,7 +48,7 @@ function AlertMessage() {
     const data = notifications.data;
 
     // create a banner that applies to all pages
-    const allPagesBanner = data && data['all'] && (
+    const allPagesBanner = data?.['all'] && (
       <div
         css={bannerStyles(data['all'].color, data['all'].backgroundColor)}
         dangerouslySetInnerHTML={createMarkup(data['all'].message)}
