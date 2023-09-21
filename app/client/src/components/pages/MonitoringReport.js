@@ -133,6 +133,9 @@ const chartContainerStyles = css`
   margin: 1rem 0.625rem;
 `;
 
+const chartControlStyles = css`
+  flex-shrink: 0;
+`;
 const chartTooltipStyles = css`
   p {
     line-height: 1.2em;
@@ -272,6 +275,16 @@ const iconStyles = css`
   margin-right: 5px;
 `;
 
+const locationRowStyles = css`
+  & > * {
+    display: inline-block;
+  }
+
+  strong {
+    margin-right: 0.2em;
+  }
+`;
+
 const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
@@ -283,24 +296,8 @@ const infoBoxHeadingStyles = css`
     margin-top: auto;
   }
 
-  & > span {
-    flex-shrink: 0;
-  }
-
   button {
     font-size: 1rem;
-  }
-
-  small {
-    display: block;
-    margin-top: 0.125rem;
-  }
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: 0 -0.375rem 0 -0.875rem;
-    height: 1.5rem;
   }
 `;
 
@@ -317,6 +314,20 @@ const legendContainerStyles = css`
   display: flex;
   justify-content: space-between;
   margin-top: 1em;
+`;
+
+const locationHeadingStyles = css`
+  ${boxHeadingStyles}
+
+  & > small {
+    display: block;
+  }
+
+  /* loading icon */
+  svg {
+    margin: 0 -0.375rem 0 -0.875rem;
+    height: 1rem;
+  }
 `;
 
 const mapContainerStyles = css`
@@ -1177,7 +1188,7 @@ function CharacteristicChartSection({
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName ? 'Selected Characteristic' : charcName}
-        <span>
+        <span css={chartControlStyles}>
           <button
             aria-label="Shift chart down"
             css={modifiedIconButtonStyles}
@@ -2121,20 +2132,22 @@ function InformationSection({ siteId, site, siteStatus }) {
 
   return (
     <div css={modifiedBoxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
-        <span>
-          <small>
-            <strong>Location Name: </strong>
-            {siteStatus === 'pending' && <LoadingSpinner />}
-            {siteStatus === 'success' && site.locationName}
-          </small>
-          <small>
+      <h2 css={locationHeadingStyles}>
+        <small>
+          <div css={locationRowStyles}>
+            <strong>Location Name:</strong>
+            <span>
+              {siteStatus === 'pending' && <LoadingSpinner />}
+              {siteStatus === 'success' && site.locationName}
+            </span>
+          </div>
+          <div css={locationRowStyles}>
             <strong>
               <GlossaryTerm term="Monitoring Site ID">Site ID</GlossaryTerm>:{' '}
             </strong>
-            {siteId}
-          </small>
-        </span>
+            <span>{siteId}</span>
+          </div>
+        </small>
       </h2>
       <div css={sectionStyles}>
         <BoxContent rows={rows} styles={boxContentStyles} />
