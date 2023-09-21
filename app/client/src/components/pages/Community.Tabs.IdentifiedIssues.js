@@ -820,7 +820,10 @@ function IdentifiedIssues() {
                               <div css={toggleStyles}>
                                 <Switch
                                   ariaLabelledBy={switchId}
-                                  checked={showViolatingDischargers}
+                                  checked={
+                                    violatingDischargers.length > 0 &&
+                                    showViolatingDischargers
+                                  }
                                   onChange={toggleViolatingDischargers}
                                   disabled={!violatingDischargers.length}
                                 />
@@ -841,7 +844,10 @@ function IdentifiedIssues() {
                             <td>
                               <label css={toggleStyles}>
                                 <Switch
-                                  checked={showCompliantDischargers}
+                                  checked={
+                                    compliantDischargers.length > 0 &&
+                                    showCompliantDischargers
+                                  }
                                   onChange={toggleCompliantDischargers}
                                   disabled={!compliantDischargers.length}
                                 />
