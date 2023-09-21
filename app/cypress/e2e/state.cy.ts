@@ -1,4 +1,4 @@
-// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error. 
+// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error.
 // We can safely ignore this. https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
 Cypress.on('uncaught:exception', (err, runnable) => {
   // returning false here prevents Cypress from
@@ -220,6 +220,9 @@ describe('State page Water Overview tab', () => {
   it(`Clicking "<state name> Documents" opens the documents content`, () => {
     const title = 'Alaska Documents';
     const text = 'Documents Related to Integrated Report';
+    const firstTableLinkText =
+      'Consolidated Assessment and Listing Methodology 2021 Rev. (PDF)';
+    const secondTableLinkText = '2015 NPR-A Estuary Report (PDF)';
 
     // verify text is not visible
     cy.findByText(text).should('not.exist');
@@ -227,6 +230,32 @@ describe('State page Water Overview tab', () => {
     // open accordion and check text is visible
     cy.get('.hmw-accordion').contains(title).click();
     cy.findByText(text).should('be.visible');
+
+    // check for links in first table
+    cy.findByText(firstTableLinkText).should(
+      'have.attr',
+      'href',
+      `https://attains.epa.gov/attains-public/api/documents/cycles/12064/209190`,
+    );
+    cy.findByText(firstTableLinkText).should('have.attr', 'target', '_blank');
+    cy.findByText(firstTableLinkText).should(
+      'have.attr',
+      'rel',
+      'noopener noreferrer',
+    );
+
+    // check for links in second table
+    cy.findByText(secondTableLinkText).should(
+      'have.attr',
+      'href',
+      `https://attains.epa.gov/attains-public/api/documents/surveys/AKDECWQ/2015/136021`,
+    );
+    cy.findByText(secondTableLinkText).should('have.attr', 'target', '_blank');
+    cy.findByText(secondTableLinkText).should(
+      'have.attr',
+      'rel',
+      'noopener noreferrer',
+    );
 
     // close accordion and verify text is not visible
     cy.get('.hmw-accordion').contains(title).click();
