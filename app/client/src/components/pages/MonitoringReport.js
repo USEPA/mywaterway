@@ -504,7 +504,7 @@ const treeStyles = (level, styles) => {
 */
 
 const MAX_NUM_CHARTS = 4;
-const MEASUREMENT_PRECISION = 3;
+const MEASUREMENT_PRECISION = 5;
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
@@ -518,7 +518,7 @@ function buildTooltip(unit) {
     const datum = tooltipData.nearestDatum.datum;
     if (!datum) return null;
     const depth =
-      datum.depth !== null && datum.depthUnit !== null
+      Number.isFinite(datum.depth) && datum.depthUnit
         ? `${datum.depth} ${datum.depthUnit}`
         : null;
     return (
@@ -526,7 +526,7 @@ function buildTooltip(unit) {
         <p>{datum.x}:</p>
         <p>
           <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
-          {`${datum.y.toFixed(MEASUREMENT_PRECISION)} ${unit}`}
+          {`${formatNumber(datum.y)} ${unit}`}
           {depth && (
             <>
               <br />
@@ -580,6 +580,20 @@ const dateOptions = {
   month: 'short',
   day: 'numeric',
 };
+
+// Format number as a string with a specified precision.
+function formatNumber(num, precision = MEASUREMENT_PRECISION) {
+  if (!Number.isFinite(num)) return '';
+  if (num <= Number.EPSILON) return '0';
+
+  const rounded = parseFloat(num).toLocaleString([], {
+    maximumSignificantDigits: precision,
+  });
+  return rounded.length > precision &&
+    (rounded[0] === '0' || rounded[rounded.length - 1] === '0')
+    ? parseFloat(rounded.replaceAll(',', '')).toExponential()
+    : rounded;
+}
 
 // Create a heatmap proportional to the range of the provided numerical data
 function generateHeatmap(data) {
@@ -696,11 +710,8 @@ function lineDatum(dayData) {
   return {
     type: 'line',
     x: dayData[0].x,
-    y: toFixedFloat(getMean(dayData.map((d) => d.y)), MEASUREMENT_PRECISION),
-    depth: toFixedFloat(
-      getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
-      MEASUREMENT_PRECISION,
-    ),
+    y: getMean(dayData.map((d) => d.y)),
+    depth: getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
     depthUnit: dayData.find((d) => d.depthUnit !== null)?.depthUnit,
   };
 }
@@ -1585,7 +1596,9 @@ function ChartContainer({
         pointsVisible={pointsVisible}
         range={range}
         xTitle="Date"
-        yScale={scaleType}
+        // Addresses the issue that arises when all "zero" values are passed to the chart.
+        yScale={range[0] === range[range.length - 1] ? 'log' : scaleType}
+        yTickFormat={(val) => formatNumber(val, 3)}
         yTitle={yTitle}
       />
       <div css={legendContainerStyles}>
@@ -1645,14 +1658,8 @@ function ChartStatistics({ data, unit }) {
   const median = getMedian(yValues);
   const stdDev = getStdDev(yValues, mean);
 
-  let average = toFixedFloat(mean, MEASUREMENT_PRECISION).toLocaleString(
-    'en-US',
-  );
-  if (stdDev)
-    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
-      stdDev,
-      MEASUREMENT_PRECISION,
-    ).toLocaleString()}`;
+  let average = formatNumber(mean);
+  if (stdDev) average += ` ${String.fromCharCode(177)} ${formatNumber(stdDev)}`;
   average += ` ${unit}`;
 
   const [statisticsExpanded, setStatisticsExpanded] = useState(true);
@@ -1693,10 +1700,7 @@ function ChartStatistics({ data, unit }) {
             },
             {
               label: 'Median Value',
-              value: `${toFixedFloat(
-                median,
-                MEASUREMENT_PRECISION,
-              ).toLocaleString()} ${unit}`,
+              value: `${formatNumber(median)} ${unit}`,
             },
             {
               label: 'Minimum Value',

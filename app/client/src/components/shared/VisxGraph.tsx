@@ -92,6 +92,7 @@ type VisxGraphProps = {
   range?: number[];
   xTitle?: string;
   yScale?: 'log' | 'linear';
+  yTickFormat?: (val: number) => string;
   yTitle?: string;
 };
 
@@ -113,6 +114,7 @@ export function VisxGraph({
   range,
   xTitle,
   yScale = 'linear',
+  yTickFormat = (val: number) => val.toLocaleString(),
   yTitle,
 }: VisxGraphProps) {
   const [width, setWidth] = useState<number | null>(null);
@@ -182,10 +184,13 @@ export function VisxGraph({
       <VisxStyles />
       <XYChart
         height={height}
-        margin={{ top: 20, bottom: 45, left: 85, right: 30 }}
+        margin={{ top: 20, bottom: 45, left: 90, right: 30 }}
         theme={theme}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
-        yScale={{ type: yScale, domain: range }}
+        yScale={{
+          type: yScale,
+          domain: range,
+        }}
       >
         <Axis
           label={xTitle}
@@ -202,7 +207,7 @@ export function VisxGraph({
           label={yTitle}
           labelProps={{
             fill: '#2C2E43',
-            dx: -30,
+            dx: -35,
             lineHeight: '1.2em',
             style: { fontWeight: 'bold' },
             scaleToFit: false,
@@ -211,7 +216,7 @@ export function VisxGraph({
           }}
           orientation="left"
           strokeWidth={2}
-          tickFormat={(val) => (val <= Number.EPSILON ? '0' : val)}
+          tickFormat={yTickFormat}
         />
         {lineVisible && (
           <LineSeries
