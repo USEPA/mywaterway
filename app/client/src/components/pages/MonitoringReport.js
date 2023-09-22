@@ -783,7 +783,7 @@ function pointDatum(msmt, colors, depths) {
   return {
     type: 'point',
     x: msmt.date,
-    y: msmt.measurement || Number.EPSILON,
+    y: msmt.measurement <= 0 ? Number.EPSILON : msmt.measurement,
     activityTypeCode: msmt.activityTypeCode,
     color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#4d4d4d',
     depth: msmt.depth,
@@ -1583,6 +1583,21 @@ function ChartContainer({
     return <p css={messageBoxStyles(infoBoxStyles)}>No chart type selected.</p>;
   }
 
+  // Addresses the issue that arises when all "zero" values are passed to the chart.
+  const resolvedScaleType =
+    range[0] === range[range.length - 1] ? 'log' : scaleType;
+
+  const yTickFormat = (val, _index, values) => {
+    if (
+      resolvedScaleType === 'log' &&
+      values.length > 10 &&
+      Math.log10(val) % 1 !== 0
+    ) {
+      return '';
+    }
+    return formatNumber(val, 3);
+  };
+
   return (
     <div ref={chartRef} css={chartContainerStyles}>
       <VisxGraph
@@ -1596,9 +1611,8 @@ function ChartContainer({
         pointsVisible={pointsVisible}
         range={range}
         xTitle="Date"
-        // Addresses the issue that arises when all "zero" values are passed to the chart.
-        yScale={range[0] === range[range.length - 1] ? 'log' : scaleType}
-        yTickFormat={(val) => formatNumber(val, 3)}
+        yScale={resolvedScaleType}
+        yTickFormat={yTickFormat}
         yTitle={yTitle}
       />
       <div css={legendContainerStyles}>
