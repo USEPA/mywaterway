@@ -196,7 +196,7 @@ export function VisxGraph({
         <Axis
           label={xTitle}
           labelProps={{
-            dy: 10,
+            dy: 15,
             fill: '#2C2E43',
             style: { fontWeight: 'bold' },
             verticalAnchor: 'start',
