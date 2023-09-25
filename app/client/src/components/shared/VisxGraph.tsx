@@ -185,7 +185,7 @@ export function VisxGraph({
       <VisxStyles />
       <XYChart
         height={height}
-        margin={{ top: 20, bottom: 45, left: 100, right: 30 }}
+        margin={{ top: 20, bottom: 55, left: 100, right: 50 }}
         theme={theme}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
         yScale={{
@@ -196,6 +196,7 @@ export function VisxGraph({
         <Axis
           label={xTitle}
           labelProps={{
+            dy: 10,
             fill: '#2C2E43',
             style: { fontWeight: 'bold' },
             verticalAnchor: 'start',
@@ -203,6 +204,13 @@ export function VisxGraph({
           numTicks={width ? Math.floor(width / 120) : 4}
           orientation="bottom"
           strokeWidth={2}
+          tickLabelProps={{
+            angle: 15,
+            dx: -5,
+            textAnchor: 'start',
+            y: 15,
+          }}
+          tickLength={3}
         />
         <Axis
           label={yTitle}
@@ -218,6 +226,7 @@ export function VisxGraph({
           orientation="left"
           strokeWidth={2}
           tickFormat={yTickFormat}
+          tickLength={5}
         />
         {lineVisible && (
           <LineSeries

@@ -584,7 +584,7 @@ const dateOptions = {
 // Format number as a string with a specified precision.
 function formatNumber(num, precision = MEASUREMENT_PRECISION) {
   if (!Number.isFinite(num)) return '';
-  if (num <= Number.EPSILON) return '0';
+  if (num >= -Number.EPSILON && num <= Number.EPSILON) return '0';
 
   const rounded = parseFloat(num.toPrecision(precision));
   // Compare the number of significant digits to the precision.
@@ -783,7 +783,10 @@ function pointDatum(msmt, colors, depths) {
   return {
     type: 'point',
     x: msmt.date,
-    y: msmt.measurement <= Number.EPSILON ? Number.EPSILON : msmt.measurement,
+    y:
+      msmt.measurement >= -Number.EPSILON && msmt.measurement <= Number.EPSILON
+        ? Number.EPSILON
+        : msmt.measurement,
     activityTypeCode: msmt.activityTypeCode,
     color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#4d4d4d',
     depth: msmt.depth,
@@ -1599,6 +1602,18 @@ function ChartContainer({
     }
     return formatNumber(val, 3);
   };
+
+  const crossesZero =
+    yValues.some((val) => val > 0) && yValues.some((val) => val < 0);
+  if (crossesZero && scaleType === 'log')
+    return (
+      <div css={chartContainerStyles}>
+        <p css={messageBoxStyles(infoBoxStyles)}>
+          Cannot show positive and negative values on the same chart when the{' '}
+          <em>log</em> scale type is selected.
+        </p>
+      </div>
+    );
 
   return (
     <div ref={chartRef} css={chartContainerStyles}>
