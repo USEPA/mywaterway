@@ -28,6 +28,7 @@ const legendContainerStyles = css`
 `;
 
 const legendStyles = css`
+  align-items: center;
   display: flex;
   flex-direction: row;
 `;
@@ -117,7 +118,7 @@ export function VisxGraph({
   yTickFormat = (val: number) => val.toLocaleString(),
   yTitle,
 }: VisxGraphProps) {
-  const [width, setWidth] = useState<number | null>(null);
+  const [width, setWidth] = useState<number>();
   useLayoutEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
@@ -184,8 +185,9 @@ export function VisxGraph({
       <VisxStyles />
       <XYChart
         height={height}
-        margin={{ top: 20, bottom: 45, left: 90, right: 30 }}
+        margin={{ top: 20, bottom: 45, left: 100, right: 30 }}
         theme={theme}
+        width={width}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
         yScale={{
           type: yScale,
@@ -207,7 +209,7 @@ export function VisxGraph({
           label={yTitle}
           labelProps={{
             fill: '#2C2E43',
-            dx: -35,
+            dx: -45,
             lineHeight: '1.2em',
             style: { fontWeight: 'bold' },
             scaleToFit: false,

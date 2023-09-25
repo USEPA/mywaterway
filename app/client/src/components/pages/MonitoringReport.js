@@ -586,13 +586,11 @@ function formatNumber(num, precision = MEASUREMENT_PRECISION) {
   if (!Number.isFinite(num)) return '';
   if (num <= Number.EPSILON) return '0';
 
-  const rounded = parseFloat(num).toLocaleString([], {
-    maximumSignificantDigits: precision,
-  });
-  return rounded.length > precision &&
-    (rounded[0] === '0' || rounded[rounded.length - 1] === '0')
-    ? parseFloat(rounded.replaceAll(',', '')).toExponential()
-    : rounded;
+  const rounded = parseFloat(num.toPrecision(precision));
+  // Compare the number of significant digits to the precision.
+  return rounded.toString().replace('.', '').length > precision
+    ? rounded.toExponential()
+    : rounded.toLocaleString();
 }
 
 // Create a heatmap proportional to the range of the provided numerical data
@@ -608,7 +606,9 @@ function generateHeatmap(data) {
   const dataMax = sortedData[sortedData.length - 1];
   return sortedData.map((datum) => {
     const fractionalPos =
-      datum === 0 ? 0 : (datum - dataMin) / (dataMax - dataMin);
+      datum === 0 || dataMax === dataMin
+        ? 0
+        : (datum - dataMin) / (dataMax - dataMin);
     const offset = (svMax - svMin) * fractionalPos;
     const sat = (svMin + offset) / 100;
     const val = (svMax - offset) / 100;
@@ -783,7 +783,7 @@ function pointDatum(msmt, colors, depths) {
   return {
     type: 'point',
     x: msmt.date,
-    y: msmt.measurement <= 0 ? Number.EPSILON : msmt.measurement,
+    y: msmt.measurement <= Number.EPSILON ? Number.EPSILON : msmt.measurement,
     activityTypeCode: msmt.activityTypeCode,
     color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#4d4d4d',
     depth: msmt.depth,
@@ -1588,9 +1588,11 @@ function ChartContainer({
     range[0] === range[range.length - 1] ? 'log' : scaleType;
 
   const yTickFormat = (val, _index, values) => {
+    // Avoid overcrowding on the y-axis when the log scale is used.
+    // Shows only powers of 10 when a tick threshold is exceeded.
     if (
       resolvedScaleType === 'log' &&
-      values.length > 10 &&
+      values.length > 20 &&
       Math.log10(val) % 1 !== 0
     ) {
       return '';
