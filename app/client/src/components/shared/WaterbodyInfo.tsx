@@ -38,6 +38,7 @@ import {
   isFeatureLayer,
   isMediaLayer,
   isUniqueValueRenderer,
+  mapRestorationPlanToGlossary,
 } from 'utils/mapFunctions';
 import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
 import {
@@ -1180,7 +1181,9 @@ function WaterbodyInfo({
                                   </>
                                 )}
                               </td>
-                              <td>{action.type}</td>
+                              <td>
+                                {mapRestorationPlanToGlossary(action.type)}
+                              </td>
                               <td css={dateStyles}>{action.date}</td>
                             </tr>
                           );

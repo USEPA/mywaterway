@@ -35,6 +35,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
+import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
 import { titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { colors } from 'styles/index';
@@ -1415,7 +1416,11 @@ function WaterbodyReport() {
                                             </>
                                           )}
                                         </td>
-                                        <td>{action.type}</td>
+                                        <td>
+                                          {mapRestorationPlanToGlossary(
+                                            action.type,
+                                          )}
+                                        </td>
                                         <td css={dateCellStyles}>
                                           {action.date}
                                         </td>

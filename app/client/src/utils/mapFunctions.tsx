@@ -8,6 +8,7 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Popup from '@arcgis/core/widgets/Popup';
 // components
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // utilities
@@ -1148,3 +1149,23 @@ export const getMappedParameter = (
 
   return filteredFields;
 };
+
+// takes an action type code (plan) and renders it as a
+// glossary term if applicable
+export function mapRestorationPlanToGlossary(
+  planType: string,
+  showLabel = false,
+) {
+  return planType === 'TMDL' ||
+    planType === '4B Restoration Approach' ||
+    planType === 'Advance Restoration Plan (ARP)' ? (
+    <>
+      {showLabel && 'Restoration Plan: '}
+      <GlossaryTerm term={planType}>{planType}</GlossaryTerm>
+    </>
+  ) : planType === 'Protection Approach' ? (
+    <GlossaryTerm term={planType}>{planType}</GlossaryTerm>
+  ) : (
+    planType
+  );
+}
