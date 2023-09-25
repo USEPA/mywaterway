@@ -129,9 +129,13 @@ const containerStyles = css`
     .rt-col-title {
       display: flex;
       flex-direction: row;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: space-between;
       padding: 2px;
+
+      span:first-of-type {
+        display: inline-block;
+      }
     }
 
     .rt-filter {
