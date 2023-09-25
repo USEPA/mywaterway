@@ -117,7 +117,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
       }}
     >
       {({ index, style }) => (
-        <div style={style}>
+        <div style={{ ...style, overflow: 'hidden' }}>
           <RowRenderer
             listId={listId}
             index={index}
