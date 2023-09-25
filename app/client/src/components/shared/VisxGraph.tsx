@@ -118,7 +118,7 @@ export function VisxGraph({
   yTickFormat = (val: number) => val.toLocaleString(),
   yTitle,
 }: VisxGraphProps) {
-  const [width, setWidth] = useState<number>();
+  const [width, setWidth] = useState<number | null>(null);
   useLayoutEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
@@ -187,7 +187,6 @@ export function VisxGraph({
         height={height}
         margin={{ top: 20, bottom: 45, left: 100, right: 30 }}
         theme={theme}
-        width={width}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
         yScale={{
           type: yScale,
