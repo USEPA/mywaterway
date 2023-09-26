@@ -1394,6 +1394,23 @@ function CharacteristicsTableSection({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [charcs, selected]);
 
+  // Select the characteristic with the most measurements by default;
+  useEffect(() => {
+    const maxCharc = Object.values(charcs).reduce(
+      (curMax, next) => {
+        const nextCount = next.records.reduce((a, b) => {
+          return Number.isFinite(b.measurement) ? a + 1 : a;
+        }, 0);
+        if (nextCount > curMax.count) {
+          return { name: next.name, count: nextCount };
+        }
+        return curMax;
+      },
+      { name: null, count: 0 },
+    );
+    if (maxCharc.name) setSelected([maxCharc.name]);
+  }, [charcs, setSelected]);
+
   const onChange = (ev) => {
     if (ev.target.checked) {
       setSelected((prev) => [ev.target.value, ...prev]);
@@ -1485,7 +1502,7 @@ function CharacteristicsTableSection({
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
-            defaultSort="name"
+            defaultSort="selected"
             striped={true}
             getColumns={(tableWidth) => {
               const columnWidth = tableWidth / 3 - 6;
