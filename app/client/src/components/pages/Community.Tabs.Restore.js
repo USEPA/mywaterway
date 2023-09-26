@@ -24,6 +24,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup } from 'components/shared/Regex';
 import { useWaterbodyOnMap } from 'utils/hooks';
+import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
 // errors
 import {
   restoreNonpointSourceError,
@@ -346,36 +347,6 @@ function Restore() {
                         }
                       >
                         {sortedAttainsPlanData.map((item, index) => {
-                          let planType = item.actionTypeCode;
-                          if (planType === 'TMDL') {
-                            planType = (
-                              <>
-                                Restoration Plan:{' '}
-                                <GlossaryTerm term="TMDL">TMDL</GlossaryTerm>
-                              </>
-                            );
-                          }
-                          if (planType === '4B Restoration Approach') {
-                            planType = (
-                              <>
-                                Restoration Plan:{' '}
-                                <GlossaryTerm term="4B Restoration Approach">
-                                  4B Restoration Approach
-                                </GlossaryTerm>
-                              </>
-                            );
-                          }
-                          if (planType === 'Alternative Restoration Approach') {
-                            planType = (
-                              <>
-                                Restoration Plan:{' '}
-                                <GlossaryTerm term="Alternative Restoration Approach">
-                                  Alternative Restoration Approach
-                                </GlossaryTerm>
-                              </>
-                            );
-                          }
-
                           return (
                             <AccordionItem
                               key={index}
@@ -388,7 +359,10 @@ function Restore() {
                                 rows={[
                                   {
                                     label: 'Plan Type',
-                                    value: planType,
+                                    value: mapRestorationPlanToGlossary(
+                                      item.actionTypeCode,
+                                      true,
+                                    ),
                                   },
                                   {
                                     label: 'Status',
