@@ -569,6 +569,13 @@ export interface WaterbodyAttributes {
   overallstatus: string;
 }
 
+export type WaterbodyCondition =
+  | 'good'
+  | 'polluted'
+  | 'unassessed'
+  | 'nostatus'
+  | 'hidden';
+
 interface PortalLayer extends __esri.Layer {
   portalItem?: __esri.PortalItem;
 }

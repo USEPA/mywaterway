@@ -29,9 +29,8 @@ import type {
   TribeAttributes,
   VillageAttributes,
   WaterbodyAttributes,
+  WaterbodyCondition,
 } from 'types';
-
-type Condition = 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -139,12 +138,12 @@ export function createUniqueValueInfos(
     poly: number;
     outline: number;
   } | null = null,
-  filterCondition: string = '',
+  filterCondition: WaterbodyCondition | null = null,
 ) {
   const settings: {
     label: string;
     value: string;
-    condition: Condition;
+    condition: WaterbodyCondition;
   }[] = [
     {
       label: 'Good',
@@ -336,7 +335,7 @@ export function createWaterbodySymbol({
   geometryType = 'point',
   alpha = null,
 }: {
-  condition: Condition;
+  condition: WaterbodyCondition;
   selected: boolean;
   geometryType: string;
   alpha?: {
