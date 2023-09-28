@@ -1026,6 +1026,10 @@ function AdvancedSearch() {
         return !filter || filter === condition;
       });
 
+  const waterbodiesCount = waterbodies?.length ?? 0;
+  const waterbodiesFilteredCountString =
+    waterbodiesFiltered.length.toLocaleString();
+
   // jsx
   const resultsContainer = (
     <>
@@ -1063,12 +1067,10 @@ function AdvancedSearch() {
             <span css={screenLabelStyles}>
               Results:{' '}
               <span css={resultsItemsStyles}>
-                {waterbodies?.length === waterbodiesFiltered.length
-                  ? `${waterbodiesFiltered.length} items`
-                  : `${waterbodiesFiltered.length} of 
-                  ${
-                    waterbodies ? waterbodies.length.toLocaleString() : 0
-                  } items`}
+                {waterbodiesCount === waterbodiesFiltered.length
+                  ? `${waterbodiesFilteredCountString} items`
+                  : `${waterbodiesFilteredCountString} of 
+                  ${waterbodiesCount.toLocaleString()} items`}
               </span>
             </span>
           </div>
