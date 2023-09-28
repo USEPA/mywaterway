@@ -31,6 +31,8 @@ import type {
   WaterbodyAttributes,
 } from 'types';
 
+type Condition = 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden';
+
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
   polluted: { condition: 'polluted', label: 'Impaired' },
@@ -137,89 +139,71 @@ export function createUniqueValueInfos(
     poly: number;
     outline: number;
   } | null = null,
+  filterCondition: string = '',
 ) {
-  return [
+  const settings: {
+    label: string;
+    value: string;
+    condition: Condition;
+  }[] = [
     {
-      label: `Good`,
-      value: `Fully Supporting`,
-      symbol: createWaterbodySymbol({
-        condition: 'good',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Good',
+      value: 'Fully Supporting',
+      condition: 'good',
     },
     {
-      label: `Impaired`,
-      value: `Not Supporting`,
-      symbol: createWaterbodySymbol({
-        condition: 'polluted',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Impaired',
+      value: 'Not Supporting',
+      condition: 'polluted',
     },
     {
-      label: `Condition Unknown`,
-      value: `Insufficient Information`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Condition Unknown',
+      value: 'Insufficient Information',
+      condition: 'unassessed',
     },
     {
-      label: `Condition Unknown`,
-      value: `Not Assessed`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Condition Unknown',
+      value: 'Not Assessed',
+      condition: 'unassessed',
     },
     {
-      label: `Good`,
-      value: `Meeting Criteria`,
-      symbol: createWaterbodySymbol({
-        condition: 'good',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Good',
+      value: 'Meeting Criteria',
+      condition: 'good',
     },
     {
-      label: `Impaired`,
-      value: `Cause`,
-      symbol: createWaterbodySymbol({
-        condition: 'polluted',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Impaired',
+      value: 'Cause',
+      condition: 'polluted',
     },
     {
-      label: `Yes`,
-      value: `Y`,
-      symbol: createWaterbodySymbol({
-        condition: 'nostatus',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Yes',
+      value: 'Y',
+      condition: 'nostatus',
     },
     {
-      label: `No`,
-      value: `N`,
-      symbol: createWaterbodySymbol({
-        condition: 'hidden',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'No',
+      value: 'N',
+      condition: 'hidden',
     },
   ];
+
+  return settings.map((setting) => {
+    const condition =
+      filterCondition && filterCondition !== setting.condition
+        ? 'hidden'
+        : setting.condition;
+    return {
+      label: setting.label,
+      value: setting.value,
+      symbol: createWaterbodySymbol({
+        condition,
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    };
+  });
 }
 
 export function createUniqueValueInfosIssues(
@@ -352,7 +336,7 @@ export function createWaterbodySymbol({
   geometryType = 'point',
   alpha = null,
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden';
+  condition: Condition;
   selected: boolean;
   geometryType: string;
   alpha?: {

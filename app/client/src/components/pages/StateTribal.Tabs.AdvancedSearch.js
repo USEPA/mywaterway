@@ -29,6 +29,7 @@ import {
 } from 'contexts/LookupFiles';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
+import { getWaterbodyCondition } from 'utils/mapFunctions';
 import { chunkArray, isAbort } from 'utils/utils';
 import {
   useAbort,
@@ -50,6 +51,25 @@ const defaultDisplayOption = {
   label: 'Overall Waterbody Condition',
   value: '',
 };
+
+const filterByOptions = [
+  {
+    label: 'All',
+    value: '',
+  },
+  {
+    label: 'Good',
+    value: 'good',
+  },
+  {
+    label: 'Impaired',
+    value: 'polluted',
+  },
+  {
+    label: 'Condition Unknown',
+    value: 'unassessed',
+  },
+];
 
 // Gets the maxRecordCount of the layer at the provided url
 function retrieveMaxRecordCount(url, signal) {
@@ -163,7 +183,7 @@ const resultsInputsStyles = css`
 const resultsInputStyles = css`
   ${inputStyles}
   @media (min-width: 768px) {
-    width: calc((100% / 3) - 1em);
+    width: calc((100% / 2) - 1em);
   }
 `;
 
@@ -765,7 +785,16 @@ function AdvancedSearch() {
     updateDisplayOptions(parameterFilter, newUseFilter);
   };
 
-  useWaterbodyOnMap(selectedDisplayOption.value, '', 'unassessed');
+  const [selectedFilterOption, setSelectedFilterOption] = useState(
+    filterByOptions[0],
+  );
+
+  useWaterbodyOnMap(
+    selectedDisplayOption.value,
+    '',
+    'unassessed',
+    selectedFilterOption.value,
+  );
 
   // jsx
   const filterControls = (
@@ -984,57 +1013,91 @@ function AdvancedSearch() {
     </>
   );
 
+  const waterbodiesFiltered = !waterbodies
+    ? []
+    : waterbodies.filter((waterbody) => {
+        const condition = getWaterbodyCondition(
+          waterbody.attributes,
+          selectedDisplayOption.value,
+          true,
+        ).condition;
+
+        const filter = selectedFilterOption.value;
+        return !filter || filter === condition;
+      });
+
   // jsx
   const resultsContainer = (
     <>
       <hr />
 
-      <div css={resultsInputsStyles} data-content="stateinputs">
-        <div css={resultsInputStyles}>
-          <span css={screenLabelStyles}>
-            Results:{' '}
-            <span css={resultsItemsStyles}>
-              {waterbodies ? waterbodies.length.toLocaleString() : 0} items
+      <div data-content="stateinputs">
+        <div css={resultsInputsStyles}>
+          <div css={resultsInputStyles}>
+            <label htmlFor="display-by">Display Waterbodies by:</label>
+            <Select
+              inputId="display-by"
+              isSearchable={false}
+              options={displayOptions}
+              value={selectedDisplayOption}
+              onChange={(ev) => setSelectedDisplayOption(ev)}
+              styles={reactSelectStyles}
+            />
+          </div>
+
+          <div css={resultsInputStyles}>
+            <label htmlFor="filter-by">Filter Waterbodies by:</label>
+            <Select
+              inputId="filter-by"
+              isSearchable={false}
+              options={filterByOptions}
+              value={selectedFilterOption}
+              onChange={(ev) => setSelectedFilterOption(ev)}
+              styles={reactSelectStyles}
+            />
+          </div>
+        </div>
+
+        <div css={resultsInputsStyles}>
+          <div css={resultsInputStyles}>
+            <span css={screenLabelStyles}>
+              Results:{' '}
+              <span css={resultsItemsStyles}>
+                {waterbodies?.length === waterbodiesFiltered.length
+                  ? `${waterbodiesFiltered.length} items`
+                  : `${waterbodiesFiltered.length} of 
+                  ${
+                    waterbodies ? waterbodies.length.toLocaleString() : 0
+                  } items`}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
 
-        <div css={resultsInputStyles}>
-          <label htmlFor="display-by">Display Waterbodies by:</label>
-          <Select
-            inputId="display-by"
-            isSearchable={false}
-            options={displayOptions}
-            value={selectedDisplayOption}
-            onChange={(ev) => setSelectedDisplayOption(ev)}
-            styles={reactSelectStyles}
-          />
-        </div>
-
-        <div css={resultsInputStyles}>
-          <div
-            css={buttonGroupStyles}
-            className="btn-group float-right"
-            role="group"
-          >
-            <button
-              css={buttonStyles}
-              type="button"
-              className={`btn btn-secondary${showMap ? ' active' : ''}`}
-              onClick={(_ev) => setShowMap(true)}
+          <div css={resultsInputStyles}>
+            <div
+              css={buttonGroupStyles}
+              className="btn-group float-right"
+              role="group"
             >
-              <i className="fas fa-map-marked-alt" aria-hidden="true" />
-              &nbsp;&nbsp;Map
-            </button>
-            <button
-              css={buttonStyles}
-              type="button"
-              className={`btn btn-secondary${!showMap ? ' active' : ''}`}
-              onClick={(_ev) => setShowMap(false)}
-            >
-              <i className="fas fa-list" aria-hidden="true" />
-              &nbsp;&nbsp;List
-            </button>
+              <button
+                css={buttonStyles}
+                type="button"
+                className={`btn btn-secondary${showMap ? ' active' : ''}`}
+                onClick={(_ev) => setShowMap(true)}
+              >
+                <i className="fas fa-map-marked-alt" aria-hidden="true" />
+                &nbsp;&nbsp;Map
+              </button>
+              <button
+                css={buttonStyles}
+                type="button"
+                className={`btn btn-secondary${!showMap ? ' active' : ''}`}
+                onClick={(_ev) => setShowMap(false)}
+              >
+                <i className="fas fa-list" aria-hidden="true" />
+                &nbsp;&nbsp;List
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1147,7 +1210,7 @@ function AdvancedSearch() {
         <>
           <hr />
           <WaterbodyListVirtualized
-            waterbodies={waterbodies}
+            waterbodies={waterbodiesFiltered}
             type={'Waterbody State Overview'}
             fieldName={selectedDisplayOption.value}
           />
