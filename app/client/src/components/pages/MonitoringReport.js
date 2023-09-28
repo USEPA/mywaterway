@@ -1448,6 +1448,10 @@ function CharacteristicsTableSection({
     return rowA.values[colId] ? -1 : 1;
   }, []);
 
+  const initialTableSort = useMemo(() => {
+    return [{ id: 'measurementCount', desc: true }, { id: 'selected' }];
+  }, []);
+
   return (
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>
@@ -1502,7 +1506,7 @@ function CharacteristicsTableSection({
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
-            defaultSort="selected"
+            initialSortBy={initialTableSort}
             striped={true}
             getColumns={(tableWidth) => {
               const columnWidth = tableWidth / 3 - 6;
