@@ -27,8 +27,13 @@ const inputStyles = css`
 const clearFiltersContainerStyles = (margin: string) => {
   return css`
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin: ${margin};
+
+    small {
+      align-self: flex-end;
+      font-style: italic;
+    }
   `;
 };
 
@@ -156,8 +161,8 @@ type Props = {
   autoResetFilters?: boolean,
   autoResetSortBy?: boolean,
   data: Array<Object>,
-  defaultSort: ?string,
   getColumns: Function,
+  initialSortBy?: Array<{ id: string, desc?: boolean }>,
   placeholder: ?string,
   striped: ?boolean,
 };
@@ -166,8 +171,8 @@ function ReactTable({
   autoResetFilters = true,
   autoResetSortBy = true,
   data,
-  defaultSort = null,
   getColumns,
+  initialSortBy = [],
   placeholder,
   striped = false,
 }: Props) {
@@ -204,7 +209,7 @@ function ReactTable({
       data,
       defaultColumn,
       initialState: {
-        sortBy: defaultSort ? [{ id: defaultSort }] : [],
+        sortBy: initialSortBy,
       },
     },
     useResizeColumns,
@@ -234,15 +239,18 @@ function ReactTable({
 
   const clearFiltersLinkButton = (margin: string) => (
     <div css={clearFiltersContainerStyles(margin)}>
-      <button css={linkButtonStyles} onClick={() => setAllFilters([])}>
-        Clear Filters
-      </button>
+      <small>Click a column heading to sort...</small>
+      {hasFilters && (
+        <button css={linkButtonStyles} onClick={() => setAllFilters([])}>
+          Clear Filters
+        </button>
+      )}
     </div>
   );
 
   return (
     <>
-      {hasFilters && clearFiltersLinkButton('0 0 0.5rem 0')}
+      {clearFiltersLinkButton('0 0 0.5rem 0')}
       <div css={containerStyles} ref={measuredTableRef} className="ReactTable">
         <div className="rt-table" role="grid" {...getTableProps()}>
           <div className="rt-thead">
