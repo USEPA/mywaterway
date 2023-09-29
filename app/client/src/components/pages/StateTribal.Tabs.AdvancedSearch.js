@@ -585,6 +585,9 @@ function AdvancedSearch() {
     selectedDisplayOption,
     setSelectedDisplayOption, //
   ] = useState(defaultDisplayOption);
+  const [selectedFilterOption, setSelectedFilterOption] = useState(
+    filterByOptions[0],
+  );
   // Resets the filters when the user selects a different state
   useEffect(() => {
     // Reset ui
@@ -614,6 +617,7 @@ function AdvancedSearch() {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
+    setSelectedFilterOption(filterByOptions[0]);
   }, [activeState, setStateAndOrganization, setWaterbodyData]);
 
   const executeFilter = () => {
@@ -784,10 +788,6 @@ function AdvancedSearch() {
     setUseFilter(newUseFilter);
     updateDisplayOptions(parameterFilter, newUseFilter);
   };
-
-  const [selectedFilterOption, setSelectedFilterOption] = useState(
-    filterByOptions[0],
-  );
 
   useWaterbodyOnMap(
     selectedDisplayOption.value,
@@ -978,6 +978,7 @@ function AdvancedSearch() {
             // set the display back to the default option
             if (newDisplayOptions.length === 1 || indexOfDisplay === -1) {
               setSelectedDisplayOption(defaultDisplayOption);
+              setSelectedFilterOption(filterByOptions[0]);
             }
           }}
           triggerElm={
