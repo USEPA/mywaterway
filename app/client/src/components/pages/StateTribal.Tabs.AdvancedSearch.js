@@ -972,9 +972,10 @@ function AdvancedSearch() {
             // update the possible display options
             setDisplayOptions(newDisplayOptions);
             // figure out if the selected display option is available
-            const indexOfDisplay = newDisplayOptions.findIndex((item) => {
-              return item.value === selectedDisplayOption.value;
-            });
+            const indexOfDisplay = newDisplayOptions
+              .flatMap((item) => item.options ?? item)
+              .findIndex((item) => item.value === selectedDisplayOption.value);
+
             // set the display back to the default option
             if (newDisplayOptions.length === 1 || indexOfDisplay === -1) {
               setSelectedDisplayOption(defaultDisplayOption);
