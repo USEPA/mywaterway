@@ -51,7 +51,12 @@ import {
 } from 'utils/mapFunctions';
 // types
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import type { ClickedHucState, ExtendedGraphic, Feature } from 'types';
+import type {
+  ClickedHucState,
+  ExtendedGraphic,
+  Feature,
+  WaterbodyCondition,
+} from 'types';
 
 declare global {
   interface Window {
@@ -300,17 +305,11 @@ function useWaterbodyFeaturesState() {
 
 // custom hook that when given an (optional) waterbody attribute name,
 // draws waterbodies on the map
-type WaterbodyCondition =
-  | 'hidden'
-  | 'unassessed'
-  | 'good'
-  | 'polluted'
-  | 'nostatus';
-
 function useWaterbodyOnMap(
   attributeName: string = '',
   allWaterbodiesAttribute: string = '',
   defaultCondition: WaterbodyCondition = 'hidden',
+  filterCondition: WaterbodyCondition | null = null,
 ) {
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
   const { mapView } = useContext(LocationSearchContext);
@@ -333,9 +332,11 @@ function useWaterbodyOnMap(
         }),
         field: attribute || 'overallstatus',
         fieldDelimiter: ', ',
-        uniqueValueInfos: createUniqueValueInfos(geometryType, alpha).map(
-          (info) => new UniqueValueInfo(info),
-        ),
+        uniqueValueInfos: createUniqueValueInfos(
+          geometryType,
+          alpha,
+          filterCondition,
+        ).map((info) => new UniqueValueInfo(info)),
       });
 
       if (attribute === 'isimpaired') {
@@ -362,7 +363,13 @@ function useWaterbodyOnMap(
       // close popup and clear highlights when the renderer changes
       closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
     },
-    [defaultCondition, mapView, setHighlightedGraphic, setSelectedGraphic],
+    [
+      defaultCondition,
+      filterCondition,
+      mapView,
+      setHighlightedGraphic,
+      setSelectedGraphic,
+    ],
   );
 
   useEffect(() => {
