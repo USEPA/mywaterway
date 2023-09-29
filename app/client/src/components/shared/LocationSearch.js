@@ -284,7 +284,7 @@ function LocationSearch({ route, label }: Props) {
       sources: [
         {
           layer: new FeatureLayer({
-            url: 'https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19',
+            url: services.data.wbdUnconstrained,
             listMode: 'hide',
           }),
           searchFields: ['name', 'huc12'],
