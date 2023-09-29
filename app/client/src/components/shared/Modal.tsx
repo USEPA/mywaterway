@@ -20,7 +20,10 @@ const cancelButtonStyles = css`
 `;
 
 const closeButtonStyles = css`
+  align-items: center;
   border-radius: 6px;
+  display: flex;
+  justify-content: center;
   position: absolute;
   top: 6px;
   right: 6px;
