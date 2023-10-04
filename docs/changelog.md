@@ -1,5 +1,36 @@
-
 # Change Log
+
+## 2.8.0 (October 2023)
+
+### Added
+
+- Added an option to the state advanced search page to filter by condition (i.e., good, polluted, unassessed).
+
+### Changed
+
+- Updated the monitoring report page to order characteristics by measurment count and to automatically select the first one.
+
+- Updated the y-axis labels on the monitoring report charts to be in scientific notation for very small and very large numbers.
+
+- Updated "Alternative Restoration Approach" to "Advance Restoration Plan (ARP)".
+
+- Updated the "Waterbody not visible on map" message so that it is more prominent.
+
+- Updated values above switches so that "N/A" represents a service error and "0" represents a lack of data.
+
+- Fixed flickering in the Past Water Conditions list that was occuring on certain screen sizes.
+
+- Fixed issue of the dischargers with significant violations switch being enabled and on even when there is no data.
+
+- Fixed issue of location name overflowing the container on the monitoring report page.
+
+- Fixed issue of some characterstics on the monitoring report page having all 0s in the y-axis labels.
+
+- Fixed issue of state and tribe document links not working.
+
+- Fixed issue of search using a "starts with" clause for tribe and watershed search options.
+
+- Fixed issue of "Detailed Characteristics" modal closing on its own when more data is loaded.
 
 ## 2.7.0 (September 2023)
 
@@ -39,7 +70,7 @@
 
 - Updated the Identified Issues tab to show all permitted dischargers. Also added a filter for dischargers with signficant effluent violations.
 
-- Changed the How's My Waterway banner tagline to "Explore, Discover and Learn about your water." 
+- Changed the How's My Waterway banner tagline to "Explore, Discover and Learn about your water."
 
 - Changed the name of the "Monitoring" tab to "Water Monitoring".
 
@@ -51,7 +82,7 @@
 
 - Changed the glossary to work off of a cron job, that runs every day and on app startup.
 
-- Changed the "Mapped Water (all)" layer to "All Mapped Water (NHD)". 
+- Changed the "Mapped Water (all)" layer to "All Mapped Water (NHD)".
 
 - Changed "Clean Water Act Section 319 Projects" to "Nonpoint Source Projects".
 
@@ -61,10 +92,9 @@
 
 - Fixed a bug where the tribal map would zoom to a single monitoring location instead of the extent.
 
-- Fixed various accessibility and SEO issues. 
+- Fixed various accessibility and SEO issues.
 
 - Fixed an issue of the loading spinner not being displayed on the State/Tribe page.
-
 
 ## 2.6.1 (June 2023)
 
@@ -72,7 +102,7 @@
 
 - Updated the look of the date sliders on the Community Monitoring panel and the Monitoring Report page to stand out more.
 
-- Updated the saving widget to apply better popup titles. 
+- Updated the saving widget to apply better popup titles.
 
 - Updated the saving widget to include popups for the All Waterbodies layer.
 
@@ -86,7 +116,6 @@
 
 - Fixed a bug where locations with a lot of waterbodies without GIS were not loading on the community page.
 
-
 ## 2.6.0 (April 2023)
 
 ### Added
@@ -97,7 +126,7 @@
 
 - Added two headings to the State/Tribe page: one above the organization's description, if it has one, and another above the map on Tribe pages.
 
-- Added the ability to save a map to an ArcGIS Online account. For each selected layer, this saves references to map services wherever possible, and otherwise adds visible features to a hosted feature layer that is added to and saved alongside the map. In addition to any user-supplied description, an auto-generated description provides details about the date and time of the map's creation, as well as a list of filters that were applied to individual layers when the map was saved. 
+- Added the ability to save a map to an ArcGIS Online account. For each selected layer, this saves references to map services wherever possible, and otherwise adds visible features to a hosted feature layer that is added to and saved alongside the map. In addition to any user-supplied description, an auto-generated description provides details about the date and time of the map's creation, as well as a list of filters that were applied to individual layers when the map was saved.
 
 - Added a "Surrounding Features" widget, which aggregates the functionality that was provided by the "Surrounding Waterbodies" and "Surrounding Monitoring Locations" widgets, and adds similar functionality for "Permitted Dischargers" and "USGS Sensors".
 
@@ -129,8 +158,7 @@
 
 - Fixed an error in calculating the median statistic for a characteristic on the Monitoring Report page.
 
-
-## 2.5.0.1 (January 2023) 
+## 2.5.0.1 (January 2023)
 
 ### Changed
 
@@ -153,7 +181,6 @@
 - Updated the list of tips on the "Tips for Protecting Your Watershed" (formerly "Tips") tab of the "Protect" panel.
 
 - Fixed a bug where the waterbody counts did not match up with the number of items in the list view for some locations.
-
 
 ## 2.4.0 (November 2022)
 
@@ -193,7 +220,6 @@
 
 - Fixed a bug where an infinite loading spinner is displayed for American Samoa, which has no GIS data.
 
-
 ## 2.3.0 (September 2022)
 
 ### Added
@@ -203,7 +229,7 @@
 - Added historical data and a date slider to the Monitoring panel on the Community page.
 
 - Added the capability to display images on the Waterbody Report page.
- 
+
 ### Changed
 
 - Updated the Past Water Conditions layer so that clustering can be broken up by a single click on a cluster.
@@ -216,14 +242,13 @@
 
 - Updated to the latest version of Node.js (v18.7.0).
 
-- Improved the table layout in the Plans popups. 
+- Improved the table layout in the Plans popups.
 
 - Removed the "Sample Count" column from the Monitoring panel of the Community page.
 
 - Fixed a bug on the waterbody report page where the "Unable to find a waterbody report for this waterbody" text was displayed on the bottom of the map popup.
 
 - Fixed a bug on the state page where using the browser's back/forward buttons would change the URL but the data on the page would not change.
-
 
 ## 2.2.0 (June 2022)
 
@@ -233,8 +258,8 @@
 
 - Added "Parameter" column and the ability to filter the data to the "Probable sources contributing to impairment" section of the Waterbody Report.
 
-- Added  Current Water Conditions (USGS Stream Gages) to the Monitoring Panel.
- 
+- Added Current Water Conditions (USGS Stream Gages) to the Monitoring Panel.
+
 - Added spark line charts to the Current Water Conditions (USGS Stream Gages) data.
 
 - Added Educators page.
@@ -244,7 +269,7 @@
 - Added ability to download Past Water Conditions (Monitoring Station) data for the entire watershed/HUC12.
 
 - Added ability to clear filters on tables that can be filtered.
- 
+
 ### Changed
 
 - Updated the surrounding waterbodies layer, so that popups will be displayed when clicking waterbodies inside of the selected HUC.
@@ -263,7 +288,7 @@
 
 - Updated the legend icon and moved it to the top left of the map.
 
-- Improved the look of the monitoring station download section. 
+- Improved the look of the monitoring station download section.
 
 - Improved performance of the Monitoring panel.
 
@@ -277,17 +302,15 @@
 
 - Fixed the Tribal Areas layer, which was broken due to changes in the service.
 
-
 ## 2.1.1 (March 2022)
 
 ### Added
 
 - Added the Organization Name to the Monitoring stages on the community page.
 
-- Added a message for unsupported browsers. 
+- Added a message for unsupported browsers.
 
 ### Changed
-
 
 - Updated the community page to filter out ATTAINS assessments that are in "public comment" status.
 
@@ -295,7 +318,7 @@
 
 - Updated the NARS data on the National page.
 
-- Updated the surrounding waterbodies layer so the colors don't blend. 
+- Updated the surrounding waterbodies layer so the colors don't blend.
 
 - Updated the tribes layer to the latest version.
 
@@ -319,12 +342,11 @@
 
 - Fixed an infinite loading spinner bug that occurs when clicking an assessment that is outside of HUC boundaries.
 
-
 ## 2.1.0 (January 2022)
 
 ### Added
 
-- Added USGS stream gages to the Overview panel of the Community page. 
+- Added USGS stream gages to the Overview panel of the Community page.
 
 - Added list of Monitoring data to the Overview panel of the Community page.
 
@@ -338,9 +360,7 @@
 
 - Added GIS data to the map of the Protection Projects section on the Protect panel of the Community page.
 
-
 ### Changed
-
 
 - Updated the waterbodies layer on the community tab, such that the waterbodies are clipped to the selected HUC.
 
@@ -354,12 +374,11 @@
 
 - Updated the survey data of the State page (i.e., updated the stateNationalUses.json and surveyMapping.json files).
 
-- Updated the popups such that the "Change to this location" section is at the top of the popup. 
+- Updated the popups such that the "Change to this location" section is at the top of the popup.
 
 - Fixed an issue of map/list highlighting not working on the Plan Summary page.
 
-- Updated accordions on the Community page to have counts listed in the headers. 
-
+- Updated accordions on the Community page to have counts listed in the headers.
 
 ## 2.0.5 (May 2021)
 
@@ -371,17 +390,15 @@
 
 - Added new entries to the data page for Watershed Index Online, Wild and Scenic Rivers, and Protected Areas.
 
-
 ### Changed
-
 
 - Assessments missing from the ATTAINS GIS service are now retrieved from the ATTAINS web service. Their information is included under the Community accordion along with Assessments from the GIS service. There is a note that mapping information is not available for those assessments.
 
 - Renamed the Environmental Justice layer to Demographic Index.
 
-- Updated text and glossary links for the Demographic Index (formerly Environmental Justice) layer. 
+- Updated text and glossary links for the Demographic Index (formerly Environmental Justice) layer.
 
-- Updated the canonical link so that it uses the current url for non-community search pages (i.e., homepage, community landing page, etc.), instead of being empty. This is a Search Engine Optimization (SEO) technique to improve the application’s discoverability. 
+- Updated the canonical link so that it uses the current url for non-community search pages (i.e., homepage, community landing page, etc.), instead of being empty. This is a Search Engine Optimization (SEO) technique to improve the application’s discoverability.
 
 - Updated descriptions for each page so that search engines can display more accurate information.
 
@@ -411,7 +428,6 @@
 
 - Fixed an issue with the legend not syncing correctly when navigating between the community home page and community details pages.
 
-
 ## 2.0.4 (February 2021)
 
 ### Added
@@ -428,7 +444,7 @@
 
 - ATTAINS Waterbodies layer to the Monitoring, Restore, and Protect tabs of the Community page.
 
-- A "Fish Consumption Advisories" link to the "Eating Fish" tab of the State page. 
+- A "Fish Consumption Advisories" link to the "Eating Fish" tab of the State page.
 
 ### Changed
 
@@ -489,10 +505,14 @@
 - Fixed an issue where the Waterbody Report page would crash on some locations.
 
 ## 2.0.2 (September 2020)
+
 ### Added
+
 - Tribal layer that users can turn on/off using the layer list widget.
 - Congressional Districts layer that users can turn on/off using the layer list widget.
+
 ### Changed
+
 - Updated the State page to use waterbody count values from ATTAINS when there is no size (miles, acres, etc.) data available.
 - Updated the mapping widget to use ArcGIS JavaScript API version 4.16.
 - Updated the ATTAINS Plans web service call to request a summarized result from the service to provide faster response times and less load on ATTAINS.
@@ -503,16 +523,22 @@
 - Fixed an issue where previous map data continued to be displayed after the user clicks around the application.
 
 ## 2.0.1 (July 2020)
+
 ### Added
+
 - None.
+
 ### Changed
+
 - Relocated a few mapping and data files (i.e. .json) to s3 to allow real-time updates.
 - Added metadata to the Community page to support [geoconnex.us](https://github.com/internetofwater/geoconnex.us) integration.
 - Updated the location results handler to accommodate confidence scores less than 70%.
-- Updated app to use ATTAINS reporting cycle info from the ATTAINS GIS service. This helps ensure the proper reporting cycle is used to retrieve ATTAINS organization-level information. 
- 
+- Updated app to use ATTAINS reporting cycle info from the ATTAINS GIS service. This helps ensure the proper reporting cycle is used to retrieve ATTAINS organization-level information.
+
 ## 2.0.0 (Released 06-18-2020)
+
 ### Added
+
 - Initial Community page release.
 - Initial State page release.
 - Initial National page release.
@@ -522,8 +548,11 @@
 - Initial About page release.
 
 ### Changed
-- Not applicable. 
+
+- Not applicable.
 
 ## 1.0.0 (Released 02-13-2013)
+
 ### History
+
 - Initial version of the legacy application which was decommissioned in June 2020.
