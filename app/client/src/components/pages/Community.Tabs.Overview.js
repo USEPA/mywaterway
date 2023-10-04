@@ -47,6 +47,7 @@ import {
   useWaterbodyOnMap,
 } from 'utils/hooks';
 import { getUniqueWaterbodies } from 'utils/mapFunctions';
+import { countOrNotAvailable } from 'utils/utils';
 // errors
 import {
   cyanError,
@@ -228,9 +229,7 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalWaterbodies) && cipSummary.status === 'success'
-                  ? totalWaterbodies.toLocaleString()
-                  : 'N/A'}
+                {countOrNotAvailable(totalWaterbodies, cipSummary.status)}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
               <div>
@@ -255,7 +254,12 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {totalMonitoringAndSensors ?? 'N/A'}
+                {countOrNotAvailable(
+                  totalMonitoringAndSensors,
+                  cyanWaterbodiesStatus,
+                  monitoringLocationsStatus,
+                  streamgagesStatus,
+                )}
               </span>
               <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div>
@@ -278,7 +282,7 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {totalPermittedDischargers ?? 'N/A'}
+                {countOrNotAvailable(dischargers, dischargersStatus)}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <div>
@@ -847,7 +851,7 @@ function MonitoringAndSensorsTab({
                       <span>USGS Sensors</span>
                     </label>
                   </td>
-                  <td>{streamgages.length}</td>
+                  <td>{countOrNotAvailable(streamgages, streamgagesStatus)}</td>
                 </tr>
                 <tr>
                   <td>
@@ -863,7 +867,12 @@ function MonitoringAndSensorsTab({
                       <span>Past Water Conditions</span>
                     </label>
                   </td>
-                  <td>{monitoringLocations.length}</td>
+                  <td>
+                    {countOrNotAvailable(
+                      monitoringLocations,
+                      monitoringLocationsStatus,
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <td>
@@ -882,7 +891,12 @@ function MonitoringAndSensorsTab({
                       </GlossaryTerm>
                     </div>
                   </td>
-                  <td>{cyanWaterbodies.length}</td>
+                  <td>
+                    {countOrNotAvailable(
+                      cyanWaterbodies,
+                      cyanWaterbodiesStatus,
+                    )}
+                  </td>
                 </tr>
               </tbody>
             </table>
