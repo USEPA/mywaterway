@@ -25,6 +25,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { getUrlFromMarkup } from 'components/shared/Regex';
 import { useWaterbodyOnMap } from 'utils/hooks';
 import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
+import { countOrNotAvailable } from 'utils/utils';
 // errors
 import {
   restoreNonpointSourceError,
@@ -81,9 +82,7 @@ function Restore() {
             <LoadingSpinner />
           ) : (
             <span css={keyMetricNumberStyles}>
-              {grts.status === 'failure'
-                ? 'N/A'
-                : sortedGrtsData.length.toLocaleString()}
+              {countOrNotAvailable(sortedGrtsData, grts.status)}
             </span>
           )}
           <p css={keyMetricLabelStyles}>Projects</p>
@@ -93,9 +92,7 @@ function Restore() {
             <LoadingSpinner />
           ) : (
             <span css={keyMetricNumberStyles}>
-              {attainsPlans.status === 'failure'
-                ? 'N/A'
-                : sortedAttainsPlanData.length.toLocaleString()}
+              {countOrNotAvailable(sortedAttainsPlanData, attainsPlans.status)}
             </span>
           )}
           <p css={keyMetricLabelStyles}>Plans</p>
