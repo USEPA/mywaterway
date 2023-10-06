@@ -272,7 +272,7 @@ function DocumentsTable({
               accessor: 'documentName',
               Header: 'Document',
               width: docNameWidth,
-              Render: (cell) => {
+              Cell: (cell) => {
                 const { documentFileName, documentURL } = cell.row.original;
                 return (
                   <DocumentLink
@@ -287,7 +287,7 @@ function DocumentsTable({
               accessor: 'agencyCode',
               Header: 'Agency Code',
               width: 125,
-              Render: (cell) => {
+              Cell: (cell) => {
                 if (cell.value === 'S') return 'State';
                 if (cell.value === 'E') return 'EPA';
                 return cell.value;

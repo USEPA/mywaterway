@@ -4,20 +4,20 @@ import throttle from 'lodash/throttle';
 import uniqueId from 'lodash/uniqueId';
 // utils
 import { useOnScreen } from 'utils/hooks';
+import type { CSSProperties, ReactNode } from 'react';
 
 type RowRendererProps = {
+  data: {
+    listId: string;
+    renderer: ({ index }: { index: number }) => ReactNode;
+    resizeObserver: ResizeObserver;
+  };
   index: number;
-  listId: string;
-  renderer: Function;
-  resizeObserver: ResizeObserver;
+  style: CSSProperties;
 };
 
-function RowRenderer({
-  index,
-  listId,
-  renderer,
-  resizeObserver,
-}: RowRendererProps) {
+function RowRenderer({ data, index, style }: RowRendererProps) {
+  const { listId, renderer, resizeObserver } = data;
   const rowRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -36,15 +36,17 @@ function RowRenderer({
   );
 
   return (
-    <div id={`${listId}-row-${index}`} ref={callbackRef}>
-      {renderer({ index })}
+    <div style={{ ...style, overflow: 'hidden' }}>
+      <div id={`${listId}-row-${index}`} ref={callbackRef}>
+        {renderer({ index })}
+      </div>
     </div>
   );
 }
 
 type Props = {
   items: Array<Object>;
-  renderer: Function;
+  renderer: ({ index }: { index: number }) => ReactNode;
 };
 
 function VirtualizedListInner({ items, renderer }: Props) {
@@ -102,10 +104,19 @@ function VirtualizedListInner({ items, renderer }: Props) {
     };
   }, []);
 
+  const itemData = useMemo(() => {
+    return {
+      listId,
+      renderer,
+      resizeObserver,
+    };
+  }, [listId, renderer, resizeObserver]);
+
   return (
     <VariableSizeList
       height={window.innerHeight}
       itemCount={items.length}
+      itemData={itemData}
       itemSize={getSize}
       width="100%"
       ref={innerRef}
@@ -116,16 +127,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
         display: 'inline-block',
       }}
     >
-      {({ index, style }) => (
-        <div style={style}>
-          <RowRenderer
-            listId={listId}
-            index={index}
-            renderer={renderer}
-            resizeObserver={resizeObserver}
-          />
-        </div>
-      )}
+      {RowRenderer}
     </VariableSizeList>
   );
 }

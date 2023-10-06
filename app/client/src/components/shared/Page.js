@@ -223,13 +223,15 @@ function Page({ children }: Props) {
 
     // intercept esri calls to gispub
     const urls = [
+      services.data.locatorUrl,
+      services.data.mappedWater,
+      services.data.tribal,
       services.data.waterbodyService.points,
       services.data.waterbodyService.lines,
       services.data.waterbodyService.areas,
       services.data.waterbodyService.summary,
       services.data.wbd,
-      services.data.mappedWater,
-      services.data.locatorUrl,
+      services.data.wbdUnconstrained,
     ];
     esriConfig.request.interceptors.push({
       urls,
@@ -251,6 +253,26 @@ function Page({ children }: Props) {
 
         // increment the callId
         callId = callId + 1;
+
+        // This is for the search widget on the home page and community page.
+        // This intercepts the request and changes the query from 'LIKE (<text>%)'
+        // to 'LIKE (%<text>%)'.
+        const searchSettings = [
+          { url: services.data.tribal, column: 'TRIBE_NAME' },
+          { url: services.data.wbdUnconstrained, column: 'huc12' },
+        ];
+        searchSettings.forEach((search) => {
+          const where = params.requestOptions.query?.where;
+          if (
+            params.url.includes(search.url) &&
+            where?.includes(`(LOWER(${search.column}) LIKE `)
+          ) {
+            params.requestOptions.query.where = where.replaceAll(
+              `LIKE '`,
+              `LIKE '%`,
+            );
+          }
+        });
       },
 
       // Log esri api calls to Google Analytics

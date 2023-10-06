@@ -33,7 +33,7 @@ import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
-import { formatNumber } from 'utils/utils';
+import { countOrNotAvailable, formatNumber } from 'utils/utils';
 import { getMappedParameter, plotIssues } from 'utils/mapFunctions';
 import { useDischargers, useWaterbodyOnMap } from 'utils/hooks';
 // errors
@@ -479,7 +479,7 @@ function IdentifiedIssues() {
 
   function getImpairedWatersPercent() {
     if (cipSummary.status === 'failure') return 'N/A';
-    return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent ?? 0}%`;
+    return nullPollutedWaterbodies ? '0%' : `${pollutedPercent ?? 0}%`;
   }
 
   // Reset the dischargers layer filter when leaving the tab
@@ -559,9 +559,7 @@ function IdentifiedIssues() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {dischargersStatus === 'failure'
-                  ? 'N/A'
-                  : dischargers.length.toLocaleString()}
+                {countOrNotAvailable(dischargers, dischargersStatus)}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <Switch
@@ -820,7 +818,10 @@ function IdentifiedIssues() {
                               <div css={toggleStyles}>
                                 <Switch
                                   ariaLabelledBy={switchId}
-                                  checked={showViolatingDischargers}
+                                  checked={
+                                    violatingDischargers.length > 0 &&
+                                    showViolatingDischargers
+                                  }
                                   onChange={toggleViolatingDischargers}
                                   disabled={!violatingDischargers.length}
                                 />
@@ -834,14 +835,20 @@ function IdentifiedIssues() {
                               </div>
                             </td>
                             <td>
-                              {violatingDischargers.length.toLocaleString()}
+                              {countOrNotAvailable(
+                                violatingDischargers,
+                                dischargersStatus,
+                              )}
                             </td>
                           </tr>
                           <tr>
                             <td>
                               <label css={toggleStyles}>
                                 <Switch
-                                  checked={showCompliantDischargers}
+                                  checked={
+                                    compliantDischargers.length > 0 &&
+                                    showCompliantDischargers
+                                  }
                                   onChange={toggleCompliantDischargers}
                                   disabled={!compliantDischargers.length}
                                 />
@@ -849,7 +856,10 @@ function IdentifiedIssues() {
                               </label>
                             </td>
                             <td>
-                              {compliantDischargers.length.toLocaleString()}
+                              {countOrNotAvailable(
+                                compliantDischargers,
+                                dischargersStatus,
+                              )}
                             </td>
                           </tr>
                         </tbody>

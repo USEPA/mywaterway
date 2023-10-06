@@ -28,6 +28,7 @@ const legendContainerStyles = css`
 `;
 
 const legendStyles = css`
+  align-items: center;
   display: flex;
   flex-direction: row;
 `;
@@ -92,6 +93,7 @@ type VisxGraphProps = {
   range?: number[];
   xTitle?: string;
   yScale?: 'log' | 'linear';
+  yTickFormat?: (val: number) => string;
   yTitle?: string;
 };
 
@@ -113,6 +115,7 @@ export function VisxGraph({
   range,
   xTitle,
   yScale = 'linear',
+  yTickFormat = (val: number) => val.toLocaleString(),
   yTitle,
 }: VisxGraphProps) {
   const [width, setWidth] = useState<number | null>(null);
@@ -182,14 +185,18 @@ export function VisxGraph({
       <VisxStyles />
       <XYChart
         height={height}
-        margin={{ top: 20, bottom: 45, left: 85, right: 30 }}
+        margin={{ top: 20, bottom: 55, left: 100, right: 50 }}
         theme={theme}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
-        yScale={{ type: yScale, domain: range }}
+        yScale={{
+          type: yScale,
+          domain: range,
+        }}
       >
         <Axis
           label={xTitle}
           labelProps={{
+            dy: 15,
             fill: '#2C2E43',
             style: { fontWeight: 'bold' },
             verticalAnchor: 'start',
@@ -197,12 +204,19 @@ export function VisxGraph({
           numTicks={width ? Math.floor(width / 120) : 4}
           orientation="bottom"
           strokeWidth={2}
+          tickLabelProps={{
+            angle: 15,
+            dx: -5,
+            textAnchor: 'start',
+            y: 15,
+          }}
+          tickLength={3}
         />
         <Axis
           label={yTitle}
           labelProps={{
             fill: '#2C2E43',
-            dx: -30,
+            dx: -45,
             lineHeight: '1.2em',
             style: { fontWeight: 'bold' },
             scaleToFit: false,
@@ -211,7 +225,8 @@ export function VisxGraph({
           }}
           orientation="left"
           strokeWidth={2}
-          tickFormat={(val) => (val <= Number.EPSILON ? '0' : val)}
+          tickFormat={yTickFormat}
+          tickLength={5}
         />
         {lineVisible && (
           <LineSeries

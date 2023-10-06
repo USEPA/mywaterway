@@ -1,5 +1,6 @@
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
+import type { FetchStatus } from 'types';
 
 // utility function to split up an array into chunks of a designated length
 export function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
@@ -44,6 +45,19 @@ export function containsScriptTag(string: string) {
     string.includes('</script>') ||
     string.includes('<script/>')
   );
+}
+
+/**
+ * Return the string "N/A" if the provided status is not "success",
+ * otherwise return `countOrData` if it is a number or the length if it is an array.
+ */
+export function countOrNotAvailable(
+  countOrData: number | unknown[] | null,
+  ...statuses: FetchStatus[]
+) {
+  if (!statuses.some((status) => status === 'success')) return 'N/A';
+  if (typeof countOrData === 'number') return countOrData.toLocaleString();
+  return (countOrData?.length ?? 0).toLocaleString();
 }
 
 export function formatNumber(number: number, digits: number = 0) {

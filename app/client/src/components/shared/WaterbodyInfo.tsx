@@ -38,6 +38,7 @@ import {
   isFeatureLayer,
   isMediaLayer,
   isUniqueValueRenderer,
+  mapRestorationPlanToGlossary,
 } from 'utils/mapFunctions';
 import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
 import {
@@ -143,6 +144,7 @@ function labelValue(
 /*
 ## Styles
 */
+
 const linkSectionStyles = css`
   p {
     padding-bottom: 1.5em;
@@ -1180,7 +1182,9 @@ function WaterbodyInfo({
                                   </>
                                 )}
                               </td>
-                              <td>{action.type}</td>
+                              <td>
+                                {mapRestorationPlanToGlossary(action.type)}
+                              </td>
                               <td css={dateStyles}>{action.date}</td>
                             </tr>
                           );
@@ -2166,8 +2170,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     Total Satellite Image Area: ${pixelArea}
                     <br />
                     ${formatDate(dates[0])} - ${formatDate(
-                      dates[dates.length - 1],
-                    )}
+                    dates[dates.length - 1],
+                  )}
                   `}
                   yTitle={`
                   Percent of Satellite Image Area
@@ -2832,7 +2836,9 @@ function MonitoringLocationsContent({
                                 Characteristics
                               </GlossaryTerm>
                             </th>
-                            <th>Number of Measurements</th>
+                            <th style={{ width: '8em' }}>
+                              Number of Measurements
+                            </th>
                           </tr>
                         </thead>
                         <tbody>

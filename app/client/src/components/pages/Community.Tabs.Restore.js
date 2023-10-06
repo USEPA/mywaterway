@@ -24,6 +24,8 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup } from 'components/shared/Regex';
 import { useWaterbodyOnMap } from 'utils/hooks';
+import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
+import { countOrNotAvailable } from 'utils/utils';
 // errors
 import {
   restoreNonpointSourceError,
@@ -80,9 +82,7 @@ function Restore() {
             <LoadingSpinner />
           ) : (
             <span css={keyMetricNumberStyles}>
-              {grts.status === 'failure'
-                ? 'N/A'
-                : sortedGrtsData.length.toLocaleString()}
+              {countOrNotAvailable(sortedGrtsData, grts.status)}
             </span>
           )}
           <p css={keyMetricLabelStyles}>Projects</p>
@@ -92,9 +92,7 @@ function Restore() {
             <LoadingSpinner />
           ) : (
             <span css={keyMetricNumberStyles}>
-              {attainsPlans.status === 'failure'
-                ? 'N/A'
-                : sortedAttainsPlanData.length.toLocaleString()}
+              {countOrNotAvailable(sortedAttainsPlanData, attainsPlans.status)}
             </span>
           )}
           <p css={keyMetricLabelStyles}>Plans</p>
@@ -346,36 +344,6 @@ function Restore() {
                         }
                       >
                         {sortedAttainsPlanData.map((item, index) => {
-                          let planType = item.actionTypeCode;
-                          if (planType === 'TMDL') {
-                            planType = (
-                              <>
-                                Restoration Plan:{' '}
-                                <GlossaryTerm term="TMDL">TMDL</GlossaryTerm>
-                              </>
-                            );
-                          }
-                          if (planType === '4B Restoration Approach') {
-                            planType = (
-                              <>
-                                Restoration Plan:{' '}
-                                <GlossaryTerm term="4B Restoration Approach">
-                                  4B Restoration Approach
-                                </GlossaryTerm>
-                              </>
-                            );
-                          }
-                          if (planType === 'Alternative Restoration Approach') {
-                            planType = (
-                              <>
-                                Restoration Plan:{' '}
-                                <GlossaryTerm term="Alternative Restoration Approach">
-                                  Alternative Restoration Approach
-                                </GlossaryTerm>
-                              </>
-                            );
-                          }
-
                           return (
                             <AccordionItem
                               key={index}
@@ -388,7 +356,10 @@ function Restore() {
                                 rows={[
                                   {
                                     label: 'Plan Type',
-                                    value: planType,
+                                    value: mapRestorationPlanToGlossary(
+                                      item.actionTypeCode,
+                                      true,
+                                    ),
                                   },
                                   {
                                     label: 'Status',

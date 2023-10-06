@@ -8,6 +8,7 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Popup from '@arcgis/core/widgets/Popup';
 // components
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // utilities
@@ -28,6 +29,7 @@ import type {
   TribeAttributes,
   VillageAttributes,
   WaterbodyAttributes,
+  WaterbodyCondition,
 } from 'types';
 
 const waterbodyStatuses = {
@@ -136,89 +138,71 @@ export function createUniqueValueInfos(
     poly: number;
     outline: number;
   } | null = null,
+  filterCondition: WaterbodyCondition | null = null,
 ) {
-  return [
+  const settings: {
+    label: string;
+    value: string;
+    condition: WaterbodyCondition;
+  }[] = [
     {
-      label: `Good`,
-      value: `Fully Supporting`,
-      symbol: createWaterbodySymbol({
-        condition: 'good',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Good',
+      value: 'Fully Supporting',
+      condition: 'good',
     },
     {
-      label: `Impaired`,
-      value: `Not Supporting`,
-      symbol: createWaterbodySymbol({
-        condition: 'polluted',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Impaired',
+      value: 'Not Supporting',
+      condition: 'polluted',
     },
     {
-      label: `Condition Unknown`,
-      value: `Insufficient Information`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Condition Unknown',
+      value: 'Insufficient Information',
+      condition: 'unassessed',
     },
     {
-      label: `Condition Unknown`,
-      value: `Not Assessed`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Condition Unknown',
+      value: 'Not Assessed',
+      condition: 'unassessed',
     },
     {
-      label: `Good`,
-      value: `Meeting Criteria`,
-      symbol: createWaterbodySymbol({
-        condition: 'good',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Good',
+      value: 'Meeting Criteria',
+      condition: 'good',
     },
     {
-      label: `Impaired`,
-      value: `Cause`,
-      symbol: createWaterbodySymbol({
-        condition: 'polluted',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Impaired',
+      value: 'Cause',
+      condition: 'polluted',
     },
     {
-      label: `Yes`,
-      value: `Y`,
-      symbol: createWaterbodySymbol({
-        condition: 'nostatus',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Yes',
+      value: 'Y',
+      condition: 'nostatus',
     },
     {
-      label: `No`,
-      value: `N`,
-      symbol: createWaterbodySymbol({
-        condition: 'hidden',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'No',
+      value: 'N',
+      condition: 'hidden',
     },
   ];
+
+  return settings.map((setting) => {
+    const condition =
+      filterCondition && filterCondition !== setting.condition
+        ? 'hidden'
+        : setting.condition;
+    return {
+      label: setting.label,
+      value: setting.value,
+      symbol: createWaterbodySymbol({
+        condition,
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    };
+  });
 }
 
 export function createUniqueValueInfosIssues(
@@ -351,7 +335,7 @@ export function createWaterbodySymbol({
   geometryType = 'point',
   alpha = null,
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden';
+  condition: WaterbodyCondition;
   selected: boolean;
   geometryType: string;
   alpha?: {
@@ -1148,3 +1132,23 @@ export const getMappedParameter = (
 
   return filteredFields;
 };
+
+// takes an action type code (plan) and renders it as a
+// glossary term if applicable
+export function mapRestorationPlanToGlossary(
+  planType: string,
+  showLabel = false,
+) {
+  return planType === 'TMDL' ||
+    planType === '4B Restoration Approach' ||
+    planType === 'Advance Restoration Plan (ARP)' ? (
+    <>
+      {showLabel && 'Restoration Plan: '}
+      <GlossaryTerm term={planType}>{planType}</GlossaryTerm>
+    </>
+  ) : planType === 'Protection Approach' ? (
+    <GlossaryTerm term={planType}>{planType}</GlossaryTerm>
+  ) : (
+    planType
+  );
+}

@@ -45,6 +45,7 @@ import {
   useStreamgages,
   useWaterbodyOnMap,
 } from 'utils/hooks';
+import { countOrNotAvailable } from 'utils/utils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
@@ -316,7 +317,11 @@ function Monitoring() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {totalCurrentWaterConditions || 'N/A'}
+                {countOrNotAvailable(
+                  totalCurrentWaterConditions,
+                  usgsStreamgages.status,
+                  cyanWaterbodies.status,
+                )}
               </span>
               <p css={keyMetricLabelStyles}>Current Water Conditions</p>
               <Switch
@@ -336,7 +341,10 @@ function Monitoring() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {monitoringLocations.data?.length || 'N/A'}
+                {countOrNotAvailable(
+                  monitoringLocations.data,
+                  monitoringLocations.status,
+                )}
               </span>
               <p css={keyMetricLabelStyles}>Past Water Conditions</p>
               <Switch
@@ -564,7 +572,7 @@ function CurrentConditionsTab({
                     <span>USGS Sensors</span>
                   </label>
                 </td>
-                <td>{streamgages.length}</td>
+                <td>{countOrNotAvailable(streamgages, streamgagesStatus)}</td>
               </tr>
               <tr>
                 <td>
@@ -586,7 +594,9 @@ function CurrentConditionsTab({
                     </GlossaryTerm>
                   </div>
                 </td>
-                <td>{cyanWaterbodies.length ?? 'N/A'}</td>
+                <td>
+                  {countOrNotAvailable(cyanWaterbodies, cyanWaterbodiesStatus)}
+                </td>
               </tr>
             </tbody>
           </table>

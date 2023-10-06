@@ -62,7 +62,6 @@ type State = {
   waterbodyData: Array<Object>,
   linesData: Array<Object>,
   areasData: Array<Object>,
-  cyanWaterbodies: { status: Status, data: Array<Object> | null },
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
@@ -135,7 +134,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     linesData: null,
     areasData: null,
     pointsData: null,
-    cyanWaterbodies: { status: 'idle', data: null },
     orphanFeatures: { status: 'fetching', features: [] },
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
@@ -284,9 +282,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     setPointsData: (pointsData) => {
       this.setState({ pointsData });
     },
-    setCyanWaterbodies: (cyanWaterbodies) => {
-      this.setState({ cyanWaterbodies });
-    },
     setGrts: (grts) => {
       this.setState({ grts });
     },
@@ -380,7 +375,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: null,
         linesData: null,
         areasData: null,
-        cyanWaterbodies: { status: 'idle', data: null },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',
@@ -416,7 +410,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: [],
         linesData: [],
         areasData: [],
-        cyanWaterbodies: { status: 'success', data: [] },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',

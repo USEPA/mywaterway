@@ -71,7 +71,10 @@ import {
   getPopupTitle,
   getPopupContent,
 } from 'utils/mapFunctions';
-import { browserIsCompatibleWithArcGIS } from 'utils/utils';
+import {
+  browserIsCompatibleWithArcGIS,
+  countOrNotAvailable,
+} from 'utils/utils';
 // errors
 import {
   esriMapLoadingFailure,
@@ -367,10 +370,7 @@ function TribalMapList({
             waterbodies.status === 'failure') && (
             <Fragment>
               <span css={keyMetricNumberStyles}>
-                {Boolean(waterbodies.data.length) &&
-                waterbodies.status === 'success'
-                  ? waterbodies.data.length.toLocaleString()
-                  : 'N/A'}
+                {countOrNotAvailable(waterbodies.data, waterbodies.status)}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
               <div css={switchContainerStyles}>
@@ -400,9 +400,10 @@ function TribalMapList({
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(monitoringLocations.length)
-                  ? monitoringLocations.length
-                  : 'N/A'}
+                {countOrNotAvailable(
+                  monitoringLocations,
+                  monitoringLocationsStatus,
+                )}
               </span>
               <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div css={switchContainerStyles}>

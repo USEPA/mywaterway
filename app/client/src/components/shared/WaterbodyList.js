@@ -26,6 +26,8 @@ import {
 } from 'contexts/LookupFiles';
 // errors
 import { huc12SummaryError } from 'config/errorMessages';
+// styles
+import { colors } from 'styles/index';
 
 const paragraphStyles = css`
   margin-bottom: 0.5em;
@@ -67,6 +69,18 @@ const modifiedInfoBoxStyles = css`
   ${infoBoxStyles};
   margin-bottom: 1em;
   text-align: center;
+`;
+
+const noMapDataWarningStyles = css`
+  font-size: 0.875rem;
+
+  i {
+    background-color: ${colors.black()};
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    color: ${colors.yellow()};
+    font-size: 0.95rem;
+    margin-right: 5px;
+  }
 `;
 
 type Props = {
@@ -149,7 +163,10 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
                   {graphic.limited && (
                     <>
                       <br />
-                      [Waterbody not visible on map.]
+                      <span css={noMapDataWarningStyles}>
+                        <i className="fas fa-exclamation-triangle" />
+                        <strong>[Waterbody not visible on map.]</strong>
+                      </span>
                     </>
                   )}
                 </>

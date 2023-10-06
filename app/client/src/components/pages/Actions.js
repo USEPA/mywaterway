@@ -42,6 +42,7 @@ import { fetchCheck } from 'utils/fetchUtils';
 import {
   getOrganizationLabel,
   getTypeFromAttributes,
+  mapRestorationPlanToGlossary,
 } from 'utils/mapFunctions';
 import { chunkArrayCharLength } from 'utils/utils';
 // styles
@@ -479,20 +480,6 @@ function Actions() {
     setInfoHeight(node.getBoundingClientRect().height);
   }, []);
 
-  const planType =
-    actionTypeCode === 'TMDL' ||
-    actionTypeCode === '4B Restoration Approach' ||
-    actionTypeCode === 'Alternative Restoration Approach' ? (
-      <>
-        Restoration Plan:{' '}
-        <GlossaryTerm term={actionTypeCode}>{actionTypeCode}</GlossaryTerm>
-      </>
-    ) : actionTypeCode === 'Protection Approach' ? (
-      <GlossaryTerm term={actionTypeCode}>{actionTypeCode}</GlossaryTerm>
-    ) : (
-      actionTypeCode
-    );
-
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
       <h2 css={boxHeadingStyles}>
@@ -523,7 +510,7 @@ function Actions() {
 
       <div css={inlineBoxStyles}>
         <h3>Type:&nbsp;</h3>
-        <p>{planType}</p>
+        <p>{mapRestorationPlanToGlossary(actionTypeCode, true)}</p>
       </div>
 
       <div css={inlineBoxStyles}>

@@ -133,6 +133,9 @@ const chartContainerStyles = css`
   margin: 1rem 0.625rem;
 `;
 
+const chartControlStyles = css`
+  flex-shrink: 0;
+`;
 const chartTooltipStyles = css`
   p {
     line-height: 1.2em;
@@ -272,6 +275,16 @@ const iconStyles = css`
   margin-right: 5px;
 `;
 
+const locationRowStyles = css`
+  & > * {
+    display: inline-block;
+  }
+
+  strong {
+    margin-right: 0.2em;
+  }
+`;
+
 const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
@@ -283,24 +296,8 @@ const infoBoxHeadingStyles = css`
     margin-top: auto;
   }
 
-  & > span {
-    flex-shrink: 0;
-  }
-
   button {
     font-size: 1rem;
-  }
-
-  small {
-    display: block;
-    margin-top: 0.125rem;
-  }
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: 0 -0.375rem 0 -0.875rem;
-    height: 1.5rem;
   }
 `;
 
@@ -317,6 +314,20 @@ const legendContainerStyles = css`
   display: flex;
   justify-content: space-between;
   margin-top: 1em;
+`;
+
+const locationHeadingStyles = css`
+  ${boxHeadingStyles}
+
+  & > small {
+    display: block;
+  }
+
+  /* loading icon */
+  svg {
+    margin: 0 -0.375rem 0 -0.875rem;
+    height: 1rem;
+  }
 `;
 
 const mapContainerStyles = css`
@@ -493,7 +504,7 @@ const treeStyles = (level, styles) => {
 */
 
 const MAX_NUM_CHARTS = 4;
-const MEASUREMENT_PRECISION = 3;
+const MEASUREMENT_PRECISION = 5;
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
@@ -507,7 +518,7 @@ function buildTooltip(unit) {
     const datum = tooltipData.nearestDatum.datum;
     if (!datum) return null;
     const depth =
-      datum.depth !== null && datum.depthUnit !== null
+      Number.isFinite(datum.depth) && datum.depthUnit
         ? `${datum.depth} ${datum.depthUnit}`
         : null;
     return (
@@ -515,7 +526,7 @@ function buildTooltip(unit) {
         <p>{datum.x}:</p>
         <p>
           <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
-          {`${datum.y.toFixed(MEASUREMENT_PRECISION)} ${unit}`}
+          {`${formatNumber(datum.y)} ${unit}`}
           {depth && (
             <>
               <br />
@@ -570,6 +581,18 @@ const dateOptions = {
   day: 'numeric',
 };
 
+// Format number as a string with a specified precision.
+function formatNumber(num, precision = MEASUREMENT_PRECISION) {
+  if (!Number.isFinite(num)) return '';
+  if (num >= -Number.EPSILON && num <= Number.EPSILON) return '0';
+
+  const rounded = parseFloat(num.toPrecision(precision));
+  // Compare the number of significant digits to the precision.
+  return rounded.toString().replace('.', '').length > precision
+    ? rounded.toExponential()
+    : rounded.toLocaleString();
+}
+
 // Create a heatmap proportional to the range of the provided numerical data
 function generateHeatmap(data) {
   const svMin = 30;
@@ -583,7 +606,9 @@ function generateHeatmap(data) {
   const dataMax = sortedData[sortedData.length - 1];
   return sortedData.map((datum) => {
     const fractionalPos =
-      datum === 0 ? 0 : (datum - dataMin) / (dataMax - dataMin);
+      datum === 0 || dataMax === dataMin
+        ? 0
+        : (datum - dataMin) / (dataMax - dataMin);
     const offset = (svMax - svMin) * fractionalPos;
     const sat = (svMin + offset) / 100;
     const val = (svMax - offset) / 100;
@@ -685,11 +710,8 @@ function lineDatum(dayData) {
   return {
     type: 'line',
     x: dayData[0].x,
-    y: toFixedFloat(getMean(dayData.map((d) => d.y)), MEASUREMENT_PRECISION),
-    depth: toFixedFloat(
-      getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
-      MEASUREMENT_PRECISION,
-    ),
+    y: getMean(dayData.map((d) => d.y)),
+    depth: getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
     depthUnit: dayData.find((d) => d.depthUnit !== null)?.depthUnit,
   };
 }
@@ -761,7 +783,10 @@ function pointDatum(msmt, colors, depths) {
   return {
     type: 'point',
     x: msmt.date,
-    y: msmt.measurement || Number.EPSILON,
+    y:
+      msmt.measurement >= -Number.EPSILON && msmt.measurement <= Number.EPSILON
+        ? Number.EPSILON
+        : msmt.measurement,
     activityTypeCode: msmt.activityTypeCode,
     color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#4d4d4d',
     depth: msmt.depth,
@@ -1177,7 +1202,7 @@ function CharacteristicChartSection({
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName ? 'Selected Characteristic' : charcName}
-        <span>
+        <span css={chartControlStyles}>
           <button
             aria-label="Shift chart down"
             css={modifiedIconButtonStyles}
@@ -1369,6 +1394,23 @@ function CharacteristicsTableSection({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [charcs, selected]);
 
+  // Select the characteristic with the most measurements by default;
+  useEffect(() => {
+    const maxCharc = Object.values(charcs).reduce(
+      (curMax, next) => {
+        const nextCount = next.records.reduce((a, b) => {
+          return Number.isFinite(b.measurement) ? a + 1 : a;
+        }, 0);
+        if (nextCount > curMax.count) {
+          return { name: next.name, count: nextCount };
+        }
+        return curMax;
+      },
+      { name: null, count: 0 },
+    );
+    if (maxCharc.name) setSelected([maxCharc.name]);
+  }, [charcs, setSelected]);
+
   const onChange = (ev) => {
     if (ev.target.checked) {
       setSelected((prev) => [ev.target.value, ...prev]);
@@ -1404,6 +1446,10 @@ function CharacteristicsTableSection({
 
   const selectSortBy = useCallback((rowA, _rowB, colId) => {
     return rowA.values[colId] ? -1 : 1;
+  }, []);
+
+  const initialTableSort = useMemo(() => {
+    return [{ id: 'measurementCount', desc: true }, { id: 'selected' }];
   }, []);
 
   return (
@@ -1460,7 +1506,7 @@ function CharacteristicsTableSection({
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
-            defaultSort="name"
+            initialSortBy={initialTableSort}
             striped={true}
             getColumns={(tableWidth) => {
               const columnWidth = tableWidth / 3 - 6;
@@ -1561,6 +1607,35 @@ function ChartContainer({
     return <p css={messageBoxStyles(infoBoxStyles)}>No chart type selected.</p>;
   }
 
+  // Addresses the issue that arises when all "zero" values are passed to the chart.
+  const resolvedScaleType =
+    range[0] === range[range.length - 1] ? 'log' : scaleType;
+
+  const yTickFormat = (val, _index, values) => {
+    // Avoid overcrowding on the y-axis when the log scale is used.
+    // Shows only powers of 10 when a tick threshold is exceeded.
+    if (
+      resolvedScaleType === 'log' &&
+      values.length > 20 &&
+      Math.log10(val) % 1 !== 0
+    ) {
+      return '';
+    }
+    return formatNumber(val, 3);
+  };
+
+  const crossesZero =
+    yValues.some((val) => val > 0) && yValues.some((val) => val < 0);
+  if (crossesZero && scaleType === 'log')
+    return (
+      <div css={chartContainerStyles}>
+        <p css={messageBoxStyles(infoBoxStyles)}>
+          Cannot show positive and negative values on the same chart when the{' '}
+          <em>log</em> scale type is selected.
+        </p>
+      </div>
+    );
+
   return (
     <div ref={chartRef} css={chartContainerStyles}>
       <VisxGraph
@@ -1574,7 +1649,8 @@ function ChartContainer({
         pointsVisible={pointsVisible}
         range={range}
         xTitle="Date"
-        yScale={scaleType}
+        yScale={resolvedScaleType}
+        yTickFormat={yTickFormat}
         yTitle={yTitle}
       />
       <div css={legendContainerStyles}>
@@ -1634,14 +1710,8 @@ function ChartStatistics({ data, unit }) {
   const median = getMedian(yValues);
   const stdDev = getStdDev(yValues, mean);
 
-  let average = toFixedFloat(mean, MEASUREMENT_PRECISION).toLocaleString(
-    'en-US',
-  );
-  if (stdDev)
-    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
-      stdDev,
-      MEASUREMENT_PRECISION,
-    ).toLocaleString()}`;
+  let average = formatNumber(mean);
+  if (stdDev) average += ` ${String.fromCharCode(177)} ${formatNumber(stdDev)}`;
   average += ` ${unit}`;
 
   const [statisticsExpanded, setStatisticsExpanded] = useState(true);
@@ -1682,10 +1752,7 @@ function ChartStatistics({ data, unit }) {
             },
             {
               label: 'Median Value',
-              value: `${toFixedFloat(
-                median,
-                MEASUREMENT_PRECISION,
-              ).toLocaleString()} ${unit}`,
+              value: `${formatNumber(median)} ${unit}`,
             },
             {
               label: 'Minimum Value',
@@ -2121,20 +2188,22 @@ function InformationSection({ siteId, site, siteStatus }) {
 
   return (
     <div css={modifiedBoxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
-        <span>
-          <small>
-            <strong>Location Name: </strong>
-            {siteStatus === 'pending' && <LoadingSpinner />}
-            {siteStatus === 'success' && site.locationName}
-          </small>
-          <small>
+      <h2 css={locationHeadingStyles}>
+        <small>
+          <div css={locationRowStyles}>
+            <strong>Location Name:</strong>
+            <span>
+              {siteStatus === 'pending' && <LoadingSpinner />}
+              {siteStatus === 'success' && site.locationName}
+            </span>
+          </div>
+          <div css={locationRowStyles}>
             <strong>
               <GlossaryTerm term="Monitoring Site ID">Site ID</GlossaryTerm>:{' '}
             </strong>
-            {siteId}
-          </small>
-        </span>
+            <span>{siteId}</span>
+          </div>
+        </small>
       </h2>
       <div css={sectionStyles}>
         <BoxContent rows={rows} styles={boxContentStyles} />
