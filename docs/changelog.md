@@ -8,7 +8,7 @@
 
 ### Changed
 
-- Updated the monitoring report page to order characteristics by measurment count and to automatically select the first one.
+- Updated the monitoring report page to order characteristics by measurement count and to automatically select the first one.
 
 - Updated the y-axis labels on the monitoring report charts to be in scientific notation for very small and very large numbers.
 
@@ -18,13 +18,13 @@
 
 - Updated values above switches so that "N/A" represents a service error and "0" represents a lack of data.
 
-- Fixed flickering in the Past Water Conditions list that was occuring on certain screen sizes.
+- Fixed flickering in the Past Water Conditions list that was occurring on certain screen sizes.
 
 - Fixed issue of the dischargers with significant violations switch being enabled and on even when there is no data.
 
 - Fixed issue of location name overflowing the container on the monitoring report page.
 
-- Fixed issue of some characterstics on the monitoring report page having all 0s in the y-axis labels.
+- Fixed issue of some characteristics on the monitoring report page having all 0s in the y-axis labels.
 
 - Fixed issue of state and tribe document links not working.
 
@@ -40,11 +40,11 @@
 
 - Added the CyAN Harmful Algal Blooms (HABs) data to the Overview panel of the Community page.
 
-- Added Surrounding streamgages and dischargers to the Tribal page.
+- Added Surrounding stream gages and dischargers to the Tribal page.
 
-- Added a print widget where user's can download a PDF of the map and legend.
+- Added a print widget where users can download a PDF of the map and legend.
 
-- Added the ability to view detailed characteristics for each characteristic group on a monitoring locations.
+- Added the ability to view detailed characteristics for each characteristic group on a monitoring location.
 
 - Added the ability to view multiple graphs on the Water Monitoring Report.
 
@@ -60,7 +60,7 @@
 
 - Removed clustering from the Past Water Conditions.
 
-- Updated date sliders so they are all in info boxes so they stand out more.
+- Updated date sliders so they are all in info boxes, so they stand out more.
 
 - Updated the widget icons so they all use the >> icon when the widgets are opened.
 
@@ -68,7 +68,7 @@
 
 - Updated the Sort by control to be more prominent.
 
-- Updated the Identified Issues tab to show all permitted dischargers. Also added a filter for dischargers with signficant effluent violations.
+- Updated the Identified Issues tab to show all permitted dischargers. Also added a filter for dischargers with significant effluent violations.
 
 - Changed the How's My Waterway banner tagline to "Explore, Discover and Learn about your water."
 
@@ -80,7 +80,7 @@
 
 - Changed "CyAN" to "Harmful Algal Blooms (HABs)".
 
-- Changed the glossary to work off of a cron job, that runs every day and on app startup.
+- Changed the glossary to work off of a cron job, which runs every day and on app startup.
 
 - Changed the "Mapped Water (all)" layer to "All Mapped Water (NHD)".
 
@@ -122,13 +122,13 @@
 
 - Added a table of filter switches to the "Permitted Dischargers" section of the "Overview" panel, which allows users to filter locations by their _Permit Component_ type.
 
-- Added _Permit Type_ and _Permit Components_ rows to the the "Permitted Dischargers" information panel.
+- Added _Permit Type_ and _Permit Components_ rows to the "Permitted Dischargers" information panel.
 
 - Added two headings to the State/Tribe page: one above the organization's description, if it has one, and another above the map on Tribe pages.
 
 - Added the ability to save a map to an ArcGIS Online account. For each selected layer, this saves references to map services wherever possible, and otherwise adds visible features to a hosted feature layer that is added to and saved alongside the map. In addition to any user-supplied description, an auto-generated description provides details about the date and time of the map's creation, as well as a list of filters that were applied to individual layers when the map was saved.
 
-- Added a "Surrounding Features" widget, which aggregates the functionality that was provided by the "Surrounding Waterbodies" and "Surrounding Monitoring Locations" widgets, and adds similar functionality for "Permitted Dischargers" and "USGS Sensors".
+- Added a "Surrounding Features" widget, which aggregates the functionality that was provided by the "Surrounding Waterbodies" and "Surrounding Monitoring Locations" widgets and adds similar functionality for "Permitted Dischargers" and "USGS Sensors".
 
 - Added latitude and longitude values to the information panels of "Past Water Conditions", "USGS Sensors" and "Permitted Dischargers" locations. Also added the same latitude and longitude values to the Monitoring Report page.
 
@@ -246,7 +246,7 @@
 
 - Removed the "Sample Count" column from the Monitoring panel of the Community page.
 
-- Fixed a bug on the waterbody report page where the "Unable to find a waterbody report for this waterbody" text was displayed on the bottom of the map popup.
+- Fixed a bug on the waterbody report page, where the "Unable to find a waterbody report for this waterbody" text was displayed on the bottom of the map popup.
 
 - Fixed a bug on the state page where using the browser's back/forward buttons would change the URL but the data on the page would not change.
 
@@ -294,7 +294,7 @@
 
 - Reduced the size of the location pin icon on the Community page.
 
-- Removed the gage height numbers from the Current Water Conditions layer (USGS Streamgages).
+- Removed the gage height numbers from the Current Water Conditions layer (USGS Stream Gages).
 
 - Fixed issues with tables overflowing the container on the Waterbody Report page.
 
@@ -320,7 +320,7 @@
 
 - Updated the surrounding waterbodies layer so the colors don't blend.
 
-- Updated the tribes layer to the latest version.
+- Updated the tribal layer to the latest version.
 
 - Updated the protect tab to load as much data as possible, even when some of the services are down.
 
@@ -398,7 +398,7 @@
 
 - Updated text and glossary links for the Demographic Index (formerly Environmental Justice) layer.
 
-- Updated the canonical link so that it uses the current url for non-community search pages (i.e., homepage, community landing page, etc.), instead of being empty. This is a Search Engine Optimization (SEO) technique to improve the application’s discoverability.
+- Updated the canonical link so that it uses the current URL for non-community search pages (i.e., homepage, community landing page, etc.), instead of being empty. This is a Search Engine Optimization (SEO) technique to improve the application’s discoverability.
 
 - Updated descriptions for each page so that search engines can display more accurate information.
 
@@ -478,7 +478,7 @@
 
 - State boundary layer that can be toggled on/off using the layer list widget.
 
-- Upstream watershed widget in the top right corner of the Community map for displaying the entire upstream watershed of the currently selected watershed (i.e. HUC12)
+- Upstream watershed widget in the top right corner of the Community map for displaying the entire upstream watershed of the currently selected watershed (i.e., HUC12)
 
 - Support to display tribal data in the Community section of the application (once ATTAINS makes the data available)
 
@@ -530,7 +530,7 @@
 
 ### Changed
 
-- Relocated a few mapping and data files (i.e. .json) to s3 to allow real-time updates.
+- Relocated a few mapping and data files (i.e., .json) to s3 to allow real-time updates.
 - Added metadata to the Community page to support [geoconnex.us](https://github.com/internetofwater/geoconnex.us) integration.
 - Updated the location results handler to accommodate confidence scores less than 70%.
 - Updated app to use ATTAINS reporting cycle info from the ATTAINS GIS service. This helps ensure the proper reporting cycle is used to retrieve ATTAINS organization-level information.
