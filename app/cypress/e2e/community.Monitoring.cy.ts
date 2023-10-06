@@ -4,7 +4,7 @@ import {
   yearDayStringToEpoch,
 } from '../../client/src/utils/dateUtils';
 
-// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error. 
+// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error.
 // We can safely ignore this. https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
 Cypress.on('uncaught:exception', (err, runnable) => {
   // returning false here prevents Cypress from
@@ -45,7 +45,7 @@ describe('Monitoring Tab', () => {
     cy.findByLabelText('Metals').should('have.attr', 'aria-checked', 'false');
 
     // check that there are no items displayed in accordion
-    cy.findByTestId('monitoring-accordion-title').contains('0 of 98');
+    cy.findByTestId('monitoring-accordion-title').contains('0 of 99');
 
     // check that clicking the Toggle All switch again toggles all switches back on
     cy.findByLabelText('All Monitoring Locations').click({
