@@ -454,6 +454,7 @@ function StateTribal() {
                     ev.relatedTarget?.tagName !== 'LI'
                   ) {
                     setSourcesVisible(false);
+                    setSourceCursor(-1);
                   }
                 }}
               >

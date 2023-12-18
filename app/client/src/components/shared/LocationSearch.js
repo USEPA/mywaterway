@@ -781,6 +781,7 @@ function LocationSearch({ route, label }: Props) {
                 ev.relatedTarget?.tagName !== 'LI'
               ) {
                 setSourcesVisible(false);
+                setSourceCursor(-1);
               }
             }}
           >
