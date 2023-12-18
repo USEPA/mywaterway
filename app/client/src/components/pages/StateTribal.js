@@ -448,6 +448,14 @@ function StateTribal() {
                   `esri-search-multiple-sources esri-search__container ` +
                   `${sourcesVisible ? 'esri-search--sources' : ''} `
                 }
+                onBlur={(ev) => {
+                  if (
+                    !ev.currentTarget.contains(ev.relatedTarget) ||
+                    ev.relatedTarget?.tagName !== 'LI'
+                  ) {
+                    setSourcesVisible(false);
+                  }
+                }}
               >
                 <div
                   css={searchSourceButtonStyles}
