@@ -937,8 +937,8 @@ export function GradientIcon({
 }) {
   const divisions = stops.length - 1;
   return (
-    <div css={{ display: 'flex', margin: 'auto' }}>
-      <div css={{ margin: '15px 0' }}>
+    <div style={{ display: 'flex', margin: 'auto' }}>
+      <div style={{ margin: '15px 0' }}>
         <svg width={50} height={25 * divisions + 20}>
           <defs>
             <linearGradient

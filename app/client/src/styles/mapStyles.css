@@ -45,6 +45,10 @@
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
+.esri-legend__symbol {
+  margin: unset;
+}
+
 .esri-print__header-title {
   font-size: 1.25em;
   font-weight: 500;
