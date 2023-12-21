@@ -775,6 +775,15 @@ function LocationSearch({ route, label }: Props) {
                   : ''
               }`
             }
+            onBlur={(ev) => {
+              if (
+                !ev.currentTarget.contains(ev.relatedTarget) ||
+                ev.relatedTarget?.tagName !== 'LI'
+              ) {
+                setSourcesVisible(false);
+                setSourceCursor(-1);
+              }
+            }}
           >
             <div
               role="button"
