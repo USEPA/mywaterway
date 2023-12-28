@@ -75,7 +75,7 @@
 }
 
 .esri-widget {
-  font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
     'Arial', sans-serif;
 }
 
@@ -107,7 +107,7 @@
   margin: 6px auto 6px 7px;
   font-size: 14px !important;
   font-weight: 500 !important;
-  font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
     'Arial', sans-serif !important;
   color: white !important;
 }
@@ -174,7 +174,7 @@
 .hmw-map-toggle h1 {
   margin: 0 10px;
   padding: 0;
-  font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
     'Arial', sans-serif;
   font-size: 1.25em;
 }

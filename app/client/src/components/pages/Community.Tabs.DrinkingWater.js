@@ -61,13 +61,6 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
-const modifiedToggleTableStyles = css`
-  ${toggleTableStyles};
-  tfoot th {
-    background-color: #f0f6f9;
-  }
-`;
-
 const disclaimerStyles = css`
   display: inline-block;
 `;
@@ -645,10 +638,7 @@ function DrinkingWater() {
 
                       {providers.length > 0 && (
                         <>
-                          <table
-                            css={modifiedToggleTableStyles}
-                            className="table"
-                          >
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>
@@ -797,10 +787,7 @@ function DrinkingWater() {
 
                       {totalWithdrawersCount > 0 && (
                         <>
-                          <table
-                            css={modifiedToggleTableStyles}
-                            className="table"
-                          >
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>

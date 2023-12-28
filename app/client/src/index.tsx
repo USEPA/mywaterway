@@ -26,7 +26,7 @@ smoothscroll.polyfill();
 export const GlobalStyle = createGlobalStyle`
   #root {
     margin: 0;
-    font-family: "Source Sans Pro", "Helvetica Neue", "Helvetica", "Roboto", "Arial", sans-serif;
+    font-family: "Source Sans Pro Web", "Helvetica Neue", "Helvetica", "Roboto", "Arial", sans-serif;
     font-size: 16px;
     line-height: 1;
     color: #444;

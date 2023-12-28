@@ -239,7 +239,7 @@ function GlossaryPanel({ path }) {
             className="js-glossary-close"
             title="Close glossary"
           >
-            ×
+            <i className="fas fa-times" aria-hidden="true"></i>
           </button>
         </header>
 

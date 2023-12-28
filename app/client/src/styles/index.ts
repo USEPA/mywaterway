@@ -72,7 +72,7 @@ export const iconStyles = css`
 `;
 
 export const fonts = {
-  primary: `'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial', sans-serif`,
+  primary: `'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial', sans-serif`,
   secondary: `'Roboto Slab', serif`,
 };
 
@@ -131,8 +131,8 @@ export const modifiedTableStyles = css`
 
   th,
   td {
-    overflow-wrap: anywhere;
     hyphens: auto;
+    overflow-wrap: anywhere;
 
     :first-of-type {
       padding-left: 0;
@@ -164,12 +164,14 @@ export const tabLegendStyles = css`
 export const toggleTableStyles = css`
   ${tableStyles}
 
-  thead {
+  thead,
+  thead th,
+  tfoot th {
     background-color: #f0f6f9;
   }
 
-  th,
-  td {
+  td,
+  th {
     :last-of-type {
       text-align: right;
     }

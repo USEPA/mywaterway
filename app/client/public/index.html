@@ -142,14 +142,10 @@
 
     <!--googleoff: all-->
     <link rel="stylesheet" media="all" href="%PUBLIC_URL%/css/epa.css" />
-    <!--<link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Slab|Source+Sans+Pro:700i&display=swap"
-    />-->
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.28/esri/css/main.css"
-      integrity="sha384-xqxSedBSAnrp4XxrwkTSm1yG/BYGfS7Dzs8jJ5SnDmCJPVrQl2dSSmU6I9GlDo0I"
+      href="https://js.arcgis.com/4.22/esri/themes/light/main.css"
+      integrity="sha384-HP9A+7ZjrqRKmLQdfvddP0qYB9Jr/l5GlenLBNDCrkq+UU6KKv44Fj2It+f96EiH"
       crossorigin="anonymous"
     />
     <link
@@ -173,7 +169,54 @@
         margin-top: 0;
       }
 
+      a {
+        color: #0071bc;
+      }
+
       /* epa template overrides */
+      button {
+        background-color: #0071bc;
+        border: 0;
+        border-radius: 3px;
+        color: #fff;
+        display: inline-block;
+        font-weight: bold;
+        line-height: 1;
+        margin: 0 0 1.5em;
+        padding: 0.5882em 1.1765em;
+        text-align: center;
+        text-decoration: none;
+        vertical-align: baseline;
+        white-space: normal;
+      }
+
+      ul {
+        margin: 0;
+      }
+
+      table td,
+      table th {
+        background-color: inherit;
+        border: 0;
+        border-top: 1px solid #dee2e6;
+      }
+
+      table thead th {
+        background-color: inherit;
+      }
+
+      .exit-disclaimer {
+        background-color: #aeb0b5;
+        border-radius: 3px;
+        color: #323a45 !important;
+        display: inline-block;
+        font-size: 88.2352941176%;
+        margin: 0 0.3333333333em;
+        padding: 0.0666666667em 0.4666666667em;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
       .main-footer .region-footer .row {
         margin: 0;
       }
@@ -222,6 +265,13 @@
         /* IE10 and IE11 styles */
         .unsupportedMessageContainer {
           display: block;
+        }
+      }
+
+      @media screen {
+        main p {
+          margin-bottom: 0;
+          padding-bottom: 1.5em;
         }
       }
     </style>
