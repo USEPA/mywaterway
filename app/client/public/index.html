@@ -1273,41 +1273,17 @@
       </div>
     </footer>
 
-    <a href="#" class="back-to-top" title="Back to top" aria-hidden="true">
+    <a href="#top" class="back-to-top" title="Back to top" aria-hidden="true">
       <svg class="back-to-top__icon" role="img" aria-label="">
         <use
           href="%PUBLIC_URL%/epa-template-files/images/sprite.artifact.svg#angle"
         ></use>
       </svg>
     </a>
-    <script src="%PUBLIC_URL%/epa-template-files/js/epa-common.min.js"></script>
-    <script src="%PUBLIC_URL%/epa-template-files/js/epa-scripts.min.js"></script>
 
-    <!-- Conditionally show the 'back to top' button -->
-    <script>
-      window.addEventListener('load', () => {
-        const observer = new IntersectionObserver(
-          (entries, observer) => {
-            const backToTop = document.querySelector('.back-to-top');
-            if (!backToTop) return;
-
-            let headerVisible = false;
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                headerVisible = true;
-              }
-            });
-            backToTop.ariaHidden = headerVisible;
-          },
-          {
-            root: null,
-            rootMargin: '0px',
-          },
-        );
-        const header = document.querySelector('#usa-header');
-        if (header) observer.observe(header);
-      });
-    </script>
+    <script src="%PUBLIC_URL%/epa-template-files/js/once.min.js"></script>
+    <script src="%PUBLIC_URL%/epa-template-files/js/common.min.js"></script>
+    <script src="%PUBLIC_URL%/epa-template-files/js/scripts.min.js"></script>
 
     <style>
       .menu--main .menu__link,
