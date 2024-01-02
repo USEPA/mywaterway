@@ -178,12 +178,7 @@
 
     <!-- Style overrides for the EPA template -->
     <style>
-      /* bootstrap style overrides */
-      .epa-search .form-text {
-        display: inline-block;
-        margin-top: 0;
-      }
-
+      /* bootstrap overrides */
       a {
         color: #0071bc;
       }
@@ -205,8 +200,20 @@
         white-space: normal;
       }
 
+      li {
+        margin-bottom: unset;
+      }
+
       ul {
-        margin: 0;
+        margin: unset;
+      }
+
+      ul:last-child {
+        margin-bottom: unset;
+      }
+
+      table {
+        font-size: inherit;
       }
 
       table td,
@@ -230,18 +237,6 @@
         padding: 0.0666666667em 0.4666666667em;
         text-decoration: none;
         text-transform: uppercase;
-      }
-
-      .main-footer .region-footer .row {
-        margin: 0;
-      }
-
-      .main-footer .region-footer .col:first-of-type {
-        padding-left: 0;
-      }
-
-      .main-footer .region-footer .col:last-of-type {
-        padding-right: 0;
       }
 
       .unsupportedMessageContainer {
