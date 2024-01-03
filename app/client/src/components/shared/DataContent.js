@@ -98,7 +98,7 @@ const pageErrorBoxStyles = css`
 const titleStyles = css`
   display: inline;
   line-height: 1.125;
-  font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Roboto, Arial,
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', Helvetica, Roboto, Arial,
     sans-serif;
 
   @media (min-width: 30em) {

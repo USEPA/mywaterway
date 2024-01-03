@@ -58,7 +58,7 @@ const widgetHeaderStyles = css`
 
   h1 {
     margin: 0 10px;
-    font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+    font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
       'Arial', sans-serif;
     font-size: 16px;
     line-height: 35px;
@@ -102,7 +102,9 @@ const pageControlStyles = css`
 `;
 
 const buttonHiddenTextStyles = css`
-  font: 0/0 a, sans-serif;
+  font:
+    0/0 a,
+    sans-serif;
   text-indent: -999em;
 `;
 

@@ -73,6 +73,10 @@ import {
 const accordionFlexStyles = css`
   display: flex;
   justify-content: space-between;
+
+  .count {
+    white-space: nowrap;
+  }
 `;
 
 const accordionHeadingStyles = css`
@@ -394,7 +398,9 @@ const radioStyles = css`
   }
   input:checked + label:before {
     background-color: #38a6ee;
-    box-shadow: 0 0 0 2px ${colors.steel()}, inset 0 0 0 2px ${colors.white()};
+    box-shadow:
+      0 0 0 2px ${colors.steel()},
+      inset 0 0 0 2px ${colors.white()};
   }
   label {
     cursor: pointer;
@@ -1804,7 +1810,7 @@ function CheckboxAccordion({
               />
               {id}
             </label>
-            <strong>{item.count.toLocaleString()}</strong>
+            <strong className="count">{item.count.toLocaleString()}</strong>
           </span>
         }
       >
@@ -1837,7 +1843,7 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
         />
         {id}
       </label>
-      <strong>{item.count.toLocaleString()}</strong>
+      <strong className="count">{item.count.toLocaleString()}</strong>
     </div>
   );
 }
@@ -1978,10 +1984,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                 </strong>
                 <strong>
                   <em>
-                    <GlossaryTerm
-                      className="count"
-                      term="Monitoring Measurements"
-                    >
+                    <GlossaryTerm term="Monitoring Measurements">
                       Number of Measurements
                     </GlossaryTerm>
                   </em>

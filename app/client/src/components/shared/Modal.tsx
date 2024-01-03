@@ -80,17 +80,19 @@ const contentStyles = (
 `;
 
 const disclaimerButtonStyles = css`
-  position: relative;
+  background-color: ${colors.grayd};
+  border: 0;
+  border-radius: 3px;
+  color: ${colors.gray3};
+  font-size: 0.625rem;
+  font-weight: normal;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
   margin-bottom: 0;
   padding: 0.125rem 0.375rem;
-  font-size: 0.625rem;
-  line-height: 1.25;
-  font-weight: normal;
+  position: relative;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
   user-select: none;
-  color: ${colors.gray3};
-  background-color: ${colors.grayd};
 
   :hover,
   :focus {
