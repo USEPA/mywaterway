@@ -56,12 +56,7 @@ class ErrorBoundary extends Component<Props, State> {
     try {
       throw error;
     } catch (err) {
-      if (!window.gaTarget) return;
-
-      window.logToGa('send', 'exception', {
-        exDescription: `${error.message}${error.stack}`,
-        exFatal: true,
-      });
+      window.logErrorToGa(err, true);
     }
   }
 

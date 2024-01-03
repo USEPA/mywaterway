@@ -222,7 +222,7 @@ function IdentifiedIssues() {
     useState(false);
   const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = useState(false);
   useEffect(() => {
-    if (!window.gaTarget || cipSummary.status !== 'success') return;
+    if (cipSummary.status !== 'success') return;
 
     if (!cipSummary.data?.items?.length > 0) {
       setNullPollutedWaterbodies(true);
@@ -247,9 +247,9 @@ function IdentifiedIssues() {
     );
     if (pollutedPercent > 0 && summaryByParameterImpairments.length === 0) {
       emptyCategoriesWithPercent = true;
-      window.logToGa('send', 'exception', {
-        exDescription: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
-        exFatal: false,
+      window.logToGa('event', 'exception', {
+        description: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
+        fatal: false,
       });
     }
 
@@ -257,9 +257,9 @@ function IdentifiedIssues() {
     const nullPollutedWaterbodies =
       containImpairedWatersCatchmentAreaPercent === null ? true : false;
     if (nullPollutedWaterbodies && summaryByParameterImpairments.length > 0) {
-      window.logToGa('send', 'exception', {
-        exDescription: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
-        exFatal: false,
+      window.logToGa('event', 'exception', {
+        description: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
+        fatal: false,
       });
     }
 
