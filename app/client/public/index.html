@@ -395,10 +395,10 @@
       // scrolling to odd positions after the page finishes loading
       history.scrollRestoration = 'manual';
 
-      function configureGoogleAnalytics(uaId, ga4Id) {
+      function configureGoogleAnalytics(id, debug = false) {
         const gaScript = document.createElement('script');
         gaScript.async = 1;
-        gaScript.src = `//www.googletagmanager.com/gtag/js?id=${uaId}`;
+        gaScript.src = `//www.googletagmanager.com/gtag/js?id=${id}`;
 
         const firstScript = document.getElementsByTagName('script')[0];
         firstScript.parentNode.insertBefore(gaScript, firstScript);
@@ -412,24 +412,8 @@
 
         gtag('js', new Date());
 
-        gtag('config', uaId);
-        // TODO: Remove debug_mode before going live.
-        gtag('config', ga4Id, { debug_mode: true });
-      }
-
-      // Wrapper for logging to GA
-      function logToGa() {
-        if (!window.gtag) return;
-
-        gtag(...arguments);
-      }
-
-      function logErrorToGa(err, fatal = false) {
-        const error = new Error(err);
-        window.logToGa('event', 'exception', {
-          description: `${error.name}:${error.message}:${error.stack}`,
-          fatal,
-        });
+        const options = { ...(debug && { debug_mode: true }) };
+        gtag('config', id, options);
       }
 
       // get origin for mapping proxy calls
@@ -448,28 +432,41 @@
         },
       ];
 
-      //Only setup the logging for public sites, ie don't log from localhost
-      window.gaTarget = '';
-      if (
-        window.location.hostname === 'mywaterway.epa.gov' ||
-        window.location.hostname === 'mywaterway-prod.app.cloud.gov'
-      ) {
-        //EPA (Production) - Just initialize the HMW logs by setting gaTarget
-        window.gaTarget = 'EPA';
-      } else if (
-        window.location.hostname === 'mywaterway-stage.app.cloud.gov'
-      ) {
+      // Configure additional analytics destinations for non-production environments.
+      let trackingId;
+      if (window.location.hostname === 'mywaterway-stage.app.cloud.gov') {
         // Stage
-        window.gaTarget = 'ERG';
-        // TODO: Update GA ID when ready.
-        //configureGoogleAnalytics('UA-37504877-4', 'G-XXXXXXXXXXX');
+        trackingId = 'G-8ZG01NLPFL';
+        configureGoogleAnalytics(trackingId);
       } else if (
         window.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
         window.location.hostname === 'localhost'
       ) {
         // Dev
-        window.gaTarget = 'ERG';
-        configureGoogleAnalytics('UA-37504877-3', 'G-X6JSLPJCWP');
+        trackingId = 'G-X6JSLPJCWP';
+        configureGoogleAnalytics(trackingId, true);
+      }
+
+      // Wrapper for logging to GA
+      function logToGa(name, parameters = {}) {
+        if (!window.gtag) return;
+
+        gtag('event', name, {
+          ...parameters,
+          ...(trackingId && { send_to: trackingId }),
+        });
+      }
+
+      function logErrorToGa(err, fatal = false) {
+        const description =
+          err instanceof Error
+            ? `${err.name}:${err.message}:${err.stack}`
+            : err;
+        window.logToGa('exception', {
+          description,
+          event_label: description,
+          fatal,
+        });
       }
 
       // create the locationChange event
@@ -477,7 +474,7 @@
 
       // create the location change event listener
       window.addEventListener('locationchange', function (event) {
-        logToGa('event', 'page_view', {
+        logToGa('page_view', {
           page_location: window.location,
         });
       });
@@ -516,7 +513,7 @@
           const action = title
             ? 'ow-hmw2-' + text + ' - ' + title
             : 'ow-hmw2-' + text;
-          logToGa('event', 'button_click', {
+          logToGa('button_click', {
             event_action: action,
             event_category: 'buttonClick',
             event_label: window.location.pathname,
@@ -550,7 +547,7 @@
               : 'External'; //External EPA Hyperlink
 
           //Log to Google Analytics
-          logToGa('event', 'link_click', {
+          logToGa('link_click', {
             event_action: action,
             event_category: category,
             event_label: href,
@@ -567,12 +564,7 @@
           event.stopImmediatePropagation();
           return;
         }
-        window.logToGa('event', 'exception', {
-          description: event.error
-            ? `${event.error.message}${event.error.stack}`
-            : event.message,
-          fatal: true,
-        });
+        window.logErrorToGa(event.error ?? event.message, true);
 
         return true;
       });

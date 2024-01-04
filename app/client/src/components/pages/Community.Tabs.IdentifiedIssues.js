@@ -247,20 +247,18 @@ function IdentifiedIssues() {
     );
     if (pollutedPercent > 0 && summaryByParameterImpairments.length === 0) {
       emptyCategoriesWithPercent = true;
-      window.logToGa('event', 'exception', {
-        description: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
-        fatal: false,
-      });
+      window.logErrorToGa(
+        `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
+      );
     }
 
     // check for null percent of assess waters impaired
     const nullPollutedWaterbodies =
       containImpairedWatersCatchmentAreaPercent === null ? true : false;
     if (nullPollutedWaterbodies && summaryByParameterImpairments.length > 0) {
-      window.logToGa('event', 'exception', {
-        description: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
-        fatal: false,
-      });
+      window.logErrorToGa(
+        `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
+      );
     }
 
     setEmptyCategoriesWithPercent(emptyCategoriesWithPercent);

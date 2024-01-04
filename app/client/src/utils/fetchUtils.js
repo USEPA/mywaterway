@@ -252,7 +252,7 @@ export function logCallToGoogleAnalytics(
   const eventLabel = `${url} | status:${status} | time:${duration}`;
 
   // log to google analytics if it has been setup
-  window.logToGa('event', 'service_call', {
+  window.logToGa('service_call', {
     event_action: eventAction,
     event_category: 'Web-service',
     event_label: eventLabel,
