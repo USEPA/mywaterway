@@ -535,7 +535,7 @@
               name = item.name;
             }
           });
-          const action = 'ow-hmw2-' + (name ? name : event.target.text.trim());
+          const action = 'ow-hmw2-' + (name || event.target.text.trim());
 
           const extension = href.split('.').pop;
           const category =
