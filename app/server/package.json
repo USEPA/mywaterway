@@ -33,22 +33,22 @@
     "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.400.0",
-    "axios": "1.5.0",
+    "@aws-sdk/client-s3": "3.485.0",
+    "axios": "1.6.5",
     "dotenv": "16.3.1",
     "express": "4.18.2",
     "express-basic-auth": "1.2.1",
-    "helmet": "7.0.0",
+    "helmet": "7.1.0",
     "log4js": "6.9.1",
-    "node-cron": "3.0.2",
+    "node-cron": "3.0.3",
     "serve-favicon": "2.5.0"
   },
   "devDependencies": {
-    "browser-sync": "2.29.3",
+    "browser-sync": "3.0.2",
     "husky": "8.0.3",
-    "lint-staged": "14.0.1",
-    "nodemon": "3.0.1",
-    "prettier": "3.0.3"
+    "lint-staged": "15.2.0",
+    "nodemon": "3.0.2",
+    "prettier": "3.1.1"
   },
   "husky": {
     "hooks": {
