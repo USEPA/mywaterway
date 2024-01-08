@@ -395,40 +395,25 @@
       // scrolling to odd positions after the page finishes loading
       history.scrollRestoration = 'manual';
 
-      function addGoogleAnalyticsObject() {
-        (function (i, s, o, g, r, a, m) {
-          i['GoogleAnalyticsObject'] = r;
-          (i[r] =
-            i[r] ||
-            function () {
-              (i[r].q = i[r].q || []).push(arguments);
-            }),
-            (i[r].l = 1 * new Date());
-          (a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
-          a.async = 1;
-          a.src = g;
-          m.parentNode.insertBefore(a, m);
-        })(
-          window,
-          document,
-          'script',
-          '//www.google-analytics.com/analytics.js',
-          'ga',
-        );
-      }
+      function configureGoogleAnalytics(id, debug = false) {
+        const gaScript = document.createElement('script');
+        gaScript.async = 1;
+        gaScript.src = `//www.googletagmanager.com/gtag/js?id=${id}`;
 
-      // Wrapper for logging to GA which adds the target to the command
-      function logToGa(command, ...props) {
-        if (!window.ga) return;
-        ga(`${window.gaTarget}.${command}`, ...props);
-      }
+        const firstScript = document.getElementsByTagName('script')[0];
+        firstScript.parentNode.insertBefore(gaScript, firstScript);
 
-      function logErrorToGa(err, fatal = false) {
-        const error = new Error(err);
-        window.logToGa('send', 'exception', {
-          exDescription: `${error.name}:${error.message}:${error.stack}`,
-          exFatal: fatal,
-        });
+        window.dataLayer = window.dataLayer || [];
+        window.gtag =
+          window.gtag ||
+          function () {
+            dataLayer.push(arguments);
+          };
+
+        gtag('js', new Date());
+
+        const options = { ...(debug && { debug_mode: true }) };
+        gtag('config', id, options);
       }
 
       // get origin for mapping proxy calls
@@ -447,136 +432,143 @@
         },
       ];
 
-      //Only setup the logging for public sites, ie don't log from localhost
-      window.gaTarget = '';
-      if (
-        window.location.hostname === 'mywaterway.epa.gov' ||
-        window.location.hostname === 'mywaterway-prod.app.cloud.gov'
-      ) {
-        //EPA (Production) - Just initialize the HMW logs by setting gaTarget
-        window.gaTarget = 'EPA';
-      } else if (
-        window.location.hostname === 'mywaterway-stage.app.cloud.gov'
-      ) {
-        addGoogleAnalyticsObject();
-        ga('create', 'UA-37504877-4', 'auto', 'ERG'); //Stage
-        window.gaTarget = 'ERG';
-        logToGa('send', 'pageview');
+      // Configure analytics destinations for non-production environments.
+      // Production will use the analytics injected by the EPA template.
+      let trackingId;
+      if (window.location.hostname === 'mywaterway-stage.app.cloud.gov') {
+        // Stage
+        trackingId = 'G-8ZG01NLPFL';
+        configureGoogleAnalytics(trackingId);
       } else if (
         window.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
         window.location.hostname === 'localhost'
       ) {
-        addGoogleAnalyticsObject();
-        ga('create', 'UA-37504877-3', 'auto', 'ERG'); //Dev
-        window.gaTarget = 'ERG';
-        logToGa('send', 'pageview');
+        // Dev
+        trackingId = 'G-X6JSLPJCWP';
+        configureGoogleAnalytics(trackingId, true);
       }
 
-      //Only setup the logging for public sites, ie don't log from localhost
-      if (gaTarget) {
-        // create the locationChange event
-        const locationChangeEvent = new Event('locationchange');
+      // Wrapper for logging to GA
+      function logToGa(name, parameters = {}) {
+        if (!window.gtag) return;
 
-        // create the location change event listener
-        window.addEventListener('locationchange', function (event) {
-          logToGa('set', 'page', window.location.pathname);
-          logToGa('send', 'pageview');
+        gtag('event', name, {
+          ...parameters,
+          ...(trackingId && { send_to: trackingId }),
         });
+      }
 
-        // Modify the pushState, replaceState and popState events so they
-        // will trigger the locationchange event.
-        const pushState = history.pushState;
-        history.pushState = function () {
-          pushState.apply(history, arguments);
-          window.dispatchEvent(locationChangeEvent);
-        };
-        const replaceState = history.replaceState;
-        history.replaceState = function () {
-          replaceState.apply(this, arguments);
-          window.dispatchEvent(locationChangeEvent);
-        };
-        window.addEventListener('popstate', function () {
-          window.dispatchEvent(locationChangeEvent);
+      function logErrorToGa(err, fatal = false) {
+        const description =
+          err instanceof Error
+            ? `${err.name}:${err.message}:${err.stack}`
+            : err;
+        window.logToGa('exception', {
+          description,
+          event_label: description,
+          fatal,
         });
+      }
 
-        function wildcardIncludes(str, rule) {
-          const escapeRegex = (str) =>
-            str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
-          return new RegExp(
-            '^' + rule.split('*').map(escapeRegex).join('.*') + '$',
-          ).test(str);
+      // create the locationChange event
+      const locationChangeEvent = new Event('locationchange');
+
+      // create the location change event listener
+      window.addEventListener('locationchange', function (event) {
+        logToGa('page_view', {
+          page_location: window.location,
+        });
+      });
+
+      // Modify the pushState, replaceState and popState events so they
+      // will trigger the locationchange event.
+      const pushState = history.pushState;
+      history.pushState = function () {
+        pushState.apply(history, arguments);
+        window.dispatchEvent(locationChangeEvent);
+      };
+      const replaceState = history.replaceState;
+      history.replaceState = function () {
+        replaceState.apply(this, arguments);
+        window.dispatchEvent(locationChangeEvent);
+      };
+      window.addEventListener('popstate', function () {
+        window.dispatchEvent(locationChangeEvent);
+      });
+
+      function wildcardIncludes(str, rule) {
+        const escapeRegex = (str) =>
+          str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
+        return new RegExp(
+          '^' + rule.split('*').map(escapeRegex).join('.*') + '$',
+        ).test(str);
+      }
+
+      window.addEventListener('click', function (event) {
+        //Button clicks
+        if (event.target.onclick && event.target.textContent) {
+          const text = event.target.textContent.trim();
+          const title = event.target.title.trim();
+
+          //Log to Google Analytics
+          const action = title
+            ? 'ow-hmw2-' + text + ' - ' + title
+            : 'ow-hmw2-' + text;
+          logToGa('button_click', {
+            event_action: action,
+            event_category: 'buttonClick',
+            event_label: window.location.pathname,
+          });
         }
 
-        window.addEventListener('click', function (event) {
-          //Button clicks
-          if (event.target.onclick && event.target.textContent) {
-            const text = event.target.textContent.trim();
-            const title = event.target.title.trim();
+        //Link clicks
+        if (
+          event.target.tagName.toLowerCase() === 'a' &&
+          event.target.target === '_blank'
+        ) {
+          const href = event.target.href;
 
-            //Log to Google Analytics
-            const action = title
-              ? 'ow-hmw2-' + text + ' - ' + title
-              : 'ow-hmw2-' + text;
-            logToGa(
-              'send',
-              'event',
-              'buttonClick',
-              action,
-              window.location.pathname,
-            );
-          }
-
-          //Link clicks
-          if (
-            event.target.tagName.toLowerCase() === 'a' &&
-            event.target.target === '_blank'
-          ) {
-            const href = event.target.href;
-
-            // combine the web service and map service mappings
-            const mapping = window.googleAnalyticsMapping;
-            let name = '';
-            mapping.forEach((item) => {
-              if (!name && wildcardIncludes(href, item.wildcardUrl)) {
-                name = item.name;
-              }
-            });
-            const action =
-              'ow-hmw2-' + (name ? name : event.target.text.trim());
-
-            const extension = href.split('.').pop;
-            const category =
-              window.location.hostname === event.target.hostname
-                ? //Part of the HMW application
-                  extension === '.pdf' || extension === '.zip'
-                  ? 'Download'
-                  : 'Internal'
-                : 'External'; //External EPA Hyperlink
-
-            //Log to Google Analytics
-            logToGa('send', 'event', category, action, href);
-          }
-        });
-
-        window.addEventListener('error', function (event) {
-          if (
-            event.message ===
-              'ResizeObserver loop completed with undelivered notifications.' ||
-            event.message === 'ResizeObserver loop limit exceeded'
-          ) {
-            event.stopImmediatePropagation();
-            return;
-          }
-          window.logToGa('send', 'exception', {
-            exDescription: event.error
-              ? `${event.error.message}${event.error.stack}`
-              : event.message,
-            exFatal: true,
+          // combine the web service and map service mappings
+          const mapping = window.googleAnalyticsMapping;
+          let name = '';
+          mapping.forEach((item) => {
+            if (!name && wildcardIncludes(href, item.wildcardUrl)) {
+              name = item.name;
+            }
           });
+          const action = 'ow-hmw2-' + (name || event.target.text.trim());
 
-          return true;
-        });
-      }
+          const extension = href.split('.').pop;
+          const category =
+            window.location.hostname === event.target.hostname
+              ? //Part of the HMW application
+                extension === '.pdf' || extension === '.zip'
+                ? 'Download'
+                : 'Internal'
+              : 'External'; //External EPA Hyperlink
+
+          //Log to Google Analytics
+          logToGa('link_click', {
+            event_action: action,
+            event_category: category,
+            event_label: href,
+          });
+        }
+      });
+
+      window.addEventListener('error', function (event) {
+        if (
+          event.message ===
+            'ResizeObserver loop completed with undelivered notifications.' ||
+          event.message === 'ResizeObserver loop limit exceeded'
+        ) {
+          event.stopImmediatePropagation();
+          return;
+        }
+        window.logErrorToGa(event.error ?? event.message, true);
+
+        return true;
+      });
     </script>
     <!-- End Google Analytics-->
   </head>

@@ -378,6 +378,19 @@ function Page({ children }: Props) {
               Contact Us
             </a>
           </li>
+          {(process.env.NODE_ENV === 'local' ||
+            process.env.NODE_ENV === 'development') && (
+            <li>
+              <button
+                onClick={() => {
+                  Array(-100);
+                }}
+              >
+                <i className="fas fa-skull-crossbones" aria-hidden="true" />
+                PANIC
+              </button>
+            </li>
+          )}
         </ul>
       </div>
 

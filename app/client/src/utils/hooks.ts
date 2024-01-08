@@ -58,12 +58,6 @@ import type {
   WaterbodyCondition,
 } from 'types';
 
-declare global {
-  interface Window {
-    logToGa: Function;
-  }
-}
-
 let dynamicPopupFields: __esri.Field[] = [];
 
 const allWaterbodiesAlpha = {

@@ -373,12 +373,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         idsNotInAssessmentUnitService &&
         idsNotInAssessmentUnitService.length > 0
       ) {
-        window.logToGa('send', 'exception', {
-          exDescription: `The Assessment Units service did not return data for the following assessment IDs ${idsNotInAssessmentUnitService.join(
+        window.logErrorToGa(
+          `The Assessment Units service did not return data for the following assessment IDs ${idsNotInAssessmentUnitService.join(
             ', ',
           )}`,
-          exFatal: false,
-        });
+        );
       }
 
       const requests = [];
@@ -486,14 +485,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         if (orphanIDs.length === 0) return;
         setWaterbodyCountMismatch(true);
 
-        window.logToGa('send', 'exception', {
-          exDescription: `huc12Summary service contained ${assessmentUnitCount} Assessment Unit IDs but the GIS service contained ${
+        window.logErrorToGa(
+          `huc12Summary service contained ${assessmentUnitCount} Assessment Unit IDs but the GIS service contained ${
             uniqueWaterbodies.length
           } features for HUC ${huc12}. Assessment Unit IDs not found in GIS service: (${orphanIDs.join(
             ', ',
           )})`,
-          exFatal: false,
-        });
+        );
 
         setOrphanFeatures({ features: [], status: 'fetching' });
 
