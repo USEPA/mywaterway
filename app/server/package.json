@@ -1,6 +1,6 @@
 {
   "name": "mywaterway-server",
-  "version": "2.5.0",
+  "version": "2.9.0",
   "description": "A tool to learn about your water resources.",
   "keywords": [
     "MyWaterway",
@@ -25,7 +25,7 @@
     "Max Diebold <max.diebold@erg.com>"
   ],
   "engines": {
-    "node": "18.x"
+    "node": "20.x"
   },
   "main": "app/server.js",
   "scripts": {
