@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
+import { useState } from 'react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ShowLessMore from 'components/shared/ShowLessMore';

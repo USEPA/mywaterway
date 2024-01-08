@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { Children, cloneElement, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import Select from 'react-select';
 // styles
 import { colors, reactSelectStyles } from 'styles/index';
@@ -201,8 +203,13 @@ function AccordionList({
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {Children.map(children, (childElement) => {
-        if (isReactElement(childElement)) {
+        if (
+          isReactElement(childElement) &&
+          childElement.type === 'AccordionItem'
+        ) {
           return cloneElement(childElement, { allExpanded });
+        } else {
+          return childElement;
         }
       })}
     </div>

@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { isValidElement, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { isValidElement, useState } from 'react';
+import { css } from '@emotion/react';
 // types
 import type { ReactNode } from 'react';
 

@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { css, keyframes } from 'styled-components/macro';
+import { css, keyframes } from '@emotion/react';
 import { createPortal, render } from 'react-dom';
 // contexts
 import { useLayersState } from 'contexts/Layers';
@@ -305,7 +307,9 @@ const widgetContentStyles = (visible: boolean) => css`
   opacity: ${visible ? 1 : 0};
   overflow: auto;
   position: absolute;
-  transition: opacity 250ms ease-in-out, margin 250ms ease-in-out;
+  transition:
+    opacity 250ms ease-in-out,
+    margin 250ms ease-in-out;
   right: 32px;
   top: 0px;
   visibility: ${visible ? 'visible' : 'hidden'};
@@ -339,12 +343,12 @@ const widgetContentStyles = (visible: boolean) => css`
           line-height: 1;
           margin-bottom: 10px;
 
-          & > div:first-child {
+          & > div:first-of-type {
             border-left: 3px solid transparent;
             padding: 5px 5px 3.5px;
           }
 
-          & > div:last-child {
+          & > div:last-of-type {
             width: 100%;
             height: 1.5px;
             position: relative;

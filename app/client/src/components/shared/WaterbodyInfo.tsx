@@ -1,10 +1,12 @@
+/** @jsxImportSource @emotion/react */
+
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import ControlPointsGeoreference from '@arcgis/core/layers/support/ControlPointsGeoreference';
 import Extent from '@arcgis/core/geometry/Extent';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
 import Point from '@arcgis/core/geometry/Point';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
-import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
@@ -72,6 +74,7 @@ import {
   tableStyles,
 } from 'styles/index';
 // types
+import type { SerializedStyles } from '@emotion/react';
 import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
@@ -1414,12 +1417,12 @@ const cyanListContentStyles = css`
   }
 `;
 
-const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+const marginBoxStyles = (styles: SerializedStyles) => css`
   ${styles}
   margin: 1em 0;
 `;
 
-const paddedMarginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+const paddedMarginBoxStyles = (styles: SerializedStyles) => css`
   ${styles}
   ${marginBoxStyles(styles)}
   padding: 0.75em;
@@ -2170,8 +2173,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     Total Satellite Image Area: ${pixelArea}
                     <br />
                     ${formatDate(dates[0])} - ${formatDate(
-                    dates[dates.length - 1],
-                  )}
+                      dates[dates.length - 1],
+                    )}
                   `}
                   yTitle={`
                   Percent of Satellite Image Area

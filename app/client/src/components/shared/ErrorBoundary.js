@@ -1,14 +1,16 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { Component } from 'react';
-import type { Node } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
+import { Component } from 'react';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LookupFilesContext } from 'contexts/LookupFiles';
 // utilities
 import { createMarkup } from 'utils/utils';
+// types
+import type { Node } from 'react';
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}
@@ -16,11 +18,11 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
-const errorBannerStyles = css`
+const errorBannerStyles = (textColor, bgColor) => css`
   margin: 1rem;
   text-align: center;
-  background-color: ${(props) => props.backgroundColor};
-  color: ${(props) => props.color};
+  background-color: ${bgColor};
+  color: ${textColor};
   padding: 10px 5px;
   text-align: center;
   p {
@@ -70,17 +72,16 @@ class ErrorBoundary extends Component<Props, State> {
         <>
           {data?.['all'] && (
             <div
-              css={errorBannerStyles}
-              color={data['all'].color}
-              backgroundColor={data['all'].backgroundColor}
+              css={errorBannerStyles(data.all.color, data.all.backgroundColor)}
               dangerouslySetInnerHTML={createMarkup(data['all'].message)}
             />
           )}
           {data && Object.keys(data).includes(page) && (
             <div
-              css={errorBannerStyles}
-              color={data[page].color}
-              backgroundColor={data[page].backgroundColor}
+              css={errorBannerStyles(
+                data[page].color,
+                data[page].backgroundColor,
+              )}
               dangerouslySetInnerHTML={createMarkup(data[page].message)}
             />
           )}

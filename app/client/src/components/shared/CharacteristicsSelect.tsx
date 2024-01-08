@@ -1,6 +1,8 @@
+/** @jsxImportSource @emotion/react */
+
 import { useContext, useMemo } from 'react';
 import Select from 'react-select';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import MenuList from 'components/shared/MenuList';

@@ -1,10 +1,12 @@
+/** @jsxImportSource @emotion/react */
+
 import { useMemo } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // types
 import type { ReactNode } from 'react';
-import type { FlattenSimpleInterpolation } from 'styled-components';
+import type { SerializedStyles } from '@emotion/react';
 
 /*
 ## Styles
@@ -112,7 +114,7 @@ const rowCellStyles = css`
 interface BoxContentProps {
   layout?: 'grid' | 'flex';
   rows: RowProps[];
-  styles?: FlattenSimpleInterpolation;
+  styles?: SerializedStyles;
 }
 
 export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
@@ -183,7 +185,7 @@ function Row({ label, value, status = 'success' }: RowProps) {
 }
 
 interface FlexRowProps extends RowProps {
-  styles?: FlattenSimpleInterpolation;
+  styles?: SerializedStyles;
 }
 
 export function FlexRow({

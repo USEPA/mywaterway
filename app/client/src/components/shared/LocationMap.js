@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Node } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import Polygon from '@arcgis/core/geometry/Polygon';

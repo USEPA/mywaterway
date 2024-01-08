@@ -1,15 +1,5 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { createPortal, render } from 'react-dom';
-import { Rnd } from 'react-rnd';
-import Select from 'react-select';
-import { css } from 'styled-components/macro';
+/** @jsxImportSource @emotion/react */
+
 import Polygon from '@arcgis/core/geometry/Polygon';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
 import Expand from '@arcgis/core/widgets/Expand';
@@ -26,6 +16,18 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
+import { css } from '@emotion/react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal, render } from 'react-dom';
+import { Rnd } from 'react-rnd';
+import Select from 'react-select';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AddSaveDataWidget from 'components/shared/AddSaveDataWidget';

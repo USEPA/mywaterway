@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { MouseEvent, useContext, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { MouseEvent, useContext, useEffect, useState } from 'react';
+import { css } from '@emotion/react';
 import Select from 'react-select';
 import IdentityManager from '@arcgis/core/identity/IdentityManager';
 import OAuthInfo from '@arcgis/core/identity/OAuthInfo';
@@ -617,15 +618,15 @@ function SavePanel({ visible }: Props) {
           if (Object.values(effluentToggleObject).some((t) => !t)) {
             layerDisclaimers.push(`
               <i>${value.label}</i> is filtered to ${buildFilterString(
-              Object.entries(effluentToggleObject)
-                .filter(([_key, toggled]) => toggled)
-                .map(
-                  ([key, _toggled]) =>
-                    `dischargers with${
-                      key === 'compliant' ? 'out' : ''
-                    } significant effluent violations`,
-                ),
-            )}.
+                Object.entries(effluentToggleObject)
+                  .filter(([_key, toggled]) => toggled)
+                  .map(
+                    ([key, _toggled]) =>
+                      `dischargers with${
+                        key === 'compliant' ? 'out' : ''
+                      } significant effluent violations`,
+                  ),
+              )}.
             `);
           }
         } else if (dischargerPermitComponents) {
@@ -649,8 +650,8 @@ function SavePanel({ visible }: Props) {
 
             layerDisclaimers.push(`
               <i>${value.label}</i> is filtered to ${buildFilterString(
-              filters,
-            )}.
+                filters,
+              )}.
             `);
           }
         }
