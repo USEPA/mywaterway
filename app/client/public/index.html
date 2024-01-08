@@ -433,6 +433,7 @@
       ];
 
       // Configure analytics destinations for non-production environments.
+      // Production will use the analytics injected by the EPA template.
       let trackingId;
       if (window.location.hostname === 'mywaterway-stage.app.cloud.gov') {
         // Stage
