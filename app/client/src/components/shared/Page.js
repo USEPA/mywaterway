@@ -378,19 +378,6 @@ function Page({ children }: Props) {
               Contact Us
             </a>
           </li>
-          {(window.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
-            window.location.hostname === 'localhost') && (
-            <li>
-              <button
-                onClick={() => {
-                  Array(-100);
-                }}
-              >
-                <i className="fas fa-skull-crossbones" aria-hidden="true" />
-                PANIC
-              </button>
-            </li>
-          )}
         </ul>
       </div>
 
