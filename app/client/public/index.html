@@ -435,7 +435,9 @@
       // Configure analytics destinations for non-production environments.
       // Production will use the analytics injected by the EPA template.
       let trackingId;
+      console.log('window.location.hostname: ', window.location.hostname);
       if (window.location.hostname === 'mywaterway-stage.app.cloud.gov') {
+        console.log('setup gtag for staging...');
         // Stage
         trackingId = 'G-8ZG01NLPFL';
         configureGoogleAnalytics(trackingId);
@@ -443,9 +445,12 @@
         window.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
         window.location.hostname === 'localhost'
       ) {
+        console.log('setup gtag for dev/localhost...');
         // Dev
         trackingId = 'G-X6JSLPJCWP';
         configureGoogleAnalytics(trackingId, true);
+      } else {
+        console.log('skip gtag setup...');
       }
 
       // Wrapper for logging to GA

@@ -378,8 +378,8 @@ function Page({ children }: Props) {
               Contact Us
             </a>
           </li>
-          {(process.env.NODE_ENV === 'local' ||
-            process.env.NODE_ENV === 'development') && (
+          {(window.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
+            window.location.hostname === 'localhost') && (
             <li>
               <button
                 onClick={() => {
