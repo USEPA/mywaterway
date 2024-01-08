@@ -17,6 +17,9 @@ import { FetchedDataProvider } from 'contexts/FetchedData';
 import { SurroundingsProvider } from 'contexts/Surroundings';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
+// styles
+import '@arcgis/core/assets/esri/themes/light/main.css';
+import 'styles/mapStyles.css';
 // types
 // required once project-wide
 import type {} from 'styled-components/cssprop';

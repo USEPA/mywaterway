@@ -59,7 +59,7 @@
     "web-vitals": "3.5.1"
   },
   "dependencies": {
-    "@arcgis/core": "4.27.6",
+    "@arcgis/core": "4.28.10",
     "@radix-ui/react-dialog": "1.0.5",
     "@reach/tabs": "0.18.0",
     "@reach/tooltip": "0.18.0",
