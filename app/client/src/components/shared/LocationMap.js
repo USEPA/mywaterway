@@ -78,7 +78,6 @@ import {
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors } from 'styles/index';
-import 'styles/mapStyles.css';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {

@@ -41,8 +41,6 @@ import {
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
-// styles
-import 'styles/mapStyles.css';
 // errors
 import {
   esriMapLoadingFailure,
