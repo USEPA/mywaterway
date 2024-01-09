@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useCallback, useEffect, useState } from 'react';
 import type { Node } from 'react';
-import { css, createGlobalStyle } from 'styled-components/macro';
+import { css, Global } from '@emotion/react';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -21,7 +22,7 @@ function termsInDOM() {
   return items && items.length > 0;
 }
 
-const TermStyles = createGlobalStyle`
+const termStyles = css`
   span[data-term] {
     border-bottom: 1px dotted rgba(0, 113, 188, 0.75);
     cursor: pointer;
@@ -228,7 +229,7 @@ function GlossaryPanel({ path }) {
 
   return (
     <>
-      <TermStyles />
+      <Global styles={termStyles} />
 
       <div
         css={panelStyles}

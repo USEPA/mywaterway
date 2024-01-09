@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { useContext, useEffect, useState } from 'react';
+import { css } from '@emotion/react';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import * as query from '@arcgis/core/rest/query';

@@ -1,9 +1,10 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
+import { css } from '@emotion/react';
 import uniqueId from 'lodash/uniqueId';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';

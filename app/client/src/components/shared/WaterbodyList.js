@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext } from 'react';
-import { css } from 'styled-components/macro';
+import { useContext } from 'react';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';

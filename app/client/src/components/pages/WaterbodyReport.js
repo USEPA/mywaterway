@@ -1,9 +1,10 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { Fragment, useEffect, useRef, useState } from 'react';
+import { css } from '@emotion/react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { WindowSize } from '@reach/window-size';
-import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 // components
 import Page from 'components/shared/Page';
@@ -169,7 +170,7 @@ const useNameStyles = css`
   line-height: 1.125;
 `;
 
-const useStatusStyles = css`
+const waterbodyUseStatusStyles = (textColor, bgColor) => css`
   flex-shrink: 0; /* prevent wrapping on whitespace */
   display: inline-block;
   margin-top: 0 !important;
@@ -178,8 +179,8 @@ const useStatusStyles = css`
   border-radius: 3px;
   font-size: 0.75rem !important;
   line-height: 1.375;
-  color: ${({ textColor }) => textColor};
-  background-color: ${({ bgColor }) => bgColor};
+  color: ${textColor};
+  background-color: ${bgColor};
   user-select: none;
 `;
 
@@ -1208,9 +1209,10 @@ function WaterbodyReport() {
                                           {titleCaseWithExceptions(use.name)}
                                         </strong>
                                         <span
-                                          css={useStatusStyles}
-                                          textColor={use.status.textColor}
-                                          bgColor={use.status.bgColor}
+                                          css={waterbodyUseStatusStyles(
+                                            use.status.textColor,
+                                            use.status.bgColor,
+                                          )}
                                         >
                                           {use.status.text}
                                         </span>

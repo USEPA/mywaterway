@@ -1,5 +1,7 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+/** @jsxImportSource @emotion/react */
+
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';

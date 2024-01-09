@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { css } from '@emotion/react';
 import {
   useTable,
   useSortBy,

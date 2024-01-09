@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 // components
 import Page from 'components/shared/Page';

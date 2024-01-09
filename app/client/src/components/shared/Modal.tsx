@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import * as Dialog from '@radix-ui/react-dialog';
 // types
 import type { ReactNode } from 'react';

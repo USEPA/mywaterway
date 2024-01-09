@@ -1,3 +1,5 @@
+/** @jsxImportSource @emotion/react */
+
 import {
   ReactNode,
   useEffect,
@@ -6,7 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useRanger } from 'react-ranger';
 import { v4 as uuid } from 'uuid';
 // components

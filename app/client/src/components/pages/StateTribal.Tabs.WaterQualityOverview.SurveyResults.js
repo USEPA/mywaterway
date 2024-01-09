@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';

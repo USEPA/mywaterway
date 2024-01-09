@@ -1,13 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, {
-  Fragment,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
-import { css } from 'styled-components/macro';
+import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
+import { css } from '@emotion/react';
 import { useDropzone } from 'react-dropzone';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Field from '@arcgis/core/layers/support/Field';

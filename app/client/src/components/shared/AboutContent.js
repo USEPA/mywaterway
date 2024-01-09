@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useEffect } from 'react';
-import { css } from 'styled-components/macro';
+import { useEffect } from 'react';
+import { css } from '@emotion/react';
 import { Tab, Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';

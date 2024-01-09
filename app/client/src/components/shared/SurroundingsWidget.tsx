@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { css, keyframes } from 'styled-components/macro';
+import { css, keyframes } from '@emotion/react';
 import { createPortal } from 'react-dom';
 import { Root, createRoot } from 'react-dom/client';
 // contexts
@@ -350,12 +352,12 @@ const widgetContentStyles = (visible: boolean) => css`
           line-height: 1;
           margin-bottom: 10px;
 
-          & > div:first-child {
+          & > div:first-of-type {
             border-left: 3px solid transparent;
             padding: 5px 5px 3.5px;
           }
 
-          & > div:last-child {
+          & > div:last-of-type {
             width: 100%;
             height: 1.5px;
             position: relative;

@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { linkButtonStyles } from 'components/shared/LinkButton';
