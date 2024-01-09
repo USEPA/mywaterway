@@ -205,7 +205,10 @@ function AccordionList({
       {Children.map(children, (childElement) => {
         if (
           isReactElement(childElement) &&
-          childElement.type === 'AccordionItem'
+          ((typeof childElement.type === 'string' &&
+            childElement.type === 'AccordionItem') ||
+            (typeof childElement.type !== 'string' &&
+              childElement.type.name === 'AccordionItem'))
         ) {
           return cloneElement(childElement, { allExpanded });
         } else {
