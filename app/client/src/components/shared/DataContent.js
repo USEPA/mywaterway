@@ -171,8 +171,7 @@ function DataContent() {
         return;
 
       const node = document.createElement('span');
-      createRoot(
-        node,
+      createRoot(node).render(
         <GlossaryTerm term={span.dataset.term}>{span.innerText}</GlossaryTerm>,
       );
       span.parentNode.replaceChild(node, span);

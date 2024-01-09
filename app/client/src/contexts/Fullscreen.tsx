@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 
 type State = {
@@ -17,6 +17,16 @@ export function FullscreenProvider({ children }: Props) {
   const [fullscreenActive, setFullscreenActive] = useState(false);
   const state: State = useMemo(() => {
     return { fullscreenActive, setFullscreenActive };
+  }, [fullscreenActive]);
+
+  // Hide the 'back-to-top' button when fullscreen is active.
+  useEffect(() => {
+    const backToTop = document.querySelector(
+      '.back-to-top',
+    ) as HTMLElement | null;
+    if (!backToTop) return;
+
+    backToTop.style.display = fullscreenActive ? 'none' : 'flex';
   }, [fullscreenActive]);
 
   return (
