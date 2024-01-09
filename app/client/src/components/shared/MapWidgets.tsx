@@ -6,7 +6,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal, render } from 'react-dom';
+import { createPortal } from 'react-dom';
+import { Root, createRoot } from 'react-dom/client';
 import { Rnd } from 'react-rnd';
 import Select from 'react-select';
 import { css } from 'styled-components/macro';
@@ -73,7 +74,6 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { Container } from 'react-dom';
 import type { Feature, ServicesState } from 'types';
 // styles
 import { fonts } from 'styles';
@@ -227,10 +227,12 @@ const orderedLayers = [
   'searchIconLayer',
 ];
 
+let legendRoot: Root | null = null;
+
 function updateLegend(
   view: __esri.MapView,
   displayEsriLegend: boolean,
-  hmwLegendNode: Container,
+  hmwLegendNode: Element | DocumentFragment,
   additionalLegendInfo: Object,
 ) {
   if (!view?.map?.layers) return;
@@ -280,15 +282,20 @@ function updateLegend(
     }
   });
 
-  render(
+  const content = (
     <MapLegend
       view={view}
       displayEsriLegend={displayEsriLegend}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
-    />,
-    hmwLegendNode,
+    />
   );
+
+  if (legendRoot) legendRoot.render(content);
+  else {
+    legendRoot = createRoot(hmwLegendNode);
+    legendRoot.render(content);
+  }
 }
 
 const resizeHandleStyles = css`
@@ -664,12 +671,11 @@ function MapWidgets({
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 2 });
 
-    render(
+    createRoot(node).render(
       <ShowAddSaveDataWidget
         addSaveDataWidgetVisible={addSaveDataWidgetVisible}
         setAddSaveDataWidgetVisible={setAddSaveDataWidgetVisible}
       />,
-      node,
     );
 
     window.addEventListener('resize', handleResize);
@@ -902,13 +908,12 @@ function MapWidgets({
     // create the basemap/layers widget
     const node = document.createElement('div');
     view.ui.add(node, { position: 'bottom-right', index: 0 });
-    render(
+    createRoot(node).render(
       <ExpandCollapse
         fullscreenActive={fullscreenActive}
         setFullscreenActive={setFullscreenActive}
         mapViewSetter={setMapView}
       />,
-      node,
     );
     setFullScreenWidgetCreated(true);
   }, [
@@ -924,7 +929,9 @@ function MapWidgets({
     if (!view || services.status !== 'success') return;
 
     const container = document.createElement('div');
-    render(<DownloadWidget services={services} view={view} />, container);
+    createRoot(container).render(
+      <DownloadWidget services={services} view={view} />,
+    );
 
     const downloadWidget = new Expand({
       expandIconClass: 'esri-icon-printer',
@@ -1038,7 +1045,7 @@ function MapWidgets({
       />
     );
 
-    render(widget, node);
+    createRoot(node).render(widget);
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     view.ui.add(node, { position: 'top-right', index: 4 });
 
@@ -1736,7 +1743,7 @@ function ShowSelectedUpstreamWatershed({
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
   const handleHucSelection = useCallback(
-    (ev) => {
+    (ev: __esri.ViewClickEvent) => {
       setSelectionActive(false);
 
       if (!view) return;
@@ -1863,40 +1870,37 @@ function ShowSelectedUpstreamWatershed({
 
   // Enable triggering of the map click handler if the upstream
   // watershed is not visible, otherwise hide the upstream watershed
-  const selectUpstream = useCallback(
-    (_ev) => {
-      if (!upstreamLayer) return;
+  const selectUpstream = useCallback(() => {
+    if (!upstreamLayer) return;
 
-      if (upstreamLayer.visible) {
-        const currentExtent = getCurrentExtent();
-        currentExtent && view?.goTo(currentExtent);
+    if (upstreamLayer.visible) {
+      const currentExtent = getCurrentExtent();
+      currentExtent && view?.goTo(currentExtent);
 
-        setInstructionsVisible(false);
+      setInstructionsVisible(false);
 
-        upstreamLayer.visible = false;
-        upstreamLayer.graphics.removeAll();
-        updateVisibleLayers({ upstreamLayer: false });
+      upstreamLayer.visible = false;
+      upstreamLayer.graphics.removeAll();
+      updateVisibleLayers({ upstreamLayer: false });
 
-        if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
-        return;
-      }
+      if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+      return;
+    }
 
-      if (watershedsLayer) {
-        setWatershedsVisible(watershedsLayer.visible);
-        watershedsLayer.visible = true;
-      }
+    if (watershedsLayer) {
+      setWatershedsVisible(watershedsLayer.visible);
+      watershedsLayer.visible = true;
+    }
 
-      setSelectionActive(true);
-    },
-    [
-      getCurrentExtent,
-      updateVisibleLayers,
-      upstreamLayer,
-      view,
-      watershedsLayer,
-      watershedsVisible,
-    ],
-  );
+    setSelectionActive(true);
+  }, [
+    getCurrentExtent,
+    updateVisibleLayers,
+    upstreamLayer,
+    view,
+    watershedsLayer,
+    watershedsVisible,
+  ]);
 
   return (
     <>

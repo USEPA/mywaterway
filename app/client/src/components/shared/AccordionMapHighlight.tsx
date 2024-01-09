@@ -12,7 +12,7 @@ import type { ReactNode } from 'react';
 
 type AccordionItemProps = {
   ariaLabel?: string;
-  icon?: Object;
+  icon?: ReactNode;
   title: ReactNode;
   subTitle?: ReactNode;
   feature?: __esri.Graphic;

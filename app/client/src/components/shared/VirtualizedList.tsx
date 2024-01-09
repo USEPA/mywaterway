@@ -27,7 +27,7 @@ function RowRenderer({ data, index, style }: RowRendererProps) {
   }, [resizeObserver]);
 
   const callbackRef = useCallback(
-    (node) => {
+    (node: HTMLDivElement) => {
       if (!node) return;
       resizeObserver.observe(node);
       rowRef.current = node;

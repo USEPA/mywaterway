@@ -1,7 +1,7 @@
 // @flow
 
 import { useEffect } from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { css } from 'styled-components/macro';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -171,9 +171,9 @@ function DataContent() {
         return;
 
       const node = document.createElement('span');
-      render(
-        <GlossaryTerm term={span.dataset.term}>{span.innerText}</GlossaryTerm>,
+      createRoot(
         node,
+        <GlossaryTerm term={span.dataset.term}>{span.innerText}</GlossaryTerm>,
       );
       span.parentNode.replaceChild(node, span);
     });
