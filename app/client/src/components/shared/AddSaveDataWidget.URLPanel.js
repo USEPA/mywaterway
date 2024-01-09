@@ -1,14 +1,6 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, {
-  Fragment,
-  MouseEvent,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
-import { css } from 'styled-components/macro';
-import Select from 'react-select';
 import CSVLayer from '@arcgis/core/layers/CSVLayer';
 import GeoRSSLayer from '@arcgis/core/layers/GeoRSSLayer';
 import KMLLayer from '@arcgis/core/layers/KMLLayer';
@@ -16,6 +8,9 @@ import Layer from '@arcgis/core/layers/Layer';
 import WCSLayer from '@arcgis/core/layers/WCSLayer';
 import WFSLayer from '@arcgis/core/layers/WFSLayer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
+import { css } from '@emotion/react';
+import { Fragment, MouseEvent, useContext, useEffect, useState } from 'react';
+import Select from 'react-select';
 // components
 import { linkButtonStyles } from 'components/shared/LinkButton';
 import LoadingSpinner from 'components/shared/LoadingSpinner';

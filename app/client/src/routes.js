@@ -1,8 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import Home from 'components/pages/Home';
 import Attains from 'components/pages/Attains';

@@ -1,14 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { Node } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';

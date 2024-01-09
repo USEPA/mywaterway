@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useContext } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { ListContent } from 'components/shared/BoxContent';

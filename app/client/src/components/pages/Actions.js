@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
 // components

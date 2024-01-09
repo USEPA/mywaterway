@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
 // components
@@ -170,9 +171,9 @@ const filtersSectionStyles = css`
   background-color: whitesmoke;
 `;
 
-const drinkingWaterSectionStyles = css`
+const drinkingWaterSectionStyles = (displayed) => css`
   ${sectionStyles}
-  display: ${({ displayed }) => (displayed ? 'block' : 'none')};
+  display: ${displayed ? 'block' : 'none'};
   /* add top border to replicate bottom accordion border that was
   removed from 'Top Polltants' accordion in SiteSpecific component */
   margin-left: -1.5em;
@@ -1058,11 +1059,10 @@ function WaterQualityOverview() {
                 />
 
                 <div
-                  css={drinkingWaterSectionStyles}
-                  displayed={
+                  css={drinkingWaterSectionStyles(
                     currentTopic === 'drinking' &&
-                    activeState.source === 'State'
-                  }
+                      activeState.source === 'State',
+                  )}
                 >
                   <h3>
                     <img

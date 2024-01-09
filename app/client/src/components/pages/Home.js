@@ -1,7 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { Link } from 'react-router-dom';
 // components
 import Page from 'components/shared/Page';

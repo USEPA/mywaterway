@@ -1,7 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useLocation } from 'react-router-dom';
 // styles
 import { colors } from 'styles/index';

@@ -1,6 +1,6 @@
 // @flow
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 
 const boxStyles = css`
   padding: 0.5em 0.75em !important;

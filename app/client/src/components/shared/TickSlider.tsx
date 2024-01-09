@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { useRanger } from 'react-ranger';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 

@@ -1,6 +1,9 @@
+/** @jsxImportSource @emotion/react */
+
 import Basemap from '@arcgis/core/Basemap';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
+import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import {
   useCallback,
@@ -13,7 +16,6 @@ import {
 } from 'react';
 import { useParams } from 'react-router-dom';
 import Select from 'react-select';
-import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { BoxContent, FlexRow } from 'components/shared/BoxContent';
@@ -226,12 +228,12 @@ const downloadLinksStyles = css`
     vertical-align: top;
     width: 50%;
 
-    &:first-child {
+    &:first-of-type {
       font-weight: normal;
       padding-left: 1rem;
       text-align: start;
     }
-    &:last-child {
+    &:last-of-type {
       font-weight: bold;
       padding-right: 1rem;
       text-align: end;
@@ -242,7 +244,7 @@ const downloadLinksStyles = css`
     margin-top: 0;
     line-height: 1em;
     font-size: 1em;
-    &:nth-child(n + 2) {
+    &:nth-of-type(n + 2) {
       margin-top: 0.5em;
     }
   }
@@ -2288,12 +2290,10 @@ function MonitoringReportContent() {
       <MapVisibilityButton>
         {(mapShown) => (
           <div
-            style={{
-              display: mapShown ? 'block' : 'none',
-              height: height - 40,
-            }}
-            css={`
-              ${boxStyles};
+            css={css`
+              ${modifiedBoxStyles};
+              height: ${height - 40}px;
+              display: ${mapShown ? 'block' : 'none'};
             `}
           >
             <SiteMapContainer
@@ -2311,12 +2311,10 @@ function MonitoringReportContent() {
 
   const mapWide = (
     <div
-      style={{
-        height: mapWidth,
-        minHeight: '400px',
-      }}
-      css={`
-        ${boxStyles};
+      css={css`
+        ${modifiedBoxStyles};
+        height: ${mapWidth}px;
+        min-height: 400px;
       `}
     >
       <SiteMapContainer

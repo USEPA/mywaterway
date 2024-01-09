@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { Fragment, useContext, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { Fragment, useContext, useState } from 'react';
+import { css } from '@emotion/react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -121,8 +122,8 @@ const modifiedLinkButtonStyles = css`
   padding: 5px;
 `;
 
-const layerPanelStyles = css`
-  display: ${({ layerPanelVisible }) => (layerPanelVisible ? 'flex' : 'none')};
+const layerPanelStyles = (visible) => css`
+  display: ${visible ? 'flex' : 'none'};
   flex-flow: column;
   height: 100%;
 `;
@@ -247,7 +248,7 @@ function AddSaveDataWidget() {
             </TabPanels>
           </Tabs>
         </div>
-        <div css={layerPanelStyles} layerPanelVisible={layerPanelVisible}>
+        <div css={layerPanelStyles(layerPanelVisible)}>
           <h2 css={layerPanelHeaderStyles}>Layers</h2>
           <div css={recordListStyles}>
             {layersToDisplay.length === 0 && (

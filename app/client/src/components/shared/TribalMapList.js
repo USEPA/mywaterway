@@ -1,4 +1,6 @@
-import React, {
+/** @jsxImportSource @emotion/react */
+
+import {
   Fragment,
   useCallback,
   useContext,
@@ -7,7 +9,7 @@ import React, {
 } from 'react';
 import { useWindowSize } from '@reach/window-size';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import Basemap from '@arcgis/core/Basemap';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';

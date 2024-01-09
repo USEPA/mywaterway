@@ -1,6 +1,6 @@
 // @flow
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 
 const searchTitleStyles = css`
   padding: 1rem;

@@ -1,8 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
-import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useWindowSize } from '@reach/window-size';
 // components

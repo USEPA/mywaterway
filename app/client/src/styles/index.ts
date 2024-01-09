@@ -1,4 +1,4 @@
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { CSSObjectWithLabel } from 'react-select';
 
 export const colors = {
