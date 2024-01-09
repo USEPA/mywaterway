@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { css, createGlobalStyle } from 'styled-components/macro';
 // components
@@ -187,38 +187,44 @@ function GlossaryPanel({ path }) {
   const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
     useGlossaryState();
 
-  // initialize Glossary panel
-  useEffect(() => {
+  const [terms, setTerms] = useState([]);
+  // Initialize the glossary panel.
+  const initializeTerms = useCallback(() => {
     if (!window.hasOwnProperty('fetchGlossaryTerms')) return;
 
-    if (!initialized) {
-      setInitialized(true);
+    // Do not initialize glossary if terms on the dom
+    if (termsInDOM()) return;
 
-      // Do not initialize glossary if terms on the dom
-      if (termsInDOM()) return;
+    // initialize the glossary
+    window.fetchGlossaryTerms
+      .then((terms) => {
+        setGlossaryStatus(terms.status);
+        setTerms(terms.data);
+      })
+      .catch((err) => {
+        if (isAbort(err)) return;
+        setGlossaryStatus('failure');
+        setTerms([]);
+        console.error(err);
+      })
+      .finally(() => setInitialized(true));
+  }, [setGlossaryStatus, setInitialized]);
 
-      // initialize the glossary
-      window.fetchGlossaryTerms
-        .then((terms) => {
-          setGlossaryStatus(terms.status);
-          try {
-            new Glossary(terms.data);
-          } catch (err) {
-            console.error(err);
-          }
-        })
-        .catch((err) => {
-          if (isAbort(err)) return;
-          console.error(err);
-        });
+  useEffect(() => {
+    if (glossaryStatus !== 'success') return;
+
+    try {
+      new Glossary(terms);
+    } catch (err) {
+      console.error(err);
     }
-  });
+  }, [glossaryStatus, initialized, setGlossaryStatus, setInitialized, terms]);
 
   // Reset initialized flag to re-initialize the Glossary
   useEffect(() => {
     // set the initialized flag to false if there are no glossary terms on the DOM
-    if (!termsInDOM()) setInitialized(false);
-  }, [path, setInitialized]);
+    if (!termsInDOM()) initializeTerms();
+  }, [path, initializeTerms]);
 
   return (
     <>
@@ -283,13 +289,15 @@ type Props = {
 };
 
 function GlossaryTerm({ term, className, id, style, children }: Props) {
-  const [status, setStatus] = useState('fetching');
+  const [status, setStatus] = useState('idle');
 
-  if (window.hasOwnProperty('fetchGlossaryTerms')) {
+  if (window.hasOwnProperty('fetchGlossaryTerms') && status === 'idle') {
+    setStatus('fetching');
     window.fetchGlossaryTerms
       .then((terms) => setStatus(terms.status))
       .catch((err) => {
         if (isAbort(err)) return;
+        setStatus('failure');
         console.error(err);
       });
   }
@@ -298,7 +306,7 @@ function GlossaryTerm({ term, className, id, style, children }: Props) {
     <span
       id={id}
       data-term={term}
-      data-disabled={status === 'fetching'}
+      data-disabled={status !== 'success'}
       title="Click to define"
       tabIndex="0"
       className={className}

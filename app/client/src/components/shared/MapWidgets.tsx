@@ -2701,7 +2701,7 @@ const downloadButtonStyles = css`
 `;
 
 const downloadWidgetContainerStyles = css`
-  padding: 12px 10px 0;
+  padding: 12px 10px;
 
   h1 {
     font-family: ${fonts.primary};
