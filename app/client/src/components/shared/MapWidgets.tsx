@@ -227,14 +227,13 @@ const orderedLayers = [
   'searchIconLayer',
 ];
 
-let legendRoot: Root | null = null;
-
 function updateLegend(
   view: __esri.MapView,
   displayEsriLegend: boolean,
-  hmwLegendNode: Element | DocumentFragment,
+  hmwLegendRoot: Root | null,
   additionalLegendInfo: Object,
 ) {
+  if (!hmwLegendRoot) return;
   if (!view?.map?.layers) return;
 
   // build an array of layers that are visible based on the ordering above
@@ -282,20 +281,14 @@ function updateLegend(
     }
   });
 
-  const content = (
+  hmwLegendRoot.render(
     <MapLegend
       view={view}
       displayEsriLegend={displayEsriLegend}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
-    />
+    />,
   );
-
-  if (legendRoot) legendRoot.render(content);
-  else {
-    legendRoot = createRoot(hmwLegendNode);
-    legendRoot.render(content);
-  }
 }
 
 const resizeHandleStyles = css`
@@ -561,6 +554,8 @@ function MapWidgets({
   const [hmwLegendNode] = useState(hmwLegendTemp);
   const [esriLegendNode] = useState(esriLegendTemp);
   const [legendNode] = useState(legendTemp);
+  const legendRoot = useRef<Root | null>(null);
+  if (!legendRoot.current) legendRoot.current = createRoot(hmwLegendNode);
 
   // Creates and adds the legend widget to the map
   const [legend, setLegend] = useState<__esri.Expand | null>(null);
@@ -789,7 +784,7 @@ function MapWidgets({
           updateLegend(
             view,
             displayEsriLegend,
-            hmwLegendNode,
+            legendRoot.current,
             additionalLegendInfoNonState,
           );
 
@@ -798,7 +793,7 @@ function MapWidgets({
               updateLegend(
                 view,
                 displayEsriLegend,
-                hmwLegendNode,
+                legendRoot.current,
                 additionalLegendInfoNonState,
               );
               const dict = {
@@ -870,7 +865,7 @@ function MapWidgets({
         updateLegend(
           view,
           displayEsriLegend,
-          hmwLegendNode,
+          legendRoot.current,
           additionalLegendInfoNonState,
         );
       },
@@ -1082,7 +1077,12 @@ function MapWidgets({
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
   useEffect(() => {
-    updateLegend(view, displayEsriLegend, hmwLegendNode, additionalLegendInfo);
+    updateLegend(
+      view,
+      displayEsriLegend,
+      legendRoot.current,
+      additionalLegendInfo,
+    );
   }, [
     additionalLegendInfo,
     surroundingsVisible,
