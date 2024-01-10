@@ -184,7 +184,7 @@ function MapMouseEvents({ view }: Props) {
   }, [monitoringFeatureUpdates, view]);
 
   const handleMapClick = useCallback(
-    (event, view) => {
+    (event: ClickEvent, view: __esri.MapView) => {
       // get the point location of the user's click
       const point = new Point({
         x: event.mapPoint.longitude,

@@ -25,7 +25,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal, render } from 'react-dom';
+import { createPortal } from 'react-dom';
+import { Root, createRoot } from 'react-dom/client';
 import { Rnd } from 'react-rnd';
 import Select from 'react-select';
 // components
@@ -75,7 +76,6 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { Container } from 'react-dom';
 import type { Feature, ServicesState } from 'types';
 // styles
 import { fonts } from 'styles';
@@ -232,9 +232,10 @@ const orderedLayers = [
 function updateLegend(
   view: __esri.MapView,
   displayEsriLegend: boolean,
-  hmwLegendNode: Container,
+  hmwLegendRoot: Root | null,
   additionalLegendInfo: Object,
 ) {
+  if (!hmwLegendRoot) return;
   if (!view?.map?.layers) return;
 
   // build an array of layers that are visible based on the ordering above
@@ -282,14 +283,13 @@ function updateLegend(
     }
   });
 
-  render(
+  hmwLegendRoot.render(
     <MapLegend
       view={view}
       displayEsriLegend={displayEsriLegend}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
     />,
-    hmwLegendNode,
   );
 }
 
@@ -556,6 +556,8 @@ function MapWidgets({
   const [hmwLegendNode] = useState(hmwLegendTemp);
   const [esriLegendNode] = useState(esriLegendTemp);
   const [legendNode] = useState(legendTemp);
+  const legendRoot = useRef<Root | null>(null);
+  if (!legendRoot.current) legendRoot.current = createRoot(hmwLegendNode);
 
   // Creates and adds the legend widget to the map
   const [legend, setLegend] = useState<__esri.Expand | null>(null);
@@ -666,12 +668,11 @@ function MapWidgets({
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 2 });
 
-    render(
+    createRoot(node).render(
       <ShowAddSaveDataWidget
         addSaveDataWidgetVisible={addSaveDataWidgetVisible}
         setAddSaveDataWidgetVisible={setAddSaveDataWidgetVisible}
       />,
-      node,
     );
 
     window.addEventListener('resize', handleResize);
@@ -785,7 +786,7 @@ function MapWidgets({
           updateLegend(
             view,
             displayEsriLegend,
-            hmwLegendNode,
+            legendRoot.current,
             additionalLegendInfoNonState,
           );
 
@@ -794,7 +795,7 @@ function MapWidgets({
               updateLegend(
                 view,
                 displayEsriLegend,
-                hmwLegendNode,
+                legendRoot.current,
                 additionalLegendInfoNonState,
               );
               const dict = {
@@ -866,7 +867,7 @@ function MapWidgets({
         updateLegend(
           view,
           displayEsriLegend,
-          hmwLegendNode,
+          legendRoot.current,
           additionalLegendInfoNonState,
         );
       },
@@ -904,13 +905,12 @@ function MapWidgets({
     // create the basemap/layers widget
     const node = document.createElement('div');
     view.ui.add(node, { position: 'bottom-right', index: 0 });
-    render(
+    createRoot(node).render(
       <ExpandCollapse
         fullscreenActive={fullscreenActive}
         setFullscreenActive={setFullscreenActive}
         mapViewSetter={setMapView}
       />,
-      node,
     );
     setFullScreenWidgetCreated(true);
   }, [
@@ -926,7 +926,9 @@ function MapWidgets({
     if (!view || services.status !== 'success') return;
 
     const container = document.createElement('div');
-    render(<DownloadWidget services={services} view={view} />, container);
+    createRoot(container).render(
+      <DownloadWidget services={services} view={view} />,
+    );
 
     const downloadWidget = new Expand({
       expandIconClass: 'esri-icon-printer',
@@ -1040,7 +1042,7 @@ function MapWidgets({
       />
     );
 
-    render(widget, node);
+    createRoot(node).render(widget);
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     view.ui.add(node, { position: 'top-right', index: 4 });
 
@@ -1077,7 +1079,12 @@ function MapWidgets({
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
   useEffect(() => {
-    updateLegend(view, displayEsriLegend, hmwLegendNode, additionalLegendInfo);
+    updateLegend(
+      view,
+      displayEsriLegend,
+      legendRoot.current,
+      additionalLegendInfo,
+    );
   }, [
     additionalLegendInfo,
     surroundingsVisible,
@@ -1744,7 +1751,7 @@ function ShowSelectedUpstreamWatershed({
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
   const handleHucSelection = useCallback(
-    (ev) => {
+    (ev: __esri.ViewClickEvent) => {
       setSelectionActive(false);
 
       if (!view) return;
@@ -1871,40 +1878,37 @@ function ShowSelectedUpstreamWatershed({
 
   // Enable triggering of the map click handler if the upstream
   // watershed is not visible, otherwise hide the upstream watershed
-  const selectUpstream = useCallback(
-    (_ev) => {
-      if (!upstreamLayer) return;
+  const selectUpstream = useCallback(() => {
+    if (!upstreamLayer) return;
 
-      if (upstreamLayer.visible) {
-        const currentExtent = getCurrentExtent();
-        currentExtent && view?.goTo(currentExtent);
+    if (upstreamLayer.visible) {
+      const currentExtent = getCurrentExtent();
+      currentExtent && view?.goTo(currentExtent);
 
-        setInstructionsVisible(false);
+      setInstructionsVisible(false);
 
-        upstreamLayer.visible = false;
-        upstreamLayer.graphics.removeAll();
-        updateVisibleLayers({ upstreamLayer: false });
+      upstreamLayer.graphics.removeAll();
+      updateVisibleLayers({
+        upstreamLayer: false,
+        watershedsLayer: watershedsVisible,
+      });
+      return;
+    }
 
-        if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
-        return;
-      }
+    if (watershedsLayer) {
+      setWatershedsVisible(watershedsLayer.visible);
+      watershedsLayer.visible = true;
+    }
 
-      if (watershedsLayer) {
-        setWatershedsVisible(watershedsLayer.visible);
-        watershedsLayer.visible = true;
-      }
-
-      setSelectionActive(true);
-    },
-    [
-      getCurrentExtent,
-      updateVisibleLayers,
-      upstreamLayer,
-      view,
-      watershedsLayer,
-      watershedsVisible,
-    ],
-  );
+    setSelectionActive(true);
+  }, [
+    getCurrentExtent,
+    updateVisibleLayers,
+    upstreamLayer,
+    view,
+    watershedsLayer,
+    watershedsVisible,
+  ]);
 
   return (
     <>
@@ -2705,7 +2709,7 @@ const downloadButtonStyles = css`
 `;
 
 const downloadWidgetContainerStyles = css`
-  padding: 12px 10px 0;
+  padding: 12px 10px;
 
   h1 {
     font-family: ${fonts.primary};

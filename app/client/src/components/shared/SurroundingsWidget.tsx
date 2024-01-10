@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css, keyframes } from '@emotion/react';
-import { createPortal, render } from 'react-dom';
+import { createPortal } from 'react-dom';
+import { Root, createRoot } from 'react-dom/client';
 // contexts
 import { useLayersState } from 'contexts/Layers';
 import {
@@ -49,8 +50,9 @@ export function useSurroundingsWidget(triggerVisible = true) {
   }, [layers, visibleLayers]);
 
   const [container] = useState(document.createElement('div'));
+  const [root, setRoot] = useState<Root | null>(null);
   useEffect(() => {
-    render(
+    const content = (
       <SurroundingsWidget
         layers={includedLayers}
         layersUpdating={updating}
@@ -58,13 +60,20 @@ export function useSurroundingsWidget(triggerVisible = true) {
         toggles={togglers}
         togglesDisabled={disabled}
         triggerVisible={triggerVisible}
-      />,
-      container,
+      />
     );
+
+    if (root) root.render(content);
+    else {
+      const newRoot = createRoot(container);
+      newRoot.render(content);
+      setRoot(newRoot);
+    }
   }, [
     container,
     disabled,
     includedLayers,
+    root,
     togglers,
     triggerVisible,
     updating,

@@ -649,9 +649,9 @@ function WaterbodyInfo({
                               value === 'Good'
                                 ? 'Good Waters'
                                 : value === 'Impaired' ||
-                                  value === 'Impaired (Issues Identified)'
-                                ? 'Impaired Waters'
-                                : 'Condition Unknown'
+                                    value === 'Impaired (Issues Identified)'
+                                  ? 'Impaired Waters'
+                                  : 'Condition Unknown'
                             }
                           >
                             {value}
@@ -704,8 +704,8 @@ function WaterbodyInfo({
                                         useCode === 'F'
                                           ? 'Good'
                                           : useCode === 'N'
-                                          ? 'Impaired'
-                                          : 'Condition Unknown';
+                                            ? 'Impaired'
+                                            : 'Condition Unknown';
 
                                       return (
                                         <tr key={use.useName}>
@@ -723,8 +723,8 @@ function WaterbodyInfo({
                                                   value === 'Good'
                                                     ? 'Good Waters'
                                                     : value === 'Impaired'
-                                                    ? 'Impaired Waters'
-                                                    : 'Condition Unknown'
+                                                      ? 'Impaired Waters'
+                                                      : 'Condition Unknown'
                                                 }
                                               >
                                                 {value}
@@ -2110,7 +2110,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     setBarChartData(newBarChartData);
   }, [cellConcentration]);
 
-  const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
+  const handleSliderChange = useCallback(
+    (value: number) => setSelectedDate(value),
+    [],
+  );
 
   // Calculate the total pixel area if there is cell concentration data
   let pixelArea = null;
@@ -2426,6 +2429,8 @@ type MonitoringLocationsContentProps = {
   services?: ServicesState;
 };
 
+type SelectedType = { [Property in keyof MappedGroups]: boolean };
+
 function MonitoringLocationsContent({
   feature,
   services,
@@ -2468,7 +2473,7 @@ function MonitoringLocationsContent({
     return newGroups;
   });
   const [selected, setSelected] = useState(() => {
-    const newSelected: { [Property in keyof typeof groups]: boolean } = {};
+    const newSelected: SelectedType = {};
     Object.keys(groups).forEach((group) => {
       newSelected[group] = true;
     });
@@ -2486,7 +2491,7 @@ function MonitoringLocationsContent({
   }, [totalsByGroup]);
 
   const buildFilter = useCallback(
-    (selectedNames, monitoringLocationData) => {
+    (selectedNames: SelectedType, monitoringLocationData: MappedGroups) => {
       let filter = '';
 
       if (selectAll === 2) {

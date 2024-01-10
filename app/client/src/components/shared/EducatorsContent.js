@@ -17,7 +17,7 @@ import { colors, fonts } from 'styles/index';
 const containerStyles = css`
   padding: 2rem;
 
-  & :first-child {
+  & :first-of-type {
     margin-top: 0;
   }
 

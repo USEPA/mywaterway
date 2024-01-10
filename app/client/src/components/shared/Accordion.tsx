@@ -282,7 +282,7 @@ const colorMap = {
 type AccordionItemProps = {
   ariaLabel?: string;
   children: ReactNode;
-  icon?: Object;
+  icon?: ReactNode;
   title: ReactNode;
   subTitle?: ReactNode;
   status?: string | null;

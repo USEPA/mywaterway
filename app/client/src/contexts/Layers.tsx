@@ -216,10 +216,10 @@ export function useLayers() {
 
   const updateErroredLayers = useCallback(
     (updates = {}, merge = true) => {
-      const newErroredLayers: LayersState['errored'] = {
+      const newErroredLayers = {
         ...(!merge && initialState.errored),
         ...updates,
-      };
+      } as LayersState['errored'];
       dispatch({ type: 'erroredMulti', payload: newErroredLayers });
     },
     [dispatch],

@@ -1,8 +1,8 @@
 import { Global, css } from '@emotion/react';
 import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
-import { StrictMode } from 'react';
-import { render } from 'react-dom';
+// import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import reportWebVitals from './reportWebVitals';
 // components
@@ -60,14 +60,14 @@ function Root() {
 }
 
 const rootElement: HTMLElement | null = document.getElementById('root');
-
-if (rootElement)
-  render(
-    <StrictMode>
-      <Root />
-    </StrictMode>,
-    rootElement,
-  );
+// TODO - See if we can re-enable StrictMode
+if (rootElement) createRoot(rootElement).render(<Root />);
+// if (rootElement)
+//   createRoot(rootElement).render(
+//     <StrictMode>
+//       <Root />
+//     </StrictMode>,
+//   );
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
