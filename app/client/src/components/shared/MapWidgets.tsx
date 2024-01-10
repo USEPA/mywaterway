@@ -1293,9 +1293,8 @@ function ExpandCollapse({
         ? 'auto'
         : 'hidden';
 
-      const backToTop = document.querySelector(
-        '.back-to-top',
-      ) as HTMLElement | null;
+      const backToTop: HTMLElement | null =
+        document.querySelector('.back-to-top');
       if (backToTop)
         backToTop.style.display = fullscreenActive ? 'flex' : 'none';
 
