@@ -17,6 +17,7 @@ describe('Identified Issues Tab', () => {
 
     cy.findByRole('tab', { name: 'Identified Issues' }).click();
 
+    cy.wait(1000);
     cy.findByLabelText(/of Assessed Waters are impaired/).click({
       force: true,
     });
