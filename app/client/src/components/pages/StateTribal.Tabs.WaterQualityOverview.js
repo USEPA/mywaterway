@@ -129,7 +129,7 @@ const tabContainerStyles = css`
 const topicTabStyles = css`
   @media (max-width: 450px) {
     border-top: 1px solid black;
-    &:first-child {
+    &:first-of-type {
       border-top: 0;
     }
   }
