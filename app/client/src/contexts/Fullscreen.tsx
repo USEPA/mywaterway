@@ -21,9 +21,8 @@ export function FullscreenProvider({ children }: Props) {
 
   // Hide the 'back-to-top' button when fullscreen is active.
   useEffect(() => {
-    const backToTop = document.querySelector(
-      '.back-to-top',
-    ) as HTMLElement | null;
+    const backToTop: HTMLElement | null =
+      document.querySelector('.back-to-top');
     if (!backToTop) return;
 
     backToTop.style.display = fullscreenActive ? 'none' : 'flex';
