@@ -1735,6 +1735,7 @@ function ShowSelectedUpstreamWatershed({
   // Disable "selection mode" and/or restore the
   // initial visibility of the watersheds layer
   const cancelSelection = useCallback(() => {
+    console.log('TEWST');
     if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
     setSelectionActive(false);
   }, [watershedsLayer, watershedsVisible]);
@@ -1881,11 +1882,11 @@ function ShowSelectedUpstreamWatershed({
 
       setInstructionsVisible(false);
 
-      upstreamLayer.visible = false;
       upstreamLayer.graphics.removeAll();
-      updateVisibleLayers({ upstreamLayer: false });
-
-      if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+      updateVisibleLayers({
+        upstreamLayer: false,
+        watershedsLayer: watershedsVisible,
+      });
       return;
     }
 
