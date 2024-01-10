@@ -1286,6 +1286,10 @@ function ExpandCollapse({
         ? 'auto'
         : 'hidden';
 
+      const backToTop = document.getElementById('back-to-top-link');
+      if (backToTop)
+        backToTop.style.display = fullscreenActive ? 'flex' : 'none';
+
       // Toggle fullscreen mode
       setFullscreenActive(!fullscreenActive);
 
