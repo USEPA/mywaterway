@@ -48,6 +48,7 @@ const allSources = ['All', 'State', 'Tribe'];
 
 const containerStyles = (fullscreenActive) => css`
   ${fullscreenActive ? '' : 'margin: auto;'}
+  ${fullscreenActive ? '' : 'padding: 15px;'}
   margin-top: 15px;
   margin-bottom: 15px;
   max-width: 1140px;
