@@ -443,8 +443,10 @@ function StateMap({
   const mapContent = (
     <div
       style={
-        layout === 'fullscreen' && windowWidth < 400
-          ? { marginLeft: '-1.75em' }
+        layout === 'fullscreen'
+          ? windowWidth < 400
+            ? { marginLeft: '-1.75em' }
+            : { marginLeft: '-1.5em' }
           : {}
       }
     >

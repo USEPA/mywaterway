@@ -15,7 +15,7 @@ import TribalMapList from 'components/shared/TribalMapList';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState } from 'contexts/Fullscreen';
 
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
@@ -170,10 +170,4 @@ function StateTribalTabs() {
   );
 }
 
-export default function StateTribalTabsContainer() {
-  return (
-    <FullscreenProvider>
-      <StateTribalTabs />
-    </FullscreenProvider>
-  );
-}
+export default StateTribalTabs;
