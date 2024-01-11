@@ -203,13 +203,7 @@ function AccordionList({
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {Children.map(children, (childElement) => {
-        if (
-          isReactElement(childElement) &&
-          ((typeof childElement.type === 'string' &&
-            childElement.type === 'AccordionItem') ||
-            (typeof childElement.type !== 'string' &&
-              childElement.type.name === 'AccordionItem'))
-        ) {
+        if (isReactElement(childElement)) {
           return cloneElement(childElement, { allExpanded });
         } else {
           return childElement;
