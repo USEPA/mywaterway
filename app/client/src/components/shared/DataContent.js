@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useEffect } from 'react';
-import { render } from 'react-dom';
-import { css } from 'styled-components/macro';
+import { createRoot } from 'react-dom/client';
+import { css } from '@emotion/react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { linkButtonStyles } from 'components/shared/LinkButton';
@@ -171,9 +172,8 @@ function DataContent() {
         return;
 
       const node = document.createElement('span');
-      render(
+      createRoot(node).render(
         <GlossaryTerm term={span.dataset.term}>{span.innerText}</GlossaryTerm>,
-        node,
       );
       span.parentNode.replaceChild(node, span);
     });

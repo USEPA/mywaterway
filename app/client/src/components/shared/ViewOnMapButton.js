@@ -1,6 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { useMapHighlightState } from 'contexts/MapHighlight';

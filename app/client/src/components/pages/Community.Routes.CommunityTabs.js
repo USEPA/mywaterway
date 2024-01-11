@@ -1,13 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, {
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
+import { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
@@ -160,7 +155,7 @@ const tabsOverlayStyles = css`
   }
 `;
 
-const tabsStyles = css`
+const tabsStyles = (infoToggleChecked) => css`
   & ::-webkit-scrollbar {
     height: 12px;
   }
@@ -233,9 +228,7 @@ const tabsStyles = css`
 
   > [data-reach-tab-panels] {
     [data-reach-tab-panel] {
-      padding: ${(props) => {
-        return props['info-toggle-checked'] === 'true' ? '1em' : '0';
-      }};
+      padding: ${infoToggleChecked ? '1em' : '0'};
     }
   }
 `;
@@ -469,7 +462,7 @@ function CommunityTabs() {
       <div css={tabsOverlayStyles} ref={tabsOverlayRef} />
 
       <Tabs
-        css={tabsStyles}
+        css={tabsStyles(infoToggleChecked)}
         index={activeTabIndex}
         onChange={(index) => {
           // used for reseting tab specific toggles. This is needed so the
@@ -484,11 +477,6 @@ function CommunityTabs() {
           // navigate to the tab’s route so Google Analytics captures a pageview
           navigate(tabs[index].route.replace('{urlSearch}', urlSearch));
         }}
-        info-toggle-checked={
-          // pass custom DOM data-attribute as a prop so we can adjust each
-          // TabPanel's styling, whenever the info panel is checked
-          infoToggleChecked.toString()
-        }
       >
         <TabList ref={tabListRef}>
           {tabs.map((tab) => (

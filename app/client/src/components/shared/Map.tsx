@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { useContext, useEffect, useRef, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
 import MapWidgets from 'components/shared/MapWidgets';

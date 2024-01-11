@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext } from 'react';
-import { css } from 'styled-components/macro';
+import { useContext } from 'react';
+import { css } from '@emotion/react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';

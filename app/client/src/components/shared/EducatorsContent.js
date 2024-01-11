@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useEffect } from 'react';
-import { css } from 'styled-components/macro';
+import { useEffect } from 'react';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // contexts
@@ -16,7 +17,7 @@ import { colors, fonts } from 'styles/index';
 const containerStyles = css`
   padding: 2rem;
 
-  & :first-child {
+  & :first-of-type {
     margin-top: 0;
   }
 

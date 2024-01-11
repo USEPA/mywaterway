@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useEffect } from 'react';
-import { css } from 'styled-components/macro';
+import { useEffect } from 'react';
+import { css } from '@emotion/react';
 import { Tab, Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -24,10 +25,6 @@ const modifiedTabsStyles = css`
   [data-reach-tab-panel] {
     padding: 2rem;
 
-    & :first-child {
-      margin-top: 0;
-    }
-
     h2,
     h3 {
       margin-bottom: 0;
@@ -38,6 +35,10 @@ const modifiedTabsStyles = css`
     h2 {
       margin-top: 2rem;
       font-size: 1.8em;
+
+      &:first-of-type {
+        margin-top: 0;
+      }
 
       & + p {
         margin-top: 0;

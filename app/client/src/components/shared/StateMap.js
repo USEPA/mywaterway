@@ -1,14 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { Node } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
@@ -46,8 +41,6 @@ import {
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
-// styles
-import 'styles/mapStyles.css';
 // errors
 import {
   esriMapLoadingFailure,
@@ -450,8 +443,10 @@ function StateMap({
   const mapContent = (
     <div
       style={
-        layout === 'fullscreen' && windowWidth < 400
-          ? { marginLeft: '-1.75em' }
+        layout === 'fullscreen'
+          ? windowWidth < 400
+            ? { marginLeft: '-1.75em' }
+            : { marginLeft: '-1.5em' }
           : {}
       }
     >

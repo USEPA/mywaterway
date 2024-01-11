@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
+import { useEffect, useState } from 'react';
 // components
 import Page from 'components/shared/Page';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';

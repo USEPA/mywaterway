@@ -49,6 +49,11 @@ describe('The characteristic chart section', () => {
   });
 
   it('Should display an info message when a characteristic without results is selected', () => {
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     cy.findByLabelText('Select Antimony').check({ force: true });
     cy.findByText(
       'No measurements available to be charted for this characteristic.',

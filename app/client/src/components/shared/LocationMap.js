@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Node } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import Polygon from '@arcgis/core/geometry/Polygon';
@@ -77,7 +78,6 @@ import {
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors } from 'styles/index';
-import 'styles/mapStyles.css';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {

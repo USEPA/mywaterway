@@ -107,7 +107,9 @@ describe('Community page map legend', () => {
     cy.wait(2000);
 
     cy.findByRole('button', { name: 'Open Basemaps and Layers' }).click();
-    cy.findAllByRole('switch', { name: 'All Mapped Water (NHD)' }).click({ force: true });
+    cy.findAllByRole('switch', { name: 'All Mapped Water (NHD)' }).click({
+      force: true,
+    });
     cy.findByRole('button', { name: 'Close Basemaps and Layers' }).click();
     cy.findByRole('button', { name: 'Open Legend' }).click();
     cy.findAllByText('All Mapped Water (NHD)').should('be.visible');
@@ -164,6 +166,11 @@ describe('Community page Show Additional Text', () => {
 
   it(`Clicking "Expand All/Collapse All" expands/collapses the waterbody list`, () => {
     const text = 'Year Last Reported:';
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
 
     cy.findAllByRole('button', { name: /Expand All/i }).filter(':visible');
     cy.findByText(text).should('not.exist');

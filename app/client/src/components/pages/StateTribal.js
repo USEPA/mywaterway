@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { css } from '@emotion/react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // components
 import Page from 'components/shared/Page';
@@ -20,6 +21,7 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import {
   StateTribalTabsContext,
   StateTribalTabsProvider,
@@ -44,9 +46,11 @@ import {
 
 const allSources = ['All', 'State', 'Tribe'];
 
-const containerStyles = css`
+const containerStyles = (fullscreenActive) => css`
+  ${fullscreenActive ? '' : 'margin: auto;'}
   margin-top: 15px;
   margin-bottom: 15px;
+  max-width: 1140px;
 
   @media (max-width: 400px) {
     padding-left: 0.2em !important;
@@ -187,6 +191,8 @@ function StateTribal() {
     setUsesStateSummaryServiceError,
     usesStateSummaryServiceError,
   } = useContext(StateTribalTabsContext);
+
+  const { fullscreenActive } = useFullscreenState();
 
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
@@ -396,7 +402,7 @@ function StateTribal() {
     <Page>
       <TabLinks />
 
-      <div css={containerStyles} className="container" data-content="state">
+      <div css={containerStyles(fullscreenActive)} data-content="state">
         {(states.status === 'fetching' || tribes.status === 'fetching') && (
           <LoadingSpinner />
         )}
@@ -541,8 +547,8 @@ function StateTribal() {
                     selectedSource === 'All'
                       ? 'Select a state, tribe or territory...'
                       : selectedSource === 'State'
-                      ? 'Select a state or territory...'
-                      : 'Select a tribe...'
+                        ? 'Select a state or territory...'
+                        : 'Select a tribe...'
                   }
                   options={selectOptions}
                   value={selectedStateTribe}
@@ -704,7 +710,9 @@ function StateTribal() {
 export default function StateTribalContainer() {
   return (
     <StateTribalTabsProvider>
-      <StateTribal />
+      <FullscreenProvider>
+        <StateTribal />
+      </FullscreenProvider>
     </StateTribalTabsProvider>
   );
 }

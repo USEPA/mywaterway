@@ -1,16 +1,17 @@
-// @flow
+/** @jsxImportSource @emotion/react */
 
 import { AreaSeries, XYChart, Tooltip } from '@visx/xychart';
 import { curveMonotoneX } from '@visx/curve';
-import { createGlobalStyle, css } from 'styled-components/macro';
+import { Global, css } from '@emotion/react';
+import type { TooltipData } from '@visx/xychart';
 
 type Observation = {
-  date: Date,
-  measurement: number,
+  date: Date;
+  measurement: number;
 };
 
 // NOTE: EPA's _reboot.css file causes the tooltip series glyph to be clipped
-const VisxStyles = createGlobalStyle`
+const globalStyles = css`
   .visx-tooltip-glyph svg {
     overflow: visible;
     width: 10px;
@@ -44,7 +45,7 @@ export function Sparkline({ data }: { data: Observation[] }) {
   const values = data.map((d) => d.measurement);
   return (
     <>
-      <VisxStyles />
+      <Global styles={globalStyles} />
       <XYChart
         margin={{ top: 4, right: 4, bottom: 4, left: 4 }}
         height={32}
@@ -71,7 +72,9 @@ export function Sparkline({ data }: { data: Observation[] }) {
           showSeriesGlyphs
           glyphStyle={{ fill: color }}
           renderTooltip={({ tooltipData }) => {
-            const datum: Observation = tooltipData?.nearestDatum?.datum;
+            const datum = (tooltipData as TooltipData<Observation>)
+              ?.nearestDatum?.datum;
+            if (!datum) return null;
             return (
               <p css={tooltipStyles}>
                 <span>{accessors.xAccessor(datum)}:&nbsp;</span>

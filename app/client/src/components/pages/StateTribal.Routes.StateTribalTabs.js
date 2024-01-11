@@ -1,8 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
-import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useWindowSize } from '@reach/window-size';
 // components
@@ -15,7 +15,7 @@ import TribalMapList from 'components/shared/TribalMapList';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState } from 'contexts/Fullscreen';
 
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
@@ -170,10 +170,4 @@ function StateTribalTabs() {
   );
 }
 
-export default function StateTribalTabsContainer() {
-  return (
-    <FullscreenProvider>
-      <StateTribalTabs />
-    </FullscreenProvider>
-  );
-}
+export default StateTribalTabs;
