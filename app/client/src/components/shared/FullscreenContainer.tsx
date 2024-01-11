@@ -23,11 +23,7 @@ export default function FullscreenContainer({
   return (
     <WindowSize>
       {({ width, height }) => (
-        <Dialog.Root
-          modal={false}
-          open={fullscreenActive}
-          onOpenChange={setFullscreenActive}
-        >
+        <Dialog.Root open={fullscreenActive} onOpenChange={setFullscreenActive}>
           <Dialog.Content
             css={{
               backgroundColor: 'white',
@@ -37,6 +33,9 @@ export default function FullscreenContainer({
               top: 0,
               width,
               zIndex: 9999,
+            }}
+            onEscapeKeyDown={(event) => {
+              event.preventDefault();
             }}
           >
             {title && <Dialog.Title className="sr-only">{title}</Dialog.Title>}

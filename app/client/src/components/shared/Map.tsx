@@ -99,7 +99,7 @@ function Map({ layers = null, startingExtent = null }: Props) {
 export default function MapContainer(props: Props) {
   const { fullscreenActive } = useFullscreenState();
   return fullscreenActive ? (
-    <FullscreenContainer>
+    <FullscreenContainer title="Fullscreen Map View">
       <Map {...props} />
     </FullscreenContainer>
   ) : (
