@@ -4,10 +4,12 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { css } from '@emotion/react';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
+import FullscreenContainer from 'components/shared/FullscreenContainer';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { useFullscreenState } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useLayers } from 'contexts/Layers';
 // types
@@ -94,4 +96,13 @@ function Map({ layers = null, startingExtent = null }: Props) {
   );
 }
 
-export default Map;
+export default function MapContainer(props: Props) {
+  const { fullscreenActive } = useFullscreenState();
+  return fullscreenActive ? (
+    <FullscreenContainer>
+      <Map {...props} />
+    </FullscreenContainer>
+  ) : (
+    <Map {...props} />
+  );
+}
