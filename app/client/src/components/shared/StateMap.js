@@ -415,29 +415,27 @@ function StateMap({
 
   // jsx
   const mapContent = (
-    <>
-      <div
-        data-content="statemap"
-        css={css`
-          ${containerStyles};
-          height: ${windowHeight - mapInputsHeight - 3 * mapPadding}px;
-        `}
+    <div
+      data-content="statemap"
+      css={css`
+        ${containerStyles};
+        height: ${windowHeight - mapInputsHeight - 3 * mapPadding}px;
+      `}
+    >
+      <Map
+        startingExtent={{
+          xmin: -13873570.722124241,
+          ymin: 2886242.8013031036,
+          xmax: -7474874.210317273,
+          ymax: 6271485.909996087,
+          spatialReference: { wkid: 102100 },
+        }}
+        layers={layers}
       >
-        <Map
-          startingExtent={{
-            xmin: -13873570.722124241,
-            ymin: 2886242.8013031036,
-            xmax: -7474874.210317273,
-            ymax: 6271485.909996087,
-            spatialReference: { wkid: 102100 },
-          }}
-          layers={layers}
-        >
-          {children}
-        </Map>
-        {mapView && mapLoading && <MapLoadingSpinner />}
-      </div>
-    </>
+        {children}
+      </Map>
+      {mapView && mapLoading && <MapLoadingSpinner />}
+    </div>
   );
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
