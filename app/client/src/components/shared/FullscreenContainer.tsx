@@ -33,7 +33,7 @@ export default function FullscreenContainer({
                 position: 'fixed',
                 top: 0,
                 width,
-                zIndex: 9999,
+                zIndex: 1000,
               }}
               onEscapeKeyDown={(event) => {
                 event.preventDefault();
