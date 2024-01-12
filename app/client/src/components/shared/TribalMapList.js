@@ -110,6 +110,7 @@ const containerStyles = css`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
+  overflow:hidden;
   z-index: 1;
 `;
 
