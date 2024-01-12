@@ -21,7 +21,6 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import {
   StateTribalTabsContext,
   StateTribalTabsProvider,
@@ -46,9 +45,8 @@ import {
 
 const allSources = ['All', 'State', 'Tribe'];
 
-const containerStyles = (fullscreenActive) => css`
-  ${fullscreenActive ? '' : 'margin: auto;'}
-  ${fullscreenActive ? '' : 'padding: 15px;'}
+const containerStyles = css`
+  margin: auto;
   margin-top: 15px;
   margin-bottom: 15px;
   max-width: 1140px;
@@ -192,8 +190,6 @@ function StateTribal() {
     setUsesStateSummaryServiceError,
     usesStateSummaryServiceError,
   } = useContext(StateTribalTabsContext);
-
-  const { fullscreenActive } = useFullscreenState();
 
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
@@ -403,7 +399,7 @@ function StateTribal() {
     <Page>
       <TabLinks />
 
-      <div css={containerStyles(fullscreenActive)} data-content="state">
+      <div css={containerStyles} data-content="state">
         {(states.status === 'fetching' || tribes.status === 'fetching') && (
           <LoadingSpinner />
         )}
@@ -548,8 +544,8 @@ function StateTribal() {
                     selectedSource === 'All'
                       ? 'Select a state, tribe or territory...'
                       : selectedSource === 'State'
-                        ? 'Select a state or territory...'
-                        : 'Select a tribe...'
+                      ? 'Select a state or territory...'
+                      : 'Select a tribe...'
                   }
                   options={selectOptions}
                   value={selectedStateTribe}
@@ -711,9 +707,7 @@ function StateTribal() {
 export default function StateTribalContainer() {
   return (
     <StateTribalTabsProvider>
-      <FullscreenProvider>
-        <StateTribal />
-      </FullscreenProvider>
+      <StateTribal />
     </StateTribalTabsProvider>
   );
 }

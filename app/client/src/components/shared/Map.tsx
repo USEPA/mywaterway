@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
 import FullscreenContainer from 'components/shared/FullscreenContainer';
@@ -8,7 +9,7 @@ import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
-import { useFullscreenState } from 'contexts/Fullscreen';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useLayers } from 'contexts/Layers';
 // types
@@ -23,8 +24,14 @@ type Props = {
 
 function Map({ children, layers = null, startingExtent = null }: Props) {
   const { widgetLayers } = useAddSaveDataWidgetState();
-  const { basemap, highlightOptions, initialExtent, mapView, setMapView } =
-    useContext(LocationSearchContext);
+  const {
+    basemap,
+    highlightOptions,
+    homeWidget,
+    initialExtent,
+    mapView,
+    setMapView,
+  } = useContext(LocationSearchContext);
 
   const { visibleLayers } = useLayers();
 
@@ -62,14 +69,23 @@ function Map({ children, layers = null, startingExtent = null }: Props) {
 
     setMapView(view);
 
+    if (homeWidget?.viewpoint) {
+      reactiveUtils
+        .whenOnce(() => !view.updating)
+        .then(() => {
+          view.goTo(homeWidget.viewpoint);
+        });
+    }
+
     setMapInitialized(true);
   }, [
-    mapInitialized,
     basemap,
     highlightOptions,
+    homeWidget,
     initialExtent,
-    startingExtent,
+    mapInitialized,
     setMapView,
+    startingExtent,
   ]);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -109,13 +125,22 @@ function Map({ children, layers = null, startingExtent = null }: Props) {
   );
 }
 
-export default function MapContainer(props: Props) {
+export function MapContainer(props: Props) {
   const { fullscreenActive } = useFullscreenState();
+
   return fullscreenActive ? (
     <FullscreenContainer title="Fullscreen Map View">
       <Map {...props} />
     </FullscreenContainer>
   ) : (
     <Map {...props} />
+  );
+}
+
+export default function MapWrapper(props: Props) {
+  return (
+    <FullscreenProvider>
+      <MapContainer {...props} />
+    </FullscreenProvider>
   );
 }

@@ -23,7 +23,6 @@ import {
   useMapHighlightState,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
-import { useFullscreenState } from 'contexts/Fullscreen';
 import {
   useReportStatusMappingContext,
   useServicesContext,
@@ -260,8 +259,6 @@ function AdvancedSearch() {
     stateAndOrganization,
     setStateAndOrganization,
   } = useContext(StateTribalTabsContext);
-
-  const { fullscreenActive } = useFullscreenState();
 
   const {
     mapView,
@@ -1127,7 +1124,6 @@ function AdvancedSearch() {
     <StateMap
       windowHeight={height}
       windowWidth={width}
-      layout={fullscreenActive ? 'fullscreen' : 'narrow'}
       filter={currentFilter}
       activeState={activeState}
       numberOfRecords={numberOfRecords}
@@ -1174,10 +1170,6 @@ function AdvancedSearch() {
       </div>
     </StateMap>
   );
-
-  if (fullscreenActive) {
-    return mapContent;
-  }
 
   const contentVisible = currentFilter && waterbodyData;
 

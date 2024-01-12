@@ -1850,18 +1850,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   };
   */
 
-  useEffect(() => {
-    if (layout !== 'fullscreen') return;
-
-    // scroll community content into view
-    // get community content DOM node to scroll page when form is submitted
-    const content = document.querySelector(`[data-content="locationmap"]`);
-    if (content) {
-      let pos = content.getBoundingClientRect();
-      window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
-    }
-  }, [layout, windowHeight]);
-
   // calculate height of div holding searchText
   const [searchTextHeight, setSearchTextHeight] = useState(0);
   const measuredRef = useCallback((node) => {
@@ -1895,10 +1883,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         data-testid="hmw-community-map"
         style={{
           marginTop: layout === 'wide' ? '1.25em' : '0',
-          height:
-            layout === 'fullscreen'
-              ? windowHeight
-              : windowHeight - searchTextHeight - 3 * mapPadding,
+          height: windowHeight - searchTextHeight - 3 * mapPadding,
         }}
       >
         <Map layers={layers} />

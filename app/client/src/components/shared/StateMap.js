@@ -4,7 +4,6 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import type { Node } from 'react';
 import { css } from '@emotion/react';
-import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -62,7 +61,6 @@ const containerStyles = css`
 
 // --- components ---
 type Props = {
-  layout: 'narrow' | 'wide',
   windowHeight: number,
   windowWidth: number,
   filter: string,
@@ -72,7 +70,6 @@ type Props = {
 };
 
 function StateMap({
-  layout = 'narrow',
   windowHeight,
   windowWidth,
   filter,
@@ -409,26 +406,12 @@ function StateMap({
   useEffect(() => {
     // scroll community content into view
     // get community content DOM node to scroll page when form is submitted
+    const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
 
-    // if in fullscreen, scroll to top of map
-
-    if (layout === 'fullscreen') {
-      const mapContent = document.querySelector(`[data-content="statemap"]`);
-
-      if (mapContent) {
-        let pos = mapContent.getBoundingClientRect();
-        window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
-      }
+    if (mapInputs) {
+      mapInputs.scrollIntoView();
     }
-    // if in normal layout, display the inputs above the map
-    else {
-      const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
-
-      if (mapInputs) {
-        mapInputs.scrollIntoView();
-      }
-    }
-  }, [layout, windowHeight, windowWidth]);
+  }, [windowHeight, windowWidth]);
 
   // calculate height of div holding the footer content
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
@@ -436,28 +419,13 @@ function StateMap({
 
   // jsx
   const mapContent = (
-    <div
-      style={
-        layout === 'fullscreen'
-          ? windowWidth < 400
-            ? { marginLeft: '-1.75em' }
-            : { marginLeft: '-1.5em' }
-          : {}
-      }
-    >
+    <>
       <div
-        css={containerStyles}
         data-content="statemap"
-        style={
-          layout === 'fullscreen'
-            ? {
-                height: windowHeight,
-                width: windowWidth,
-              }
-            : {
-                height: windowHeight - mapInputsHeight - 3 * mapPadding,
-              }
-        }
+        css={css`
+          ${containerStyles};
+          height: ${windowHeight - mapInputsHeight - 3 * mapPadding}px;
+        `}
       >
         <Map
           startingExtent={{
@@ -473,7 +441,7 @@ function StateMap({
         </Map>
         {mapView && mapLoading && <MapLoadingSpinner />}
       </div>
-    </div>
+    </>
   );
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
@@ -491,15 +459,6 @@ function StateMap({
     );
   }
 
-  if (layout === 'wide') {
-    return (
-      <StickyBox offsetTop={mapPadding} offsetBottom={mapPadding}>
-        {mapContent}
-      </StickyBox>
-    );
-  }
-
-  // layout defaults to 'narrow'
   return mapContent;
 }
 

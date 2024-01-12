@@ -41,7 +41,6 @@ import {
 // config
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -2238,7 +2237,6 @@ function MonitoringReportContent() {
       ? 'empty'
       : monitoringLocationsStatus;
 
-  const { fullscreenActive } = useFullscreenState();
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
     orgId,
@@ -2341,19 +2339,7 @@ function MonitoringReportContent() {
     </Page>
   );
 
-  const fullScreenView = (
-    <div data-content="location-map">
-      <SiteMapContainer
-        layout="fullscreen"
-        site={site}
-        siteFilter={siteFilter}
-        siteStatus={siteStatus}
-        widthRef={widthRef}
-      />
-    </div>
-  );
-
-  const twoColumnView = (
+  const content = (
     <Page>
       <NavBar title="Water Monitoring Report" />
       <div css={containerStyles} data-content="container">
@@ -2406,8 +2392,6 @@ function MonitoringReportContent() {
     </Page>
   );
 
-  const content = fullscreenActive ? fullScreenView : twoColumnView;
-
   return (
     <StatusContent
       empty={noSiteView}
@@ -2429,11 +2413,9 @@ function MonitoringReport() {
 
   return (
     <LayersProvider>
-      <FullscreenProvider>
-        <MapHighlightProvider>
-          <MonitoringReportContent />
-        </MapHighlightProvider>
-      </FullscreenProvider>
+      <MapHighlightProvider>
+        <MonitoringReportContent />
+      </MapHighlightProvider>
     </LayersProvider>
   );
 }
@@ -2528,8 +2510,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   // Scrolls to the map when switching layouts
   useEffect(() => {
-    const itemName = layout === 'fullscreen' ? 'location-map' : 'container';
-    const content = document.querySelector(`[data-content="${itemName}"]`);
+    const content = document.querySelector(`[data-content="container"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
 

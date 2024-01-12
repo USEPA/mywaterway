@@ -34,7 +34,6 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LayersProvider } from 'contexts/Layers';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -254,8 +253,6 @@ const strongBottomMarginStyles = css`
 
 function Actions() {
   const { orgId, actionId } = useParams();
-
-  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 
@@ -571,24 +568,6 @@ function Actions() {
     );
   }
 
-  if (fullscreenActive) {
-    return (
-      <WindowSize>
-        {({ width, height }) => {
-          return (
-            <div data-content="actionsmap" style={{ height, width }}>
-              <ActionsMap
-                layout="fullscreen"
-                unitIds={unitIds}
-                onLoad={setMapLayer}
-              />
-            </div>
-          );
-        }}
-      </WindowSize>
-    );
-  }
-
   return (
     <Page>
       <NavBar title="Plan Summary" />
@@ -806,9 +785,7 @@ export default function ActionsContainer() {
   return (
     <LayersProvider>
       <MapHighlightProvider>
-        <FullscreenProvider>
-          <Actions />
-        </FullscreenProvider>
+        <Actions />
       </MapHighlightProvider>
     </LayersProvider>
   );
