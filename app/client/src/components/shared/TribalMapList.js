@@ -109,7 +109,6 @@ const containerStyles = css`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
-  overflow:hidden;
   z-index: 1;
 `;
 
@@ -613,12 +612,6 @@ function TribalMap({
   });
   const [layers, setLayers] = useState(null);
 
-  // reset the home widget
-  const [homeWidgetSet, setHomeWidgetSet] = useState(false);
-  useEffect(() => {
-    setHomeWidgetSet(false);
-  }, [filter]);
-
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [selectedTribeLayer, setSelectedTribeLayer] = useState(null);
@@ -837,6 +830,7 @@ function TribalMap({
   const [mapLoading, setMapLoading] = useState(true);
   useEffect(() => {
     if (
+      !mapLoading ||
       !filter ||
       !mapView ||
       !waterbodyPoints ||
@@ -879,20 +873,16 @@ function TribalMap({
 
           // if there is an extent then zoom to it and set the home widget
           if (fullExtent) {
-            let zoomParams = fullExtent;
-            let homeParams = { targetGeometry: fullExtent };
-
             mapView.when(() => {
-              mapView.goTo(zoomParams).then(() => {
+              mapView.goTo(fullExtent).then(() => {
                 setMapLoading(false);
+                // only set the home widget if the user selects a different state
+                homeWidget.viewpoint = new Viewpoint({
+                  targetGeometry: mapView.extent,
+                });
               });
             });
 
-            // only set the home widget if the user selects a different state
-            if (!homeWidgetSet) {
-              homeWidget.viewpoint = new Viewpoint(homeParams);
-              setHomeWidgetSet(true);
-            }
           } else {
             setMapLoading(false);
           }
@@ -900,16 +890,23 @@ function TribalMap({
       });
     });
   }, [
-    waterbodyAreas,
     filter,
     homeWidget,
-    homeWidgetSet,
-    waterbodyLines,
+    mapLoading,
     mapView,
-    waterbodyPoints,
     selectedTribeLayer,
+    waterbodyAreas,
     waterbodyLayer,
+    waterbodyLines,
+    waterbodyPoints,
   ]);
+
+  // reset the loading status when the filter changes
+  const [prevFilter, setPrevFilter] = useState(filter);
+  if (filter !== prevFilter) {
+    setPrevFilter(filter);
+    setMapLoading(true);
+  }
 
   return (
     <Fragment>

@@ -2476,7 +2476,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   // Zoom to the location of the site
   useEffect(() => {
-    if (!mapView || !layersInitialized || !homeWidget) return;
+    if (!mapLoading || !mapView || !layersInitialized || !homeWidget) return;
     if (siteStatus !== 'success') return;
 
     if (!monitoringLocationsLayer) return;
@@ -2503,6 +2503,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
     getSignal,
     homeWidget,
     layersInitialized,
+    mapLoading,
     mapView,
     monitoringLocationsLayer,
     siteStatus,
@@ -2520,7 +2521,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   return (
     <div css={mapContainerStyles} data-testid="hmw-site-map" ref={widthRef}>
-      {siteStatus === 'pending' ? <LoadingSpinner /> : <Map layers={layers} />}
+      <Map layers={layers} />
       {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );

@@ -94,7 +94,7 @@ const containerStyles = css`
 `;
 
 type Props = {
-  layout: 'narrow' | 'wide' | 'fullscreen',
+  layout: 'narrow' | 'wide',
   windowHeight: number,
   children?: Node,
 };

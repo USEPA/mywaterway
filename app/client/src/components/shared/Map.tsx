@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
 import FullscreenContainer from 'components/shared/FullscreenContainer';
@@ -63,19 +62,13 @@ function Map({ children, layers = null, startingExtent = null }: Props) {
     const view = new MapView({
       container: 'hmw-map-container',
       map: esriMap,
-      extent: startingExtent ?? initialExtent,
       highlightOptions,
+      ...(homeWidget?.viewpoint
+        ? { viewpoint: homeWidget.viewpoint }
+        : { extent: startingExtent ?? initialExtent }),
     });
 
     setMapView(view);
-
-    if (homeWidget?.viewpoint) {
-      reactiveUtils
-        .whenOnce(() => !view.updating)
-        .then(() => {
-          view.goTo(homeWidget.viewpoint);
-        });
-    }
 
     setMapInitialized(true);
   }, [
@@ -104,6 +97,7 @@ function Map({ children, layers = null, startingExtent = null }: Props) {
         css={{
           position: 'relative',
           height: `calc(100% - ${footerHeight}px)`,
+          overflow: 'hidden',
           width: '100%',
         }}
         ref={mapContainerRef}

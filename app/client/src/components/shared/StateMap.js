@@ -56,7 +56,6 @@ const containerStyles = css`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
-  overflow: hidden;
 `;
 
 // --- components ---
@@ -259,17 +258,15 @@ function StateMap({
     };
   }, [fetchedDataDispatch, resetData, resetLayers]);
 
-  const [lastFilter, setLastFilter] = useState('');
-
   // keep the selectedGraphicGlobal variable up to date
   useEffect(() => {
     selectedGraphicGlobal = selectedGraphic;
   }, [selectedGraphic]);
 
-  // cDU
   // detect when user changes their search
-  const [homeWidgetSet, setHomeWidgetSet] = useState(false);
+  const homeWidgetSet = useRef(false);
   const [mapLoading, setMapLoading] = useState(true);
+  const [lastFilter, setLastFilter] = useState('');
   useEffect(() => {
     // query geocode server for every new search
     if (
@@ -368,9 +365,9 @@ function StateMap({
                     }
 
                     // only set the home widget if the user selects a different state
-                    if (!homeWidgetSet) {
+                    if (!homeWidgetSet.current) {
                       homeWidget.viewpoint = new Viewpoint(homeParams);
-                      setHomeWidgetSet(true);
+                      homeWidgetSet.current = true;
                     }
                   } else {
                     setMapLoading(false);
@@ -387,7 +384,6 @@ function StateMap({
     waterbodyAreas,
     filter,
     homeWidget,
-    homeWidgetSet,
     lastFilter,
     waterbodyLines,
     mapView,
@@ -400,7 +396,7 @@ function StateMap({
   // Used to tell if the homewidget has been set to the selected state.
   // This will reset the value when the user selects a different state.
   useEffect(() => {
-    setHomeWidgetSet(false);
+    homeWidgetSet.current = false;
   }, [activeState]);
 
   useEffect(() => {
