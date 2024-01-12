@@ -1,7 +1,7 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import type { Node } from 'react';
 import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
@@ -57,6 +57,7 @@ const containerStyles = css`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
+  overflow: hidden;
 `;
 
 // --- components ---
@@ -430,12 +431,6 @@ function StateMap({
   }, [layout, windowHeight, windowWidth]);
 
   // calculate height of div holding the footer content
-  const [footerHeight, setFooterHeight] = useState(0);
-  const measuredRef = useCallback((node) => {
-    if (!node) return;
-    setFooterHeight(node.getBoundingClientRect().height);
-  }, []);
-
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
   const mapInputsHeight = mapInputs?.getBoundingClientRect().height;
 
@@ -456,15 +451,11 @@ function StateMap({
         style={
           layout === 'fullscreen'
             ? {
-                height: windowHeight - footerHeight,
+                height: windowHeight,
                 width: windowWidth,
               }
             : {
-                height:
-                  windowHeight -
-                  footerHeight -
-                  mapInputsHeight -
-                  3 * mapPadding,
+                height: windowHeight - mapInputsHeight - 3 * mapPadding,
               }
         }
       >
@@ -477,12 +468,11 @@ function StateMap({
             spatialReference: { wkid: 102100 },
           }}
           layers={layers}
-        />
+        >
+          {children}
+        </Map>
         {mapView && mapLoading && <MapLoadingSpinner />}
       </div>
-
-      {/* The StateMap's children is a footer */}
-      <div ref={measuredRef}>{children}</div>
     </div>
   );
 

@@ -216,8 +216,7 @@ const mapFooterStyles = css`
   width: 100%;
   /* match ESRI map footer text */
   padding: 3px 5px;
-  border: 1px solid #aebac3;
-  border-top: none;
+  border-top: 1px solid #aebac3;
   font-size: 0.75em;
   background-color: whitesmoke;
 `;
@@ -1133,10 +1132,7 @@ function AdvancedSearch() {
       activeState={activeState}
       numberOfRecords={numberOfRecords}
     >
-      <div
-        css={mapFooterStyles}
-        style={{ width: fullscreenActive ? width : '100%' }}
-      >
+      <div css={mapFooterStyles}>
         {reportStatusMapping.status === 'failure' && (
           <div css={mapFooterMessageStyles}>{status303dError}</div>
         )}

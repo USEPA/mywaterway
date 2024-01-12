@@ -1,30 +1,27 @@
 /** @jsxImportSource @emotion/react */
 
-import { useContext, useEffect, useRef, useState } from 'react';
-import { css } from '@emotion/react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
+import FullscreenContainer from 'components/shared/FullscreenContainer';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { useFullscreenState } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useLayers } from 'contexts/Layers';
 // types
 import type { LayerId } from 'contexts/Layers';
-
-const mapContainerStyles = css`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-`;
+import type { ReactNode } from 'react';
 
 type Props = {
+  children?: ReactNode;
   layers: __esri.Layer[] | null;
   startingExtent?: Object | null;
 };
 
-function Map({ layers = null, startingExtent = null }: Props) {
+function Map({ children, layers = null, startingExtent = null }: Props) {
   const { widgetLayers } = useAddSaveDataWidgetState();
   const { basemap, highlightOptions, initialExtent, mapView, setMapView } =
     useContext(LocationSearchContext);
@@ -77,21 +74,48 @@ function Map({ layers = null, startingExtent = null }: Props) {
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
+  // Calculate the height of the div holding the footer content.
+  const [footerHeight, setFooterHeight] = useState(0);
+  const footerRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    setFooterHeight(node.getBoundingClientRect().height);
+  }, []);
+
   return (
-    <div id="hmw-map-container" css={mapContainerStyles} ref={mapContainerRef}>
-      {map && mapView && (
-        <>
-          <MapWidgets
-            map={map}
-            mapRef={mapContainerRef}
-            view={mapView}
-            layers={layers}
-          />
-          <MapMouseEvents map={map} view={mapView} />
-        </>
-      )}
+    <div css={{ position: 'absolute', height: '100%', width: '100%' }}>
+      <div
+        id="hmw-map-container"
+        css={{
+          position: 'relative',
+          height: `calc(100% - ${footerHeight}px)`,
+          width: '100%',
+        }}
+        ref={mapContainerRef}
+      >
+        {map && mapView && (
+          <>
+            <MapWidgets
+              map={map}
+              mapRef={mapContainerRef}
+              view={mapView}
+              layers={layers}
+            />
+            <MapMouseEvents map={map} view={mapView} />
+          </>
+        )}
+      </div>
+      <div ref={footerRef}>{children}</div>
     </div>
   );
 }
 
-export default Map;
+export default function MapContainer(props: Props) {
+  const { fullscreenActive } = useFullscreenState();
+  return fullscreenActive ? (
+    <FullscreenContainer title="Fullscreen Map View">
+      <Map {...props} />
+    </FullscreenContainer>
+  ) : (
+    <Map {...props} />
+  );
+}

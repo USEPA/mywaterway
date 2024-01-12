@@ -88,6 +88,7 @@ import {
 // styles
 import { tabsStyles } from 'components/shared/ContentTabs';
 // types
+import type { ReactNode } from 'react';
 import type { MonitoringLocationAttributes } from 'types';
 
 const mapPadding = 20;
@@ -109,6 +110,7 @@ const containerStyles = css`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
+  overflow:hidden;
   z-index: 1;
 `;
 
@@ -137,8 +139,7 @@ const mapFooterStyles = css`
   width: 100%;
   /* match ESRI map footer text */
   padding: 3px 5px;
-  border: 1px solid #aebac3;
-  border-top: none;
+  border-top: 1px solid #aebac3;
   font-size: 0.75em;
   background-color: whitesmoke;
 `;
@@ -319,13 +320,6 @@ function TribalMapList({
   const layerTogglesRef = useCallback((node) => {
     if (!node) return;
     setLayerTogglesHeight(node.getBoundingClientRect().height);
-  }, []);
-
-  // calculate height of div holding the footer content
-  const [footerHeight, setFooterHeight] = useState(0);
-  const footerRef = useCallback((node) => {
-    if (!node) return;
-    setFooterHeight(node.getBoundingClientRect().height);
   }, []);
 
   const { fullscreenActive } = useFullscreenState();
@@ -511,11 +505,11 @@ function TribalMapList({
         style={
           layout === 'fullscreen'
             ? {
-                height: windowHeight - footerHeight,
+                height: windowHeight,
                 width: windowWidth,
               }
             : {
-                height: mapListHeight - footerHeight,
+                height: mapListHeight,
                 width: '100%',
                 display: displayMode === 'map' && mapShown ? 'block' : 'none',
               }
@@ -525,14 +519,8 @@ function TribalMapList({
           activeState={activeState}
           filter={filter}
           setTribalBoundaryError={setTribalBoundaryError}
-        />
-      </div>
-      {displayMode === 'map' && mapShown && (
-        <div ref={footerRef}>
-          <div
-            css={mapFooterStyles}
-            style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
-          >
+        >
+          <div css={mapFooterStyles}>
             <div css={mapFooterStatusStyles}>
               <strong>Year Last Reported:</strong>
               &nbsp;&nbsp;
@@ -547,8 +535,8 @@ function TribalMapList({
               )}
             </div>
           </div>
-        </div>
-      )}
+        </TribalMap>
+      </div>
 
       {displayMode === 'list' && listShown && (
         <div css={modifiedTabStyles(mapListHeight)}>
@@ -597,12 +585,14 @@ function TribalMapList({
 
 type TribalMapProps = {
   activeState: Object,
+  children: ReactNode,
   filter: string,
   setTribalBoundaryError: Function,
 };
 
 function TribalMap({
   activeState,
+  children,
   filter,
   setTribalBoundaryError,
 }: TribalMapProps) {
@@ -950,7 +940,9 @@ function TribalMap({
 
   return (
     <Fragment>
-      <Map layers={layers} />
+      <Map layers={layers}>
+        {children}
+      </Map>
       {mapView && mapLoading && <MapLoadingSpinner />}
     </Fragment>
   );

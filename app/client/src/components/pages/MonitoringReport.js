@@ -2342,19 +2342,15 @@ function MonitoringReportContent() {
   );
 
   const fullScreenView = (
-    <WindowSize>
-      {({ width, height }) => (
-        <div data-content="location-map" style={{ width, height }}>
-          <SiteMapContainer
-            layout="fullscreen"
-            site={site}
-            siteFilter={siteFilter}
-            siteStatus={siteStatus}
-            widthRef={widthRef}
-          />
-        </div>
-      )}
-    </WindowSize>
+    <div data-content="location-map">
+      <SiteMapContainer
+        layout="fullscreen"
+        site={site}
+        siteFilter={siteFilter}
+        siteStatus={siteStatus}
+        widthRef={widthRef}
+      />
+    </div>
   );
 
   const twoColumnView = (
