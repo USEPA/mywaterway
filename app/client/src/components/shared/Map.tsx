@@ -9,7 +9,7 @@ import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { initialExtent, LocationSearchContext } from 'contexts/locationSearch';
 import { useLayers } from 'contexts/Layers';
 // types
 import type { LayerId } from 'contexts/Layers';
@@ -23,14 +23,8 @@ type Props = {
 
 function Map({ children, layers = null, startingExtent = null }: Props) {
   const { widgetLayers } = useAddSaveDataWidgetState();
-  const {
-    basemap,
-    highlightOptions,
-    homeWidget,
-    initialExtent,
-    mapView,
-    setMapView,
-  } = useContext(LocationSearchContext);
+  const { basemap, highlightOptions, homeWidget, mapView, setMapView } =
+    useContext(LocationSearchContext);
 
   const { visibleLayers } = useLayers();
 
@@ -65,7 +59,7 @@ function Map({ children, layers = null, startingExtent = null }: Props) {
       highlightOptions,
       ...(homeWidget?.viewpoint
         ? { viewpoint: homeWidget.viewpoint }
-        : { extent: startingExtent ?? initialExtent }),
+        : { extent: startingExtent ?? initialExtent() }),
     });
 
     setMapView(view);
@@ -75,7 +69,6 @@ function Map({ children, layers = null, startingExtent = null }: Props) {
     basemap,
     highlightOptions,
     homeWidget,
-    initialExtent,
     mapInitialized,
     setMapView,
     startingExtent,

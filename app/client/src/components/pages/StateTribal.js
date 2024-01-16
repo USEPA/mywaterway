@@ -21,6 +21,7 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   StateTribalTabsContext,
   StateTribalTabsProvider,
@@ -544,8 +545,8 @@ function StateTribal() {
                     selectedSource === 'All'
                       ? 'Select a state, tribe or territory...'
                       : selectedSource === 'State'
-                        ? 'Select a state or territory...'
-                        : 'Select a tribe...'
+                      ? 'Select a state or territory...'
+                      : 'Select a tribe...'
                   }
                   options={selectOptions}
                   value={selectedStateTribe}
@@ -705,6 +706,13 @@ function StateTribal() {
 }
 
 export default function StateTribalContainer() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData(true);
+    };
+  }, [resetData]);
+
   return (
     <StateTribalTabsProvider>
       <StateTribal />

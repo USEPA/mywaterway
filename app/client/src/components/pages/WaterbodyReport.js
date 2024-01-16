@@ -2,7 +2,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useContext, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { WindowSize } from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
@@ -31,8 +31,9 @@ import {
 } from 'components/shared/Box';
 // contexts
 import { LayersProvider } from 'contexts/Layers';
-import { MapHighlightProvider } from 'contexts/MapHighlight';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
@@ -1567,6 +1568,13 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
 }
 
 export default function WaterbodyReportContainer() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData(true);
+    };
+  }, [resetData]);
+
   return (
     <LayersProvider>
       <MapHighlightProvider>

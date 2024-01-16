@@ -2403,11 +2403,11 @@ function MonitoringReportContent() {
   );
 }
 
-function MonitoringReport() {
+export default function MonitoringReport() {
   const { resetData } = useContext(LocationSearchContext);
   useEffect(() => {
     return function cleanup() {
-      resetData();
+      resetData(true);
     };
   }, [resetData]);
 
@@ -2557,5 +2557,3 @@ function StatusContent({
       return idle;
   }
 }
-
-export default MonitoringReport;
