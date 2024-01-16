@@ -1,4 +1,6 @@
 import Color from '@arcgis/core/Color';
+import Extent from '@arcgis/core/geometry/Extent';
+import Viewpoint from '@arcgis/core/Viewpoint';
 import React, { Component, createContext } from 'react';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -26,6 +28,19 @@ export const initialMonitoringGroups = () => {
   }, {});
 };
 
+export const initialExtent = () => new Extent({
+  xmin: -15634679.853814237,
+  ymin: -3023256.7294788733,
+  xmax: -5713765.078627277,
+  ymax: 12180985.440778064,
+  spatialReference: { wkid: 102100 },
+});
+
+const initialViewpoint = () => new Viewpoint({
+  scale: 73957190.9489445,
+  targetGeometry: initialExtent(),
+});
+
 export const LocationSearchContext = createContext();
 
 type Props = {
@@ -35,7 +50,6 @@ type Props = {
 export type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
 
 type State = {
-  initialExtent: Object,
   currentExtent: Object,
   upstreamExtent: Object,
   highlightOptions: Object,
@@ -90,13 +104,6 @@ type State = {
 
 export class LocationSearchProvider extends Component<Props, State> {
   state: State = {
-    initialExtent: {
-      xmin: -15634679.853814237,
-      ymin: -3023256.7294788733,
-      xmax: -5713765.078627277,
-      ymax: 12180985.440778064,
-      spatialReference: { wkid: 102100 },
-    },
     currentExtent: '',
     upstreamExtent: '',
     highlightOptions: {
@@ -354,14 +361,14 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
 
     resetMap: (useDefaultZoom = false) => {
-      const { initialExtent, mapView, homeWidget } = this.state;
+      const { mapView, homeWidget } = this.state;
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
-        mapView.extent = initialExtent;
+        mapView.extent = initialExtent();
 
         if (homeWidget) {
-          homeWidget.viewpoint = mapView.viewpoint;
+          homeWidget.viewpoint = initialViewpoint();
         }
       }
     },
