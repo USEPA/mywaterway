@@ -1879,7 +1879,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       <div
         css={containerStyles}
-        data-content="locationmap"
         data-testid="hmw-community-map"
         style={{
           marginTop: layout === 'wide' ? '1.25em' : '0',

@@ -416,7 +416,6 @@ function StateMap({
   // jsx
   const mapContent = (
     <div
-      data-content="statemap"
       css={css`
         ${containerStyles};
         height: ${windowHeight - mapInputsHeight - 3 * mapPadding}px;

@@ -1182,7 +1182,7 @@ function AdvancedSearch() {
   }
 
   return (
-    <div data-content="stateoverview">
+    <div>
       {filterControls}
 
       {currentFilter && resultsContainer}

@@ -134,7 +134,6 @@ function StateTribalTabs() {
   return (
     <Tabs
       css={tabsStyles}
-      data-content="stateTabs"
       index={activeTabIndex}
       onChange={(index) => {
         setActiveTabIndex(index);

@@ -399,7 +399,7 @@ function StateTribal() {
     <Page>
       <TabLinks />
 
-      <div css={containerStyles} data-content="state">
+      <div css={containerStyles}>
         {(states.status === 'fetching' || tribes.status === 'fetching') && (
           <LoadingSpinner />
         )}
@@ -544,8 +544,8 @@ function StateTribal() {
                     selectedSource === 'All'
                       ? 'Select a state, tribe or territory...'
                       : selectedSource === 'State'
-                      ? 'Select a state or territory...'
-                      : 'Select a tribe...'
+                        ? 'Select a state or territory...'
+                        : 'Select a tribe...'
                   }
                   options={selectOptions}
                   value={selectedStateTribe}
