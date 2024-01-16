@@ -31,7 +31,6 @@ import {
 } from 'components/shared/Box';
 // contexts
 import { LayersProvider } from 'contexts/Layers';
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -236,7 +235,6 @@ const conditions = {
 
 function WaterbodyReport() {
   const { orgId, auId, reportingCycle } = useParams();
-  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 
@@ -1056,25 +1054,6 @@ function WaterbodyReport() {
     );
   }
 
-  if (fullscreenActive) {
-    return (
-      <WindowSize>
-        {({ width, height }) => {
-          return (
-            <div data-content="actionsmap" style={{ height, width }}>
-              <ActionsMap
-                layout="fullscreen"
-                unitIds={unitIds}
-                onLoad={setMapLayer}
-                includePhoto
-              />
-            </div>
-          );
-        }}
-      </WindowSize>
-    );
-  }
-
   return (
     <Page>
       <NavBar title="Waterbody Report" />
@@ -1591,9 +1570,7 @@ export default function WaterbodyReportContainer() {
   return (
     <LayersProvider>
       <MapHighlightProvider>
-        <FullscreenProvider>
-          <WaterbodyReport />
-        </FullscreenProvider>
+        <WaterbodyReport />
       </MapHighlightProvider>
     </LayersProvider>
   );

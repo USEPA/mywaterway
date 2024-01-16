@@ -59,7 +59,7 @@ const imageStyles = css`
 
 // --- components ---
 type Props = {
-  layout: 'narrow' | 'wide' | 'fullscreen',
+  layout: 'narrow' | 'wide',
   unitIds: Array<string>,
   onLoad: ?Function,
   includePhoto?: boolean,
@@ -350,10 +350,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   // Scrolls to the map when switching layouts
   useEffect(() => {
     // scroll container or actions map content into view
-    // get container or actions map content DOM node to scroll page
-    // the layout changes
-    const itemName = layout === 'fullscreen' ? 'actionsmap' : 'container';
-    const content = document.querySelector(`[data-content="${itemName}"]`);
+    const content = document.querySelector(`[data-content="container"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
 
@@ -365,6 +362,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const [mapLoading, setMapLoading] = useState(true);
   useEffect(() => {
     if (
+      !mapLoading ||
       !fetchStatus ||
       !mapView ||
       !actionsWaterbodies ||
@@ -390,15 +388,15 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     mapView.when(() => {
       mapView.goTo(zoomParams).then(() => {
         // set map zoom and home widget's viewpoint
-        mapView.zoom = mapView.zoom - 1;
-        homeWidget.viewpoint = new Viewpoint({
-          targetGeometry: mapView.extent,
-        });
+          mapView.zoom = mapView.zoom - 1;
+          homeWidget.viewpoint = new Viewpoint({
+            targetGeometry: mapView.extent,
+          });
+          setMapLoading(false);
       });
     });
 
-    setMapLoading(false);
-  }, [fetchStatus, mapView, actionsWaterbodies, homeWidget]);
+  }, [fetchStatus, mapLoading, mapView, actionsWaterbodies, homeWidget]);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   if (!browserIsCompatibleWithArcGIS()) {
