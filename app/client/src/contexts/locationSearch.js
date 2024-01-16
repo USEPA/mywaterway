@@ -366,7 +366,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       }
     },
 
-    resetData: () => {
+    resetData: (useDefaultZoom = false) => {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
@@ -395,7 +395,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
       // remove map content
       // only zoom out the map if we are on the community intro page at /community
-      if (window.location.pathname === '/community') {
+      if (useDefaultZoom || window.location.pathname === '/community') {
         this.state.resetMap(true);
       } else {
         this.state.resetMap(false);

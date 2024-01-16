@@ -1,7 +1,7 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
@@ -35,8 +35,9 @@ import {
 } from 'components/shared/Box';
 // contexts
 import { LayersProvider } from 'contexts/Layers';
-import { MapHighlightProvider } from 'contexts/MapHighlight';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -782,6 +783,13 @@ function Actions() {
 }
 
 export default function ActionsContainer() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData(true);
+    };
+  }, [resetData]);
+
   return (
     <LayersProvider>
       <MapHighlightProvider>
