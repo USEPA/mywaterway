@@ -395,11 +395,6 @@
         );
 
         if (unsupportedMessage) {
-          // Allows the user to close the unsupported message.
-          function hideUnsupportedMessage() {
-            unsupportedMessage.style.display = 'none';
-          }
-
           // If fetch is supported, hide the unsupported browser message until
           // we can get the supported browsers lookup file.
           if ('fetch' in window) {
@@ -497,6 +492,14 @@
         } else {
           setTimeout(unsupportedBrowserMessage, 15);
         }
+      }
+
+      // Allows the user to close the unsupported message.
+      function hideUnsupportedMessage() {
+        const unsupportedMessage = document.getElementById(
+          'unsupported-browser-message',
+        );
+        unsupportedMessage.style.display = 'none';
       }
 
       unsupportedBrowserMessage();
