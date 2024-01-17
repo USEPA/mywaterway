@@ -90,7 +90,7 @@
     "react-sticky-box": "2.0.5",
     "react-switch": "7.0.0",
     "react-table": "7.8.0",
-    "react-window": "1.8.10",
+    "react-virtuoso": "4.6.2",
     "smoothscroll-polyfill": "0.4.4",
     "uuid": "9.0.1"
   },
