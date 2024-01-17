@@ -255,6 +255,7 @@
         position: sticky;
         top: 0;
         z-index: 900;
+        display: none;
       }
 
       .unsupportedErrorBox {
@@ -378,6 +379,127 @@
       window.addEventListener('locationchange', function (event) {
         setPageTitle(pathnameMapping);
       });
+    </script>
+
+    <script>
+      /**
+       * This script is used for displaying a "browser unsupported"
+       * message. This script polls for the unsupported-browser-message
+       * div, when available it then checks the browser version and
+       * displays the message if necessary.
+       */
+
+      function unsupportedBrowserMessage() {
+        const unsupportedMessage = document.getElementById(
+          'unsupported-browser-message',
+        );
+
+        if (unsupportedMessage) {
+          // Allows the user to close the unsupported message.
+          function hideUnsupportedMessage() {
+            unsupportedMessage.style.display = 'none';
+          }
+
+          // If fetch is supported, hide the unsupported browser message until
+          // we can get the supported browsers lookup file.
+          if ('fetch' in window) {
+            unsupportedMessage.style.display = 'none';
+          }
+
+          // Parse the user agent string to determine which browser the user is using.
+          const { browserName, browserVersion } = (function () {
+            const ua = navigator.userAgent;
+
+            let item;
+            let M =
+              ua.match(
+                /(opera|chrome|safari|firefox|edg|msie|trident(?=\/))\/?\s*(\d+)/i,
+              ) || [];
+            if (/trident/i.test(M[1])) {
+              item = /\brv[ :]+(\d+)/g.exec(ua) || [];
+              return {
+                browserName: 'IE',
+                browserVersion: parseInt(item[1]) || 0,
+              };
+            }
+            if (M[1] === 'Chrome') {
+              item = ua.match(/\b(Edg)\/(\d+)/);
+              if (item != null) {
+                item = item.slice(1);
+                return {
+                  browserName: item[0].replace('Edg', 'Edge'),
+                  browserVersion: parseInt(item[1]) || 0,
+                };
+              }
+            }
+
+            M = M[2]
+              ? [M[1], M[2]]
+              : [navigator.appName, navigator.appVersion, '-?'];
+            if ((item = ua.match(/version\/(\d+)/i)) != null)
+              M.splice(1, 1, item[1]);
+
+            return {
+              browserName: M[0],
+              browserVersion: parseInt(M[1]) || 0,
+            };
+          })();
+
+          // fetch the supported browser list lookup file
+          const proxyUrl = `${origin}/proxy`;
+          const url = `${proxyUrl}?url=${origin}/data/config/supported-browsers.json`;
+          fetch(url)
+            .then((response) => {
+              if (response.status === 200) {
+                // parse the json
+                response.json().then((json) => {
+                  let browserSupported = false;
+
+                  // determine if the user's browser is supported
+                  if (
+                    browserName === 'Chrome' &&
+                    browserVersion >= json.chrome
+                  ) {
+                    browserSupported = true;
+                  }
+                  if (
+                    browserName === 'Firefox' &&
+                    browserVersion >= json.firefox
+                  ) {
+                    browserSupported = true;
+                  }
+                  if (
+                    browserName === 'Safari' &&
+                    browserVersion >= json.safari
+                  ) {
+                    browserSupported = true;
+                  }
+                  if (browserName === 'Edge' && browserVersion >= json.edge) {
+                    browserSupported = true;
+                  }
+
+                  // hide/show the unsupported browser message
+                  unsupportedMessage.style.display = browserSupported
+                    ? 'none'
+                    : 'block';
+                });
+              } else {
+                // show the unsupported browser message
+                unsupportedMessage.style.display = 'block';
+              }
+            })
+            .catch((err) => {
+              console.error(err);
+
+              // show the unsupported browser message
+              unsupportedMessage.style.display = 'block';
+            });
+        } else {
+          setTimeout(unsupportedBrowserMessage, 15);
+        }
+      }
+
+      unsupportedBrowserMessage();
     </script>
 
     <!-- Google Tag Manager -->
@@ -1340,104 +1462,4 @@
       }
     </style>
   </body>
-  <script>
-    /**
-     * This script is used for displaying a "browser unsupported"
-     * message. This script is placed after the body to ensure the
-     * div with the "unsupported-browser-message" id exists in the dom prior
-     * to this script running.
-     */
-
-    const unsupportedMessage = document.getElementById(
-      'unsupported-browser-message',
-    );
-
-    // Allows the user to close the unsupported message.
-    function hideUnsupportedMessage() {
-      unsupportedMessage.style.display = 'none';
-    }
-
-    // If fetch is supported, hide the unsupported browser message until
-    // we can get the supported browsers lookup file.
-    if ('fetch' in window) {
-      unsupportedMessage.style.display = 'none';
-    }
-
-    // Parse the user agent string to determine which browser the user is using.
-    const { browserName, browserVersion } = (function () {
-      const ua = navigator.userAgent;
-
-      let item;
-      let M =
-        ua.match(
-          /(opera|chrome|safari|firefox|edg|msie|trident(?=\/))\/?\s*(\d+)/i,
-        ) || [];
-      if (/trident/i.test(M[1])) {
-        item = /\brv[ :]+(\d+)/g.exec(ua) || [];
-        return {
-          browserName: 'IE',
-          browserVersion: parseInt(item[1]) || 0,
-        };
-      }
-      if (M[1] === 'Chrome') {
-        item = ua.match(/\b(Edg)\/(\d+)/);
-        if (item != null) {
-          item = item.slice(1);
-          return {
-            browserName: item[0].replace('Edg', 'Edge'),
-            browserVersion: parseInt(item[1]) || 0,
-          };
-        }
-      }
-
-      M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
-      if ((item = ua.match(/version\/(\d+)/i)) != null) M.splice(1, 1, item[1]);
-
-      return {
-        browserName: M[0],
-        browserVersion: parseInt(M[1]) || 0,
-      };
-    })();
-
-    // fetch the supported browser list lookup file
-    const proxyUrl = `${origin}/proxy`;
-    const url = `${proxyUrl}?url=${origin}/data/config/supported-browsers.json`;
-    fetch(url)
-      .then((response) => {
-        if (response.status === 200) {
-          // parse the json
-          response.json().then((json) => {
-            let browserSupported = false;
-
-            // determine if the user's browser is supported
-            if (browserName === 'Chrome' && browserVersion >= json.chrome) {
-              browserSupported = true;
-            }
-            if (browserName === 'Firefox' && browserVersion >= json.firefox) {
-              browserSupported = true;
-            }
-            if (browserName === 'Safari' && browserVersion >= json.safari) {
-              browserSupported = true;
-            }
-            if (browserName === 'Edge' && browserVersion >= json.edge) {
-              browserSupported = true;
-            }
-
-            // hide/show the unsupported browser message
-            unsupportedMessage.style.display = browserSupported
-              ? 'none'
-              : 'block';
-          });
-        } else {
-          // show the unsupported browser message
-          unsupportedMessage.style.display = 'block';
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-
-        // show the unsupported browser message
-        unsupportedMessage.style.display = 'block';
-      });
-  </script>
 </html>
