@@ -5,7 +5,7 @@ import Select from 'react-select';
 import { css } from '@emotion/react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import MenuList from 'components/shared/MenuList';
+import { MenuList, Option } from 'components/shared/ReactSelectComponents';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
@@ -68,7 +68,7 @@ export function CharacteristicsSelect({
       </span>
       <Select
         aria-label="Filter by Characteristics"
-        components={{ MenuList }}
+        components={{ MenuList, Option }}
         formatGroupLabel={formatGroupLabel}
         formatOptionLabel={formatOptionLabel}
         isDisabled={monitoringPeriodOfRecordStatus === 'failure'}

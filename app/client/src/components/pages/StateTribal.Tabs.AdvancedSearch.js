@@ -1,7 +1,7 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { css } from '@emotion/react';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
@@ -9,7 +9,7 @@ import * as query from '@arcgis/core/rest/query';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import MenuList from 'components/shared/MenuList';
+import { MenuList, Option } from 'components/shared/ReactSelectComponents';
 import Modal from 'components/shared/Modal';
 import StateMap from 'components/shared/StateMap';
 import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized';
@@ -344,6 +344,13 @@ function AdvancedSearch() {
 
   // get a list of watersheds and build the esri where clause
   const [watersheds, setWatersheds] = useState(null);
+  const watershedOptions = useMemo(() => {
+    return watersheds
+      ? watersheds
+          .filter((watershed) => watershed.label) // filter out nulls
+          .sort((a, b) => a.label.localeCompare(b.label))
+      : [];
+  }, [watersheds]);
   useEffect(() => {
     if (activeState.value === '' || !watershedsLayerMaxRecordCount) return;
 
@@ -407,6 +414,11 @@ function AdvancedSearch() {
 
   // these lists just have the name and id for faster load time
   const [waterbodiesList, setWaterbodiesList] = useState(null);
+  const waterbodiesOptions = useMemo(() => {
+    return waterbodiesList
+      ? waterbodiesList.sort((a, b) => a.label.localeCompare(b.label))
+      : [];
+  }, [waterbodiesList]);
   // Get the features on the waterbodies point layer
   useEffect(() => {
     if (!stateAndOrganization || !summaryLayerMaxRecordCount) {
@@ -849,15 +861,9 @@ function AdvancedSearch() {
             isMulti
             isLoading={!watersheds}
             disabled={!watersheds}
-            components={{ MenuList }} // virtualized list
+            components={{ MenuList, Option }} // virtualized list
             filterOption={createFilter({ ignoreAccents: false })} // performance boost
-            options={
-              watersheds
-                ? watersheds
-                    .filter((watershed) => watershed.label) // filter out nulls
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                : []
-            }
+            options={watershedOptions}
             value={watershedFilter}
             onChange={(ev) => setWatershedFilter(ev)}
             styles={reactSelectStyles}
@@ -871,13 +877,9 @@ function AdvancedSearch() {
             isMulti
             isLoading={!waterbodiesList}
             disabled={!waterbodiesList}
-            components={{ MenuList }} // virtualized list
+            components={{ MenuList, Option }} // virtualized list
             filterOption={createFilter({ ignoreAccents: false })} // performance boost
-            options={
-              waterbodiesList
-                ? waterbodiesList.sort((a, b) => a.label.localeCompare(b.label))
-                : []
-            }
+            options={waterbodiesOptions}
             value={waterbodyFilter}
             onChange={(ev) => setWaterbodyFilter(ev)}
             styles={reactSelectStyles}
