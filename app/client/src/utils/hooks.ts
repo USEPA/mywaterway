@@ -668,7 +668,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       if (featureLayerType === 'waterbodyLayer') {
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
       } else if (featureLayerType === 'wildScenicRivers') {
-        where = `GlobalID = '${attributes.GlobalID}'`;
+        where = `OBJECTID = ${attributes.OBJECTID}`;
       } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;
       } else if ('uniqueId' in attributes) {
