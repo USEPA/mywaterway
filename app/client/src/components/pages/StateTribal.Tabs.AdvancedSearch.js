@@ -9,8 +9,8 @@ import * as query from '@arcgis/core/rest/query';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { MenuList, Option } from 'components/shared/ReactSelectComponents';
 import Modal from 'components/shared/Modal';
+import PaginatedSelect from 'components/shared/PaginatedSelect';
 import StateMap from 'components/shared/StateMap';
 import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized';
 // styled components
@@ -856,33 +856,27 @@ function AdvancedSearch() {
             </GlossaryTerm>
             :
           </span>
-          <Select
+          <PaginatedSelect
             aria-label="Watershed Names (HUC12)"
-            isMulti
             isLoading={!watersheds}
             disabled={!watersheds}
-            components={{ MenuList, Option }} // virtualized list
             filterOption={createFilter({ ignoreAccents: false })} // performance boost
             options={watershedOptions}
             value={watershedFilter}
             onChange={(ev) => setWatershedFilter(ev)}
-            styles={reactSelectStyles}
           />
         </div>
 
         <div css={inputStyles}>
           <label htmlFor="waterbodies">Waterbody Names (IDs):</label>
-          <Select
-            inputId="waterbodies"
-            isMulti
-            isLoading={!waterbodiesList}
+          <PaginatedSelect
             disabled={!waterbodiesList}
-            components={{ MenuList, Option }} // virtualized list
             filterOption={createFilter({ ignoreAccents: false })} // performance boost
+            inputId="waterbodies"
+            isLoading={!waterbodiesList}
+            onChange={(ev) => setWaterbodyFilter(ev)}
             options={waterbodiesOptions}
             value={waterbodyFilter}
-            onChange={(ev) => setWaterbodyFilter(ev)}
-            styles={reactSelectStyles}
           />
         </div>
       </div>

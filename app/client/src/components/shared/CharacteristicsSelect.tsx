@@ -1,17 +1,16 @@
 /** @jsxImportSource @emotion/react */
 
 import { useContext, useMemo } from 'react';
-import Select from 'react-select';
 import { css } from '@emotion/react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { MenuList, Option } from 'components/shared/ReactSelectComponents';
+import PaginatedSelect from 'components/shared/PaginatedSelect';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useMonitoringLocations } from 'utils/hooks';
 // styles
-import { groupHeadingStyles, reactSelectStyles } from 'styles/index';
+import { groupHeadingStyles } from 'styles/index';
 
 export default CharacteristicsSelect;
 export function CharacteristicsSelect({
@@ -66,19 +65,16 @@ export function CharacteristicsSelect({
         Filter by{' '}
         <GlossaryTerm term="Characteristics">Characteristics</GlossaryTerm>:
       </span>
-      <Select
+      <PaginatedSelect
         aria-label="Filter by Characteristics"
-        components={{ MenuList, Option }}
         formatGroupLabel={formatGroupLabel}
         formatOptionLabel={formatOptionLabel}
         isDisabled={monitoringPeriodOfRecordStatus === 'failure'}
         isLoading={monitoringPeriodOfRecordStatus === 'pending'}
-        isMulti
         onChange={(options) => onChange(options.map((option) => option.value))}
         options={allCharacteristicOptions}
         placeholder="Select one or more characteristics..."
         styles={{
-          ...reactSelectStyles,
           groupHeading: (defaultStyles) => ({
             ...defaultStyles,
             ...groupHeadingStyles,
