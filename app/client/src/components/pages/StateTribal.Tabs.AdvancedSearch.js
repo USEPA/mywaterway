@@ -1,7 +1,7 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { css } from '@emotion/react';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
@@ -9,8 +9,8 @@ import * as query from '@arcgis/core/rest/query';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import MenuList from 'components/shared/MenuList';
 import Modal from 'components/shared/Modal';
+import PaginatedSelect from 'components/shared/PaginatedSelect';
 import StateMap from 'components/shared/StateMap';
 import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized';
 // styled components
@@ -344,6 +344,13 @@ function AdvancedSearch() {
 
   // get a list of watersheds and build the esri where clause
   const [watersheds, setWatersheds] = useState(null);
+  const watershedOptions = useMemo(() => {
+    return watersheds
+      ? watersheds
+          .filter((watershed) => watershed.label) // filter out nulls
+          .sort((a, b) => a.label.localeCompare(b.label))
+      : [];
+  }, [watersheds]);
   useEffect(() => {
     if (activeState.value === '' || !watershedsLayerMaxRecordCount) return;
 
@@ -407,6 +414,11 @@ function AdvancedSearch() {
 
   // these lists just have the name and id for faster load time
   const [waterbodiesList, setWaterbodiesList] = useState(null);
+  const waterbodiesOptions = useMemo(() => {
+    return waterbodiesList
+      ? waterbodiesList.sort((a, b) => a.label.localeCompare(b.label))
+      : [];
+  }, [waterbodiesList]);
   // Get the features on the waterbodies point layer
   useEffect(() => {
     if (!stateAndOrganization || !summaryLayerMaxRecordCount) {
@@ -844,43 +856,27 @@ function AdvancedSearch() {
             </GlossaryTerm>
             :
           </span>
-          <Select
+          <PaginatedSelect
             aria-label="Watershed Names (HUC12)"
-            isMulti
             isLoading={!watersheds}
             disabled={!watersheds}
-            components={{ MenuList }} // virtualized list
             filterOption={createFilter({ ignoreAccents: false })} // performance boost
-            options={
-              watersheds
-                ? watersheds
-                    .filter((watershed) => watershed.label) // filter out nulls
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                : []
-            }
+            options={watershedOptions}
             value={watershedFilter}
             onChange={(ev) => setWatershedFilter(ev)}
-            styles={reactSelectStyles}
           />
         </div>
 
         <div css={inputStyles}>
           <label htmlFor="waterbodies">Waterbody Names (IDs):</label>
-          <Select
-            inputId="waterbodies"
-            isMulti
-            isLoading={!waterbodiesList}
+          <PaginatedSelect
             disabled={!waterbodiesList}
-            components={{ MenuList }} // virtualized list
             filterOption={createFilter({ ignoreAccents: false })} // performance boost
-            options={
-              waterbodiesList
-                ? waterbodiesList.sort((a, b) => a.label.localeCompare(b.label))
-                : []
-            }
-            value={waterbodyFilter}
+            inputId="waterbodies"
+            isLoading={!waterbodiesList}
             onChange={(ev) => setWaterbodyFilter(ev)}
-            styles={reactSelectStyles}
+            options={waterbodiesOptions}
+            value={waterbodyFilter}
           />
         </div>
       </div>
