@@ -11,10 +11,14 @@ import type {
 } from 'react-select';
 import type { VirtuosoHandle } from 'react-virtuoso';
 
+const ITEM_HEIGHT = 32;
 const PAGE_SIZE = 1000;
 
-function getListHeight(length: number, maxHeight: number) {
-  return Math.min(length < 6 ? length * 40 : 6 * 40, maxHeight);
+function getListHeight(length: number | null) {
+  const maxItemsShown = 7;
+  return length && length < maxItemsShown
+    ? length * ITEM_HEIGHT
+    : maxItemsShown * ITEM_HEIGHT;
 }
 
 /*
@@ -99,13 +103,15 @@ export function PaginatedSelect(props: Props) {
 
 function wrapMenuList(loadPrevious: () => boolean, loadNext: () => boolean) {
   return (props: MenuListProps<Option>) => {
-    const { children, maxHeight } = props;
+    const { children } = props;
     const listRef = useRef<VirtuosoHandle | null>(null);
 
     const handleHitBottom = (atBottom: boolean) => {
       if (!atBottom) return;
       if (loadNext()) {
-        listRef.current?.scrollToIndex(PAGE_SIZE - 7); // Magic number
+        listRef.current?.scrollToIndex(
+          PAGE_SIZE - Math.round(getListHeight(null) / ITEM_HEIGHT),
+        );
       }
     };
 
@@ -139,7 +145,7 @@ function wrapMenuList(loadPrevious: () => boolean, loadNext: () => boolean) {
           itemContent={(_index, item) => <ItemContent item={item} />}
           ref={listRef}
           style={{
-            height: getListHeight(childrenToDisplay.length, maxHeight),
+            height: getListHeight(childrenToDisplay.length),
             width: '100%',
           }}
         />
