@@ -79,10 +79,13 @@ export function PaginatedSelect(props: Props) {
     <Select
       components={{ MenuList }}
       isMulti
-      onInputChange={setInputValue}
-      onMenuClose={() => {
+      onInputChange={(newValue) => {
+        setInputValue(newValue);
         setStartIndex(0);
+      }}
+      onMenuClose={() => {
         setInputValue('');
+        setStartIndex(0);
       }}
       options={optionsOrGroupsPage}
       styles={{
