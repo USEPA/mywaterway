@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import Select, { components } from 'react-select';
 import { Virtuoso } from 'react-virtuoso';
 // styles
@@ -23,11 +23,78 @@ function getListHeight(length: number, maxHeight: number) {
 
 const ItemContent = ({ item }: { item: string }) => item;
 
-function wrapMenuList(
-  loadPrevious: () => boolean,
-  loadNext: () => boolean,
-  reset: () => void,
-) {
+export function PaginatedSelect(props: Props) {
+  const { options: optionsOrGroups, styles, ...rest } = props;
+
+  const options = useMemo(() => {
+    return optionsOrGroups.flatMap((groupOrOption) => {
+      if ('options' in groupOrOption) return groupOrOption.options;
+      return groupOrOption;
+    });
+  }, [optionsOrGroups]);
+
+  const [inputValue, setInputValue] = useState('');
+
+  const filteredOptions = useMemo(() => {
+    return options.filter((option) => {
+      return option.label.toLowerCase().includes(inputValue.toLowerCase());
+    });
+  }, [inputValue, options]);
+
+  const [startIndex, setStartIndex] = useState(0);
+
+  const loadNext = useCallback(() => {
+    let hasMore = false;
+    setStartIndex((prevStart) => {
+      if (prevStart + PAGE_SIZE * 2 >= filteredOptions.length) return prevStart;
+      hasMore = true;
+      return prevStart + PAGE_SIZE;
+    });
+    return hasMore;
+  }, [filteredOptions]);
+
+  const loadPrevious = useCallback(() => {
+    let hasMore = false;
+    setStartIndex((prevStart) => {
+      if (prevStart <= 0) return 0;
+      hasMore = true;
+      return prevStart - PAGE_SIZE;
+    });
+    return hasMore;
+  }, []);
+
+  const optionsOrGroupsPage = useMemo(() => {
+    const page = filteredOptions.slice(startIndex, startIndex + PAGE_SIZE * 2);
+    return 'options' in optionsOrGroups
+      ? [{ label: 'Group', options: page }]
+      : page;
+  }, [filteredOptions, optionsOrGroups, startIndex]);
+
+  const MenuList = useMemo(
+    () => wrapMenuList(loadPrevious, loadNext),
+    [loadNext, loadPrevious],
+  );
+
+  return (
+    <Select
+      components={{ MenuList }}
+      isMulti
+      onInputChange={setInputValue}
+      onMenuClose={() => {
+        setStartIndex(0);
+        setInputValue('');
+      }}
+      options={optionsOrGroupsPage}
+      styles={{
+        ...reactSelectStyles,
+        ...styles,
+      }}
+      {...rest}
+    />
+  );
+}
+
+function wrapMenuList(loadPrevious: () => boolean, loadNext: () => boolean) {
   return (props: MenuListProps<Option>) => {
     const { children, maxHeight } = props;
     const listRef = useRef<VirtuosoHandle | null>(null);
@@ -45,12 +112,6 @@ function wrapMenuList(
         listRef.current?.scrollToIndex(PAGE_SIZE);
       }
     };
-
-    useEffect(() => {
-      return function cleanup() {
-        reset();
-      };
-    }, []);
 
     // Use the default style dropdown if there is no data.
     if (!Array.isArray(children) || children.length === 0) {
@@ -84,66 +145,6 @@ function wrapMenuList(
   };
 }
 
-export function PaginatedSelect(props: Props) {
-  const { options: optionsOrGroups, styles, ...rest } = props;
-
-  const options = useMemo(() => {
-    return optionsOrGroups.flatMap((groupOrOption) => {
-      if ('options' in groupOrOption) return groupOrOption.options;
-      return groupOrOption;
-    });
-  }, [optionsOrGroups]);
-
-  const [startIndex, setStartIndex] = useState(0);
-
-  const loadNext = useCallback(() => {
-    let hasMore = false;
-    setStartIndex((prevStart) => {
-      if (prevStart + PAGE_SIZE * 2 >= options.length) return prevStart;
-      hasMore = true;
-      return prevStart + PAGE_SIZE;
-    });
-    return hasMore;
-  }, [options]);
-
-  const loadPrevious = useCallback(() => {
-    let hasMore = false;
-    setStartIndex((prevStart) => {
-      if (prevStart <= 0) return 0;
-      hasMore = true;
-      return prevStart - PAGE_SIZE;
-    });
-    return hasMore;
-  }, []);
-
-  const reset = useCallback(() => setStartIndex(0), []);
-
-  const optionsOrGroupsPage = useMemo(() => {
-    const page = options.slice(startIndex, startIndex + PAGE_SIZE * 2);
-    return 'options' in optionsOrGroups
-      ? [{ label: 'Group', options: page }]
-      : page;
-  }, [options, optionsOrGroups, startIndex]);
-
-  const MenuList = useMemo(
-    () => wrapMenuList(loadPrevious, loadNext, reset),
-    [loadNext, loadPrevious, reset],
-  );
-
-  return (
-    <Select
-      components={{ MenuList }}
-      isMulti
-      options={optionsOrGroupsPage}
-      styles={{
-        ...reactSelectStyles,
-        ...styles,
-      }}
-      {...rest}
-    />
-  );
-}
-
 /*
 ## Types
 */
@@ -155,7 +156,7 @@ type Option = {
 
 type Props = Omit<
   SelectProps<Option, true, GroupBase<Option>>,
-  'components' | 'isMulti'
+  'components' | 'isMulti' | 'onInputChange' | 'onMenuClose'
 > &
   Required<Pick<SelectProps<Option, true, GroupBase<Option>>, 'options'>>;
 
