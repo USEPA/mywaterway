@@ -939,15 +939,15 @@ function WaterbodyInfo({
   // jsx
   const wildScenicRiversContent = (
     <>
-      {attributes.PhotoLink && attributes.PhotoCredit && (
+      {attributes.PHOTOLINK && attributes.PHOTOCREDIT && (
         <div css={imageContainerStyles}>
           <img
             css={imageStyles}
-            src={attributes.PhotoLink}
+            src={attributes.PHOTOLINK}
             alt="Wild and Scenic River"
           />
           <br />
-          <em>Photo Credit: {attributes.PhotoCredit}</em>
+          <em>Photo Credit: {attributes.PHOTOCREDIT}</em>
         </div>
       )}
       <p>
@@ -956,7 +956,7 @@ function WaterbodyInfo({
       </p>
       <p>
         <strong>Category: </strong>
-        {attributes.RiverCategory}
+        {attributes.RIVERCATEGORY}
         <br />
       </p>
       <p>

@@ -51,7 +51,7 @@
     "queryStringFirstPart": "query?where=IS_DEFAULT%3D%27Y%27+and+STATE+in+%28",
     "queryStringSecondPart": "%29&outFields=*&returnGeometry=false&returnTrueCurves=false&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&returnExtentsOnly=false&f=json"
   },
-  "wildScenicRivers": "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/WildScenicRiversV2_AGOL/FeatureServer/1/",
+  "wildScenicRivers": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_WildScenicRiverSegments_01/MapServer/0",
   "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus3/Protection_Mechanism_Category/MapServer/",
   "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2020_Public/MapServer/",
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",

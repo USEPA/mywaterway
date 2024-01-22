@@ -857,7 +857,7 @@ function Protect() {
                                     },
                                     {
                                       label: 'River Category',
-                                      value: attributes.RiverCategory,
+                                      value: attributes.RIVERCATEGORY,
                                     },
                                     {
                                       label: 'Website',
@@ -885,7 +885,7 @@ function Protect() {
                                   <ViewOnMapButton
                                     layers={[wildScenicRiversLayer]}
                                     feature={item}
-                                    idField={'GlobalID'}
+                                    idField={'OBJECTID'}
                                     onClick={() => {
                                       if (wildScenicRiversDisplayed) return;
 
