@@ -58,12 +58,6 @@ import type {
   WaterbodyCondition,
 } from 'types';
 
-declare global {
-  interface Window {
-    logToGa: Function;
-  }
-}
-
 let dynamicPopupFields: __esri.Field[] = [];
 
 const allWaterbodiesAlpha = {
@@ -322,7 +316,16 @@ function useWaterbodyOnMap(
   } = useLayers();
 
   const setRenderer = useCallback(
-    (layer, geometryType, attribute, alpha = null) => {
+    (
+      layer: FeatureLayer,
+      geometryType: 'point' | 'polygon' | 'polyline',
+      attribute: string,
+      alpha: {
+        base: number;
+        poly: number;
+        outline: number;
+      } | null = null,
+    ) => {
       const renderer = new UniqueValueRenderer({
         defaultSymbol: createWaterbodySymbol({
           condition: defaultCondition,
@@ -390,7 +393,8 @@ function useWaterbodyOnMap(
   useEffect(() => {
     if (!allWaterbodiesLayer) return;
 
-    const layers = allWaterbodiesLayer.layers;
+    const layers =
+      allWaterbodiesLayer.layers as __esri.Collection<__esri.FeatureLayer>;
     const attribute = allWaterbodiesAttribute || attributeName;
 
     setRenderer(layers.at(2), 'point', attribute, allWaterbodiesAlpha);
@@ -664,7 +668,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       if (featureLayerType === 'waterbodyLayer') {
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
       } else if (featureLayerType === 'wildScenicRivers') {
-        where = `GlobalID = '${attributes.GlobalID}'`;
+        where = `OBJECTID = ${attributes.OBJECTID}`;
       } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;
       } else if ('uniqueId' in attributes) {

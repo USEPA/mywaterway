@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { Node } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
 // components
@@ -26,7 +27,7 @@ import waterPhoto from 'images/water.jpg';
 
 const topLinksStyles = css`
   position: relative;
-  z-index: 100;
+  z-index: 1;
   margin: auto;
   max-width: 1024px; /* match EPA header */
 
@@ -109,7 +110,6 @@ const topLinksStyles = css`
 
 const bannerStyles = css`
   position: relative;
-  z-index: 10;
   height: 10em;
   background-image: linear-gradient(
       ${colors.black(0.875)} 25%,

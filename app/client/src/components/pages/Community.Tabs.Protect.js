@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
@@ -856,7 +857,7 @@ function Protect() {
                                     },
                                     {
                                       label: 'River Category',
-                                      value: attributes.RiverCategory,
+                                      value: attributes.RIVERCATEGORY,
                                     },
                                     {
                                       label: 'Website',
@@ -884,7 +885,7 @@ function Protect() {
                                   <ViewOnMapButton
                                     layers={[wildScenicRiversLayer]}
                                     feature={item}
-                                    idField={'GlobalID'}
+                                    idField={'OBJECTID'}
                                     onClick={() => {
                                       if (wildScenicRiversDisplayed) return;
 

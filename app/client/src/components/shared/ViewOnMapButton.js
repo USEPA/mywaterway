@@ -1,6 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { useMapHighlightState } from 'contexts/MapHighlight';
@@ -79,9 +80,12 @@ function ViewOnMapButton({
       if (layer.type === 'feature') {
         const params = layer.createQuery();
         params.returnGeometry = true;
-        params.where = idField
-          ? `${idField} = '${feature.attributes[idField]}'`
-          : `organizationid = '${organizationid}' And assessmentunitidentifier = '${assessmentunitidentifier}'`;
+        params.where =
+          idField === 'OBJECTID'
+            ? `${idField} = ${feature.attributes[idField]}`
+            : idField
+              ? `${idField} = '${feature.attributes[idField]}'`
+              : `organizationid = '${organizationid}' And assessmentunitidentifier = '${assessmentunitidentifier}'`;
         params.outFields = ['*'];
         params.outSpatialReference = 102100;
         layer

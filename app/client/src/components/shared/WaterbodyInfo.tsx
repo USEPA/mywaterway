@@ -1,10 +1,12 @@
+/** @jsxImportSource @emotion/react */
+
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import ControlPointsGeoreference from '@arcgis/core/layers/support/ControlPointsGeoreference';
 import Extent from '@arcgis/core/geometry/Extent';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
 import Point from '@arcgis/core/geometry/Point';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
-import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
@@ -72,6 +74,7 @@ import {
   tableStyles,
 } from 'styles/index';
 // types
+import type { SerializedStyles } from '@emotion/react';
 import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
@@ -646,9 +649,9 @@ function WaterbodyInfo({
                               value === 'Good'
                                 ? 'Good Waters'
                                 : value === 'Impaired' ||
-                                  value === 'Impaired (Issues Identified)'
-                                ? 'Impaired Waters'
-                                : 'Condition Unknown'
+                                    value === 'Impaired (Issues Identified)'
+                                  ? 'Impaired Waters'
+                                  : 'Condition Unknown'
                             }
                           >
                             {value}
@@ -701,8 +704,8 @@ function WaterbodyInfo({
                                         useCode === 'F'
                                           ? 'Good'
                                           : useCode === 'N'
-                                          ? 'Impaired'
-                                          : 'Condition Unknown';
+                                            ? 'Impaired'
+                                            : 'Condition Unknown';
 
                                       return (
                                         <tr key={use.useName}>
@@ -720,8 +723,8 @@ function WaterbodyInfo({
                                                   value === 'Good'
                                                     ? 'Good Waters'
                                                     : value === 'Impaired'
-                                                    ? 'Impaired Waters'
-                                                    : 'Condition Unknown'
+                                                      ? 'Impaired Waters'
+                                                      : 'Condition Unknown'
                                                 }
                                               >
                                                 {value}
@@ -936,15 +939,15 @@ function WaterbodyInfo({
   // jsx
   const wildScenicRiversContent = (
     <>
-      {attributes.PhotoLink && attributes.PhotoCredit && (
+      {attributes.PHOTOLINK && attributes.PHOTOCREDIT && (
         <div css={imageContainerStyles}>
           <img
             css={imageStyles}
-            src={attributes.PhotoLink}
+            src={attributes.PHOTOLINK}
             alt="Wild and Scenic River"
           />
           <br />
-          <em>Photo Credit: {attributes.PhotoCredit}</em>
+          <em>Photo Credit: {attributes.PHOTOCREDIT}</em>
         </div>
       )}
       <p>
@@ -953,7 +956,7 @@ function WaterbodyInfo({
       </p>
       <p>
         <strong>Category: </strong>
-        {attributes.RiverCategory}
+        {attributes.RIVERCATEGORY}
         <br />
       </p>
       <p>
@@ -1414,12 +1417,12 @@ const cyanListContentStyles = css`
   }
 `;
 
-const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+const marginBoxStyles = (styles: SerializedStyles) => css`
   ${styles}
   margin: 1em 0;
 `;
 
-const paddedMarginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+const paddedMarginBoxStyles = (styles: SerializedStyles) => css`
   ${styles}
   ${marginBoxStyles(styles)}
   padding: 0.75em;
@@ -2107,7 +2110,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     setBarChartData(newBarChartData);
   }, [cellConcentration]);
 
-  const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
+  const handleSliderChange = useCallback(
+    (value: number) => setSelectedDate(value),
+    [],
+  );
 
   // Calculate the total pixel area if there is cell concentration data
   let pixelArea = null;
@@ -2170,8 +2176,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     Total Satellite Image Area: ${pixelArea}
                     <br />
                     ${formatDate(dates[0])} - ${formatDate(
-                    dates[dates.length - 1],
-                  )}
+                      dates[dates.length - 1],
+                    )}
                   `}
                   yTitle={`
                   Percent of Satellite Image Area
@@ -2423,6 +2429,8 @@ type MonitoringLocationsContentProps = {
   services?: ServicesState;
 };
 
+type SelectedType = { [Property in keyof MappedGroups]: boolean };
+
 function MonitoringLocationsContent({
   feature,
   services,
@@ -2465,7 +2473,7 @@ function MonitoringLocationsContent({
     return newGroups;
   });
   const [selected, setSelected] = useState(() => {
-    const newSelected: { [Property in keyof typeof groups]: boolean } = {};
+    const newSelected: SelectedType = {};
     Object.keys(groups).forEach((group) => {
       newSelected[group] = true;
     });
@@ -2483,7 +2491,7 @@ function MonitoringLocationsContent({
   }, [totalsByGroup]);
 
   const buildFilter = useCallback(
-    (selectedNames, monitoringLocationData) => {
+    (selectedNames: SelectedType, monitoringLocationData: MappedGroups) => {
       let filter = '';
 
       if (selectAll === 2) {

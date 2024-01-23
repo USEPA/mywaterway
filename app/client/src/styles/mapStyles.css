@@ -1,8 +1,4 @@
 /* community map layers */
-.esri-expand__content {
-  box-shadow: none;
-}
-
 .esri-expand__content--expanded {
   overflow: auto;
   background-color: white;
@@ -10,12 +6,8 @@
 
 .hmw-map-layers,
 .esri-view .esri-basemap-gallery {
-  min-width: 200px;
-  max-width: 200px;
-}
-
-.esri-basemap-gallery__item-thumbnail {
-  height: 24px;
+  min-width: 225px;
+  max-width: 225px;
 }
 
 .esri-basemap-gallery {
@@ -43,6 +35,10 @@
   border-bottom: none;
   line-height: 1;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.esri-legend__symbol {
+  margin: unset;
 }
 
 .esri-print__header-title {
@@ -75,12 +71,12 @@
 }
 
 .esri-widget {
-  font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
     'Arial', sans-serif;
 }
 
-.esri-popup__content {
-  margin: 0 0 12px 0;
+.esri-features__container {
+  padding: 0 0 12px 0;
 }
 
 .esri-popup__inline-actions-container {
@@ -107,7 +103,7 @@
   margin: 6px auto 6px 7px;
   font-size: 14px !important;
   font-weight: 500 !important;
-  font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
     'Arial', sans-serif !important;
   color: white !important;
 }
@@ -138,10 +134,6 @@
 }
 
 /* popup arrow that points to where user clicked */
-.esri-popup__pointer-direction {
-  background-color: #0674ba;
-}
-
 .esri-popup th {
   padding: 0.35rem;
 }
@@ -174,7 +166,7 @@
 .hmw-map-toggle h1 {
   margin: 0 10px;
   padding: 0;
-  font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
     'Arial', sans-serif;
   font-size: 1.25em;
 }

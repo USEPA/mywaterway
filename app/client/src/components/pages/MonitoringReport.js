@@ -1,6 +1,9 @@
+/** @jsxImportSource @emotion/react */
+
 import Basemap from '@arcgis/core/Basemap';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
+import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import {
   useCallback,
@@ -13,7 +16,6 @@ import {
 } from 'react';
 import { useParams } from 'react-router-dom';
 import Select from 'react-select';
-import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { BoxContent, FlexRow } from 'components/shared/BoxContent';
@@ -39,7 +41,6 @@ import {
 // config
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -73,6 +74,10 @@ import {
 const accordionFlexStyles = css`
   display: flex;
   justify-content: space-between;
+
+  .count {
+    white-space: nowrap;
+  }
 `;
 
 const accordionHeadingStyles = css`
@@ -222,12 +227,12 @@ const downloadLinksStyles = css`
     vertical-align: top;
     width: 50%;
 
-    &:first-child {
+    &:first-of-type {
       font-weight: normal;
       padding-left: 1rem;
       text-align: start;
     }
-    &:last-child {
+    &:last-of-type {
       font-weight: bold;
       padding-right: 1rem;
       text-align: end;
@@ -238,7 +243,7 @@ const downloadLinksStyles = css`
     margin-top: 0;
     line-height: 1em;
     font-size: 1em;
-    &:nth-child(n + 2) {
+    &:nth-of-type(n + 2) {
       margin-top: 0.5em;
     }
   }
@@ -394,7 +399,9 @@ const radioStyles = css`
   }
   input:checked + label:before {
     background-color: #38a6ee;
-    box-shadow: 0 0 0 2px ${colors.steel()}, inset 0 0 0 2px ${colors.white()};
+    box-shadow:
+      0 0 0 2px ${colors.steel()},
+      inset 0 0 0 2px ${colors.white()};
   }
   label {
     cursor: pointer;
@@ -1804,7 +1811,7 @@ function CheckboxAccordion({
               />
               {id}
             </label>
-            <strong>{item.count.toLocaleString()}</strong>
+            <strong className="count">{item.count.toLocaleString()}</strong>
           </span>
         }
       >
@@ -1837,7 +1844,7 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
         />
         {id}
       </label>
-      <strong>{item.count.toLocaleString()}</strong>
+      <strong className="count">{item.count.toLocaleString()}</strong>
     </div>
   );
 }
@@ -1978,10 +1985,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                 </strong>
                 <strong>
                   <em>
-                    <GlossaryTerm
-                      className="count"
-                      term="Monitoring Measurements"
-                    >
+                    <GlossaryTerm term="Monitoring Measurements">
                       Number of Measurements
                     </GlossaryTerm>
                   </em>
@@ -2233,7 +2237,6 @@ function MonitoringReportContent() {
       ? 'empty'
       : monitoringLocationsStatus;
 
-  const { fullscreenActive } = useFullscreenState();
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
     orgId,
@@ -2285,12 +2288,10 @@ function MonitoringReportContent() {
       <MapVisibilityButton>
         {(mapShown) => (
           <div
-            style={{
-              display: mapShown ? 'block' : 'none',
-              height: height - 40,
-            }}
-            css={`
-              ${boxStyles};
+            css={css`
+              ${modifiedBoxStyles};
+              height: ${height - 40}px;
+              display: ${mapShown ? 'block' : 'none'};
             `}
           >
             <SiteMapContainer
@@ -2308,12 +2309,10 @@ function MonitoringReportContent() {
 
   const mapWide = (
     <div
-      style={{
-        height: mapWidth,
-        minHeight: '400px',
-      }}
-      css={`
-        ${boxStyles};
+      css={css`
+        ${modifiedBoxStyles};
+        height: ${mapWidth}px;
+        min-height: 400px;
       `}
     >
       <SiteMapContainer
@@ -2340,23 +2339,7 @@ function MonitoringReportContent() {
     </Page>
   );
 
-  const fullScreenView = (
-    <WindowSize>
-      {({ width, height }) => (
-        <div data-content="location-map" style={{ width, height }}>
-          <SiteMapContainer
-            layout="fullscreen"
-            site={site}
-            siteFilter={siteFilter}
-            siteStatus={siteStatus}
-            widthRef={widthRef}
-          />
-        </div>
-      )}
-    </WindowSize>
-  );
-
-  const twoColumnView = (
+  const content = (
     <Page>
       <NavBar title="Water Monitoring Report" />
       <div css={containerStyles} data-content="container">
@@ -2409,8 +2392,6 @@ function MonitoringReportContent() {
     </Page>
   );
 
-  const content = fullscreenActive ? fullScreenView : twoColumnView;
-
   return (
     <StatusContent
       empty={noSiteView}
@@ -2422,21 +2403,19 @@ function MonitoringReportContent() {
   );
 }
 
-function MonitoringReport() {
+export default function MonitoringReport() {
   const { resetData } = useContext(LocationSearchContext);
   useEffect(() => {
     return function cleanup() {
-      resetData();
+      resetData(true);
     };
   }, [resetData]);
 
   return (
     <LayersProvider>
-      <FullscreenProvider>
-        <MapHighlightProvider>
-          <MonitoringReportContent />
-        </MapHighlightProvider>
-      </FullscreenProvider>
+      <MapHighlightProvider>
+        <MonitoringReportContent />
+      </MapHighlightProvider>
     </LayersProvider>
   );
 }
@@ -2497,7 +2476,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   // Zoom to the location of the site
   useEffect(() => {
-    if (!mapView || !layersInitialized || !homeWidget) return;
+    if (!mapLoading || !mapView || !layersInitialized || !homeWidget) return;
     if (siteStatus !== 'success') return;
 
     if (!monitoringLocationsLayer) return;
@@ -2524,6 +2503,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
     getSignal,
     homeWidget,
     layersInitialized,
+    mapLoading,
     mapView,
     monitoringLocationsLayer,
     siteStatus,
@@ -2531,8 +2511,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   // Scrolls to the map when switching layouts
   useEffect(() => {
-    const itemName = layout === 'fullscreen' ? 'location-map' : 'container';
-    const content = document.querySelector(`[data-content="${itemName}"]`);
+    const content = document.querySelector(`[data-content="container"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
 
@@ -2542,7 +2521,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   return (
     <div css={mapContainerStyles} data-testid="hmw-site-map" ref={widthRef}>
-      {siteStatus === 'pending' ? <LoadingSpinner /> : <Map layers={layers} />}
+      <Map layers={layers} />
       {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
@@ -2578,5 +2557,3 @@ function StatusContent({
       return idle;
   }
 }
-
-export default MonitoringReport;

@@ -1,7 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { PinIcon } from 'components/shared/Icons';
@@ -575,17 +575,19 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   // jsx
   const healthIndexLegend = (
     <li className="hmw-legend__item">
-      <div className="hmw-legend__symbol" css={legendItemStyles}>
-        <GradientIcon
-          id="health-index-gradient"
-          stops={[
-            { label: '1', color: 'rgb(10, 8, 145)' },
-            { label: '0.75', color: 'rgb(30, 61, 181)' },
-            { label: '0.5', color: 'rgb(54, 140, 225)' },
-            { label: '0.25', color: 'rgb(124, 187, 234)' },
-            { label: '0', color: 'rgb(180, 238, 239)' },
-          ]}
-        />
+      <div css={legendItemStyles}>
+        <div className="hmw-legend__symbol">
+          <GradientIcon
+            id="health-index-gradient"
+            stops={[
+              { label: '1', color: 'rgb(10, 8, 145)' },
+              { label: '0.75', color: 'rgb(30, 61, 181)' },
+              { label: '0.5', color: 'rgb(54, 140, 225)' },
+              { label: '0.25', color: 'rgb(124, 187, 234)' },
+              { label: '0', color: 'rgb(180, 238, 239)' },
+            ]}
+          />
+        </div>
         <span className="hmw-legend__info" css={labelStyles}>
           State Watershed Health Index Layer
         </span>

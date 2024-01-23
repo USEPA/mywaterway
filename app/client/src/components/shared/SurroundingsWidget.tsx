@@ -1,6 +1,9 @@
+/** @jsxImportSource @emotion/react */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { css, keyframes } from 'styled-components/macro';
-import { createPortal, render } from 'react-dom';
+import { css, keyframes } from '@emotion/react';
+import { createPortal } from 'react-dom';
+import { Root, createRoot } from 'react-dom/client';
 // contexts
 import { useLayersState } from 'contexts/Layers';
 import {
@@ -47,8 +50,9 @@ export function useSurroundingsWidget(triggerVisible = true) {
   }, [layers, visibleLayers]);
 
   const [container] = useState(document.createElement('div'));
+  const [root, setRoot] = useState<Root | null>(null);
   useEffect(() => {
-    render(
+    const content = (
       <SurroundingsWidget
         layers={includedLayers}
         layersUpdating={updating}
@@ -56,13 +60,20 @@ export function useSurroundingsWidget(triggerVisible = true) {
         toggles={togglers}
         togglesDisabled={disabled}
         triggerVisible={triggerVisible}
-      />,
-      container,
+      />
     );
+
+    if (root) root.render(content);
+    else {
+      const newRoot = createRoot(container);
+      newRoot.render(content);
+      setRoot(newRoot);
+    }
   }, [
     container,
     disabled,
     includedLayers,
+    root,
     togglers,
     triggerVisible,
     updating,
@@ -305,7 +316,9 @@ const widgetContentStyles = (visible: boolean) => css`
   opacity: ${visible ? 1 : 0};
   overflow: auto;
   position: absolute;
-  transition: opacity 250ms ease-in-out, margin 250ms ease-in-out;
+  transition:
+    opacity 250ms ease-in-out,
+    margin 250ms ease-in-out;
   right: 32px;
   top: 0px;
   visibility: ${visible ? 'visible' : 'hidden'};
@@ -339,12 +352,12 @@ const widgetContentStyles = (visible: boolean) => css`
           line-height: 1;
           margin-bottom: 10px;
 
-          & > div:first-child {
+          & > div:first-of-type {
             border-left: 3px solid transparent;
             padding: 5px 5px 3.5px;
           }
 
-          & > div:last-child {
+          & > div:last-of-type {
             width: 100%;
             height: 1.5px;
             position: relative;

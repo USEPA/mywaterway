@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useEffect } from 'react';
-import { render } from 'react-dom';
-import { css } from 'styled-components/macro';
+import { createRoot } from 'react-dom/client';
+import { css } from '@emotion/react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { linkButtonStyles } from 'components/shared/LinkButton';
@@ -98,7 +99,7 @@ const pageErrorBoxStyles = css`
 const titleStyles = css`
   display: inline;
   line-height: 1.125;
-  font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Roboto, Arial,
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', Helvetica, Roboto, Arial,
     sans-serif;
 
   @media (min-width: 30em) {
@@ -171,9 +172,8 @@ function DataContent() {
         return;
 
       const node = document.createElement('span');
-      render(
+      createRoot(node).render(
         <GlossaryTerm term={span.dataset.term}>{span.innerText}</GlossaryTerm>,
-        node,
       );
       span.parentNode.replaceChild(node, span);
     });

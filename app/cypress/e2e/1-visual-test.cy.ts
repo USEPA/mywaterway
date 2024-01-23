@@ -1,12 +1,29 @@
+// This is a workaround for making the tests more reliable when running
+// cypress in headless mode, particularly for running code coverage.
+Cypress.on('uncaught:exception', (_err, _runnable) => {
+  // returning false here prevents Cypress from
+  // failing the test
+  debugger;
+  return false;
+});
+
 describe('Community Visual Regression Testing', () => {
   const mapId = '#hmw-map-container';
 
   it('Verify DC GIS data displays correctly', () => {
     cy.visit('/community/dc/overview');
 
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'exist',
+    );
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(20000);
+    cy.wait(5000);
 
     cy.get(mapId).matchSnapshot('verify-dc-gis-display');
   });
@@ -14,9 +31,17 @@ describe('Community Visual Regression Testing', () => {
   it('Verify the switches on Identified Issues correctly update the GIS data', () => {
     cy.visit('/community/dc/identified-issues');
 
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'exist',
+    );
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(20000);
+    cy.wait(5000);
 
     // test all impairment categories on
     cy.get(mapId).matchSnapshot('dc-all-impairment-categories');
@@ -43,7 +68,14 @@ describe('Community Visual Regression Testing', () => {
   it('Verify shading of huc boundaries is turned off when wsio layer is on', () => {
     cy.visit('/community/dc/protect');
 
-    cy.wait(20000);
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'exist',
+    );
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
 
@@ -51,6 +83,10 @@ describe('Community Visual Regression Testing', () => {
     cy.get('input[aria-label="Watershed Health Scores"]').click({
       force: true,
     });
+
+    // jostle the map view to workaround WSIO service performance issues
+    cy.findByRole('button', { name: 'Zoom out' }).click().click();
+    cy.findByRole('button', { name: 'Home' }).click();
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map

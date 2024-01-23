@@ -5,7 +5,7 @@ describe('National Water Quality tab', () => {
 
   it('Switching the sub-tabs updates the content within the container', () => {
     const riversAndStreamsText =
-      /of our rivers and streams are healthy based on their biological communities/;
+      /of our rivers and streams are in poor condition based on their benthic macroinvertebrate communities/;
     const coastsText =
       /of Great Lakes nearshore waters are healthy based on their biological communities./;
 
@@ -33,7 +33,8 @@ describe('National Water Quality tab', () => {
   });
 
   it('From one of the sub-tabs, clicking “Expand All/Collapse All” expands/collapses the content', () => {
-    const text = /^Biological condition tells us how healthy a waterbody is/;
+    const text =
+      /of river and stream miles had healthy biological communities based on fish abundance and diversity and less than one third of river and stream miles/;
 
     // verify that accordion is initially collapsed
     cy.findAllByText('Expand All').filter(':visible');
@@ -126,7 +127,9 @@ describe('National Drinking Water tab', () => {
   });
 
   it('Clicking a Glossary Term opens the Glossary panel', () => {
-    cy.findAllByText(/Drinking Water Health-based Violations/).filter(':visible').click();
+    cy.findAllByText(/Drinking Water Health-based Violations/)
+      .filter(':visible')
+      .click();
     cy.findByText(/Violations of maximum contaminant levels/).should(
       'be.visible',
     );

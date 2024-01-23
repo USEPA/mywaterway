@@ -3327,7 +3327,7 @@
     "orgId": "MA_DEP",
     "name": "Primary Contact Recreation",
     "category": "Recreation",
-    "surveyuseCode": "Recreation ?Çô Primary Contact"
+    "surveyuseCode": "Recreation – Primary Contact"
   },
   {
     "region": 1,
@@ -3354,7 +3354,7 @@
     "orgId": "MA_DEP",
     "name": "Secondary Contact Recreation",
     "category": "Recreation",
-    "surveyuseCode": "Recreation ?Çô Secondary Contact"
+    "surveyuseCode": "Recreation – Secondary Contact"
   },
   {
     "region": 1,

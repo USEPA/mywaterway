@@ -1,3 +1,5 @@
+/** @jsxImportSource @emotion/react */
+
 import {
   Fragment,
   useCallback,
@@ -6,7 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import Select from 'react-select';
 import Layer from '@arcgis/core/layers/Layer';
 import Portal from '@arcgis/core/portal/Portal';

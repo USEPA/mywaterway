@@ -1,9 +1,10 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { Fragment, useEffect, useRef, useState } from 'react';
+import { css } from '@emotion/react';
+import { Fragment, useContext, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { WindowSize } from '@reach/window-size';
-import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 // components
 import Page from 'components/shared/Page';
@@ -30,9 +31,9 @@ import {
 } from 'components/shared/Box';
 // contexts
 import { LayersProvider } from 'contexts/Layers';
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-import { MapHighlightProvider } from 'contexts/MapHighlight';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
@@ -169,7 +170,7 @@ const useNameStyles = css`
   line-height: 1.125;
 `;
 
-const useStatusStyles = css`
+const waterbodyUseStatusStyles = (textColor, bgColor) => css`
   flex-shrink: 0; /* prevent wrapping on whitespace */
   display: inline-block;
   margin-top: 0 !important;
@@ -178,8 +179,8 @@ const useStatusStyles = css`
   border-radius: 3px;
   font-size: 0.75rem !important;
   line-height: 1.375;
-  color: ${({ textColor }) => textColor};
-  background-color: ${({ bgColor }) => bgColor};
+  color: ${textColor};
+  background-color: ${bgColor};
   user-select: none;
 `;
 
@@ -235,7 +236,6 @@ const conditions = {
 
 function WaterbodyReport() {
   const { orgId, auId, reportingCycle } = useParams();
-  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 
@@ -1055,25 +1055,6 @@ function WaterbodyReport() {
     );
   }
 
-  if (fullscreenActive) {
-    return (
-      <WindowSize>
-        {({ width, height }) => {
-          return (
-            <div data-content="actionsmap" style={{ height, width }}>
-              <ActionsMap
-                layout="fullscreen"
-                unitIds={unitIds}
-                onLoad={setMapLayer}
-                includePhoto
-              />
-            </div>
-          );
-        }}
-      </WindowSize>
-    );
-  }
-
   return (
     <Page>
       <NavBar title="Waterbody Report" />
@@ -1208,9 +1189,10 @@ function WaterbodyReport() {
                                           {titleCaseWithExceptions(use.name)}
                                         </strong>
                                         <span
-                                          css={useStatusStyles}
-                                          textColor={use.status.textColor}
-                                          bgColor={use.status.bgColor}
+                                          css={waterbodyUseStatusStyles(
+                                            use.status.textColor,
+                                            use.status.bgColor,
+                                          )}
                                         >
                                           {use.status.text}
                                         </span>
@@ -1586,12 +1568,17 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
 }
 
 export default function WaterbodyReportContainer() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData(true);
+    };
+  }, [resetData]);
+
   return (
     <LayersProvider>
       <MapHighlightProvider>
-        <FullscreenProvider>
-          <WaterbodyReport />
-        </FullscreenProvider>
+        <WaterbodyReport />
       </MapHighlightProvider>
     </LayersProvider>
   );

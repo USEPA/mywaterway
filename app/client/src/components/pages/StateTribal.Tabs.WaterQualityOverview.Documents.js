@@ -1,6 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import LoadingSpinner from 'components/shared/LoadingSpinner';

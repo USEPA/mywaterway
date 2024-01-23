@@ -1,6 +1,8 @@
+/** @jsxImportSource @emotion/react */
+
 import React, { useRef } from 'react';
 import { TooltipPopup, useTooltip } from '@reach/tooltip';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // styles
 import '@reach/tooltip/styles.css';
 import { colors, iconButtonStyles } from 'styles';

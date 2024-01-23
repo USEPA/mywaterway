@@ -189,18 +189,8 @@ describe('Monitoring Tab', () => {
       .should('be.visible');
 
     // drag the slider handle
-    cy.findByRole('slider', { name: '1951' })
-      .trigger('mousedown', {
-        which: 1,
-      })
-      .trigger('mousemove', {
-        which: 1,
-        clientX: 1000,
-      })
-      .trigger('mouseup', {
-        force: true,
-        which: 1,
-      });
+    const arrows = '{rightarrow}'.repeat(1960 - 1951);
+    cy.findByRole('slider', { name: '1951' }).type(arrows);
 
     // trigger virtual list to load by scrolling to sort by control
     cy.findAllByText('Sort By:').filter(':visible').click();

@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { css } from '@emotion/react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // components
 import Page from 'components/shared/Page';
@@ -20,6 +21,7 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   StateTribalTabsContext,
   StateTribalTabsProvider,
@@ -45,8 +47,10 @@ import {
 const allSources = ['All', 'State', 'Tribe'];
 
 const containerStyles = css`
+  margin: auto;
   margin-top: 15px;
   margin-bottom: 15px;
+  max-width: 1140px;
 
   @media (max-width: 400px) {
     padding-left: 0.2em !important;
@@ -396,7 +400,7 @@ function StateTribal() {
     <Page>
       <TabLinks />
 
-      <div css={containerStyles} className="container" data-content="state">
+      <div css={containerStyles}>
         {(states.status === 'fetching' || tribes.status === 'fetching') && (
           <LoadingSpinner />
         )}
@@ -448,6 +452,15 @@ function StateTribal() {
                   `esri-search-multiple-sources esri-search__container ` +
                   `${sourcesVisible ? 'esri-search--sources' : ''} `
                 }
+                onBlur={(ev) => {
+                  if (
+                    !ev.currentTarget.contains(ev.relatedTarget) ||
+                    ev.relatedTarget?.tagName !== 'LI'
+                  ) {
+                    setSourcesVisible(false);
+                    setSourceCursor(-1);
+                  }
+                }}
               >
                 <div
                   css={searchSourceButtonStyles}
@@ -693,6 +706,13 @@ function StateTribal() {
 }
 
 export default function StateTribalContainer() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData(true);
+    };
+  }, [resetData]);
+
   return (
     <StateTribalTabsProvider>
       <StateTribal />

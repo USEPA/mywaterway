@@ -284,6 +284,11 @@ describe('State page Advanced Search tab', () => {
   it('Displays search results in a virtualized list', () => {
     cy.visit('/state/AZ/advanced-search');
 
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     cy.findAllByRole('button', { name: 'Search' }).last().click();
     cy.findByRole('button', { name: 'Continue' }).click();
 

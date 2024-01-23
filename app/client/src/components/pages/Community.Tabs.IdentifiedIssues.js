@@ -1,9 +1,10 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
+import { css } from '@emotion/react';
 import uniqueId from 'lodash/uniqueId';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -222,7 +223,7 @@ function IdentifiedIssues() {
     useState(false);
   const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = useState(false);
   useEffect(() => {
-    if (!window.gaTarget || cipSummary.status !== 'success') return;
+    if (cipSummary.status !== 'success') return;
 
     if (!cipSummary.data?.items?.length > 0) {
       setNullPollutedWaterbodies(true);
@@ -247,20 +248,18 @@ function IdentifiedIssues() {
     );
     if (pollutedPercent > 0 && summaryByParameterImpairments.length === 0) {
       emptyCategoriesWithPercent = true;
-      window.logToGa('send', 'exception', {
-        exDescription: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
-        exFatal: false,
-      });
+      window.logErrorToGa(
+        `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
+      );
     }
 
     // check for null percent of assess waters impaired
     const nullPollutedWaterbodies =
       containImpairedWatersCatchmentAreaPercent === null ? true : false;
     if (nullPollutedWaterbodies && summaryByParameterImpairments.length > 0) {
-      window.logToGa('send', 'exception', {
-        exDescription: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
-        exFatal: false,
-      });
+      window.logErrorToGa(
+        `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
+      );
     }
 
     setEmptyCategoriesWithPercent(emptyCategoriesWithPercent);

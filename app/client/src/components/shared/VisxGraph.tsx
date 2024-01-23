@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { Fragment, useLayoutEffect, useState } from 'react';
-import { createGlobalStyle, css } from 'styled-components/macro';
+import { css, Global } from '@emotion/react';
 import { GlyphDot } from '@visx/glyph';
 import { LegendLabel, LegendLinear, LegendItem } from '@visx/legend';
 import { scaleLinear } from '@visx/scale';
@@ -34,7 +36,7 @@ const legendStyles = css`
 `;
 
 // NOTE: EPA's _reboot.css file causes the tooltip series glyph to be clipped
-const VisxStyles = createGlobalStyle`
+const glyphStyles = css`
   .visx-tooltip-glyph svg {
     overflow: visible;
     width: 10px;
@@ -182,7 +184,7 @@ export function VisxGraph({
 
   return (
     <>
-      <VisxStyles />
+      <Global styles={glyphStyles} />
       <XYChart
         height={height}
         margin={{ top: 20, bottom: 55, left: 100, right: 50 }}

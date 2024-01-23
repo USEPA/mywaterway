@@ -1,6 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, {
+import {
   Fragment,
   useCallback,
   useContext,
@@ -8,7 +9,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as locator from '@arcgis/core/rest/locator';
@@ -775,6 +776,15 @@ function LocationSearch({ route, label }: Props) {
                   : ''
               }`
             }
+            onBlur={(ev) => {
+              if (
+                !ev.currentTarget.contains(ev.relatedTarget) ||
+                ev.relatedTarget?.tagName !== 'LI'
+              ) {
+                setSourcesVisible(false);
+                setSourceCursor(-1);
+              }
+            }}
           >
             <div
               role="button"

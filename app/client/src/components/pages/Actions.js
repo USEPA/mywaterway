@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
 // components
@@ -33,10 +34,10 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LayersProvider } from 'contexts/Layers';
-import { MapHighlightProvider } from 'contexts/MapHighlight';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -253,8 +254,6 @@ const strongBottomMarginStyles = css`
 
 function Actions() {
   const { orgId, actionId } = useParams();
-
-  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 
@@ -570,24 +569,6 @@ function Actions() {
     );
   }
 
-  if (fullscreenActive) {
-    return (
-      <WindowSize>
-        {({ width, height }) => {
-          return (
-            <div data-content="actionsmap" style={{ height, width }}>
-              <ActionsMap
-                layout="fullscreen"
-                unitIds={unitIds}
-                onLoad={setMapLayer}
-              />
-            </div>
-          );
-        }}
-      </WindowSize>
-    );
-  }
-
   return (
     <Page>
       <NavBar title="Plan Summary" />
@@ -802,12 +783,17 @@ function Actions() {
 }
 
 export default function ActionsContainer() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData(true);
+    };
+  }, [resetData]);
+
   return (
     <LayersProvider>
       <MapHighlightProvider>
-        <FullscreenProvider>
-          <Actions />
-        </FullscreenProvider>
+        <Actions />
       </MapHighlightProvider>
     </LayersProvider>
   );

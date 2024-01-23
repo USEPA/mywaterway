@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import { ListContent } from 'components/shared/BoxContent';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -59,13 +60,6 @@ const modifiedNoteBoxStyles = css`
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
-`;
-
-const modifiedToggleTableStyles = css`
-  ${toggleTableStyles};
-  tfoot th {
-    background-color: #f0f6f9;
-  }
 `;
 
 const disclaimerStyles = css`
@@ -645,10 +639,7 @@ function DrinkingWater() {
 
                       {providers.length > 0 && (
                         <>
-                          <table
-                            css={modifiedToggleTableStyles}
-                            className="table"
-                          >
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>
@@ -797,10 +788,7 @@ function DrinkingWater() {
 
                       {totalWithdrawersCount > 0 && (
                         <>
-                          <table
-                            css={modifiedToggleTableStyles}
-                            className="table"
-                          >
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>

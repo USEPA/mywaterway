@@ -1,9 +1,10 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
+import { css } from '@emotion/react';
 import uniqueId from 'lodash/uniqueId';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
 // components
 import {
   AccordionList,

@@ -1,4 +1,5 @@
-import { render } from 'react-dom';
+import { ReactNode } from 'react';
+import { createRoot } from 'react-dom/client';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
 import Point from '@arcgis/core/geometry/Point';
@@ -753,7 +754,7 @@ export function getPopupContent({
 }: {
   feature: __esri.Graphic | { attributes: ChangeLocationAttributes };
   fieldName?: string;
-  extraContent?: Object;
+  extraContent?: ReactNode;
   getClickedHuc?: Promise<ClickedHucState> | null;
   mapView?: __esri.MapView;
   resetData?: () => void;
@@ -868,7 +869,7 @@ export function getPopupContent({
 
   // wrap the content for esri
   const contentContainer = document.createElement('div') as HTMLElement;
-  render(content, contentContainer);
+  createRoot(contentContainer).render(content);
 
   // return an esri popup item
   return contentContainer;
@@ -937,8 +938,8 @@ export function GradientIcon({
 }) {
   const divisions = stops.length - 1;
   return (
-    <div css={{ display: 'flex', margin: 'auto' }}>
-      <div css={{ margin: '15px 0' }}>
+    <div style={{ display: 'flex', margin: 'auto' }}>
+      <div style={{ margin: '15px 0' }}>
         <svg width={50} height={25 * divisions + 20}>
           <defs>
             <linearGradient
