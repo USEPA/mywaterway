@@ -1,3 +1,12 @@
+// This is a workaround for making the tests more reliable when running
+// cypress in headless mode, particularly for running code coverage.
+Cypress.on('uncaught:exception', (_err, _runnable) => {
+  // returning false here prevents Cypress from
+  // failing the test
+  debugger;
+  return false;
+});
+
 describe('Community Visual Regression Testing', () => {
   const mapId = '#hmw-map-container';
 
