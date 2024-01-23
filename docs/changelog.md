@@ -1,5 +1,29 @@
 # Change Log
 
+## 2.9.0 (February 2024)
+
+### Changed
+
+- Updated One EPA Template footer links.
+
+- Updated Google Analytics code to work with the new GA4 tags.
+
+- Updated the NARS data on the National page.
+
+- Updated the Wild and Scenic Rivers layer to use the latest authoritative version.
+
+- Fixed issue of Sources menu, for search, staying open when clicking/tabbing off of it.
+
+- Fixed issue of state statistical data not showing up for Massachusetts, due to encoding issue in the lookup file.
+
+- Fixed issue of print widget failing for some layers.
+
+- Fixed issue of being able to tab out of the map when in full screen map mode.
+
+- Fixed issue of "Unsupported browser..." message displaying and disappearing on slow networks.
+
+- Fixed issue of scrolling not being smooth for some large lists.
+
 ## 2.8.0 (October 2023)
 
 ### Added
