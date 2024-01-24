@@ -69,6 +69,7 @@ export function PaginatedSelect(props: Props) {
 
   const optionsOrGroupsPage = useMemo(() => {
     const page = filteredOptions.slice(startIndex, startIndex + PAGE_SIZE * 2);
+    // A group is only used in one place, so we can get away with only checking the first item.
     const optionOrGroup = optionsOrGroups[0];
     return optionOrGroup && 'options' in optionOrGroup
       ? [{ label: 'Group', options: page }]
