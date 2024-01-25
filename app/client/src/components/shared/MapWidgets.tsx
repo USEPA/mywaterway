@@ -293,6 +293,27 @@ function updateLegend(
   );
 }
 
+// colors the popup pointer according to position and number of features
+function updatePopupPointerStyles(
+  features: Graphic[],
+  currentAlignment: CurrentAlignment,
+) {
+  const pointers = document.getElementsByClassName(
+    'esri-popup__pointer-direction',
+  );
+  for (let pointer of pointers) {
+    let isPointerTop = [
+      'bottom-center',
+      'bottom-left',
+      'bottom-right',
+    ].includes(currentAlignment);
+
+    if (features.length <= 1 && !isPointerTop)
+      pointer.classList.remove('blue-popup-pointer');
+    else pointer.classList.add('blue-popup-pointer');
+  }
+}
+
 const resizeHandleStyles = css`
   float: right;
   position: absolute;
@@ -311,7 +332,15 @@ const resizeHandleStyles = css`
 /*
 ## Components
 */
+type CurrentAlignment =
+  | 'bottom-center'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'top-center'
+  | 'top-left'
+  | 'top-right';
 interface PopupExt extends __esri.Popup {
+  currentAlignment: CurrentAlignment;
   featureMenuOpen: boolean;
 }
 
@@ -394,6 +423,7 @@ function MapWidgets({
   useEffect(() => {
     if (!view?.popup) return;
 
+    // revert calcite styles when feature list menu is opened
     const popupFeatureMenuWatcher = reactiveUtils.watch(
       () => (view.popup as PopupExt).featureMenuOpen,
       () => {
@@ -422,11 +452,27 @@ function MapWidgets({
       },
     );
 
+    // adjust popup pointer styles according to
+    const popupDockWatcher = reactiveUtils.watch(
+      () => (view.popup as PopupExt).currentAlignment,
+      () => {
+        updatePopupPointerStyles(
+          view.popup.features,
+          (view.popup as PopupExt).currentAlignment,
+        );
+      },
+    );
+
     const popupWatcher = reactiveUtils.watch(
       () => view.popup.features,
       () => {
         const features = view.popup.features;
         if (features.length === 0) return;
+
+        updatePopupPointerStyles(
+          features,
+          (view.popup as PopupExt).currentAlignment,
+        );
 
         const newFeatures: __esri.Graphic[] = [];
         const idsAdded: string[] = [];
@@ -457,6 +503,7 @@ function MapWidgets({
     );
 
     return function cleanup() {
+      popupDockWatcher.remove();
       popupFeatureMenuWatcher.remove();
       popupWatcher.remove();
     };
