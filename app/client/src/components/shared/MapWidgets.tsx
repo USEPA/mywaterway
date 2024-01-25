@@ -311,6 +311,10 @@ const resizeHandleStyles = css`
 /*
 ## Components
 */
+interface PopupExt extends __esri.Popup {
+  featureMenuOpen: boolean;
+}
+
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
   map: __esri.Map;
@@ -390,6 +394,34 @@ function MapWidgets({
   useEffect(() => {
     if (!view?.popup) return;
 
+    const popupFeatureMenuWatcher = reactiveUtils.watch(
+      () => (view.popup as PopupExt).featureMenuOpen,
+      () => {
+        const id = 'overridePopupStyles';
+        if ((view.popup as PopupExt).featureMenuOpen) {
+          const styles = document.createElement('style');
+          styles.id = id;
+          styles.innerHTML = `
+            calcite-flow,
+            calcite-action,
+            calcite-action-bar {
+              --calcite-ui-border-3: white;
+              --calcite-ui-foreground-1: white;
+              --calcite-ui-foreground-2: white;
+              --calcite-ui-foreground-3: white;
+              --calcite-ui-text-1: black;
+              --calcite-ui-text-2: black;
+              --calcite-ui-text-3: black;
+            }
+          `;
+          document.body.appendChild(styles);
+        } else {
+          const styles = document.getElementById(id);
+          if (styles) document.body.removeChild(styles);
+        }
+      },
+    );
+
     const popupWatcher = reactiveUtils.watch(
       () => view.popup.features,
       () => {
@@ -425,6 +457,7 @@ function MapWidgets({
     );
 
     return function cleanup() {
+      popupFeatureMenuWatcher.remove();
       popupWatcher.remove();
     };
   }, [getHucBoundaries, view]);

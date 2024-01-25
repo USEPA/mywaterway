@@ -81,65 +81,36 @@
     'Arial', sans-serif;
 }
 
+.esri-widget--panel-height-only {
+  width: 225px !important;
+}
+
+/* esri popup styles*/
+calcite-action,
+calcite-action-bar,
+calcite-flow {
+  --calcite-ui-border-3: #0674ba;
+  --calcite-ui-foreground-1: #0674ba;
+  --calcite-ui-foreground-2: #0674ba;
+  --calcite-ui-foreground-3: #0674ba;
+  --calcite-ui-text-1: white;
+  --calcite-ui-text-2: white;
+  --calcite-ui-text-3: white;
+}
+
 .esri-features__container {
+  background-color: white !important;
   padding: 0 0 12px 0;
 }
 
-.esri-popup__inline-actions-container {
-  width: 60% !important;
+.esri-features__header {
+  border: none;
 }
 
-/* small screens (redfin style) docked to the bottom */
-.esri-popup--aligned-bottom-center .esri-popup__content {
-  margin: 0 0 0 0;
-}
-
-/* docked in top right */
-.esri-popup--is-docked-top-right .esri-popup__content {
-  margin: 0 0 0 0;
-}
-
-.esri-popup__header {
-  background-color: #0674ba;
+.esri-features__heading {
   color: white;
 }
 
-.esri-popup__header h2 {
-  /* override styles from state Content styled component so state popups look like community */
-  margin: 6px auto 6px 7px;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
-    'Arial', sans-serif !important;
-  color: white !important;
-}
-
-.esri-popup__header-container--button:hover {
-  background-color: transparent;
-}
-
-.esri-popup__feature-menu-button:focus {
-  color: #2e2e2e;
-}
-
-.esri-popup--is-docked .esri-popup__header {
-  margin-top: -4px; /* prevent white space above the header */
-}
-
-.esri-popup__button {
-  color: white;
-}
-
-.esri-popup__navigation {
-  background-color: #0674ba;
-}
-
-.esri-popup__footer {
-  background-color: #0674ba;
-  color: white;
-}
-
-/* popup arrow that points to where user clicked */
 .esri-popup th {
   padding: 0.35rem;
 }
