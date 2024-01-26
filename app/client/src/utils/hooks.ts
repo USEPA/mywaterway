@@ -826,7 +826,7 @@ function useDynamicPopup() {
 
   // Wrapper function for getting the content of the popup
   const getTemplate = useCallback(
-    (graphic: Feature) => {
+    (graphic: Feature, checkHuc = true) => {
       // get the currently selected huc boundaries, if applicable
       const hucBoundaries = getHucBoundaries();
       const mapView = getMapView();
@@ -855,7 +855,7 @@ function useDynamicPopup() {
       return getPopupContent({
         feature: graphic.graphic,
         fields,
-        getClickedHuc: getClickedHuc(location),
+        getClickedHuc: checkHuc ? getClickedHuc(location) : null,
         mapView,
         resetData: reset,
         services,

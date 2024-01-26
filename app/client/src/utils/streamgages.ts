@@ -194,7 +194,10 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
 function buildLayer(
   type: SublayerType,
   getTitle: (graphic: Feature) => string,
-  getTemplate: (graphic: Feature) => HTMLElement | undefined,
+  getTemplate: (
+    graphic: Feature,
+    checkHuc?: boolean,
+  ) => HTMLElement | undefined,
 ) {
   return new FeatureLayer({
     id:

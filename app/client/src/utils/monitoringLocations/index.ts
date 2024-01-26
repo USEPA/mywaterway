@@ -381,7 +381,10 @@ function buildMonitoringGroups(
 function buildLayer(
   type: SublayerType,
   getTitle: (graphic: Feature) => string,
-  getTemplate: (graphic: Feature) => HTMLElement | undefined,
+  getTemplate: (
+    graphic: Feature,
+    checkHuc?: boolean,
+  ) => HTMLElement | undefined,
 ) {
   return new FeatureLayer({
     id:
@@ -448,7 +451,7 @@ function buildLayer(
           complexProps,
           feature.graphic.attributes,
         );
-        return getTemplate(feature);
+        return getTemplate(feature, type === 'surrounding');
       },
     },
     visible: type === 'enclosed',
