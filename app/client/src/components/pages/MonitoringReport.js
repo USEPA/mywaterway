@@ -357,6 +357,14 @@ const modifiedBoxStyles = css`
   padding-bottom: 0;
 `;
 
+const mapBoxStyles = css`
+  ${modifiedBoxStyles}
+
+  p {
+    margin-top: 0;
+  }
+`;
+
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles}
   margin-bottom: 0.5em;
@@ -2289,7 +2297,7 @@ function MonitoringReportContent() {
         {(mapShown) => (
           <div
             css={css`
-              ${modifiedBoxStyles};
+              ${mapBoxStyles};
               height: ${height - 40}px;
               display: ${mapShown ? 'block' : 'none'};
             `}
@@ -2310,7 +2318,7 @@ function MonitoringReportContent() {
   const mapWide = (
     <div
       css={css`
-        ${modifiedBoxStyles};
+        ${mapBoxStyles};
         height: ${mapWidth}px;
         min-height: 400px;
       `}
