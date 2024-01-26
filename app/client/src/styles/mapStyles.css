@@ -114,7 +114,8 @@ calcite-flow {
 .esri-popup--aligned-bottom-center .esri-popup__pointer-direction,
 .esri-popup--aligned-bottom-left .esri-popup__pointer-direction,
 .esri-popup--aligned-bottom-right .esri-popup__pointer-direction,
-.esri-popup__pointer-direction.blue-popup-pointer {
+.esri-popup__pointer-direction.blue-popup-pointer,
+.esri-popup:has(.esri-features__footer) .esri-popup__pointer-direction {
   background-color: #0674ba;
 }
 

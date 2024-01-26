@@ -423,6 +423,16 @@ function MapWidgets({
 
   useEffect(() => {
     if (!view?.popup) return;
+    // adjust popup pointer styles according to
+    const popupAlignementWatcher = reactiveUtils.watch(
+      () => (view.popup as PopupExt).currentAlignment,
+      () => {
+        updatePopupPointerStyles(
+          view.popup.features,
+          (view.popup as PopupExt).currentAlignment,
+        );
+      },
+    );
 
     // revert calcite styles when feature list menu is opened
     const popupFeatureMenuWatcher = reactiveUtils.watch(
@@ -493,6 +503,7 @@ function MapWidgets({
     );
 
     return function cleanup() {
+      popupAlignementWatcher.remove();
       popupFeatureMenuWatcher.remove();
       popupWatcher.remove();
     };
