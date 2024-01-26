@@ -298,28 +298,21 @@ function updatePopupPointerStyles(
   features: Graphic[],
   currentAlignment: CurrentAlignment,
 ) {
-  function poll(retryCount: number = 0) {
-    if (retryCount === 3) return;
+  const pointers = document.getElementsByClassName(
+    'esri-popup__pointer-direction',
+  );
 
-    const pointers = document.getElementsByClassName(
-      'esri-popup__pointer-direction',
-    );
-    if (pointers.length === 0) setTimeout(() => poll(retryCount + 1), 100);
+  for (let pointer of pointers) {
+    let isPointerTop = [
+      'bottom-center',
+      'bottom-left',
+      'bottom-right',
+    ].includes(currentAlignment);
 
-    for (let pointer of pointers) {
-      let isPointerTop = [
-        'bottom-center',
-        'bottom-left',
-        'bottom-right',
-      ].includes(currentAlignment);
-
-      if (features.length <= 1 && !isPointerTop)
-        pointer.classList.remove('blue-popup-pointer');
-      else pointer.classList.add('blue-popup-pointer');
-    }
+    if (features.length <= 1 && !isPointerTop)
+      pointer.classList.remove('blue-popup-pointer');
+    else pointer.classList.add('blue-popup-pointer');
   }
-
-  poll();
 }
 
 const resizeHandleStyles = css`
@@ -430,16 +423,6 @@ function MapWidgets({
 
   useEffect(() => {
     if (!view?.popup) return;
-    // adjust popup pointer styles according to
-    const popupDockWatcher = reactiveUtils.watch(
-      () => (view.popup as PopupExt).currentAlignment,
-      () => {
-        updatePopupPointerStyles(
-          view.popup.features,
-          (view.popup as PopupExt).currentAlignment,
-        );
-      },
-    );
 
     // revert calcite styles when feature list menu is opened
     const popupFeatureMenuWatcher = reactiveUtils.watch(
@@ -510,7 +493,6 @@ function MapWidgets({
     );
 
     return function cleanup() {
-      popupDockWatcher.remove();
       popupFeatureMenuWatcher.remove();
       popupWatcher.remove();
     };

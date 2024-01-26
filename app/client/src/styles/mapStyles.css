@@ -111,6 +111,13 @@ calcite-flow {
   color: white;
 }
 
+.esri-popup--aligned-bottom-center .esri-popup__pointer-direction,
+.esri-popup--aligned-bottom-left .esri-popup__pointer-direction,
+.esri-popup--aligned-bottom-right .esri-popup__pointer-direction,
+.esri-popup__pointer-direction.blue-popup-pointer {
+  background-color: #0674ba;
+}
+
 .esri-popup__pointer-direction.blue-popup-pointer {
   background-color: #0674ba;
 }
