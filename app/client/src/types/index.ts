@@ -589,7 +589,9 @@ export type PortalLayerTypes =
   | 'Vector Tile Service'
   | 'WMS';
 
-interface WatershedAttributes {
+export interface WatershedAttributes {
+  areaacres: number;
+  areasqkm: number;
   huc12: string;
   name: string;
 }

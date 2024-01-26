@@ -63,7 +63,7 @@ function Swimming() {
                 There {summary.total === 1 ? 'is' : 'are'}{' '}
                 <strong>{summary.total.toLocaleString()}</strong>{' '}
                 {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed for
-                swimming and boating in the <em>{watershed}</em> watershed.
+                swimming and boating in the <em>{watershed.name}</em> watershed.
               </>
             }
           />

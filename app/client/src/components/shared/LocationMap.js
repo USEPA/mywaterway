@@ -1223,7 +1223,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
 
       // boundaries data, also has attributes for watershed
-      setWatershed(boundaries.features[0].attributes.name);
+      setWatershed(boundaries.features[0].attributes);
 
       // pass all of the states that the HUC12 is in
       getFishingLinkData(boundaries.features[0].attributes.states);

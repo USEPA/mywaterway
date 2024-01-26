@@ -366,7 +366,9 @@ function WaterbodiesTab() {
   ) {
     return (
       <div css={infoBoxStyles}>
-        <p css={centeredTextStyles}>{zeroAssessedWaterbodies(watershed)}</p>
+        <p css={centeredTextStyles}>
+          {zeroAssessedWaterbodies(watershed.name)}
+        </p>
       </div>
     );
   }
@@ -380,7 +382,7 @@ function WaterbodiesTab() {
           Overall condition of{' '}
           <strong>{totalWaterbodies.toLocaleString()}</strong>{' '}
           {totalWaterbodies === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
-          <em>{watershed}</em> watershed.
+          <em>{watershed.name}</em> watershed.
         </span>
       }
     />
@@ -821,7 +823,7 @@ function MonitoringAndSensorsTab({
         {allMonitoringAndSensors.length === 0 && (
           <div css={infoBoxStyles}>
             <p css={centeredTextStyles}>
-              There are no locations with data in the <em>{watershed}</em>{' '}
+              There are no locations with data in the <em>{watershed.name}</em>{' '}
               watershed.
             </p>
           </div>
@@ -907,7 +909,7 @@ function MonitoringAndSensorsTab({
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
                   <strong>{allMonitoringAndSensors.length}</strong> locations{' '}
-                  with data in the <em>{watershed}</em> watershed.
+                  with data in the <em>{watershed.name}</em> watershed.
                   {selectedCharacteristics.length > 0 && (
                     <>
                       <br />
@@ -1275,7 +1277,8 @@ function PermittedDischargersTab({
         {totalPermittedDischargers === 0 && (
           <div css={infoBoxStyles}>
             <p css={centeredTextStyles}>
-              There are no dischargers in the <em>{watershed}</em> watershed.
+              There are no dischargers in the <em>{watershed.name}</em>{' '}
+              watershed.
             </p>
           </div>
         )}
@@ -1362,7 +1365,8 @@ function PermittedDischargersTab({
                   </strong>{' '}
                   of{' '}
                   <strong>{totalPermittedDischargers.toLocaleString()}</strong>{' '}
-                  permitted dischargers in the <em>{watershed}</em> watershed.
+                  permitted dischargers in the <em>{watershed.name}</em>{' '}
+                  watershed.
                 </>
               }
               onSortChange={handleSortChange}
