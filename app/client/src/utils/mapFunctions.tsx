@@ -737,6 +737,11 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = attributes.GNIS_NAME;
   }
 
+  // Watershed
+  else if ('huc12' in attributes) {
+    title = `Watershed for Currently Selected Location: ${attributes.name} (${attributes.huc12})`;
+  }
+
   return title;
 }
 
@@ -848,6 +853,11 @@ export function getPopupContent({
     // EJSCREEN
     else if ('T_OVR64PCT' in attributes) {
       type = 'Demographic Indicators';
+    }
+
+    // Watershed
+    else if ('huc12' in attributes) {
+      type = 'Watershed';
     }
   }
 

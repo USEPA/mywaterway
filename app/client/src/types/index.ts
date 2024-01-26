@@ -357,6 +357,7 @@ export type PopupAttributes =
   | UsgsStreamgageAttributes
   | VillageAttributes
   | WaterbodyAttributes
+  | WatershedAttributes
   | WildScenicRiverAttributes
   | WsioHealthIndexAttributes
   | CyanWaterbodyAttributes;
@@ -587,6 +588,11 @@ export type PortalLayerTypes =
   | 'Map Service'
   | 'Vector Tile Service'
   | 'WMS';
+
+interface WatershedAttributes {
+  huc12: string;
+  name: string;
+}
 
 export type WidgetLayer =
   | {

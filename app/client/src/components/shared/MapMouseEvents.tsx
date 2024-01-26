@@ -58,8 +58,6 @@ function getGraphicsFromResponse(
     const excludedLayers = [
       'stateBoundariesLayer',
       'mappedWaterLayer',
-      'watershedsLayer',
-      'boundariesLayer',
       'searchIconLayer',
       'providersLayer',
       ...additionalLayers,
@@ -83,7 +81,15 @@ function getGraphicsFromResponse(
     return result;
   }) as __esri.GraphicHit[];
 
-  return matches.map((match) => match.graphic);
+  const graphics = matches.map((match) => match.graphic);
+
+  // If both a boundaries (current watershed) and a watershed from the watershed layer are present, remove the latter.
+  const hasBoundariesGraphic = graphics.some(
+    (graphic) => graphic.layer.id === 'boundariesLayer',
+  );
+  return hasBoundariesGraphic
+    ? graphics.filter((graphic) => graphic.layer.id !== 'watershedsLayer')
+    : graphics;
 }
 
 function getGraphicFromResponse(
@@ -94,25 +100,37 @@ function getGraphicFromResponse(
   return graphics?.length ? graphics[0] : null;
 }
 
-function prioritizePopup(graphics: __esri.Graphic[] | null) {
-  graphics?.sort((a, b) => {
-    if (a.attributes.assessmentunitname) return -1;
-    else if (
-      a.layer.id === 'monitoringLocationsLayer' ||
-      a.layer.id === 'surroundingMonitoringLocationsLayer'
-    ) {
-      if (b.attributes.assessmentunitname) return 1;
-      return -1;
-    } else if (a.attributes.TRIBE_NAME) {
-      if (
-        b.attributes.assessmentunitname ||
-        b.layer.id === 'monitoringLocationsLayer' ||
-        b.layer.id === 'surroundingMonitoringLocationsLayer'
-      )
-        return 1;
-      return -1;
-    }
-    return 1;
+function prioritizePopup(
+  graphics: __esri.Graphic[] | null,
+  onTribePage = false,
+) {
+  // Show waterbodies ahead of monitoring locations on the Tribe page.
+  if (onTribePage) {
+    graphics?.sort((a, b) => {
+      if (a.attributes.assessmentunitname) return -1;
+      else if (
+        a.layer.id === 'monitoringLocationsLayer' ||
+        a.layer.id === 'surroundingMonitoringLocationsLayer'
+      ) {
+        if (b.attributes.assessmentunitname) return 1;
+        return -1;
+      } else if (a.attributes.TRIBE_NAME) {
+        if (
+          b.attributes.assessmentunitname ||
+          b.layer.id === 'monitoringLocationsLayer' ||
+          b.layer.id === 'surroundingMonitoringLocationsLayer'
+        )
+          return 1;
+        return -1;
+      }
+      return 1;
+    });
+  }
+  // Show watersheds at the end of the list always.
+  graphics?.sort((a, _b) => {
+    if (a.layer.id === 'boundariesLayer' || a.layer.id === 'watershedsLayer')
+      return 1;
+    return -1;
   });
 }
 
@@ -168,13 +186,6 @@ function MapMouseEvents({ view }: Props) {
 
   const { protectedAreasLayer, resetLayers } = useLayers();
 
-  const onTribePage = window.location.pathname.startsWith('/tribe/');
-  const onMonitoringPanel = window.location.pathname.endsWith('/monitoring');
-  if (view.popup) {
-    if (onTribePage || onMonitoringPanel) view.popupEnabled = false;
-    else view.popupEnabled = true;
-  }
-
   // reference to a dictionary of date-filtered updates
   // applicable to graphics visible on the map
   const updates = useRef(null);
@@ -206,7 +217,7 @@ function MapMouseEvents({ view }: Props) {
 
           if (graphic?.attributes) {
             updateGraphics(graphics, updates?.current);
-            if (onTribePage) prioritizePopup(graphics);
+            prioritizePopup(graphics, onTribePage);
             setSelectedGraphic(graphic);
             view.popup = new Popup({
               collapseEnabled: false,

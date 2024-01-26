@@ -573,7 +573,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const { setDynamicPopupFields } = useDynamicPopup();
+  const { getTemplate, getTitle, setDynamicPopupFields } = useDynamicPopup();
 
   // Builds the layers that have no dependencies
   useEffect(() => {
@@ -1714,6 +1714,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         spatialReference: hucBoundaries.spatialReference,
         rings: hucBoundaries.features[0].geometry.rings,
       },
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['areasqkm'],
+      },
       symbol: {
         type: 'simple-fill', // autocasts as new SimpleFillSymbol()
         color: [204, 255, 255, 0.5],
@@ -1747,6 +1752,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       });
     });
   }, [
+    getTemplate,
+    getTitle,
     mapView,
     hucBoundaries,
     boundariesLayer,

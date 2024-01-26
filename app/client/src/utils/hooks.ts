@@ -1363,6 +1363,11 @@ function useSharedLayers({
       listMode: 'show',
       visible: false,
       outFields: ['*'],
+      popupTemplate: {
+        outFields: ['areasqkm'],
+        title: getTitle,
+        content: getTemplate,
+      },
     });
     setLayer('watershedsLayer', watershedsLayer);
     return watershedsLayer;
