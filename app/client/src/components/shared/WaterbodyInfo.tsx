@@ -165,6 +165,7 @@ const modifiedIconButtonStyles = css`
 `;
 
 const popupContainerStyles = css`
+  color: black;
   margin: 0;
   overflow-y: auto;
 
