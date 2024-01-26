@@ -13,7 +13,7 @@ import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
-import { useDynamicPopup } from 'utils/hooks';
+import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   handleFetchError,
@@ -151,7 +151,7 @@ function buildFeatures(data: CyanWaterbodyAttributes[]) {
 function buildLayer(
   type: SublayerType,
   getTitle: (graphic: Feature) => string,
-  getTemplate: (graphic: Feature) => HTMLElement | undefined,
+  getTemplate: GetTemplateType,
 ) {
   const cyanWaterbodies = new FeatureLayer({
     id:

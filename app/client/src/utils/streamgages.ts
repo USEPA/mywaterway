@@ -10,7 +10,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
-import { useDynamicPopup } from 'utils/hooks';
+import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   getExtentBoundingBox,
@@ -194,10 +194,7 @@ function buildFeatures(data: UsgsStreamgageAttributes[]) {
 function buildLayer(
   type: SublayerType,
   getTitle: (graphic: Feature) => string,
-  getTemplate: (
-    graphic: Feature,
-    checkHuc?: boolean,
-  ) => HTMLElement | undefined,
+  getTemplate: GetTemplateType,
 ) {
   return new FeatureLayer({
     id:

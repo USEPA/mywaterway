@@ -56,7 +56,7 @@ import {
 } from 'utils/mapFunctions';
 import { isAbort, isClick } from 'utils/utils';
 // helpers
-import { useAbort, useDynamicPopup } from 'utils/hooks';
+import { GetTemplateType, useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
@@ -76,7 +76,7 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { Feature, ServicesState } from 'types';
+import type { ServicesState } from 'types';
 // styles
 import { fonts } from 'styles';
 
@@ -1425,7 +1425,7 @@ function retrieveUpstreamWatershed(
   abortSignal: AbortSignal,
   getCurrentExtent: () => __esri.Extent,
   getHuc12: () => string,
-  getTemplate: (graphic: Feature) => HTMLElement | undefined,
+  getTemplate: GetTemplateType,
   getUpstreamExtent: () => __esri.Extent,
   upstreamLayer: __esri.GraphicsLayer | null,
   getUpstreamWidgetDisabled: () => boolean,
@@ -1666,7 +1666,7 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   abortSignal: AbortSignal;
   getCurrentExtent: () => __esri.Extent;
   getHuc12: () => string;
-  getTemplate: (graphic: Feature) => HTMLElement | undefined;
+  getTemplate: GetTemplateType;
   getUpstreamExtent: () => __esri.Extent;
   upstreamLayer: __esri.GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;

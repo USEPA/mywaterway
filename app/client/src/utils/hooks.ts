@@ -1780,6 +1780,11 @@ function useOnScreen(node: HTMLDivElement | null) {
   return isIntersecting;
 }
 
+export type GetTemplateType = (
+  graphic: Feature,
+  checkHuc?: boolean,
+) => HTMLElement | undefined;
+
 export {
   useAbort,
   useDynamicPopup,
