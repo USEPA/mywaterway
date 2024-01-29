@@ -933,11 +933,9 @@ function WaterbodyInfo({
       {labelValue(
         'Area',
         attributes.areasqkm &&
-          attributes.areaacres &&
-          `${formatNumber(attributes.areaacres)} acres / ${formatNumber(
-            attributes.areasqkm,
-            2,
-          )} km²`,
+          `${formatNumber(
+            attributes.areaacres ?? attributes.areasqkm / 0.004046856422,
+          )} acres / ${formatNumber(attributes.areasqkm, 2)} km²`,
       )}
     </>
   );
