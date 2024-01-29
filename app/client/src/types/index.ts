@@ -367,11 +367,6 @@ export interface ProtectedAreaAttributes {
   Loc_Nm: string;
 }
 
-export interface ScaledLayer extends __esri.Layer {
-  minScale?: number;
-  maxScale?: number;
-}
-
 export interface ServicesData {
   attains: { serviceUrl: string };
   cyan: {

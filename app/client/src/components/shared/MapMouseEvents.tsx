@@ -16,6 +16,8 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // types
 import type { MonitoringFeatureUpdate, MonitoringFeatureUpdates } from 'types';
+// utils
+import { isInScale } from 'utils/mapFunctions';
 
 // --- types ---
 interface ClickEvent {
@@ -138,10 +140,12 @@ function prioritizePopup(
 // Query the PAD-US database for features at the clicked location.
 async function queryPadUsFeatures(
   location: __esri.Point,
+  scale: number,
   protectedAreasLayer: __esri.MapImageLayer | null,
   services: any,
 ) {
-  if (!protectedAreasLayer?.visible) return [];
+  if (!protectedAreasLayer?.visible || !isInScale(protectedAreasLayer, scale))
+    return [];
 
   // check if protected areas layer was clicked on
   const url = `${services.data.protectedAreasDatabase}0`;
@@ -279,7 +283,12 @@ function MapMouseEvents({ view }: Props) {
         .then((res: __esri.HitTestResult) => {
           // get and update the selected graphic
           const extraLayersToIgnore = ['selectedTribeLayer'];
-          queryPadUsFeatures(location, protectedAreasLayer, services)
+          queryPadUsFeatures(
+            location,
+            view.scale,
+            protectedAreasLayer,
+            services,
+          )
             .then((padUsGraphics) => {
               const graphics = [
                 ...padUsGraphics,

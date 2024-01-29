@@ -24,7 +24,6 @@ import type {
   LookupFile,
   ParentLayer,
   PopupAttributes,
-  ScaledLayer,
   ServicesState,
   SuperLayer,
   TribeAttributes,
@@ -1027,58 +1026,17 @@ export function getHighlightSymbol(
   return symbol;
 }
 
-// helper method used in handleMapZoomChange() for determining a map layer’s listMode
-export function isInScale(
-  layer: __esri.Layer | ParentLayer | ScaledLayer,
-  scale: number,
-) {
+// Helper method used to determine if the layer is in the MapView's scale range.
+export function isInScale(layer: __esri.Layer | ParentLayer, scale: number) {
   let inScale = true;
-  let minScale = 0;
-  let maxScale = 0;
 
   // get the extreme min and max scales of the layer
-  if ('sublayers' in layer && 'sourceJSON' in layer) {
-    // get sublayers included in the parentlayer
-    // note: the sublayer has maxScale and minScale, but these are always 0
-    //       even if the sublayer does actually have a min/max scale.
-    const sublayerIds: (string | number)[] = [];
-    layer.sublayers.forEach((sublayer) => {
-      if ('id' in sublayer) sublayerIds.push(sublayer.id);
-    });
+  let minScale = 'minScale' in layer ? layer.minScale ?? 0 : 0;
+  let maxScale = 'maxScale' in layer ? layer.maxScale ?? 0 : 0;
 
-    // get the min/max scale from the sourceJSON
-    layer.sourceJSON?.layers.forEach(
-      (sourceLayer: __esri.Sublayer | __esri.SubtypeSublayer) => {
-        if (!('id' in sourceLayer) || !sublayerIds.includes(sourceLayer.id))
-          return;
-
-        if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
-          minScale = sourceLayer.minScale;
-        }
-        if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
-          maxScale = sourceLayer.maxScale;
-        }
-      },
-    );
-  } else if (isGroupLayer(layer)) {
-    // get the min/max scale from the sublayers
-    layer.layers.forEach((subLayer: ScaledLayer) => {
-      if (
-        subLayer.minScale &&
-        (subLayer.minScale === 0 || subLayer.minScale > minScale)
-      ) {
-        minScale = subLayer.minScale;
-      }
-      if (
-        subLayer.maxScale &&
-        (subLayer.maxScale === 0 || subLayer.maxScale < maxScale)
-      ) {
-        maxScale = subLayer.maxScale;
-      }
-    });
-  } else if ('minScale' in layer && 'maxScale' in layer) {
-    minScale = layer.minScale ?? 0;
-    maxScale = layer.maxScale ?? 0;
+  if ('sourceJSON' in layer) {
+    minScale = layer.sourceJSON?.minScale ?? 0;
+    maxScale = layer.sourceJSON?.maxScale ?? 0;
   }
 
   // check if the map zoom is within scale
