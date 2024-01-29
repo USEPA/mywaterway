@@ -1432,7 +1432,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             }
           }
 
-          if (candidates.length === 0 || !location || !location.attributes) {
+          if (candidates.length === 0 || !location?.attributes) {
             const newAddress = coordinatesPart ? searchPart : searchText;
             setAddress(newAddress); // preserve the user's search so it is displayed
             handleNoDataAvailable(noDataAvailableError);
@@ -1699,12 +1699,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [searchText, setHuc12]);
 
   useEffect(() => {
-    if (
-      !mapView ||
-      !hucBoundaries ||
-      !hucBoundaries.features ||
-      !hucBoundaries.features[0]
-    ) {
+    if (!mapView || !hucBoundaries?.features?.[0]) {
       return;
     }
 
