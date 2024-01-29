@@ -622,7 +622,7 @@ function DrinkingWater() {
                   {drinkingWater.data.length === 0 && (
                     <p css={centeredTextStyles}>
                       There is no drinking water data for the{' '}
-                      <em>{watershed}</em> watershed.
+                      <em>{watershed.name}</em> watershed.
                     </p>
                   )}
 
@@ -771,7 +771,7 @@ function DrinkingWater() {
                   {drinkingWater.data.length === 0 && (
                     <p css={centeredTextStyles}>
                       There is no drinking water data for the{' '}
-                      <em>{watershed}</em> watershed.
+                      <em>{watershed.name}</em> watershed.
                     </p>
                   )}
 
@@ -781,7 +781,7 @@ function DrinkingWater() {
                         <div css={infoBoxStyles}>
                           <p css={centeredTextStyles}>
                             There are no public water systems drawing water from
-                            the <em>{watershed}</em> watershed.
+                            the <em>{watershed.name}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -896,7 +896,7 @@ function DrinkingWater() {
                                 <strong>{displayedWithdrawers.length}</strong>{' '}
                                 of <strong>{totalWithdrawersCount}</strong>{' '}
                                 public water systems withdrawing water from the{' '}
-                                <em>{watershed}</em> watershed.
+                                <em>{watershed.name}</em> watershed.
                               </>
                             }
                             onSortChange={(sortBy) =>
@@ -964,7 +964,7 @@ function DrinkingWater() {
                     <strong>{summary.total.toLocaleString()}</strong>{' '}
                     {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed
                     as potential future sources of drinking water in the{' '}
-                    <em>{watershed}</em> watershed.
+                    <em>{watershed.name}</em> watershed.
                   </>
                 }
               />

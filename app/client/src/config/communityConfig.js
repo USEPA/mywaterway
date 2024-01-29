@@ -109,7 +109,7 @@ function EatingFishUpper() {
 
       <p>
         Eating fish and shellfish caught in impaired waters can pose health
-        risks. For the <em>{watershed}</em> watershed, be sure to look for
+        risks. For the <em>{watershed.name}</em> watershed, be sure to look for
         posted fish advisories or consult your local or state environmental
         health department for{' '}
         {fishingInfo.status === 'success' ? (

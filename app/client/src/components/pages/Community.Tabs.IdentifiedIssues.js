@@ -598,7 +598,7 @@ function IdentifiedIssues() {
                     <div css={infoBoxStyles}>
                       <p css={centeredTextStyles}>
                         There are no impairment categories in the{' '}
-                        <em>{watershed}</em> watershed.
+                        <em>{watershed.name}</em> watershed.
                       </p>
                     </div>
                   )}
@@ -650,9 +650,9 @@ function IdentifiedIssues() {
                         {emptyCategoriesWithPercent && (
                           <p css={centeredTextStyles}>
                             Impairment Summary information is temporarily
-                            unavailable for the <em>{watershed}</em> watershed.
-                            Please see the Overview tab for specific impairment
-                            information on these waters.
+                            unavailable for the <em>{watershed.name}</em>{' '}
+                            watershed. Please see the Overview tab for specific
+                            impairment information on these waters.
                           </p>
                         )}
 
@@ -661,7 +661,7 @@ function IdentifiedIssues() {
                             <div css={infoBoxStyles}>
                               <p css={centeredTextStyles}>
                                 There are no impairment categories in the{' '}
-                                <em>{watershed}</em> watershed.
+                                <em>{watershed.name}</em> watershed.
                               </p>
                             </div>
                           )}
@@ -681,7 +681,7 @@ function IdentifiedIssues() {
 
                               <p>
                                 Impairment categories in the{' '}
-                                <em>{watershed}</em> watershed.
+                                <em>{watershed.name}</em> watershed.
                               </p>
 
                               <table css={toggleTableStyles} className="table">
@@ -787,8 +787,8 @@ function IdentifiedIssues() {
                   {!dischargers.length && (
                     <div css={infoBoxStyles}>
                       <p css={centeredTextStyles}>
-                        There are no dischargers in the <em>{watershed}</em>{' '}
-                        watershed.
+                        There are no dischargers in the{' '}
+                        <em>{watershed.name}</em> watershed.
                       </p>
                     </div>
                   )}
@@ -873,8 +873,8 @@ function IdentifiedIssues() {
                             <strong>
                               {dischargers.length.toLocaleString()}
                             </strong>{' '}
-                            permitted dischargers in the <em>{watershed}</em>{' '}
-                            watershed.
+                            permitted dischargers in the{' '}
+                            <em>{watershed.name}</em> watershed.
                           </>
                         }
                       >

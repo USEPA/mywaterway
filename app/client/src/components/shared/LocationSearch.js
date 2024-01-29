@@ -902,9 +902,9 @@ function LocationSearch({ route, label }: Props) {
                   value={
                     inputText === searchTerm &&
                     isHuc12(inputText) &&
-                    watershed &&
+                    watershed.name &&
                     huc12
-                      ? `WATERSHED: ${watershed} (${huc12})`
+                      ? `WATERSHED: ${watershed.name} (${huc12})`
                       : inputText.split('|')[0]
                   }
                   onChange={(ev) => {

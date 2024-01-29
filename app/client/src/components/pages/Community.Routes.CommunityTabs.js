@@ -19,6 +19,8 @@ import { tabs } from 'config/communityConfig.js';
 // styles
 import { colors } from 'styles/index';
 import '@reach/tabs/styles.css';
+// utils
+import { formatNumber } from 'utils/utils';
 
 const lightBlue = '#f0f6f9';
 
@@ -451,9 +453,15 @@ function CommunityTabs() {
         <div css={locationTextStyles}>
           <p css={addressStyles}>{address}</p>
 
-          {watershed && (
+          {watershed.name && (
             <p css={watershedStyles}>
-              <span>WATERSHED:</span> {watershed} ({huc12})
+              <span>WATERSHED:</span> {watershed.name} ({huc12})
+            </p>
+          )}
+          {watershed.areasqkm && watershed.areaacres && (
+            <p css={watershedStyles}>
+              <span>SIZE:</span> {formatNumber(watershed.areaacres)} acres /{' '}
+              {formatNumber(watershed.areasqkm, 2)} km<sup>2</sup>
             </p>
           )}
         </div>

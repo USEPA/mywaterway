@@ -572,7 +572,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Watershed Health Score data available for the{' '}
-                            <em>{watershed}</em> watershed.
+                            <em>{watershed.name}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -584,7 +584,7 @@ function Protect() {
                             rows={[
                               {
                                 label: 'Watershed Name',
-                                value: watershed,
+                                value: watershed.name,
                               },
                               {
                                 label: 'Watershed',
@@ -790,7 +790,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Wild and Scenic River data available in the{' '}
-                            <em>{watershed}</em> watershed.
+                            <em>{watershed.name}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -811,7 +811,7 @@ function Protect() {
                               {wildScenicRiversData.data.length === 1
                                 ? 'river'
                                 : 'rivers'}{' '}
-                              in the <em>{watershed}</em> watershed.
+                              in the <em>{watershed.name}</em> watershed.
                             </p>
                           </div>
 
@@ -981,7 +981,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Protected Areas Database data available for the{' '}
-                            <em>{watershed}</em> watershed.
+                            <em>{watershed.name}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -1002,7 +1002,7 @@ function Protect() {
                               {protectedAreasData.data.length === 1
                                 ? 'area'
                                 : 'areas'}{' '}
-                              in the <em>{watershed}</em> watershed.
+                              in the <em>{watershed.name}</em> watershed.
                             </>
                           }
                         >
@@ -1171,7 +1171,7 @@ function Protect() {
                             <div css={modifiedInfoBoxStyles}>
                               <p>
                                 There are no EPA funded protection projects in
-                                the <em>{watershed}</em> watershed.
+                                the <em>{watershed.name}</em> watershed.
                               </p>
                             </div>
                           )}
@@ -1191,7 +1191,7 @@ function Protect() {
                                   {allProtectionProjects.length === 1
                                     ? 'project'
                                     : 'projects'}{' '}
-                                  in the <em>{watershed}</em> watershed.
+                                  in the <em>{watershed.name}</em> watershed.
                                 </p>
                               </div>
 

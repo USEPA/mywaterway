@@ -136,7 +136,7 @@ function Restore() {
                       <div css={infoBoxStyles}>
                         <p css={textStyles}>
                           There are no nonpoint source projects in the{' '}
-                          <em>{watershed}</em> watershed.
+                          <em>{watershed.name}</em> watershed.
                         </p>
                       </div>
                     )}
@@ -157,8 +157,8 @@ function Restore() {
                             <GlossaryTerm term="Clean Water Act Section 319 Projects">
                               Clean Water Act Section 319
                             </GlossaryTerm>{' '}
-                            that benefit waterbodies in the <em>{watershed}</em>{' '}
-                            watershed.
+                            that benefit waterbodies in the{' '}
+                            <em>{watershed.name}</em> watershed.
                           </>
                         }
                       >
@@ -313,7 +313,7 @@ function Restore() {
                           <GlossaryTerm term="Restoration plan">
                             restoration plans
                           </GlossaryTerm>{' '}
-                          in the <em>{watershed}</em> watershed.
+                          in the <em>{watershed.name}</em> watershed.
                         </p>
                       </div>
                     )}
@@ -333,11 +333,11 @@ function Restore() {
                                 ? 'plan'
                                 : 'plans'}
                             </GlossaryTerm>{' '}
-                            in the <em>{watershed}</em> watershed.
+                            in the <em>{watershed.name}</em> watershed.
                           </>
                         }
                       >
-                        {sortedAttainsPlanData.map((item, index) => {
+                        {sortedAttainsPlanData.map((item) => {
                           return (
                             <AccordionItem
                               key={item.actionIdentifier}

@@ -924,11 +924,14 @@ function WaterbodyInfo({
   const tribeContent = labelValue('Tribe Name', attributes.TRIBE_NAME);
 
   // jsx
-  const upstreamWatershedContent = (
+  const watershedContent = (
     <>
       {labelValue(
         'Area',
-        attributes.areasqkm && `${formatNumber(attributes.areasqkm)} sq. km.`,
+        attributes.areasqkm &&
+          `${formatNumber(
+            attributes.areaacres ?? attributes.areasqkm / 0.004046856422,
+          )} acres / ${formatNumber(attributes.areasqkm, 2)} km²`,
       )}
     </>
   );
@@ -1222,7 +1225,8 @@ function WaterbodyInfo({
   if (type === 'Action') content = actionContent;
   if (type === 'County') content = countyContent();
   if (type === 'Tribe') content = tribeContent;
-  if (type === 'Upstream Watershed') content = upstreamWatershedContent;
+  if (type === 'Watershed' || type === 'Upstream Watershed')
+    content = watershedContent;
   if (type === 'Wild and Scenic Rivers') content = wildScenicRiversContent;
   if (type === 'State Watershed Health Index') content = wsioContent;
   if (type === 'Alaska Native Village') content = alaskaNativeVillageContent;
@@ -1309,6 +1313,9 @@ function MapPopup({
     }
     if (type === 'Protection Plans') {
       title = 'Protection Plans for this Waterbody';
+    }
+    if (type === 'Watershed') {
+      title = <GlossaryTerm term="Watershed">{title}</GlossaryTerm>;
     }
     if (type === 'Upstream Watershed') {
       title = <GlossaryTerm term="Upstream Watershed">{title}</GlossaryTerm>;

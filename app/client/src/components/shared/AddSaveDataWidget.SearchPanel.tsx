@@ -705,8 +705,8 @@ const cardThumbnailStyles = css`
 const cardTitleStyles = css`
   margin: 0;
   padding: 0;
-  font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', 'Times',
-    serif;
+  font-family: 'Merriweather Web', 'Georgia', 'Cambria', 'Times New Roman',
+    'Times', serif;
   font-size: 12px;
   font-weight: 500;
   overflow: hidden;
