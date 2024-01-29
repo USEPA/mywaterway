@@ -2,7 +2,7 @@ type Props = {
   height: string;
 };
 
-function AquaticLifeIcon({ height = '5rem' }: Props) {
+function AquaticLifeIcon({ height = '5rem' }: Readonly<Props>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -20,7 +20,7 @@ function AquaticLifeIcon({ height = '5rem' }: Props) {
   );
 }
 
-function DrinkingWaterIcon({ height = '5rem' }: Props) {
+function DrinkingWaterIcon({ height = '5rem' }: Readonly<Props>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -38,7 +38,7 @@ function DrinkingWaterIcon({ height = '5rem' }: Props) {
   );
 }
 
-function EatingFishIcon({ height = '5rem' }: Props) {
+function EatingFishIcon({ height = '5rem' }: Readonly<Props>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -68,7 +68,7 @@ function EatingFishIcon({ height = '5rem' }: Props) {
   );
 }
 
-function OtherIcon({ height = '5rem' }: Props) {
+function OtherIcon({ height = '5rem' }: Readonly<Props>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -109,7 +109,7 @@ function PinIcon({ ...props }) {
   );
 }
 
-function SwimmingIcon({ height = '5rem' }: Props) {
+function SwimmingIcon({ height = '5rem' }: Readonly<Props>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
