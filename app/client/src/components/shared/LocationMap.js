@@ -573,7 +573,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const { setDynamicPopupFields } = useDynamicPopup();
+  const { getTemplate, getTitle, setDynamicPopupFields } = useDynamicPopup();
 
   // Builds the layers that have no dependencies
   useEffect(() => {
@@ -1223,7 +1223,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
 
       // boundaries data, also has attributes for watershed
-      setWatershed(boundaries.features[0].attributes.name);
+      setWatershed(boundaries.features[0].attributes);
 
       // pass all of the states that the HUC12 is in
       getFishingLinkData(boundaries.features[0].attributes.states);
@@ -1432,7 +1432,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             }
           }
 
-          if (candidates.length === 0 || !location || !location.attributes) {
+          if (candidates.length === 0 || !location?.attributes) {
             const newAddress = coordinatesPart ? searchPart : searchText;
             setAddress(newAddress); // preserve the user's search so it is displayed
             handleNoDataAvailable(noDataAvailableError);
@@ -1699,12 +1699,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [searchText, setHuc12]);
 
   useEffect(() => {
-    if (
-      !mapView ||
-      !hucBoundaries ||
-      !hucBoundaries.features ||
-      !hucBoundaries.features[0]
-    ) {
+    if (!mapView || !hucBoundaries?.features?.[0]) {
       return;
     }
 
@@ -1713,6 +1708,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         type: 'polygon',
         spatialReference: hucBoundaries.spatialReference,
         rings: hucBoundaries.features[0].geometry.rings,
+      },
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['areasqkm'],
       },
       symbol: {
         type: 'simple-fill', // autocasts as new SimpleFillSymbol()
@@ -1747,6 +1747,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       });
     });
   }, [
+    getTemplate,
+    getTitle,
     mapView,
     hucBoundaries,
     boundariesLayer,

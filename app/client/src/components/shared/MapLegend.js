@@ -706,7 +706,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           className="esri-widget__heading esri-legend__service-label"
           style={{
             fontFamily:
-              '"Merriweather", "Georgia", "Cambria", "Times New Roman", "Times", serif',
+              '"Merriweather Web", "Georgia", "Cambria", "Times New Roman", "Times", serif',
           }}
         >
           {layerName}
@@ -923,7 +923,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           className="esri-widget__heading esri-legend__service-label"
           style={{
             fontFamily:
-              '"Merriweather", "Georgia", "Cambria", "Times New Roman", "Times", serif',
+              '"Merriweather Web", "Georgia", "Cambria", "Times New Roman", "Times", serif',
           }}
         >
           {layerName}

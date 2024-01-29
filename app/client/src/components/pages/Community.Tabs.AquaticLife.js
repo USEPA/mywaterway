@@ -44,7 +44,7 @@ function AquaticLife() {
             There {summary.total === 1 ? 'is' : 'are'}{' '}
             <strong>{summary.total.toLocaleString()}</strong>{' '}
             {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed for
-            aquatic life in the <em>{watershed}</em> watershed.
+            aquatic life in the <em>{watershed.name}</em> watershed.
           </>
         }
       />

@@ -441,9 +441,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   useEffect(() => {
     if (
       !mapView ||
-      !selectedGraphic ||
-      !selectedGraphic.attributes ||
-      !selectedGraphic.attributes.zoom ||
+      !selectedGraphic?.attributes?.zoom ||
       services.status === 'fetching'
     ) {
       return;
@@ -1363,6 +1361,11 @@ function useSharedLayers({
       listMode: 'show',
       visible: false,
       outFields: ['*'],
+      popupTemplate: {
+        outFields: ['areasqkm', 'huc12', 'name'],
+        title: getTitle,
+        content: getTemplate,
+      },
     });
     setLayer('watershedsLayer', watershedsLayer);
     return watershedsLayer;

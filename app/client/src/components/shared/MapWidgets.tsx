@@ -76,7 +76,7 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { ServicesState } from 'types';
+import type { ServicesState, WatershedAttributes } from 'types';
 // styles
 import { fonts } from 'styles';
 
@@ -1422,7 +1422,7 @@ function retrieveUpstreamWatershed(
   getUpstreamExtent: () => __esri.Extent,
   upstreamLayer: __esri.GraphicsLayer | null,
   getUpstreamWidgetDisabled: () => boolean,
-  getWatershed: () => string,
+  getWatershed: () => WatershedAttributes,
   lastHuc12: string,
   services: ServicesState,
   setErrorMessage: Dispatch<SetStateAction<string>>,
@@ -1506,7 +1506,7 @@ function retrieveUpstreamWatershed(
     .then((res) => {
       setUpstreamLoading(false);
       setUpstreamWatershedResponse({ status: 'success', data: res });
-      const watershed = getWatershed() || 'Unknown Watershed';
+      const watershed = getWatershed().name || 'Unknown Watershed';
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
       if (!res?.features?.length) {
@@ -1663,7 +1663,7 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   getUpstreamExtent: () => __esri.Extent;
   upstreamLayer: __esri.GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;
-  getWatershed: () => string;
+  getWatershed: () => WatershedAttributes;
   services: ServicesState;
   setErrorMessage: Dispatch<SetStateAction<string>>;
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>;

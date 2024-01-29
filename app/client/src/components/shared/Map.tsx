@@ -57,6 +57,7 @@ function Map({ children, layers = null, startingExtent = null }: Props) {
       container: 'hmw-map-container',
       map: esriMap,
       highlightOptions,
+      popupEnabled: false, // Popup is handled manually in the MapMouseEvents component
       ...(homeWidget?.viewpoint
         ? { viewpoint: homeWidget.viewpoint }
         : { extent: startingExtent ?? initialExtent() }),

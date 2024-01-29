@@ -488,7 +488,7 @@ function CurrentConditionsTab({
       {sortedLocations.length === 0 && (
         <div css={infoBoxStyles}>
           <p css={centeredTextStyles}>
-            There are no locations with data in the <em>{watershed}</em>{' '}
+            There are no locations with data in the <em>{watershed.name}</em>{' '}
             watershed.
           </p>
         </div>
@@ -607,7 +607,7 @@ function CurrentConditionsTab({
               <>
                 <strong>{filteredLocations.length}</strong> of{' '}
                 <strong>{sortedLocations.length}</strong> locations with data in
-                the <em>{watershed}</em> watershed.
+                the <em>{watershed.name}</em> watershed.
               </>
             }
             onSortChange={handleSortChange}
@@ -1075,7 +1075,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
           <div css={infoBoxStyles}>
             <p css={centeredTextStyles}>
               There are no monitoring sample locations in the{' '}
-              <em>{watershed}</em> watershed.
+              <em>{watershed.name}</em> watershed.
             </p>
           </div>
         )}
@@ -1137,7 +1137,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                   headerElm={
                     <p css={subheadingStyles}>
                       <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-                      &nbsp;&nbsp; Date range for the <em>{watershed}</em>{' '}
+                      &nbsp;&nbsp; Date range for the <em>{watershed.name}</em>{' '}
                       watershed{' '}
                     </p>
                   }
@@ -1295,7 +1295,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                   {selectedCharacteristics.length > 0 &&
                     ' with the selected characteristic'}
                   {selectedCharacteristics.length > 1 && 's'} in the{' '}
-                  <em>{watershed}</em> watershed
+                  <em>{watershed.name}</em> watershed
                   {annualRecordsReady && (
                     <>
                       {' '}
