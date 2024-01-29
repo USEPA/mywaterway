@@ -16,7 +16,7 @@ export default CharacteristicsSelect;
 export function CharacteristicsSelect({
   selected,
   onChange,
-}: CharacteristicsSelectProps) {
+}: Readonly<CharacteristicsSelectProps>) {
   const { monitoringPeriodOfRecordStatus } = useContext(LocationSearchContext);
   const { monitoringLocations } = useMonitoringLocations();
 

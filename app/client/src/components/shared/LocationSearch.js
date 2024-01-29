@@ -17,6 +17,7 @@ import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
 import Search from '@arcgis/core/widgets/Search';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import { v4 as uuid } from 'uuid';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -24,7 +25,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { useKeyPress } from 'utils/hooks';
-import { containsScriptTag, indicesOf, isHuc12 } from 'utils/utils';
+import { containsScriptTag, indicesOf, isClick, isHuc12 } from 'utils/utils';
 import { splitSuggestedSearch } from 'utils/mapFunctions';
 // styles
 import { colors, fonts } from 'styles/index';
@@ -573,6 +574,50 @@ function LocationSearch({ route, label }: Props) {
         >
           {source.results.map((result, idx) => {
             index = startIndex + idx;
+
+            function handleSuggestionClick(
+              ev: React.KeyboardEvent | React.MouseEvent,
+            ) {
+              if (!isClick(ev)) return;
+
+              setInputText(result.text);
+              setSuggestionsVisible(false);
+              setCursor(-1);
+
+              if (!searchWidget) return;
+              searchWidget.searchTerm = result.text;
+
+              if (source.source.name === 'ArcGIS') {
+                // use esri geocoder
+                searchWidget.search(result.text);
+                formSubmit(result.text);
+              } else if (source.source.name === 'Watersheds') {
+                // extract the huc from "Watershed (huc)" and search on the huc
+                const huc = result.text.split('(')[1].replace(')', '');
+                formSubmit(huc);
+              } else {
+                // query to get the feature and search based on the centroid
+                const params = result.source.layer.createQuery();
+                params.returnGeometry = true;
+                params.outSpatialReference = SpatialReference.WGS84;
+                params.where = `${result.source.layer.objectIdField} = ${result.key}`;
+                result.source.layer
+                  .queryFeatures(params)
+                  .then((res) => {
+                    if (res.features.length > 0) {
+                      const center =
+                        res.features[0].geometry.centroid ??
+                        res.features[0].geometry;
+                      formSubmit(result.text, center);
+                      searchWidget.search(result.text);
+                    }
+                  })
+                  .catch((err) => {
+                    setErrorMessage(webServiceErrorMessage);
+                  });
+              }
+            }
+
             return (
               <li
                 id={`search-suggestion-${index}`}
@@ -581,60 +626,16 @@ function LocationSearch({ route, label }: Props) {
                   index === cursor ? 'esri-menu__list-item-active' : ''
                 }`}
                 key={`suggestion-key-${index}`}
-                onClick={() => {
-                  setInputText(result.text);
-                  setSuggestionsVisible(false);
-                  setCursor(-1);
-
-                  if (!searchWidget) return;
-                  searchWidget.searchTerm = result.text;
-
-                  if (source.source.name === 'ArcGIS') {
-                    // use esri geocoder
-                    searchWidget.search(result.text);
-                    formSubmit(result.text);
-                  } else if (source.source.name === 'Watersheds') {
-                    // extract the huc from "Watershed (huc)" and search on the huc
-                    const huc = result.text.split('(')[1].replace(')', '');
-                    formSubmit(huc);
-                  } else {
-                    // query to get the feature and search based on the centroid
-                    const params = result.source.layer.createQuery();
-                    params.returnGeometry = true;
-                    params.outSpatialReference = SpatialReference.WGS84;
-                    params.where = `${result.source.layer.objectIdField} = ${result.key}`;
-                    result.source.layer
-                      .queryFeatures(params)
-                      .then((res) => {
-                        if (res.features.length > 0) {
-                          const center =
-                            res.features[0].geometry.centroid ??
-                            res.features[0].geometry;
-                          formSubmit(result.text, center);
-                          searchWidget.search(result.text);
-                        }
-                      })
-                      .catch((err) => {
-                        setErrorMessage(webServiceErrorMessage);
-                      });
-                  }
-                }}
+                onClick={handleSuggestionClick}
+                onKeyDown={handleSuggestionClick}
               >
-                {getHighlightParts(result.text, inputText).map(
-                  (part, textIndex) => {
-                    if (part.toLowerCase() === inputText.toLowerCase()) {
-                      return (
-                        <strong key={`text-key-${textIndex}`}>{part}</strong>
-                      );
-                    } else {
-                      return (
-                        <Fragment key={`text-key-${textIndex}`}>
-                          {part}
-                        </Fragment>
-                      );
-                    }
-                  },
-                )}
+                {getHighlightParts(result.text, inputText).map((part) => {
+                  if (part.toLowerCase() === inputText.toLowerCase()) {
+                    return <strong key={uuid()}>{part}</strong>;
+                  } else {
+                    return <Fragment key={uuid()}>{part}</Fragment>;
+                  }
+                })}
               </li>
             );
           })}
@@ -745,6 +746,24 @@ function LocationSearch({ route, label }: Props) {
 
   let layerEndIndex = -1;
 
+  function handleSourcesClick(ev: React.KeyboardEvent | React.MouseEvent) {
+    if (!isClick(ev)) return;
+
+    setSourcesVisible(!sourcesVisible);
+    setSuggestionsVisible(false);
+    setCursor(-1);
+  }
+
+  function handleCloseClick(ev: React.KeyboardEvent | React.MouseEvent) {
+    if (!isClick(ev)) return;
+
+    if (searchWidget) searchWidget.searchTerm = '';
+    setInputText('');
+    setSourcesVisible(false);
+    setSuggestionsVisible(false);
+    setCursor(-1);
+  }
+
   return (
     <>
       {errorMessage && (
@@ -795,11 +814,8 @@ function LocationSearch({ route, label }: Props) {
               tabIndex="0"
               data-node-ref="_sourceMenuButtonNode"
               ref={sourceList}
-              onClick={() => {
-                setSourcesVisible(!sourcesVisible);
-                setSuggestionsVisible(false);
-                setCursor(-1);
-              }}
+              onClick={handleSourcesClick}
+              onKeyDown={handleSourcesClick}
             >
               <span
                 aria-hidden="true"
@@ -838,6 +854,19 @@ function LocationSearch({ route, label }: Props) {
                     secondClass = 'esri-menu__list-item-active';
                   }
 
+                  function handleSourceSelect(
+                    ev: React.KeyboardEvent | React.MouseEvent,
+                  ) {
+                    if (!isClick(ev)) return;
+
+                    setSelectedSource(source);
+                    setSourcesVisible(false);
+
+                    const searchInput =
+                      document.getElementById('hmw-search-input');
+                    if (searchInput) searchInput.focus();
+                  }
+
                   return (
                     <li
                       id={`source-${sourceIndex}`}
@@ -845,14 +874,8 @@ function LocationSearch({ route, label }: Props) {
                       className={`esri-search__source esri-menu__list-item ${secondClass}`}
                       tabIndex="-1"
                       key={`source-key-${sourceIndex}`}
-                      onClick={() => {
-                        setSelectedSource(source);
-                        setSourcesVisible(false);
-
-                        const searchInput =
-                          document.getElementById('hmw-search-input');
-                        if (searchInput) searchInput.focus();
-                      }}
+                      onClick={handleSourceSelect}
+                      onKeyDown={handleSourceSelect}
                     >
                       {source.name}
                     </li>
@@ -958,13 +981,8 @@ function LocationSearch({ route, label }: Props) {
                   tabIndex="0"
                   title="Clear search"
                   ref={clearButton}
-                  onClick={() => {
-                    if (searchWidget) searchWidget.searchTerm = '';
-                    setInputText('');
-                    setSourcesVisible(false);
-                    setSuggestionsVisible(false);
-                    setCursor(-1);
-                  }}
+                  onClick={handleCloseClick}
+                  onKeyDown={handleCloseClick}
                 >
                   <span aria-hidden="true" className="esri-icon-close"></span>
                 </div>

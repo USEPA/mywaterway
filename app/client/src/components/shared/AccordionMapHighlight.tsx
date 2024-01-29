@@ -32,7 +32,7 @@ function AccordionItem({
   allExpanded = false,
   onChange = () => {},
   children,
-}: AccordionItemProps) {
+}: Readonly<AccordionItemProps>) {
   const { mapView } = useContext(LocationSearchContext);
 
   const { highlightedGraphic, selectedGraphic, setHighlightedGraphic } =

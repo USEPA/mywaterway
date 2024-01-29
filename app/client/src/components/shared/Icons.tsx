@@ -1,9 +1,5 @@
-// @flow
-
-import React from 'react';
-
 type Props = {
-  height: string,
+  height: string;
 };
 
 function AquaticLifeIcon({ height = '5rem' }: Props) {
@@ -24,12 +20,6 @@ function AquaticLifeIcon({ height = '5rem' }: Props) {
   );
 }
 
-// 'height' defaultProp is set here just to satisfy flow,
-// even though its passed as a default function param
-AquaticLifeIcon.defaultProps = {
-  height: '5rem',
-};
-
 function DrinkingWaterIcon({ height = '5rem' }: Props) {
   return (
     <svg
@@ -47,12 +37,6 @@ function DrinkingWaterIcon({ height = '5rem' }: Props) {
     </svg>
   );
 }
-
-// 'height' defaultProp is set here just to satisfy flow,
-// even though its passed as a default function param
-DrinkingWaterIcon.defaultProps = {
-  height: '5rem',
-};
 
 function EatingFishIcon({ height = '5rem' }: Props) {
   return (
@@ -84,12 +68,6 @@ function EatingFishIcon({ height = '5rem' }: Props) {
   );
 }
 
-// 'height' defaultProp is set here just to satisfy flow,
-// even though its passed as a default function param
-EatingFishIcon.defaultProps = {
-  height: '5rem',
-};
-
 function OtherIcon({ height = '5rem' }: Props) {
   return (
     <svg
@@ -107,12 +85,6 @@ function OtherIcon({ height = '5rem' }: Props) {
     </svg>
   );
 }
-
-// 'height' defaultProp is set here just to satisfy flow,
-// even though its passed as a default function param
-OtherIcon.defaultProps = {
-  height: '5rem',
-};
 
 function PinIcon({ ...props }) {
   return (
@@ -180,12 +152,6 @@ function SwimmingIcon({ height = '5rem' }: Props) {
     </svg>
   );
 }
-
-// 'height' defaultProp is set here just to satisfy flow,
-// even though its passed as a default function param
-SwimmingIcon.defaultProps = {
-  height: '5rem',
-};
 
 export {
   AquaticLifeIcon,

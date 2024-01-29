@@ -516,7 +516,7 @@ function IdentifiedIssues() {
     )}')`;
   }
 
-  const [prevDischargersLayerFilter, setPrevDischagersLayerFilter] =
+  const [prevDischargersLayerFilter, setPrevDischargersLayerFilter] =
     useState('');
   if (
     dischargersLayer &&
@@ -524,7 +524,7 @@ function IdentifiedIssues() {
     dischargersLayerFilter !== prevDischargersLayerFilter
   ) {
     dischargersLayer.definitionExpression = dischargersLayerFilter;
-    setPrevDischagersLayerFilter(dischargersLayerFilter);
+    setPrevDischargersLayerFilter(dischargersLayerFilter);
   }
 
   const [switchId] = useState(uniqueId('effluent-violations-switch-'));

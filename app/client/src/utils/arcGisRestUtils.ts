@@ -1140,103 +1140,101 @@ export async function addWebMap({
           }),
         });
       }
-    } else {
+    } else if (
+      ['allWaterbodiesLayer', 'waterbodyLayer'].includes(l.id) &&
+      isGroupLayer(l.layer)
+    ) {
       // handle waterbodies layer on the state and tribe pages
-      if (
-        ['allWaterbodiesLayer', 'waterbodyLayer'].includes(l.id) &&
-        isGroupLayer(l.layer)
-      ) {
-        const subLayers: ILayerExtendedType[] = [];
-        l.layer.layers.forEach((subLayer) => {
-          if (!isFeatureLayer(subLayer)) return;
+      const subLayers: ILayerExtendedType[] = [];
+      l.layer.layers.forEach((subLayer) => {
+        if (!isFeatureLayer(subLayer)) return;
 
-          const popupFields = buildPopupFieldsList(
-            subLayer.objectIdField,
-            subLayer.globalIdField,
-            subLayer.fields,
-          );
+        const popupFields = buildPopupFieldsList(
+          subLayer.objectIdField,
+          subLayer.globalIdField,
+          subLayer.fields,
+        );
 
-          if (subLayer.definitionExpression) {
-            subLayers.push({
-              id: subLayer.layerId,
-              layerDefinition: {
-                definitionExpression: subLayer.definitionExpression,
-              },
-              disablePopup: false,
-              popupInfo: {
-                popupElements: [
-                  {
-                    type: 'fields',
-                    description: '',
-                    fieldInfos: popupFields,
-                    title: '',
-                  },
-                ],
-                fieldInfos: popupFields,
-                title: `${subLayer.title}${popupTitle}`,
-              },
-            });
-          } else {
-            subLayers.push({
-              id: subLayer.layerId,
-              disablePopup: false,
-              popupInfo: {
-                popupElements: [
-                  {
-                    type: 'fields',
-                    description: '',
-                    fieldInfos: popupFields,
-                    title: '',
-                  },
-                ],
-                fieldInfos: popupFields,
-                title: `${subLayer.title}${popupTitle}`,
-              },
-            });
-          }
-        });
-
-        operationalLayers.push({
-          layerType,
-          title: l.label,
-          url,
-          layers: subLayers,
-        });
-      } else {
-        // build popup for feature layers that were not added via add data widget
-        let popupInfo;
-        if (
-          !l.widgetLayer &&
-          layerType === 'ArcGISFeatureLayer' &&
-          isFeatureLayer(l.layer)
-        ) {
-          const popupFields = buildPopupFieldsList(
-            l.layer.objectIdField,
-            l.layer.globalIdField,
-            l.layer.fields,
-          );
-
-          popupInfo = {
-            popupElements: [
-              {
-                type: 'fields',
-                description: '',
-                fieldInfos: popupFields,
-                title: '',
-              },
-            ],
-            fieldInfos: popupFields,
-            title: `${l.layer.title}${layerSettings?.popupTitle || ''}`,
-          };
+        if (subLayer.definitionExpression) {
+          subLayers.push({
+            id: subLayer.layerId,
+            layerDefinition: {
+              definitionExpression: subLayer.definitionExpression,
+            },
+            disablePopup: false,
+            popupInfo: {
+              popupElements: [
+                {
+                  type: 'fields',
+                  description: '',
+                  fieldInfos: popupFields,
+                  title: '',
+                },
+              ],
+              fieldInfos: popupFields,
+              title: `${subLayer.title}${popupTitle}`,
+            },
+          });
+        } else {
+          subLayers.push({
+            id: subLayer.layerId,
+            disablePopup: false,
+            popupInfo: {
+              popupElements: [
+                {
+                  type: 'fields',
+                  description: '',
+                  fieldInfos: popupFields,
+                  title: '',
+                },
+              ],
+              fieldInfos: popupFields,
+              title: `${subLayer.title}${popupTitle}`,
+            },
+          });
         }
+      });
 
-        operationalLayers.push({
-          layerType,
-          popupInfo,
-          title: l.label,
-          url,
-        });
+      operationalLayers.push({
+        layerType,
+        title: l.label,
+        url,
+        layers: subLayers,
+      });
+    } else {
+      // build popup for feature layers that were not added via add data widget
+      let popupInfo;
+      if (
+        !l.widgetLayer &&
+        layerType === 'ArcGISFeatureLayer' &&
+        isFeatureLayer(l.layer)
+      ) {
+        const popupFields = buildPopupFieldsList(
+          l.layer.objectIdField,
+          l.layer.globalIdField,
+          l.layer.fields,
+        );
+
+        popupInfo = {
+          popupElements: [
+            {
+              type: 'fields',
+              description: '',
+              fieldInfos: popupFields,
+              title: '',
+            },
+          ],
+          fieldInfos: popupFields,
+          title: `${l.layer.title}${layerSettings?.popupTitle || ''}`,
+        };
       }
+
+      operationalLayers.push({
+        layerType,
+        popupInfo,
+        title: l.label,
+        url,
+      });
     }
   });
 

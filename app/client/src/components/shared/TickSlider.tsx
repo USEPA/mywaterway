@@ -81,7 +81,7 @@ export default function TickSlider({
   steps,
   stepSize = 1,
   value,
-}: CyanSliderProps) {
+}: Readonly<CyanSliderProps>) {
   const { getTrackProps, handles, segments, ticks } = useRanger({
     min: steps[0],
     max: steps[steps.length - 1],

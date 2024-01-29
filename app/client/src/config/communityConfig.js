@@ -206,25 +206,23 @@ function AquaticLifeUpper() {
 
 function DrinkingWaterUpper() {
   return (
-    <>
-      <p>
-        Drinking water comes from aquifers, streams, rivers, and lakes.
-        Approximately 150,000{' '}
-        <GlossaryTerm term="Drinking Water System Type">
-          public water systems
-        </GlossaryTerm>{' '}
-        provide drinking water to most Americans. Under the Safe Drinking Water
-        Act, EPA sets standards for drinking water quality and with its partners
-        implements various technical and financial programs to ensure drinking
-        water safety.
-        <ShowLessMore
-          charLimit={0}
-          text=" Drinking water quality is based on water that has been treated
+    <p>
+      Drinking water comes from aquifers, streams, rivers, and lakes.
+      Approximately 150,000{' '}
+      <GlossaryTerm term="Drinking Water System Type">
+        public water systems
+      </GlossaryTerm>{' '}
+      provide drinking water to most Americans. Under the Safe Drinking Water
+      Act, EPA sets standards for drinking water quality and with its partners
+      implements various technical and financial programs to ensure drinking
+      water safety.
+      <ShowLessMore
+        charLimit={0}
+        text=" Drinking water quality is based on water that has been treated
             to ensure it is ready for human consumption which differs from raw
             water in streams and reservoirs."
-        />
-      </p>
-    </>
+      />
+    </p>
   );
 }
 

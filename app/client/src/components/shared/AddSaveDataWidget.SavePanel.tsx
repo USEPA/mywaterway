@@ -244,7 +244,7 @@ type Props = {
   visible: boolean;
 };
 
-function SavePanel({ visible }: Props) {
+function SavePanel({ visible }: Readonly<Props>) {
   const {
     saveAsName,
     setSaveAsName,

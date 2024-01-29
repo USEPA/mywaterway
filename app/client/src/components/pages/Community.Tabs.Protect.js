@@ -6,6 +6,7 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import { v4 as uuid } from 'uuid';
 // components
 import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -1216,29 +1217,27 @@ function Protect() {
 
                                 const protectionPlanLinks =
                                   filteredProtectionPlans?.length > 0
-                                    ? filteredProtectionPlans.map(
-                                        (plan, index) => {
-                                          if (plan?.url && plan.title) {
-                                            return (
-                                              <div key={index}>
-                                                <a
-                                                  href={plan.url}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                >
-                                                  {plan.title}
-                                                </a>
-                                              </div>
-                                            );
-                                          }
-                                          return false;
-                                        },
-                                      )
+                                    ? filteredProtectionPlans.map((plan) => {
+                                        if (plan?.url && plan.title) {
+                                          return (
+                                            <div key={uuid()}>
+                                              <a
+                                                href={plan.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                              >
+                                                {plan.title}
+                                              </a>
+                                            </div>
+                                          );
+                                        }
+                                        return false;
+                                      })
                                     : 'Document not available';
 
                                 return (
                                   <FeatureItem
-                                    key={index}
+                                    key={item.id}
                                     title={
                                       <>
                                         <strong>

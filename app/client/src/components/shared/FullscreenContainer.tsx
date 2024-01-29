@@ -17,7 +17,7 @@ export default function FullscreenContainer({
   children,
   description,
   title,
-}: Props) {
+}: Readonly<Props>) {
   const { fullscreenActive, setFullscreenActive } = useFullscreenState();
 
   return (

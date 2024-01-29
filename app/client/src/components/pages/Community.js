@@ -179,12 +179,10 @@ function Community() {
   // jsx
   const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;
   const searchMarkup = (
-    <>
-      <LocationSearch
-        route={activeTabRoute}
-        label={<strong>Let’s get started!</strong>}
-      />
-    </>
+    <LocationSearch
+      route={activeTabRoute}
+      label={<strong>Let’s get started!</strong>}
+    />
   );
 
   const lowerTab = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].lower;

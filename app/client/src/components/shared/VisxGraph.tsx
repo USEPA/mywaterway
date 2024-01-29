@@ -119,7 +119,7 @@ export function VisxGraph({
   yScale = 'linear',
   yTickFormat = (val: number) => val.toLocaleString(),
   yTitle,
-}: VisxGraphProps) {
+}: Readonly<VisxGraphProps>) {
   const [width, setWidth] = useState<number | null>(null);
   useLayoutEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -268,7 +268,11 @@ interface GradientLegendProps {
   title: string;
 }
 
-export function GradientLegend({ colors, keys, title }: GradientLegendProps) {
+export function GradientLegend({
+  colors,
+  keys,
+  title,
+}: Readonly<GradientLegendProps>) {
   const colorScale = scaleLinear<string>({
     domain: keys,
     range: colors,
@@ -299,10 +303,7 @@ export function GradientLegend({ colors, keys, title }: GradientLegendProps) {
             />
           </svg>
         ) : (
-          <LegendLinear
-            scale={colorScale as ReturnType<typeof scaleLinear>}
-            steps={20}
-          >
+          <LegendLinear scale={colorScale} steps={20}>
             {(labels) =>
               labels.map((label) => (
                 <Fragment key={label.text}>

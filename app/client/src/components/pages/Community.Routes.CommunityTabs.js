@@ -489,7 +489,7 @@ function CommunityTabs() {
         <ul css={tabDotsStyles} aria-hidden="true">
           {tabs.map((tab, index) => {
             return (
-              <li key={index}>
+              <li key={tab.title}>
                 <button
                   css={tabDotStyles}
                   tabIndex="-1"

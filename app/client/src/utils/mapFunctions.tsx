@@ -932,10 +932,10 @@ export function graphicComparison(
 export function GradientIcon({
   id,
   stops,
-}: {
+}: Readonly<{
   id: string;
   stops: Array<{ label: string; color: string }>;
-}) {
+}>) {
   const divisions = stops.length - 1;
   return (
     <div style={{ display: 'flex', margin: 'auto' }}>

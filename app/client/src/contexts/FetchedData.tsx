@@ -41,7 +41,7 @@ function reducer(
   }
 }
 
-export function FetchedDataProvider({ children }: ProviderProps) {
+export function FetchedDataProvider({ children }: Readonly<ProviderProps>) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
