@@ -333,13 +333,9 @@ function MapMouseEvents({ view }: Props) {
         .catch((err) => console.error(err));
     },
     [
-      fetchedDataDispatch,
       getHucBoundaries,
-      navigate,
       openChangeLocationPopup,
       protectedAreasLayer,
-      resetData,
-      resetLayers,
       services,
       setSelectedGraphic,
     ],
