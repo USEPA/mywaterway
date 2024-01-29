@@ -1364,7 +1364,7 @@ function useSharedLayers({
       visible: false,
       outFields: ['*'],
       popupTemplate: {
-        outFields: ['areasqkm'],
+        outFields: ['areasqkm', 'huc12', 'name'],
         title: getTitle,
         content: getTemplate,
       },

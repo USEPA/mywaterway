@@ -150,10 +150,13 @@ async function queryPadUsFeatures(
     geometry: location,
     outFields: ['*'],
   };
+  const mapContainer = document.getElementById('hmw-map-container');
+  if (mapContainer) mapContainer.style.cursor = 'wait';
   const padRes = await query.executeQueryJSON(url, queryPadUs).catch((err) => {
     console.error(err);
     return { features: [] };
   });
+  if (mapContainer) mapContainer.style.cursor = 'default';
   return padRes.features.map((feature) => {
     return new Graphic({
       attributes: feature.attributes,
@@ -276,8 +279,8 @@ function MapMouseEvents({ view }: Props) {
         .then((res: __esri.HitTestResult) => {
           // get and update the selected graphic
           const extraLayersToIgnore = ['selectedTribeLayer'];
-          queryPadUsFeatures(location, protectedAreasLayer, services).then(
-            (padUsGraphics) => {
+          queryPadUsFeatures(location, protectedAreasLayer, services)
+            .then((padUsGraphics) => {
               const graphics = [
                 ...padUsGraphics,
                 ...(getGraphicsFromResponse(res, extraLayersToIgnore) ?? []),
@@ -290,7 +293,7 @@ function MapMouseEvents({ view }: Props) {
                 setSelectedGraphic(graphic);
                 view.popup = new Popup({
                   collapseEnabled: false,
-                  features: graphics ?? undefined,
+                  features: graphics,
                   location: point,
                   visible: true,
                 });
@@ -322,13 +325,12 @@ function MapMouseEvents({ view }: Props) {
                     if (boundaries.features.length === 0) return;
 
                     openChangeLocationPopup(point, boundaries);
-                  })
-                  .catch((err) => console.error(err));
+                  });
               }
-            },
-          );
+            })
+            .catch((err) => console.error(err));
         })
-        .catch((err: string) => console.error(err));
+        .catch((err) => console.error(err));
     },
     [
       fetchedDataDispatch,

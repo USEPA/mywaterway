@@ -42,7 +42,7 @@ const initialViewpoint = () => new Viewpoint({
   targetGeometry: initialExtent(),
 });
 
-const nullWatershed: WatershedAttributes = () => ({
+const initialWatershed: WatershedAttributes = () => ({
   areaacres: 0,
   areasqkm: 0,
   huc12: '',
@@ -124,7 +124,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     lastSearchText: '',
     huc12: '',
     assessmentUnitIDs: [],
-    watershed: nullWatershed(),
+    watershed: initialWatershed(),
     address: '',
     fishingInfo: { status: 'fetching', data: [] },
     statesData: { status: 'fetching', data: [] },
@@ -386,7 +386,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         huc12: '',
         assessmentUnitIDs: null,
         errorMessage: '',
-        watershed: nullWatershed(),
+        watershed: initialWatershed(),
         pointsData: null,
         linesData: null,
         areasData: null,
@@ -421,7 +421,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
-        watershed: nullWatershed(),
+        watershed: initialWatershed(),
         pointsData: [],
         linesData: [],
         areasData: [],
