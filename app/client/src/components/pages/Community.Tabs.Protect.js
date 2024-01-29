@@ -583,7 +583,7 @@ function Protect() {
                             rows={[
                               {
                                 label: 'Watershed Name',
-                                value: watershed,
+                                value: watershed.name,
                               },
                               {
                                 label: 'Watershed',
