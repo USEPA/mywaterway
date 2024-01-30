@@ -56,6 +56,7 @@ import type {
   ExtendedGraphic,
   Feature,
   WaterbodyCondition,
+  WatershedAttributes,
 } from 'types';
 
 let dynamicPopupFields: __esri.Field[] = [];
@@ -804,13 +805,9 @@ function useDynamicPopup() {
               return;
             }
 
-            const { attributes } = boundaries.features[0];
             resolve({
               status: 'success',
-              data: {
-                huc12: attributes.huc12,
-                watershed: attributes.name,
-              },
+              data: boundaries.features[0].attributes as WatershedAttributes,
             });
           })
           .catch((err) => {
@@ -1361,11 +1358,6 @@ function useSharedLayers({
       listMode: 'show',
       visible: false,
       outFields: ['*'],
-      popupTemplate: {
-        outFields: ['areasqkm', 'huc12', 'name'],
-        title: getTitle,
-        content: getTemplate,
-      },
     });
     setLayer('watershedsLayer', watershedsLayer);
     return watershedsLayer;

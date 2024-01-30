@@ -221,7 +221,6 @@ const saveAsInputStyles = css`
 `;
 
 const submitSectionStyles = css`
-  margin-top: 1.5rem;
   margin-bottom: 0.625rem;
 `;
 

@@ -15,7 +15,11 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // types
-import type { MonitoringFeatureUpdate, MonitoringFeatureUpdates } from 'types';
+import type {
+  MonitoringFeatureUpdate,
+  MonitoringFeatureUpdates,
+  WatershedAttributes,
+} from 'types';
 // utils
 import { isInScale } from 'utils/mapFunctions';
 
@@ -63,6 +67,7 @@ function getGraphicsFromResponse(
       'mappedWaterLayer',
       'searchIconLayer',
       'providersLayer',
+      'watershedsLayer',
       ...additionalLayers,
     ];
     if (!result.graphic.layer?.id) return null;
@@ -84,15 +89,7 @@ function getGraphicsFromResponse(
     return result;
   }) as __esri.GraphicHit[];
 
-  const graphics = matches.map((match) => match.graphic);
-
-  // If both a boundaries (current watershed) and a watershed from the watershed layer are present, remove the latter.
-  const hasBoundariesGraphic = graphics.some(
-    (graphic) => graphic.layer.id === 'boundariesLayer',
-  );
-  return hasBoundariesGraphic
-    ? graphics.filter((graphic) => graphic.layer.id !== 'watershedsLayer')
-    : graphics;
+  return matches.map((match) => match.graphic);
 }
 
 function getGraphicFromResponse(
@@ -129,10 +126,9 @@ function prioritizePopup(
       return 1;
     });
   }
-  // Show watersheds at the end of the list always.
+  // Show boundaries at the end of the list always.
   graphics?.sort((a, _b) => {
-    if (a.layer.id === 'boundariesLayer' || a.layer.id === 'watershedsLayer')
-      return 1;
+    if (a.layer.id === 'boundariesLayer') return 1;
     return -1;
   });
 }
@@ -225,7 +221,6 @@ function MapMouseEvents({ view }: Props) {
   // Opens the change location popup
   const openChangeLocationPopup = useCallback(
     (point: __esri.Point, boundaries: __esri.FeatureSet) => {
-      const { attributes } = boundaries.features[0];
       view.closePopup();
       view.popup = new Popup({
         collapseEnabled: false,
@@ -246,10 +241,7 @@ function MapMouseEvents({ view }: Props) {
           },
           getClickedHuc: Promise.resolve({
             status: 'success',
-            data: {
-              huc12: attributes.huc12,
-              watershed: attributes.name,
-            },
+            data: boundaries.features[0].attributes as WatershedAttributes,
           }),
         }),
       });
