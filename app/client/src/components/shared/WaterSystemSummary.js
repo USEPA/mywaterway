@@ -423,7 +423,7 @@ function WaterSystemSummary({ state }: Props) {
                 return (
                   <ul css={rowsStyles}>
                     {labels.map((label, index) => (
-                      <li css={rowStyles} key={uuid()}>
+                      <li css={rowStyles} key={label}>
                         <span css={labelStyles}>{label}</span>
                         <span css={valueStyles}>{values[index]}</span>
                       </li>
@@ -437,7 +437,7 @@ function WaterSystemSummary({ state }: Props) {
                     <thead>
                       <tr>
                         {labels.map((item) => (
-                          <th key={uuid()}>{item}</th>
+                          <th key={item}>{item}</th>
                         ))}
                       </tr>
                     </thead>

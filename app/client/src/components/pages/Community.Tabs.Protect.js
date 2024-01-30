@@ -6,7 +6,6 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
-import { v4 as uuid } from 'uuid';
 // components
 import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -1220,7 +1219,9 @@ function Protect() {
                                     ? filteredProtectionPlans.map((plan) => {
                                         if (plan?.url && plan.title) {
                                           return (
-                                            <div key={uuid()}>
+                                            <div
+                                              key={`${plan.title}-${plan.url}`}
+                                            >
                                               <a
                                                 href={plan.url}
                                                 target="_blank"

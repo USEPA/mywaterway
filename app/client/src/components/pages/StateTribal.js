@@ -5,7 +5,6 @@ import { css } from '@emotion/react';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
-import { v4 as uuid } from 'uuid';
 // components
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
@@ -537,7 +536,7 @@ function StateTribal() {
                           role="menuitem"
                           className={`esri-search__source esri-menu__list-item ${secondClass}`}
                           tabIndex="-1"
-                          key={uuid()}
+                          key={source}
                           onClick={handleClick}
                           onKeyDown={handleClick}
                         >
@@ -641,7 +640,10 @@ function StateTribal() {
                                 }
 
                                 return (
-                                  <div css={keyMetricStyles} key={uuid()}>
+                                  <div
+                                    css={keyMetricStyles}
+                                    key={`${metric.label}-${metric.value}`}
+                                  >
                                     <span css={keyMetricNumberStyles}>
                                       {value}
                                     </span>

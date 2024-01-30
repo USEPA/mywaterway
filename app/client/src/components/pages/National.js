@@ -3,7 +3,6 @@
 
 import { css } from '@emotion/react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { v4 as uuid } from 'uuid';
 // components
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
@@ -332,7 +331,7 @@ function NationalWaterQualityPanel() {
                 <AccordionList>
                   {tab.content.map((category) => (
                     <AccordionItem
-                      key={uuid()}
+                      key={category.title}
                       title={
                         <span
                           dangerouslySetInnerHTML={{ __html: category.title }}
@@ -348,7 +347,7 @@ function NationalWaterQualityPanel() {
                 </AccordionList>
 
                 {tab.footnotes.map((footnote) => (
-                  <p css={footnoteStyles} key={uuid()}>
+                  <p css={footnoteStyles} key={footnote}>
                     <small dangerouslySetInnerHTML={{ __html: footnote }} />
                   </p>
                 ))}

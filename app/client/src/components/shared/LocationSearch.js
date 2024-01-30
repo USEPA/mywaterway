@@ -17,7 +17,6 @@ import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
 import Search from '@arcgis/core/widgets/Search';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
-import { v4 as uuid } from 'uuid';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -629,13 +628,15 @@ function LocationSearch({ route, label }: Props) {
                 onClick={handleSuggestionClick}
                 onKeyDown={handleSuggestionClick}
               >
-                {getHighlightParts(result.text, inputText).map((part) => {
-                  if (part.toLowerCase() === inputText.toLowerCase()) {
-                    return <strong key={uuid()}>{part}</strong>;
-                  } else {
-                    return <Fragment key={uuid()}>{part}</Fragment>;
-                  }
-                })}
+                {getHighlightParts(result.text, inputText).map(
+                  (part, index) => {
+                    if (part.toLowerCase() === inputText.toLowerCase()) {
+                      return <strong key={index}>{part}</strong>;
+                    } else {
+                      return <Fragment key={index}>{part}</Fragment>;
+                    }
+                  },
+                )}
               </li>
             );
           })}

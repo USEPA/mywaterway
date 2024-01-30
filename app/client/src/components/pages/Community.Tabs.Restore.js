@@ -162,7 +162,7 @@ function Restore() {
                           </>
                         }
                       >
-                        {sortedGrtsData.map((item, index) => {
+                        {sortedGrtsData.map((item) => {
                           const url = getUrlFromMarkup(item.project_link);
 
                           let watershedPlans = null;
