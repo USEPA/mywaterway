@@ -62,7 +62,7 @@ export interface ChangeLocationAttributes {
 
 export type ClickedHucState =
   | { status: 'fetching' | 'no-data' | 'none' | 'failure'; data: null }
-  | { status: 'success'; data: { huc12: string; watershed: string } };
+  | { status: 'success'; data: WatershedAttributes };
 
 export interface CongressionalDistrictAttributes {
   CDFIPS: string;

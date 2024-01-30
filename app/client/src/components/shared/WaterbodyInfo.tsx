@@ -1326,9 +1326,6 @@ function MapPopup({
 
   if (!attributes) return null;
 
-  const huc12 = clickedHuc?.data?.huc12;
-  const watershed = clickedHuc?.data?.watershed;
-
   return (
     <div css={popupContainerStyles}>
       {clickedHuc && (
@@ -1343,7 +1340,21 @@ function MapPopup({
               )}
 
               <div css={changeWatershedContainerStyles}>
-                <div>{labelValue('WATERSHED', `${watershed} (${huc12})`)}</div>
+                <div>
+                  {labelValue(
+                    'WATERSHED',
+                    `${clickedHuc.data.name} (${clickedHuc.data.huc12})`,
+                  )}
+                  {labelValue(
+                    'SIZE',
+                    `${formatNumber(
+                      clickedHuc.data.areaacres,
+                    )} acres / ${formatNumber(
+                      clickedHuc.data.areasqkm,
+                      2,
+                    )} km²`,
+                  )}
+                </div>
 
                 <div css={buttonsContainer}>
                   <button
@@ -1359,7 +1370,7 @@ function MapPopup({
                       // has a lot of waterbodies.
                       if (resetData) resetData();
 
-                      let baseRoute = `/community/${huc12}`;
+                      let baseRoute = `/community/${clickedHuc.data.huc12}`;
 
                       // community will attempt to stay on the same tab
                       // if available, stay on the same tab otherwise go to overview

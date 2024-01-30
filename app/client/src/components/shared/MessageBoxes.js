@@ -15,6 +15,10 @@ const boxStyles = css`
     :first-of-type {
       margin-top: 0;
     }
+
+    :last-of-type {
+      margin-bottom: 0;
+    }
   }
 `;
 

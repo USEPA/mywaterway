@@ -818,7 +818,7 @@ function Protect() {
                             const attributes = item.attributes;
                             return (
                               <FeatureItem
-                                key={attributes.GlobalID}
+                                key={attributes.OBJECTID}
                                 feature={item}
                                 title={
                                   <strong>
