@@ -1216,29 +1216,29 @@ function Protect() {
 
                                 const protectionPlanLinks =
                                   filteredProtectionPlans?.length > 0
-                                    ? filteredProtectionPlans.map(
-                                        (plan, index) => {
-                                          if (plan?.url && plan.title) {
-                                            return (
-                                              <div key={index}>
-                                                <a
-                                                  href={plan.url}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                >
-                                                  {plan.title}
-                                                </a>
-                                              </div>
-                                            );
-                                          }
-                                          return false;
-                                        },
-                                      )
+                                    ? filteredProtectionPlans.map((plan) => {
+                                        if (plan?.url && plan.title) {
+                                          return (
+                                            <div
+                                              key={`${plan.title}-${plan.url}`}
+                                            >
+                                              <a
+                                                href={plan.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                              >
+                                                {plan.title}
+                                              </a>
+                                            </div>
+                                          );
+                                        }
+                                        return false;
+                                      })
                                     : 'Document not available';
 
                                 return (
                                   <FeatureItem
-                                    key={index}
+                                    key={item.id}
                                     title={
                                       <>
                                         <strong>

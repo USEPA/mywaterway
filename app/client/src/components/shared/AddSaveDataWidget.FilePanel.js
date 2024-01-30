@@ -586,9 +586,9 @@ function FilePanel() {
             )}
 
             <DisclaimerModal infoIcon={true}>
-              <label>
+              <span>
                 You can drop or browse for one the following file types:
-              </label>
+              </span>
               <ul>
                 <li>
                   A Shapefile (.zip, ZIP archive containing all shapefile files)

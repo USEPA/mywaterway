@@ -13,7 +13,7 @@ const StateContext = createContext<State | undefined>(undefined);
 
 type Props = { children: ReactNode };
 
-export function MapHighlightProvider({ children }: Props) {
+export function MapHighlightProvider({ children }: Readonly<Props>) {
   const [highlightedGraphic, setHighlightedGraphic] =
     useState<__esri.Graphic | null>(null);
   const [selectedGraphic, setSelectedGraphic] = useState<__esri.Graphic | null>(

@@ -1157,8 +1157,7 @@ function AdvancedSearch() {
               )}
             </>
           )}
-          <> / </>
-          {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
+          / {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
           {currentReportingCycle.status === 'success' && (
             <>{currentReportingCycle.reportingCycle}</>
           )}

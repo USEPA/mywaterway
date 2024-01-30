@@ -418,14 +418,12 @@ export function summarizeAssessments(
 
     if (!field || field === 'X') {
       summary['Not Applicable']++;
-    } else {
-      if (ids.indexOf(id) === -1) {
-        ids.push(id);
-        if (field === 'Not Supporting' || field === 'Fully Supporting') {
-          summary.total++;
-        }
-        summary[field]++;
+    } else if (ids.indexOf(id) === -1) {
+      ids.push(id);
+      if (field === 'Not Supporting' || field === 'Fully Supporting') {
+        summary.total++;
       }
+      summary[field]++;
     }
   });
 

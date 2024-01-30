@@ -55,11 +55,13 @@ interface SortOption {
 
 type Props = {
   waterbodies: __esri.Graphic[];
-  type: string;
   fieldName: string | null;
 };
 
-function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
+function WaterbodyListVirtualized({
+  waterbodies,
+  fieldName = null,
+}: Readonly<Props>) {
   // Triggers the loading spinner. When a search is complete the loading
   // spinner will be displayed for 250ms.
   const [loading, setLoading] = useState(true);

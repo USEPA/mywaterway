@@ -33,9 +33,9 @@
     "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.485.0",
-    "axios": "1.6.5",
-    "dotenv": "16.3.1",
+    "@aws-sdk/client-s3": "3.501.0",
+    "axios": "1.6.7",
+    "dotenv": "16.4.1",
     "express": "4.18.2",
     "express-basic-auth": "1.2.1",
     "helmet": "7.1.0",
@@ -45,10 +45,10 @@
   },
   "devDependencies": {
     "browser-sync": "3.0.2",
-    "husky": "8.0.3",
+    "husky": "9.0.7",
     "lint-staged": "15.2.0",
-    "nodemon": "3.0.2",
-    "prettier": "3.1.1"
+    "nodemon": "3.0.3",
+    "prettier": "3.2.4"
   },
   "husky": {
     "hooks": {

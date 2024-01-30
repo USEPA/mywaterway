@@ -1,7 +1,7 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
-import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
@@ -1129,7 +1129,7 @@ function WaterQualityOverview() {
             />
           </div>
         </AccordionItem>
-        {activeState?.source === 'State' ? (
+        {activeState?.source === 'State' && (
           <AccordionItem
             highlightContent={false}
             icon={
@@ -1152,8 +1152,6 @@ function WaterQualityOverview() {
               <Stories stories={stories} />
             </div>
           </AccordionItem>
-        ) : (
-          <Fragment></Fragment>
         )}
         <AccordionItem
           highlightContent={false}
@@ -1190,9 +1188,9 @@ function WaterQualityOverview() {
                       Links below open in a new browser tab.
                     </em>
                     <ul css={linkListStyles}>
-                      {introText.data.organizationURLs.map((item, index) => {
+                      {introText.data.organizationURLs.map((item) => {
                         return (
-                          <li key={index}>
+                          <li key={item.url}>
                             <a
                               href={item.url}
                               target="_blank"

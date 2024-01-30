@@ -7,7 +7,7 @@ type Props = {
   selected: boolean;
 };
 
-function WaterbodyIcon({ condition, selected = false }: Props) {
+function WaterbodyIcon({ condition, selected = false }: Readonly<Props>) {
   // fallback shape (used when condition is 'unassessed' or some other unknown value)
   let shape = (
     <>

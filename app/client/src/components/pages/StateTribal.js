@@ -34,6 +34,7 @@ import {
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
+import { isClick } from 'utils/utils';
 // styles
 import { colors, fonts, reactSelectStyles } from 'styles/index';
 // errors
@@ -475,6 +476,9 @@ function StateTribal() {
                   onClick={() => {
                     setSourcesVisible(!sourcesVisible);
                   }}
+                  onKeyDown={(ev) => {
+                    if (ev.key === 'Enter') setSourcesVisible(!sourcesVisible);
+                  }}
                 >
                   <span
                     aria-hidden="true"
@@ -513,21 +517,28 @@ function StateTribal() {
                         secondClass = 'esri-menu__list-item-active';
                       }
 
+                      function handleClick(
+                        ev: React.KeyboardEvent | React.MouseEvent,
+                      ) {
+                        if (!isClick(ev)) return;
+
+                        setSelectedSource(source);
+                        setSourcesVisible(false);
+
+                        const searchInput =
+                          document.getElementById('hmw-search-input');
+                        if (searchInput) searchInput.focus();
+                      }
+
                       return (
                         <li
                           id={`source-${sourceIndex}`}
                           role="menuitem"
                           className={`esri-search__source esri-menu__list-item ${secondClass}`}
                           tabIndex="-1"
-                          key={`source-key-${sourceIndex}`}
-                          onClick={() => {
-                            setSelectedSource(source);
-                            setSourcesVisible(false);
-
-                            const searchInput =
-                              document.getElementById('hmw-search-input');
-                            if (searchInput) searchInput.focus();
-                          }}
+                          key={source}
+                          onClick={handleClick}
+                          onKeyDown={handleClick}
                         >
                           {source}
                         </li>
@@ -545,8 +556,8 @@ function StateTribal() {
                     selectedSource === 'All'
                       ? 'Select a state, tribe or territory...'
                       : selectedSource === 'State'
-                      ? 'Select a state or territory...'
-                      : 'Select a tribe...'
+                        ? 'Select a state or territory...'
+                        : 'Select a tribe...'
                   }
                   options={selectOptions}
                   value={selectedStateTribe}
@@ -612,38 +623,38 @@ function StateTribal() {
                             </h2>
 
                             <div css={keyMetricsStyles}>
-                              {stateIntro.organizationMetrics.map(
-                                (metric, index) => {
-                                  if (!metric?.value || !metric.label) {
-                                    return null;
-                                  }
+                              {stateIntro.organizationMetrics.map((metric) => {
+                                if (!metric?.value || !metric.label) {
+                                  return null;
+                                }
 
-                                  let value = Number(metric.value);
-                                  if (!value) {
-                                    // just in case the service has a non-numeric string in the future
-                                    value = metric.value;
-                                  } else if (value <= 1) {
-                                    // numbers <=1 convert to percentages
-                                    value =
-                                      (value * 100).toLocaleString() + '%';
-                                  } else {
-                                    value = value.toLocaleString();
-                                  }
+                                let value = Number(metric.value);
+                                if (!value) {
+                                  // just in case the service has a non-numeric string in the future
+                                  value = metric.value;
+                                } else if (value <= 1) {
+                                  // numbers <=1 convert to percentages
+                                  value = (value * 100).toLocaleString() + '%';
+                                } else {
+                                  value = value.toLocaleString();
+                                }
 
-                                  return (
-                                    <div css={keyMetricStyles} key={index}>
-                                      <span css={keyMetricNumberStyles}>
-                                        {value}
-                                      </span>
-                                      <p css={keyMetricLabelStyles}>
-                                        {metric.label}
-                                        <br />
-                                        <em>{metric.unit}</em>
-                                      </p>
-                                    </div>
-                                  );
-                                },
-                              )}
+                                return (
+                                  <div
+                                    css={keyMetricStyles}
+                                    key={`${metric.label}-${metric.value}`}
+                                  >
+                                    <span css={keyMetricNumberStyles}>
+                                      {value}
+                                    </span>
+                                    <p css={keyMetricLabelStyles}>
+                                      {metric.label}
+                                      <br />
+                                      <em>{metric.unit}</em>
+                                    </p>
+                                  </div>
+                                );
+                              })}
                             </div>
                             <p css={byTheNumbersExplanationStyles}>
                               Waters not assessed do not show up in summaries

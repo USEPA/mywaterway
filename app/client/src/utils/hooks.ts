@@ -1765,12 +1765,12 @@ function useGeometryUtils() {
 // Custom hook that is used to determine if the provided ref is
 // visible on the screen.
 function useOnScreen(node: HTMLDivElement | null) {
-  const [isIntersecting, setIntersecting] = useState(false);
+  const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
     if (!node) return;
     const observer = new IntersectionObserver(([entry]) =>
-      setIntersecting(entry.isIntersecting),
+      setIsIntersecting(entry.isIntersecting),
     );
 
     observer.observe(node);

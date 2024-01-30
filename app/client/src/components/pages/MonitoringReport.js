@@ -2292,27 +2292,25 @@ function MonitoringReportContent() {
   }, []);
 
   const mapNarrow = (height) => (
-    <>
-      <MapVisibilityButton>
-        {(mapShown) => (
-          <div
-            css={css`
-              ${mapBoxStyles};
-              height: ${height - 40}px;
-              display: ${mapShown ? 'block' : 'none'};
-            `}
-          >
-            <SiteMapContainer
-              layout="narrow"
-              site={site}
-              siteStatus={siteStatus}
-              siteFilter={siteFilter}
-              widthRef={widthRef}
-            />
-          </div>
-        )}
-      </MapVisibilityButton>
-    </>
+    <MapVisibilityButton>
+      {(mapShown) => (
+        <div
+          css={css`
+            ${mapBoxStyles};
+            height: ${height - 40}px;
+            display: ${mapShown ? 'block' : 'none'};
+          `}
+        >
+          <SiteMapContainer
+            layout="narrow"
+            site={site}
+            siteStatus={siteStatus}
+            siteFilter={siteFilter}
+            widthRef={widthRef}
+          />
+        </div>
+      )}
+    </MapVisibilityButton>
   );
 
   const mapWide = (

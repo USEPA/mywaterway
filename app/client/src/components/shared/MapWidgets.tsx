@@ -17,7 +17,7 @@ import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import { css } from '@emotion/react';
-import {
+import React, {
   useCallback,
   useContext,
   useEffect,
@@ -1298,6 +1298,8 @@ function ShowAddSaveDataWidget({
           : 'Close Add & Save Data Widget'
       }
       style={hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={clickHandler}
@@ -1394,6 +1396,8 @@ function ExpandCollapse({
           : 'Enter Fullscreen Map View'
       }
       style={hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={clickHandler}
@@ -1634,6 +1638,8 @@ function ShowUpstreamWatershed({
     <div
       title={title}
       style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={onClick}
@@ -1989,6 +1995,12 @@ function ShowSelectedUpstreamWatershed({
     watershedsVisible,
   ]);
 
+  function handleCloseClick(ev: React.KeyboardEvent | React.MouseEvent) {
+    if (!isClick(ev)) return;
+
+    setInstructionsVisible(false);
+  }
+
   return (
     <>
       {mapRef.current &&
@@ -1998,7 +2010,8 @@ function ShowSelectedUpstreamWatershed({
               <header>
                 <i
                   className="esri-icon-close"
-                  onClick={(_ev) => setInstructionsVisible(false)}
+                  onClick={handleCloseClick}
+                  onKeyDown={handleCloseClick}
                 />
               </header>
               <div>

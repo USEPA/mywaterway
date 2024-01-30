@@ -901,26 +901,22 @@ function WaterbodyInfo({
   // jsx
   const congressionalDistrictContent = () => {
     return (
-      <>
-        <p>
-          <strong>District:</strong>
-          <br />
-          {attributes.CDFIPS} - {attributes.NAME}
-        </p>
-      </>
+      <p>
+        <strong>District:</strong>
+        <br />
+        {attributes.CDFIPS} - {attributes.NAME}
+      </p>
     );
   };
 
   // jsx
   const countyContent = () => {
     return (
-      <>
-        <p>
-          <strong>County:</strong>
-          <br />
-          {attributes.CNTY_FIPS} - {attributes.NAME}
-        </p>
-      </>
+      <p>
+        <strong>County:</strong>
+        <br />
+        {attributes.CNTY_FIPS} - {attributes.NAME}
+      </p>
     );
   };
 
@@ -980,31 +976,29 @@ function WaterbodyInfo({
 
   // jsx
   const wsioContent = (
-    <>
-      <div css={tableStyles} className="table">
-        <ListContent
-          rows={[
-            {
-              label: 'Watershed Name',
-              value: attributes.NAME_HUC12,
-            },
-            {
-              label: 'Watershed',
-              value: attributes.HUC12_TEXT,
-            },
-            {
-              label: 'State',
-              value: attributes.STATES_ALL,
-            },
-            {
-              label: 'Watershed Health Score',
-              value: Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100,
-            },
-          ]}
-          styles={listContentStyles}
-        />
-      </div>
-    </>
+    <div css={tableStyles} className="table">
+      <ListContent
+        rows={[
+          {
+            label: 'Watershed Name',
+            value: attributes.NAME_HUC12,
+          },
+          {
+            label: 'Watershed',
+            value: attributes.HUC12_TEXT,
+          },
+          {
+            label: 'State',
+            value: attributes.STATES_ALL,
+          },
+          {
+            label: 'Watershed Health Score',
+            value: Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100,
+          },
+        ]}
+        styles={listContentStyles}
+      />
+    </div>
   );
 
   // jsx
@@ -1280,7 +1274,7 @@ function MapPopup({
   stateNationalUses,
   fields,
   navigate,
-}: MapPopupProps) {
+}: Readonly<MapPopupProps>) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<ClickedHucState>({
     status: 'none',
@@ -1580,7 +1574,7 @@ function CyanDailyContent({
   data,
   epochDate,
   waterbodyName,
-}: CyanDailyContentProps) {
+}: Readonly<CyanDailyContentProps>) {
   const [histogramData, setHistogramData] = useState<ChartData | null>(null);
 
   // Calculate statistics for the selected date and
@@ -1700,7 +1694,11 @@ type CyanContentProps = {
   services: ServicesState | null;
 };
 
-function CyanContent({ feature, mapView, services }: CyanContentProps) {
+function CyanContent({
+  feature,
+  mapView,
+  services,
+}: Readonly<CyanContentProps>) {
   const { attributes } = feature;
   const layerId = feature.layer?.id;
   const { getSignal } = useAbort();
@@ -2442,7 +2440,7 @@ type SelectedType = { [Property in keyof MappedGroups]: boolean };
 function MonitoringLocationsContent({
   feature,
   services,
-}: MonitoringLocationsContentProps) {
+}: Readonly<MonitoringLocationsContentProps>) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selectAll, setSelectAll] = useState(1);
   const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] = useState<
@@ -2998,7 +2996,7 @@ type UsgsStreamgagesContentProps = {
 function UsgsStreamgagesContent({
   feature,
   services,
-}: UsgsStreamgagesContentProps) {
+}: Readonly<UsgsStreamgagesContentProps>) {
   const {
     streamgageMeasurements,
     orgName,
@@ -3189,10 +3187,10 @@ function UsgsStreamgagesContent({
 function UsgsStreamgageParameter({
   url,
   data,
-}: {
+}: Readonly<{
   url: string;
   data: StreamgageMeasurement;
-}) {
+}>) {
   return (
     <tr>
       <td>

@@ -117,7 +117,11 @@ interface BoxContentProps {
   styles?: SerializedStyles;
 }
 
-export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
+export function BoxContent({
+  layout = 'grid',
+  rows,
+  styles,
+}: Readonly<BoxContentProps>) {
   const mergedStyles = css`
     ${layout === 'grid' ? gridStyles : contentStyles}
     ${styles}
@@ -152,7 +156,7 @@ export function ListContent({
   layout = 'grid',
   rows,
   styles,
-}: BoxContentProps) {
+}: Readonly<BoxContentProps>) {
   const mergedStyles = css`
     ${listContentStyles}
     ${styles}
@@ -167,7 +171,7 @@ interface RowProps {
   status?: string;
 }
 
-function Row({ label, value, status = 'success' }: RowProps) {
+function Row({ label, value, status = 'success' }: Readonly<RowProps>) {
   let displayValue = value ?? 'N/A';
   if (status === 'fetching') displayValue = <LoadingSpinner />;
   else if (status === 'failure') displayValue = 'N/A';
@@ -193,7 +197,7 @@ export function FlexRow({
   value,
   status = 'success',
   styles,
-}: FlexRowProps) {
+}: Readonly<FlexRowProps>) {
   const mergedStyles = css`
     ${flexRowStyles}
     ${styles}

@@ -400,11 +400,12 @@ function WaterbodyReport() {
     let reportingCycleParam = '';
     if (reportingCycle) {
       reportingCycleParam = reportingCycle;
-    } else {
-      if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
-        reportingCycleParam =
-          mapLayer.layer.graphics.items[0].attributes.reportingcycle;
-      }
+    } else if (
+      mapLayer.status === 'success' &&
+      mapLayer.layer.graphics.length > 0
+    ) {
+      reportingCycleParam =
+        mapLayer.layer.graphics.items[0].attributes.reportingcycle;
     }
 
     setAssessmentsCalled(true);
@@ -483,9 +484,9 @@ function WaterbodyReport() {
           overallStatus === 'Not Supporting' || overallStatus === 'Cause'
             ? conditions.impaired
             : overallStatus === 'Fully Supporting' ||
-              overallStatus === 'Meeting Criteria'
-            ? conditions.good
-            : conditions.unknown; // catch all
+                overallStatus === 'Meeting Criteria'
+              ? conditions.good
+              : conditions.unknown; // catch all
 
         // Use the status above initially. When looping through the use attainments
         // this will be set to yes if any of the uses have a plan in place
@@ -509,28 +510,28 @@ function WaterbodyReport() {
                   text: 'Not Assessed',
                 }
               : use.useAttainmentCode === 'I'
-              ? {
-                  textColor: colors.white(),
-                  bgColor: colors.purple(),
-                  text: 'Insufficient Info',
-                }
-              : use.useAttainmentCode === 'F'
-              ? {
-                  textColor: colors.white(),
-                  bgColor: colors.green(),
-                  text: 'Good',
-                }
-              : use.useAttainmentCode === 'N'
-              ? {
-                  textColor: colors.white(),
-                  bgColor: colors.red(),
-                  text: 'Impaired',
-                }
-              : {
-                  textColor: colors.white(),
-                  bgColor: colors.purple(),
-                  text: 'Unknown',
-                };
+                ? {
+                    textColor: colors.white(),
+                    bgColor: colors.purple(),
+                    text: 'Insufficient Info',
+                  }
+                : use.useAttainmentCode === 'F'
+                  ? {
+                      textColor: colors.white(),
+                      bgColor: colors.green(),
+                      text: 'Good',
+                    }
+                  : use.useAttainmentCode === 'N'
+                    ? {
+                        textColor: colors.white(),
+                        bgColor: colors.red(),
+                        text: 'Impaired',
+                      }
+                    : {
+                        textColor: colors.white(),
+                        bgColor: colors.purple(),
+                        text: 'Unknown',
+                      };
 
           // build up categories by matching each parameter's associated use name
           // and examining its parameter attainment code
@@ -600,8 +601,7 @@ function WaterbodyReport() {
 
                   if (notYetAdded) {
                     // a plan is 'in place' if a parameter has at least one associated action
-                    const planInPlace =
-                      parameter.associatedActions.length > 0 ? true : false;
+                    const planInPlace = parameter.associatedActions.length > 0;
 
                     if (planInPlace) planForRestoration = 'Yes';
 
@@ -872,8 +872,8 @@ function WaterbodyReport() {
                 waterbodyStatus.data.condition === conditions.good
                   ? 'good'
                   : waterbodyStatus.data.condition === conditions.impaired
-                  ? 'polluted'
-                  : 'unassessed'
+                    ? 'polluted'
+                    : 'unassessed'
               }
               selected={false}
             />
@@ -903,8 +903,8 @@ function WaterbodyReport() {
                 waterbodyStatus.data.condition === conditions.good
                   ? 'Good Waters'
                   : waterbodyStatus.data.condition === conditions.impaired
-                  ? 'Impaired Waters'
-                  : 'Condition Unknown'
+                    ? 'Impaired Waters'
+                    : 'Condition Unknown'
               }
             >
               {waterbodyStatus.data.condition}
