@@ -1009,9 +1009,6 @@ function useSharedLayers({
     });
 
     setLayer('wsioHealthIndexLayer', wsioHealthIndexLayer);
-    setResetHandler('wsioHealthIndexLayer', () => {
-      wsioHealthIndexLayer.visible = false;
-    });
 
     // Toggles the shading of the watershed graphic based on
     // whether or not the wsio layer is on or off
@@ -1063,9 +1060,6 @@ function useSharedLayers({
     });
 
     setLayer('protectedAreasLayer', protectedAreasLayer);
-    setResetHandler('protectedAreasLayer', () => {
-      protectedAreasLayer.visible = false;
-    });
 
     return protectedAreasLayer;
   }
@@ -1109,11 +1103,6 @@ function useSharedLayers({
       },
     });
     setLayer('wildScenicRiversLayer', wildScenicRiversLayer);
-    setResetHandler('wildScenicRiversLayer', () => {
-      setTimeout(() => {
-        wildScenicRiversLayer.visible = false;
-      }, 100);
-    });
 
     return wildScenicRiversLayer;
   }

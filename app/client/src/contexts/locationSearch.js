@@ -373,7 +373,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
-        mapView.extent = initialExtent();
+        mapView.goTo(initialExtent());
 
         if (homeWidget) {
           homeWidget.viewpoint = initialViewpoint();
