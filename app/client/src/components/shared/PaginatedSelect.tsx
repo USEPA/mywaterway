@@ -130,7 +130,7 @@ function wrapMenuList(loadPrevious: () => boolean, loadNext: () => boolean) {
     }
 
     const hasSubChildren =
-      children.length === 1 && Boolean(children[0].props?.children);
+      children.length === 1 && Array.isArray(children[0].props?.children);
 
     // Determine if this is a group and get the children accordingly.
     const childrenToDisplay = hasSubChildren
