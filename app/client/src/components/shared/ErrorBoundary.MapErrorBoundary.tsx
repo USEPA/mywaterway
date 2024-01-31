@@ -8,7 +8,7 @@ type Props = {
   children: ReactNode;
 };
 
-function MapErrorBoundary({ children }: Props) {
+function MapErrorBoundary({ children }: Readonly<Props>) {
   return (
     <ErrorBoundary message={mapErrorBoundaryMessage}>{children}</ErrorBoundary>
   );

@@ -13,7 +13,7 @@ type Props = {
   children: ReactNode;
 };
 
-export function FullscreenProvider({ children }: Props) {
+export function FullscreenProvider({ children }: Readonly<Props>) {
   const [fullscreenActive, setFullscreenActive] = useState(false);
   const state: State = useMemo(() => {
     return { fullscreenActive, setFullscreenActive };

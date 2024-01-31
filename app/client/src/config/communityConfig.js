@@ -109,7 +109,7 @@ function EatingFishUpper() {
 
       <p>
         Eating fish and shellfish caught in impaired waters can pose health
-        risks. For the <em>{watershed}</em> watershed, be sure to look for
+        risks. For the <em>{watershed.name}</em> watershed, be sure to look for
         posted fish advisories or consult your local or state environmental
         health department for{' '}
         {fishingInfo.status === 'success' ? (
@@ -206,25 +206,23 @@ function AquaticLifeUpper() {
 
 function DrinkingWaterUpper() {
   return (
-    <>
-      <p>
-        Drinking water comes from aquifers, streams, rivers, and lakes.
-        Approximately 150,000{' '}
-        <GlossaryTerm term="Drinking Water System Type">
-          public water systems
-        </GlossaryTerm>{' '}
-        provide drinking water to most Americans. Under the Safe Drinking Water
-        Act, EPA sets standards for drinking water quality and with its partners
-        implements various technical and financial programs to ensure drinking
-        water safety.
-        <ShowLessMore
-          charLimit={0}
-          text=" Drinking water quality is based on water that has been treated
+    <p>
+      Drinking water comes from aquifers, streams, rivers, and lakes.
+      Approximately 150,000{' '}
+      <GlossaryTerm term="Drinking Water System Type">
+        public water systems
+      </GlossaryTerm>{' '}
+      provide drinking water to most Americans. Under the Safe Drinking Water
+      Act, EPA sets standards for drinking water quality and with its partners
+      implements various technical and financial programs to ensure drinking
+      water safety.
+      <ShowLessMore
+        charLimit={0}
+        text=" Drinking water quality is based on water that has been treated
             to ensure it is ready for human consumption which differs from raw
             water in streams and reservoirs."
-        />
-      </p>
-    </>
+      />
+    </p>
   );
 }
 

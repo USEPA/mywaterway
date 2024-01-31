@@ -88,7 +88,6 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 // types
 import type { ReactNode } from 'react';
-import type { MonitoringLocationAttributes } from 'types';
 
 const mapPadding = 20;
 
@@ -920,7 +919,6 @@ function TribalMap({
 
 type MonitoringTabProps = {
   activeState: Object,
-  monitoringLocations: MonitoringLocationAttributes[],
   selectedCharacteristics: string[],
   setSelectedCharacteristics: (selected: string[]) => void,
 };

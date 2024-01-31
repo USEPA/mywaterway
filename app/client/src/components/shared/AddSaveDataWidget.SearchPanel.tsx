@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import {
+import React, {
   Fragment,
   useCallback,
   useContext,
@@ -29,6 +29,7 @@ import { reactSelectStyles } from 'styles/index';
 import type { WidgetLayer } from 'types';
 // utilities
 import { isGroupLayer, isTileLayer } from 'utils/mapFunctions';
+import { isClick } from 'utils/utils';
 
 const searchFlexBoxStyles = css`
   display: flex;
@@ -372,6 +373,18 @@ function SearchPanel() {
 
   const [showSortOptions, setShowSortOptions] = useState(false);
 
+  function handleTypeClick(ev: React.KeyboardEvent | React.MouseEvent) {
+    if (!isClick(ev)) return;
+    setShowFilterOptions(!showFilterOptions);
+    setShowSortOptions(false);
+  }
+
+  function handleSortClick(ev: React.KeyboardEvent | React.MouseEvent) {
+    if (!isClick(ev)) return;
+    setShowSortOptions(!showSortOptions);
+    setShowFilterOptions(false);
+  }
+
   return (
     <Fragment>
       <div>
@@ -427,10 +440,8 @@ function SearchPanel() {
           <div css={filterOptionStyles}>
             <span
               css={textSelectStyles}
-              onClick={() => {
-                setShowFilterOptions(!showFilterOptions);
-                setShowSortOptions(false);
-              }}
+              onClick={handleTypeClick}
+              onKeyDown={handleTypeClick}
             >
               Type <i className="fas fa-caret-down"></i>
             </span>
@@ -515,10 +526,8 @@ function SearchPanel() {
           <div css={filterOptionStyles}>
             <span
               css={textSelectStyles}
-              onClick={() => {
-                setShowSortOptions(!showSortOptions);
-                setShowFilterOptions(false);
-              }}
+              onClick={handleSortClick}
+              onKeyDown={handleSortClick}
             >
               {sortBy.label} <i className="fas fa-caret-down"></i>
             </span>
@@ -696,8 +705,8 @@ const cardThumbnailStyles = css`
 const cardTitleStyles = css`
   margin: 0;
   padding: 0;
-  font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', 'Times',
-    serif;
+  font-family: 'Merriweather Web', 'Georgia', 'Cambria', 'Times New Roman',
+    'Times', serif;
   font-size: 12px;
   font-weight: 500;
   overflow: hidden;
@@ -750,7 +759,7 @@ type ResultCardProps = {
   result: any;
 };
 
-function ResultCard({ result }: ResultCardProps) {
+function ResultCard({ result }: Readonly<ResultCardProps>) {
   const { widgetLayers, setWidgetLayers } = useAddSaveDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
 

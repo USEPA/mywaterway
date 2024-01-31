@@ -17,7 +17,7 @@ import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import { css } from '@emotion/react';
-import {
+import React, {
   useCallback,
   useContext,
   useEffect,
@@ -56,7 +56,7 @@ import {
 } from 'utils/mapFunctions';
 import { isAbort, isClick } from 'utils/utils';
 // helpers
-import { useAbort, useDynamicPopup } from 'utils/hooks';
+import { GetTemplateType, useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
@@ -76,7 +76,7 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { Feature, ServicesState } from 'types';
+import type { ServicesState, WatershedAttributes } from 'types';
 // styles
 import { fonts } from 'styles';
 
@@ -293,6 +293,28 @@ function updateLegend(
   );
 }
 
+// colors the popup pointer according to position and number of features
+function updatePopupPointerStyles(
+  features: Graphic[],
+  currentAlignment: CurrentAlignment,
+) {
+  const pointers = document.getElementsByClassName(
+    'esri-popup__pointer-direction',
+  );
+
+  for (let pointer of pointers) {
+    let isPointerTop = [
+      'bottom-center',
+      'bottom-left',
+      'bottom-right',
+    ].includes(currentAlignment);
+
+    if (features.length <= 1 && !isPointerTop)
+      pointer.classList.remove('blue-popup-pointer');
+    else pointer.classList.add('blue-popup-pointer');
+  }
+}
+
 const resizeHandleStyles = css`
   float: right;
   position: absolute;
@@ -311,6 +333,18 @@ const resizeHandleStyles = css`
 /*
 ## Components
 */
+type CurrentAlignment =
+  | 'bottom-center'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'top-center'
+  | 'top-left'
+  | 'top-right';
+interface PopupExt extends __esri.Popup {
+  currentAlignment: CurrentAlignment;
+  featureMenuOpen: boolean;
+}
+
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
   map: __esri.Map;
@@ -389,12 +423,56 @@ function MapWidgets({
 
   useEffect(() => {
     if (!view?.popup) return;
+    // adjust popup pointer styles according to
+    const popupAlignementWatcher = reactiveUtils.watch(
+      () => (view.popup as PopupExt).currentAlignment,
+      () => {
+        updatePopupPointerStyles(
+          view.popup.features,
+          (view.popup as PopupExt).currentAlignment,
+        );
+      },
+    );
+
+    // revert calcite styles when feature list menu is opened
+    const popupFeatureMenuWatcher = reactiveUtils.watch(
+      () => (view.popup as PopupExt).featureMenuOpen,
+      () => {
+        const id = 'overridePopupStyles';
+        if ((view.popup as PopupExt).featureMenuOpen) {
+          const styles = document.createElement('style');
+          styles.id = id;
+          styles.innerHTML = `
+            calcite-flow,
+            calcite-action,
+            calcite-action-bar {
+              --calcite-ui-border-3: white;
+              --calcite-ui-foreground-1: white;
+              --calcite-ui-foreground-2: white;
+              --calcite-ui-foreground-3: white;
+              --calcite-ui-text-1: black;
+              --calcite-ui-text-2: black;
+              --calcite-ui-text-3: black;
+            }
+          `;
+          document.body.appendChild(styles);
+        } else {
+          const styles = document.getElementById(id);
+          if (styles) document.body.removeChild(styles);
+        }
+      },
+    );
 
     const popupWatcher = reactiveUtils.watch(
       () => view.popup.features,
       () => {
         const features = view.popup.features;
         if (features.length === 0) return;
+
+        updatePopupPointerStyles(
+          features,
+          (view.popup as PopupExt).currentAlignment,
+        );
 
         const newFeatures: __esri.Graphic[] = [];
         const idsAdded: string[] = [];
@@ -425,6 +503,8 @@ function MapWidgets({
     );
 
     return function cleanup() {
+      popupAlignementWatcher.remove();
+      popupFeatureMenuWatcher.remove();
       popupWatcher.remove();
     };
   }, [getHucBoundaries, view]);
@@ -1218,6 +1298,8 @@ function ShowAddSaveDataWidget({
           : 'Close Add & Save Data Widget'
       }
       style={hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={clickHandler}
@@ -1314,6 +1396,8 @@ function ExpandCollapse({
           : 'Enter Fullscreen Map View'
       }
       style={hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={clickHandler}
@@ -1338,11 +1422,11 @@ function retrieveUpstreamWatershed(
   abortSignal: AbortSignal,
   getCurrentExtent: () => __esri.Extent,
   getHuc12: () => string,
-  getTemplate: (graphic: Feature) => HTMLElement | undefined,
+  getTemplate: GetTemplateType,
   getUpstreamExtent: () => __esri.Extent,
   upstreamLayer: __esri.GraphicsLayer | null,
   getUpstreamWidgetDisabled: () => boolean,
-  getWatershed: () => string,
+  getWatershed: () => WatershedAttributes,
   lastHuc12: string,
   services: ServicesState,
   setErrorMessage: Dispatch<SetStateAction<string>>,
@@ -1426,7 +1510,7 @@ function retrieveUpstreamWatershed(
     .then((res) => {
       setUpstreamLoading(false);
       setUpstreamWatershedResponse({ status: 'success', data: res });
-      const watershed = getWatershed() || 'Unknown Watershed';
+      const watershed = getWatershed().name || 'Unknown Watershed';
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
       if (!res?.features?.length) {
@@ -1554,6 +1638,8 @@ function ShowUpstreamWatershed({
     <div
       title={title}
       style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={onClick}
@@ -1579,11 +1665,11 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   abortSignal: AbortSignal;
   getCurrentExtent: () => __esri.Extent;
   getHuc12: () => string;
-  getTemplate: (graphic: Feature) => HTMLElement | undefined;
+  getTemplate: GetTemplateType;
   getUpstreamExtent: () => __esri.Extent;
   upstreamLayer: __esri.GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;
-  getWatershed: () => string;
+  getWatershed: () => WatershedAttributes;
   services: ServicesState;
   setErrorMessage: Dispatch<SetStateAction<string>>;
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>;
@@ -1909,6 +1995,12 @@ function ShowSelectedUpstreamWatershed({
     watershedsVisible,
   ]);
 
+  function handleCloseClick(ev: React.KeyboardEvent | React.MouseEvent) {
+    if (!isClick(ev)) return;
+
+    setInstructionsVisible(false);
+  }
+
   return (
     <>
       {mapRef.current &&
@@ -1918,7 +2010,8 @@ function ShowSelectedUpstreamWatershed({
               <header>
                 <i
                   className="esri-icon-close"
-                  onClick={(_ev) => setInstructionsVisible(false)}
+                  onClick={handleCloseClick}
+                  onKeyDown={handleCloseClick}
                 />
               </header>
               <div>

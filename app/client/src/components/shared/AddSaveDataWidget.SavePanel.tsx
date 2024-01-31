@@ -221,7 +221,6 @@ const saveAsInputStyles = css`
 `;
 
 const submitSectionStyles = css`
-  margin-top: 1.5rem;
   margin-bottom: 0.625rem;
 `;
 
@@ -244,7 +243,7 @@ type Props = {
   visible: boolean;
 };
 
-function SavePanel({ visible }: Props) {
+function SavePanel({ visible }: Readonly<Props>) {
   const {
     saveAsName,
     setSaveAsName,

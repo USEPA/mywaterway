@@ -83,7 +83,7 @@ export function useSurroundingsWidget(triggerVisible = true) {
   return container;
 }
 
-function SurroundingsWidget(props: SurroundingsWidgetProps) {
+function SurroundingsWidget(props: Readonly<SurroundingsWidgetProps>) {
   const [contentVisible, setContentVisible] = useState(false);
   const toggleContentVisibility = useCallback(
     (ev: KeyboardEvent | MouseEvent) => {
@@ -206,7 +206,7 @@ function SurroundingsWidgetTrigger({
   onClick,
   updating,
   visible,
-}: SurroundingsWidgetTriggerProps) {
+}: Readonly<SurroundingsWidgetTriggerProps>) {
   const [hover, setHover] = useState(false);
 
   let title = 'Open Surrounding Features';
@@ -227,6 +227,8 @@ function SurroundingsWidgetTrigger({
       css={divStyle(disabled, hover)}
       onClick={disabled ? undefined : onClick}
       onKeyDown={disabled ? undefined : onClick}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       ref={forwardedRef}

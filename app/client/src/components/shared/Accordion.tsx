@@ -118,7 +118,7 @@ function AccordionList({
   onExpandCollapse = () => {},
   contentExpandCollapse,
   extraListHeaderContent,
-}: AccordionListProps) {
+}: Readonly<AccordionListProps>) {
   const [sortBy, setSortBy] = useState(
     sortOptions.length > 0 ? sortOptions[0] : null,
   );
@@ -299,7 +299,7 @@ function AccordionItem({
   onChange = () => {},
   allExpanded,
   highlightContent = true,
-}: AccordionItemProps) {
+}: Readonly<AccordionItemProps>) {
   const [isOpen, setIsOpen] = useState(allExpanded);
 
   useEffect(() => setIsOpen(allExpanded), [allExpanded]);

@@ -14,6 +14,7 @@ import type {
   MonitoringLocationGroups,
   MonitoringYearsRange,
   ParameterToggleObject,
+  WatershedAttributes,
 } from 'types';
 
 export const initialMonitoringGroups = () => {
@@ -41,6 +42,13 @@ const initialViewpoint = () => new Viewpoint({
   targetGeometry: initialExtent(),
 });
 
+const initialWatershed: WatershedAttributes = () => ({
+  areaacres: 0,
+  areasqkm: 0,
+  huc12: '',
+  name: '',
+});
+
 export const LocationSearchContext = createContext();
 
 type Props = {
@@ -57,7 +65,7 @@ type State = {
   lastSearchText: string,
   huc12: string,
   assessmentUnitIDs: Array<string>,
-  watershed: string,
+  watershed: WatershedAttributes,
   address: string,
   assessmentUnitId: string,
   grts: Object,
@@ -116,7 +124,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     lastSearchText: '',
     huc12: '',
     assessmentUnitIDs: [],
-    watershed: '',
+    watershed: initialWatershed(),
     address: '',
     fishingInfo: { status: 'fetching', data: [] },
     statesData: { status: 'fetching', data: [] },
@@ -365,7 +373,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
-        mapView.extent = initialExtent();
+        mapView.goTo(initialExtent());
 
         if (homeWidget) {
           homeWidget.viewpoint = initialViewpoint();
@@ -378,7 +386,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         huc12: '',
         assessmentUnitIDs: null,
         errorMessage: '',
-        watershed: '',
+        watershed: initialWatershed(),
         pointsData: null,
         linesData: null,
         areasData: null,
@@ -413,7 +421,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
-        watershed: '',
+        watershed: initialWatershed(),
         pointsData: [],
         linesData: [],
         areasData: [],

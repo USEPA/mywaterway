@@ -357,6 +357,14 @@ const modifiedBoxStyles = css`
   padding-bottom: 0;
 `;
 
+const mapBoxStyles = css`
+  ${modifiedBoxStyles}
+
+  p {
+    margin-top: 0;
+  }
+`;
+
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles}
   margin-bottom: 0.5em;
@@ -2284,33 +2292,31 @@ function MonitoringReportContent() {
   }, []);
 
   const mapNarrow = (height) => (
-    <>
-      <MapVisibilityButton>
-        {(mapShown) => (
-          <div
-            css={css`
-              ${modifiedBoxStyles};
-              height: ${height - 40}px;
-              display: ${mapShown ? 'block' : 'none'};
-            `}
-          >
-            <SiteMapContainer
-              layout="narrow"
-              site={site}
-              siteStatus={siteStatus}
-              siteFilter={siteFilter}
-              widthRef={widthRef}
-            />
-          </div>
-        )}
-      </MapVisibilityButton>
-    </>
+    <MapVisibilityButton>
+      {(mapShown) => (
+        <div
+          css={css`
+            ${mapBoxStyles};
+            height: ${height - 40}px;
+            display: ${mapShown ? 'block' : 'none'};
+          `}
+        >
+          <SiteMapContainer
+            layout="narrow"
+            site={site}
+            siteStatus={siteStatus}
+            siteFilter={siteFilter}
+            widthRef={widthRef}
+          />
+        </div>
+      )}
+    </MapVisibilityButton>
   );
 
   const mapWide = (
     <div
       css={css`
-        ${modifiedBoxStyles};
+        ${mapBoxStyles};
         height: ${mapWidth}px;
         min-height: 400px;
       `}

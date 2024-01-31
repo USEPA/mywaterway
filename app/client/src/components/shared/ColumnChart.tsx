@@ -302,30 +302,36 @@ function ColumnChart({
   return <HighchartsReact highcharts={Highcharts} options={options} />;
 }
 
-export function StackedColumnChart({ xUnit, yUnit, ...props }: Props) {
+export function StackedColumnChart({
+  xUnit,
+  yUnit,
+  ...props
+}: Readonly<Props>) {
   const tooltipFormatter = useCallback(
     function (this: Highcharts.TooltipFormatterContextObject) {
       return (
-        this.points?.reverse().reduce((s, point) => {
-          const customText = point.point.options.custom?.text;
-          return (
-            s +
-            `<tr>
+        this.points?.reverse().reduce(
+          (s, point) => {
+            const customText = point.point.options.custom?.text;
+            return (
+              s +
+              `<tr>
               <td style="color:${point.color};padding:0 5px 1px 0">
                 ${point.series.name}:
               </td>
               <td style="text-align:right;padding:0">${
                 yUnit ? point.y + ' ' + yUnit : point.y
               }</td>${
-              customText
-                ? '<td style="padding: 0 5px">|</td><td style="text-align:right;padding:0">' +
-                  customText
-                : ''
-            }</td>
+                customText
+                  ? '<td style="padding: 0 5px">|</td><td style="text-align:right;padding:0">' +
+                    customText
+                  : ''
+              }</td>
             </tr>`
-          );
-        }, `${xUnit ? this.x + ' ' + xUnit : this.x}<table>`) +
-        '</table><i style="font-weight:normal">(Click & drag to zoom)</i>'
+            );
+          },
+          `${xUnit ? this.x + ' ' + xUnit : this.x}<table>`,
+        ) + '</table><i style="font-weight:normal">(Click & drag to zoom)</i>'
       );
     },
     [xUnit, yUnit],
@@ -346,7 +352,7 @@ export function StackedColumnChart({ xUnit, yUnit, ...props }: Props) {
   );
 }
 
-export function Histogram({ xUnit, yUnit, ...props }: Props) {
+export function Histogram({ xUnit, yUnit, ...props }: Readonly<Props>) {
   const tooltipFormatter = useCallback(
     function (this: Highcharts.TooltipFormatterContextObject) {
       const customText = this.point.options.custom?.text;

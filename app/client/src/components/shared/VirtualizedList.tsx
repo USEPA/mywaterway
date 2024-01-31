@@ -9,7 +9,7 @@ type Props = {
   renderer: ({ index }: { index: number }) => ReactNode;
 };
 
-function VirtualizedListInner({ items, renderer }: Props) {
+function VirtualizedListInner({ items, renderer }: Readonly<Props>) {
   return (
     <Virtuoso
       style={{ height: window.innerHeight }}
@@ -26,7 +26,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
 // for an issue where the list would not display anything
 // or jump around when the list is not immediately visible
 // on the dom (i.e., the list is on the second tab).
-function VirtualizedList({ items, renderer }: Props) {
+function VirtualizedList({ items, renderer }: Readonly<Props>) {
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   const isVisible = useOnScreen(ref);
 

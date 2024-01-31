@@ -16,7 +16,7 @@ import {
 import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
-import { useDynamicPopup } from 'utils/hooks';
+import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   getExtentBoundingBox,
@@ -381,7 +381,7 @@ function buildMonitoringGroups(
 function buildLayer(
   type: SublayerType,
   getTitle: (graphic: Feature) => string,
-  getTemplate: (graphic: Feature) => HTMLElement | undefined,
+  getTemplate: GetTemplateType,
 ) {
   return new FeatureLayer({
     id:
@@ -448,7 +448,7 @@ function buildLayer(
           complexProps,
           feature.graphic.attributes,
         );
-        return getTemplate(feature);
+        return getTemplate(feature, type === 'surrounding');
       },
     },
     visible: type === 'enclosed',

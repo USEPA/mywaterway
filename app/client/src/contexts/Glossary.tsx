@@ -43,7 +43,7 @@ const StateContext = createContext<State | undefined>(undefined);
 type Props = {
   children: ReactNode;
 };
-export function GlossaryProvider({ children }: Props) {
+export function GlossaryProvider({ children }: Readonly<Props>) {
   const { getSignal } = useAbort();
 
   const [initialized, setInitialized] = useState(false);
