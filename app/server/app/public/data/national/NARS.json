@@ -94,9 +94,9 @@
     }
   ],
   "links": {
-    "rivers": "https://www.epa.gov/national-aquatic-resource-surveys/national-rivers-and-streams-assessment-2013-2014-results",
-    "lakes": "https://www.epa.gov/national-aquatic-resource-surveys/national-lakes-assessment-2012-key-findings",
-    "coasts": "https://www.epa.gov/national-aquatic-resource-surveys/national-coastal-condition-assessment-2010-results",
+    "rivers": "https://www.epa.gov/national-aquatic-resource-surveys/nrsa",
+    "lakes": "https://www.epa.gov/national-aquatic-resource-surveys/nla",
+    "coasts": "https://www.epa.gov/national-aquatic-resource-surveys/ncca",
     "wetlands": "https://www.epa.gov/national-aquatic-resource-surveys/nwca"
   }
 }
