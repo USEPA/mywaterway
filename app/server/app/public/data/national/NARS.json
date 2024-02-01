@@ -17,11 +17,11 @@
           "content": "<p>Over one-third (35%) of river and stream miles had healthy biological communities based on fish abundance and 28% of river and stream miles had healthy communities based on benthic macroinvertebrates.  Biological condition tells us how healthy a waterbody is. Healthy waters support aquatic communities – such as insects, crayfish, and snails – that are sensitive to changes in their environment. Their presence or absence gives us an idea of how healthy or impaired waters are.</p><p>Poor biological condition was more likely in rivers and stream miles with excess nutrients.</p>"
         },
         {
-          "title": "<span class='hmw-percent'>42%</span> of our rivers and streams have excess nutrients (42% elevated phosphorus, 44% elevated nitrogen)",
+          "title": "<span class='hmw-percent'>42%</span> of our rivers and streams have excess nutrients (42% elevated phosphorus, 44% elevated nitrogen).",
           "content": "<p>Between 2013–14 and 2018–19, the percent of river and stream miles in poor condition based on excess phosphorus decreased from 60% to 42%. Nutrients like nitrogen or phosphorus are important, but too much of a good thing can overwhelm the ecosystem. Excess nutrients can come from fertilizer, animal manure, wastewater treatment, atmospheric deposition, and urban runoff.</p><p>Excess nutrients can lead to algal blooms and fish kills, causing a loss of fishing and recreational opportunities. High levels of nutrients can also threaten drinking water. Rivers and streams with high levels of nutrients are more likely to have unhealthy biological communities than waters with low levels.</p>"
         },
         {
-          "title": "<span class='hmw-percent'>57%</span> of our rivers and streams have healthy riverside vegetation",
+          "title": "<span class='hmw-percent'>57%</span> of our rivers and streams have healthy riverside vegetation.",
           "content": "<p>Healthy rivers and streams have plant buffer zones along their banks – grasses, shrubs, and trees – that help to absorb rainfall, slow stormwater, and filter runoff before it reaches the waterway. Many actions, such as mowing, paving, farming, and construction can damage riverside vegetation.</p>"
         }
       ],
@@ -33,15 +33,15 @@
       "title": "Lakes",
       "content": [
         {
-          "title": "<span class='hmw-percent'>24%</span> of lakes have high levels of algal growth",
+          "title": "<span class='hmw-percent'>24%</span> of lakes have high levels of algal growth.",
           "content": "<p>Algae and plant productivity can tell us about the health of lakes. Some lakes have too many nutrients, which can lead to excessive plant growth, nuisance algae, murky water, odor, fish kills, and lower levels of dissolved oxygen.</p>"
         },
         {
-          "title": "<span class='hmw-percent'>45%</span> of our nation's lakes have excess nutrients",
+          "title": "<span class='hmw-percent'>45%</span> of our nation's lakes have excess nutrients.",
           "content": "<p>Sampling shows that excess nutrients is a widespread problem in America’s lakes with 45% of lakes having excess phosphorus and 46% having excess nitrogen. While nutrients are important, too much of a good thing can cause problems. Excess nutrients can lead to excessive algae growth, which can use up oxygen that aquatic organisms need to survive. Lakes with high levels of nutrients are about 2 times more likely to have unhealthy biological communities than those with lower levels.</p><p>Too much algae growth can cause fish to die, causing a loss of fishing and recreational opportunities. Lakes with high levels of nutrients are more likely to have unhealthy biological communities.</p><p><a href='https://www.epa.gov/national-aquatic-resource-surveys/indicators-nitrogen' target='_blank' rel='noopener noreferrer'>More information on nitrogen</a>; <a href='https://www.epa.gov/national-aquatic-resource-surveys/indicators-phosphorus' target='_blank' rel='noopener noreferrer'>More information on phosphorus</a> <small>(opens new browser tab)</small></p>"
         },
         {
-          "title": "<span class='hmw-percent'>21%</span> of our nation's lakes have measurable levels of a cyanotoxin",
+          "title": "<span class='hmw-percent'>21%</span> of our nation's lakes have measurable levels of a cyanotoxin.",
           "content": "<p>Microcystin is a cyanotoxin that is produced by naturally-occurring bacteria in surface waters. Sampling also shows that 2% of the nation’s lakes had levels that could pose risks to people swimming or playing in the water.</p><p>At high levels, cyanotoxins can present a risk to public drinking water systems and to people, pets, and livestock.</p><p><a href='https://www.epa.gov/system/files/documents/2022-08/When%20Good%20Algae%20Go%20Bad_2017.pdf' target='_blank' rel='noopener noreferrer'>More Information (PDF)</a> <small>(opens new browser tab)</small></p>"
         }
       ],
@@ -58,7 +58,7 @@
         },
         {
           "title": "<span class='hmw-percent'>17%</span> of our estuaries and <span class='hmw-percent'>23%</span> of Great Lakes nearshore waters have excess nutrients.",
-          "content": "<p>While nutrients are important, having too many nutrients can cause problems for water quality. Excess nutrients come from farm fertilizer, animal manure, wastewater treatment, atmospheric deposition, and urban runoff. Excess nutrients can lead to algal blooms and fish kills, leading to a loss of fishing, recreational and tourism opportunities</p>"
+          "content": "<p>While nutrients are important, having too many nutrients can cause problems for water quality. Excess nutrients come from farm fertilizer, animal manure, wastewater treatment, atmospheric deposition, and urban runoff. Excess nutrients can lead to algal blooms and fish kills, leading to a loss of fishing, recreational and tourism opportunities.</p>"
         },
         {
           "title": "<span class='hmw-percent'>76%</span> of our estuaries and <span class='hmw-percent'>62%**</span> of Great Lakes nearshore waters have good quality sediments.",
@@ -76,15 +76,15 @@
       "title": "Wetlands",
       "content": [
         {
-          "title": "<span class='hmw-percent'>47%</span> of our national wetland area is healthy based on their biological communities",
+          "title": "<span class='hmw-percent'>47%</span> of our national wetland area is healthy based on their biological communities.",
           "content": "<p>Plants are a major component of wetlands and are often specialized to exist in wetland environments. They provide important habitat and food for birds, fish, and other wildlife. Because plants are sensitive to changes in their environment, their presence or absence gives us an idea of how healthy or degraded our wetlands are.</p>"
         },
         {
-          "title": "<span class='hmw-percent'>43%</span> of our national wetland area is impacted by moderate or high levels of nonnative plants",
-          "content": "<p>Nonnative plants can directly and indirectly affect native vegetation and ecosystem components.</p><p>When native plants are squeezed out by nonnative plants, insects, amphibians, birds, and mammals that rely on native plants also face pressure, because nonnative vegetation often provides inferior habitat and food. In addition, changes driven by nonnative plants to vegetation structure or to the kinds of plants present can alter ecosystem services like flood reduction, carbon storage, and water-quality enhancement</p>"
+          "title": "<span class='hmw-percent'>43%</span> of our national wetland area is impacted by moderate or high levels of nonnative plants.",
+          "content": "<p>Nonnative plants can directly and indirectly affect native vegetation and ecosystem components.</p><p>When native plants are squeezed out by nonnative plants, insects, amphibians, birds, and mammals that rely on native plants also face pressure, because nonnative vegetation often provides inferior habitat and food. In addition, changes driven by nonnative plants to vegetation structure or to the kinds of plants present can alter ecosystem services like flood reduction, carbon storage, and water-quality enhancement.</p>"
         },
         {
-          "title": "<span class='hmw-percent'>54%</span> of our national wetland area has experienced moderate or high rates of surface hardening",
+          "title": "<span class='hmw-percent'>54%</span> of our national wetland area has experienced moderate or high rates of surface hardening.",
           "content": "<p>Wetlands with high levels of surface hardening (e.g., pavement, soil compaction) are less able to absorb rainwater and more vulnerable to flooding and erosion. They are twice as likely to have poor biological condition compared to wetlands with low levels of hardening.</p>"
         }
       ],
