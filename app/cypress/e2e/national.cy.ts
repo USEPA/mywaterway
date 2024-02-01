@@ -5,7 +5,7 @@ describe('National Water Quality tab', () => {
 
   it('Switching the sub-tabs updates the content within the container', () => {
     const riversAndStreamsText =
-      /of our rivers and streams are in poor condition based on their benthic macroinvertebrate communities/;
+      /of our rivers and streams are in good condition for biological communities/;
     const coastsText =
       /of Great Lakes nearshore waters are healthy based on their biological communities./;
 
@@ -13,7 +13,7 @@ describe('National Water Quality tab', () => {
     cy.findByText(riversAndStreamsText).should('be.visible');
     cy.findByText(coastsText).should('not.be.visible');
 
-    cy.findByTestId('hmw-national-coasts-tab').click();
+    cy.findByTestId('hmw-national-coastal-tab').click();
 
     // verify Rivers and Streams tab content is hidden and Coasts tab content is displayed
     cy.findByText(riversAndStreamsText).should('not.be.visible');
@@ -34,7 +34,7 @@ describe('National Water Quality tab', () => {
 
   it('From one of the sub-tabs, clicking “Expand All/Collapse All” expands/collapses the content', () => {
     const text =
-      /of river and stream miles had healthy biological communities based on fish abundance and diversity and less than one third of river and stream miles/;
+      /of river and stream miles had healthy biological communities based on fish abundance/;
 
     // verify that accordion is initially collapsed
     cy.findAllByText('Expand All').filter(':visible');
@@ -83,7 +83,7 @@ describe('National Water Quality tab', () => {
       .should(
         'have.attr',
         'href',
-        'https://www.epa.gov/national-aquatic-resource-surveys/national-rivers-and-streams-assessment-2013-2014-results',
+        'https://www.epa.gov/national-aquatic-resource-surveys/nrsa',
       )
       .should('have.attr', 'target', '_blank')
       .should('have.attr', 'rel', 'noopener noreferrer');

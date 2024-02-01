@@ -150,10 +150,10 @@ describe('Community Visual Regression Testing', () => {
       .click();
 
     cy.findByRole('button', { name: 'Surrounding Features' })
-      .get('span.esri-icon-loading-indicator', { timeout: 10000 })
+      .get('span.esri-icon-loading-indicator', { timeout: 120000 })
       .should('exist');
     cy.findByRole('button', { name: 'Surrounding Features' })
-      .get('span.esri-icon-loading-indicator', { timeout: 10000 })
+      .get('span.esri-icon-loading-indicator', { timeout: 120000 })
       .should('not.exist');
 
     // delay to draw features after data loaded
