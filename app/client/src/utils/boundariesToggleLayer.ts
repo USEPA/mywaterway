@@ -332,7 +332,7 @@ export async function updateFeatureLayer(
 ) {
   if (!layer) return;
 
-  const featureSet = await layer.queryFeatures();
+  const featureSet = await layer.queryFeatures({ where: '1=1' });
   const edits: {
     addFeatures?: __esri.Graphic[];
     deleteFeatures: __esri.Graphic[];
