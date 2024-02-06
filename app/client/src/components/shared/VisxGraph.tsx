@@ -13,6 +13,7 @@ import {
   Tooltip,
   XYChart,
 } from '@visx/xychart';
+import { fonts } from 'styles';
 // types
 import type { ReactNode } from 'react';
 import type { GlyphProps, TooltipData } from '@visx/xychart';
@@ -22,6 +23,12 @@ const DEFAULT_COLOR = '#2C2E43';
 /*
 ## Styles
 */
+
+const axisTitleStyles = {
+  fontFamily: fonts.primary,
+  fontSize: '1rem',
+  fontWeight: 'bold',
+};
 
 const legendContainerStyles = css`
   display: flex;
@@ -43,6 +50,12 @@ const glyphStyles = css`
     height: 10px;
   }
 `;
+
+const tickLabelStyles = {
+  fontFamily: fonts.primary,
+  fontWeight: 400,
+  fontSize: '0.75rem',
+};
 
 /*
 ## Types
@@ -200,8 +213,8 @@ export function VisxGraph({
           labelProps={{
             dy: 15,
             fill: '#2C2E43',
-            style: { fontWeight: 'bold' },
             verticalAnchor: 'start',
+            ...axisTitleStyles,
           }}
           numTicks={width ? Math.floor(width / 120) : 4}
           orientation="bottom"
@@ -211,6 +224,7 @@ export function VisxGraph({
             dx: -5,
             textAnchor: 'start',
             y: 15,
+            ...tickLabelStyles,
           }}
           tickLength={3}
         />
@@ -220,14 +234,15 @@ export function VisxGraph({
             fill: '#2C2E43',
             dx: -45,
             lineHeight: '1.2em',
-            style: { fontWeight: 'bold' },
             scaleToFit: false,
             textAnchor: 'middle',
             width: height,
+            ...axisTitleStyles,
           }}
           orientation="left"
           strokeWidth={2}
           tickFormat={yTickFormat}
+          tickLabelProps={tickLabelStyles}
           tickLength={5}
         />
         {lineVisible && (
