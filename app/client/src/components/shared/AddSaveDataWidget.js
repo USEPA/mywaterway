@@ -15,6 +15,8 @@ import URLPanel from 'components/shared/AddSaveDataWidget.URLPanel';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
+// styles
+import { fonts } from 'styles';
 
 // --- styles (AddData) ---
 const containerStyles = css`
@@ -59,8 +61,7 @@ const widgetHeaderStyles = css`
 
   h1 {
     margin: 0 10px;
-    font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
-      'Arial', sans-serif;
+    font-family: ${fonts.primary};
     font-size: 16px;
     line-height: 35px;
     padding: 0;
