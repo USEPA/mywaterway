@@ -18,6 +18,7 @@ import { SurroundingsProvider } from 'contexts/Surroundings';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 // styles
+import { fonts } from 'styles';
 import '@arcgis/core/assets/esri/themes/light/main.css';
 import 'styles/mapStyles.css';
 
@@ -26,8 +27,7 @@ smoothscroll.polyfill();
 const globalStyles = css`
   #root {
     margin: 0;
-    font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
-      'Arial', sans-serif;
+    font-family: ${fonts.primary};
     font-size: 16px;
     line-height: 1;
     color: #444;
