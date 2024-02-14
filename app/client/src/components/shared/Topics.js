@@ -1,6 +1,7 @@
 // @flow
 
 import { css } from '@emotion/react';
+import { fonts } from 'styles';
 
 const searchTitleStyles = css`
   padding: 1rem;
@@ -19,9 +20,9 @@ const searchTitleStyles = css`
     padding-bottom: 0.5em;
   }
 
-  h2 {
+  h3 {
     margin-bottom: 0;
-    padding-top: 0.5rem;
+    padding: 0.5rem 0;
     font-size: 1.5rem;
   }
 
@@ -36,9 +37,11 @@ const topicTitleStyles = css`
   color: #fff;
   background-color: #0070ba;
 
-  p {
+  h3 {
     padding-bottom: 0.5em;
+    font-family: ${fonts.primary};
     font-size: 1.125em;
+    padding-bottom: 0;
 
     @media (min-width: 24em) {
       font-size: 1.375em;

@@ -91,6 +91,7 @@ const instructionContainerStyles = (isVisible: boolean) => css`
   justify-content: flex-start;
   pointer-events: none;
   position: absolute;
+  top: 0;
   width: 100%;
   z-index: 1;
 
@@ -146,7 +147,7 @@ const instructionStyles = css`
   @media (min-width: 560px) {
     position: relative;
     right: 62px;
-    top: 99px;
+    top: 183px;
     width: 250px;
   }
 `;
@@ -900,10 +901,10 @@ function MapWidgets({
     const container = document.createElement('div');
     container.className = 'hmw-map-toggle';
 
-    const basemapHeader = document.createElement('h1');
+    const basemapHeader = document.createElement('h2');
     basemapHeader.innerHTML = 'Basemaps:';
 
-    const layerListHeader = document.createElement('h1');
+    const layerListHeader = document.createElement('h2');
     layerListHeader.innerHTML = 'Layers:';
 
     container.appendChild(basemapHeader);
@@ -2803,7 +2804,7 @@ const downloadButtonStyles = css`
 const downloadWidgetContainerStyles = css`
   padding: 12px 10px;
 
-  h1 {
+  h2 {
     font-family: ${fonts.primary};
     font-size: 1.25em;
     font-weight: 500;
@@ -2962,7 +2963,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       className="esri-widget esri-widget--panel-height-only"
       css={downloadWidgetContainerStyles}
     >
-      <h1>Download Printable Map</h1>
+      <h2>Download Printable Map</h2>
       <div>
         <label>
           Title

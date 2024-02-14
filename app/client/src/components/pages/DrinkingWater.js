@@ -33,7 +33,7 @@ function DrinkingWater() {
 
       <div css={topicTitleStyles}>
         <DrinkingWaterIcon />
-        <p>Drinking Water</p>
+        <h3>Drinking Water</h3>
       </div>
 
       <div className="container" css={searchTitleStyles}>
@@ -56,7 +56,7 @@ function DrinkingWater() {
 
         <hr />
 
-        <h2>Other Topics</h2>
+        <h3>Other Topics</h3>
 
         <div css={topicButtonContainer}>
           <Link to="/swimming" css={threeTopicButtonLinkStyles}>

@@ -38,7 +38,7 @@ function EatingFish() {
 
       <div css={topicTitleStyles}>
         <EatingFishIcon />
-        <p>Eating Fish</p>
+        <h3>Eating Fish</h3>
       </div>
 
       <div className="container" css={searchTitleStyles}>
@@ -67,7 +67,7 @@ function EatingFish() {
 
         <hr />
 
-        <h2>Other Topics</h2>
+        <h3>Other Topics</h3>
 
         <div css={topicButtonContainer}>
           <Link to="/swimming" css={threeTopicButtonLinkStyles}>

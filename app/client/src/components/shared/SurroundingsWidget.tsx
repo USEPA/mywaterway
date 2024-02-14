@@ -135,7 +135,7 @@ function SurroundingsWidgetContent({
   return (
     <div css={widgetContentStyles(visible)} role="region">
       <div>
-        <h1 id="surrounding-features-widget-heading">Surrounding Features:</h1>
+        <h2 id="surrounding-features-widget-heading">Surrounding Features:</h2>
         <div>
           <ul aria-labelledby="surrounding-features-widget-heading">
             {(Object.keys(toggles) as SurroundingFeaturesLayerId[]).map(
@@ -330,7 +330,7 @@ const widgetContentStyles = (visible: boolean) => css`
     padding-top: 10px;
     width: 200px;
 
-    h1 {
+    h2 {
       font-family: ${fonts.primary};
       font-size: 1.25em;
       font-weight: 500;
