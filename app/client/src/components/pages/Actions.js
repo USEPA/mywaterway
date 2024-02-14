@@ -47,7 +47,7 @@ import {
 } from 'utils/mapFunctions';
 import { chunkArrayCharLength } from 'utils/utils';
 // styles
-import { colors } from 'styles/index';
+import { colors, noMapDataWarningStyles } from 'styles/index';
 // errors
 import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
 
@@ -720,7 +720,18 @@ function Actions() {
                                   }
                                   subTitle={
                                     <>
-                                      {orgLabel} {auId}
+                                      {orgLabel} {auId}{' '}
+                                      {!graphic && (
+                                        <>
+                                          <br />
+                                          <span css={noMapDataWarningStyles}>
+                                            <i className="fas fa-exclamation-triangle" />
+                                            <strong>
+                                              [Waterbody not visible on map.]
+                                            </strong>
+                                          </span>
+                                        </>
+                                      )}
                                     </>
                                   }
                                   feature={graphic}
@@ -749,19 +760,18 @@ function Actions() {
                                       )}
 
                                     <p css={paragraphContentStyles}>
-                                      {graphic && (
-                                        <ViewOnMapButton
-                                          feature={{
-                                            attributes: {
-                                              assessmentunitidentifier: auId,
-                                              organizationid: orgId,
-                                              fieldName: 'hmw-extra-content',
-                                            },
-                                          }}
-                                          layers={[mapLayer.layer]}
-                                          fieldName="hmw-extra-content"
-                                        />
-                                      )}
+                                      <ViewOnMapButton
+                                        feature={{
+                                          attributes: {
+                                            assessmentunitidentifier: auId,
+                                            organizationid: orgId,
+                                            fieldName: 'hmw-extra-content',
+                                          },
+                                        }}
+                                        layers={[mapLayer.layer]}
+                                        fieldName="hmw-extra-content"
+                                        disabled={graphic ? false : true}
+                                      />
                                     </p>
                                   </div>
                                 </AccordionItem>
