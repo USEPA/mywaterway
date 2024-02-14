@@ -127,17 +127,19 @@ const layerPanelStyles = (visible) => css`
   display: ${visible ? 'flex' : 'none'};
   flex-flow: column;
   height: 100%;
+
+  h3 {
+    font-family: ${fonts.primary};
+    margin: 0;
+    padding: 7px 15px;
+    border-bottom: 1px solid #ccc;
+    color: #898989;
+    font-size: 16px;
+    font-weight: normal;
+  }
 `;
 
-const layerPanelHeaderStyles = css`
-  font-family: ${fonts.primary};
-  margin: 0;
-  padding: 7px 15px;
-  border-bottom: 1px solid #ccc;
-  color: #898989;
-  font-size: 16px !important;
-  font-weight: normal;
-`;
+const layerPanelHeaderStyles = css``;
 
 const recordListStyles = css`
   overflow: auto;
@@ -250,7 +252,7 @@ function AddSaveDataWidget() {
           </Tabs>
         </div>
         <div css={layerPanelStyles(layerPanelVisible)}>
-          <h3 css={layerPanelHeaderStyles}>Layers</h3>
+          <h3>Layers</h3>
           <div css={recordListStyles}>
             {layersToDisplay.length === 0 && (
               <div>No layers have been added.</div>
