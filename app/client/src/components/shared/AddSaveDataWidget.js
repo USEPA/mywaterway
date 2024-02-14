@@ -135,7 +135,7 @@ const layerPanelHeaderStyles = css`
   padding: 7px 15px;
   border-bottom: 1px solid #ccc;
   color: #898989;
-  font-size: 16px;
+  font-size: 16px !important;
   font-weight: normal;
 `;
 

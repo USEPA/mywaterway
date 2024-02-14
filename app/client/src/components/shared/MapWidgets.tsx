@@ -91,6 +91,7 @@ const instructionContainerStyles = (isVisible: boolean) => css`
   justify-content: flex-start;
   pointer-events: none;
   position: absolute;
+  top: 0;
   width: 100%;
   z-index: 1;
 
@@ -146,7 +147,7 @@ const instructionStyles = css`
   @media (min-width: 560px) {
     position: relative;
     right: 62px;
-    top: 99px;
+    top: 183px;
     width: 250px;
   }
 `;
