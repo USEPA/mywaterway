@@ -90,6 +90,7 @@ const containerStyles = css`
 
   .hmw-accordion-header h2,
   .hmw-accordion-header h3 {
+    margin-bottom: 0;
     padding-bottom: 0;
   }
 `;
