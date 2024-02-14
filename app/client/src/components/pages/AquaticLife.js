@@ -38,7 +38,7 @@ function AquaticLife() {
 
       <div css={topicTitleStyles}>
         <AquaticLifeIcon />
-        <p>Aquatic Life</p>
+        <h3>Aquatic Life</h3>
       </div>
 
       <div className="container" css={searchTitleStyles}>
@@ -70,7 +70,7 @@ function AquaticLife() {
 
         <hr />
 
-        <h2>Other Topics</h2>
+        <h3>Other Topics</h3>
 
         <div css={topicButtonContainer}>
           <Link to="/swimming" css={threeTopicButtonLinkStyles}>

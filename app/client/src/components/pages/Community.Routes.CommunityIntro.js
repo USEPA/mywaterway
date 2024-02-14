@@ -31,6 +31,7 @@ const headingStyles = css`
 
   @media (min-width: 560px) {
     font-size: 1.75em;
+    margin-bottom: 0.5em;
   }
 
   @media (min-width: 960px) {

@@ -30,7 +30,7 @@ import protectIcon from 'images/protect.png';
 function OverviewUpper() {
   return (
     <>
-      <h2>Your Waters: What We Know</h2>
+      <h3>Your Waters: What We Know</h3>
 
       <p>
         Waters in your community are connected within a local{' '}

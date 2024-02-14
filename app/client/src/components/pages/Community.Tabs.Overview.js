@@ -72,6 +72,13 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+const modifiedTabLegendStyles = css`
+  ${tabLegendStyles};
+  > span {
+    margin-bottom: 0;
+  }
+`;
+
 const switchContainerStyles = css`
   margin-bottom: 0;
   & > div {
@@ -1285,7 +1292,7 @@ function PermittedDischargersTab({
 
         {totalPermittedDischargers > 0 && (
           <>
-            <div css={tabLegendStyles}>
+            <div css={modifiedTabLegendStyles}>
               <span>
                 {diamondIcon({ color: colors.orange() })}
                 &nbsp;Permitted Dischargers&nbsp;

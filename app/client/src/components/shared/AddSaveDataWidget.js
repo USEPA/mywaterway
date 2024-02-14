@@ -59,7 +59,7 @@ const widgetHeaderStyles = css`
   background-color: #0071bc;
   color: white;
 
-  h1 {
+  h2 {
     margin: 0 10px;
     font-family: ${fonts.primary};
     font-size: 16px;
@@ -130,7 +130,7 @@ const layerPanelStyles = (visible) => css`
 `;
 
 const layerPanelHeaderStyles = css`
-  height: 40px;
+  font-family: ${fonts.primary};
   margin: 0;
   padding: 7px 15px;
   border-bottom: 1px solid #ccc;
@@ -200,7 +200,7 @@ function AddSaveDataWidget() {
     <Fragment>
       <div css={widgetHeaderStyles}>
         <div css={dragHandleStyles} className="drag-handle">
-          <h1>Add & Save Data</h1>
+          <h2>Add & Save Data</h2>
         </div>
         <button
           onClick={() => {
@@ -250,7 +250,7 @@ function AddSaveDataWidget() {
           </Tabs>
         </div>
         <div css={layerPanelStyles(layerPanelVisible)}>
-          <h2 css={layerPanelHeaderStyles}>Layers</h2>
+          <h3 css={layerPanelHeaderStyles}>Layers</h3>
           <div css={recordListStyles}>
             {layersToDisplay.length === 0 && (
               <div>No layers have been added.</div>

@@ -17,19 +17,15 @@ import { colors, fonts } from 'styles/index';
 const containerStyles = css`
   padding: 2rem;
 
-  & :first-of-type {
-    margin-top: 0;
-  }
-
-  h2,
-  h3 {
+  h3,
+  h4 {
     margin-bottom: 0;
     padding-bottom: 0;
     font-family: ${fonts.primary};
   }
 
-  h2 {
-    margin-top: 2rem;
+  h3 {
+    margin-top: 0;
     font-size: 1.8em;
 
     & + p {
@@ -37,7 +33,7 @@ const containerStyles = css`
     }
   }
 
-  h3 {
+  h4 {
     font-size: 1.2em;
     font-weight: bold;
   }
@@ -80,7 +76,7 @@ const contentStyles = css`
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles}
   margin-top: 1rem;
-  h3 {
+  h4 {
     margin-bottom: 0.5em;
   }
 `;
@@ -128,7 +124,7 @@ function EducatorsContent() {
 
   return (
     <div css={containerStyles} className="container">
-      <h2 dangerouslySetInnerHTML={{ __html: data.title }} />
+      <h3 dangerouslySetInnerHTML={{ __html: data.title }} />
 
       <hr />
 

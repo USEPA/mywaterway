@@ -931,7 +931,7 @@ function IdentifiedIssues() {
 
       {infoToggleChecked && (
         <>
-          <h2 css={headingStyles}>Did You Know?</h2>
+          <h3 css={headingStyles}>Did You Know?</h3>
 
           <ul>
             <li>

@@ -146,18 +146,21 @@ const titleStyles = css`
   color: inherit;
   margin: 0;
   padding: 0;
-  font-weight: normal;
-  font-family: ${fonts.secondary};
-  font-size: 1.5em;
   color: white;
   cursor: pointer;
 
-  @media (min-width: 25em) {
-    font-size: 2em;
-  }
+  h1 {
+    font-weight: normal;
+    font-family: ${fonts.secondary};
+    font-size: 1.5em;
 
-  @media (min-width: 50em) {
-    font-size: 2.5em;
+    @media (min-width: 25em) {
+      font-size: 2em;
+    }
+
+    @media (min-width: 50em) {
+      font-size: 2.5em;
+    }
   }
 `;
 
@@ -393,7 +396,7 @@ function Page({ children }: Props) {
               navigate('/');
             }}
           >
-            How’s My Waterway?
+            <h1>How’s My Waterway?</h1>
           </button>
 
           <p css={subtitleStyles}>

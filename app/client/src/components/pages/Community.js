@@ -40,15 +40,6 @@ const columnsStyles = css`
       font-size: 1em;
     }
   }
-
-  h2 {
-    font-family: ${fonts.primary};
-    font-size: 1.125em;
-
-    @media (min-width: 560px) {
-      font-size: 1.375em;
-    }
-  }
 `;
 
 const leftColumnStyles = css`
@@ -69,6 +60,15 @@ const rightColumnStyles = css`
   margin-left: -1em;
   width: calc(100% + 2em);
   line-height: 1.25;
+
+  h3 {
+    font-family: ${fonts.primary};
+    font-size: 1.125em;
+
+    @media (min-width: 560px) {
+      font-size: 1.375em;
+    }
+  }
 
   @media (min-width: 960px) {
     margin-left: 0;
