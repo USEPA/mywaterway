@@ -6,7 +6,7 @@ import { css } from '@emotion/react';
 import { useLayers } from 'contexts/Layers';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
-import { colors } from 'styles/index';
+import { colors, noMapDataWarningStyles } from 'styles/index';
 
 const buttonStyles = css`
   margin-bottom: 0;
@@ -123,6 +123,15 @@ function ViewOnMapButton({
     }
 
     queryLayers(); // initiate the recursive layer query
+  }
+
+  if (disabled) {
+    return (
+      <span css={noMapDataWarningStyles}>
+        <i className="fas fa-exclamation-triangle" />
+        <strong>No map data available for this waterbody.</strong>
+      </span>
+    );
   }
 
   return (

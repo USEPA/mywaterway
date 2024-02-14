@@ -87,6 +87,18 @@ export const groupHeadingStyles: CSSObjectWithLabel = {
   textTransform: 'none',
 };
 
+export const noMapDataWarningStyles = css`
+  font-size: 0.875rem;
+
+  i {
+    background-color: ${colors.black()};
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    color: ${colors.yellow()};
+    font-size: 0.95rem;
+    margin-right: 5px;
+  }
+`;
+
 export const reactSelectStyles = {
   group: (defaultStyles: CSSObjectWithLabel) => ({
     ...defaultStyles,
