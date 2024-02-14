@@ -139,8 +139,6 @@ const layerPanelStyles = (visible) => css`
   }
 `;
 
-const layerPanelHeaderStyles = css``;
-
 const recordListStyles = css`
   overflow: auto;
   padding: 10px 15px;
