@@ -21,6 +21,8 @@ import {
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
 import { useMapHighlightState } from 'contexts/MapHighlight';
+// styles
+import { noMapDataWarningStyles } from 'styles/index';
 
 const textStyles = css`
   margin: 1em;
@@ -183,7 +185,16 @@ function WaterbodyListVirtualized({
                 title={<strong>{name}</strong>}
                 subTitle={
                   <>
-                    {getOrganizationLabel(graphic.attributes)} {auId}
+                    {getOrganizationLabel(graphic.attributes)} {auId}{' '}
+                    {viewOnMapDisabled && (
+                      <>
+                        <br />
+                        <span css={noMapDataWarningStyles}>
+                          <i className="fas fa-exclamation-triangle" />
+                          <strong>[Waterbody not visible on map.]</strong>
+                        </span>
+                      </>
+                    )}
                   </>
                 }
                 icon={<WaterbodyIcon condition={condition} selected={false} />}
