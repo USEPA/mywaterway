@@ -90,6 +90,13 @@ const headingStyles = css`
   font-size: 1.375em;
 `;
 
+const modifiedTabLegendStyles = css`
+  ${tabLegendStyles};
+  > span {
+    margin-bottom: 0;
+  }
+`;
+
 function IdentifiedIssues() {
   const navigate = useNavigate();
   const { infoToggleChecked } = useContext(CommunityTabsContext);
@@ -795,7 +802,7 @@ function IdentifiedIssues() {
 
                   {dischargers.length > 0 && (
                     <>
-                      <div css={tabLegendStyles}>
+                      <div css={modifiedTabLegendStyles}>
                         <span>
                           {diamondIcon({ color: colors.orange() })}
                           &nbsp;Permitted Dischargers&nbsp;
@@ -931,7 +938,7 @@ function IdentifiedIssues() {
 
       {infoToggleChecked && (
         <>
-          <h2 css={headingStyles}>Did You Know?</h2>
+          <h3 css={headingStyles}>Did You Know?</h3>
 
           <ul>
             <li>

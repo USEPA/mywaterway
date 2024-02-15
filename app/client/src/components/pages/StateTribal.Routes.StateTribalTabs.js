@@ -13,6 +13,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import TribalMapList from 'components/shared/TribalMapList';
 // styled components
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
+import { h2Styles } from 'styles/stateTribal';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 
@@ -120,7 +121,7 @@ function StateTribalTabs() {
 
     return (
       <div>
-        <h2>
+        <h2 css={h2Styles}>
           <i className="fas fa-map-marked-alt" aria-hidden="true" />
           <strong>{activeState.label}</strong> at a Glance
         </h2>

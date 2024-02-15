@@ -237,14 +237,14 @@ const downloadLinksStyles = css`
       padding-right: 1rem;
       text-align: end;
     }
-  }
 
-  p {
-    margin-top: 0;
-    line-height: 1em;
-    font-size: 1em;
-    &:nth-of-type(n + 2) {
-      margin-top: 0.5em;
+    p {
+      margin-top: 0;
+      line-height: 1em;
+      font-size: 1em;
+      &:nth-of-type(n + 2) {
+        margin-top: 0.5em;
+      }
     }
   }
 `;
@@ -1214,7 +1214,7 @@ function CharacteristicChartSection({
 
   return (
     <div className="charc-chart" css={modifiedBoxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
+      <h3 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName ? 'Selected Characteristic' : charcName}
         <span css={chartControlStyles}>
@@ -1238,7 +1238,7 @@ function CharacteristicChartSection({
           </button>
           <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
         </span>
-      </h2>
+      </h3>
       <StatusContent
         empty={
           <p css={messageBoxStyles(infoBoxStyles)}>
@@ -1469,13 +1469,13 @@ function CharacteristicsTableSection({
 
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
+      <h3 css={infoBoxHeadingStyles}>
         <div>
           Select up to {MAX_NUM_CHARTS}{' '}
           <GlossaryTerm term="Characteristics">Characteristics</GlossaryTerm>{' '}
           Below to Plot
         </div>
-      </h2>
+      </h3>
       <div css={charcsTableStyles}>
         <StatusContent
           empty={
@@ -1492,12 +1492,12 @@ function CharacteristicsTableSection({
           status={charcsStatus}
         >
           <div css={modifiedInfoBoxStyles}>
-            <h3>
+            <h4>
               Selected{' '}
               <GlossaryTerm term="Characteristics">
                 Characteristic(s)
               </GlossaryTerm>
-            </h3>
+            </h4>
             {selected.length ? (
               <div css={selectedCharacteristicStyles}>
                 <ul>
@@ -1738,7 +1738,7 @@ function ChartStatistics({ data, unit }) {
       allExpanded={true}
       onChange={setStatisticsExpanded}
       status={statisticsExpanded ? 'highlighted' : null}
-      title={<h3 css={statisticsHeadingStyles}>Measurement Statistics</h3>}
+      title={<h4 css={statisticsHeadingStyles}>Measurement Statistics</h4>}
     >
       <div css={boxSectionStyles}>
         <BoxContent
@@ -1937,10 +1937,10 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
+      <h3 css={infoBoxHeadingStyles}>
         Download Data
         <HelpTooltip label="Adjust the slider handles to filter download results by the selected year range, and use the checkboxes to filter the results by individual characteristics and characteristic groups" />
-      </h2>
+      </h3>
       <StatusContent
         empty={
           <p css={messageBoxStyles(infoBoxStyles)}>
@@ -2200,7 +2200,7 @@ function InformationSection({ siteId, site, siteStatus }) {
 
   return (
     <div css={modifiedBoxStyles}>
-      <h2 css={locationHeadingStyles}>
+      <h3 css={locationHeadingStyles}>
         <small>
           <div css={locationRowStyles}>
             <strong>Location Name:</strong>
@@ -2216,7 +2216,7 @@ function InformationSection({ siteId, site, siteStatus }) {
             <span>{siteId}</span>
           </div>
         </small>
-      </h2>
+      </h3>
       <div css={sectionStyles}>
         <BoxContent rows={rows} styles={boxContentStyles} />
       </div>

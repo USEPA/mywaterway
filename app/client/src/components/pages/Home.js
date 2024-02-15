@@ -92,11 +92,11 @@ function Home() {
         <div css={searchBoxStyles}>
           <LocationSearch
             route="/community/{urlSearch}/overview"
-            label={<h1 css={searchLabelStyles}>Let’s get started!</h1>}
+            label={<h2 css={searchLabelStyles}>Let’s get started!</h2>}
           />
         </div>
 
-        <h1 css={headerStyles}>Choose a place to learn about your waters:</h1>
+        <h2 css={headerStyles}>Choose a place to learn about your waters:</h2>
 
         <div css={topicButtonContainer}>
           <Link to="/community" css={placeButtonLinkStyles}>
@@ -110,7 +110,7 @@ function Home() {
           </Link>
         </div>
 
-        <h1 css={headerStyles}>Explore Topics:</h1>
+        <h2 css={headerStyles}>Explore Topics:</h2>
 
         <div css={topicButtonContainer}>
           <Link to="/swimming" css={fourTopicButtonLinkStyles}>

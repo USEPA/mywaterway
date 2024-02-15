@@ -48,7 +48,7 @@ function NavBar({ title, onBackClick = null }: Props) {
           </button>
         )}
       </div>
-      <h1 css={textStyles}>{title}</h1>
+      <h2 css={textStyles}>{title}</h2>
       <div css={groupStyles} />
     </div>
   );

@@ -34,13 +34,6 @@ const marginBoxStyles = (styles) => css`
 const containerStyles = css`
   padding: 1rem;
 
-  h3 {
-    font-size: 1.2em;
-    font-weight: bold;
-    padding-bottom: 0;
-    font-family: ${fonts.primary};
-  }
-
   p {
     padding-bottom: 0;
     line-height: 1.375;
@@ -79,7 +72,11 @@ const modifiedInfoBoxStyles = css`
   width: 100%;
 
   h3 {
+    font-size: 1.2em;
+    font-weight: bold;
+    font-family: ${fonts.primary};
     margin-bottom: 0.5em;
+    padding-bottom: 0;
   }
 `;
 
@@ -231,7 +228,7 @@ function DataContent() {
           <div key={id}>
             <div css={itemStyles} id={id}>
               <i className="fas fa-database" aria-hidden="true" />{' '}
-              <h2 css={titleStyles}>{title}</h2>
+              <h3 css={titleStyles}>{title}</h3>
               <div css={marginBoxStyles(textBoxStyles)}>
                 <a href={linkHref} target="_blank" rel="noopener noreferrer">
                   {linkLabel}
@@ -239,9 +236,9 @@ function DataContent() {
               </div>
               <p dangerouslySetInnerHTML={{ __html: description }} />
               <br />
-              <h2 css={questionStyles}>
+              <h4 css={questionStyles}>
                 Where do I find {shortName} data in How’s My Waterway?
-              </h2>
+              </h4>
               <p dangerouslySetInnerHTML={{ __html: siteLocation }} />
               {extraContent !== null && (
                 <div dangerouslySetInnerHTML={{ __html: extraContent }} />

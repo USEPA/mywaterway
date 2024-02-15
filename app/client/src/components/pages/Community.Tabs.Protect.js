@@ -1362,13 +1362,13 @@ function Protect() {
 
               <p>Get quick tips for protecting water in your:</p>
 
-              <h2>
+              <h3>
                 Home and Yard
                 <i css={subTitleStyles}>
                   Sustainable landscaping to conserve water and protect the
                   natural functioning ecosystem
                 </i>
-              </h2>
+              </h3>
 
               <ul css={listStyles}>
                 <li>
@@ -1472,11 +1472,11 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2>
+              <h3>
                 <i css={subTitleStyles}>
                   Conserve water and prevent pollutants from entering waterways
                 </i>
-              </h2>
+              </h3>
 
               <ul css={listStyles}>
                 <li>
@@ -1558,10 +1558,10 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2>
+              <h3>
                 Community
                 <i css={subTitleStyles}>Get involved in your local watershed</i>
-              </h2>
+              </h3>
 
               <ul css={listStyles}>
                 <li>
@@ -1649,9 +1649,9 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2>
+              <h3>
                 <i css={subTitleStyles}>School and Work</i>
-              </h2>
+              </h3>
 
               <ul css={listStyles}>
                 <li>
@@ -1736,7 +1736,7 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2>For more information and tips, visit the following sites:</h2>
+              <h3>For more information and tips, visit the following sites:</h3>
 
               <ul css={listStyles}>
                 <li>

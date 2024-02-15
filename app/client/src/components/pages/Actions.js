@@ -47,7 +47,7 @@ import {
 } from 'utils/mapFunctions';
 import { chunkArrayCharLength } from 'utils/utils';
 // styles
-import { colors } from 'styles/index';
+import { colors, noMapDataWarningStyles } from 'styles/index';
 // errors
 import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
 
@@ -481,12 +481,12 @@ function Actions() {
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
-      <h2 css={boxHeadingStyles}>
+      <h3 css={boxHeadingStyles}>
         Plan Information <br />
         <small>
           <strong>ID:</strong> {actionId}
         </small>
-      </h2>
+      </h3>
 
       <div css={boxSectionStyles}>
         <p css={introTextStyles}>
@@ -498,22 +498,22 @@ function Actions() {
       </div>
 
       <div css={inlineBoxStyles}>
-        <h3>Name:&nbsp;</h3>
+        <h4>Name:&nbsp;</h4>
         <p>{actionName}</p>
       </div>
 
       <div css={inlineBoxStyles}>
-        <h3>Completed:&nbsp;</h3>
+        <h4>Completed:&nbsp;</h4>
         <p>{completionDate}</p>
       </div>
 
       <div css={inlineBoxStyles}>
-        <h3>Type:&nbsp;</h3>
+        <h4>Type:&nbsp;</h4>
         <p>{mapRestorationPlanToGlossary(actionTypeCode, true)}</p>
       </div>
 
       <div css={inlineBoxStyles}>
-        <h3>Status:&nbsp;</h3>
+        <h4>Status:&nbsp;</h4>
         <p>
           {/* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */}
           {actionTypeCode !== 'TMDL' && actionStatusCode === 'EPA Final Action'
@@ -523,7 +523,7 @@ function Actions() {
       </div>
 
       <div css={inlineBoxStyles}>
-        <h3>Organization Name (ID):&nbsp;</h3>
+        <h4>Organization Name (ID):&nbsp;</h4>
         <p>
           {organizationName} ({orgId})
         </p>
@@ -621,7 +621,7 @@ function Actions() {
 
                 <div css={splitLayoutColumnStyles}>
                   <div css={boxStyles}>
-                    <h2 css={boxHeadingStyles}>Associated Documents</h2>
+                    <h3 css={boxHeadingStyles}>Associated Documents</h3>
                     {documents.length > 0 && (
                       <div css={[boxSectionStyles, { paddingBottom: 0 }]}>
                         <p css={introTextStyles}>
@@ -656,7 +656,7 @@ function Actions() {
 
                   {actionTypeCode === 'TMDL' && (
                     <div css={boxStyles}>
-                      <h2 css={boxHeadingStyles}>Impairments Addressed</h2>
+                      <h3 css={boxHeadingStyles}>Impairments Addressed</h3>
 
                       <div css={boxSectionStyles}>
                         <ul css={listStyles}>
@@ -674,7 +674,7 @@ function Actions() {
                   )}
 
                   <div css={boxStyles}>
-                    <h2 css={boxHeadingStyles}>Waters Covered</h2>
+                    <h3 css={boxHeadingStyles}>Waters Covered</h3>
 
                     <div css={boxSectionStyles}>
                       {waters.length > 0 && (
@@ -720,7 +720,19 @@ function Actions() {
                                   }
                                   subTitle={
                                     <>
-                                      {orgLabel} {auId}
+                                      {orgLabel} {auId}{' '}
+                                      {mapLayer.status === 'success' &&
+                                        !graphic && (
+                                          <>
+                                            <br />
+                                            <span css={noMapDataWarningStyles}>
+                                              <i className="fas fa-exclamation-triangle" />
+                                              <strong>
+                                                [Waterbody not visible on map.]
+                                              </strong>
+                                            </span>
+                                          </>
+                                        )}
                                     </>
                                   }
                                   feature={graphic}
@@ -749,7 +761,7 @@ function Actions() {
                                       )}
 
                                     <p css={paragraphContentStyles}>
-                                      {graphic && (
+                                      {mapLayer.status === 'success' && (
                                         <ViewOnMapButton
                                           feature={{
                                             attributes: {
@@ -760,6 +772,7 @@ function Actions() {
                                           }}
                                           layers={[mapLayer.layer]}
                                           fieldName="hmw-extra-content"
+                                          disabled={graphic ? false : true}
                                         />
                                       )}
                                     </p>

@@ -36,7 +36,8 @@ import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
 import { isClick } from 'utils/utils';
 // styles
-import { colors, fonts, reactSelectStyles } from 'styles/index';
+import { colors, reactSelectStyles } from 'styles/index';
+import { h2Styles } from 'styles/stateTribal';
 // errors
 import {
   stateListError,
@@ -95,36 +96,6 @@ const buttonStyles = css`
   &:focus {
     color: ${colors.white()};
     background-color: ${colors.navyBlue()};
-  }
-`;
-
-const contentStyles = css`
-  h2 {
-    margin-top: 0.75rem;
-    font-size: 1.625em;
-
-    i {
-      margin-right: 0.3125em;
-      color: #2c72b5;
-    }
-  }
-
-  h3 {
-    font-size: 1.375em;
-  }
-
-  h2,
-  h3 {
-    font-family: ${fonts.primary};
-    font-weight: normal;
-  }
-
-  h4 {
-    margin-bottom: 0.75rem;
-    padding-bottom: 0;
-    font-size: 1.125em;
-    color: #526571;
-    font-family: ${fonts.primary};
   }
 `;
 
@@ -594,7 +565,7 @@ function StateTribal() {
             )}
           </div>
         ) : (
-          <div css={contentStyles}>
+          <div>
             {activeState.value !== '' && (
               <>
                 {introText.status === 'fetching' && <LoadingSpinner />}
@@ -613,7 +584,7 @@ function StateTribal() {
                       <>
                         {stateIntro.organizationMetrics.length > 0 && (
                           <>
-                            <h2>
+                            <h2 css={h2Styles}>
                               <i
                                 className="fas fa-chart-line"
                                 aria-hidden="true"
@@ -665,7 +636,7 @@ function StateTribal() {
 
                         {stateIntro.description && (
                           <>
-                            <h2>
+                            <h2 css={h2Styles}>
                               <i aria-hidden="true" className="fas fa-water" />
                               About <strong>{activeState.label}</strong>
                             </h2>

@@ -20,8 +20,8 @@ const boxStyles = css`
     line-height: 1.375;
   }
 
-  h3,
-  h4 {
+  h4,
+  h5 {
     margin-top: 0;
     margin-bottom: 0.375rem;
     padding-bottom: 0;
@@ -33,11 +33,11 @@ const boxStyles = css`
     }
   }
 
-  h3 {
+  h4 {
     font-weight: bold;
   }
 
-  h4 {
+  h5 {
     color: #526571;
   }
 `;

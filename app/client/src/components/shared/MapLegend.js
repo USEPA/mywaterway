@@ -22,6 +22,13 @@ const containerStyles = css`
   background-color: white;
   cursor: default;
 
+  h2 {
+    margin-bottom: 8px;
+    margin-top: 0;
+    font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
+      'Arial', sans-serif;
+    font-size: 1.25em;
+  }
   .esri-feature & p {
     padding-bottom: 0 !important;
   }
@@ -152,6 +159,7 @@ function MapLegend({
 
   return (
     <div css={containerStyles}>
+      <h2>Legend:</h2>
       <ul css={listStyles}>
         {filteredVisibleLayers.map((layer) => (
           <MapLegendContent
