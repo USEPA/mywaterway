@@ -12,6 +12,7 @@ import { useDocumentOrderContext } from 'contexts/LookupFiles';
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import { h3Styles } from 'styles/stateTribal';
 // errors
 import {
   stateDocumentError,
@@ -56,6 +57,7 @@ const containerStyles = css`
   }
 
   h3 {
+    ${h3Styles}
     margin-bottom: 0px;
   }
 `;

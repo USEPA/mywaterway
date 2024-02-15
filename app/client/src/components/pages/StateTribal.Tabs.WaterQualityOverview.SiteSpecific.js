@@ -23,6 +23,7 @@ import { formatNumber } from 'utils/utils';
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
 import { fonts, colors } from 'styles/index';
+import { h3Styles } from 'styles/stateTribal';
 // errors
 import { fishingAdvisoryError } from 'config/errorMessages';
 
@@ -76,6 +77,7 @@ const highchartsContainerStyles = css`
 `;
 
 const fishingAdvisoryTextStyles = css`
+  ${h3Styles}
   display: inline-block;
 `;
 
@@ -277,7 +279,7 @@ function SiteSpecific({
     <>
       {waterType && useSelected && (
         <>
-          <h3>
+          <h3 css={h3Styles}>
             Assessed{' '}
             <strong>
               <em>{waterType}</em>
@@ -430,7 +432,7 @@ function SiteSpecific({
         <AccordionList expandDisabled={true}>
           <AccordionItem
             title={
-              <h3>
+              <h3 css={h3Styles}>
                 Top Reasons for Impairment for {activeState.label}{' '}
                 <strong>
                   <em>{waterType}</em>

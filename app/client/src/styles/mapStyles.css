@@ -153,11 +153,11 @@ calcite-flow {
 }
 
 .hmw-map-toggle h2 {
-  margin: 0 10px !important;
+  margin: 0 10px;
   padding: 0;
   font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
     'Arial', sans-serif;
-  font-size: 1.25em !important;
+  font-size: 1.25em;
 }
 
 .hmw-map-toggle hr {

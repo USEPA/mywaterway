@@ -8,6 +8,7 @@ import {
   introHeadingStyles,
   introTextStyles,
 } from 'components/shared/IntroBox';
+import { h2Styles } from 'styles/stateTribal';
 
 const headerStyles = css`
   display: flex;
@@ -19,6 +20,8 @@ const headerStyles = css`
   background-color: transparent;
 
   h2 {
+    ${h2Styles}
+    ${introHeadingStyles}
     margin: 0;
     padding: 0;
   }
@@ -35,7 +38,7 @@ function StateTribalIntro() {
     <div css={introBoxStyles}>
       <header css={headerStyles}>
         <i className="fas fa-tint" aria-hidden="true" />
-        <h2 css={introHeadingStyles}>
+        <h2>
           States and Tribes Play a Primary Role in Protecting Water Quality
         </h2>
       </header>

@@ -14,6 +14,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { h3Styles } from 'styles/stateTribal';
 // contexts
 import {
   useSurveyMappingContext,
@@ -409,7 +410,7 @@ function SurveyResults({
   return (
     subPopulationCodes?.length > 0 && (
       <>
-        <h3>
+        <h3 css={h3Styles}>
           Overall water quality in {activeState.label}{' '}
           <strong>
             <em>{waterType}</em>
@@ -568,7 +569,7 @@ function SurveyResults({
           <AccordionList expandDisabled={true}>
             <AccordionItem
               title={
-                <h3>
+                <h3 css={h3Styles}>
                   Stressors surveyed for{' '}
                   <strong>
                     <em>{surveyUseSelected}</em>

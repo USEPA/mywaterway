@@ -26,6 +26,7 @@ import Stories from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Stor
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors, reactSelectStyles } from 'styles/index';
+import { h2Styles, h3Styles, h4Styles } from 'styles/stateTribal';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import {
@@ -150,6 +151,7 @@ const topicIconStyles = css`
 `;
 
 const headingStyles = css`
+  ${h2Styles}
   margin-top: 0 !important;
 
   i {
@@ -936,7 +938,7 @@ function WaterQualityOverview() {
         <strong>{activeState.label}</strong> Water Quality
       </h2>
 
-      <h3>Choose a Topic:</h3>
+      <h3 css={h3Styles}>Choose a Topic:</h3>
 
       <div css={topicTabsStyles}>
         <Tabs
@@ -967,7 +969,7 @@ function WaterQualityOverview() {
                 data-testid={`hmw-${tab.id}-tab-panel`}
               >
                 <div css={filtersSectionStyles}>
-                  <h4>Pick your Water Type and Use:</h4>
+                  <h4 css={h4Styles}>Pick your Water Type and Use:</h4>
 
                   <div css={inputsStyles}>
                     <div css={inputStyles}>
@@ -1065,7 +1067,7 @@ function WaterQualityOverview() {
                       activeState.source === 'State',
                   )}
                 >
-                  <h3>
+                  <h3 css={h3Styles}>
                     <img
                       css={imageIconStyles}
                       src={drinkingWaterIcon}
@@ -1075,7 +1077,9 @@ function WaterQualityOverview() {
                     <strong>{activeState.label}</strong>
                   </h3>
 
-                  <h4>EPA has defined three types of public water systems:</h4>
+                  <h4 css={h4Styles}>
+                    EPA has defined three types of public water systems:
+                  </h4>
 
                   {tab.id === 'drinking' && activeState.value && (
                     <WaterSystemSummary state={activeState} />
