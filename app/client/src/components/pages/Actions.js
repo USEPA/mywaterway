@@ -721,17 +721,18 @@ function Actions() {
                                   subTitle={
                                     <>
                                       {orgLabel} {auId}{' '}
-                                      {!graphic && (
-                                        <>
-                                          <br />
-                                          <span css={noMapDataWarningStyles}>
-                                            <i className="fas fa-exclamation-triangle" />
-                                            <strong>
-                                              [Waterbody not visible on map.]
-                                            </strong>
-                                          </span>
-                                        </>
-                                      )}
+                                      {mapLayer.status === 'success' &&
+                                        !graphic && (
+                                          <>
+                                            <br />
+                                            <span css={noMapDataWarningStyles}>
+                                              <i className="fas fa-exclamation-triangle" />
+                                              <strong>
+                                                [Waterbody not visible on map.]
+                                              </strong>
+                                            </span>
+                                          </>
+                                        )}
                                     </>
                                   }
                                   feature={graphic}
@@ -760,18 +761,20 @@ function Actions() {
                                       )}
 
                                     <p css={paragraphContentStyles}>
-                                      <ViewOnMapButton
-                                        feature={{
-                                          attributes: {
-                                            assessmentunitidentifier: auId,
-                                            organizationid: orgId,
-                                            fieldName: 'hmw-extra-content',
-                                          },
-                                        }}
-                                        layers={[mapLayer.layer]}
-                                        fieldName="hmw-extra-content"
-                                        disabled={graphic ? false : true}
-                                      />
+                                      {mapLayer.status === 'success' && (
+                                        <ViewOnMapButton
+                                          feature={{
+                                            attributes: {
+                                              assessmentunitidentifier: auId,
+                                              organizationid: orgId,
+                                              fieldName: 'hmw-extra-content',
+                                            },
+                                          }}
+                                          layers={[mapLayer.layer]}
+                                          fieldName="hmw-extra-content"
+                                          disabled={graphic ? false : true}
+                                        />
+                                      )}
                                     </p>
                                   </div>
                                 </AccordionItem>
