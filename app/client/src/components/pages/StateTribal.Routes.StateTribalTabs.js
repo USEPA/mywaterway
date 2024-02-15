@@ -121,7 +121,7 @@ function StateTribalTabs() {
 
     return (
       <div>
-        <h2 className={h2Styles}>
+        <h2 css={h2Styles}>
           <i className="fas fa-map-marked-alt" aria-hidden="true" />
           <strong>{activeState.label}</strong> at a Glance
         </h2>
