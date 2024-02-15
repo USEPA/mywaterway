@@ -47,7 +47,7 @@ import {
 } from 'utils/mapFunctions';
 import { chunkArrayCharLength } from 'utils/utils';
 // styles
-import { colors } from 'styles/index';
+import { colors, noMapDataWarningStyles } from 'styles/index';
 // errors
 import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
 
@@ -720,7 +720,19 @@ function Actions() {
                                   }
                                   subTitle={
                                     <>
-                                      {orgLabel} {auId}
+                                      {orgLabel} {auId}{' '}
+                                      {mapLayer.status === 'success' &&
+                                        !graphic && (
+                                          <>
+                                            <br />
+                                            <span css={noMapDataWarningStyles}>
+                                              <i className="fas fa-exclamation-triangle" />
+                                              <strong>
+                                                [Waterbody not visible on map.]
+                                              </strong>
+                                            </span>
+                                          </>
+                                        )}
                                     </>
                                   }
                                   feature={graphic}
@@ -749,7 +761,7 @@ function Actions() {
                                       )}
 
                                     <p css={paragraphContentStyles}>
-                                      {graphic && (
+                                      {mapLayer.status === 'success' && (
                                         <ViewOnMapButton
                                           feature={{
                                             attributes: {
@@ -760,6 +772,7 @@ function Actions() {
                                           }}
                                           layers={[mapLayer.layer]}
                                           fieldName="hmw-extra-content"
+                                          disabled={graphic ? false : true}
                                         />
                                       )}
                                     </p>
