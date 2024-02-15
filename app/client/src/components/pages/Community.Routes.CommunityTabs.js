@@ -458,7 +458,7 @@ function CommunityTabs() {
               <span>WATERSHED:</span> {watershed.name} ({huc12})
             </p>
           )}
-          {watershed.areasqkm && watershed.areaacres && (
+          {Boolean(watershed.areasqkm) && Boolean(watershed.areaacres) && (
             <p css={watershedStyles}>
               <span>SIZE:</span> {formatNumber(watershed.areaacres)} acres /{' '}
               {formatNumber(watershed.areasqkm, 2)} km<sup>2</sup>
