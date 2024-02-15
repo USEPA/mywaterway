@@ -91,8 +91,11 @@ export const noMapDataWarningStyles = css`
   font-size: 0.875rem;
 
   i {
-    background-color: ${colors.black()};
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    text-shadow:
+      -1px 0 #000,
+      0 1px #000,
+      1px 0 #000,
+      0 -1px #000;
     color: ${colors.yellow()};
     font-size: 0.95rem;
     margin-right: 5px;
