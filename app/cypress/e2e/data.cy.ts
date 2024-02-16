@@ -50,7 +50,7 @@ describe('Data page', () => {
       cy.get(`button:contains("${item}")`).click();
 
       // verify the scroll worked
-      cy.get(`h2:contains("${item}")`)
+      cy.get(`h3:contains("${item}")`)
         .then((elm) => elm[0].offsetTop)
         .then((offset) =>
           cy
