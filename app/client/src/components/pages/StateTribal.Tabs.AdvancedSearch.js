@@ -955,8 +955,9 @@ function AdvancedSearch() {
       <div css={searchStyles}>
         <Modal
           closeTitle="Cancel search"
-          confirmEnabled={numberOfRecords > 0}
+          confirmEnabled={searchLoading || numberOfRecords > 0}
           isConfirm={true}
+          isLoading={searchLoading}
           label="Warning about potentially slow search"
           onConfirm={() => {
             setCurrentFilter(nextFilter);
