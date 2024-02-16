@@ -740,10 +740,6 @@ const cardButtonStyles = css`
   font-size: 13px;
   margin: 0 5px 0 0;
   padding: 0.3em 0.7em;
-
-  :hover {
-    background-color: rgba(64, 97, 142, 1);
-  }
 `;
 
 const cardLinkStyles = css`

@@ -18,7 +18,10 @@ const buttonContainerStyles = css`
 `;
 
 const cancelButtonStyles = css`
-  background-color: lightgray;
+  background-color: transparent;
+  box-shadow: inset 0 0 0 2px ${colors.blue()};
+  color: ${colors.blue()};
+  font-weight: bold;
 `;
 
 const closeButtonStyles = css`
@@ -45,12 +48,20 @@ const closeButtonStyles = css`
 const confirmButtonStyles = css`
   margin-bottom: 0;
   font-size: 0.9375em;
+  font-weight: bold;
   color: ${colors.white()};
   background-color: ${colors.blue()};
 
   &:hover {
     color: ${colors.white()};
     background-color: ${colors.navyBlue()};
+  }
+
+  &:disabled {
+    background-color: ${colors.grayc9};
+    color: ${colors.gray45};
+    cursor: not-allowed;
+    opacity: 1;
   }
 `;
 
@@ -127,6 +138,7 @@ type Props = {
   closeTitle?: string;
   confirmEnabled?: boolean;
   isConfirm?: boolean;
+  isLoading?: boolean;
   label: string;
   maxWidth?: string;
   onConfirm?: Function;
@@ -139,6 +151,7 @@ export default function Modal({
   closeTitle,
   confirmEnabled = false,
   isConfirm = false,
+  isLoading = false,
   label,
   maxWidth = '25rem',
   onClose = () => {},
@@ -186,6 +199,7 @@ export default function Modal({
                     <div>
                       <button
                         css={confirmButtonStyles}
+                        disabled={isLoading}
                         className="btn"
                         onClick={() => {
                           setDialogShown(false);
