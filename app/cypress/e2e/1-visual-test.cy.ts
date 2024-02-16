@@ -53,15 +53,15 @@ describe('Community Visual Regression Testing', () => {
     cy.get(mapId).matchSnapshot('dc-no-impairment-categories');
 
     // test with only acidity on
-    cy.findByLabelText('Acidity').click({ force: true });
-    cy.get(mapId).matchSnapshot('dc-acidity-impairment-categories');
+    cy.findByLabelText('PCBs').click({ force: true });
+    cy.get(mapId).matchSnapshot('dc-pcb-impairment-categories');
 
     // test with only acidity and metals on
     cy.findByLabelText('Metals').click({ force: true });
-    cy.get(mapId).matchSnapshot('dc-acidity-metals-impairment-categories');
+    cy.get(mapId).matchSnapshot('dc-pcb-metals-impairment-categories');
 
     // test with only metals on
-    cy.findByLabelText('Acidity').click({ force: true });
+    cy.findByLabelText('PCBs').click({ force: true });
     cy.get(mapId).matchSnapshot('dc-metals-impairment-categories');
   });
 
