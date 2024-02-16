@@ -62,6 +62,7 @@ export const downloadLinksStyles = css`
 
 export const iconButtonStyles = css`
   background: none;
+  background-color: transparent !important;
   border: none;
   color: inherit;
   margin: 0;

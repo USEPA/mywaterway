@@ -78,8 +78,8 @@ const topLinksStyles = css`
     background-color: transparent;
     user-select: none;
 
-    :hover,
-    :focus {
+    &:not(:disabled):hover,
+    &:not(:disabled):focus {
       border-color: ${colors.white(0.75)};
       background-color: ${colors.white(0.125)};
     }
