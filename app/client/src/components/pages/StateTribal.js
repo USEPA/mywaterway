@@ -36,7 +36,7 @@ import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
 import { isClick } from 'utils/utils';
 // styles
-import { colors, reactSelectStyles } from 'styles/index';
+import { reactSelectStyles } from 'styles/index';
 import { h2Styles } from 'styles/stateTribal';
 // errors
 import {
