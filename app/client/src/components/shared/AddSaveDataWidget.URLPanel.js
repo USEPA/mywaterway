@@ -25,8 +25,6 @@ import {
   urlLayerFailureMessage,
   urlLayerSuccessMessage,
 } from 'config/errorMessages';
-// styles
-import { colors } from 'styles/index';
 
 const MessageBoxStyles = `
   margin-bottom: 10px;
