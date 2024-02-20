@@ -68,6 +68,12 @@ export const iconButtonStyles = css`
   margin: 0;
   outline: inherit;
   padding: 0;
+
+  &:hover,
+  &:focus {
+    color: ${colors.navyBlue()} !important;
+    background-color: inherit !important;
+  }
 `;
 
 export const iconStyles = css`

@@ -107,9 +107,10 @@ const disclaimerButtonStyles = css`
   text-transform: uppercase;
   user-select: none;
 
-  :hover,
-  :focus {
-    background-color: ${colors.grayc};
+  &:hover,
+  &:focus {
+    background-color: ${colors.grayc} !important;
+    color: inherit !important;
   }
 `;
 

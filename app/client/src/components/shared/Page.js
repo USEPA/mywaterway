@@ -162,6 +162,11 @@ const titleStyles = css`
       font-size: 2.5em;
     }
   }
+
+  &:hover,
+  &:focus {
+    background: none !important;
+  }
 `;
 
 const subtitleStyles = css`

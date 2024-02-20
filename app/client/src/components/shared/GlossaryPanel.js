@@ -98,7 +98,7 @@ const buttonStyles = css`
 
   &:hover,
   &:focus {
-    background-color: ${colors.black(0.5)};
+    background-color: ${colors.black(0.5)} !important;
   }
 `;
 
@@ -138,6 +138,8 @@ const listStyles = css`
 
     &:hover,
     &:focus {
+      background-color: inherit !important;
+      color: ${colors.navyBlue()} !important;
       text-decoration: underline;
     }
 
@@ -152,7 +154,7 @@ const listStyles = css`
       border-color: ${colors.black(0.375)};
       text-decoration: none;
       color: #444;
-      background-color: #f0f6f9;
+      background-color: #f0f6f9 !important;
 
       &::after {
         content: '\f0d7';

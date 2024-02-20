@@ -1,5 +1,6 @@
 // @flow
 
+import { colors } from 'styles/index';
 import { css } from '@emotion/react';
 
 const linkButtonStyles = css`
@@ -15,8 +16,9 @@ const linkButtonStyles = css`
 
   &:hover,
   &:focus {
+    background-color: inherit !important;
+    color: ${colors.navyBlue()} !important;
     text-decoration: underline;
-    color: #4c2c92;
   }
 `;
 
