@@ -15,8 +15,9 @@ const linkButtonStyles = css`
 
   &:hover,
   &:focus {
+    background-color: inherit !important;
+    color: inherit !important;
     text-decoration: underline;
-    color: #4c2c92;
   }
 `;
 

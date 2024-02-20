@@ -24,7 +24,7 @@ import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // config
 import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
-import { reactSelectStyles } from 'styles/index';
+import { colors, reactSelectStyles } from 'styles/index';
 // types
 import type { WidgetLayer } from 'types';
 // utilities
@@ -83,6 +83,12 @@ const searchButtonStyles = css`
   color: #ccc;
   border: none;
   border-radius: 4px;
+
+  &:hover,
+  &:focus {
+    background-color: inherit !important;
+    color: ${colors.gray9} !important;
+  }
 `;
 
 const checkboxStyles = css`
