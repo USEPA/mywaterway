@@ -71,7 +71,7 @@ export const iconButtonStyles = css`
 
   &:hover,
   &:focus {
-    color: inherit !important;
+    color: ${colors.navyBlue()} !important;
     background-color: inherit !important;
   }
 `;
