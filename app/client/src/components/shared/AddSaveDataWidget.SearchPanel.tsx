@@ -24,7 +24,7 @@ import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // config
 import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
-import { reactSelectStyles } from 'styles/index';
+import { colors, reactSelectStyles } from 'styles/index';
 // types
 import type { WidgetLayer } from 'types';
 // utilities
@@ -83,6 +83,12 @@ const searchButtonStyles = css`
   color: #ccc;
   border: none;
   border-radius: 4px;
+
+  &:hover,
+  &:focus {
+    background-color: inherit !important;
+    color: ${colors.gray9} !important;
+  }
 `;
 
 const checkboxStyles = css`
@@ -740,10 +746,6 @@ const cardButtonStyles = css`
   font-size: 13px;
   margin: 0 5px 0 0;
   padding: 0.3em 0.7em;
-
-  :hover {
-    background-color: rgba(64, 97, 142, 1);
-  }
 `;
 
 const cardLinkStyles = css`

@@ -64,19 +64,6 @@ const buttonStyles = css`
   margin-top: 1em;
   margin-bottom: 0;
   font-size: 0.875em;
-  font-weight: bold;
-  color: ${colors.white()};
-  background-color: ${colors.blue()};
-
-  &:not(.btn-danger):hover,
-  &:not(.btn-danger):focus {
-    color: ${colors.white()};
-    background-color: ${colors.navyBlue()};
-  }
-
-  &:disabled {
-    cursor: default;
-  }
 
   @media (min-width: 480px) {
     font-size: 0.9375em;
@@ -1005,7 +992,6 @@ function LocationSearch({ route, label }: Props) {
 
         <button
           css={buttonStyles}
-          className="btn"
           type="submit"
           disabled={inputText === searchText}
         >
@@ -1017,19 +1003,13 @@ function LocationSearch({ route, label }: Props) {
             <p css={textStyles}>OR</p>
 
             {geolocationError ? (
-              <button
-                css={buttonStyles}
-                className="btn btn-danger"
-                type="button"
-                disabled
-              >
+              <button css={buttonStyles} type="button" disabled>
                 <i className="fas fa-exclamation-triangle" aria-hidden="true" />
                 &nbsp;&nbsp;Error Getting Location
               </button>
             ) : (
               <button
                 css={buttonStyles}
-                className="btn"
                 type="button"
                 onClick={(ev) => {
                   setGeolocating(true);

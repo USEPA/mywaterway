@@ -78,8 +78,8 @@ const topLinksStyles = css`
     background-color: transparent;
     user-select: none;
 
-    :hover,
-    :focus {
+    &:not(:disabled):hover,
+    &:not(:disabled):focus {
       border-color: ${colors.white(0.75)};
       background-color: ${colors.white(0.125)};
     }
@@ -161,6 +161,11 @@ const titleStyles = css`
     @media (min-width: 50em) {
       font-size: 2.5em;
     }
+  }
+
+  &:hover,
+  &:focus {
+    background: none !important;
   }
 `;
 

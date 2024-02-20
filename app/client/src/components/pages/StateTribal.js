@@ -36,7 +36,7 @@ import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
 import { isClick } from 'utils/utils';
 // styles
-import { colors, reactSelectStyles } from 'styles/index';
+import { reactSelectStyles } from 'styles/index';
 import { h2Styles } from 'styles/stateTribal';
 // errors
 import {
@@ -88,15 +88,7 @@ const buttonStyles = css`
   margin-top: 1em;
   margin-bottom: 0;
   font-size: 0.9375em;
-  font-weight: bold;
-  color: ${colors.white()};
-  background-color: ${colors.blue()};
-
-  &:hover,
-  &:focus {
-    color: ${colors.white()};
-    background-color: ${colors.navyBlue()};
-  }
+  padding: 0.375rem 0.75rem;
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -547,7 +539,6 @@ function StateTribal() {
 
               <button
                 onClick={() => handleSubmit(selectedStateTribe)}
-                className="btn"
                 css={buttonStyles}
               >
                 <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}

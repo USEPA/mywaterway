@@ -68,6 +68,12 @@ const expandButtonStyles = (includeSort: boolean) => css`
   color: ${colors.gray6};
   background-color: transparent;
   white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    background-color: inherit !important;
+    color: inherit !important;
+  }
 `;
 
 const listHeaderStyles = (includePadding: boolean) => css`

@@ -98,8 +98,15 @@ const pageControlStyles = css`
   margin: 0 3px;
 
   &:disabled {
-    opacity: 0.35;
+    background-color: inherit;
     cursor: default;
+    opacity: 0.35;
+  }
+
+  &:hover,
+  &:focus {
+    background-color: inherit !important;
+    color: inherit !important;
   }
 `;
 

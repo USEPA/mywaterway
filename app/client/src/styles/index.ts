@@ -31,7 +31,9 @@ export const colors = {
   gray4: '#444',
   gray6: '#666',
   gray9: '#999',
+  gray45: '#454545',
   grayc: '#ccc',
+  grayc9: '#c9c9c9',
   grayd: '#ddd',
   graye: '#eee',
 };
@@ -60,11 +62,18 @@ export const downloadLinksStyles = css`
 
 export const iconButtonStyles = css`
   background: none;
+  background-color: transparent !important;
   border: none;
   color: inherit;
   margin: 0;
   outline: inherit;
   padding: 0;
+
+  &:hover,
+  &:focus {
+    color: ${colors.navyBlue()} !important;
+    background-color: inherit !important;
+  }
 `;
 
 export const iconStyles = css`
