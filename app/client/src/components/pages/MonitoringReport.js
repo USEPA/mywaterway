@@ -250,12 +250,9 @@ const downloadLinksStyles = css`
 `;
 
 const fileLinkStyles = css`
-  background: none;
-  border: none;
+  ${iconButtonStyles}
   color: #0071bc;
-  margin: 0;
-  outline: inherit;
-  padding: 0;
+
   svg {
     display: inline-block;
     height: auto;
