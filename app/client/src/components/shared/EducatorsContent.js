@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useEffect } from 'react';
-import { css } from 'styled-components/macro';
+import { useEffect } from 'react';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // contexts
@@ -16,19 +17,15 @@ import { colors, fonts } from 'styles/index';
 const containerStyles = css`
   padding: 2rem;
 
-  & :first-child {
-    margin-top: 0;
-  }
-
-  h2,
-  h3 {
+  h3,
+  h4 {
     margin-bottom: 0;
     padding-bottom: 0;
     font-family: ${fonts.primary};
   }
 
-  h2 {
-    margin-top: 2rem;
+  h3 {
+    margin-top: 0;
     font-size: 1.8em;
 
     & + p {
@@ -36,7 +33,7 @@ const containerStyles = css`
     }
   }
 
-  h3 {
+  h4 {
     font-size: 1.2em;
     font-weight: bold;
   }
@@ -79,7 +76,7 @@ const contentStyles = css`
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles}
   margin-top: 1rem;
-  h3 {
+  h4 {
     margin-bottom: 0.5em;
   }
 `;
@@ -127,7 +124,7 @@ function EducatorsContent() {
 
   return (
     <div css={containerStyles} className="container">
-      <h2 dangerouslySetInnerHTML={{ __html: data.title }} />
+      <h3 dangerouslySetInnerHTML={{ __html: data.title }} />
 
       <hr />
 

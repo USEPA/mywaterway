@@ -1,9 +1,10 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { Fragment, useEffect, useRef, useState } from 'react';
+import { css } from '@emotion/react';
+import { Fragment, useContext, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { WindowSize } from '@reach/window-size';
-import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 // components
 import Page from 'components/shared/Page';
@@ -30,11 +31,12 @@ import {
 } from 'components/shared/Box';
 // contexts
 import { LayersProvider } from 'contexts/Layers';
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
-import { MapHighlightProvider } from 'contexts/MapHighlight';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
+import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
 import { titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { colors } from 'styles/index';
@@ -136,7 +138,7 @@ const inlineBoxSectionStyles = css`
     height: 1.25rem;
   }
 
-  h3,
+  h4,
   p {
     display: inline-block;
     margin-top: 0;
@@ -168,7 +170,7 @@ const useNameStyles = css`
   line-height: 1.125;
 `;
 
-const useStatusStyles = css`
+const waterbodyUseStatusStyles = (textColor, bgColor) => css`
   flex-shrink: 0; /* prevent wrapping on whitespace */
   display: inline-block;
   margin-top: 0 !important;
@@ -177,8 +179,8 @@ const useStatusStyles = css`
   border-radius: 3px;
   font-size: 0.75rem !important;
   line-height: 1.375;
-  color: ${({ textColor }) => textColor};
-  background-color: ${({ bgColor }) => bgColor};
+  color: ${textColor};
+  background-color: ${bgColor};
   user-select: none;
 `;
 
@@ -234,7 +236,6 @@ const conditions = {
 
 function WaterbodyReport() {
   const { orgId, auId, reportingCycle } = useParams();
-  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 
@@ -399,11 +400,12 @@ function WaterbodyReport() {
     let reportingCycleParam = '';
     if (reportingCycle) {
       reportingCycleParam = reportingCycle;
-    } else {
-      if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
-        reportingCycleParam =
-          mapLayer.layer.graphics.items[0].attributes.reportingcycle;
-      }
+    } else if (
+      mapLayer.status === 'success' &&
+      mapLayer.layer.graphics.length > 0
+    ) {
+      reportingCycleParam =
+        mapLayer.layer.graphics.items[0].attributes.reportingcycle;
     }
 
     setAssessmentsCalled(true);
@@ -482,9 +484,9 @@ function WaterbodyReport() {
           overallStatus === 'Not Supporting' || overallStatus === 'Cause'
             ? conditions.impaired
             : overallStatus === 'Fully Supporting' ||
-              overallStatus === 'Meeting Criteria'
-            ? conditions.good
-            : conditions.unknown; // catch all
+                overallStatus === 'Meeting Criteria'
+              ? conditions.good
+              : conditions.unknown; // catch all
 
         // Use the status above initially. When looping through the use attainments
         // this will be set to yes if any of the uses have a plan in place
@@ -508,28 +510,28 @@ function WaterbodyReport() {
                   text: 'Not Assessed',
                 }
               : use.useAttainmentCode === 'I'
-              ? {
-                  textColor: colors.white(),
-                  bgColor: colors.purple(),
-                  text: 'Insufficient Info',
-                }
-              : use.useAttainmentCode === 'F'
-              ? {
-                  textColor: colors.white(),
-                  bgColor: colors.green(),
-                  text: 'Good',
-                }
-              : use.useAttainmentCode === 'N'
-              ? {
-                  textColor: colors.white(),
-                  bgColor: colors.red(),
-                  text: 'Impaired',
-                }
-              : {
-                  textColor: colors.white(),
-                  bgColor: colors.purple(),
-                  text: 'Unknown',
-                };
+                ? {
+                    textColor: colors.white(),
+                    bgColor: colors.purple(),
+                    text: 'Insufficient Info',
+                  }
+                : use.useAttainmentCode === 'F'
+                  ? {
+                      textColor: colors.white(),
+                      bgColor: colors.green(),
+                      text: 'Good',
+                    }
+                  : use.useAttainmentCode === 'N'
+                    ? {
+                        textColor: colors.white(),
+                        bgColor: colors.red(),
+                        text: 'Impaired',
+                      }
+                    : {
+                        textColor: colors.white(),
+                        bgColor: colors.purple(),
+                        text: 'Unknown',
+                      };
 
           // build up categories by matching each parameter's associated use name
           // and examining its parameter attainment code
@@ -599,8 +601,7 @@ function WaterbodyReport() {
 
                   if (notYetAdded) {
                     // a plan is 'in place' if a parameter has at least one associated action
-                    const planInPlace =
-                      parameter.associatedActions.length > 0 ? true : false;
+                    const planInPlace = parameter.associatedActions.length > 0;
 
                     if (planInPlace) planForRestoration = 'Yes';
 
@@ -861,7 +862,7 @@ function WaterbodyReport() {
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
-      <h2 css={infoBoxHeadingStyles}>
+      <h3 css={infoBoxHeadingStyles}>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
 
         {waterbodyStatus.status === 'success' && (
@@ -871,8 +872,8 @@ function WaterbodyReport() {
                 waterbodyStatus.data.condition === conditions.good
                   ? 'good'
                   : waterbodyStatus.data.condition === conditions.impaired
-                  ? 'polluted'
-                  : 'unassessed'
+                    ? 'polluted'
+                    : 'unassessed'
               }
               selected={false}
             />
@@ -884,10 +885,10 @@ function WaterbodyReport() {
             <strong>Assessment Unit ID:</strong> {auId}
           </small>
         </span>
-      </h2>
+      </h3>
 
       <div css={inlineBoxSectionStyles}>
-        <h3>Waterbody Condition:</h3>
+        <h4>Waterbody Condition:</h4>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
         {waterbodyStatus.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
@@ -902,8 +903,8 @@ function WaterbodyReport() {
                 waterbodyStatus.data.condition === conditions.good
                   ? 'Good Waters'
                   : waterbodyStatus.data.condition === conditions.impaired
-                  ? 'Impaired Waters'
-                  : 'Condition Unknown'
+                    ? 'Impaired Waters'
+                    : 'Condition Unknown'
               }
             >
               {waterbodyStatus.data.condition}
@@ -913,7 +914,7 @@ function WaterbodyReport() {
       </div>
 
       <div css={inlineBoxSectionStyles}>
-        <h3>Existing Plans for Restoration:</h3>
+        <h4>Existing Plans for Restoration:</h4>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
 
         {waterbodyStatus.status === 'failure' && (
@@ -927,12 +928,12 @@ function WaterbodyReport() {
       </div>
 
       <div css={inlineBoxSectionStyles}>
-        <h3>
+        <h4>
           <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
             303(d) Listed
           </GlossaryTerm>
           :
-        </h3>
+        </h4>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
         {waterbodyStatus.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
@@ -945,7 +946,7 @@ function WaterbodyReport() {
       </div>
 
       <div css={inlineBoxSectionStyles}>
-        <h3>Year Reported:</h3>
+        <h4>Year Reported:</h4>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
@@ -958,7 +959,7 @@ function WaterbodyReport() {
       </div>
 
       <div css={inlineBoxSectionStyles}>
-        <h3>Organization Name (ID):&nbsp;</h3>
+        <h4>Organization Name (ID):&nbsp;</h4>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
@@ -973,7 +974,7 @@ function WaterbodyReport() {
       </div>
 
       <div css={boxSectionStyles}>
-        <h3>What type of water is this?</h3>
+        <h4>What type of water is this?</h4>
         {waterbodyTypes.status === 'fetching' && <LoadingSpinner />}
         {waterbodyTypes.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
@@ -999,7 +1000,7 @@ function WaterbodyReport() {
       </div>
 
       <div css={boxSectionStyles}>
-        <h3>Where is this water located?</h3>
+        <h4>Where is this water located?</h4>
         {waterbodyLocation.status === 'fetching' && <LoadingSpinner />}
 
         {waterbodyLocation.status === 'failure' && (
@@ -1051,25 +1052,6 @@ function WaterbodyReport() {
           </div>
         </div>
       </Page>
-    );
-  }
-
-  if (fullscreenActive) {
-    return (
-      <WindowSize>
-        {({ width, height }) => {
-          return (
-            <div data-content="actionsmap" style={{ height, width }}>
-              <ActionsMap
-                layout="fullscreen"
-                unitIds={unitIds}
-                onLoad={setMapLayer}
-                includePhoto
-              />
-            </div>
-          );
-        }}
-      </WindowSize>
     );
   }
 
@@ -1151,7 +1133,7 @@ function WaterbodyReport() {
                 <div css={splitLayoutColumnStyles}>
                   {decisionRationale && (
                     <div css={boxStyles}>
-                      <h2 css={boxHeadingStyles}>Decision Rationale</h2>
+                      <h3 css={boxHeadingStyles}>Decision Rationale</h3>
                       <div css={boxSectionStyles}>
                         <p css={rationaleStyles}>{decisionRationale}</p>
                       </div>
@@ -1159,15 +1141,15 @@ function WaterbodyReport() {
                   )}
 
                   <div css={boxStyles}>
-                    <h2 css={boxHeadingStyles}>
+                    <h3 css={boxHeadingStyles}>
                       Assessment Information{' '}
                       {reportingCycleFetch.status === 'success' && (
                         <>from {reportingCycleFetch.year}</>
                       )}
-                    </h2>
+                    </h3>
 
                     <div css={modifiedBoxSectionStyles}>
-                      <h3>State or Tribal Nation specific designated uses:</h3>
+                      <h4>State or Tribal Nation specific designated uses:</h4>
                       {waterbodyUses.status === 'fetching' && (
                         <LoadingSpinner />
                       )}
@@ -1207,9 +1189,10 @@ function WaterbodyReport() {
                                           {titleCaseWithExceptions(use.name)}
                                         </strong>
                                         <span
-                                          css={useStatusStyles}
-                                          textColor={use.status.textColor}
-                                          bgColor={use.status.bgColor}
+                                          css={waterbodyUseStatusStyles(
+                                            use.status.textColor,
+                                            use.status.bgColor,
+                                          )}
                                         >
                                           {use.status.text}
                                         </span>
@@ -1228,12 +1211,12 @@ function WaterbodyReport() {
                     <hr />
 
                     <div css={boxSectionStyles}>
-                      <h3>
+                      <h4>
                         Probable sources contributing to impairment
                         {reportingCycleFetch.status === 'success' &&
                           ` from ${reportingCycleFetch.year}`}
                         :
-                      </h3>
+                      </h4>
                       {waterbodySources.status === 'fetching' && (
                         <LoadingSpinner />
                       )}
@@ -1290,7 +1273,7 @@ function WaterbodyReport() {
                   </div>
 
                   <div css={boxStyles}>
-                    <h2 css={boxHeadingStyles}>Assessment Documents</h2>
+                    <h3 css={boxHeadingStyles}>Assessment Documents</h3>
 
                     <div css={boxSectionStyles}>
                       {documents.status === 'fetching' && <LoadingSpinner />}
@@ -1347,15 +1330,15 @@ function WaterbodyReport() {
                   </div>
 
                   <div css={boxStyles}>
-                    <h2 css={boxHeadingStyles}>
+                    <h3 css={boxHeadingStyles}>
                       Plans to Restore Water Quality
-                    </h2>
+                    </h3>
 
                     <div css={boxSectionStyles}>
-                      <h3>
+                      <h4>
                         What plans are in place to protect or restore water
                         quality?
-                      </h3>
+                      </h4>
                       {(waterbodyActions.status === 'fetching' ||
                         waterbodyActions.status === 'pending') && (
                         <LoadingSpinner />
@@ -1415,7 +1398,11 @@ function WaterbodyReport() {
                                             </>
                                           )}
                                         </td>
-                                        <td>{action.type}</td>
+                                        <td>
+                                          {mapRestorationPlanToGlossary(
+                                            action.type,
+                                          )}
+                                        </td>
                                         <td css={dateCellStyles}>
                                           {action.date}
                                         </td>
@@ -1436,10 +1423,10 @@ function WaterbodyReport() {
                     // whenever Water Monitoring section is ready to be displayed
                     false && (
                       <div css={boxStyles}>
-                        <h2 css={boxHeadingStyles}>Water Monitoring</h2>
+                        <h3 css={boxHeadingStyles}>Water Monitoring</h3>
 
                         <div css={boxSectionStyles}>
-                          <h3>Does this water have monitoring locations?</h3>
+                          <h4>Does this water have monitoring locations?</h4>
                           {monitoringLocations.status === 'fetching' && (
                             <LoadingSpinner />
                           )}
@@ -1517,7 +1504,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
 
   return (
     <div css={accordionContentStyles}>
-      <h4>Identified Issues for Use</h4>
+      <h5>Identified Issues for Use</h5>
 
       {pollutants.length === 0 && (
         <p css={textStyles}>No impairments evaluated for this use.</p>
@@ -1548,11 +1535,11 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
         </table>
       )}
 
-      <h4>
+      <h5>
         <GlossaryTerm term="Other Water Quality Parameters Evaluated">
           Other Water Quality Parameters Evaluated
         </GlossaryTerm>
-      </h4>
+      </h5>
 
       {noParameterData ? (
         <p>No other parameters evaluated for this use.</p>
@@ -1581,12 +1568,17 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
 }
 
 export default function WaterbodyReportContainer() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData(true);
+    };
+  }, [resetData]);
+
   return (
     <LayersProvider>
       <MapHighlightProvider>
-        <FullscreenProvider>
-          <WaterbodyReport />
-        </FullscreenProvider>
+        <WaterbodyReport />
       </MapHighlightProvider>
     </LayersProvider>
   );

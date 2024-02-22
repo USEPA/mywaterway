@@ -4,7 +4,7 @@ import {
   yearDayStringToEpoch,
 } from '../../client/src/utils/dateUtils';
 
-// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error. 
+// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error.
 // We can safely ignore this. https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
 Cypress.on('uncaught:exception', (err, runnable) => {
   // returning false here prevents Cypress from
@@ -45,7 +45,7 @@ describe('Monitoring Tab', () => {
     cy.findByLabelText('Metals').should('have.attr', 'aria-checked', 'false');
 
     // check that there are no items displayed in accordion
-    cy.findByTestId('monitoring-accordion-title').contains('0 of 98');
+    cy.findByTestId('monitoring-accordion-title').contains('0 of 99');
 
     // check that clicking the Toggle All switch again toggles all switches back on
     cy.findByLabelText('All Monitoring Locations').click({
@@ -189,18 +189,8 @@ describe('Monitoring Tab', () => {
       .should('be.visible');
 
     // drag the slider handle
-    cy.findByRole('slider', { name: '1951' })
-      .trigger('mousedown', {
-        which: 1,
-      })
-      .trigger('mousemove', {
-        which: 1,
-        clientX: 1000,
-      })
-      .trigger('mouseup', {
-        force: true,
-        which: 1,
-      });
+    const arrows = '{rightarrow}'.repeat(1960 - 1951);
+    cy.findByRole('slider', { name: '1951' }).type(arrows);
 
     // trigger virtual list to load by scrolling to sort by control
     cy.findAllByText('Sort By:').filter(':visible').click();

@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { Fragment, useContext, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { Fragment, useContext, useState } from 'react';
+import { css } from '@emotion/react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -14,6 +15,8 @@ import URLPanel from 'components/shared/AddSaveDataWidget.URLPanel';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
+// styles
+import { fonts } from 'styles';
 
 // --- styles (AddData) ---
 const containerStyles = css`
@@ -56,10 +59,9 @@ const widgetHeaderStyles = css`
   background-color: #0071bc;
   color: white;
 
-  h1 {
+  h2 {
     margin: 0 10px;
-    font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
-      'Arial', sans-serif;
+    font-family: ${fonts.primary};
     font-size: 16px;
     line-height: 35px;
     padding: 0;
@@ -96,13 +98,22 @@ const pageControlStyles = css`
   margin: 0 3px;
 
   &:disabled {
-    opacity: 0.35;
+    background-color: inherit;
     cursor: default;
+    opacity: 0.35;
+  }
+
+  &:hover,
+  &:focus {
+    background-color: inherit !important;
+    color: inherit !important;
   }
 `;
 
 const buttonHiddenTextStyles = css`
-  font: 0/0 a, sans-serif;
+  font:
+    0/0 a,
+    sans-serif;
   text-indent: -999em;
 `;
 
@@ -119,20 +130,20 @@ const modifiedLinkButtonStyles = css`
   padding: 5px;
 `;
 
-const layerPanelStyles = css`
-  display: ${({ layerPanelVisible }) => (layerPanelVisible ? 'flex' : 'none')};
+const layerPanelStyles = (visible) => css`
+  display: ${visible ? 'flex' : 'none'};
   flex-flow: column;
   height: 100%;
-`;
 
-const layerPanelHeaderStyles = css`
-  height: 40px;
-  margin: 0;
-  padding: 7px 15px;
-  border-bottom: 1px solid #ccc;
-  color: #898989;
-  font-size: 16px;
-  font-weight: normal;
+  h3 {
+    font-family: ${fonts.primary};
+    margin: 0;
+    padding: 7px 15px;
+    border-bottom: 1px solid #ccc;
+    color: #898989;
+    font-size: 16px;
+    font-weight: normal;
+  }
 `;
 
 const recordListStyles = css`
@@ -196,7 +207,7 @@ function AddSaveDataWidget() {
     <Fragment>
       <div css={widgetHeaderStyles}>
         <div css={dragHandleStyles} className="drag-handle">
-          <h1>Add & Save Data</h1>
+          <h2>Add & Save Data</h2>
         </div>
         <button
           onClick={() => {
@@ -245,8 +256,8 @@ function AddSaveDataWidget() {
             </TabPanels>
           </Tabs>
         </div>
-        <div css={layerPanelStyles} layerPanelVisible={layerPanelVisible}>
-          <h2 css={layerPanelHeaderStyles}>Layers</h2>
+        <div css={layerPanelStyles(layerPanelVisible)}>
+          <h3>Layers</h3>
           <div css={recordListStyles}>
             {layersToDisplay.length === 0 && (
               <div>No layers have been added.</div>

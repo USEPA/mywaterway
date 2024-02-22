@@ -1,4 +1,4 @@
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { CSSObjectWithLabel } from 'react-select';
 
 export const colors = {
@@ -31,7 +31,9 @@ export const colors = {
   gray4: '#444',
   gray6: '#666',
   gray9: '#999',
+  gray45: '#454545',
   grayc: '#ccc',
+  grayc9: '#c9c9c9',
   grayd: '#ddd',
   graye: '#eee',
 };
@@ -60,11 +62,18 @@ export const downloadLinksStyles = css`
 
 export const iconButtonStyles = css`
   background: none;
+  background-color: transparent !important;
   border: none;
   color: inherit;
   margin: 0;
   outline: inherit;
   padding: 0;
+
+  &:hover,
+  &:focus {
+    color: ${colors.navyBlue()} !important;
+    background-color: inherit !important;
+  }
 `;
 
 export const iconStyles = css`
@@ -72,7 +81,7 @@ export const iconStyles = css`
 `;
 
 export const fonts = {
-  primary: `'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial', sans-serif`,
+  primary: `'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial', sans-serif`,
   secondary: `'Roboto Slab', serif`,
 };
 
@@ -86,6 +95,21 @@ export const groupHeadingStyles: CSSObjectWithLabel = {
   fontWeight: '400',
   textTransform: 'none',
 };
+
+export const noMapDataWarningStyles = css`
+  font-size: 0.875rem;
+
+  i {
+    text-shadow:
+      -1px 0 #000,
+      0 1px #000,
+      1px 0 #000,
+      0 -1px #000;
+    color: ${colors.yellow()};
+    font-size: 0.95rem;
+    margin-right: 5px;
+  }
+`;
 
 export const reactSelectStyles = {
   group: (defaultStyles: CSSObjectWithLabel) => ({
@@ -131,8 +155,8 @@ export const modifiedTableStyles = css`
 
   th,
   td {
-    overflow-wrap: anywhere;
     hyphens: auto;
+    overflow-wrap: anywhere;
 
     :first-of-type {
       padding-left: 0;
@@ -164,12 +188,14 @@ export const tabLegendStyles = css`
 export const toggleTableStyles = css`
   ${tableStyles}
 
-  thead {
+  thead,
+  thead th,
+  tfoot th {
     background-color: #f0f6f9;
   }
 
-  th,
-  td {
+  td,
+  th {
     :last-of-type {
       text-align: right;
     }

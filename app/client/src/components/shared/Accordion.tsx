@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { Children, cloneElement, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import Select from 'react-select';
 // styles
 import { colors, reactSelectStyles } from 'styles/index';
@@ -66,6 +68,12 @@ const expandButtonStyles = (includeSort: boolean) => css`
   color: ${colors.gray6};
   background-color: transparent;
   white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    background-color: inherit !important;
+    color: inherit !important;
+  }
 `;
 
 const listHeaderStyles = (includePadding: boolean) => css`
@@ -116,7 +124,7 @@ function AccordionList({
   onExpandCollapse = () => {},
   contentExpandCollapse,
   extraListHeaderContent,
-}: AccordionListProps) {
+}: Readonly<AccordionListProps>) {
   const [sortBy, setSortBy] = useState(
     sortOptions.length > 0 ? sortOptions[0] : null,
   );
@@ -203,6 +211,8 @@ function AccordionList({
       {Children.map(children, (childElement) => {
         if (isReactElement(childElement)) {
           return cloneElement(childElement, { allExpanded });
+        } else {
+          return childElement;
         }
       })}
     </div>
@@ -272,7 +282,7 @@ const colorMap = {
 type AccordionItemProps = {
   ariaLabel?: string;
   children: ReactNode;
-  icon?: Object;
+  icon?: ReactNode;
   title: ReactNode;
   subTitle?: ReactNode;
   status?: string | null;
@@ -295,7 +305,7 @@ function AccordionItem({
   onChange = () => {},
   allExpanded,
   highlightContent = true,
-}: AccordionItemProps) {
+}: Readonly<AccordionItemProps>) {
   const [isOpen, setIsOpen] = useState(allExpanded);
 
   useEffect(() => setIsOpen(allExpanded), [allExpanded]);

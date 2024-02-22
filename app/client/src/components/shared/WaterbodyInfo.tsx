@@ -1,10 +1,12 @@
+/** @jsxImportSource @emotion/react */
+
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import ControlPointsGeoreference from '@arcgis/core/layers/support/ControlPointsGeoreference';
 import Extent from '@arcgis/core/geometry/Extent';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
 import Point from '@arcgis/core/geometry/Point';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
-import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
@@ -38,6 +40,7 @@ import {
   isFeatureLayer,
   isMediaLayer,
   isUniqueValueRenderer,
+  mapRestorationPlanToGlossary,
 } from 'utils/mapFunctions';
 import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
 import {
@@ -71,6 +74,7 @@ import {
   tableStyles,
 } from 'styles/index';
 // types
+import type { SerializedStyles } from '@emotion/react';
 import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
@@ -143,6 +147,7 @@ function labelValue(
 /*
 ## Styles
 */
+
 const linkSectionStyles = css`
   p {
     padding-bottom: 1.5em;
@@ -160,6 +165,7 @@ const modifiedIconButtonStyles = css`
 `;
 
 const popupContainerStyles = css`
+  color: black;
   margin: 0;
   overflow-y: auto;
 
@@ -644,9 +650,9 @@ function WaterbodyInfo({
                               value === 'Good'
                                 ? 'Good Waters'
                                 : value === 'Impaired' ||
-                                  value === 'Impaired (Issues Identified)'
-                                ? 'Impaired Waters'
-                                : 'Condition Unknown'
+                                    value === 'Impaired (Issues Identified)'
+                                  ? 'Impaired Waters'
+                                  : 'Condition Unknown'
                             }
                           >
                             {value}
@@ -699,8 +705,8 @@ function WaterbodyInfo({
                                         useCode === 'F'
                                           ? 'Good'
                                           : useCode === 'N'
-                                          ? 'Impaired'
-                                          : 'Condition Unknown';
+                                            ? 'Impaired'
+                                            : 'Condition Unknown';
 
                                       return (
                                         <tr key={use.useName}>
@@ -718,8 +724,8 @@ function WaterbodyInfo({
                                                   value === 'Good'
                                                     ? 'Good Waters'
                                                     : value === 'Impaired'
-                                                    ? 'Impaired Waters'
-                                                    : 'Condition Unknown'
+                                                      ? 'Impaired Waters'
+                                                      : 'Condition Unknown'
                                                 }
                                               >
                                                 {value}
@@ -895,26 +901,22 @@ function WaterbodyInfo({
   // jsx
   const congressionalDistrictContent = () => {
     return (
-      <>
-        <p>
-          <strong>District:</strong>
-          <br />
-          {attributes.CDFIPS} - {attributes.NAME}
-        </p>
-      </>
+      <p>
+        <strong>District:</strong>
+        <br />
+        {attributes.CDFIPS} - {attributes.NAME}
+      </p>
     );
   };
 
   // jsx
   const countyContent = () => {
     return (
-      <>
-        <p>
-          <strong>County:</strong>
-          <br />
-          {attributes.CNTY_FIPS} - {attributes.NAME}
-        </p>
-      </>
+      <p>
+        <strong>County:</strong>
+        <br />
+        {attributes.CNTY_FIPS} - {attributes.NAME}
+      </p>
     );
   };
 
@@ -922,11 +924,14 @@ function WaterbodyInfo({
   const tribeContent = labelValue('Tribe Name', attributes.TRIBE_NAME);
 
   // jsx
-  const upstreamWatershedContent = (
+  const watershedContent = (
     <>
       {labelValue(
         'Area',
-        attributes.areasqkm && `${formatNumber(attributes.areasqkm)} sq. km.`,
+        attributes.areasqkm &&
+          `${formatNumber(
+            attributes.areaacres ?? attributes.areasqkm / 0.004046856422,
+          )} acres / ${formatNumber(attributes.areasqkm, 2)} km²`,
       )}
     </>
   );
@@ -934,15 +939,15 @@ function WaterbodyInfo({
   // jsx
   const wildScenicRiversContent = (
     <>
-      {attributes.PhotoLink && attributes.PhotoCredit && (
+      {attributes.PHOTOLINK && attributes.PHOTOCREDIT && (
         <div css={imageContainerStyles}>
           <img
             css={imageStyles}
-            src={attributes.PhotoLink}
+            src={attributes.PHOTOLINK}
             alt="Wild and Scenic River"
           />
           <br />
-          <em>Photo Credit: {attributes.PhotoCredit}</em>
+          <em>Photo Credit: {attributes.PHOTOCREDIT}</em>
         </div>
       )}
       <p>
@@ -951,7 +956,7 @@ function WaterbodyInfo({
       </p>
       <p>
         <strong>Category: </strong>
-        {attributes.RiverCategory}
+        {attributes.RIVERCATEGORY}
         <br />
       </p>
       <p>
@@ -971,31 +976,29 @@ function WaterbodyInfo({
 
   // jsx
   const wsioContent = (
-    <>
-      <div css={tableStyles} className="table">
-        <ListContent
-          rows={[
-            {
-              label: 'Watershed Name',
-              value: attributes.NAME_HUC12,
-            },
-            {
-              label: 'Watershed',
-              value: attributes.HUC12_TEXT,
-            },
-            {
-              label: 'State',
-              value: attributes.STATES_ALL,
-            },
-            {
-              label: 'Watershed Health Score',
-              value: Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100,
-            },
-          ]}
-          styles={listContentStyles}
-        />
-      </div>
-    </>
+    <div css={tableStyles} className="table">
+      <ListContent
+        rows={[
+          {
+            label: 'Watershed Name',
+            value: attributes.NAME_HUC12,
+          },
+          {
+            label: 'Watershed',
+            value: attributes.HUC12_TEXT,
+          },
+          {
+            label: 'State',
+            value: attributes.STATES_ALL,
+          },
+          {
+            label: 'Watershed Health Score',
+            value: Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100,
+          },
+        ]}
+        styles={listContentStyles}
+      />
+    </div>
   );
 
   // jsx
@@ -1180,7 +1183,9 @@ function WaterbodyInfo({
                                   </>
                                 )}
                               </td>
-                              <td>{action.type}</td>
+                              <td>
+                                {mapRestorationPlanToGlossary(action.type)}
+                              </td>
                               <td css={dateStyles}>{action.date}</td>
                             </tr>
                           );
@@ -1220,7 +1225,8 @@ function WaterbodyInfo({
   if (type === 'Action') content = actionContent;
   if (type === 'County') content = countyContent();
   if (type === 'Tribe') content = tribeContent;
-  if (type === 'Upstream Watershed') content = upstreamWatershedContent;
+  if (type === 'Watershed' || type === 'Upstream Watershed')
+    content = watershedContent;
   if (type === 'Wild and Scenic Rivers') content = wildScenicRiversContent;
   if (type === 'State Watershed Health Index') content = wsioContent;
   if (type === 'Alaska Native Village') content = alaskaNativeVillageContent;
@@ -1268,7 +1274,7 @@ function MapPopup({
   stateNationalUses,
   fields,
   navigate,
-}: MapPopupProps) {
+}: Readonly<MapPopupProps>) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<ClickedHucState>({
     status: 'none',
@@ -1308,6 +1314,9 @@ function MapPopup({
     if (type === 'Protection Plans') {
       title = 'Protection Plans for this Waterbody';
     }
+    if (type === 'Watershed') {
+      title = <GlossaryTerm term="Watershed">{title}</GlossaryTerm>;
+    }
     if (type === 'Upstream Watershed') {
       title = <GlossaryTerm term="Upstream Watershed">{title}</GlossaryTerm>;
     }
@@ -1316,9 +1325,6 @@ function MapPopup({
   };
 
   if (!attributes) return null;
-
-  const huc12 = clickedHuc?.data?.huc12;
-  const watershed = clickedHuc?.data?.watershed;
 
   return (
     <div css={popupContainerStyles}>
@@ -1334,7 +1340,21 @@ function MapPopup({
               )}
 
               <div css={changeWatershedContainerStyles}>
-                <div>{labelValue('WATERSHED', `${watershed} (${huc12})`)}</div>
+                <div>
+                  {labelValue(
+                    'WATERSHED',
+                    `${clickedHuc.data.name} (${clickedHuc.data.huc12})`,
+                  )}
+                  {labelValue(
+                    'SIZE',
+                    `${formatNumber(
+                      clickedHuc.data.areaacres,
+                    )} acres / ${formatNumber(
+                      clickedHuc.data.areasqkm,
+                      2,
+                    )} km²`,
+                  )}
+                </div>
 
                 <div css={buttonsContainer}>
                   <button
@@ -1350,7 +1370,7 @@ function MapPopup({
                       // has a lot of waterbodies.
                       if (resetData) resetData();
 
-                      let baseRoute = `/community/${huc12}`;
+                      let baseRoute = `/community/${clickedHuc.data.huc12}`;
 
                       // community will attempt to stay on the same tab
                       // if available, stay on the same tab otherwise go to overview
@@ -1410,12 +1430,12 @@ const cyanListContentStyles = css`
   }
 `;
 
-const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+const marginBoxStyles = (styles: SerializedStyles) => css`
   ${styles}
   margin: 1em 0;
 `;
 
-const paddedMarginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+const paddedMarginBoxStyles = (styles: SerializedStyles) => css`
   ${styles}
   ${marginBoxStyles(styles)}
   padding: 0.75em;
@@ -1565,7 +1585,7 @@ function CyanDailyContent({
   data,
   epochDate,
   waterbodyName,
-}: CyanDailyContentProps) {
+}: Readonly<CyanDailyContentProps>) {
   const [histogramData, setHistogramData] = useState<ChartData | null>(null);
 
   // Calculate statistics for the selected date and
@@ -1685,7 +1705,11 @@ type CyanContentProps = {
   services: ServicesState | null;
 };
 
-function CyanContent({ feature, mapView, services }: CyanContentProps) {
+function CyanContent({
+  feature,
+  mapView,
+  services,
+}: Readonly<CyanContentProps>) {
   const { attributes } = feature;
   const layerId = feature.layer?.id;
   const { getSignal } = useAbort();
@@ -2103,7 +2127,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     setBarChartData(newBarChartData);
   }, [cellConcentration]);
 
-  const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
+  const handleSliderChange = useCallback(
+    (value: number) => setSelectedDate(value),
+    [],
+  );
 
   // Calculate the total pixel area if there is cell concentration data
   let pixelArea = null;
@@ -2419,10 +2446,12 @@ type MonitoringLocationsContentProps = {
   services?: ServicesState;
 };
 
+type SelectedType = { [Property in keyof MappedGroups]: boolean };
+
 function MonitoringLocationsContent({
   feature,
   services,
-}: MonitoringLocationsContentProps) {
+}: Readonly<MonitoringLocationsContentProps>) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selectAll, setSelectAll] = useState(1);
   const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] = useState<
@@ -2461,7 +2490,7 @@ function MonitoringLocationsContent({
     return newGroups;
   });
   const [selected, setSelected] = useState(() => {
-    const newSelected: { [Property in keyof typeof groups]: boolean } = {};
+    const newSelected: SelectedType = {};
     Object.keys(groups).forEach((group) => {
       newSelected[group] = true;
     });
@@ -2479,7 +2508,7 @@ function MonitoringLocationsContent({
   }, [totalsByGroup]);
 
   const buildFilter = useCallback(
-    (selectedNames, monitoringLocationData) => {
+    (selectedNames: SelectedType, monitoringLocationData: MappedGroups) => {
       let filter = '';
 
       if (selectAll === 2) {
@@ -2832,7 +2861,9 @@ function MonitoringLocationsContent({
                                 Characteristics
                               </GlossaryTerm>
                             </th>
-                            <th>Number of Measurements</th>
+                            <th style={{ width: '8em' }}>
+                              Number of Measurements
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2976,7 +3007,7 @@ type UsgsStreamgagesContentProps = {
 function UsgsStreamgagesContent({
   feature,
   services,
-}: UsgsStreamgagesContentProps) {
+}: Readonly<UsgsStreamgagesContentProps>) {
   const {
     streamgageMeasurements,
     orgName,
@@ -3167,10 +3198,10 @@ function UsgsStreamgagesContent({
 function UsgsStreamgageParameter({
   url,
   data,
-}: {
+}: Readonly<{
   url: string;
   data: StreamgageMeasurement;
-}) {
+}>) {
   return (
     <tr>
       <td>

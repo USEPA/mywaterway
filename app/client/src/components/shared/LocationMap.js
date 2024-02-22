@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Node } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import Polygon from '@arcgis/core/geometry/Polygon';
@@ -77,7 +78,6 @@ import {
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors } from 'styles/index';
-import 'styles/mapStyles.css';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
@@ -94,7 +94,7 @@ const containerStyles = css`
 `;
 
 type Props = {
-  layout: 'narrow' | 'wide' | 'fullscreen',
+  layout: 'narrow' | 'wide',
   windowHeight: number,
   children?: Node,
 };
@@ -373,12 +373,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         idsNotInAssessmentUnitService &&
         idsNotInAssessmentUnitService.length > 0
       ) {
-        window.logToGa('send', 'exception', {
-          exDescription: `The Assessment Units service did not return data for the following assessment IDs ${idsNotInAssessmentUnitService.join(
+        window.logErrorToGa(
+          `The Assessment Units service did not return data for the following assessment IDs ${idsNotInAssessmentUnitService.join(
             ', ',
           )}`,
-          exFatal: false,
-        });
+        );
       }
 
       const requests = [];
@@ -486,14 +485,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         if (orphanIDs.length === 0) return;
         setWaterbodyCountMismatch(true);
 
-        window.logToGa('send', 'exception', {
-          exDescription: `huc12Summary service contained ${assessmentUnitCount} Assessment Unit IDs but the GIS service contained ${
+        window.logErrorToGa(
+          `huc12Summary service contained ${assessmentUnitCount} Assessment Unit IDs but the GIS service contained ${
             uniqueWaterbodies.length
           } features for HUC ${huc12}. Assessment Unit IDs not found in GIS service: (${orphanIDs.join(
             ', ',
           )})`,
-          exFatal: false,
-        });
+        );
 
         setOrphanFeatures({ features: [], status: 'fetching' });
 
@@ -575,7 +573,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
-  const { setDynamicPopupFields } = useDynamicPopup();
+  const { getTemplate, getTitle, setDynamicPopupFields } = useDynamicPopup();
 
   // Builds the layers that have no dependencies
   useEffect(() => {
@@ -1225,7 +1223,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
 
       // boundaries data, also has attributes for watershed
-      setWatershed(boundaries.features[0].attributes.name);
+      setWatershed(boundaries.features[0].attributes);
 
       // pass all of the states that the HUC12 is in
       getFishingLinkData(boundaries.features[0].attributes.states);
@@ -1434,7 +1432,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             }
           }
 
-          if (candidates.length === 0 || !location || !location.attributes) {
+          if (candidates.length === 0 || !location?.attributes) {
             const newAddress = coordinatesPart ? searchPart : searchText;
             setAddress(newAddress); // preserve the user's search so it is displayed
             handleNoDataAvailable(noDataAvailableError);
@@ -1701,12 +1699,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [searchText, setHuc12]);
 
   useEffect(() => {
-    if (
-      !mapView ||
-      !hucBoundaries ||
-      !hucBoundaries.features ||
-      !hucBoundaries.features[0]
-    ) {
+    if (!mapView || !hucBoundaries?.features?.[0]) {
       return;
     }
 
@@ -1715,6 +1708,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         type: 'polygon',
         spatialReference: hucBoundaries.spatialReference,
         rings: hucBoundaries.features[0].geometry.rings,
+      },
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['areasqkm'],
       },
       symbol: {
         type: 'simple-fill', // autocasts as new SimpleFillSymbol()
@@ -1749,6 +1747,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       });
     });
   }, [
+    getTemplate,
+    getTitle,
     mapView,
     hucBoundaries,
     boundariesLayer,
@@ -1852,18 +1852,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   };
   */
 
-  useEffect(() => {
-    if (layout !== 'fullscreen') return;
-
-    // scroll community content into view
-    // get community content DOM node to scroll page when form is submitted
-    const content = document.querySelector(`[data-content="locationmap"]`);
-    if (content) {
-      let pos = content.getBoundingClientRect();
-      window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
-    }
-  }, [layout, windowHeight]);
-
   // calculate height of div holding searchText
   const [searchTextHeight, setSearchTextHeight] = useState(0);
   const measuredRef = useCallback((node) => {
@@ -1893,14 +1881,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       <div
         css={containerStyles}
-        data-content="locationmap"
         data-testid="hmw-community-map"
         style={{
           marginTop: layout === 'wide' ? '1.25em' : '0',
-          height:
-            layout === 'fullscreen'
-              ? windowHeight
-              : windowHeight - searchTextHeight - 3 * mapPadding,
+          height: windowHeight - searchTextHeight - 3 * mapPadding,
         }}
       >
         <Map layers={layers} />

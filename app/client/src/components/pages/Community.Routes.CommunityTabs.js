@@ -1,13 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, {
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
+import { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
@@ -24,6 +19,8 @@ import { tabs } from 'config/communityConfig.js';
 // styles
 import { colors } from 'styles/index';
 import '@reach/tabs/styles.css';
+// utils
+import { formatNumber } from 'utils/utils';
 
 const lightBlue = '#f0f6f9';
 
@@ -160,7 +157,7 @@ const tabsOverlayStyles = css`
   }
 `;
 
-const tabsStyles = css`
+const tabsStyles = (infoToggleChecked) => css`
   & ::-webkit-scrollbar {
     height: 12px;
   }
@@ -233,9 +230,7 @@ const tabsStyles = css`
 
   > [data-reach-tab-panels] {
     [data-reach-tab-panel] {
-      padding: ${(props) => {
-        return props['info-toggle-checked'] === 'true' ? '1em' : '0';
-      }};
+      padding: ${infoToggleChecked ? '1em' : '0'};
     }
   }
 `;
@@ -458,9 +453,15 @@ function CommunityTabs() {
         <div css={locationTextStyles}>
           <p css={addressStyles}>{address}</p>
 
-          {watershed && (
+          {watershed.name && (
             <p css={watershedStyles}>
-              <span>WATERSHED:</span> {watershed} ({huc12})
+              <span>WATERSHED:</span> {watershed.name} ({huc12})
+            </p>
+          )}
+          {Boolean(watershed.areasqkm) && Boolean(watershed.areaacres) && (
+            <p css={watershedStyles}>
+              <span>SIZE:</span> {formatNumber(watershed.areaacres)} acres /{' '}
+              {formatNumber(watershed.areasqkm, 2)} km<sup>2</sup>
             </p>
           )}
         </div>
@@ -469,7 +470,7 @@ function CommunityTabs() {
       <div css={tabsOverlayStyles} ref={tabsOverlayRef} />
 
       <Tabs
-        css={tabsStyles}
+        css={tabsStyles(infoToggleChecked)}
         index={activeTabIndex}
         onChange={(index) => {
           // used for reseting tab specific toggles. This is needed so the
@@ -484,11 +485,6 @@ function CommunityTabs() {
           // navigate to the tab’s route so Google Analytics captures a pageview
           navigate(tabs[index].route.replace('{urlSearch}', urlSearch));
         }}
-        info-toggle-checked={
-          // pass custom DOM data-attribute as a prop so we can adjust each
-          // TabPanel's styling, whenever the info panel is checked
-          infoToggleChecked.toString()
-        }
       >
         <TabList ref={tabListRef}>
           {tabs.map((tab) => (
@@ -501,7 +497,7 @@ function CommunityTabs() {
         <ul css={tabDotsStyles} aria-hidden="true">
           {tabs.map((tab, index) => {
             return (
-              <li key={index}>
+              <li key={tab.title}>
                 <button
                   css={tabDotStyles}
                   tabIndex="-1"
@@ -520,7 +516,7 @@ function CommunityTabs() {
         <header css={tabHeaderStyles}>
           <div>
             <img aria-hidden="true" src={tabs[activeTabIndex].icon} alt="" />
-            <h1 css={tabTitleStyles}>{tabs[activeTabIndex].title}</h1>
+            <h2 css={tabTitleStyles}>{tabs[activeTabIndex].title}</h2>
           </div>
 
           <div>

@@ -12,7 +12,7 @@ import type { ReactNode } from 'react';
 
 type AccordionItemProps = {
   ariaLabel?: string;
-  icon?: Object;
+  icon?: ReactNode;
   title: ReactNode;
   subTitle?: ReactNode;
   feature?: __esri.Graphic;
@@ -32,7 +32,7 @@ function AccordionItem({
   allExpanded = false,
   onChange = () => {},
   children,
-}: AccordionItemProps) {
+}: Readonly<AccordionItemProps>) {
   const { mapView } = useContext(LocationSearchContext);
 
   const { highlightedGraphic, selectedGraphic, setHighlightedGraphic } =

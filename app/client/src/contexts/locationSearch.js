@@ -1,4 +1,6 @@
 import Color from '@arcgis/core/Color';
+import Extent from '@arcgis/core/geometry/Extent';
+import Viewpoint from '@arcgis/core/Viewpoint';
 import React, { Component, createContext } from 'react';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -12,6 +14,7 @@ import type {
   MonitoringLocationGroups,
   MonitoringYearsRange,
   ParameterToggleObject,
+  WatershedAttributes,
 } from 'types';
 
 export const initialMonitoringGroups = () => {
@@ -26,6 +29,26 @@ export const initialMonitoringGroups = () => {
   }, {});
 };
 
+export const initialExtent = () => new Extent({
+  xmin: -15634679.853814237,
+  ymin: -3023256.7294788733,
+  xmax: -5713765.078627277,
+  ymax: 12180985.440778064,
+  spatialReference: { wkid: 102100 },
+});
+
+const initialViewpoint = () => new Viewpoint({
+  scale: 73957190.9489445,
+  targetGeometry: initialExtent(),
+});
+
+const initialWatershed: WatershedAttributes = () => ({
+  areaacres: 0,
+  areasqkm: 0,
+  huc12: '',
+  name: '',
+});
+
 export const LocationSearchContext = createContext();
 
 type Props = {
@@ -35,7 +58,6 @@ type Props = {
 export type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
 
 type State = {
-  initialExtent: Object,
   currentExtent: Object,
   upstreamExtent: Object,
   highlightOptions: Object,
@@ -43,7 +65,7 @@ type State = {
   lastSearchText: string,
   huc12: string,
   assessmentUnitIDs: Array<string>,
-  watershed: string,
+  watershed: WatershedAttributes,
   address: string,
   assessmentUnitId: string,
   grts: Object,
@@ -62,7 +84,6 @@ type State = {
   waterbodyData: Array<Object>,
   linesData: Array<Object>,
   areasData: Array<Object>,
-  cyanWaterbodies: { status: Status, data: Array<Object> | null },
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
@@ -91,13 +112,6 @@ type State = {
 
 export class LocationSearchProvider extends Component<Props, State> {
   state: State = {
-    initialExtent: {
-      xmin: -15634679.853814237,
-      ymin: -3023256.7294788733,
-      xmax: -5713765.078627277,
-      ymax: 12180985.440778064,
-      spatialReference: { wkid: 102100 },
-    },
     currentExtent: '',
     upstreamExtent: '',
     highlightOptions: {
@@ -110,7 +124,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     lastSearchText: '',
     huc12: '',
     assessmentUnitIDs: [],
-    watershed: '',
+    watershed: initialWatershed(),
     address: '',
     fishingInfo: { status: 'fetching', data: [] },
     statesData: { status: 'fetching', data: [] },
@@ -135,7 +149,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     linesData: null,
     areasData: null,
     pointsData: null,
-    cyanWaterbodies: { status: 'idle', data: null },
     orphanFeatures: { status: 'fetching', features: [] },
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
@@ -284,9 +297,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     setPointsData: (pointsData) => {
       this.setState({ pointsData });
     },
-    setCyanWaterbodies: (cyanWaterbodies) => {
-      this.setState({ cyanWaterbodies });
-    },
     setGrts: (grts) => {
       this.setState({ grts });
     },
@@ -359,28 +369,27 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
 
     resetMap: (useDefaultZoom = false) => {
-      const { initialExtent, mapView, homeWidget } = this.state;
+      const { mapView, homeWidget } = this.state;
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
-        mapView.extent = initialExtent;
+        mapView.goTo(initialExtent());
 
         if (homeWidget) {
-          homeWidget.viewpoint = mapView.viewpoint;
+          homeWidget.viewpoint = initialViewpoint();
         }
       }
     },
 
-    resetData: () => {
+    resetData: (useDefaultZoom = false) => {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
         errorMessage: '',
-        watershed: '',
+        watershed: initialWatershed(),
         pointsData: null,
         linesData: null,
         areasData: null,
-        cyanWaterbodies: { status: 'idle', data: null },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',
@@ -401,7 +410,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
       // remove map content
       // only zoom out the map if we are on the community intro page at /community
-      if (window.location.pathname === '/community') {
+      if (useDefaultZoom || window.location.pathname === '/community') {
         this.state.resetMap(true);
       } else {
         this.state.resetMap(false);
@@ -412,11 +421,10 @@ export class LocationSearchProvider extends Component<Props, State> {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
-        watershed: '',
+        watershed: initialWatershed(),
         pointsData: [],
         linesData: [],
         areasData: [],
-        cyanWaterbodies: { status: 'success', data: [] },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',

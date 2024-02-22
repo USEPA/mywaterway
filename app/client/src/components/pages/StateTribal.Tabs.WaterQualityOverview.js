@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { css } from '@emotion/react';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
 // components
@@ -25,6 +26,7 @@ import Stories from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Stor
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors, reactSelectStyles } from 'styles/index';
+import { h2Styles, h3Styles, h4Styles } from 'styles/stateTribal';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import {
@@ -89,6 +91,7 @@ const containerStyles = css`
 
   .hmw-accordion-header h2,
   .hmw-accordion-header h3 {
+    margin-bottom: 0;
     padding-bottom: 0;
   }
 `;
@@ -128,7 +131,7 @@ const tabContainerStyles = css`
 const topicTabStyles = css`
   @media (max-width: 450px) {
     border-top: 1px solid black;
-    &:first-child {
+    &:first-of-type {
       border-top: 0;
     }
   }
@@ -148,6 +151,7 @@ const topicIconStyles = css`
 `;
 
 const headingStyles = css`
+  ${h2Styles}
   margin-top: 0 !important;
 
   i {
@@ -170,9 +174,9 @@ const filtersSectionStyles = css`
   background-color: whitesmoke;
 `;
 
-const drinkingWaterSectionStyles = css`
+const drinkingWaterSectionStyles = (displayed) => css`
   ${sectionStyles}
-  display: ${({ displayed }) => (displayed ? 'block' : 'none')};
+  display: ${displayed ? 'block' : 'none'};
   /* add top border to replicate bottom accordion border that was
   removed from 'Top Polltants' accordion in SiteSpecific component */
   margin-left: -1.5em;
@@ -934,7 +938,7 @@ function WaterQualityOverview() {
         <strong>{activeState.label}</strong> Water Quality
       </h2>
 
-      <h3>Choose a Topic:</h3>
+      <h3 css={h3Styles}>Choose a Topic:</h3>
 
       <div css={topicTabsStyles}>
         <Tabs
@@ -965,7 +969,7 @@ function WaterQualityOverview() {
                 data-testid={`hmw-${tab.id}-tab-panel`}
               >
                 <div css={filtersSectionStyles}>
-                  <h4>Pick your Water Type and Use:</h4>
+                  <h4 css={h4Styles}>Pick your Water Type and Use:</h4>
 
                   <div css={inputsStyles}>
                     <div css={inputStyles}>
@@ -1058,13 +1062,12 @@ function WaterQualityOverview() {
                 />
 
                 <div
-                  css={drinkingWaterSectionStyles}
-                  displayed={
+                  css={drinkingWaterSectionStyles(
                     currentTopic === 'drinking' &&
-                    activeState.source === 'State'
-                  }
+                      activeState.source === 'State',
+                  )}
                 >
-                  <h3>
+                  <h3 css={h3Styles}>
                     <img
                       css={imageIconStyles}
                       src={drinkingWaterIcon}
@@ -1074,7 +1077,9 @@ function WaterQualityOverview() {
                     <strong>{activeState.label}</strong>
                   </h3>
 
-                  <h4>EPA has defined three types of public water systems:</h4>
+                  <h4 css={h4Styles}>
+                    EPA has defined three types of public water systems:
+                  </h4>
 
                   {tab.id === 'drinking' && activeState.value && (
                     <WaterSystemSummary state={activeState} />
@@ -1129,7 +1134,7 @@ function WaterQualityOverview() {
             />
           </div>
         </AccordionItem>
-        {activeState?.source === 'State' ? (
+        {activeState?.source === 'State' && (
           <AccordionItem
             highlightContent={false}
             icon={
@@ -1152,8 +1157,6 @@ function WaterQualityOverview() {
               <Stories stories={stories} />
             </div>
           </AccordionItem>
-        ) : (
-          <Fragment></Fragment>
         )}
         <AccordionItem
           highlightContent={false}
@@ -1190,9 +1193,9 @@ function WaterQualityOverview() {
                       Links below open in a new browser tab.
                     </em>
                     <ul css={linkListStyles}>
-                      {introText.data.organizationURLs.map((item, index) => {
+                      {introText.data.organizationURLs.map((item) => {
                         return (
-                          <li key={index}>
+                          <li key={item.url}>
                             <a
                               href={item.url}
                               target="_blank"

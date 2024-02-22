@@ -1,27 +1,17 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { isValidElement, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { isValidElement, useState } from 'react';
+import { css } from '@emotion/react';
+// styles
+import { linkButtonStyles } from 'components/shared/LinkButton';
 // types
 import type { ReactNode } from 'react';
 
-const linkButtonStyles = css`
-  display: inline;
-  margin-bottom: 0;
+const modifiedLinkButtonStyles = css`
+  ${linkButtonStyles}
   margin-left: 0.25rem;
-  padding: 0;
-  border: none;
-  font-size: 87.5%;
   text-decoration: underline;
-  color: #0071bc;
-  background-color: transparent;
-  cursor: pointer;
-
-  &:hover,
-  &:focus {
-    text-decoration: none;
-    color: #4c2c92;
-  }
 `;
 
 // --- components ---
@@ -41,7 +31,7 @@ function ShowLessMore({ text, charLimit = 0 }: Props) {
       <>
         {truncated ? `${text.substring(0, charLimit)}...` : text}
         <button
-          css={linkButtonStyles}
+          css={modifiedLinkButtonStyles}
           onClick={(ev) => setTruncated(!truncated)}
         >
           Show {truncated ? 'more' : 'less'}
@@ -55,7 +45,7 @@ function ShowLessMore({ text, charLimit = 0 }: Props) {
       <>
         {truncated ? '...' : text}
         <button
-          css={linkButtonStyles}
+          css={modifiedLinkButtonStyles}
           onClick={(ev) => setTruncated(!truncated)}
         >
           Show {truncated ? 'more' : 'less'}

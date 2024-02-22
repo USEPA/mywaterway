@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import * as Dialog from '@radix-ui/react-dialog';
 // types
 import type { ReactNode } from 'react';
@@ -16,11 +18,17 @@ const buttonContainerStyles = css`
 `;
 
 const cancelButtonStyles = css`
-  background-color: lightgray;
+  background-color: transparent;
+  box-shadow: inset 0 0 0 2px ${colors.blue()};
+  color: ${colors.blue()};
+  font-weight: bold;
 `;
 
 const closeButtonStyles = css`
+  align-items: center;
   border-radius: 6px;
+  display: flex;
+  justify-content: center;
   position: absolute;
   top: 6px;
   right: 6px;
@@ -40,12 +48,20 @@ const closeButtonStyles = css`
 const confirmButtonStyles = css`
   margin-bottom: 0;
   font-size: 0.9375em;
+  font-weight: bold;
   color: ${colors.white()};
   background-color: ${colors.blue()};
 
   &:hover {
     color: ${colors.white()};
     background-color: ${colors.navyBlue()};
+  }
+
+  &:disabled {
+    background-color: ${colors.grayc9};
+    color: ${colors.gray45};
+    cursor: not-allowed;
+    opacity: 1;
   }
 `;
 
@@ -77,21 +93,24 @@ const contentStyles = (
 `;
 
 const disclaimerButtonStyles = css`
-  position: relative;
+  background-color: ${colors.grayd};
+  border: 0;
+  border-radius: 3px;
+  color: ${colors.gray3};
+  font-size: 0.625rem;
+  font-weight: normal;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
   margin-bottom: 0;
   padding: 0.125rem 0.375rem;
-  font-size: 0.625rem;
-  line-height: 1.25;
-  font-weight: normal;
+  position: relative;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
   user-select: none;
-  color: ${colors.gray3};
-  background-color: ${colors.grayd};
 
-  :hover,
-  :focus {
-    background-color: ${colors.grayc};
+  &:hover,
+  &:focus {
+    background-color: ${colors.grayc} !important;
+    color: inherit !important;
   }
 `;
 
@@ -120,6 +139,7 @@ type Props = {
   closeTitle?: string;
   confirmEnabled?: boolean;
   isConfirm?: boolean;
+  isLoading?: boolean;
   label: string;
   maxWidth?: string;
   onConfirm?: Function;
@@ -132,6 +152,7 @@ export default function Modal({
   closeTitle,
   confirmEnabled = false,
   isConfirm = false,
+  isLoading = false,
   label,
   maxWidth = '25rem',
   onClose = () => {},
@@ -179,6 +200,7 @@ export default function Modal({
                     <div>
                       <button
                         css={confirmButtonStyles}
+                        disabled={isLoading}
                         className="btn"
                         onClick={() => {
                           setDialogShown(false);

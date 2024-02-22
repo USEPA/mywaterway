@@ -1,9 +1,9 @@
+import { Global, css } from '@emotion/react';
 import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
-import { StrictMode } from 'react';
-import { render } from 'react-dom';
+// import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { createGlobalStyle } from 'styled-components';
 import reportWebVitals from './reportWebVitals';
 // components
 import AppRoutes from './routes';
@@ -17,16 +17,17 @@ import { FetchedDataProvider } from 'contexts/FetchedData';
 import { SurroundingsProvider } from 'contexts/Surroundings';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
-// types
-// required once project-wide
-import type {} from 'styled-components/cssprop';
+// styles
+import { fonts } from 'styles';
+import '@arcgis/core/assets/esri/themes/light/main.css';
+import 'styles/mapStyles.css';
 
 smoothscroll.polyfill();
 
-export const GlobalStyle = createGlobalStyle`
+const globalStyles = css`
   #root {
     margin: 0;
-    font-family: "Source Sans Pro", "Helvetica Neue", "Helvetica", "Roboto", "Arial", sans-serif;
+    font-family: ${fonts.primary};
     font-size: 16px;
     line-height: 1;
     color: #444;
@@ -44,7 +45,7 @@ function Root() {
             <GlossaryProvider>
               <SurroundingsProvider>
                 <AddSaveDataWidgetProvider>
-                  <GlobalStyle />
+                  <Global styles={globalStyles} />
                   <ErrorBoundary message={defaultErrorBoundaryMessage}>
                     <AppRoutes />
                   </ErrorBoundary>
@@ -59,14 +60,14 @@ function Root() {
 }
 
 const rootElement: HTMLElement | null = document.getElementById('root');
-
-if (rootElement)
-  render(
-    <StrictMode>
-      <Root />
-    </StrictMode>,
-    rootElement,
-  );
+// TODO - See if we can re-enable StrictMode
+if (rootElement) createRoot(rootElement).render(<Root />);
+// if (rootElement)
+//   createRoot(rootElement).render(
+//     <StrictMode>
+//       <Root />
+//     </StrictMode>,
+//   );
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

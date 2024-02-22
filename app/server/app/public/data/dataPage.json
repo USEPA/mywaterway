@@ -4,7 +4,7 @@
   "content": [
     {
       "description": "ATTAINS contains information on water quality assessments, impaired waters, and total maximum daily loads (TMDLs), through data submitted by states, territories and tribes under Clean Water Act sections <span data-glossary-term data-term='303(d) listed impaired waters (Category 5)'>303(d)</span>, <span data-glossary-term data-term='Clean Water Act Section 305(b)'>305(b)</span> and the <span data-glossary-term data-term='Tribal Grant Program CWA Section 106'>106 Tribal Grant program</span>.",
-      "extraContent": "<br /><h2 style='display:block;margin-bottom:0.25rem;font-size:1.125em;line-height:1.125;font-family:Source Sans Pro,Helvetica Neue,Helvetica,Roboto,Arial,sans-serif;font-weight:bold;padding-bottom:0'>Impairment Category Filtering Tool:</h2><p><a href='attains' target='_blank' rel='noopener noreferrer'>How ATTAINS data are grouped in How’s My Waterway</a></p>",
+      "extraContent": "<br /><h4 style='display:block;margin-bottom:0.25rem;font-size:1.125em;line-height:1.125;font-family:Source Sans Pro Web,Helvetica Neue,Helvetica,Roboto,Arial,sans-serif;font-weight:bold;padding-bottom:0'>Impairment Category Filtering Tool:</h4><p><a href='attains' target='_blank' rel='noopener noreferrer'>How ATTAINS data are grouped in How’s My Waterway</a></p>",
       "id": "attains",
       "linkHref": "https://www.epa.gov/waterdata/attains",
       "linkLabel": "ATTAINS Data/System",
