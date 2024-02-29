@@ -1,6 +1,8 @@
+/** @jsxImportSource @emotion/react */
+
 import React, { useRef } from 'react';
 import { TooltipPopup, useTooltip } from '@reach/tooltip';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // styles
 import '@reach/tooltip/styles.css';
 import { colors, iconButtonStyles } from 'styles';
@@ -54,7 +56,7 @@ type TooltipProps = {
   triggerRef: Ref<HTMLElement>;
 };
 
-function Tooltip({ children, label, triggerRef }: TooltipProps) {
+function Tooltip({ children, label, triggerRef }: Readonly<TooltipProps>) {
   const [trigger, tooltip] = useTooltip({
     ref: triggerRef,
   });
@@ -84,7 +86,7 @@ function HelpTooltip({
   children,
   label,
   iconClass = 'fas fa-question-circle',
-}: HelpTooltipProps) {
+}: Readonly<HelpTooltipProps>) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   return (
     <Tooltip label={label} triggerRef={triggerRef}>

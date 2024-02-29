@@ -34,9 +34,7 @@ describe('Entering URL parameters for an existent site', () => {
   });
 
   it('Should instruct the user to select a characteristic for the graph', () => {
-    cy.findByText(
-      'Select the checkboxes in the table below to plot the measurements of the corresponding characteristics. Up to 4 plots can be displayed at one time.',
-    ).should('be.visible');
+    cy.findByText('Select up to 4', { exact: false }).should('be.visible');
   });
 });
 
@@ -47,13 +45,19 @@ describe('The characteristic chart section', () => {
 
   it('Should display a graph when a characteristic with measured results is selected', () => {
     cy.findByLabelText('Select Total dissolved solids').check({ force: true });
-    cy.findByLabelText('XYChart').should('be.visible');
+    cy.findAllByLabelText('XYChart').should('be.visible');
   });
 
   it('Should display an info message when a characteristic without results is selected', () => {
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     cy.findByLabelText('Select Antimony').check({ force: true });
     cy.findByText(
-      'No measurements available to be charted for this characteristic.', { exact: false }
+      'No measurements available to be charted for this characteristic.',
+      { exact: false },
     ).should('be.visible');
   });
 });

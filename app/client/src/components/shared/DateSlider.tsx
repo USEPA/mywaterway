@@ -1,3 +1,5 @@
+/** @jsxImportSource @emotion/react */
+
 import {
   ReactNode,
   useEffect,
@@ -6,7 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useRanger } from 'react-ranger';
 import { v4 as uuid } from 'uuid';
 // components
@@ -146,7 +148,7 @@ function DateSlider({
   max = new Date().getFullYear(),
   onChange,
   range,
-}: Props) {
+}: Readonly<Props>) {
   const [sliderId] = useState(uuid());
 
   const [minYear, setMinYear] = useState(min);
@@ -199,48 +201,46 @@ function DateSlider({
       <div css={sliderContainerStylesOuter}>
         <div css={sliderContainerStyles} ref={sliderRef}>
           {minYear !== maxYear && (
-            <>
-              <div css={sliderStyles}>
-                <div {...getTrackProps({ style: trackStyles })}>
-                  {segments.map(({ getSegmentProps }, i) => (
+            <div css={sliderStyles}>
+              <div {...getTrackProps({ style: trackStyles })}>
+                {segments.map(({ getSegmentProps }, i) => (
+                  <div
+                    {...getSegmentProps({
+                      key: i,
+                      style:
+                        !disabled && i === 1
+                          ? segmentStylesActive
+                          : segmentStyles,
+                    })}
+                  />
+                ))}
+                {ticks.map(({ value, getTickProps }, i) => {
+                  return (
+                    <div css={tickStyles} {...getTickProps({ key: i })}>
+                      <div css={tickLabelStyles}>{value}</div>
+                    </div>
+                  );
+                })}
+                {!disabled &&
+                  handles.map(({ value, active, getHandleProps }, i) => (
                     <div
-                      {...getSegmentProps({
+                      aria-labelledby={`slider-${sliderId}-handle-${i}`}
+                      {...getHandleProps({
                         key: i,
-                        style:
-                          !disabled && i === 1
-                            ? segmentStylesActive
-                            : segmentStyles,
+                        style: active ? handleStylesActive : handleStyles,
                       })}
-                    />
-                  ))}
-                  {ticks.map(({ value, getTickProps }, i) => {
-                    return (
-                      <div css={tickStyles} {...getTickProps({ key: i })}>
-                        <div css={tickLabelStyles}>{value}</div>
-                      </div>
-                    );
-                  })}
-                  {!disabled &&
-                    handles.map(({ value, active, getHandleProps }, i) => (
+                      tabIndex={0}
+                    >
                       <div
-                        aria-labelledby={`slider-${sliderId}-handle-${i}`}
-                        {...getHandleProps({
-                          key: i,
-                          style: active ? handleStylesActive : handleStyles,
-                        })}
-                        tabIndex={0}
+                        id={`slider-${sliderId}-handle-${i}`}
+                        css={tooltipStyles}
                       >
-                        <div
-                          id={`slider-${sliderId}-handle-${i}`}
-                          css={tooltipStyles}
-                        >
-                          {value}
-                        </div>
+                        {value}
                       </div>
-                    ))}
-                </div>
+                    </div>
+                  ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>

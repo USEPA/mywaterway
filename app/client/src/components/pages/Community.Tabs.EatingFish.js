@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
+import { useContext } from 'react';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
@@ -43,7 +44,7 @@ function EatingFish() {
             There {summary.total === 1 ? 'is' : 'are'}{' '}
             <strong>{summary.total.toLocaleString()}</strong>{' '}
             {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed for
-            fish and shellfish consumption in the <em>{watershed}</em>{' '}
+            fish and shellfish consumption in the <em>{watershed.name}</em>{' '}
             watershed.
           </>
         }

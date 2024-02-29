@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useEffect } from 'react';
-import { css } from 'styled-components/macro';
+import { useEffect } from 'react';
+import { css } from '@emotion/react';
 import { Tab, Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -24,27 +25,27 @@ const modifiedTabsStyles = css`
   [data-reach-tab-panel] {
     padding: 2rem;
 
-    & :first-child {
-      margin-top: 0;
-    }
-
-    h2,
-    h3 {
+    h3,
+    h4 {
       margin-bottom: 0;
       padding-bottom: 0;
       font-family: ${fonts.primary};
     }
 
-    h2 {
+    h3 {
       margin-top: 2rem;
       font-size: 1.8em;
+
+      &:first-of-type {
+        margin-top: 0;
+      }
 
       & + p {
         margin-top: 0;
       }
     }
 
-    h3 {
+    h4 {
       margin-top: 1rem;
       font-size: 1.2em;
       font-weight: bold;
@@ -115,7 +116,7 @@ function AboutContent() {
 
           <TabPanels>
             <TabPanel>
-              <h2>About How’s My Waterway</h2>
+              <h3>About How’s My Waterway</h3>
               <hr />
               <p>
                 <em>How’s My Waterway</em>  was designed to provide the general
@@ -128,7 +129,7 @@ function AboutContent() {
                 yet available through EPA databases or other sources.{' '}
               </p>
 
-              <h2>How’s My Waterway Glossary</h2>
+              <h3>How’s My Waterway Glossary</h3>
               <hr />
               <p>
                 <em>How’s My Waterway</em> provides an easily accessible
@@ -139,7 +140,7 @@ function AboutContent() {
                 page in <em>How’s My Waterway</em>.
               </p>
 
-              <h2>How’s My Waterway Data </h2>
+              <h3>How’s My Waterway Data </h3>
               <hr />
               <p>
                 <em>How’s My Waterway </em>provides a{' '}
@@ -149,9 +150,9 @@ function AboutContent() {
                 <em>How’s My Waterway</em>.
               </p>
 
-              <h2>Community Page</h2>
+              <h3>Community Page</h3>
               <hr />
-              <h3>About impairment reporting</h3>
+              <h4>About impairment reporting</h4>
               <p>
                 The Clean Water Act requires States, Territories and authorized
                 tribes (states for brevity) to monitor water impairments and
@@ -172,7 +173,7 @@ function AboutContent() {
                 conditions.
               </p>
 
-              <h3>About water quality information</h3>
+              <h4>About water quality information</h4>
               <p>
                 EPA's water databases are the largest single, national source of
                 information about reported water quality problems and efforts to
@@ -187,7 +188,7 @@ function AboutContent() {
                 measured and reported.
               </p>
 
-              <h3>About impairment categories</h3>
+              <h4>About impairment categories</h4>
               <p>
                 A single waterway can have one or more types of impairments.
                 When States report impaired waters, they put them in different
@@ -206,7 +207,7 @@ function AboutContent() {
                 information can be found in the glossary.
               </p>
 
-              <h3>About what’s being done</h3>
+              <h4>About what’s being done</h4>
               <p>
                 Identifying and reporting water impairments leads to action for
                 improvement. Two major types of action taken under the Clean
@@ -230,9 +231,9 @@ function AboutContent() {
                 source pollution project.
               </p>
 
-              <h2>State Page</h2>
+              <h3>State Page</h3>
               <hr />
-              <h3>State Water Quality Overview</h3>
+              <h4>State Water Quality Overview</h4>
 
               <p>
                 You will find basic facts about a state’s waters (by the
@@ -253,7 +254,7 @@ function AboutContent() {
                 applicable).
               </p>
 
-              <h3>Advanced Search</h3>
+              <h4>Advanced Search</h4>
 
               <p>
                 On this page you will be able to find the condition of
@@ -270,7 +271,7 @@ function AboutContent() {
                 or in a list.
               </p>
 
-              <h2>National Page </h2>
+              <h3>National Page </h3>
               <hr />
               <p>
                 Learn about the condition of water resources across the nation
@@ -282,10 +283,10 @@ function AboutContent() {
             </TabPanel>
 
             <TabPanel>
-              <h2>Questions and Answers about How’s My Waterway</h2>
+              <h3>Questions and Answers about How’s My Waterway</h3>
               <hr />
 
-              <h3>What is “How’s My Waterway?”</h3>
+              <h4>What is “How’s My Waterway?”</h4>
               <p>
                 <em>How’s My Waterway</em> is an EPA tool that helps users find
                 information on the condition of their waters quickly using a
@@ -298,7 +299,7 @@ function AboutContent() {
                 (see <a href="/data">data page</a>).
               </p>
 
-              <h3>How can I use How’s My Waterway?</h3>
+              <h4>How can I use How’s My Waterway?</h4>
               <p>
                 Users can retrieve information on assessments and reported
                 condition of local waters for anywhere in the nation by
@@ -322,7 +323,7 @@ function AboutContent() {
                 location.
               </p>
 
-              <h3>Why was How’s My Waterway developed?</h3>
+              <h4>Why was How’s My Waterway developed?</h4>
               <p>
                 <em>How’s My Waterway</em> was developed to help users find
                 basic information about the condition of their waterways and
@@ -351,7 +352,7 @@ function AboutContent() {
                 understand.”
               </p>
 
-              <h3>What are the system requirements?</h3>
+              <h4>What are the system requirements?</h4>
               <p>
                 <em>How’s My Waterway</em> is fully functional when accessed
                 through browsers such as Firefox, Google Chrome, Internet
@@ -359,7 +360,7 @@ function AboutContent() {
                 smart phone. It is platform-independent.
               </p>
 
-              <h3>Is How’s My Waterway a smart phone app?</h3>
+              <h4>Is How’s My Waterway a smart phone app?</h4>
               <p>
                 Actually it is a mobile-friendly tool -- a smart phone or tablet
                 user can consult <em>How’s My Waterway</em> outdoors at the
@@ -371,10 +372,10 @@ function AboutContent() {
                 is no app available through common app stores.
               </p>
 
-              <h3>
+              <h4>
                 Is the How’s My Waterway source code available to review or
                 contribute to?
-              </h3>
+              </h4>
               <p>
                 Yes, the How’s My Waterway application code and instructions for
                 contributing changes to the project are available at{' '}
@@ -396,7 +397,7 @@ function AboutContent() {
                 </a>
               </p>
 
-              <h3>More Questions?</h3>
+              <h4>More Questions?</h4>
               <p>
                 <a
                   href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"

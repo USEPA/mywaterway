@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 // components
 import Page from 'components/shared/Page';
@@ -21,7 +22,6 @@ import {
 } from 'contexts/CommunityTabs';
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { useSurroundingsState } from 'contexts/Surroundings';
 // config
 import { tabs } from 'config/communityConfig.js';
@@ -38,15 +38,6 @@ const columnsStyles = css`
 
     @media (min-width: 560px) {
       font-size: 1em;
-    }
-  }
-
-  h2 {
-    font-family: ${fonts.primary};
-    font-size: 1.125em;
-
-    @media (min-width: 560px) {
-      font-size: 1.375em;
     }
   }
 `;
@@ -69,6 +60,15 @@ const rightColumnStyles = css`
   margin-left: -1em;
   width: calc(100% + 2em);
   line-height: 1.25;
+
+  h3 {
+    font-family: ${fonts.primary};
+    font-size: 1.125em;
+
+    @media (min-width: 560px) {
+      font-size: 1.375em;
+    }
+  }
 
   @media (min-width: 960px) {
     margin-left: 0;
@@ -110,8 +110,6 @@ function Community() {
   const fetchedDataDispatch = useFetchedDataDispatch();
 
   const { activeTabIndex } = useContext(CommunityTabsContext);
-
-  const { fullscreenActive } = useFullscreenState();
 
   // CommunityIntro is rendered in Outlet when at the '/community' and '/community/' routes
   const atCommunityIntroRoute =
@@ -181,12 +179,10 @@ function Community() {
   // jsx
   const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;
   const searchMarkup = (
-    <>
-      <LocationSearch
-        route={activeTabRoute}
-        label={<strong>Let’s get started!</strong>}
-      />
-    </>
+    <LocationSearch
+      route={activeTabRoute}
+      label={<strong>Let’s get started!</strong>}
+    />
   );
 
   const lowerTab = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].lower;
@@ -196,22 +192,6 @@ function Community() {
       <TabLinks />
       <WindowSize>
         {({ width, height }) => {
-          if (fullscreenActive) {
-            return (
-              <>
-                <LocationMap windowHeight={height} layout="fullscreen" />
-
-                <div style={{ display: 'none' }}>
-                  <Outlet />
-                </div>
-
-                {!atCommunityIntroRoute && (
-                  <div style={{ display: 'none' }}>{lowerTab}</div>
-                )}
-              </>
-            );
-          }
-
           if (width < 960) {
             // narrow screens
             return (
@@ -289,9 +269,7 @@ export default function CommunityContainer() {
       <CommunityTabsProvider>
         <LayersProvider>
           <MapHighlightProvider>
-            <FullscreenProvider>
-              <Community />
-            </FullscreenProvider>
+            <Community />
           </MapHighlightProvider>
         </LayersProvider>
       </CommunityTabsProvider>

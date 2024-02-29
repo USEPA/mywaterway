@@ -156,27 +156,33 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
 
   it('Clicking Map and List buttons show correct content', () => {
     // verify map is visible and the list view is hidden
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should('be.visible');
+    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should(
+      'be.visible',
+    );
     cy.findByText('Alaska Lake').should('not.exist');
 
     // click "List" tab
     cy.findByRole('button', { name: 'List' }).click();
 
     // verify the map is hidden and the list view is visible
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should('not.exist');
+    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should(
+      'not.exist',
+    );
     cy.findAllByText('Alaska Lake').should('be.visible');
 
     // click "Map" tab
     cy.findByRole('button', { name: 'Map' }).click();
 
     // verify map is visible and the list view is hidden
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should('be.visible');
+    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should(
+      'be.visible',
+    );
     cy.findByText('Alaska Lake').should('not.exist');
   });
 });
 
 describe('Tribe page Water Overview', () => {
-  Cypress.on("uncaught:exception", (_err, _runnable) => {
+  Cypress.on('uncaught:exception', (_err, _runnable) => {
     // returning false here prevents Cypress from
     // failing the test
     debugger;
@@ -189,8 +195,7 @@ describe('Tribe page Water Overview', () => {
 
   it(`Do not display "Drinking Water Information" when water sub-tab clicked on`, () => {
     cy.findByText('Drinking Water').click();
-    cy.findAllByText(/Drinking Water Information for/)
-      .should('not.be.visible');
+    cy.findAllByText(/Drinking Water Information for/).should('not.be.visible');
   });
 
   it(`Clicking "Expand All/Collapse All" expands/collapses the state documents menu`, () => {
@@ -209,6 +214,7 @@ describe('Tribe page Water Overview', () => {
   it(`Clicking "<tribe name> Documents" opens the documents content`, () => {
     const title = 'Red Lake Band of Chippewa Indians, Minnesota Documents';
     const text = 'Documents Related to Assessment';
+    const linkText = 'Red Lake Nation Assessment Methodology (DOCX)';
 
     // verify text is not visible
     cy.findByText(text).should('not.exist');
@@ -216,6 +222,15 @@ describe('Tribe page Water Overview', () => {
     // open accordion and check text is visible
     cy.get('.hmw-accordion').contains(title).click();
     cy.findByText(text).should('be.visible');
+
+    // check for links in table
+    cy.findByText(linkText).should(
+      'have.attr',
+      'href',
+      `https://attains.epa.gov/attains-public/api/documents/cycles/12864/210250`,
+    );
+    cy.findByText(linkText).should('have.attr', 'target', '_blank');
+    cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
 
     // close accordion and verify text is not visible
     cy.get('.hmw-accordion').contains(title).click();

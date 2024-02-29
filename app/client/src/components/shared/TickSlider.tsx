@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { useRanger } from 'react-ranger';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 
@@ -79,7 +81,7 @@ export default function TickSlider({
   steps,
   stepSize = 1,
   value,
-}: CyanSliderProps) {
+}: Readonly<CyanSliderProps>) {
   const { getTrackProps, handles, segments, ticks } = useRanger({
     min: steps[0],
     max: steps[steps.length - 1],

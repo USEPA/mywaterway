@@ -51,13 +51,13 @@ import {
 } from 'utils/mapFunctions';
 // types
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import type { ClickedHucState, ExtendedGraphic, Feature } from 'types';
-
-declare global {
-  interface Window {
-    logToGa: Function;
-  }
-}
+import type {
+  ClickedHucState,
+  ExtendedGraphic,
+  Feature,
+  WaterbodyCondition,
+  WatershedAttributes,
+} from 'types';
 
 let dynamicPopupFields: __esri.Field[] = [];
 
@@ -300,17 +300,11 @@ function useWaterbodyFeaturesState() {
 
 // custom hook that when given an (optional) waterbody attribute name,
 // draws waterbodies on the map
-type WaterbodyCondition =
-  | 'hidden'
-  | 'unassessed'
-  | 'good'
-  | 'polluted'
-  | 'nostatus';
-
 function useWaterbodyOnMap(
   attributeName: string = '',
   allWaterbodiesAttribute: string = '',
   defaultCondition: WaterbodyCondition = 'hidden',
+  filterCondition: WaterbodyCondition | null = null,
 ) {
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
   const { mapView } = useContext(LocationSearchContext);
@@ -323,7 +317,16 @@ function useWaterbodyOnMap(
   } = useLayers();
 
   const setRenderer = useCallback(
-    (layer, geometryType, attribute, alpha = null) => {
+    (
+      layer: FeatureLayer,
+      geometryType: 'point' | 'polygon' | 'polyline',
+      attribute: string,
+      alpha: {
+        base: number;
+        poly: number;
+        outline: number;
+      } | null = null,
+    ) => {
       const renderer = new UniqueValueRenderer({
         defaultSymbol: createWaterbodySymbol({
           condition: defaultCondition,
@@ -333,9 +336,11 @@ function useWaterbodyOnMap(
         }),
         field: attribute || 'overallstatus',
         fieldDelimiter: ', ',
-        uniqueValueInfos: createUniqueValueInfos(geometryType, alpha).map(
-          (info) => new UniqueValueInfo(info),
-        ),
+        uniqueValueInfos: createUniqueValueInfos(
+          geometryType,
+          alpha,
+          filterCondition,
+        ).map((info) => new UniqueValueInfo(info)),
       });
 
       if (attribute === 'isimpaired') {
@@ -362,7 +367,13 @@ function useWaterbodyOnMap(
       // close popup and clear highlights when the renderer changes
       closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
     },
-    [defaultCondition, mapView, setHighlightedGraphic, setSelectedGraphic],
+    [
+      defaultCondition,
+      filterCondition,
+      mapView,
+      setHighlightedGraphic,
+      setSelectedGraphic,
+    ],
   );
 
   useEffect(() => {
@@ -383,7 +394,8 @@ function useWaterbodyOnMap(
   useEffect(() => {
     if (!allWaterbodiesLayer) return;
 
-    const layers = allWaterbodiesLayer.layers;
+    const layers =
+      allWaterbodiesLayer.layers as __esri.Collection<__esri.FeatureLayer>;
     const attribute = allWaterbodiesAttribute || attributeName;
 
     setRenderer(layers.at(2), 'point', attribute, allWaterbodiesAlpha);
@@ -430,9 +442,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   useEffect(() => {
     if (
       !mapView ||
-      !selectedGraphic ||
-      !selectedGraphic.attributes ||
-      !selectedGraphic.attributes.zoom ||
+      !selectedGraphic?.attributes?.zoom ||
       services.status === 'fetching'
     ) {
       return;
@@ -657,7 +667,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       if (featureLayerType === 'waterbodyLayer') {
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
       } else if (featureLayerType === 'wildScenicRivers') {
-        where = `GlobalID = '${attributes.GlobalID}'`;
+        where = `OBJECTID = ${attributes.OBJECTID}`;
       } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;
       } else if ('uniqueId' in attributes) {
@@ -795,13 +805,9 @@ function useDynamicPopup() {
               return;
             }
 
-            const { attributes } = boundaries.features[0];
             resolve({
               status: 'success',
-              data: {
-                huc12: attributes.huc12,
-                watershed: attributes.name,
-              },
+              data: boundaries.features[0].attributes as WatershedAttributes,
             });
           })
           .catch((err) => {
@@ -815,7 +821,7 @@ function useDynamicPopup() {
 
   // Wrapper function for getting the content of the popup
   const getTemplate = useCallback(
-    (graphic: Feature) => {
+    (graphic: Feature, checkHuc = true) => {
       // get the currently selected huc boundaries, if applicable
       const hucBoundaries = getHucBoundaries();
       const mapView = getMapView();
@@ -844,7 +850,7 @@ function useDynamicPopup() {
       return getPopupContent({
         feature: graphic.graphic,
         fields,
-        getClickedHuc: getClickedHuc(location),
+        getClickedHuc: checkHuc ? getClickedHuc(location) : null,
         mapView,
         resetData: reset,
         services,
@@ -1003,9 +1009,6 @@ function useSharedLayers({
     });
 
     setLayer('wsioHealthIndexLayer', wsioHealthIndexLayer);
-    setResetHandler('wsioHealthIndexLayer', () => {
-      wsioHealthIndexLayer.visible = false;
-    });
 
     // Toggles the shading of the watershed graphic based on
     // whether or not the wsio layer is on or off
@@ -1057,9 +1060,6 @@ function useSharedLayers({
     });
 
     setLayer('protectedAreasLayer', protectedAreasLayer);
-    setResetHandler('protectedAreasLayer', () => {
-      protectedAreasLayer.visible = false;
-    });
 
     return protectedAreasLayer;
   }
@@ -1103,11 +1103,6 @@ function useSharedLayers({
       },
     });
     setLayer('wildScenicRiversLayer', wildScenicRiversLayer);
-    setResetHandler('wildScenicRiversLayer', () => {
-      setTimeout(() => {
-        wildScenicRiversLayer.visible = false;
-      }, 100);
-    });
 
     return wildScenicRiversLayer;
   }
@@ -1751,12 +1746,12 @@ function useGeometryUtils() {
 // Custom hook that is used to determine if the provided ref is
 // visible on the screen.
 function useOnScreen(node: HTMLDivElement | null) {
-  const [isIntersecting, setIntersecting] = useState(false);
+  const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
     if (!node) return;
     const observer = new IntersectionObserver(([entry]) =>
-      setIntersecting(entry.isIntersecting),
+      setIsIntersecting(entry.isIntersecting),
     );
 
     observer.observe(node);
@@ -1768,6 +1763,11 @@ function useOnScreen(node: HTMLDivElement | null) {
 
   return isIntersecting;
 }
+
+export type GetTemplateType = (
+  graphic: Feature,
+  checkHuc?: boolean,
+) => HTMLElement | undefined;
 
 export {
   useAbort,

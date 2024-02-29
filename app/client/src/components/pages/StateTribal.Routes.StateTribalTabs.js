@@ -1,8 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
-import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useWindowSize } from '@reach/window-size';
 // components
@@ -13,9 +13,9 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import TribalMapList from 'components/shared/TribalMapList';
 // styled components
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
+import { h2Styles } from 'styles/stateTribal';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
@@ -28,8 +28,6 @@ function StateTribalTabs() {
     setActiveTabIndex,
     setErrorType,
   } = useContext(StateTribalTabsContext);
-
-  const { fullscreenActive } = useFullscreenState();
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
@@ -100,15 +98,10 @@ function StateTribalTabs() {
 
   const tabListRef = useRef();
 
-  const { width, height } = useWindowSize();
+  const { height } = useWindowSize();
 
   const mapContent = (
-    <TribalMapList
-      windowHeight={height}
-      windowWidth={width}
-      layout={fullscreenActive ? 'fullscreen' : 'narrow'}
-      activeState={activeState}
-    />
+    <TribalMapList windowHeight={height} activeState={activeState} />
   );
 
   if (activeState.source === 'All') {
@@ -125,11 +118,10 @@ function StateTribalTabs() {
 
   if (activeState.source === 'Tribe') {
     if (tribes.status === 'failure') return null;
-    if (fullscreenActive) return mapContent;
 
     return (
       <div>
-        <h2>
+        <h2 css={h2Styles}>
           <i className="fas fa-map-marked-alt" aria-hidden="true" />
           <strong>{activeState.label}</strong> at a Glance
         </h2>
@@ -143,7 +135,6 @@ function StateTribalTabs() {
   return (
     <Tabs
       css={tabsStyles}
-      data-content="stateTabs"
       index={activeTabIndex}
       onChange={(index) => {
         setActiveTabIndex(index);
@@ -170,10 +161,4 @@ function StateTribalTabs() {
   );
 }
 
-export default function StateTribalTabsContainer() {
-  return (
-    <FullscreenProvider>
-      <StateTribalTabs />
-    </FullscreenProvider>
-  );
-}
+export default StateTribalTabs;

@@ -9,7 +9,7 @@ type Props = {
   children: ReactNode;
 };
 
-function TabErrorBoundary({ tabName, children }: Props) {
+function TabErrorBoundary({ tabName, children }: Readonly<Props>) {
   return (
     <ErrorBoundary message={tabErrorBoundaryMessage(tabName)}>
       {children}

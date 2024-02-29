@@ -88,7 +88,7 @@ function reducer(state: LayersState, action: Action): LayersState {
   }
 }
 
-export function LayersProvider({ children }: ProviderProps) {
+export function LayersProvider({ children }: Readonly<ProviderProps>) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -216,10 +216,10 @@ export function useLayers() {
 
   const updateErroredLayers = useCallback(
     (updates = {}, merge = true) => {
-      const newErroredLayers: LayersState['errored'] = {
+      const newErroredLayers = {
         ...(!merge && initialState.errored),
         ...updates,
-      };
+      } as LayersState['errored'];
       dispatch({ type: 'erroredMulti', payload: newErroredLayers });
     },
     [dispatch],

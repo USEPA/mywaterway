@@ -1,7 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 
 const containerStyles = css`
   display: flex;
@@ -48,7 +48,7 @@ function NavBar({ title, onBackClick = null }: Props) {
           </button>
         )}
       </div>
-      <h1 css={textStyles}>{title}</h1>
+      <h2 css={textStyles}>{title}</h2>
       <div css={groupStyles} />
     </div>
   );

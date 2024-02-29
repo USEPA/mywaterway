@@ -1,15 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import type { Node } from 'react';
-import { css } from 'styled-components/macro';
-import StickyBox from 'react-sticky-box';
+import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -46,8 +40,6 @@ import {
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
-// styles
-import 'styles/mapStyles.css';
 // errors
 import {
   esriMapLoadingFailure,
@@ -68,7 +60,6 @@ const containerStyles = css`
 
 // --- components ---
 type Props = {
-  layout: 'narrow' | 'wide',
   windowHeight: number,
   windowWidth: number,
   filter: string,
@@ -78,7 +69,6 @@ type Props = {
 };
 
 function StateMap({
-  layout = 'narrow',
   windowHeight,
   windowWidth,
   filter,
@@ -268,17 +258,15 @@ function StateMap({
     };
   }, [fetchedDataDispatch, resetData, resetLayers]);
 
-  const [lastFilter, setLastFilter] = useState('');
-
   // keep the selectedGraphicGlobal variable up to date
   useEffect(() => {
     selectedGraphicGlobal = selectedGraphic;
   }, [selectedGraphic]);
 
-  // cDU
   // detect when user changes their search
-  const [homeWidgetSet, setHomeWidgetSet] = useState(false);
+  const homeWidgetSet = useRef(false);
   const [mapLoading, setMapLoading] = useState(true);
+  const [lastFilter, setLastFilter] = useState('');
   useEffect(() => {
     // query geocode server for every new search
     if (
@@ -377,9 +365,9 @@ function StateMap({
                     }
 
                     // only set the home widget if the user selects a different state
-                    if (!homeWidgetSet) {
+                    if (!homeWidgetSet.current) {
                       homeWidget.viewpoint = new Viewpoint(homeParams);
-                      setHomeWidgetSet(true);
+                      homeWidgetSet.current = true;
                     }
                   } else {
                     setMapLoading(false);
@@ -396,7 +384,6 @@ function StateMap({
     waterbodyAreas,
     filter,
     homeWidget,
-    homeWidgetSet,
     lastFilter,
     waterbodyLines,
     mapView,
@@ -409,85 +396,44 @@ function StateMap({
   // Used to tell if the homewidget has been set to the selected state.
   // This will reset the value when the user selects a different state.
   useEffect(() => {
-    setHomeWidgetSet(false);
+    homeWidgetSet.current = false;
   }, [activeState]);
 
   useEffect(() => {
     // scroll community content into view
     // get community content DOM node to scroll page when form is submitted
+    const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
 
-    // if in fullscreen, scroll to top of map
-
-    if (layout === 'fullscreen') {
-      const mapContent = document.querySelector(`[data-content="statemap"]`);
-
-      if (mapContent) {
-        let pos = mapContent.getBoundingClientRect();
-        window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
-      }
+    if (mapInputs) {
+      mapInputs.scrollIntoView();
     }
-    // if in normal layout, display the inputs above the map
-    else {
-      const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
-
-      if (mapInputs) {
-        mapInputs.scrollIntoView();
-      }
-    }
-  }, [layout, windowHeight, windowWidth]);
+  }, [windowHeight, windowWidth]);
 
   // calculate height of div holding the footer content
-  const [footerHeight, setFooterHeight] = useState(0);
-  const measuredRef = useCallback((node) => {
-    if (!node) return;
-    setFooterHeight(node.getBoundingClientRect().height);
-  }, []);
-
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
   const mapInputsHeight = mapInputs?.getBoundingClientRect().height;
 
   // jsx
   const mapContent = (
     <div
-      style={
-        layout === 'fullscreen' && windowWidth < 400
-          ? { marginLeft: '-1.75em' }
-          : {}
-      }
+      css={css`
+        ${containerStyles};
+        height: ${windowHeight - mapInputsHeight - 3 * mapPadding}px;
+      `}
     >
-      <div
-        css={containerStyles}
-        data-content="statemap"
-        style={
-          layout === 'fullscreen'
-            ? {
-                height: windowHeight - footerHeight,
-                width: windowWidth,
-              }
-            : {
-                height:
-                  windowHeight -
-                  footerHeight -
-                  mapInputsHeight -
-                  3 * mapPadding,
-              }
-        }
+      <Map
+        startingExtent={{
+          xmin: -13873570.722124241,
+          ymin: 2886242.8013031036,
+          xmax: -7474874.210317273,
+          ymax: 6271485.909996087,
+          spatialReference: { wkid: 102100 },
+        }}
+        layers={layers}
       >
-        <Map
-          startingExtent={{
-            xmin: -13873570.722124241,
-            ymin: 2886242.8013031036,
-            xmax: -7474874.210317273,
-            ymax: 6271485.909996087,
-            spatialReference: { wkid: 102100 },
-          }}
-          layers={layers}
-        />
-        {mapView && mapLoading && <MapLoadingSpinner />}
-      </div>
-
-      {/* The StateMap's children is a footer */}
-      <div ref={measuredRef}>{children}</div>
+        {children}
+      </Map>
+      {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
 
@@ -506,15 +452,6 @@ function StateMap({
     );
   }
 
-  if (layout === 'wide') {
-    return (
-      <StickyBox offsetTop={mapPadding} offsetBottom={mapPadding}>
-        {mapContent}
-      </StickyBox>
-    );
-  }
-
-  // layout defaults to 'narrow'
   return mapContent;
 }
 

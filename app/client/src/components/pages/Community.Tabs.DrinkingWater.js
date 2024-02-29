@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import { ListContent } from 'components/shared/BoxContent';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -59,13 +60,6 @@ const modifiedNoteBoxStyles = css`
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
-`;
-
-const modifiedToggleTableStyles = css`
-  ${toggleTableStyles};
-  tfoot th {
-    background-color: #f0f6f9;
-  }
 `;
 
 const disclaimerStyles = css`
@@ -628,7 +622,7 @@ function DrinkingWater() {
                   {drinkingWater.data.length === 0 && (
                     <p css={centeredTextStyles}>
                       There is no drinking water data for the{' '}
-                      <em>{watershed}</em> watershed.
+                      <em>{watershed.name}</em> watershed.
                     </p>
                   )}
 
@@ -645,10 +639,7 @@ function DrinkingWater() {
 
                       {providers.length > 0 && (
                         <>
-                          <table
-                            css={modifiedToggleTableStyles}
-                            className="table"
-                          >
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>
@@ -780,7 +771,7 @@ function DrinkingWater() {
                   {drinkingWater.data.length === 0 && (
                     <p css={centeredTextStyles}>
                       There is no drinking water data for the{' '}
-                      <em>{watershed}</em> watershed.
+                      <em>{watershed.name}</em> watershed.
                     </p>
                   )}
 
@@ -790,17 +781,14 @@ function DrinkingWater() {
                         <div css={infoBoxStyles}>
                           <p css={centeredTextStyles}>
                             There are no public water systems drawing water from
-                            the <em>{watershed}</em> watershed.
+                            the <em>{watershed.name}</em> watershed.
                           </p>
                         </div>
                       )}
 
                       {totalWithdrawersCount > 0 && (
                         <>
-                          <table
-                            css={modifiedToggleTableStyles}
-                            className="table"
-                          >
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>
@@ -908,7 +896,7 @@ function DrinkingWater() {
                                 <strong>{displayedWithdrawers.length}</strong>{' '}
                                 of <strong>{totalWithdrawersCount}</strong>{' '}
                                 public water systems withdrawing water from the{' '}
-                                <em>{watershed}</em> watershed.
+                                <em>{watershed.name}</em> watershed.
                               </>
                             }
                             onSortChange={(sortBy) =>
@@ -976,7 +964,7 @@ function DrinkingWater() {
                     <strong>{summary.total.toLocaleString()}</strong>{' '}
                     {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed
                     as potential future sources of drinking water in the{' '}
-                    <em>{watershed}</em> watershed.
+                    <em>{watershed.name}</em> watershed.
                   </>
                 }
               />

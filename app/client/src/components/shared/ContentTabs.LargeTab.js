@@ -1,6 +1,6 @@
 // @flow
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 
 const largeTabStyles = css`
   padding-bottom: 15px !important;
