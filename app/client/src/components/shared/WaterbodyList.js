@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext } from 'react';
-import { css } from 'styled-components/macro';
+import { useContext } from 'react';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -26,6 +27,8 @@ import {
 } from 'contexts/LookupFiles';
 // errors
 import { huc12SummaryError } from 'config/errorMessages';
+// styles
+import { noMapDataWarningStyles } from 'styles/index';
 
 const paragraphStyles = css`
   margin-bottom: 0.5em;
@@ -149,7 +152,10 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
                   {graphic.limited && (
                     <>
                       <br />
-                      [Waterbody not visible on map.]
+                      <span css={noMapDataWarningStyles}>
+                        <i className="fas fa-exclamation-triangle" />
+                        <strong>[Waterbody not visible on map.]</strong>
+                      </span>
                     </>
                   )}
                 </>
@@ -172,10 +178,6 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
                   fieldName={fieldName}
                   disabled={graphic.limited ? true : false}
                 />
-
-                {graphic.limited && (
-                  <p>No map data available for this waterbody.</p>
-                )}
               </div>
             </AccordionItem>
           );

@@ -1,11 +1,13 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { useEffect, useState } from 'react';
+import { css } from '@emotion/react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
+import { v4 as uuid } from 'uuid';
 import { WindowSize } from '@reach/window-size';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -421,7 +423,7 @@ function WaterSystemSummary({ state }: Props) {
                 return (
                   <ul css={rowsStyles}>
                     {labels.map((label, index) => (
-                      <li css={rowStyles} key={index}>
+                      <li css={rowStyles} key={label}>
                         <span css={labelStyles}>{label}</span>
                         <span css={valueStyles}>{values[index]}</span>
                       </li>
@@ -434,15 +436,15 @@ function WaterSystemSummary({ state }: Props) {
                   <table css={tableStyles} className="table">
                     <thead>
                       <tr>
-                        {labels.map((item, index) => (
-                          <th key={index}>{item}</th>
+                        {labels.map((item) => (
+                          <th key={item}>{item}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        {values.map((item, index) => (
-                          <td key={index}>{item}</td>
+                        {values.map((item) => (
+                          <td key={uuid()}>{item}</td>
                         ))}
                       </tr>
                     </tbody>

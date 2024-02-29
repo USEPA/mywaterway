@@ -1,4 +1,5 @@
-import { render } from 'react-dom';
+import { ReactNode } from 'react';
+import { createRoot } from 'react-dom/client';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
 import Point from '@arcgis/core/geometry/Point';
@@ -8,6 +9,7 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Popup from '@arcgis/core/widgets/Popup';
 // components
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // utilities
@@ -22,12 +24,12 @@ import type {
   LookupFile,
   ParentLayer,
   PopupAttributes,
-  ScaledLayer,
   ServicesState,
   SuperLayer,
   TribeAttributes,
   VillageAttributes,
   WaterbodyAttributes,
+  WaterbodyCondition,
 } from 'types';
 
 const waterbodyStatuses = {
@@ -136,89 +138,71 @@ export function createUniqueValueInfos(
     poly: number;
     outline: number;
   } | null = null,
+  filterCondition: WaterbodyCondition | null = null,
 ) {
-  return [
+  const settings: {
+    label: string;
+    value: string;
+    condition: WaterbodyCondition;
+  }[] = [
     {
-      label: `Good`,
-      value: `Fully Supporting`,
-      symbol: createWaterbodySymbol({
-        condition: 'good',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Good',
+      value: 'Fully Supporting',
+      condition: 'good',
     },
     {
-      label: `Impaired`,
-      value: `Not Supporting`,
-      symbol: createWaterbodySymbol({
-        condition: 'polluted',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Impaired',
+      value: 'Not Supporting',
+      condition: 'polluted',
     },
     {
-      label: `Condition Unknown`,
-      value: `Insufficient Information`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Condition Unknown',
+      value: 'Insufficient Information',
+      condition: 'unassessed',
     },
     {
-      label: `Condition Unknown`,
-      value: `Not Assessed`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Condition Unknown',
+      value: 'Not Assessed',
+      condition: 'unassessed',
     },
     {
-      label: `Good`,
-      value: `Meeting Criteria`,
-      symbol: createWaterbodySymbol({
-        condition: 'good',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Good',
+      value: 'Meeting Criteria',
+      condition: 'good',
     },
     {
-      label: `Impaired`,
-      value: `Cause`,
-      symbol: createWaterbodySymbol({
-        condition: 'polluted',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Impaired',
+      value: 'Cause',
+      condition: 'polluted',
     },
     {
-      label: `Yes`,
-      value: `Y`,
-      symbol: createWaterbodySymbol({
-        condition: 'nostatus',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'Yes',
+      value: 'Y',
+      condition: 'nostatus',
     },
     {
-      label: `No`,
-      value: `N`,
-      symbol: createWaterbodySymbol({
-        condition: 'hidden',
-        selected: false,
-        geometryType,
-        alpha,
-      }),
+      label: 'No',
+      value: 'N',
+      condition: 'hidden',
     },
   ];
+
+  return settings.map((setting) => {
+    const condition =
+      filterCondition && filterCondition !== setting.condition
+        ? 'hidden'
+        : setting.condition;
+    return {
+      label: setting.label,
+      value: setting.value,
+      symbol: createWaterbodySymbol({
+        condition,
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    };
+  });
 }
 
 export function createUniqueValueInfosIssues(
@@ -351,7 +335,7 @@ export function createWaterbodySymbol({
   geometryType = 'point',
   alpha = null,
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden';
+  condition: WaterbodyCondition;
   selected: boolean;
   geometryType: string;
   alpha?: {
@@ -752,6 +736,11 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = attributes.GNIS_NAME;
   }
 
+  // Watershed
+  else if ('huc12' in attributes) {
+    title = `Watershed for Currently Selected Location: ${attributes.name} (${attributes.huc12})`;
+  }
+
   return title;
 }
 
@@ -769,7 +758,7 @@ export function getPopupContent({
 }: {
   feature: __esri.Graphic | { attributes: ChangeLocationAttributes };
   fieldName?: string;
-  extraContent?: Object;
+  extraContent?: ReactNode;
   getClickedHuc?: Promise<ClickedHucState> | null;
   mapView?: __esri.MapView;
   resetData?: () => void;
@@ -864,6 +853,11 @@ export function getPopupContent({
     else if ('T_OVR64PCT' in attributes) {
       type = 'Demographic Indicators';
     }
+
+    // Watershed
+    else if ('huc12' in attributes) {
+      type = 'Watershed';
+    }
   }
 
   const content = (
@@ -884,7 +878,7 @@ export function getPopupContent({
 
   // wrap the content for esri
   const contentContainer = document.createElement('div') as HTMLElement;
-  render(content, contentContainer);
+  createRoot(contentContainer).render(content);
 
   // return an esri popup item
   return contentContainer;
@@ -947,14 +941,14 @@ export function graphicComparison(
 export function GradientIcon({
   id,
   stops,
-}: {
+}: Readonly<{
   id: string;
   stops: Array<{ label: string; color: string }>;
-}) {
+}>) {
   const divisions = stops.length - 1;
   return (
-    <div css={{ display: 'flex', margin: 'auto' }}>
-      <div css={{ margin: '15px 0' }}>
+    <div style={{ display: 'flex', margin: 'auto' }}>
+      <div style={{ margin: '15px 0' }}>
         <svg width={50} height={25 * divisions + 20}>
           <defs>
             <linearGradient
@@ -1032,58 +1026,17 @@ export function getHighlightSymbol(
   return symbol;
 }
 
-// helper method used in handleMapZoomChange() for determining a map layer’s listMode
-export function isInScale(
-  layer: __esri.Layer | ParentLayer | ScaledLayer,
-  scale: number,
-) {
+// Helper method used to determine if the layer is in the MapView's scale range.
+export function isInScale(layer: __esri.Layer | ParentLayer, scale: number) {
   let inScale = true;
-  let minScale = 0;
-  let maxScale = 0;
 
   // get the extreme min and max scales of the layer
-  if ('sublayers' in layer && 'sourceJSON' in layer) {
-    // get sublayers included in the parentlayer
-    // note: the sublayer has maxScale and minScale, but these are always 0
-    //       even if the sublayer does actually have a min/max scale.
-    const sublayerIds: (string | number)[] = [];
-    layer.sublayers.forEach((sublayer) => {
-      if ('id' in sublayer) sublayerIds.push(sublayer.id);
-    });
+  let minScale = 'minScale' in layer ? layer.minScale ?? 0 : 0;
+  let maxScale = 'maxScale' in layer ? layer.maxScale ?? 0 : 0;
 
-    // get the min/max scale from the sourceJSON
-    layer.sourceJSON?.layers.forEach(
-      (sourceLayer: __esri.Sublayer | __esri.SubtypeSublayer) => {
-        if (!('id' in sourceLayer) || !sublayerIds.includes(sourceLayer.id))
-          return;
-
-        if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
-          minScale = sourceLayer.minScale;
-        }
-        if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
-          maxScale = sourceLayer.maxScale;
-        }
-      },
-    );
-  } else if (isGroupLayer(layer)) {
-    // get the min/max scale from the sublayers
-    layer.layers.forEach((subLayer: ScaledLayer) => {
-      if (
-        subLayer.minScale &&
-        (subLayer.minScale === 0 || subLayer.minScale > minScale)
-      ) {
-        minScale = subLayer.minScale;
-      }
-      if (
-        subLayer.maxScale &&
-        (subLayer.maxScale === 0 || subLayer.maxScale < maxScale)
-      ) {
-        maxScale = subLayer.maxScale;
-      }
-    });
-  } else if ('minScale' in layer && 'maxScale' in layer) {
-    minScale = layer.minScale ?? 0;
-    maxScale = layer.maxScale ?? 0;
+  if ('sourceJSON' in layer) {
+    minScale = layer.sourceJSON?.minScale ?? 0;
+    maxScale = layer.sourceJSON?.maxScale ?? 0;
   }
 
   // check if the map zoom is within scale
@@ -1148,3 +1101,23 @@ export const getMappedParameter = (
 
   return filteredFields;
 };
+
+// takes an action type code (plan) and renders it as a
+// glossary term if applicable
+export function mapRestorationPlanToGlossary(
+  planType: string,
+  showLabel = false,
+) {
+  return planType === 'TMDL' ||
+    planType === '4B Restoration Approach' ||
+    planType === 'Advance Restoration Plan (ARP)' ? (
+    <>
+      {showLabel && 'Restoration Plan: '}
+      <GlossaryTerm term={planType}>{planType}</GlossaryTerm>
+    </>
+  ) : planType === 'Protection Approach' ? (
+    <GlossaryTerm term={planType}>{planType}</GlossaryTerm>
+  ) : (
+    planType
+  );
+}

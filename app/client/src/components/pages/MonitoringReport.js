@@ -1,6 +1,9 @@
+/** @jsxImportSource @emotion/react */
+
 import Basemap from '@arcgis/core/Basemap';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
+import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import {
   useCallback,
@@ -13,7 +16,6 @@ import {
 } from 'react';
 import { useParams } from 'react-router-dom';
 import Select from 'react-select';
-import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { BoxContent, FlexRow } from 'components/shared/BoxContent';
@@ -39,7 +41,6 @@ import {
 // config
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
-import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -73,6 +74,10 @@ import {
 const accordionFlexStyles = css`
   display: flex;
   justify-content: space-between;
+
+  .count {
+    white-space: nowrap;
+  }
 `;
 
 const accordionHeadingStyles = css`
@@ -133,6 +138,9 @@ const chartContainerStyles = css`
   margin: 1rem 0.625rem;
 `;
 
+const chartControlStyles = css`
+  flex-shrink: 0;
+`;
 const chartTooltipStyles = css`
   p {
     line-height: 1.2em;
@@ -219,35 +227,32 @@ const downloadLinksStyles = css`
     vertical-align: top;
     width: 50%;
 
-    &:first-child {
+    &:first-of-type {
       font-weight: normal;
       padding-left: 1rem;
       text-align: start;
     }
-    &:last-child {
+    &:last-of-type {
       font-weight: bold;
       padding-right: 1rem;
       text-align: end;
     }
-  }
 
-  p {
-    margin-top: 0;
-    line-height: 1em;
-    font-size: 1em;
-    &:nth-child(n + 2) {
-      margin-top: 0.5em;
+    p {
+      margin-top: 0;
+      line-height: 1em;
+      font-size: 1em;
+      &:nth-of-type(n + 2) {
+        margin-top: 0.5em;
+      }
     }
   }
 `;
 
 const fileLinkStyles = css`
-  background: none;
-  border: none;
+  ${iconButtonStyles}
   color: #0071bc;
-  margin: 0;
-  outline: inherit;
-  padding: 0;
+
   svg {
     display: inline-block;
     height: auto;
@@ -272,6 +277,16 @@ const iconStyles = css`
   margin-right: 5px;
 `;
 
+const locationRowStyles = css`
+  & > * {
+    display: inline-block;
+  }
+
+  strong {
+    margin-right: 0.2em;
+  }
+`;
+
 const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
@@ -283,24 +298,8 @@ const infoBoxHeadingStyles = css`
     margin-top: auto;
   }
 
-  & > span {
-    flex-shrink: 0;
-  }
-
   button {
     font-size: 1rem;
-  }
-
-  small {
-    display: block;
-    margin-top: 0.125rem;
-  }
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: 0 -0.375rem 0 -0.875rem;
-    height: 1.5rem;
   }
 `;
 
@@ -317,6 +316,20 @@ const legendContainerStyles = css`
   display: flex;
   justify-content: space-between;
   margin-top: 1em;
+`;
+
+const locationHeadingStyles = css`
+  ${boxHeadingStyles}
+
+  & > small {
+    display: block;
+  }
+
+  /* loading icon */
+  svg {
+    margin: 0 -0.375rem 0 -0.875rem;
+    height: 1rem;
+  }
 `;
 
 const mapContainerStyles = css`
@@ -339,6 +352,14 @@ const messageBoxStyles = (baseStyles) => {
 const modifiedBoxStyles = css`
   ${boxStyles}
   padding-bottom: 0;
+`;
+
+const mapBoxStyles = css`
+  ${modifiedBoxStyles}
+
+  p {
+    margin-top: 0;
+  }
 `;
 
 const modifiedInfoBoxStyles = css`
@@ -383,7 +404,9 @@ const radioStyles = css`
   }
   input:checked + label:before {
     background-color: #38a6ee;
-    box-shadow: 0 0 0 2px ${colors.steel()}, inset 0 0 0 2px ${colors.white()};
+    box-shadow:
+      0 0 0 2px ${colors.steel()},
+      inset 0 0 0 2px ${colors.white()};
   }
   label {
     cursor: pointer;
@@ -493,7 +516,7 @@ const treeStyles = (level, styles) => {
 */
 
 const MAX_NUM_CHARTS = 4;
-const MEASUREMENT_PRECISION = 3;
+const MEASUREMENT_PRECISION = 5;
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
@@ -507,7 +530,7 @@ function buildTooltip(unit) {
     const datum = tooltipData.nearestDatum.datum;
     if (!datum) return null;
     const depth =
-      datum.depth !== null && datum.depthUnit !== null
+      Number.isFinite(datum.depth) && datum.depthUnit
         ? `${datum.depth} ${datum.depthUnit}`
         : null;
     return (
@@ -515,7 +538,7 @@ function buildTooltip(unit) {
         <p>{datum.x}:</p>
         <p>
           <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
-          {`${datum.y.toFixed(MEASUREMENT_PRECISION)} ${unit}`}
+          {`${formatNumber(datum.y)} ${unit}`}
           {depth && (
             <>
               <br />
@@ -570,6 +593,18 @@ const dateOptions = {
   day: 'numeric',
 };
 
+// Format number as a string with a specified precision.
+function formatNumber(num, precision = MEASUREMENT_PRECISION) {
+  if (!Number.isFinite(num)) return '';
+  if (num >= -Number.EPSILON && num <= Number.EPSILON) return '0';
+
+  const rounded = parseFloat(num.toPrecision(precision));
+  // Compare the number of significant digits to the precision.
+  return rounded.toString().replace('.', '').length > precision
+    ? rounded.toExponential()
+    : rounded.toLocaleString();
+}
+
 // Create a heatmap proportional to the range of the provided numerical data
 function generateHeatmap(data) {
   const svMin = 30;
@@ -583,7 +618,9 @@ function generateHeatmap(data) {
   const dataMax = sortedData[sortedData.length - 1];
   return sortedData.map((datum) => {
     const fractionalPos =
-      datum === 0 ? 0 : (datum - dataMin) / (dataMax - dataMin);
+      datum === 0 || dataMax === dataMin
+        ? 0
+        : (datum - dataMin) / (dataMax - dataMin);
     const offset = (svMax - svMin) * fractionalPos;
     const sat = (svMin + offset) / 100;
     const val = (svMax - offset) / 100;
@@ -685,11 +722,8 @@ function lineDatum(dayData) {
   return {
     type: 'line',
     x: dayData[0].x,
-    y: toFixedFloat(getMean(dayData.map((d) => d.y)), MEASUREMENT_PRECISION),
-    depth: toFixedFloat(
-      getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
-      MEASUREMENT_PRECISION,
-    ),
+    y: getMean(dayData.map((d) => d.y)),
+    depth: getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
     depthUnit: dayData.find((d) => d.depthUnit !== null)?.depthUnit,
   };
 }
@@ -761,7 +795,10 @@ function pointDatum(msmt, colors, depths) {
   return {
     type: 'point',
     x: msmt.date,
-    y: msmt.measurement || Number.EPSILON,
+    y:
+      msmt.measurement >= -Number.EPSILON && msmt.measurement <= Number.EPSILON
+        ? Number.EPSILON
+        : msmt.measurement,
     activityTypeCode: msmt.activityTypeCode,
     color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#4d4d4d',
     depth: msmt.depth,
@@ -1174,10 +1211,10 @@ function CharacteristicChartSection({
 
   return (
     <div className="charc-chart" css={modifiedBoxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
+      <h3 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName ? 'Selected Characteristic' : charcName}
-        <span>
+        <span css={chartControlStyles}>
           <button
             aria-label="Shift chart down"
             css={modifiedIconButtonStyles}
@@ -1198,7 +1235,7 @@ function CharacteristicChartSection({
           </button>
           <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
         </span>
-      </h2>
+      </h3>
       <StatusContent
         empty={
           <p css={messageBoxStyles(infoBoxStyles)}>
@@ -1369,6 +1406,23 @@ function CharacteristicsTableSection({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [charcs, selected]);
 
+  // Select the characteristic with the most measurements by default;
+  useEffect(() => {
+    const maxCharc = Object.values(charcs).reduce(
+      (curMax, next) => {
+        const nextCount = next.records.reduce((a, b) => {
+          return Number.isFinite(b.measurement) ? a + 1 : a;
+        }, 0);
+        if (nextCount > curMax.count) {
+          return { name: next.name, count: nextCount };
+        }
+        return curMax;
+      },
+      { name: null, count: 0 },
+    );
+    if (maxCharc.name) setSelected([maxCharc.name]);
+  }, [charcs, setSelected]);
+
   const onChange = (ev) => {
     if (ev.target.checked) {
       setSelected((prev) => [ev.target.value, ...prev]);
@@ -1406,15 +1460,19 @@ function CharacteristicsTableSection({
     return rowA.values[colId] ? -1 : 1;
   }, []);
 
+  const initialTableSort = useMemo(() => {
+    return [{ id: 'measurementCount', desc: true }, { id: 'selected' }];
+  }, []);
+
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
+      <h3 css={infoBoxHeadingStyles}>
         <div>
           Select up to {MAX_NUM_CHARTS}{' '}
           <GlossaryTerm term="Characteristics">Characteristics</GlossaryTerm>{' '}
           Below to Plot
         </div>
-      </h2>
+      </h3>
       <div css={charcsTableStyles}>
         <StatusContent
           empty={
@@ -1431,12 +1489,12 @@ function CharacteristicsTableSection({
           status={charcsStatus}
         >
           <div css={modifiedInfoBoxStyles}>
-            <h3>
+            <h4>
               Selected{' '}
               <GlossaryTerm term="Characteristics">
                 Characteristic(s)
               </GlossaryTerm>
-            </h3>
+            </h4>
             {selected.length ? (
               <div css={selectedCharacteristicStyles}>
                 <ul>
@@ -1460,7 +1518,7 @@ function CharacteristicsTableSection({
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
-            defaultSort="name"
+            initialSortBy={initialTableSort}
             striped={true}
             getColumns={(tableWidth) => {
               const columnWidth = tableWidth / 3 - 6;
@@ -1561,6 +1619,35 @@ function ChartContainer({
     return <p css={messageBoxStyles(infoBoxStyles)}>No chart type selected.</p>;
   }
 
+  // Addresses the issue that arises when all "zero" values are passed to the chart.
+  const resolvedScaleType =
+    range[0] === range[range.length - 1] ? 'log' : scaleType;
+
+  const yTickFormat = (val, _index, values) => {
+    // Avoid overcrowding on the y-axis when the log scale is used.
+    // Shows only powers of 10 when a tick threshold is exceeded.
+    if (
+      resolvedScaleType === 'log' &&
+      values.length > 20 &&
+      Math.log10(val) % 1 !== 0
+    ) {
+      return '';
+    }
+    return formatNumber(val, 3);
+  };
+
+  const crossesZero =
+    yValues.some((val) => val > 0) && yValues.some((val) => val < 0);
+  if (crossesZero && scaleType === 'log')
+    return (
+      <div css={chartContainerStyles}>
+        <p css={messageBoxStyles(infoBoxStyles)}>
+          Cannot show positive and negative values on the same chart when the{' '}
+          <em>log</em> scale type is selected.
+        </p>
+      </div>
+    );
+
   return (
     <div ref={chartRef} css={chartContainerStyles}>
       <VisxGraph
@@ -1574,7 +1661,8 @@ function ChartContainer({
         pointsVisible={pointsVisible}
         range={range}
         xTitle="Date"
-        yScale={scaleType}
+        yScale={resolvedScaleType}
+        yTickFormat={yTickFormat}
         yTitle={yTitle}
       />
       <div css={legendContainerStyles}>
@@ -1634,14 +1722,8 @@ function ChartStatistics({ data, unit }) {
   const median = getMedian(yValues);
   const stdDev = getStdDev(yValues, mean);
 
-  let average = toFixedFloat(mean, MEASUREMENT_PRECISION).toLocaleString(
-    'en-US',
-  );
-  if (stdDev)
-    average += ` ${String.fromCharCode(177)} ${toFixedFloat(
-      stdDev,
-      MEASUREMENT_PRECISION,
-    ).toLocaleString()}`;
+  let average = formatNumber(mean);
+  if (stdDev) average += ` ${String.fromCharCode(177)} ${formatNumber(stdDev)}`;
   average += ` ${unit}`;
 
   const [statisticsExpanded, setStatisticsExpanded] = useState(true);
@@ -1653,7 +1735,7 @@ function ChartStatistics({ data, unit }) {
       allExpanded={true}
       onChange={setStatisticsExpanded}
       status={statisticsExpanded ? 'highlighted' : null}
-      title={<h3 css={statisticsHeadingStyles}>Measurement Statistics</h3>}
+      title={<h4 css={statisticsHeadingStyles}>Measurement Statistics</h4>}
     >
       <div css={boxSectionStyles}>
         <BoxContent
@@ -1682,10 +1764,7 @@ function ChartStatistics({ data, unit }) {
             },
             {
               label: 'Median Value',
-              value: `${toFixedFloat(
-                median,
-                MEASUREMENT_PRECISION,
-              ).toLocaleString()} ${unit}`,
+              value: `${formatNumber(median)} ${unit}`,
             },
             {
               label: 'Minimum Value',
@@ -1737,7 +1816,7 @@ function CheckboxAccordion({
               />
               {id}
             </label>
-            <strong>{item.count.toLocaleString()}</strong>
+            <strong className="count">{item.count.toLocaleString()}</strong>
           </span>
         }
       >
@@ -1770,7 +1849,7 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
         />
         {id}
       </label>
-      <strong>{item.count.toLocaleString()}</strong>
+      <strong className="count">{item.count.toLocaleString()}</strong>
     </div>
   );
 }
@@ -1855,10 +1934,10 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
+      <h3 css={infoBoxHeadingStyles}>
         Download Data
         <HelpTooltip label="Adjust the slider handles to filter download results by the selected year range, and use the checkboxes to filter the results by individual characteristics and characteristic groups" />
-      </h2>
+      </h3>
       <StatusContent
         empty={
           <p css={messageBoxStyles(infoBoxStyles)}>
@@ -1911,10 +1990,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                 </strong>
                 <strong>
                   <em>
-                    <GlossaryTerm
-                      className="count"
-                      term="Monitoring Measurements"
-                    >
+                    <GlossaryTerm term="Monitoring Measurements">
                       Number of Measurements
                     </GlossaryTerm>
                   </em>
@@ -2121,21 +2197,23 @@ function InformationSection({ siteId, site, siteStatus }) {
 
   return (
     <div css={modifiedBoxStyles}>
-      <h2 css={infoBoxHeadingStyles}>
-        <span>
-          <small>
-            <strong>Location Name: </strong>
-            {siteStatus === 'pending' && <LoadingSpinner />}
-            {siteStatus === 'success' && site.locationName}
-          </small>
-          <small>
+      <h3 css={locationHeadingStyles}>
+        <small>
+          <div css={locationRowStyles}>
+            <strong>Location Name:</strong>
+            <span>
+              {siteStatus === 'pending' && <LoadingSpinner />}
+              {siteStatus === 'success' && site.locationName}
+            </span>
+          </div>
+          <div css={locationRowStyles}>
             <strong>
               <GlossaryTerm term="Monitoring Site ID">Site ID</GlossaryTerm>:{' '}
             </strong>
-            {siteId}
-          </small>
-        </span>
-      </h2>
+            <span>{siteId}</span>
+          </div>
+        </small>
+      </h3>
       <div css={sectionStyles}>
         <BoxContent rows={rows} styles={boxContentStyles} />
       </div>
@@ -2164,7 +2242,6 @@ function MonitoringReportContent() {
       ? 'empty'
       : monitoringLocationsStatus;
 
-  const { fullscreenActive } = useFullscreenState();
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
     orgId,
@@ -2212,39 +2289,33 @@ function MonitoringReportContent() {
   }, []);
 
   const mapNarrow = (height) => (
-    <>
-      <MapVisibilityButton>
-        {(mapShown) => (
-          <div
-            style={{
-              display: mapShown ? 'block' : 'none',
-              height: height - 40,
-            }}
-            css={`
-              ${boxStyles};
-            `}
-          >
-            <SiteMapContainer
-              layout="narrow"
-              site={site}
-              siteStatus={siteStatus}
-              siteFilter={siteFilter}
-              widthRef={widthRef}
-            />
-          </div>
-        )}
-      </MapVisibilityButton>
-    </>
+    <MapVisibilityButton>
+      {(mapShown) => (
+        <div
+          css={css`
+            ${mapBoxStyles};
+            height: ${height - 40}px;
+            display: ${mapShown ? 'block' : 'none'};
+          `}
+        >
+          <SiteMapContainer
+            layout="narrow"
+            site={site}
+            siteStatus={siteStatus}
+            siteFilter={siteFilter}
+            widthRef={widthRef}
+          />
+        </div>
+      )}
+    </MapVisibilityButton>
   );
 
   const mapWide = (
     <div
-      style={{
-        height: mapWidth,
-        minHeight: '400px',
-      }}
-      css={`
-        ${boxStyles};
+      css={css`
+        ${mapBoxStyles};
+        height: ${mapWidth}px;
+        min-height: 400px;
       `}
     >
       <SiteMapContainer
@@ -2271,23 +2342,7 @@ function MonitoringReportContent() {
     </Page>
   );
 
-  const fullScreenView = (
-    <WindowSize>
-      {({ width, height }) => (
-        <div data-content="location-map" style={{ width, height }}>
-          <SiteMapContainer
-            layout="fullscreen"
-            site={site}
-            siteFilter={siteFilter}
-            siteStatus={siteStatus}
-            widthRef={widthRef}
-          />
-        </div>
-      )}
-    </WindowSize>
-  );
-
-  const twoColumnView = (
+  const content = (
     <Page>
       <NavBar title="Water Monitoring Report" />
       <div css={containerStyles} data-content="container">
@@ -2340,8 +2395,6 @@ function MonitoringReportContent() {
     </Page>
   );
 
-  const content = fullscreenActive ? fullScreenView : twoColumnView;
-
   return (
     <StatusContent
       empty={noSiteView}
@@ -2353,21 +2406,19 @@ function MonitoringReportContent() {
   );
 }
 
-function MonitoringReport() {
+export default function MonitoringReport() {
   const { resetData } = useContext(LocationSearchContext);
   useEffect(() => {
     return function cleanup() {
-      resetData();
+      resetData(true);
     };
   }, [resetData]);
 
   return (
     <LayersProvider>
-      <FullscreenProvider>
-        <MapHighlightProvider>
-          <MonitoringReportContent />
-        </MapHighlightProvider>
-      </FullscreenProvider>
+      <MapHighlightProvider>
+        <MonitoringReportContent />
+      </MapHighlightProvider>
     </LayersProvider>
   );
 }
@@ -2428,7 +2479,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   // Zoom to the location of the site
   useEffect(() => {
-    if (!mapView || !layersInitialized || !homeWidget) return;
+    if (!mapLoading || !mapView || !layersInitialized || !homeWidget) return;
     if (siteStatus !== 'success') return;
 
     if (!monitoringLocationsLayer) return;
@@ -2455,6 +2506,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
     getSignal,
     homeWidget,
     layersInitialized,
+    mapLoading,
     mapView,
     monitoringLocationsLayer,
     siteStatus,
@@ -2462,8 +2514,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   // Scrolls to the map when switching layouts
   useEffect(() => {
-    const itemName = layout === 'fullscreen' ? 'location-map' : 'container';
-    const content = document.querySelector(`[data-content="${itemName}"]`);
+    const content = document.querySelector(`[data-content="container"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
 
@@ -2473,7 +2524,7 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   return (
     <div css={mapContainerStyles} data-testid="hmw-site-map" ref={widthRef}>
-      {siteStatus === 'pending' ? <LoadingSpinner /> : <Map layers={layers} />}
+      <Map layers={layers} />
       {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
@@ -2509,5 +2560,3 @@ function StatusContent({
       return idle;
   }
 }
-
-export default MonitoringReport;

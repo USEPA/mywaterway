@@ -1,9 +1,10 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
 import uniqueId from 'lodash/uniqueId';
 import { useEffect, useCallback, useContext, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import {
   AccordionList,
@@ -47,6 +48,7 @@ import {
   useWaterbodyOnMap,
 } from 'utils/hooks';
 import { getUniqueWaterbodies } from 'utils/mapFunctions';
+import { countOrNotAvailable } from 'utils/utils';
 // errors
 import {
   cyanError,
@@ -68,6 +70,13 @@ const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   margin-bottom: 1em;
   text-align: center;
+`;
+
+const modifiedTabLegendStyles = css`
+  ${tabLegendStyles};
+  > span {
+    margin-bottom: 0;
+  }
 `;
 
 const switchContainerStyles = css`
@@ -228,9 +237,7 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalWaterbodies) && cipSummary.status === 'success'
-                  ? totalWaterbodies.toLocaleString()
-                  : 'N/A'}
+                {countOrNotAvailable(totalWaterbodies, cipSummary.status)}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
               <div>
@@ -255,7 +262,12 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {totalMonitoringAndSensors ?? 'N/A'}
+                {countOrNotAvailable(
+                  totalMonitoringAndSensors,
+                  cyanWaterbodiesStatus,
+                  monitoringLocationsStatus,
+                  streamgagesStatus,
+                )}
               </span>
               <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div>
@@ -278,7 +290,7 @@ function Overview() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {totalPermittedDischargers ?? 'N/A'}
+                {countOrNotAvailable(dischargers, dischargersStatus)}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <div>
@@ -361,7 +373,9 @@ function WaterbodiesTab() {
   ) {
     return (
       <div css={infoBoxStyles}>
-        <p css={centeredTextStyles}>{zeroAssessedWaterbodies(watershed)}</p>
+        <p css={centeredTextStyles}>
+          {zeroAssessedWaterbodies(watershed.name)}
+        </p>
       </div>
     );
   }
@@ -375,7 +389,7 @@ function WaterbodiesTab() {
           Overall condition of{' '}
           <strong>{totalWaterbodies.toLocaleString()}</strong>{' '}
           {totalWaterbodies === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
-          <em>{watershed}</em> watershed.
+          <em>{watershed.name}</em> watershed.
         </span>
       }
     />
@@ -816,7 +830,7 @@ function MonitoringAndSensorsTab({
         {allMonitoringAndSensors.length === 0 && (
           <div css={infoBoxStyles}>
             <p css={centeredTextStyles}>
-              There are no locations with data in the <em>{watershed}</em>{' '}
+              There are no locations with data in the <em>{watershed.name}</em>{' '}
               watershed.
             </p>
           </div>
@@ -847,7 +861,7 @@ function MonitoringAndSensorsTab({
                       <span>USGS Sensors</span>
                     </label>
                   </td>
-                  <td>{streamgages.length}</td>
+                  <td>{countOrNotAvailable(streamgages, streamgagesStatus)}</td>
                 </tr>
                 <tr>
                   <td>
@@ -863,7 +877,12 @@ function MonitoringAndSensorsTab({
                       <span>Past Water Conditions</span>
                     </label>
                   </td>
-                  <td>{monitoringLocations.length}</td>
+                  <td>
+                    {countOrNotAvailable(
+                      monitoringLocations,
+                      monitoringLocationsStatus,
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <td>
@@ -882,7 +901,12 @@ function MonitoringAndSensorsTab({
                       </GlossaryTerm>
                     </div>
                   </td>
-                  <td>{cyanWaterbodies.length}</td>
+                  <td>
+                    {countOrNotAvailable(
+                      cyanWaterbodies,
+                      cyanWaterbodiesStatus,
+                    )}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -892,7 +916,7 @@ function MonitoringAndSensorsTab({
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
                   <strong>{allMonitoringAndSensors.length}</strong> locations{' '}
-                  with data in the <em>{watershed}</em> watershed.
+                  with data in the <em>{watershed.name}</em> watershed.
                   {selectedCharacteristics.length > 0 && (
                     <>
                       <br />
@@ -1260,14 +1284,15 @@ function PermittedDischargersTab({
         {totalPermittedDischargers === 0 && (
           <div css={infoBoxStyles}>
             <p css={centeredTextStyles}>
-              There are no dischargers in the <em>{watershed}</em> watershed.
+              There are no dischargers in the <em>{watershed.name}</em>{' '}
+              watershed.
             </p>
           </div>
         )}
 
         {totalPermittedDischargers > 0 && (
           <>
-            <div css={tabLegendStyles}>
+            <div css={modifiedTabLegendStyles}>
               <span>
                 {diamondIcon({ color: colors.orange() })}
                 &nbsp;Permitted Dischargers&nbsp;
@@ -1347,7 +1372,8 @@ function PermittedDischargersTab({
                   </strong>{' '}
                   of{' '}
                   <strong>{totalPermittedDischargers.toLocaleString()}</strong>{' '}
-                  permitted dischargers in the <em>{watershed}</em> watershed.
+                  permitted dischargers in the <em>{watershed.name}</em>{' '}
+                  watershed.
                 </>
               }
               onSortChange={handleSortChange}

@@ -1,5 +1,6 @@
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
+import type { FetchStatus } from 'types';
 
 // utility function to split up an array into chunks of a designated length
 export function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
@@ -44,6 +45,19 @@ export function containsScriptTag(string: string) {
     string.includes('</script>') ||
     string.includes('<script/>')
   );
+}
+
+/**
+ * Return the string "N/A" if the provided status is not "success",
+ * otherwise return `countOrData` if it is a number or the length if it is an array.
+ */
+export function countOrNotAvailable(
+  countOrData: number | unknown[] | null,
+  ...statuses: FetchStatus[]
+) {
+  if (!statuses.some((status) => status === 'success')) return 'N/A';
+  if (typeof countOrData === 'number') return countOrData.toLocaleString();
+  return (countOrData?.length ?? 0).toLocaleString();
 }
 
 export function formatNumber(number: number, digits: number = 0) {
@@ -404,14 +418,12 @@ export function summarizeAssessments(
 
     if (!field || field === 'X') {
       summary['Not Applicable']++;
-    } else {
-      if (ids.indexOf(id) === -1) {
-        ids.push(id);
-        if (field === 'Not Supporting' || field === 'Fully Supporting') {
-          summary.total++;
-        }
-        summary[field]++;
+    } else if (ids.indexOf(id) === -1) {
+      ids.push(id);
+      if (field === 'Not Supporting' || field === 'Fully Supporting') {
+        summary.total++;
       }
+      summary[field]++;
     }
   });
 

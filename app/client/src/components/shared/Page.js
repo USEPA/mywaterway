@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { Node } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
 // components
@@ -26,7 +27,7 @@ import waterPhoto from 'images/water.jpg';
 
 const topLinksStyles = css`
   position: relative;
-  z-index: 100;
+  z-index: 1;
   margin: auto;
   max-width: 1024px; /* match EPA header */
 
@@ -77,8 +78,8 @@ const topLinksStyles = css`
     background-color: transparent;
     user-select: none;
 
-    :hover,
-    :focus {
+    &:not(:disabled):hover,
+    &:not(:disabled):focus {
       border-color: ${colors.white(0.75)};
       background-color: ${colors.white(0.125)};
     }
@@ -109,7 +110,6 @@ const topLinksStyles = css`
 
 const bannerStyles = css`
   position: relative;
-  z-index: 10;
   height: 10em;
   background-image: linear-gradient(
       ${colors.black(0.875)} 25%,
@@ -146,18 +146,26 @@ const titleStyles = css`
   color: inherit;
   margin: 0;
   padding: 0;
-  font-weight: normal;
-  font-family: ${fonts.secondary};
-  font-size: 1.5em;
   color: white;
   cursor: pointer;
 
-  @media (min-width: 25em) {
-    font-size: 2em;
+  h1 {
+    font-weight: normal;
+    font-family: ${fonts.secondary};
+    font-size: 1.5em;
+
+    @media (min-width: 25em) {
+      font-size: 2em;
+    }
+
+    @media (min-width: 50em) {
+      font-size: 2.5em;
+    }
   }
 
-  @media (min-width: 50em) {
-    font-size: 2.5em;
+  &:hover,
+  &:focus {
+    background: none !important;
   }
 `;
 
@@ -223,13 +231,15 @@ function Page({ children }: Props) {
 
     // intercept esri calls to gispub
     const urls = [
+      services.data.locatorUrl,
+      services.data.mappedWater,
+      services.data.tribal,
       services.data.waterbodyService.points,
       services.data.waterbodyService.lines,
       services.data.waterbodyService.areas,
       services.data.waterbodyService.summary,
       services.data.wbd,
-      services.data.mappedWater,
-      services.data.locatorUrl,
+      services.data.wbdUnconstrained,
     ];
     esriConfig.request.interceptors.push({
       urls,
@@ -251,6 +261,26 @@ function Page({ children }: Props) {
 
         // increment the callId
         callId = callId + 1;
+
+        // This is for the search widget on the home page and community page.
+        // This intercepts the request and changes the query from 'LIKE (<text>%)'
+        // to 'LIKE (%<text>%)'.
+        const searchSettings = [
+          { url: services.data.tribal, column: 'TRIBE_NAME' },
+          { url: services.data.wbdUnconstrained, column: 'huc12' },
+        ];
+        searchSettings.forEach((search) => {
+          const where = params.requestOptions.query?.where;
+          if (
+            params.url.includes(search.url) &&
+            where?.includes(`(LOWER(${search.column}) LIKE `)
+          ) {
+            params.requestOptions.query.where = where.replaceAll(
+              `LIKE '`,
+              `LIKE '%`,
+            );
+          }
+        });
       },
 
       // Log esri api calls to Google Analytics
@@ -371,7 +401,7 @@ function Page({ children }: Props) {
               navigate('/');
             }}
           >
-            How’s My Waterway?
+            <h1>How’s My Waterway?</h1>
           </button>
 
           <p css={subtitleStyles}>

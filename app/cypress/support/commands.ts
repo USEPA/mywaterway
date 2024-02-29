@@ -37,9 +37,13 @@ declare global {
        * Custom command to select DOM element by data-cy attribute.
        * @example cy.dataCy('greeting')
        */
-       matchSnapshot(name?: string, options?: Options): Chainable<Element>
-       mockGeolocation(shouldFail: boolean, latitude?: number, longitude?: number): Chainable<Element>
-       upload(file: any, fileName: string, type?: string): Chainable<Element>
+      matchSnapshot(name?: string, options?: Options): Chainable<Element>;
+      mockGeolocation(
+        shouldFail: boolean,
+        latitude?: number,
+        longitude?: number,
+      ): Chainable<Element>;
+      upload(file: any, fileName: string, type?: string): Chainable<Element>;
     }
   }
 }
@@ -54,7 +58,11 @@ declare global {
  */
 Cypress.Commands.add(
   'mockGeolocation',
-  (shouldFail: boolean = false, latitude: number = 38.9072, longitude: number = -77.0369) => {
+  (
+    shouldFail: boolean = false,
+    latitude: number = 38.9072,
+    longitude: number = -77.0369,
+  ) => {
     cy.window().then(($window) => {
       cy.stub(
         $window.navigator.geolocation,

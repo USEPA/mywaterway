@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -19,6 +21,8 @@ import {
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
 import { useMapHighlightState } from 'contexts/MapHighlight';
+// styles
+import { noMapDataWarningStyles } from 'styles/index';
 
 const textStyles = css`
   margin: 1em;
@@ -53,11 +57,13 @@ interface SortOption {
 
 type Props = {
   waterbodies: __esri.Graphic[];
-  type: string;
   fieldName: string | null;
 };
 
-function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
+function WaterbodyListVirtualized({
+  waterbodies,
+  fieldName = null,
+}: Readonly<Props>) {
   // Triggers the loading spinner. When a search is complete the loading
   // spinner will be displayed for 250ms.
   const [loading, setLoading] = useState(true);
@@ -179,7 +185,16 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
                 title={<strong>{name}</strong>}
                 subTitle={
                   <>
-                    {getOrganizationLabel(graphic.attributes)} {auId}
+                    {getOrganizationLabel(graphic.attributes)} {auId}{' '}
+                    {viewOnMapDisabled && (
+                      <>
+                        <br />
+                        <span css={noMapDataWarningStyles}>
+                          <i className="fas fa-exclamation-triangle" />
+                          <strong>[Waterbody not visible on map.]</strong>
+                        </span>
+                      </>
+                    )}
                   </>
                 }
                 icon={<WaterbodyIcon condition={condition} selected={false} />}

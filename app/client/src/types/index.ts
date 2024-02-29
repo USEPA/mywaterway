@@ -62,7 +62,7 @@ export interface ChangeLocationAttributes {
 
 export type ClickedHucState =
   | { status: 'fetching' | 'no-data' | 'none' | 'failure'; data: null }
-  | { status: 'success'; data: { huc12: string; watershed: string } };
+  | { status: 'success'; data: WatershedAttributes };
 
 export interface CongressionalDistrictAttributes {
   CDFIPS: string;
@@ -357,6 +357,7 @@ export type PopupAttributes =
   | UsgsStreamgageAttributes
   | VillageAttributes
   | WaterbodyAttributes
+  | WatershedAttributes
   | WildScenicRiverAttributes
   | WsioHealthIndexAttributes
   | CyanWaterbodyAttributes;
@@ -364,11 +365,6 @@ export type PopupAttributes =
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
   Loc_Nm: string;
-}
-
-export interface ScaledLayer extends __esri.Layer {
-  minScale?: number;
-  maxScale?: number;
 }
 
 export interface ServicesData {
@@ -569,6 +565,13 @@ export interface WaterbodyAttributes {
   overallstatus: string;
 }
 
+export type WaterbodyCondition =
+  | 'good'
+  | 'polluted'
+  | 'unassessed'
+  | 'nostatus'
+  | 'hidden';
+
 interface PortalLayer extends __esri.Layer {
   portalItem?: __esri.PortalItem;
 }
@@ -580,6 +583,13 @@ export type PortalLayerTypes =
   | 'Map Service'
   | 'Vector Tile Service'
   | 'WMS';
+
+export interface WatershedAttributes {
+  areaacres: number;
+  areasqkm: number;
+  huc12: string;
+  name: string;
+}
 
 export type WidgetLayer =
   | {

@@ -1,6 +1,6 @@
 // @flow
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 
 const boxStyles = css`
   padding: 0.5em 0.75em !important;
@@ -14,6 +14,10 @@ const boxStyles = css`
 
     :first-of-type {
       margin-top: 0;
+    }
+
+    :last-of-type {
+      margin-bottom: 0;
     }
   }
 `;

@@ -1,9 +1,10 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
+import { css } from '@emotion/react';
 import uniqueId from 'lodash/uniqueId';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -33,7 +34,7 @@ import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
-import { formatNumber } from 'utils/utils';
+import { countOrNotAvailable, formatNumber } from 'utils/utils';
 import { getMappedParameter, plotIssues } from 'utils/mapFunctions';
 import { useDischargers, useWaterbodyOnMap } from 'utils/hooks';
 // errors
@@ -87,6 +88,13 @@ const headingStyles = css`
   padding-bottom: 0;
   font-family: ${fonts.primary};
   font-size: 1.375em;
+`;
+
+const modifiedTabLegendStyles = css`
+  ${tabLegendStyles};
+  > span {
+    margin-bottom: 0;
+  }
 `;
 
 function IdentifiedIssues() {
@@ -222,7 +230,7 @@ function IdentifiedIssues() {
     useState(false);
   const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = useState(false);
   useEffect(() => {
-    if (!window.gaTarget || cipSummary.status !== 'success') return;
+    if (cipSummary.status !== 'success') return;
 
     if (!cipSummary.data?.items?.length > 0) {
       setNullPollutedWaterbodies(true);
@@ -247,20 +255,18 @@ function IdentifiedIssues() {
     );
     if (pollutedPercent > 0 && summaryByParameterImpairments.length === 0) {
       emptyCategoriesWithPercent = true;
-      window.logToGa('send', 'exception', {
-        exDescription: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
-        exFatal: false,
-      });
+      window.logErrorToGa(
+        `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
+      );
     }
 
     // check for null percent of assess waters impaired
     const nullPollutedWaterbodies =
       containImpairedWatersCatchmentAreaPercent === null ? true : false;
     if (nullPollutedWaterbodies && summaryByParameterImpairments.length > 0) {
-      window.logToGa('send', 'exception', {
-        exDescription: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
-        exFatal: false,
-      });
+      window.logErrorToGa(
+        `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
+      );
     }
 
     setEmptyCategoriesWithPercent(emptyCategoriesWithPercent);
@@ -479,7 +485,7 @@ function IdentifiedIssues() {
 
   function getImpairedWatersPercent() {
     if (cipSummary.status === 'failure') return 'N/A';
-    return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent ?? 0}%`;
+    return nullPollutedWaterbodies ? '0%' : `${pollutedPercent ?? 0}%`;
   }
 
   // Reset the dischargers layer filter when leaving the tab
@@ -517,7 +523,7 @@ function IdentifiedIssues() {
     )}')`;
   }
 
-  const [prevDischargersLayerFilter, setPrevDischagersLayerFilter] =
+  const [prevDischargersLayerFilter, setPrevDischargersLayerFilter] =
     useState('');
   if (
     dischargersLayer &&
@@ -525,7 +531,7 @@ function IdentifiedIssues() {
     dischargersLayerFilter !== prevDischargersLayerFilter
   ) {
     dischargersLayer.definitionExpression = dischargersLayerFilter;
-    setPrevDischagersLayerFilter(dischargersLayerFilter);
+    setPrevDischargersLayerFilter(dischargersLayerFilter);
   }
 
   const [switchId] = useState(uniqueId('effluent-violations-switch-'));
@@ -559,9 +565,7 @@ function IdentifiedIssues() {
           ) : (
             <label css={switchContainerStyles}>
               <span css={keyMetricNumberStyles}>
-                {dischargersStatus === 'failure'
-                  ? 'N/A'
-                  : dischargers.length.toLocaleString()}
+                {countOrNotAvailable(dischargers, dischargersStatus)}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <Switch
@@ -601,7 +605,7 @@ function IdentifiedIssues() {
                     <div css={infoBoxStyles}>
                       <p css={centeredTextStyles}>
                         There are no impairment categories in the{' '}
-                        <em>{watershed}</em> watershed.
+                        <em>{watershed.name}</em> watershed.
                       </p>
                     </div>
                   )}
@@ -653,9 +657,9 @@ function IdentifiedIssues() {
                         {emptyCategoriesWithPercent && (
                           <p css={centeredTextStyles}>
                             Impairment Summary information is temporarily
-                            unavailable for the <em>{watershed}</em> watershed.
-                            Please see the Overview tab for specific impairment
-                            information on these waters.
+                            unavailable for the <em>{watershed.name}</em>{' '}
+                            watershed. Please see the Overview tab for specific
+                            impairment information on these waters.
                           </p>
                         )}
 
@@ -664,7 +668,7 @@ function IdentifiedIssues() {
                             <div css={infoBoxStyles}>
                               <p css={centeredTextStyles}>
                                 There are no impairment categories in the{' '}
-                                <em>{watershed}</em> watershed.
+                                <em>{watershed.name}</em> watershed.
                               </p>
                             </div>
                           )}
@@ -684,7 +688,7 @@ function IdentifiedIssues() {
 
                               <p>
                                 Impairment categories in the{' '}
-                                <em>{watershed}</em> watershed.
+                                <em>{watershed.name}</em> watershed.
                               </p>
 
                               <table css={toggleTableStyles} className="table">
@@ -790,15 +794,15 @@ function IdentifiedIssues() {
                   {!dischargers.length && (
                     <div css={infoBoxStyles}>
                       <p css={centeredTextStyles}>
-                        There are no dischargers in the <em>{watershed}</em>{' '}
-                        watershed.
+                        There are no dischargers in the{' '}
+                        <em>{watershed.name}</em> watershed.
                       </p>
                     </div>
                   )}
 
                   {dischargers.length > 0 && (
                     <>
-                      <div css={tabLegendStyles}>
+                      <div css={modifiedTabLegendStyles}>
                         <span>
                           {diamondIcon({ color: colors.orange() })}
                           &nbsp;Permitted Dischargers&nbsp;
@@ -820,7 +824,10 @@ function IdentifiedIssues() {
                               <div css={toggleStyles}>
                                 <Switch
                                   ariaLabelledBy={switchId}
-                                  checked={showViolatingDischargers}
+                                  checked={
+                                    violatingDischargers.length > 0 &&
+                                    showViolatingDischargers
+                                  }
                                   onChange={toggleViolatingDischargers}
                                   disabled={!violatingDischargers.length}
                                 />
@@ -834,14 +841,20 @@ function IdentifiedIssues() {
                               </div>
                             </td>
                             <td>
-                              {violatingDischargers.length.toLocaleString()}
+                              {countOrNotAvailable(
+                                violatingDischargers,
+                                dischargersStatus,
+                              )}
                             </td>
                           </tr>
                           <tr>
                             <td>
                               <label css={toggleStyles}>
                                 <Switch
-                                  checked={showCompliantDischargers}
+                                  checked={
+                                    compliantDischargers.length > 0 &&
+                                    showCompliantDischargers
+                                  }
                                   onChange={toggleCompliantDischargers}
                                   disabled={!compliantDischargers.length}
                                 />
@@ -849,7 +862,10 @@ function IdentifiedIssues() {
                               </label>
                             </td>
                             <td>
-                              {compliantDischargers.length.toLocaleString()}
+                              {countOrNotAvailable(
+                                compliantDischargers,
+                                dischargersStatus,
+                              )}
                             </td>
                           </tr>
                         </tbody>
@@ -864,8 +880,8 @@ function IdentifiedIssues() {
                             <strong>
                               {dischargers.length.toLocaleString()}
                             </strong>{' '}
-                            permitted dischargers in the <em>{watershed}</em>{' '}
-                            watershed.
+                            permitted dischargers in the{' '}
+                            <em>{watershed.name}</em> watershed.
                           </>
                         }
                       >
@@ -922,7 +938,7 @@ function IdentifiedIssues() {
 
       {infoToggleChecked && (
         <>
-          <h2 css={headingStyles}>Did You Know?</h2>
+          <h3 css={headingStyles}>Did You Know?</h3>
 
           <ul>
             <li>

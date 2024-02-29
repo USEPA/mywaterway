@@ -1,7 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { Link } from 'react-router-dom';
 // components
 import Page from 'components/shared/Page';
@@ -38,7 +38,7 @@ function Swimming() {
 
       <div css={topicTitleStyles}>
         <SwimmingIcon />
-        <p>Swimming</p>
+        <h3>Swimming</h3>
       </div>
 
       <div className="container" css={searchTitleStyles}>
@@ -73,7 +73,7 @@ function Swimming() {
 
         <hr />
 
-        <h2>Other Topics</h2>
+        <h3>Other Topics</h3>
 
         <div css={topicButtonContainer}>
           <Link to="/eating-fish" css={threeTopicButtonLinkStyles}>

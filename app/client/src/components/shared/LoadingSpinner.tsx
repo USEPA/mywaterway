@@ -1,4 +1,6 @@
-import { css, keyframes } from 'styled-components/macro';
+/** @jsxImportSource @emotion/react */
+
+import { css, keyframes } from '@emotion/react';
 // styles
 import { colors } from 'styles/index';
 
@@ -57,7 +59,8 @@ const circleStyles = css`
   stroke-dasharray: 150;
   stroke-dashoffset: 0;
   transform-origin: center;
-  animation: ${dash} 1.25s ease-in-out infinite,
+  animation:
+    ${dash} 1.25s ease-in-out infinite,
     ${color} 5s ease-in-out infinite;
 `;
 
