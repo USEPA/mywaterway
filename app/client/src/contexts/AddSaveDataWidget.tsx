@@ -33,7 +33,7 @@ type Props = {
   children: ReactNode;
 };
 
-export function AddSaveDataWidgetProvider({ children }: Props) {
+export function AddSaveDataWidgetProvider({ children }: Readonly<Props>) {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [addSaveDataWidgetVisible, setAddSaveDataWidgetVisible] =
     useState(false);

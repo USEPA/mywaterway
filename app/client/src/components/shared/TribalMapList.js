@@ -1,4 +1,6 @@
-import React, {
+/** @jsxImportSource @emotion/react */
+
+import {
   Fragment,
   useCallback,
   useContext,
@@ -7,7 +9,7 @@ import React, {
 } from 'react';
 import { useWindowSize } from '@reach/window-size';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import Basemap from '@arcgis/core/Basemap';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
@@ -40,7 +42,6 @@ import WaterbodyList from 'components/shared/WaterbodyList';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useFullscreenState } from 'contexts/Fullscreen';
 import {
   LocationSearchContext,
   LocationSearchProvider,
@@ -71,7 +72,10 @@ import {
   getPopupTitle,
   getPopupContent,
 } from 'utils/mapFunctions';
-import { browserIsCompatibleWithArcGIS } from 'utils/utils';
+import {
+  browserIsCompatibleWithArcGIS,
+  countOrNotAvailable,
+} from 'utils/utils';
 // errors
 import {
   esriMapLoadingFailure,
@@ -83,7 +87,7 @@ import {
 // styles
 import { tabsStyles } from 'components/shared/ContentTabs';
 // types
-import type { MonitoringLocationAttributes } from 'types';
+import type { ReactNode } from 'react';
 
 const mapPadding = 20;
 
@@ -132,8 +136,7 @@ const mapFooterStyles = css`
   width: 100%;
   /* match ESRI map footer text */
   padding: 3px 5px;
-  border: 1px solid #aebac3;
-  border-top: none;
+  border-top: 1px solid #aebac3;
   font-size: 0.75em;
   background-color: whitesmoke;
 `;
@@ -152,20 +155,14 @@ const switchContainerStyles = css`
   margin-top: 0.5em;
 `;
 
-type Layout = 'narrow' | 'wide' | 'fullscreen';
-
 type Props = {
   activeState: Object,
-  layout: Layout,
   windowHeight: number,
-  windowWidth: number,
 };
 
 function TribalMapList({
   activeState,
-  layout,
   windowHeight,
-  windowWidth,
 }: Props) {
   const { currentReportingCycle } = useContext(StateTribalTabsContext);
   const { errorMessage, mapView } = useContext(LocationSearchContext);
@@ -280,18 +277,6 @@ function TribalMapList({
       .catch(handelQueryError);
   }, [waterbodyPoints, waterbodyLines, waterbodyAreas, mapView, filter]);
 
-  // scroll to the tribe map when the user switches to full screen mode
-  useEffect(() => {
-    if (layout === 'fullscreen') {
-      const mapContent = document.querySelector(`[aria-label="Tribal Map"]`);
-
-      if (mapContent) {
-        let pos = mapContent.getBoundingClientRect();
-        window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
-      }
-    }
-  }, [layout, windowHeight, windowWidth]);
-
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
   const [displayMode, setDisplayMode] = useState('map');
@@ -316,14 +301,6 @@ function TribalMapList({
     setLayerTogglesHeight(node.getBoundingClientRect().height);
   }, []);
 
-  // calculate height of div holding the footer content
-  const [footerHeight, setFooterHeight] = useState(0);
-  const footerRef = useCallback((node) => {
-    if (!node) return;
-    setFooterHeight(node.getBoundingClientRect().height);
-  }, []);
-
-  const { fullscreenActive } = useFullscreenState();
   const { width } = useWindowSize();
 
   const [mapShown, setMapShown] = useState(true);
@@ -367,10 +344,7 @@ function TribalMapList({
             waterbodies.status === 'failure') && (
             <Fragment>
               <span css={keyMetricNumberStyles}>
-                {Boolean(waterbodies.data.length) &&
-                waterbodies.status === 'success'
-                  ? waterbodies.data.length.toLocaleString()
-                  : 'N/A'}
+                {countOrNotAvailable(waterbodies.data, waterbodies.status)}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
               <div css={switchContainerStyles}>
@@ -400,9 +374,10 @@ function TribalMapList({
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(monitoringLocations.length)
-                  ? monitoringLocations.length
-                  : 'N/A'}
+                {countOrNotAvailable(
+                  monitoringLocations,
+                  monitoringLocationsStatus,
+                )}
               </span>
               <p css={keyMetricLabelStyles}>Water Monitoring Locations</p>
               <div css={switchContainerStyles}>
@@ -439,7 +414,7 @@ function TribalMapList({
       )}
 
       <div
-        css={inputStyles(width < 960 && !fullscreenActive)}
+        css={inputStyles(width < 960)}
         ref={viewModeRef}
       >
         <div className="btn-group" role="group">
@@ -474,7 +449,7 @@ function TribalMapList({
         </div>
       </div>
 
-      {width < 960 && !fullscreenActive && (
+      {width < 960 && (
         <div>
           {displayMode === 'map' && (
             <MapVisibilityButton
@@ -504,32 +479,19 @@ function TribalMapList({
 
       <div
         aria-label="Tribal Map"
-        css={containerStyles}
-        style={
-          layout === 'fullscreen'
-            ? {
-                height: windowHeight - footerHeight,
-                width: windowWidth,
-              }
-            : {
-                height: mapListHeight - footerHeight,
-                width: '100%',
-                display: displayMode === 'map' && mapShown ? 'block' : 'none',
-              }
-        }
+        css={css`
+          ${containerStyles};
+          height: ${mapListHeight}px;
+          width: '100%';
+          display: ${displayMode === 'map' && mapShown ? 'block' : 'none'};
+        `}
       >
         <TribalMap
           activeState={activeState}
           filter={filter}
           setTribalBoundaryError={setTribalBoundaryError}
-        />
-      </div>
-      {displayMode === 'map' && mapShown && (
-        <div ref={footerRef}>
-          <div
-            css={mapFooterStyles}
-            style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
-          >
+        >
+          <div css={mapFooterStyles}>
             <div css={mapFooterStatusStyles}>
               <strong>Year Last Reported:</strong>
               &nbsp;&nbsp;
@@ -544,8 +506,8 @@ function TribalMapList({
               )}
             </div>
           </div>
-        </div>
-      )}
+        </TribalMap>
+      </div>
 
       {displayMode === 'list' && listShown && (
         <div css={modifiedTabStyles(mapListHeight)}>
@@ -594,12 +556,14 @@ function TribalMapList({
 
 type TribalMapProps = {
   activeState: Object,
+  children: ReactNode,
   filter: string,
   setTribalBoundaryError: Function,
 };
 
 function TribalMap({
   activeState,
+  children,
   filter,
   setTribalBoundaryError,
 }: TribalMapProps) {
@@ -646,12 +610,6 @@ function TribalMap({
     },
   });
   const [layers, setLayers] = useState(null);
-
-  // reset the home widget
-  const [homeWidgetSet, setHomeWidgetSet] = useState(false);
-  useEffect(() => {
-    setHomeWidgetSet(false);
-  }, [filter]);
 
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
@@ -871,6 +829,7 @@ function TribalMap({
   const [mapLoading, setMapLoading] = useState(true);
   useEffect(() => {
     if (
+      !mapLoading ||
       !filter ||
       !mapView ||
       !waterbodyPoints ||
@@ -913,20 +872,16 @@ function TribalMap({
 
           // if there is an extent then zoom to it and set the home widget
           if (fullExtent) {
-            let zoomParams = fullExtent;
-            let homeParams = { targetGeometry: fullExtent };
-
             mapView.when(() => {
-              mapView.goTo(zoomParams).then(() => {
+              mapView.goTo(fullExtent).then(() => {
                 setMapLoading(false);
+                // only set the home widget if the user selects a different state
+                homeWidget.viewpoint = new Viewpoint({
+                  targetGeometry: mapView.extent,
+                });
               });
             });
 
-            // only set the home widget if the user selects a different state
-            if (!homeWidgetSet) {
-              homeWidget.viewpoint = new Viewpoint(homeParams);
-              setHomeWidgetSet(true);
-            }
           } else {
             setMapLoading(false);
           }
@@ -934,20 +889,29 @@ function TribalMap({
       });
     });
   }, [
-    waterbodyAreas,
     filter,
     homeWidget,
-    homeWidgetSet,
-    waterbodyLines,
+    mapLoading,
     mapView,
-    waterbodyPoints,
     selectedTribeLayer,
+    waterbodyAreas,
     waterbodyLayer,
+    waterbodyLines,
+    waterbodyPoints,
   ]);
+
+  // reset the loading status when the filter changes
+  const [prevFilter, setPrevFilter] = useState(filter);
+  if (filter !== prevFilter) {
+    setPrevFilter(filter);
+    setMapLoading(true);
+  }
 
   return (
     <Fragment>
-      <Map layers={layers} />
+      <Map layers={layers}>
+        {children}
+      </Map>
       {mapView && mapLoading && <MapLoadingSpinner />}
     </Fragment>
   );
@@ -955,7 +919,6 @@ function TribalMap({
 
 type MonitoringTabProps = {
   activeState: Object,
-  monitoringLocations: MonitoringLocationAttributes[],
   selectedCharacteristics: string[],
   setSelectedCharacteristics: (selected: string[]) => void,
 };

@@ -56,16 +56,14 @@ module.exports = function (app) {
         headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
       } else if (lowerCaseUrl.includes('cyan.epa.gov/waterbody/image/')) {
         responseType = 'stream';
-      } else {
-        if (
-          !app.enabled('isLocal') &&
-          lowerCaseUrl.includes('://' + req.hostname.toLowerCase()) &&
-          lowerCaseUrl.includes('/data/')
-        ) {
-          //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
-          const jsonFileName = parsedUrl.split('/data/').pop();
-          parsedUrl = app.get('s3_bucket_url') + '/data/' + jsonFileName;
-        }
+      } else if (
+        !app.enabled('isLocal') &&
+        lowerCaseUrl.includes('://' + req.hostname.toLowerCase()) &&
+        lowerCaseUrl.includes('/data/')
+      ) {
+        //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
+        const jsonFileName = parsedUrl.split('/data/').pop();
+        parsedUrl = app.get('s3_bucket_url') + '/data/' + jsonFileName;
       }
 
       function deleteTSHeaders(response) {

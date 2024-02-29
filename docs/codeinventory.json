@@ -2,7 +2,7 @@
 "organization": "USEPA",
 "name": "How's My Waterway",
 "version": "2.0.0",
-"status": "Pre-release",
+"status": "Production",
 "description": "How's My Waterway is a responsive, map-centric, mobile ready web application that pulls data from several different systems at EPA and beyond via web services to provide a user with an overall picture of water quality.",
 "permissions": {
 "licenses": [

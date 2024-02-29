@@ -1,4 +1,6 @@
-import { css } from 'styled-components/macro';
+/** @jsxImportSource @emotion/react */
+
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 

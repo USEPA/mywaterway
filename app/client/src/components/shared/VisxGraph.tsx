@@ -1,5 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import { Fragment, useLayoutEffect, useState } from 'react';
-import { createGlobalStyle, css } from 'styled-components/macro';
+import { css, Global } from '@emotion/react';
 import { GlyphDot } from '@visx/glyph';
 import { LegendLabel, LegendLinear, LegendItem } from '@visx/legend';
 import { scaleLinear } from '@visx/scale';
@@ -11,6 +13,7 @@ import {
   Tooltip,
   XYChart,
 } from '@visx/xychart';
+import { fonts } from 'styles';
 // types
 import type { ReactNode } from 'react';
 import type { GlyphProps, TooltipData } from '@visx/xychart';
@@ -21,6 +24,12 @@ const DEFAULT_COLOR = '#2C2E43';
 ## Styles
 */
 
+const axisTitleStyles = {
+  fontFamily: fonts.primary,
+  fontSize: '1rem',
+  fontWeight: 'bold',
+};
+
 const legendContainerStyles = css`
   display: flex;
   flex-direction: row;
@@ -28,18 +37,25 @@ const legendContainerStyles = css`
 `;
 
 const legendStyles = css`
+  align-items: center;
   display: flex;
   flex-direction: row;
 `;
 
 // NOTE: EPA's _reboot.css file causes the tooltip series glyph to be clipped
-const VisxStyles = createGlobalStyle`
+const glyphStyles = css`
   .visx-tooltip-glyph svg {
     overflow: visible;
     width: 10px;
     height: 10px;
   }
 `;
+
+const tickLabelStyles = {
+  fontFamily: fonts.primary,
+  fontWeight: 400,
+  fontSize: '0.75rem',
+};
 
 /*
 ## Types
@@ -92,6 +108,7 @@ type VisxGraphProps = {
   range?: number[];
   xTitle?: string;
   yScale?: 'log' | 'linear';
+  yTickFormat?: (val: number) => string;
   yTitle?: string;
 };
 
@@ -113,8 +130,9 @@ export function VisxGraph({
   range,
   xTitle,
   yScale = 'linear',
+  yTickFormat = (val: number) => val.toLocaleString(),
   yTitle,
-}: VisxGraphProps) {
+}: Readonly<VisxGraphProps>) {
   const [width, setWidth] = useState<number | null>(null);
   useLayoutEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -179,39 +197,53 @@ export function VisxGraph({
 
   return (
     <>
-      <VisxStyles />
+      <Global styles={glyphStyles} />
       <XYChart
         height={height}
-        margin={{ top: 20, bottom: 45, left: 85, right: 30 }}
+        margin={{ top: 20, bottom: 55, left: 100, right: 50 }}
         theme={theme}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
-        yScale={{ type: yScale, domain: range }}
+        yScale={{
+          type: yScale,
+          domain: range,
+        }}
       >
         <Axis
           label={xTitle}
           labelProps={{
+            dy: 15,
             fill: '#2C2E43',
-            style: { fontWeight: 'bold' },
             verticalAnchor: 'start',
+            ...axisTitleStyles,
           }}
           numTicks={width ? Math.floor(width / 120) : 4}
           orientation="bottom"
           strokeWidth={2}
+          tickLabelProps={{
+            angle: 15,
+            dx: -5,
+            textAnchor: 'start',
+            y: 15,
+            ...tickLabelStyles,
+          }}
+          tickLength={3}
         />
         <Axis
           label={yTitle}
           labelProps={{
             fill: '#2C2E43',
-            dx: -30,
+            dx: -45,
             lineHeight: '1.2em',
-            style: { fontWeight: 'bold' },
             scaleToFit: false,
             textAnchor: 'middle',
             width: height,
+            ...axisTitleStyles,
           }}
           orientation="left"
           strokeWidth={2}
-          tickFormat={(val) => (val <= Number.EPSILON ? '0' : val)}
+          tickFormat={yTickFormat}
+          tickLabelProps={tickLabelStyles}
+          tickLength={5}
         />
         {lineVisible && (
           <LineSeries
@@ -251,7 +283,11 @@ interface GradientLegendProps {
   title: string;
 }
 
-export function GradientLegend({ colors, keys, title }: GradientLegendProps) {
+export function GradientLegend({
+  colors,
+  keys,
+  title,
+}: Readonly<GradientLegendProps>) {
   const colorScale = scaleLinear<string>({
     domain: keys,
     range: colors,
@@ -282,10 +318,7 @@ export function GradientLegend({ colors, keys, title }: GradientLegendProps) {
             />
           </svg>
         ) : (
-          <LegendLinear
-            scale={colorScale as ReturnType<typeof scaleLinear>}
-            steps={20}
-          >
+          <LegendLinear scale={colorScale} steps={20}>
             {(labels) =>
               labels.map((label) => (
                 <Fragment key={label.text}>

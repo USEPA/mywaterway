@@ -1,6 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -11,6 +12,7 @@ import { useDocumentOrderContext } from 'contexts/LookupFiles';
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import { h3Styles } from 'styles/stateTribal';
 // errors
 import {
   stateDocumentError,
@@ -55,6 +57,7 @@ const containerStyles = css`
   }
 
   h3 {
+    ${h3Styles}
     margin-bottom: 0px;
   }
 `;
@@ -272,7 +275,7 @@ function DocumentsTable({
               accessor: 'documentName',
               Header: 'Document',
               width: docNameWidth,
-              Render: (cell) => {
+              Cell: (cell) => {
                 const { documentFileName, documentURL } = cell.row.original;
                 return (
                   <DocumentLink
@@ -287,7 +290,7 @@ function DocumentsTable({
               accessor: 'agencyCode',
               Header: 'Agency Code',
               width: 125,
-              Render: (cell) => {
+              Cell: (cell) => {
                 if (cell.value === 'S') return 'State';
                 if (cell.value === 'E') return 'EPA';
                 return cell.value;

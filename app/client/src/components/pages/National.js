@@ -1,7 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import Page from 'components/shared/Page';
@@ -315,10 +315,10 @@ function NationalWaterQualityPanel() {
       <div css={tabsStyles}>
         <Tabs>
           <TabList>
-            {data.tabs.map((tab, tabIndex) => {
+            {data.tabs.map((tab) => {
               const tabId = tab.title.replace(/\W+/g, '-').toLowerCase();
               return (
-                <Tab data-testid={`hmw-national-${tabId}-tab`} key={tabIndex}>
+                <Tab data-testid={`hmw-national-${tabId}-tab`} key={tab.title}>
                   {tab.title}
                 </Tab>
               );
@@ -326,12 +326,12 @@ function NationalWaterQualityPanel() {
           </TabList>
 
           <TabPanels>
-            {data.tabs.map((tab, tabIndex) => (
-              <TabPanel key={tabIndex}>
+            {data.tabs.map((tab) => (
+              <TabPanel key={tab.title}>
                 <AccordionList>
-                  {tab.content.map((category, categoryIndex) => (
+                  {tab.content.map((category) => (
                     <AccordionItem
-                      key={categoryIndex}
+                      key={category.title}
                       title={
                         <span
                           dangerouslySetInnerHTML={{ __html: category.title }}
@@ -346,8 +346,8 @@ function NationalWaterQualityPanel() {
                   ))}
                 </AccordionList>
 
-                {tab.footnotes.map((footnote, footnoteIndex) => (
-                  <p css={footnoteStyles} key={footnoteIndex}>
+                {tab.footnotes.map((footnote) => (
+                  <p css={footnoteStyles} key={footnote}>
                     <small dangerouslySetInnerHTML={{ __html: footnote }} />
                   </p>
                 ))}

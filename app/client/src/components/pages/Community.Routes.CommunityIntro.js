@@ -1,7 +1,8 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useEffect } from 'react';
-import { css } from 'styled-components/macro';
+import { useEffect } from 'react';
+import { css } from '@emotion/react';
 // contexts
 import { useLayers } from 'contexts/Layers';
 // styles
@@ -30,6 +31,7 @@ const headingStyles = css`
 
   @media (min-width: 560px) {
     font-size: 1.75em;
+    margin-bottom: 0.5em;
   }
 
   @media (min-width: 960px) {

@@ -1,15 +1,16 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { css } from '@emotion/react';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import * as query from '@arcgis/core/rest/query';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import MenuList from 'components/shared/MenuList';
 import Modal from 'components/shared/Modal';
+import PaginatedSelect from 'components/shared/PaginatedSelect';
 import StateMap from 'components/shared/StateMap';
 import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized';
 // styled components
@@ -22,13 +23,13 @@ import {
   useMapHighlightState,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
-import { useFullscreenState } from 'contexts/Fullscreen';
 import {
   useReportStatusMappingContext,
   useServicesContext,
 } from 'contexts/LookupFiles';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
+import { getWaterbodyCondition } from 'utils/mapFunctions';
 import { chunkArray, isAbort } from 'utils/utils';
 import {
   useAbort,
@@ -50,6 +51,25 @@ const defaultDisplayOption = {
   label: 'Overall Waterbody Condition',
   value: '',
 };
+
+const filterByOptions = [
+  {
+    label: 'All',
+    value: '',
+  },
+  {
+    label: 'Good',
+    value: 'good',
+  },
+  {
+    label: 'Impaired',
+    value: 'polluted',
+  },
+  {
+    label: 'Condition Unknown',
+    value: 'unassessed',
+  },
+];
 
 // Gets the maxRecordCount of the layer at the provided url
 function retrieveMaxRecordCount(url, signal) {
@@ -163,7 +183,7 @@ const resultsInputsStyles = css`
 const resultsInputStyles = css`
   ${inputStyles}
   @media (min-width: 768px) {
-    width: calc((100% / 3) - 1em);
+    width: calc((100% / 2) - 1em);
   }
 `;
 
@@ -195,8 +215,7 @@ const mapFooterStyles = css`
   width: 100%;
   /* match ESRI map footer text */
   padding: 3px 5px;
-  border: 1px solid #aebac3;
-  border-top: none;
+  border-top: 1px solid #aebac3;
   font-size: 0.75em;
   background-color: whitesmoke;
 `;
@@ -240,8 +259,6 @@ function AdvancedSearch() {
     stateAndOrganization,
     setStateAndOrganization,
   } = useContext(StateTribalTabsContext);
-
-  const { fullscreenActive } = useFullscreenState();
 
   const {
     mapView,
@@ -327,6 +344,13 @@ function AdvancedSearch() {
 
   // get a list of watersheds and build the esri where clause
   const [watersheds, setWatersheds] = useState(null);
+  const watershedOptions = useMemo(() => {
+    return watersheds
+      ? watersheds
+          .filter((watershed) => watershed.label) // filter out nulls
+          .sort((a, b) => a.label.localeCompare(b.label))
+      : [];
+  }, [watersheds]);
   useEffect(() => {
     if (activeState.value === '' || !watershedsLayerMaxRecordCount) return;
 
@@ -390,6 +414,11 @@ function AdvancedSearch() {
 
   // these lists just have the name and id for faster load time
   const [waterbodiesList, setWaterbodiesList] = useState(null);
+  const waterbodiesOptions = useMemo(() => {
+    return waterbodiesList
+      ? waterbodiesList.sort((a, b) => a.label.localeCompare(b.label))
+      : [];
+  }, [waterbodiesList]);
   // Get the features on the waterbodies point layer
   useEffect(() => {
     if (!stateAndOrganization || !summaryLayerMaxRecordCount) {
@@ -565,6 +594,9 @@ function AdvancedSearch() {
     selectedDisplayOption,
     setSelectedDisplayOption, //
   ] = useState(defaultDisplayOption);
+  const [selectedFilterOption, setSelectedFilterOption] = useState(
+    filterByOptions[0],
+  );
   // Resets the filters when the user selects a different state
   useEffect(() => {
     // Reset ui
@@ -594,6 +626,7 @@ function AdvancedSearch() {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
+    setSelectedFilterOption(filterByOptions[0]);
   }, [activeState, setStateAndOrganization, setWaterbodyData]);
 
   const executeFilter = () => {
@@ -765,7 +798,12 @@ function AdvancedSearch() {
     updateDisplayOptions(parameterFilter, newUseFilter);
   };
 
-  useWaterbodyOnMap(selectedDisplayOption.value, '', 'unassessed');
+  useWaterbodyOnMap(
+    selectedDisplayOption.value,
+    '',
+    'unassessed',
+    selectedFilterOption.value,
+  );
 
   // jsx
   const filterControls = (
@@ -818,43 +856,27 @@ function AdvancedSearch() {
             </GlossaryTerm>
             :
           </span>
-          <Select
+          <PaginatedSelect
             aria-label="Watershed Names (HUC12)"
-            isMulti
             isLoading={!watersheds}
             disabled={!watersheds}
-            components={{ MenuList }} // virtualized list
             filterOption={createFilter({ ignoreAccents: false })} // performance boost
-            options={
-              watersheds
-                ? watersheds
-                    .filter((watershed) => watershed.label) // filter out nulls
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                : []
-            }
+            options={watershedOptions}
             value={watershedFilter}
             onChange={(ev) => setWatershedFilter(ev)}
-            styles={reactSelectStyles}
           />
         </div>
 
         <div css={inputStyles}>
           <label htmlFor="waterbodies">Waterbody Names (IDs):</label>
-          <Select
-            inputId="waterbodies"
-            isMulti
-            isLoading={!waterbodiesList}
+          <PaginatedSelect
             disabled={!waterbodiesList}
-            components={{ MenuList }} // virtualized list
             filterOption={createFilter({ ignoreAccents: false })} // performance boost
-            options={
-              waterbodiesList
-                ? waterbodiesList.sort((a, b) => a.label.localeCompare(b.label))
-                : []
-            }
-            value={waterbodyFilter}
+            inputId="waterbodies"
+            isLoading={!waterbodiesList}
             onChange={(ev) => setWaterbodyFilter(ev)}
-            styles={reactSelectStyles}
+            options={waterbodiesOptions}
+            value={waterbodyFilter}
           />
         </div>
       </div>
@@ -933,8 +955,9 @@ function AdvancedSearch() {
       <div css={searchStyles}>
         <Modal
           closeTitle="Cancel search"
-          confirmEnabled={numberOfRecords > 0}
+          confirmEnabled={searchLoading || numberOfRecords > 0}
           isConfirm={true}
+          isLoading={searchLoading}
           label="Warning about potentially slow search"
           onConfirm={() => {
             setCurrentFilter(nextFilter);
@@ -943,12 +966,14 @@ function AdvancedSearch() {
             // update the possible display options
             setDisplayOptions(newDisplayOptions);
             // figure out if the selected display option is available
-            const indexOfDisplay = newDisplayOptions.findIndex((item) => {
-              return item.value === selectedDisplayOption.value;
-            });
+            const indexOfDisplay = newDisplayOptions
+              .flatMap((item) => item.options ?? item)
+              .findIndex((item) => item.value === selectedDisplayOption.value);
+
             // set the display back to the default option
             if (newDisplayOptions.length === 1 || indexOfDisplay === -1) {
               setSelectedDisplayOption(defaultDisplayOption);
+              setSelectedFilterOption(filterByOptions[0]);
             }
           }}
           triggerElm={
@@ -984,57 +1009,93 @@ function AdvancedSearch() {
     </>
   );
 
+  const waterbodiesFiltered = !waterbodies
+    ? []
+    : waterbodies.filter((waterbody) => {
+        const condition = getWaterbodyCondition(
+          waterbody.attributes,
+          selectedDisplayOption.value,
+          true,
+        ).condition;
+
+        const filter = selectedFilterOption.value;
+        return !filter || filter === condition;
+      });
+
+  const waterbodiesCount = waterbodies?.length ?? 0;
+  const waterbodiesFilteredCountString =
+    waterbodiesFiltered.length.toLocaleString();
+
   // jsx
   const resultsContainer = (
     <>
       <hr />
 
-      <div css={resultsInputsStyles} data-content="stateinputs">
-        <div css={resultsInputStyles}>
-          <span css={screenLabelStyles}>
-            Results:{' '}
-            <span css={resultsItemsStyles}>
-              {waterbodies ? waterbodies.length.toLocaleString() : 0} items
+      <div data-content="stateinputs">
+        <div css={resultsInputsStyles}>
+          <div css={resultsInputStyles}>
+            <label htmlFor="display-by">Display Waterbodies by:</label>
+            <Select
+              inputId="display-by"
+              isSearchable={false}
+              options={displayOptions}
+              value={selectedDisplayOption}
+              onChange={(ev) => setSelectedDisplayOption(ev)}
+              styles={reactSelectStyles}
+            />
+          </div>
+
+          <div css={resultsInputStyles}>
+            <label htmlFor="filter-by">Filter Waterbodies by:</label>
+            <Select
+              inputId="filter-by"
+              isSearchable={false}
+              options={filterByOptions}
+              value={selectedFilterOption}
+              onChange={(ev) => setSelectedFilterOption(ev)}
+              styles={reactSelectStyles}
+            />
+          </div>
+        </div>
+
+        <div css={resultsInputsStyles}>
+          <div css={resultsInputStyles}>
+            <span css={screenLabelStyles}>
+              Results:{' '}
+              <span css={resultsItemsStyles}>
+                {waterbodiesCount === waterbodiesFiltered.length
+                  ? `${waterbodiesFilteredCountString} items`
+                  : `${waterbodiesFilteredCountString} of 
+                  ${waterbodiesCount.toLocaleString()} items`}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
 
-        <div css={resultsInputStyles}>
-          <label htmlFor="display-by">Display Waterbodies by:</label>
-          <Select
-            inputId="display-by"
-            isSearchable={false}
-            options={displayOptions}
-            value={selectedDisplayOption}
-            onChange={(ev) => setSelectedDisplayOption(ev)}
-            styles={reactSelectStyles}
-          />
-        </div>
-
-        <div css={resultsInputStyles}>
-          <div
-            css={buttonGroupStyles}
-            className="btn-group float-right"
-            role="group"
-          >
-            <button
-              css={buttonStyles}
-              type="button"
-              className={`btn btn-secondary${showMap ? ' active' : ''}`}
-              onClick={(_ev) => setShowMap(true)}
+          <div css={resultsInputStyles}>
+            <div
+              css={buttonGroupStyles}
+              className="btn-group float-right"
+              role="group"
             >
-              <i className="fas fa-map-marked-alt" aria-hidden="true" />
-              &nbsp;&nbsp;Map
-            </button>
-            <button
-              css={buttonStyles}
-              type="button"
-              className={`btn btn-secondary${!showMap ? ' active' : ''}`}
-              onClick={(_ev) => setShowMap(false)}
-            >
-              <i className="fas fa-list" aria-hidden="true" />
-              &nbsp;&nbsp;List
-            </button>
+              <button
+                css={buttonStyles}
+                type="button"
+                className={`btn btn-secondary${showMap ? ' active' : ''}`}
+                onClick={(_ev) => setShowMap(true)}
+              >
+                <i className="fas fa-map-marked-alt" aria-hidden="true" />
+                &nbsp;&nbsp;Map
+              </button>
+              <button
+                css={buttonStyles}
+                type="button"
+                className={`btn btn-secondary${!showMap ? ' active' : ''}`}
+                onClick={(_ev) => setShowMap(false)}
+              >
+                <i className="fas fa-list" aria-hidden="true" />
+                &nbsp;&nbsp;List
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1060,15 +1121,11 @@ function AdvancedSearch() {
     <StateMap
       windowHeight={height}
       windowWidth={width}
-      layout={fullscreenActive ? 'fullscreen' : 'narrow'}
       filter={currentFilter}
       activeState={activeState}
       numberOfRecords={numberOfRecords}
     >
-      <div
-        css={mapFooterStyles}
-        style={{ width: fullscreenActive ? width : '100%' }}
-      >
+      <div css={mapFooterStyles}>
         {reportStatusMapping.status === 'failure' && (
           <div css={mapFooterMessageStyles}>{status303dError}</div>
         )}
@@ -1101,8 +1158,7 @@ function AdvancedSearch() {
               )}
             </>
           )}
-          <> / </>
-          {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
+          / {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
           {currentReportingCycle.status === 'success' && (
             <>{currentReportingCycle.reportingCycle}</>
           )}
@@ -1110,10 +1166,6 @@ function AdvancedSearch() {
       </div>
     </StateMap>
   );
-
-  if (fullscreenActive) {
-    return mapContent;
-  }
 
   const contentVisible = currentFilter && waterbodyData;
 
@@ -1126,7 +1178,7 @@ function AdvancedSearch() {
   }
 
   return (
-    <div data-content="stateoverview">
+    <div>
       {filterControls}
 
       {currentFilter && resultsContainer}
@@ -1147,7 +1199,7 @@ function AdvancedSearch() {
         <>
           <hr />
           <WaterbodyListVirtualized
-            waterbodies={waterbodies}
+            waterbodies={waterbodiesFiltered}
             type={'Waterbody State Overview'}
             fieldName={selectedDisplayOption.value}
           />

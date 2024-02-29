@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
@@ -570,7 +571,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Watershed Health Score data available for the{' '}
-                            <em>{watershed}</em> watershed.
+                            <em>{watershed.name}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -582,7 +583,7 @@ function Protect() {
                             rows={[
                               {
                                 label: 'Watershed Name',
-                                value: watershed,
+                                value: watershed.name,
                               },
                               {
                                 label: 'Watershed',
@@ -788,7 +789,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Wild and Scenic River data available in the{' '}
-                            <em>{watershed}</em> watershed.
+                            <em>{watershed.name}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -809,7 +810,7 @@ function Protect() {
                               {wildScenicRiversData.data.length === 1
                                 ? 'river'
                                 : 'rivers'}{' '}
-                              in the <em>{watershed}</em> watershed.
+                              in the <em>{watershed.name}</em> watershed.
                             </p>
                           </div>
 
@@ -817,7 +818,7 @@ function Protect() {
                             const attributes = item.attributes;
                             return (
                               <FeatureItem
-                                key={attributes.GlobalID}
+                                key={attributes.OBJECTID}
                                 feature={item}
                                 title={
                                   <strong>
@@ -856,7 +857,7 @@ function Protect() {
                                     },
                                     {
                                       label: 'River Category',
-                                      value: attributes.RiverCategory,
+                                      value: attributes.RIVERCATEGORY,
                                     },
                                     {
                                       label: 'Website',
@@ -884,7 +885,7 @@ function Protect() {
                                   <ViewOnMapButton
                                     layers={[wildScenicRiversLayer]}
                                     feature={item}
-                                    idField={'GlobalID'}
+                                    idField={'OBJECTID'}
                                     onClick={() => {
                                       if (wildScenicRiversDisplayed) return;
 
@@ -979,7 +980,7 @@ function Protect() {
                         <div css={modifiedInfoBoxStyles}>
                           <p>
                             No Protected Areas Database data available for the{' '}
-                            <em>{watershed}</em> watershed.
+                            <em>{watershed.name}</em> watershed.
                           </p>
                         </div>
                       )}
@@ -1000,7 +1001,7 @@ function Protect() {
                               {protectedAreasData.data.length === 1
                                 ? 'area'
                                 : 'areas'}{' '}
-                              in the <em>{watershed}</em> watershed.
+                              in the <em>{watershed.name}</em> watershed.
                             </>
                           }
                         >
@@ -1169,7 +1170,7 @@ function Protect() {
                             <div css={modifiedInfoBoxStyles}>
                               <p>
                                 There are no EPA funded protection projects in
-                                the <em>{watershed}</em> watershed.
+                                the <em>{watershed.name}</em> watershed.
                               </p>
                             </div>
                           )}
@@ -1189,7 +1190,7 @@ function Protect() {
                                   {allProtectionProjects.length === 1
                                     ? 'project'
                                     : 'projects'}{' '}
-                                  in the <em>{watershed}</em> watershed.
+                                  in the <em>{watershed.name}</em> watershed.
                                 </p>
                               </div>
 
@@ -1215,29 +1216,29 @@ function Protect() {
 
                                 const protectionPlanLinks =
                                   filteredProtectionPlans?.length > 0
-                                    ? filteredProtectionPlans.map(
-                                        (plan, index) => {
-                                          if (plan?.url && plan.title) {
-                                            return (
-                                              <div key={index}>
-                                                <a
-                                                  href={plan.url}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                >
-                                                  {plan.title}
-                                                </a>
-                                              </div>
-                                            );
-                                          }
-                                          return false;
-                                        },
-                                      )
+                                    ? filteredProtectionPlans.map((plan) => {
+                                        if (plan?.url && plan.title) {
+                                          return (
+                                            <div
+                                              key={`${plan.title}-${plan.url}`}
+                                            >
+                                              <a
+                                                href={plan.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                              >
+                                                {plan.title}
+                                              </a>
+                                            </div>
+                                          );
+                                        }
+                                        return false;
+                                      })
                                     : 'Document not available';
 
                                 return (
                                   <FeatureItem
-                                    key={index}
+                                    key={item.id}
                                     title={
                                       <>
                                         <strong>
@@ -1361,13 +1362,13 @@ function Protect() {
 
               <p>Get quick tips for protecting water in your:</p>
 
-              <h2>
+              <h3>
                 Home and Yard
                 <i css={subTitleStyles}>
                   Sustainable landscaping to conserve water and protect the
                   natural functioning ecosystem
                 </i>
-              </h2>
+              </h3>
 
               <ul css={listStyles}>
                 <li>
@@ -1471,11 +1472,11 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2>
+              <h3>
                 <i css={subTitleStyles}>
                   Conserve water and prevent pollutants from entering waterways
                 </i>
-              </h2>
+              </h3>
 
               <ul css={listStyles}>
                 <li>
@@ -1557,10 +1558,10 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2>
+              <h3>
                 Community
                 <i css={subTitleStyles}>Get involved in your local watershed</i>
-              </h2>
+              </h3>
 
               <ul css={listStyles}>
                 <li>
@@ -1648,9 +1649,9 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2>
+              <h3>
                 <i css={subTitleStyles}>School and Work</i>
-              </h2>
+              </h3>
 
               <ul css={listStyles}>
                 <li>
@@ -1735,7 +1736,7 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2>For more information and tips, visit the following sites:</h2>
+              <h3>For more information and tips, visit the following sites:</h3>
 
               <ul css={listStyles}>
                 <li>

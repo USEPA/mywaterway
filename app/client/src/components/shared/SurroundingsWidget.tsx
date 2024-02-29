@@ -1,6 +1,9 @@
+/** @jsxImportSource @emotion/react */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { css, keyframes } from 'styled-components/macro';
-import { createPortal, render } from 'react-dom';
+import { css, keyframes } from '@emotion/react';
+import { createPortal } from 'react-dom';
+import { Root, createRoot } from 'react-dom/client';
 // contexts
 import { useLayersState } from 'contexts/Layers';
 import {
@@ -47,8 +50,9 @@ export function useSurroundingsWidget(triggerVisible = true) {
   }, [layers, visibleLayers]);
 
   const [container] = useState(document.createElement('div'));
+  const [root, setRoot] = useState<Root | null>(null);
   useEffect(() => {
-    render(
+    const content = (
       <SurroundingsWidget
         layers={includedLayers}
         layersUpdating={updating}
@@ -56,13 +60,20 @@ export function useSurroundingsWidget(triggerVisible = true) {
         toggles={togglers}
         togglesDisabled={disabled}
         triggerVisible={triggerVisible}
-      />,
-      container,
+      />
     );
+
+    if (root) root.render(content);
+    else {
+      const newRoot = createRoot(container);
+      newRoot.render(content);
+      setRoot(newRoot);
+    }
   }, [
     container,
     disabled,
     includedLayers,
+    root,
     togglers,
     triggerVisible,
     updating,
@@ -72,7 +83,7 @@ export function useSurroundingsWidget(triggerVisible = true) {
   return container;
 }
 
-function SurroundingsWidget(props: SurroundingsWidgetProps) {
+function SurroundingsWidget(props: Readonly<SurroundingsWidgetProps>) {
   const [contentVisible, setContentVisible] = useState(false);
   const toggleContentVisibility = useCallback(
     (ev: KeyboardEvent | MouseEvent) => {
@@ -124,7 +135,7 @@ function SurroundingsWidgetContent({
   return (
     <div css={widgetContentStyles(visible)} role="region">
       <div>
-        <h1 id="surrounding-features-widget-heading">Surrounding Features:</h1>
+        <h2 id="surrounding-features-widget-heading">Surrounding Features:</h2>
         <div>
           <ul aria-labelledby="surrounding-features-widget-heading">
             {(Object.keys(toggles) as SurroundingFeaturesLayerId[]).map(
@@ -195,7 +206,7 @@ function SurroundingsWidgetTrigger({
   onClick,
   updating,
   visible,
-}: SurroundingsWidgetTriggerProps) {
+}: Readonly<SurroundingsWidgetTriggerProps>) {
   const [hover, setHover] = useState(false);
 
   let title = 'Open Surrounding Features';
@@ -216,6 +227,8 @@ function SurroundingsWidgetTrigger({
       css={divStyle(disabled, hover)}
       onClick={disabled ? undefined : onClick}
       onKeyDown={disabled ? undefined : onClick}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       ref={forwardedRef}
@@ -305,7 +318,9 @@ const widgetContentStyles = (visible: boolean) => css`
   opacity: ${visible ? 1 : 0};
   overflow: auto;
   position: absolute;
-  transition: opacity 250ms ease-in-out, margin 250ms ease-in-out;
+  transition:
+    opacity 250ms ease-in-out,
+    margin 250ms ease-in-out;
   right: 32px;
   top: 0px;
   visibility: ${visible ? 'visible' : 'hidden'};
@@ -315,7 +330,7 @@ const widgetContentStyles = (visible: boolean) => css`
     padding-top: 10px;
     width: 200px;
 
-    h1 {
+    h2 {
       font-family: ${fonts.primary};
       font-size: 1.25em;
       font-weight: 500;
@@ -339,12 +354,12 @@ const widgetContentStyles = (visible: boolean) => css`
           line-height: 1;
           margin-bottom: 10px;
 
-          & > div:first-child {
+          & > div:first-of-type {
             border-left: 3px solid transparent;
             padding: 5px 5px 3.5px;
           }
 
-          & > div:last-child {
+          & > div:last-of-type {
             width: 100%;
             height: 1.5px;
             position: relative;

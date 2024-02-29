@@ -14,7 +14,7 @@ function Switch({
   disabled = false,
   ariaLabel = '',
   ariaLabelledBy = undefined,
-}: Props) {
+}: Readonly<Props>) {
   return (
     <ReactSwitch
       checked={checked}

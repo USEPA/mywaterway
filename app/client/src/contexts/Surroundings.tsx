@@ -72,7 +72,7 @@ function reducer(state: SurroundingsState, action: Action): SurroundingsState {
   }
 }
 
-export function SurroundingsProvider({ children }: ProviderProps) {
+export function SurroundingsProvider({ children }: Readonly<ProviderProps>) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (

@@ -1,15 +1,5 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { createPortal, render } from 'react-dom';
-import { Rnd } from 'react-rnd';
-import Select from 'react-select';
-import { css } from 'styled-components/macro';
+/** @jsxImportSource @emotion/react */
+
 import Polygon from '@arcgis/core/geometry/Polygon';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
 import Expand from '@arcgis/core/widgets/Expand';
@@ -26,6 +16,19 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
+import { css } from '@emotion/react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
+import { Root, createRoot } from 'react-dom/client';
+import { Rnd } from 'react-rnd';
+import Select from 'react-select';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AddSaveDataWidget from 'components/shared/AddSaveDataWidget';
@@ -53,7 +56,7 @@ import {
 } from 'utils/mapFunctions';
 import { isAbort, isClick } from 'utils/utils';
 // helpers
-import { useAbort, useDynamicPopup } from 'utils/hooks';
+import { GetTemplateType, useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
@@ -73,8 +76,7 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { Container } from 'react-dom';
-import type { Feature, ServicesState } from 'types';
+import type { ServicesState, WatershedAttributes } from 'types';
 // styles
 import { fonts } from 'styles';
 
@@ -89,6 +91,7 @@ const instructionContainerStyles = (isVisible: boolean) => css`
   justify-content: flex-start;
   pointer-events: none;
   position: absolute;
+  top: 0;
   width: 100%;
   z-index: 1;
 
@@ -144,7 +147,7 @@ const instructionStyles = css`
   @media (min-width: 560px) {
     position: relative;
     right: 62px;
-    top: 99px;
+    top: 183px;
     width: 250px;
   }
 `;
@@ -230,9 +233,10 @@ const orderedLayers = [
 function updateLegend(
   view: __esri.MapView,
   displayEsriLegend: boolean,
-  hmwLegendNode: Container,
+  hmwLegendRoot: Root | null,
   additionalLegendInfo: Object,
 ) {
+  if (!hmwLegendRoot) return;
   if (!view?.map?.layers) return;
 
   // build an array of layers that are visible based on the ordering above
@@ -280,15 +284,36 @@ function updateLegend(
     }
   });
 
-  render(
+  hmwLegendRoot.render(
     <MapLegend
       view={view}
       displayEsriLegend={displayEsriLegend}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
     />,
-    hmwLegendNode,
   );
+}
+
+// colors the popup pointer according to position and number of features
+function updatePopupPointerStyles(
+  features: Graphic[],
+  currentAlignment: CurrentAlignment,
+) {
+  const pointers = document.getElementsByClassName(
+    'esri-popup__pointer-direction',
+  );
+
+  for (let pointer of pointers) {
+    let isPointerTop = [
+      'bottom-center',
+      'bottom-left',
+      'bottom-right',
+    ].includes(currentAlignment);
+
+    if (features.length <= 1 && !isPointerTop)
+      pointer.classList.remove('blue-popup-pointer');
+    else pointer.classList.add('blue-popup-pointer');
+  }
 }
 
 const resizeHandleStyles = css`
@@ -309,6 +334,18 @@ const resizeHandleStyles = css`
 /*
 ## Components
 */
+type CurrentAlignment =
+  | 'bottom-center'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'top-center'
+  | 'top-left'
+  | 'top-right';
+interface PopupExt extends __esri.Popup {
+  currentAlignment: CurrentAlignment;
+  featureMenuOpen: boolean;
+}
+
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
   map: __esri.Map;
@@ -387,12 +424,56 @@ function MapWidgets({
 
   useEffect(() => {
     if (!view?.popup) return;
+    // adjust popup pointer styles according to
+    const popupAlignementWatcher = reactiveUtils.watch(
+      () => (view.popup as PopupExt).currentAlignment,
+      () => {
+        updatePopupPointerStyles(
+          view.popup.features,
+          (view.popup as PopupExt).currentAlignment,
+        );
+      },
+    );
+
+    // revert calcite styles when feature list menu is opened
+    const popupFeatureMenuWatcher = reactiveUtils.watch(
+      () => (view.popup as PopupExt).featureMenuOpen,
+      () => {
+        const id = 'overridePopupStyles';
+        if ((view.popup as PopupExt).featureMenuOpen) {
+          const styles = document.createElement('style');
+          styles.id = id;
+          styles.innerHTML = `
+            calcite-flow,
+            calcite-action,
+            calcite-action-bar {
+              --calcite-ui-border-3: white;
+              --calcite-ui-foreground-1: white;
+              --calcite-ui-foreground-2: white;
+              --calcite-ui-foreground-3: white;
+              --calcite-ui-text-1: black;
+              --calcite-ui-text-2: black;
+              --calcite-ui-text-3: black;
+            }
+          `;
+          document.body.appendChild(styles);
+        } else {
+          const styles = document.getElementById(id);
+          if (styles) document.body.removeChild(styles);
+        }
+      },
+    );
 
     const popupWatcher = reactiveUtils.watch(
       () => view.popup.features,
       () => {
         const features = view.popup.features;
         if (features.length === 0) return;
+
+        updatePopupPointerStyles(
+          features,
+          (view.popup as PopupExt).currentAlignment,
+        );
 
         const newFeatures: __esri.Graphic[] = [];
         const idsAdded: string[] = [];
@@ -423,9 +504,11 @@ function MapWidgets({
     );
 
     return function cleanup() {
+      popupAlignementWatcher.remove();
+      popupFeatureMenuWatcher.remove();
       popupWatcher.remove();
-    }
-}, [getHucBoundaries, view]);
+    };
+  }, [getHucBoundaries, view]);
 
   // add the layers to the map
   useEffect(() => {
@@ -554,6 +637,8 @@ function MapWidgets({
   const [hmwLegendNode] = useState(hmwLegendTemp);
   const [esriLegendNode] = useState(esriLegendTemp);
   const [legendNode] = useState(legendTemp);
+  const legendRoot = useRef<Root | null>(null);
+  if (!legendRoot.current) legendRoot.current = createRoot(hmwLegendNode);
 
   // Creates and adds the legend widget to the map
   const [legend, setLegend] = useState<__esri.Expand | null>(null);
@@ -664,12 +749,11 @@ function MapWidgets({
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 2 });
 
-    render(
+    createRoot(node).render(
       <ShowAddSaveDataWidget
         addSaveDataWidgetVisible={addSaveDataWidgetVisible}
         setAddSaveDataWidgetVisible={setAddSaveDataWidgetVisible}
       />,
-      node,
     );
 
     window.addEventListener('resize', handleResize);
@@ -783,7 +867,7 @@ function MapWidgets({
           updateLegend(
             view,
             displayEsriLegend,
-            hmwLegendNode,
+            legendRoot.current,
             additionalLegendInfoNonState,
           );
 
@@ -792,7 +876,7 @@ function MapWidgets({
               updateLegend(
                 view,
                 displayEsriLegend,
-                hmwLegendNode,
+                legendRoot.current,
                 additionalLegendInfoNonState,
               );
               const dict = {
@@ -817,10 +901,10 @@ function MapWidgets({
     const container = document.createElement('div');
     container.className = 'hmw-map-toggle';
 
-    const basemapHeader = document.createElement('h1');
+    const basemapHeader = document.createElement('h2');
     basemapHeader.innerHTML = 'Basemaps:';
 
-    const layerListHeader = document.createElement('h1');
+    const layerListHeader = document.createElement('h2');
     layerListHeader.innerHTML = 'Layers:';
 
     container.appendChild(basemapHeader);
@@ -864,7 +948,7 @@ function MapWidgets({
         updateLegend(
           view,
           displayEsriLegend,
-          hmwLegendNode,
+          legendRoot.current,
           additionalLegendInfoNonState,
         );
       },
@@ -902,13 +986,12 @@ function MapWidgets({
     // create the basemap/layers widget
     const node = document.createElement('div');
     view.ui.add(node, { position: 'bottom-right', index: 0 });
-    render(
+    createRoot(node).render(
       <ExpandCollapse
         fullscreenActive={fullscreenActive}
         setFullscreenActive={setFullscreenActive}
         mapViewSetter={setMapView}
       />,
-      node,
     );
     setFullScreenWidgetCreated(true);
   }, [
@@ -924,7 +1007,9 @@ function MapWidgets({
     if (!view || services.status !== 'success') return;
 
     const container = document.createElement('div');
-    render(<DownloadWidget services={services} view={view} />, container);
+    createRoot(container).render(
+      <DownloadWidget services={services} view={view} />,
+    );
 
     const downloadWidget = new Expand({
       expandIconClass: 'esri-icon-printer',
@@ -1038,7 +1123,7 @@ function MapWidgets({
       />
     );
 
-    render(widget, node);
+    createRoot(node).render(widget);
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     view.ui.add(node, { position: 'top-right', index: 4 });
 
@@ -1075,7 +1160,12 @@ function MapWidgets({
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
   useEffect(() => {
-    updateLegend(view, displayEsriLegend, hmwLegendNode, additionalLegendInfo);
+    updateLegend(
+      view,
+      displayEsriLegend,
+      legendRoot.current,
+      additionalLegendInfo,
+    );
   }, [
     additionalLegendInfo,
     surroundingsVisible,
@@ -1209,6 +1299,8 @@ function ShowAddSaveDataWidget({
           : 'Close Add & Save Data Widget'
       }
       style={hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={clickHandler}
@@ -1284,6 +1376,11 @@ function ExpandCollapse({
         ? 'auto'
         : 'hidden';
 
+      const backToTop: HTMLElement | null =
+        document.querySelector('.back-to-top');
+      if (backToTop)
+        backToTop.style.display = fullscreenActive ? 'flex' : 'none';
+
       // Toggle fullscreen mode
       setFullscreenActive(!fullscreenActive);
 
@@ -1300,6 +1397,8 @@ function ExpandCollapse({
           : 'Enter Fullscreen Map View'
       }
       style={hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={clickHandler}
@@ -1324,11 +1423,11 @@ function retrieveUpstreamWatershed(
   abortSignal: AbortSignal,
   getCurrentExtent: () => __esri.Extent,
   getHuc12: () => string,
-  getTemplate: (graphic: Feature) => HTMLElement | undefined,
+  getTemplate: GetTemplateType,
   getUpstreamExtent: () => __esri.Extent,
   upstreamLayer: __esri.GraphicsLayer | null,
   getUpstreamWidgetDisabled: () => boolean,
-  getWatershed: () => string,
+  getWatershed: () => WatershedAttributes,
   lastHuc12: string,
   services: ServicesState,
   setErrorMessage: Dispatch<SetStateAction<string>>,
@@ -1412,7 +1511,7 @@ function retrieveUpstreamWatershed(
     .then((res) => {
       setUpstreamLoading(false);
       setUpstreamWatershedResponse({ status: 'success', data: res });
-      const watershed = getWatershed() || 'Unknown Watershed';
+      const watershed = getWatershed().name || 'Unknown Watershed';
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
       if (!res?.features?.length) {
@@ -1540,6 +1639,8 @@ function ShowUpstreamWatershed({
     <div
       title={title}
       style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onClick={onClick}
@@ -1565,11 +1666,11 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   abortSignal: AbortSignal;
   getCurrentExtent: () => __esri.Extent;
   getHuc12: () => string;
-  getTemplate: (graphic: Feature) => HTMLElement | undefined;
+  getTemplate: GetTemplateType;
   getUpstreamExtent: () => __esri.Extent;
   upstreamLayer: __esri.GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;
-  getWatershed: () => string;
+  getWatershed: () => WatershedAttributes;
   services: ServicesState;
   setErrorMessage: Dispatch<SetStateAction<string>>;
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>;
@@ -1736,7 +1837,7 @@ function ShowSelectedUpstreamWatershed({
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
   const handleHucSelection = useCallback(
-    (ev) => {
+    (ev: __esri.ViewClickEvent) => {
       setSelectionActive(false);
 
       if (!view) return;
@@ -1863,40 +1964,43 @@ function ShowSelectedUpstreamWatershed({
 
   // Enable triggering of the map click handler if the upstream
   // watershed is not visible, otherwise hide the upstream watershed
-  const selectUpstream = useCallback(
-    (_ev) => {
-      if (!upstreamLayer) return;
+  const selectUpstream = useCallback(() => {
+    if (!upstreamLayer) return;
 
-      if (upstreamLayer.visible) {
-        const currentExtent = getCurrentExtent();
-        currentExtent && view?.goTo(currentExtent);
+    if (upstreamLayer.visible) {
+      const currentExtent = getCurrentExtent();
+      currentExtent && view?.goTo(currentExtent);
 
-        setInstructionsVisible(false);
+      setInstructionsVisible(false);
 
-        upstreamLayer.visible = false;
-        upstreamLayer.graphics.removeAll();
-        updateVisibleLayers({ upstreamLayer: false });
+      upstreamLayer.graphics.removeAll();
+      updateVisibleLayers({
+        upstreamLayer: false,
+        watershedsLayer: watershedsVisible,
+      });
+      return;
+    }
 
-        if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
-        return;
-      }
+    if (watershedsLayer) {
+      setWatershedsVisible(watershedsLayer.visible);
+      watershedsLayer.visible = true;
+    }
 
-      if (watershedsLayer) {
-        setWatershedsVisible(watershedsLayer.visible);
-        watershedsLayer.visible = true;
-      }
+    setSelectionActive(true);
+  }, [
+    getCurrentExtent,
+    updateVisibleLayers,
+    upstreamLayer,
+    view,
+    watershedsLayer,
+    watershedsVisible,
+  ]);
 
-      setSelectionActive(true);
-    },
-    [
-      getCurrentExtent,
-      updateVisibleLayers,
-      upstreamLayer,
-      view,
-      watershedsLayer,
-      watershedsVisible,
-    ],
-  );
+  function handleCloseClick(ev: React.KeyboardEvent | React.MouseEvent) {
+    if (!isClick(ev)) return;
+
+    setInstructionsVisible(false);
+  }
 
   return (
     <>
@@ -1907,7 +2011,8 @@ function ShowSelectedUpstreamWatershed({
               <header>
                 <i
                   className="esri-icon-close"
-                  onClick={(_ev) => setInstructionsVisible(false)}
+                  onClick={handleCloseClick}
+                  onKeyDown={handleCloseClick}
                 />
               </header>
               <div>
@@ -2088,23 +2193,29 @@ export async function generateAndDownloadPdf({
     firstOnly?: boolean;
   }) {
     const image = !symbolClass ? null : await getImage(element, symbolClass);
-
-    // get captions
-    const textItems = element.getElementsByClassName(textClass);
-
     let itemsAdded = 0;
-    for (let textItem of textItems) {
-      const text = textItem.textContent;
-      if (text) {
-        itemsAdded += 1;
-        legendItems.push({
-          image,
-          text,
-          type,
-        });
-      }
 
-      if (firstOnly) break;
+    // skip adding text if the png was generated from a div
+    const symbols = !symbolClass
+      ? null
+      : element.getElementsByClassName(symbolClass);
+    if (!symbolClass || (symbols && symbols.length > 0)) {
+      // get captions
+      const textItems = element.getElementsByClassName(textClass);
+
+      for (let textItem of textItems) {
+        const text = textItem.textContent;
+        if (text) {
+          itemsAdded += 1;
+          legendItems.push({
+            image,
+            text,
+            type,
+          });
+        }
+
+        if (firstOnly) break;
+      }
     }
 
     if (itemsAdded === 0 && image) {
@@ -2147,7 +2258,7 @@ export async function generateAndDownloadPdf({
     );
     for (let legendService of legendServices) {
       let hasHighestLevel = false;
-      const groups = Array.from(
+      let groups = Array.from(
         legendService.getElementsByClassName('esri-legend__group-layer-child'),
       );
       if (groups.length === 0) groups.push(legendService);
@@ -2165,7 +2276,7 @@ export async function generateAndDownloadPdf({
         // get main title
         await addLegendItem({
           legendItems,
-          element: legendService,
+          element: group,
           textClass: 'esri-legend__service-label',
           type: hasHighestLevel ? 'h2' : 'h1',
         });
@@ -2382,25 +2493,22 @@ export async function generateAndDownloadPdf({
    * @returns code as base64 PNG and height/width of image.
    */
   async function getImage(parentElement: Element, searchClass: string) {
+    const htmltoimage = await import('html-to-image');
     // get the symbol
     const symbols = parentElement.getElementsByClassName(searchClass);
-    const symbol = symbols.length > 0 ? symbols[0] : null;
-    const svgs =
-      symbol?.tagName === 'SVG'
-        ? [symbol as SVGSVGElement]
-        : symbol?.getElementsByTagName('svg');
-    const svgTemp = svgs && svgs.length > 0 ? svgs[0] : null;
-    const png = svgTemp ? await svgToPng(svgTemp) : null;
-    if (png) return png;
-
-    const imgs =
-      symbol?.tagName === 'IMG'
-        ? [symbol as HTMLImageElement]
-        : symbol?.getElementsByTagName('img');
-    const img = imgs && imgs.length > 0 ? imgs[0] : null;
-    if (img) return { code: img.src, height: img.height, width: img.width };
-
-    return null;
+    const symbol = (
+      symbols.length > 0 ? symbols[0] : parentElement
+    ) as HTMLElement;
+    // set div to visible to avoid blank image
+    const lastVisibility = symbol.style.visibility;
+    symbol.style.visibility = 'visible';
+    const img = await htmltoimage.toPng(symbol, { skipFonts: true });
+    symbol.style.visibility = lastVisibility;
+    return {
+      code: img,
+      height: symbol.offsetHeight,
+      width: symbol.offsetWidth,
+    };
   }
 
   /**
@@ -2461,82 +2569,6 @@ export async function generateAndDownloadPdf({
     if (type === 'item') numberOfIndents += 1;
 
     return numberOfIndents;
-  }
-
-  /**
-   * Converts an svg string to base64 png using the domUrl.
-   *
-   * @param svgText the string representation of the SVG.
-   * @return a promise to the bas64 png image.
-   */
-  function svgToPng(svgElm: SVGSVGElement): Promise<PdfLegendImage> {
-    // convert an svg text to png using the browser
-    return new Promise(function (resolve, reject) {
-      try {
-        // can use the domUrl function from the browser
-        const domUrl = window.URL || window.webkitURL || window;
-        if (!domUrl) {
-          reject(new Error('Browser does not support converting SVG to PNG.'));
-        }
-
-        // figure out the height and width from svg text
-        const height = svgElm.height.baseVal.value;
-        const width = svgElm.width.baseVal.value;
-
-        let svgText = svgElm.outerHTML;
-        // remove "xlink:"" from "xlink:href" as it is not proper SVG syntax
-        svgText = svgText.replaceAll('xlink:', '');
-
-        // verify it has a namespace
-        if (!svgText.includes('xmlns="')) {
-          svgText = svgText.replace(
-            '<svg ',
-            '<svg xmlns="http://www.w3.org/2000/svg" ',
-          );
-        }
-
-        // create a canvas element to pass through
-        let canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-
-        // make a blob from the svg
-        const svg = new Blob([svgText], {
-          type: 'image/svg+xml;charset=utf-8',
-        });
-
-        // create a dom object for that image
-        const url = domUrl.createObjectURL(svg);
-
-        // create a new image to hold it the converted type
-        const img = new Image();
-
-        // when the image is loaded we can get it as base64 url
-        img.onload = function () {
-          if (!ctx) return;
-
-          // draw it to the canvas
-          ctx.drawImage(img, 0, 0);
-
-          // we don't need the original any more
-          domUrl.revokeObjectURL(url);
-          // now we can resolve the promise, passing the base64 url
-          resolve({ code: canvas.toDataURL(), width, height });
-        };
-
-        img.onerror = function (err) {
-          console.error(err);
-          reject(new Error('Failed to convert svg to png.'));
-        };
-
-        // load the image
-        img.src = url;
-      } catch (err) {
-        console.error(err);
-        reject(new Error('Failed to convert svg to png.'));
-      }
-    });
   }
 
   /**
@@ -2770,9 +2802,9 @@ const downloadButtonStyles = css`
 `;
 
 const downloadWidgetContainerStyles = css`
-  padding: 12px 10px 0;
+  padding: 12px 10px;
 
-  h1 {
+  h2 {
     font-family: ${fonts.primary};
     font-size: 1.25em;
     font-weight: 500;
@@ -2931,7 +2963,7 @@ function DownloadWidget({ services, view }: DownloadWidgetProps) {
       className="esri-widget esri-widget--panel-height-only"
       css={downloadWidgetContainerStyles}
     >
-      <h1>Download Printable Map</h1>
+      <h2>Download Printable Map</h2>
       <div>
         <label>
           Title

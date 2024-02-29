@@ -93,7 +93,7 @@ describe('Homepage disclaimer and glossary', () => {
 
   it(`Glossary close button closes slide content`, () => {
     cy.findAllByText('Glossary').filter('[data-disabled="false"]').click();
-    cy.findByText('×').click();
+    cy.findByRole('button', { name: 'Close glossary' }).click();
     cy.findByPlaceholderText('Search for a term...').should('not.be.visible');
   });
 });

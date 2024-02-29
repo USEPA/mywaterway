@@ -1,10 +1,12 @@
+/** @jsxImportSource @emotion/react */
+
 import { useMemo } from 'react';
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // types
 import type { ReactNode } from 'react';
-import type { FlattenSimpleInterpolation } from 'styled-components';
+import type { SerializedStyles } from '@emotion/react';
 
 /*
 ## Styles
@@ -112,10 +114,14 @@ const rowCellStyles = css`
 interface BoxContentProps {
   layout?: 'grid' | 'flex';
   rows: RowProps[];
-  styles?: FlattenSimpleInterpolation;
+  styles?: SerializedStyles;
 }
 
-export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
+export function BoxContent({
+  layout = 'grid',
+  rows,
+  styles,
+}: Readonly<BoxContentProps>) {
   const mergedStyles = css`
     ${layout === 'grid' ? gridStyles : contentStyles}
     ${styles}
@@ -150,7 +156,7 @@ export function ListContent({
   layout = 'grid',
   rows,
   styles,
-}: BoxContentProps) {
+}: Readonly<BoxContentProps>) {
   const mergedStyles = css`
     ${listContentStyles}
     ${styles}
@@ -165,7 +171,7 @@ interface RowProps {
   status?: string;
 }
 
-function Row({ label, value, status = 'success' }: RowProps) {
+function Row({ label, value, status = 'success' }: Readonly<RowProps>) {
   let displayValue = value ?? 'N/A';
   if (status === 'fetching') displayValue = <LoadingSpinner />;
   else if (status === 'failure') displayValue = 'N/A';
@@ -183,7 +189,7 @@ function Row({ label, value, status = 'success' }: RowProps) {
 }
 
 interface FlexRowProps extends RowProps {
-  styles?: FlattenSimpleInterpolation;
+  styles?: SerializedStyles;
 }
 
 export function FlexRow({
@@ -191,7 +197,7 @@ export function FlexRow({
   value,
   status = 'success',
   styles,
-}: FlexRowProps) {
+}: Readonly<FlexRowProps>) {
   const mergedStyles = css`
     ${flexRowStyles}
     ${styles}

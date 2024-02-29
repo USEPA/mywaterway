@@ -44,13 +44,13 @@ describe('Data page', () => {
 
   it('Test contents scrolling', () => {
     function scrollTest(item) {
-      const padding = 2;
+      const padding = -14;
 
       // press the item in table of contents
       cy.get(`button:contains("${item}")`).click();
 
       // verify the scroll worked
-      cy.get(`h2:contains("${item}")`)
+      cy.get(`h3:contains("${item}")`)
         .then((elm) => elm[0].offsetTop)
         .then((offset) =>
           cy
@@ -103,7 +103,10 @@ describe('Data page', () => {
             cy.get('#hmw-nav-bar')
               .then((elm) => elm[0].offsetTop)
               .then((offset) =>
-                cy.window().its('scrollY').should('equal', offset),
+                cy
+                  .window()
+                  .its('scrollY')
+                  .should('equal', offset - 16),
               );
           });
       }

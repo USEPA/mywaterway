@@ -1,11 +1,12 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import { css } from 'styled-components/macro';
+import { css } from '@emotion/react';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
-import { colors } from 'styles/index';
+import { noMapDataWarningStyles } from 'styles/index';
 
 const buttonStyles = css`
   margin-bottom: 0;
@@ -13,16 +14,6 @@ const buttonStyles = css`
 
   @media (min-width: 560px) {
     font-size: 1em;
-  }
-
-  &:not([disabled]):hover,
-  &:not([disabled]):focus {
-    background-color: ${colors.navyBlue()};
-  }
-
-  &:disabled {
-    opacity: 0.625;
-    cursor: default;
   }
 `;
 
@@ -79,9 +70,12 @@ function ViewOnMapButton({
       if (layer.type === 'feature') {
         const params = layer.createQuery();
         params.returnGeometry = true;
-        params.where = idField
-          ? `${idField} = '${feature.attributes[idField]}'`
-          : `organizationid = '${organizationid}' And assessmentunitidentifier = '${assessmentunitidentifier}'`;
+        params.where =
+          idField === 'OBJECTID'
+            ? `${idField} = ${feature.attributes[idField]}`
+            : idField
+              ? `${idField} = '${feature.attributes[idField]}'`
+              : `organizationid = '${organizationid}' And assessmentunitidentifier = '${assessmentunitidentifier}'`;
         params.outFields = ['*'];
         params.outSpatialReference = 102100;
         layer
@@ -121,6 +115,15 @@ function ViewOnMapButton({
     queryLayers(); // initiate the recursive layer query
   }
 
+  if (disabled) {
+    return (
+      <span css={noMapDataWarningStyles}>
+        <i className="fas fa-exclamation-triangle" />
+        <strong>No map data available for this waterbody.</strong>
+      </span>
+    );
+  }
+
   return (
     <button
       css={buttonStyles}
@@ -137,7 +140,6 @@ function ViewOnMapButton({
           getGeometry((feature) => viewClick(feature));
         }
       }}
-      disabled={disabled}
     >
       <i className="fas fa-map-marker-alt" aria-hidden="true" />
       &nbsp;&nbsp;View on Map

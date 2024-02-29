@@ -1,8 +1,9 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { css } from '@emotion/react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // components
 import Page from 'components/shared/Page';
@@ -20,6 +21,7 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   StateTribalTabsContext,
   StateTribalTabsProvider,
@@ -32,8 +34,10 @@ import {
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
+import { isClick } from 'utils/utils';
 // styles
-import { colors, fonts, reactSelectStyles } from 'styles/index';
+import { reactSelectStyles } from 'styles/index';
+import { h2Styles } from 'styles/stateTribal';
 // errors
 import {
   stateListError,
@@ -45,8 +49,10 @@ import {
 const allSources = ['All', 'State', 'Tribe'];
 
 const containerStyles = css`
+  margin: auto;
   margin-top: 15px;
   margin-bottom: 15px;
+  max-width: 1140px;
 
   @media (max-width: 400px) {
     padding-left: 0.2em !important;
@@ -82,45 +88,7 @@ const buttonStyles = css`
   margin-top: 1em;
   margin-bottom: 0;
   font-size: 0.9375em;
-  font-weight: bold;
-  color: ${colors.white()};
-  background-color: ${colors.blue()};
-
-  &:hover,
-  &:focus {
-    color: ${colors.white()};
-    background-color: ${colors.navyBlue()};
-  }
-`;
-
-const contentStyles = css`
-  h2 {
-    margin-top: 0.75rem;
-    font-size: 1.625em;
-
-    i {
-      margin-right: 0.3125em;
-      color: #2c72b5;
-    }
-  }
-
-  h3 {
-    font-size: 1.375em;
-  }
-
-  h2,
-  h3 {
-    font-family: ${fonts.primary};
-    font-weight: normal;
-  }
-
-  h4 {
-    margin-bottom: 0.75rem;
-    padding-bottom: 0;
-    font-size: 1.125em;
-    color: #526571;
-    font-family: ${fonts.primary};
-  }
+  padding: 0.375rem 0.75rem;
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -396,7 +364,7 @@ function StateTribal() {
     <Page>
       <TabLinks />
 
-      <div css={containerStyles} className="container" data-content="state">
+      <div css={containerStyles}>
         {(states.status === 'fetching' || tribes.status === 'fetching') && (
           <LoadingSpinner />
         )}
@@ -448,6 +416,15 @@ function StateTribal() {
                   `esri-search-multiple-sources esri-search__container ` +
                   `${sourcesVisible ? 'esri-search--sources' : ''} `
                 }
+                onBlur={(ev) => {
+                  if (
+                    !ev.currentTarget.contains(ev.relatedTarget) ||
+                    ev.relatedTarget?.tagName !== 'LI'
+                  ) {
+                    setSourcesVisible(false);
+                    setSourceCursor(-1);
+                  }
+                }}
               >
                 <div
                   css={searchSourceButtonStyles}
@@ -461,6 +438,9 @@ function StateTribal() {
                   ref={sourceList}
                   onClick={() => {
                     setSourcesVisible(!sourcesVisible);
+                  }}
+                  onKeyDown={(ev) => {
+                    if (ev.key === 'Enter') setSourcesVisible(!sourcesVisible);
                   }}
                 >
                   <span
@@ -500,21 +480,28 @@ function StateTribal() {
                         secondClass = 'esri-menu__list-item-active';
                       }
 
+                      function handleClick(
+                        ev: React.KeyboardEvent | React.MouseEvent,
+                      ) {
+                        if (!isClick(ev)) return;
+
+                        setSelectedSource(source);
+                        setSourcesVisible(false);
+
+                        const searchInput =
+                          document.getElementById('hmw-search-input');
+                        if (searchInput) searchInput.focus();
+                      }
+
                       return (
                         <li
                           id={`source-${sourceIndex}`}
                           role="menuitem"
                           className={`esri-search__source esri-menu__list-item ${secondClass}`}
                           tabIndex="-1"
-                          key={`source-key-${sourceIndex}`}
-                          onClick={() => {
-                            setSelectedSource(source);
-                            setSourcesVisible(false);
-
-                            const searchInput =
-                              document.getElementById('hmw-search-input');
-                            if (searchInput) searchInput.focus();
-                          }}
+                          key={source}
+                          onClick={handleClick}
+                          onKeyDown={handleClick}
                         >
                           {source}
                         </li>
@@ -532,8 +519,8 @@ function StateTribal() {
                     selectedSource === 'All'
                       ? 'Select a state, tribe or territory...'
                       : selectedSource === 'State'
-                      ? 'Select a state or territory...'
-                      : 'Select a tribe...'
+                        ? 'Select a state or territory...'
+                        : 'Select a tribe...'
                   }
                   options={selectOptions}
                   value={selectedStateTribe}
@@ -552,7 +539,6 @@ function StateTribal() {
 
               <button
                 onClick={() => handleSubmit(selectedStateTribe)}
-                className="btn"
                 css={buttonStyles}
               >
                 <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
@@ -570,7 +556,7 @@ function StateTribal() {
             )}
           </div>
         ) : (
-          <div css={contentStyles}>
+          <div>
             {activeState.value !== '' && (
               <>
                 {introText.status === 'fetching' && <LoadingSpinner />}
@@ -589,7 +575,7 @@ function StateTribal() {
                       <>
                         {stateIntro.organizationMetrics.length > 0 && (
                           <>
-                            <h2>
+                            <h2 css={h2Styles}>
                               <i
                                 className="fas fa-chart-line"
                                 aria-hidden="true"
@@ -599,38 +585,38 @@ function StateTribal() {
                             </h2>
 
                             <div css={keyMetricsStyles}>
-                              {stateIntro.organizationMetrics.map(
-                                (metric, index) => {
-                                  if (!metric?.value || !metric.label) {
-                                    return null;
-                                  }
+                              {stateIntro.organizationMetrics.map((metric) => {
+                                if (!metric?.value || !metric.label) {
+                                  return null;
+                                }
 
-                                  let value = Number(metric.value);
-                                  if (!value) {
-                                    // just in case the service has a non-numeric string in the future
-                                    value = metric.value;
-                                  } else if (value <= 1) {
-                                    // numbers <=1 convert to percentages
-                                    value =
-                                      (value * 100).toLocaleString() + '%';
-                                  } else {
-                                    value = value.toLocaleString();
-                                  }
+                                let value = Number(metric.value);
+                                if (!value) {
+                                  // just in case the service has a non-numeric string in the future
+                                  value = metric.value;
+                                } else if (value <= 1) {
+                                  // numbers <=1 convert to percentages
+                                  value = (value * 100).toLocaleString() + '%';
+                                } else {
+                                  value = value.toLocaleString();
+                                }
 
-                                  return (
-                                    <div css={keyMetricStyles} key={index}>
-                                      <span css={keyMetricNumberStyles}>
-                                        {value}
-                                      </span>
-                                      <p css={keyMetricLabelStyles}>
-                                        {metric.label}
-                                        <br />
-                                        <em>{metric.unit}</em>
-                                      </p>
-                                    </div>
-                                  );
-                                },
-                              )}
+                                return (
+                                  <div
+                                    css={keyMetricStyles}
+                                    key={`${metric.label}-${metric.value}`}
+                                  >
+                                    <span css={keyMetricNumberStyles}>
+                                      {value}
+                                    </span>
+                                    <p css={keyMetricLabelStyles}>
+                                      {metric.label}
+                                      <br />
+                                      <em>{metric.unit}</em>
+                                    </p>
+                                  </div>
+                                );
+                              })}
                             </div>
                             <p css={byTheNumbersExplanationStyles}>
                               Waters not assessed do not show up in summaries
@@ -641,7 +627,7 @@ function StateTribal() {
 
                         {stateIntro.description && (
                           <>
-                            <h2>
+                            <h2 css={h2Styles}>
                               <i aria-hidden="true" className="fas fa-water" />
                               About <strong>{activeState.label}</strong>
                             </h2>
@@ -693,6 +679,13 @@ function StateTribal() {
 }
 
 export default function StateTribalContainer() {
+  const { resetData } = useContext(LocationSearchContext);
+  useEffect(() => {
+    return function cleanup() {
+      resetData(true);
+    };
+  }, [resetData]);
+
   return (
     <StateTribalTabsProvider>
       <StateTribal />
