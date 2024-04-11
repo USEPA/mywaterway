@@ -17,6 +17,7 @@ import monitoringIcon from 'images/monitoring.png';
 import identifiedIssuesIcon from 'images/identified-issues.png';
 import restoreIcon from 'images/restore.png';
 import protectIcon from 'images/protect.png';
+import weatherClimateIcon from 'images/weather-climate.png';
 
 const containerStyles = css`
   padding: 1.25em;
@@ -138,6 +139,17 @@ function CommunityIntro() {
 
         <span css={textStyles}>
           <strong>Water Monitoring:</strong> &nbsp; View monitoring locations.
+        </span>
+      </p>
+
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={weatherClimateIcon} alt="Weather & Climate" />
+        </span>
+
+        <span css={textStyles}>
+          <strong>Weather & Climate:</strong> &nbsp; Explore current and
+          potential future weather and climate conditions.
         </span>
       </p>
 
