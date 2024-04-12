@@ -224,7 +224,7 @@ function WeatherClimate() {
         id="current-weather-switch"
         value={currentWeather}
         setter={setCurrentWeather}
-        columns={['Current Severe Weather Events', 'Status within map extent']}
+        columns={['Current Severe Weather Events', 'Status Within Map Extent']}
       />
 
       <div css={sectionHeaderStyles}>
