@@ -98,11 +98,6 @@
       content="./epa-template-files/ieconfig.xml"
     />
     <link
-      rel="manifest"
-      href="./site.webmanifest"
-      crossorigin="use-credentials"
-    />
-    <link
       rel="apple-touch-icon-precomposed"
       sizes="196x196"
       href="./epa-template-files/images/favicon-196.png"
@@ -207,6 +202,7 @@
       }
     </style>
     <!-- End style fixes for the EPA template -->
+
     <!-- Google Tag Manager -->
     <script>
       (function (w, d, s, l, i) {
@@ -221,6 +217,175 @@
       })(window, document, 'script', 'dataLayer', 'GTM-L8ZB');
     </script>
     <!-- End Google Tag Manager -->
+
+    <link
+      rel="stylesheet"
+      href="%PUBLIC_URL%/uswds/css/styles.css"
+      type="text/css"
+    />
+    <link rel="stylesheet" href="%PUBLIC_URL%/css/styles.css" type="text/css" />
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-NSTQYKFRSE"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'G-NSTQYKFRSE');
+    </script>
+    <!-- Google Analytics -->
+    <script>
+      // Prevent scroll restoration. This is used to avoid issues with browsers
+      // scrolling to odd positions after the page finishes loading
+      history.scrollRestoration = 'manual';
+
+      function addGoogleAnalyticsObject() {
+        (function (i, s, o, g, r, a, m) {
+          i['GoogleAnalyticsObject'] = r;
+          (i[r] =
+            i[r] ||
+            function () {
+              (i[r].q = i[r].q || []).push(arguments);
+            }),
+            (i[r].l = 1 * new Date());
+          (a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+          a.async = 1;
+          a.src = g;
+          m.parentNode.insertBefore(a, m);
+        })(
+          window,
+          document,
+          'script',
+          '//www.google-analytics.com/analytics.js',
+          'ga',
+        );
+      }
+
+      // Wrapper for logging to GA which adds the target to the command
+      function logToGa(command, ...props) {
+        if (!window.ga) return;
+        ga(`${window.gaTarget}.${command}`, ...props);
+      }
+
+      // get origin for mapping proxy calls
+      const loc = window.location;
+      const origin =
+        loc.origin + (loc.hostname === 'localhost' ? '' : '/expertquery');
+
+      //Only setup the logging for public sites, ie don't log from localhost
+      window.gaTarget = '';
+      if (
+        window.location.hostname.indexOf('epa.gov') > -1 ||
+        window.location.hostname === 'owapps-prod.app.cloud.gov'
+      ) {
+        //EPA (Production) - Just initialize the EQ logs by setting gaTarget
+        window.gaTarget = 'EPA';
+      } else if (window.location.hostname === 'owapps-stage.app.cloud.gov') {
+        addGoogleAnalyticsObject();
+        ga('create', 'UA-37504877-13', 'auto', 'ERG'); //Stage
+        window.gaTarget = 'ERG';
+        logToGa('send', 'pageview');
+      } else if (
+        window.location.hostname === 'owapps-dev.app.cloud.gov' ||
+        window.location.hostname === 'localhost'
+      ) {
+        addGoogleAnalyticsObject();
+        ga('create', 'UA-37504877-12', 'auto', 'ERG'); //Dev
+        window.gaTarget = 'ERG';
+        logToGa('send', 'pageview');
+      }
+
+      //Only setup the logging for public sites, ie don't log from localhost
+      if (gaTarget) {
+        // create the locationChange event
+        const locationChangeEvent = new Event('locationchange');
+
+        // create the location change event listener
+        window.addEventListener('locationchange', function (event) {
+          logToGa('set', 'page', window.location.pathname);
+          logToGa('send', 'pageview');
+        });
+
+        // Modify the pushState, replaceState and popState events so they
+        // will trigger the locationchange event.
+        const pushState = history.pushState;
+        history.pushState = function () {
+          pushState.apply(history, arguments);
+          window.dispatchEvent(locationChangeEvent);
+        };
+        const replaceState = history.replaceState;
+        history.replaceState = function () {
+          replaceState.apply(this, arguments);
+          window.dispatchEvent(locationChangeEvent);
+        };
+        window.addEventListener('popstate', function () {
+          window.dispatchEvent(locationChangeEvent);
+        });
+
+        window.addEventListener('click', function (event) {
+          //Button clicks
+          if (event.target.onclick && event.target.textContent) {
+            const text = event.target.textContent.trim();
+            const title = event.target.title.trim();
+
+            //Log to Google Analytics
+            const action = title
+              ? 'ow-eq1-' + text + ' - ' + title
+              : 'ow-eq1-' + text;
+            logToGa(
+              'send',
+              'event',
+              'buttonClick',
+              action,
+              window.location.pathname,
+            );
+          }
+
+          //Link clicks
+          if (event.target.tagName.toLowerCase() === 'a') {
+            const href = event.target.href;
+            const action = 'ow-eq1-' + event.target.text.trim();
+
+            const extension = href.split('.').pop;
+            const category =
+              window.location.hostname === event.target.hostname
+                ? //Part of the EQ application
+                  extension === '.pdf' || extension === '.zip'
+                  ? 'Download'
+                  : 'Internal'
+                : 'External'; //External EPA Hyperlink
+
+            //Log to Google Analytics
+            logToGa('send', 'event', category, action, href);
+          }
+        });
+
+        window.addEventListener('error', function (event) {
+          // Ignore errors stemming from EPA template script.
+          if (
+            event.filename ===
+            'https://www.epa.gov/themes/epa_theme/js/dist/scripts.min.js?v=9.2.6'
+          ) {
+            event.stopImmediatePropagation();
+            return;
+          }
+          const description = event.error
+            ? `${event.error.message}${event.error.stack}`
+            : event.message;
+          window.logToGa('send', 'exception', {
+            exDescription: description,
+            exFatal: true,
+          });
+
+          return true;
+        });
+      }
+    </script>
+    <!-- End Google Analytics-->
   </head>
 
   <body class="" id="#top">
@@ -706,7 +871,7 @@
                 <a
                   href="https://www.epa.gov/home/wwwepagov-snapshots"
                   class="menu__link"
-                  >EPA www Web Snapshots</a
+                  >EPA www Web Snapshot</a
                 >
               </li>
 
@@ -718,9 +883,17 @@
 
               <li class="menu__item">
                 <a
-                  href="https://www.epa.gov/ocr/whistleblower-protections-epa-and-how-they-relate-non-disclosure-agreements-signed-epa-employees"
+                  href="https://www.epa.gov/ocr/whistleblower-protections-epa-and-how-they-relate-non-disclosure-agreements-signed-epa"
                   class="menu__link"
                   >No FEAR Act Data</a
+                >
+              </li>
+
+              <li class="menu__item">
+                <a
+                  href="https://www.epa.gov/web-policies-and-procedures/plain-writing"
+                  class="menu__link"
+                  >Plain Writing</a
                 >
               </li>
 
@@ -748,9 +921,7 @@
               </li>
 
               <li class="menu__item">
-                <a
-                  href="https://www.epa.gov/office-inspector-general/about-epas-office-inspector-general"
-                  class="menu__link"
+                <a href="https://www.epaoig.gov" class="menu__link"
                   >Inspector General</a
                 >
               </li>
@@ -764,12 +935,6 @@
               <li class="menu__item">
                 <a href="https://www.epa.gov/newsroom" class="menu__link"
                   >Newsroom</a
-                >
-              </li>
-
-              <li class="menu__item">
-                <a href="https://www.epa.gov/data" class="menu__link"
-                  >Open Government</a
                 >
               </li>
 
@@ -962,5 +1127,32 @@
       }
     </script>
     <!-- End EPA template script mobile drawer fix -->
+    <style>
+      .l-header {
+        position: static;
+      }
+
+      .external-link__tag {
+        font-size: 0.75rem;
+        padding: 0 0.5em;
+      }
+
+      @media (min-width: 64em) {
+        nav.usa-nav--epa {
+          float: none;
+        }
+      }
+    </style>
+
+    <script>
+      (function () {
+        var sz = document.createElement('script');
+        sz.type = 'text/javascript';
+        sz.async = true;
+        sz.src = '//siteimproveanalytics.com/js/siteanalyze_38950.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(sz, s);
+      })();
+    </script>
   </body>
 </html>
