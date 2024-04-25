@@ -49,7 +49,7 @@ const subheadingStyles = css`
 `;
 
 function ExtremeWeather() {
-  const { watershed } = useContext(LocationSearchContext);
+  const { mapView, watershed } = useContext(LocationSearchContext);
   const { visibleLayers } = useLayers();
 
   // Syncs the toggles with the visible layers on the map. Mainly
@@ -59,37 +59,43 @@ function ExtremeWeather() {
 
   const [currentWeather, setCurrentWeather] = useState<Row[]>([
     {
-      type: 'Wildfire',
+      id: 'fire',
+      label: 'Fire',
       checked: false,
       disabled: false,
       text: 'Prescribed Fire, Unhealther Air Quality',
     },
     {
-      type: 'Drought',
+      id: 'drought',
+      label: 'Drought',
       checked: false,
       disabled: false,
       text: 'Abnormally Dry',
     },
     {
-      type: 'Inland Flooding',
+      id: 'inlandFlooding',
+      label: 'Inland Flooding',
       checked: false,
       disabled: false,
       text: 'Flood Warning AND Rain Expected (next 72 hours)',
     },
     {
-      type: 'Coastal Flooding',
+      id: 'coastalFlooding',
+      label: 'Coastal Flooding',
       checked: false,
       disabled: false,
       text: 'Flood Warning',
     },
     {
-      type: 'Extreme Heat',
+      id: 'extremeHeat',
+      label: 'Extreme Heat',
       checked: false,
       disabled: false,
       text: 'Excessive Heat Warning, Max Daily Air Temp: 103 F',
     },
     {
-      type: 'Extreme Cold',
+      id: 'extremeCold',
+      label: 'Extreme Cold',
       checked: false,
       disabled: false,
       text: 'Wind Chill Advisory, Min Daily Air Temp: 32 F',
@@ -98,31 +104,36 @@ function ExtremeWeather() {
 
   const [historicalRisk, setHistoricalRisk] = useState<Row[]>([
     {
-      type: 'Wildfire',
+      id: 'fire',
+      label: 'Fire',
       checked: false,
       disabled: false,
       text: 'Max number of annual consecutive dry days: 11.3',
     },
     {
-      type: 'Drought',
+      id: 'drought',
+      label: 'Drought',
       checked: false,
       disabled: false,
       text: 'Change in annual days with no rain (dry days): 175',
     },
     {
-      type: 'Inland Flooding',
+      id: 'inlandFlooding',
+      label: 'Inland Flooding',
       checked: false,
       disabled: false,
       text: 'Change in annual days with rain (wet days): 188',
     },
     {
-      type: 'Coastal Flooding',
+      id: 'coastalFlooding',
+      label: 'Coastal Flooding',
       checked: false,
       disabled: false,
       text: '% of county impacted by sea level rise: 2',
     },
     {
-      type: 'Extreme Heat',
+      id: 'extremeHeat',
+      label: 'Extreme Heat',
       checked: false,
       disabled: false,
       text: 'Change in annual days with max T over 90F: 25',
@@ -131,88 +142,107 @@ function ExtremeWeather() {
 
   const [potentiallyVulnerable, setPotentiallyVulnerable] = useState<Row[]>([
     {
-      type: 'Waterbodies',
+      id: 'waterbodies',
+      label: 'Waterbodies',
       checked: false,
+      count: 0,
       disabled: false,
-      count: 9,
+      layerId: 'waterbodyLayer',
     },
     {
-      type: 'Impaired',
-      indent: true,
+      id: 'impairedWaterbodies',
+      label: 'Impaired',
       count: 8,
+      indent: true,
     },
     {
-      type: 'Good',
-      indent: true,
+      id: 'goodWaterbodies',
+      label: 'Good',
       count: 0,
+      indent: true,
     },
     {
-      type: 'Unknown',
-      indent: true,
+      id: 'unknownWaterbodies',
+      label: 'Unknown',
       count: 1,
+      indent: true,
     },
     {
-      type: 'Permitted Dischargers',
+      id: 'dischargers',
+      label: 'Permitted Dischargers',
       checked: false,
-      disabled: false,
       count: 12,
+      disabled: false,
+      layerId: 'dischargersLayer',
     },
     {
-      type: 'Public Drinking Water Systems',
+      id: 'drinkingWaterSystems',
+      label: 'Public Drinking Water Systems',
       checked: false,
-      disabled: false,
       count: 38,
+      disabled: false,
+      layerId: 'providersLayer',
     },
     {
-      type: 'Surface Water Sources',
-      indent: true,
+      id: 'surfaceWaterSources',
+      label: 'Surface Water Sources',
       count: 2,
+      indent: true,
     },
     {
-      type: 'Ground Water Sources',
-      indent: true,
+      id: 'groundWaterSources',
+      label: 'Ground Water Sources',
       count: 36,
-    },
-    {
-      type: 'Overburdened, Underserved, and Disadvantaged Communities',
-      checked: false,
-      disabled: false,
-      count: 0,
-    },
-    {
-      type: 'Tribes',
-      checked: false,
-      disabled: false,
       indent: true,
-      count: 0,
     },
     {
-      type: 'Territories or Island State?',
+      id: 'disadvantagedCommunities',
+      label: 'Overburdened, Underserved, and Disadvantaged Communities',
+      checked: false,
+      count: 0,
+      disabled: false,
+    },
+    {
+      id: 'tribes',
+      label: 'Tribes',
+      checked: false,
+      count: 0,
+      disabled: false,
+      layerId: 'tribalLayer',
+    },
+    {
+      id: 'hasTerritories',
+      label: 'Territories or Island State?',
       indent: true,
       text: 'No',
     },
     {
-      type: 'Above and below ground pollutant storage tanks',
+      id: 'pollutantStorageTanks',
+      label: 'Above and below ground pollutant storage tanks',
       checked: false,
-      disabled: false,
       count: 5,
-    },
-    {
-      type: 'Land cover',
-      checked: false,
       disabled: false,
     },
     {
-      type: 'Wells',
+      id: 'landCover',
+      label: 'Land cover',
       checked: false,
       disabled: false,
+      layerId: 'landCoverLayer',
+    },
+    {
+      id: 'wells',
+      label: 'Wells',
+      checked: false,
       count: 30,
+      disabled: false,
     },
     {
-      type: 'Dams',
+      id: 'dams',
+      label: 'Dams',
       checked: false,
-      disabled: false,
       count: 2,
+      disabled: false,
     },
   ]);
 
@@ -222,6 +252,7 @@ function ExtremeWeather() {
     <div css={containerStyles}>
       <SwitchTable
         id="current-weather-switch"
+        mapView={mapView}
         value={currentWeather}
         setter={setCurrentWeather}
         columns={['Current Severe Weather Events', 'Status Within Map Extent']}
@@ -248,6 +279,7 @@ function ExtremeWeather() {
       <SwitchTable
         hideHeader={true}
         id="historical-risk-switch"
+        mapView={mapView}
         value={historicalRisk}
         setter={setHistoricalRisk}
         columns={[
@@ -258,6 +290,7 @@ function ExtremeWeather() {
 
       <SwitchTable
         id="potentially-vulnerable-switch"
+        mapView={mapView}
         value={potentiallyVulnerable}
         setter={setPotentiallyVulnerable}
         columns={[
@@ -288,6 +321,7 @@ type SwitchTableProps = {
   columns: string[];
   hideHeader?: boolean;
   id: string;
+  mapView: __esri.MapView;
   value: Row[];
   setter: Dispatch<SetStateAction<Row[]>>;
 };
@@ -296,6 +330,7 @@ function SwitchTable({
   columns,
   hideHeader,
   id,
+  mapView,
   value,
   setter,
 }: SwitchTableProps) {
@@ -310,6 +345,7 @@ function SwitchTable({
       </thead>
       <tbody>
         {value.map((item) => {
+          const layer = mapView.map.findLayerById(item.layerId ?? '');
           const marginLeft = item.indent
             ? item.checked !== undefined
               ? '1.6rem'
@@ -319,16 +355,20 @@ function SwitchTable({
             <tr key={uniqueId(id)}>
               <td>
                 {item.checked === undefined ? (
-                  <span style={{ marginLeft }}>{item.type}</span>
+                  <span style={{ marginLeft }}>{item.label}</span>
                 ) : (
                   <label css={toggleStyles}>
                     <Switch
                       checked={item.checked}
-                      disabled={item.disabled}
+                      disabled={item.disabled || !item.layerId || !layer}
                       onChange={(checked) => {
+                        if (!layer || !item.layerId) return;
+
+                        layer.visible = checked;
+
                         const newPv = [...value];
                         const itemUpdate = newPv.find(
-                          (cw) => cw.type === item.type,
+                          (cw) => cw.id === item.id,
                         );
                         if (!itemUpdate) return;
 
@@ -336,7 +376,7 @@ function SwitchTable({
                         setter(newPv);
                       }}
                     />
-                    <span style={{ marginLeft: marginLeft }}>{item.type}</span>
+                    <span style={{ marginLeft: marginLeft }}>{item.label}</span>
                   </label>
                 )}
               </td>
@@ -361,7 +401,9 @@ type Row = {
   checked?: boolean;
   count?: number;
   disabled?: boolean;
+  id: string;
   indent?: boolean;
+  label: string;
+  layerId?: string;
   text?: string;
-  type: string;
 };
