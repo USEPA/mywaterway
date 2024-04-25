@@ -12,7 +12,7 @@ import Monitoring from 'components/pages/Community.Tabs.Monitoring';
 import IdentifiedIssues from 'components/pages/Community.Tabs.IdentifiedIssues';
 import Restore from 'components/pages/Community.Tabs.Restore';
 import Protect from 'components/pages/Community.Tabs.Protect';
-import WeatherClimate from 'components/pages/Community.Tabs.WeatherClimate';
+import ExtremeWeather from 'components/pages/Community.Tabs.ExtremeWeather';
 import { DisclaimerModal } from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
@@ -27,7 +27,7 @@ import monitoringIcon from 'images/monitoring.png';
 import identifiedIssuesIcon from 'images/identified-issues.png';
 import restoreIcon from 'images/restore.png';
 import protectIcon from 'images/protect.png';
-import weatherClimateIcon from 'images/weather-climate.png';
+import extremeWeatherIcon from 'images/extreme-weather.png';
 
 function OverviewUpper() {
   return (
@@ -269,11 +269,11 @@ function MonitoringUpper() {
   );
 }
 
-function WeatherClimateUpper() {
+function ExtremeWeatherUpper() {
   return (
     <>
       <p>
-        <strong>Weather and Climate</strong> is monitored by federal agencies.
+        <strong>Extreme Weather</strong> is monitored by federal agencies.
         Universities and others also help detect current extreme weather events
         and potential future climate concerns.
       </p>
@@ -417,11 +417,11 @@ const tabs = [
     },
   },
   {
-    title: 'Weather & Climate',
-    route: '/community/{urlSearch}/weather-climate',
-    icon: weatherClimateIcon,
-    upper: <WeatherClimateUpper />,
-    lower: <WeatherClimate />,
+    title: 'Extreme Weather',
+    route: '/community/{urlSearch}/extreme-weather',
+    icon: extremeWeatherIcon,
+    upper: <ExtremeWeatherUpper />,
+    lower: <ExtremeWeather />,
     layers: {
       boundariesLayer: true,
       searchIconLayer: true,

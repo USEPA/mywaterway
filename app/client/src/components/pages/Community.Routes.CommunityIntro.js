@@ -17,7 +17,7 @@ import monitoringIcon from 'images/monitoring.png';
 import identifiedIssuesIcon from 'images/identified-issues.png';
 import restoreIcon from 'images/restore.png';
 import protectIcon from 'images/protect.png';
-import weatherClimateIcon from 'images/weather-climate.png';
+import extremeWeatherIcon from 'images/extreme-weather.png';
 
 const containerStyles = css`
   padding: 1.25em;
@@ -144,12 +144,12 @@ function CommunityIntro() {
 
       <p css={topicStyles}>
         <span css={iconStyles}>
-          <img src={weatherClimateIcon} alt="Weather & Climate" />
+          <img src={extremeWeatherIcon} alt="Extreme Weather" />
         </span>
 
         <span css={textStyles}>
-          <strong>Weather & Climate:</strong> &nbsp; Explore current and
-          potential future weather and climate conditions.
+          <strong>Extreme Weather:</strong> &nbsp; Explore current and potential
+          future weather and climate conditions.
         </span>
       </p>
 

@@ -48,7 +48,7 @@ const subheadingStyles = css`
   text-align: center;
 `;
 
-function WeatherClimate() {
+function ExtremeWeather() {
   const { watershed } = useContext(LocationSearchContext);
   const { visibleLayers } = useLayers();
 
@@ -349,10 +349,10 @@ function SwitchTable({
   );
 }
 
-export default function WeatherClimateContainer() {
+export default function ExtremeWeatherContainer() {
   return (
-    <TabErrorBoundary tabName="Weather & Climate">
-      <WeatherClimate />
+    <TabErrorBoundary tabName="Extreme Weather">
+      <ExtremeWeather />
     </TabErrorBoundary>
   );
 }
