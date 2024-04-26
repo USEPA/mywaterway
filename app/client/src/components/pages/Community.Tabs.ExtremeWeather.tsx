@@ -13,6 +13,7 @@ import {
 // components
 import DateSlider from 'components/shared/DateSlider';
 import { HelpTooltip } from 'components/shared/HelpTooltip';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 // contexts
@@ -20,6 +21,23 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // styles
 import { toggleTableStyles } from 'styles/index';
+import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
+import { countOrNotAvailable, summarizeAssessments } from 'utils/utils';
+// types
+import { FetchStatus } from 'types';
+
+function updateRow(
+  config: SwitchTableConfig,
+  status: FetchStatus,
+  id: string,
+  value: number | unknown[] | null = null,
+) {
+  const row = config.items.find((c) => c.id === id);
+  if (row) {
+    row.count = countOrNotAvailable(value, status);
+    row.status = status;
+  }
+}
 
 /*
  * Styles
@@ -42,6 +60,15 @@ const sectionHeaderStyles = css`
   word-break: break-word;
 `;
 
+const smallLoadingSpinnerStyles = css`
+  svg {
+    display: inline-block;
+    margin: 0;
+    height: 0.9rem;
+    width: 0.9rem;
+  }
+`;
+
 const subheadingStyles = css`
   font-weight: bold;
   padding-bottom: 0;
@@ -49,202 +76,356 @@ const subheadingStyles = css`
 `;
 
 function ExtremeWeather() {
-  const { mapView, watershed } = useContext(LocationSearchContext);
-  const { visibleLayers } = useLayers();
+  const { cipSummary, drinkingWater, mapView, watershed } = useContext(
+    LocationSearchContext,
+  );
+  const { dischargers, dischargersStatus } = useDischargers();
+  const { visibleLayers, waterbodyLayer } = useLayers();
+  const waterbodies = useWaterbodyFeatures();
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
   // exits full screen.
-  useEffect(() => {}, [visibleLayers]);
+  useEffect(() => {
+    setPotentiallyVulnerable((config) => {
+      Object.entries(visibleLayers).forEach(([layerId, visible]) => {
+        const row = config.items.find((l) => l.layerId === layerId);
+        if (!row || !row.hasOwnProperty('checked')) return;
+        row.checked = visible;
+      });
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+  }, [visibleLayers]);
 
-  const [currentWeather, setCurrentWeather] = useState<Row[]>([
-    {
-      id: 'fire',
-      label: 'Fire',
-      checked: false,
-      disabled: false,
-      text: 'Prescribed Fire, Unhealther Air Quality',
-    },
-    {
-      id: 'drought',
-      label: 'Drought',
-      checked: false,
-      disabled: false,
-      text: 'Abnormally Dry',
-    },
-    {
-      id: 'inlandFlooding',
-      label: 'Inland Flooding',
-      checked: false,
-      disabled: false,
-      text: 'Flood Warning AND Rain Expected (next 72 hours)',
-    },
-    {
-      id: 'coastalFlooding',
-      label: 'Coastal Flooding',
-      checked: false,
-      disabled: false,
-      text: 'Flood Warning',
-    },
-    {
-      id: 'extremeHeat',
-      label: 'Extreme Heat',
-      checked: false,
-      disabled: false,
-      text: 'Excessive Heat Warning, Max Daily Air Temp: 103 F',
-    },
-    {
-      id: 'extremeCold',
-      label: 'Extreme Cold',
-      checked: false,
-      disabled: false,
-      text: 'Wind Chill Advisory, Min Daily Air Temp: 32 F',
-    },
-  ]);
+  const [currentWeather, setCurrentWeather] = useState<SwitchTableConfig>({
+    updateCount: 0,
+    items: [
+      {
+        id: 'fire',
+        label: 'Fire',
+        checked: false,
+        disabled: false,
+        text: 'Prescribed Fire, Unhealther Air Quality',
+      },
+      {
+        id: 'drought',
+        label: 'Drought',
+        checked: false,
+        disabled: false,
+        text: 'Abnormally Dry',
+      },
+      {
+        id: 'inlandFlooding',
+        label: 'Inland Flooding',
+        checked: false,
+        disabled: false,
+        text: 'Flood Warning AND Rain Expected (next 72 hours)',
+      },
+      {
+        id: 'coastalFlooding',
+        label: 'Coastal Flooding',
+        checked: false,
+        disabled: false,
+        text: 'Flood Warning',
+      },
+      {
+        id: 'extremeHeat',
+        label: 'Extreme Heat',
+        checked: false,
+        disabled: false,
+        text: 'Excessive Heat Warning, Max Daily Air Temp: 103 F',
+      },
+      {
+        id: 'extremeCold',
+        label: 'Extreme Cold',
+        checked: false,
+        disabled: false,
+        text: 'Wind Chill Advisory, Min Daily Air Temp: 32 F',
+      },
+    ],
+  });
 
-  const [historicalRisk, setHistoricalRisk] = useState<Row[]>([
-    {
-      id: 'fire',
-      label: 'Fire',
-      checked: false,
-      disabled: false,
-      text: 'Max number of annual consecutive dry days: 11.3',
-    },
-    {
-      id: 'drought',
-      label: 'Drought',
-      checked: false,
-      disabled: false,
-      text: 'Change in annual days with no rain (dry days): 175',
-    },
-    {
-      id: 'inlandFlooding',
-      label: 'Inland Flooding',
-      checked: false,
-      disabled: false,
-      text: 'Change in annual days with rain (wet days): 188',
-    },
-    {
-      id: 'coastalFlooding',
-      label: 'Coastal Flooding',
-      checked: false,
-      disabled: false,
-      text: '% of county impacted by sea level rise: 2',
-    },
-    {
-      id: 'extremeHeat',
-      label: 'Extreme Heat',
-      checked: false,
-      disabled: false,
-      text: 'Change in annual days with max T over 90F: 25',
-    },
-  ]);
+  const [historicalRisk, setHistoricalRisk] = useState<SwitchTableConfig>({
+    updateCount: 0,
+    items: [
+      {
+        id: 'fire',
+        label: 'Fire',
+        checked: false,
+        disabled: false,
+        text: 'Max number of annual consecutive dry days: 11.3',
+      },
+      {
+        id: 'drought',
+        label: 'Drought',
+        checked: false,
+        disabled: false,
+        text: 'Change in annual days with no rain (dry days): 175',
+      },
+      {
+        id: 'inlandFlooding',
+        label: 'Inland Flooding',
+        checked: false,
+        disabled: false,
+        text: 'Change in annual days with rain (wet days): 188',
+      },
+      {
+        id: 'coastalFlooding',
+        label: 'Coastal Flooding',
+        checked: false,
+        disabled: false,
+        text: '% of county impacted by sea level rise: 2',
+      },
+      {
+        id: 'extremeHeat',
+        label: 'Extreme Heat',
+        checked: false,
+        disabled: false,
+        text: 'Change in annual days with max T over 90F: 25',
+      },
+    ],
+  });
 
-  const [potentiallyVulnerable, setPotentiallyVulnerable] = useState<Row[]>([
-    {
-      id: 'waterbodies',
-      label: 'Waterbodies',
-      checked: false,
-      count: 0,
-      disabled: false,
-      layerId: 'waterbodyLayer',
-    },
-    {
-      id: 'impairedWaterbodies',
-      label: 'Impaired',
-      count: 8,
-      indent: true,
-    },
-    {
-      id: 'goodWaterbodies',
-      label: 'Good',
-      count: 0,
-      indent: true,
-    },
-    {
-      id: 'unknownWaterbodies',
-      label: 'Unknown',
-      count: 1,
-      indent: true,
-    },
-    {
-      id: 'dischargers',
-      label: 'Permitted Dischargers',
-      checked: false,
-      count: 12,
-      disabled: false,
-      layerId: 'dischargersLayer',
-    },
-    {
-      id: 'drinkingWaterSystems',
-      label: 'Public Drinking Water Systems',
-      checked: false,
-      count: 38,
-      disabled: false,
-      layerId: 'providersLayer',
-    },
-    {
-      id: 'surfaceWaterSources',
-      label: 'Surface Water Sources',
-      count: 2,
-      indent: true,
-    },
-    {
-      id: 'groundWaterSources',
-      label: 'Ground Water Sources',
-      count: 36,
-      indent: true,
-    },
-    {
-      id: 'disadvantagedCommunities',
-      label: 'Overburdened, Underserved, and Disadvantaged Communities',
-      checked: false,
-      count: 0,
-      disabled: false,
-    },
-    {
-      id: 'tribes',
-      label: 'Tribes',
-      checked: false,
-      count: 0,
-      disabled: false,
-      layerId: 'tribalLayer',
-    },
-    {
-      id: 'hasTerritories',
-      label: 'Territories or Island State?',
-      indent: true,
-      text: 'No',
-    },
-    {
-      id: 'pollutantStorageTanks',
-      label: 'Above and below ground pollutant storage tanks',
-      checked: false,
-      count: 5,
-      disabled: false,
-    },
-    {
-      id: 'landCover',
-      label: 'Land cover',
-      checked: false,
-      disabled: false,
-      layerId: 'landCoverLayer',
-    },
-    {
-      id: 'wells',
-      label: 'Wells',
-      checked: false,
-      count: 30,
-      disabled: false,
-    },
-    {
-      id: 'dams',
-      label: 'Dams',
-      checked: false,
-      count: 2,
-      disabled: false,
-    },
-  ]);
+  const [potentiallyVulnerable, setPotentiallyVulnerable] =
+    useState<SwitchTableConfig>({
+      updateCount: 0,
+      items: [
+        {
+          id: 'waterbodies',
+          label: 'Waterbodies',
+          checked: false,
+          count: '',
+          disabled: false,
+          layerId: 'waterbodyLayer',
+          status: 'idle',
+        },
+        {
+          id: 'impairedWaterbodies',
+          label: 'Impaired',
+          count: '',
+          indent: true,
+          status: 'idle',
+        },
+        {
+          id: 'goodWaterbodies',
+          label: 'Good',
+          count: '',
+          indent: true,
+          status: 'idle',
+        },
+        {
+          id: 'unknownWaterbodies',
+          label: 'Unknown',
+          count: '',
+          indent: true,
+          status: 'idle',
+        },
+        {
+          id: 'dischargers',
+          label: 'Permitted Dischargers',
+          checked: false,
+          count: '',
+          disabled: false,
+          layerId: 'dischargersLayer',
+          status: 'idle',
+        },
+        {
+          id: 'drinkingWaterSystems',
+          label: 'Public Drinking Water Systems',
+          checked: false,
+          count: '',
+          disabled: false,
+          layerId: 'providersLayer',
+          status: 'idle',
+        },
+        {
+          id: 'surfaceWaterSources',
+          label: 'Surface Water Sources',
+          count: '',
+          indent: true,
+          status: 'idle',
+        },
+        {
+          id: 'groundWaterSources',
+          label: 'Ground Water Sources',
+          count: '',
+          indent: true,
+          status: 'idle',
+        },
+        {
+          id: 'disadvantagedCommunities',
+          label: 'Overburdened, Underserved, and Disadvantaged Communities',
+          checked: false,
+          count: 0,
+          disabled: false,
+        },
+        {
+          id: 'tribes',
+          label: 'Tribes',
+          checked: false,
+          count: 0,
+          disabled: false,
+          layerId: 'tribalLayer',
+        },
+        {
+          id: 'hasTerritories',
+          label: 'Territories or Island State?',
+          indent: true,
+          text: 'No',
+        },
+        {
+          id: 'pollutantStorageTanks',
+          label: 'Above and below ground pollutant storage tanks',
+          checked: false,
+          count: 5,
+          disabled: false,
+        },
+        {
+          id: 'landCover',
+          label: 'Land cover',
+          checked: false,
+          disabled: false,
+          layerId: 'landCoverLayer',
+        },
+        {
+          id: 'wells',
+          label: 'Wells',
+          checked: false,
+          count: 30,
+          disabled: false,
+        },
+        {
+          id: 'dams',
+          label: 'Dams',
+          checked: false,
+          count: '2',
+          disabled: false,
+        },
+      ],
+    });
+
+  // update waterbodies
+  useEffect(() => {
+    if (cipSummary.status === 'fetching') {
+      setPotentiallyVulnerable((config) => {
+        updateRow(config, cipSummary.status, 'waterbodies');
+        updateRow(config, cipSummary.status, 'goodWaterbodies');
+        updateRow(config, cipSummary.status, 'impairedWaterbodies');
+        updateRow(config, cipSummary.status, 'unknownWaterbodies');
+        return {
+          ...config,
+          updateCount: config.updateCount + 1,
+        };
+      });
+      return;
+    }
+    if (cipSummary.status === 'success' && (!waterbodyLayer || !waterbodies))
+      return;
+
+    const summary = summarizeAssessments(waterbodies ?? [], 'overallstatus');
+    setPotentiallyVulnerable((config) => {
+      updateRow(config, cipSummary.status, 'waterbodies', summary.total);
+      updateRow(
+        config,
+        cipSummary.status,
+        'goodWaterbodies',
+        summary['Fully Supporting'],
+      );
+      updateRow(
+        config,
+        cipSummary.status,
+        'impairedWaterbodies',
+        summary['Not Supporting'],
+      );
+      updateRow(
+        config,
+        cipSummary.status,
+        'unknownWaterbodies',
+        summary.unassessed +
+          summary['Insufficient Information'] +
+          summary['Not Assessed'],
+      );
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+  }, [cipSummary, waterbodies, waterbodyLayer]);
+
+  // update dischargers
+  useEffect(() => {
+    if (dischargersStatus === 'pending') {
+      setPotentiallyVulnerable((config) => {
+        updateRow(config, dischargersStatus, 'dischargers');
+        return {
+          ...config,
+          updateCount: config.updateCount + 1,
+        };
+      });
+      return;
+    }
+
+    setPotentiallyVulnerable((config) => {
+      updateRow(config, dischargersStatus, 'dischargers', dischargers);
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+  }, [dischargers, dischargersStatus]);
+
+  // update drinking water
+  useEffect(() => {
+    if (drinkingWater.status === 'fetching') {
+      setPotentiallyVulnerable((config) => {
+        updateRow(config, drinkingWater.status, 'drinkingWaterSystems');
+        updateRow(config, drinkingWater.status, 'groundWaterSources');
+        updateRow(config, drinkingWater.status, 'surfaceWaterSources');
+        return {
+          ...config,
+          updateCount: config.updateCount + 1,
+        };
+      });
+      return;
+    }
+
+    setPotentiallyVulnerable((config) => {
+      let totalSystems = 0;
+      let groundWater = 0;
+      let surfaceWater = 0;
+      drinkingWater.data.forEach((system: any) => {
+        if (system.huc12) return;
+        totalSystems += 1;
+        if (system.gw_sw_code === 'GW') groundWater += 1;
+        if (system.gw_sw_code === 'SW') surfaceWater += 1;
+      });
+      updateRow(
+        config,
+        drinkingWater.status,
+        'drinkingWaterSystems',
+        totalSystems,
+      );
+      updateRow(
+        config,
+        drinkingWater.status,
+        'groundWaterSources',
+        groundWater,
+      );
+      updateRow(
+        config,
+        drinkingWater.status,
+        'surfaceWaterSources',
+        surfaceWater,
+      );
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+  }, [drinkingWater]);
 
   const yearsRange = [1970, 2024];
 
@@ -322,8 +503,8 @@ type SwitchTableProps = {
   hideHeader?: boolean;
   id: string;
   mapView: __esri.MapView;
-  value: Row[];
-  setter: Dispatch<SetStateAction<Row[]>>;
+  value: SwitchTableConfig;
+  setter: Dispatch<SetStateAction<SwitchTableConfig>>;
 };
 
 function SwitchTable({
@@ -344,13 +525,14 @@ function SwitchTable({
         </tr>
       </thead>
       <tbody>
-        {value.map((item) => {
-          const layer = mapView.map.findLayerById(item.layerId ?? '');
+        {value.items.map((item) => {
+          const layer = mapView?.map.findLayerById(item.layerId ?? '');
           const marginLeft = item.indent
             ? item.checked !== undefined
               ? '1.6rem'
               : '4rem'
             : undefined;
+          const itemValue = item.text ?? item.count;
           return (
             <tr key={uniqueId(id)}>
               <td>
@@ -366,21 +548,32 @@ function SwitchTable({
 
                         layer.visible = checked;
 
-                        const newPv = [...value];
-                        const itemUpdate = newPv.find(
-                          (cw) => cw.id === item.id,
-                        );
-                        if (!itemUpdate) return;
+                        setter((config) => {
+                          const itemUpdate = config.items.find(
+                            (cw) => cw.id === item.id,
+                          );
+                          if (!itemUpdate) return config;
 
-                        itemUpdate.checked = checked;
-                        setter(newPv);
+                          config.updateCount += 1;
+                          itemUpdate.checked = checked;
+                          return config;
+                        });
                       }}
                     />
                     <span style={{ marginLeft: marginLeft }}>{item.label}</span>
                   </label>
                 )}
               </td>
-              <td>{item.text ?? item.count}</td>
+              <td>
+                {item.status &&
+                ['pending', 'fetching'].includes(item.status) ? (
+                  <div css={smallLoadingSpinnerStyles}>
+                    <LoadingSpinner />
+                  </div>
+                ) : (
+                  itemValue
+                )}
+              </td>
             </tr>
           );
         })}
@@ -399,11 +592,16 @@ export default function ExtremeWeatherContainer() {
 
 type Row = {
   checked?: boolean;
-  count?: number;
+  count?: string | number;
   disabled?: boolean;
   id: string;
   indent?: boolean;
   label: string;
   layerId?: string;
+  status?: FetchStatus;
   text?: string;
+};
+type SwitchTableConfig = {
+  updateCount: number;
+  items: Row[];
 };
