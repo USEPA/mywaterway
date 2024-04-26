@@ -69,11 +69,12 @@ const sliderContainerStyles = css`
   margin: 25px 30px 0;
 `;
 
-const sliderContainerStylesOuter = css`
+const sliderContainerStylesOuter = (hasList: boolean) => css`
   align-items: flex-end;
   display: flex;
   gap: 1rem;
   justify-content: center;
+  padding: ${hasList ? '0 2em' : ''};
   width: 100%;
   span {
     &:first-of-type {
@@ -139,6 +140,7 @@ type Props = {
   max?: number;
   onChange: (newValues: number[]) => void;
   range: number[];
+  list?: string[];
 };
 
 function DateSlider({
@@ -148,11 +150,12 @@ function DateSlider({
   max = new Date().getFullYear(),
   onChange,
   range,
+  list,
 }: Readonly<Props>) {
   const [sliderId] = useState(uuid());
 
   const [minYear, setMinYear] = useState(min);
-  const [maxYear, setMaxYear] = useState(max);
+  const [maxYear, setMaxYear] = useState(list ? list.length - 1 : max);
   useEffect(() => {
     if (!min || !max) return;
     setMinYear(min);
@@ -179,12 +182,15 @@ function DateSlider({
     };
   }, [observer, sliderRef]);
 
-  const yearsArray = [...Array(max - min + 1).keys()].map((x) => x + min);
   let maxTicks = 4;
   if (sliderWidth < 80) maxTicks = 1;
   else if (sliderWidth < 300) maxTicks = 2;
+
+  const yearsArray = list
+    ? [...Array(list.length).keys()]
+    : [...Array(max - min + 1).keys()].map((x) => x + min);
   const tickList = getTicks(yearsArray, maxTicks);
-  if (tickList.slice(-1)[0] !== max) tickList.push(max);
+  if (tickList.slice(-1)[0] !== maxYear) tickList.push(maxYear);
 
   const { getTrackProps, segments, ticks, handles } = useRanger({
     min: minYear,
@@ -198,7 +204,7 @@ function DateSlider({
   return (
     <div css={textBoxStyles}>
       {headerElm}
-      <div css={sliderContainerStylesOuter}>
+      <div css={sliderContainerStylesOuter(Boolean(list))}>
         <div css={sliderContainerStyles} ref={sliderRef}>
           {minYear !== maxYear && (
             <div css={sliderStyles}>
@@ -217,7 +223,9 @@ function DateSlider({
                 {ticks.map(({ value, getTickProps }, i) => {
                   return (
                     <div css={tickStyles} {...getTickProps({ key: i })}>
-                      <div css={tickLabelStyles}>{value}</div>
+                      <div css={tickLabelStyles}>
+                        {list ? list[value] : value}
+                      </div>
                     </div>
                   );
                 })}
@@ -231,12 +239,14 @@ function DateSlider({
                       })}
                       tabIndex={0}
                     >
-                      <div
-                        id={`slider-${sliderId}-handle-${i}`}
-                        css={tooltipStyles}
-                      >
-                        {value}
-                      </div>
+                      {!list && (
+                        <div
+                          id={`slider-${sliderId}-handle-${i}`}
+                          css={tooltipStyles}
+                        >
+                          {value}
+                        </div>
+                      )}
                     </div>
                   ))}
               </div>
