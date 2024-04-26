@@ -19,6 +19,8 @@ import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
+// utils
+import { isFeatureLayer } from 'utils/mapFunctions';
 // styles
 import { toggleTableStyles } from 'styles/index';
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
@@ -76,11 +78,10 @@ const subheadingStyles = css`
 `;
 
 function ExtremeWeather() {
-  const { cipSummary, drinkingWater, mapView, watershed } = useContext(
-    LocationSearchContext,
-  );
+  const { cipSummary, drinkingWater, hucBoundaries, mapView, watershed } =
+    useContext(LocationSearchContext);
   const { dischargers, dischargersStatus } = useDischargers();
-  const { visibleLayers, waterbodyLayer } = useLayers();
+  const { tribalLayer, visibleLayers, waterbodyLayer } = useLayers();
   const waterbodies = useWaterbodyFeatures();
 
   // Syncs the toggles with the visible layers on the map. Mainly
@@ -426,6 +427,56 @@ function ExtremeWeather() {
       };
     });
   }, [drinkingWater]);
+
+  // update tribal
+  useEffect(() => {
+    if (!hucBoundaries || !tribalLayer) return;
+
+    async function queryTribal() {
+      if (!hucBoundaries || !tribalLayer) return;
+
+      setPotentiallyVulnerable((config) => {
+        updateRow(config, 'pending', 'tribes');
+        return {
+          ...config,
+          updateCount: config.updateCount + 1,
+        };
+      });
+
+      const requests: Promise<number>[] = [];
+      tribalLayer.layers.forEach((layer) => {
+        if (!isFeatureLayer(layer)) return;
+        requests.push(
+          layer.queryFeatureCount({
+            geometry: hucBoundaries.features[0].geometry,
+          }),
+        );
+      });
+
+      try {
+        const responses = await Promise.all(requests);
+        let numTribes = 0;
+        responses.forEach((res) => (numTribes += res));
+
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'success', 'tribes', numTribes);
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      } catch (ex) {
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'failure', 'tribes');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      }
+    }
+    queryTribal();
+  }, [hucBoundaries, tribalLayer]);
 
   const yearsRange = [1970, 2024];
 
