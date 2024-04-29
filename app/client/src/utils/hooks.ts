@@ -14,6 +14,7 @@ import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import PortalItem from '@arcgis/core/portal/PortalItem';
 import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
@@ -1570,8 +1571,10 @@ function useSharedLayers({
   }
 
   async function getWildfiresLayer() {
-    const wildfiresLayer = (await Layer.fromArcGISServerUrl({
-      url: services.data.wildfires,
+    const wildfiresLayer = (await Layer.fromPortalItem({
+      portalItem: new PortalItem({
+        id: services.data.wildfires.portalId,
+      }),
     })) as __esri.GroupLayer;
     wildfiresLayer.id = 'wildfiresLayer';
     wildfiresLayer.listMode = 'hide-children';
