@@ -8,10 +8,13 @@ import {
   SetStateAction,
   useContext,
   useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
   useState,
 } from 'react';
+import Slider from '@arcgis/core/widgets/Slider';
 // components
-import DateSlider from 'components/shared/DateSlider';
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
@@ -20,13 +23,22 @@ import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
-import { isFeatureLayer } from 'utils/mapFunctions';
-// styles
-import { toggleTableStyles } from 'styles/index';
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
+import { isFeatureLayer } from 'utils/mapFunctions';
 import { countOrNotAvailable, summarizeAssessments } from 'utils/utils';
+// styles
+import { boxStyles } from 'components/shared/Box';
+import { toggleTableStyles } from 'styles/index';
 // types
 import { FetchStatus } from 'types';
+
+const sliderVerticalBreak = 300;
+const tickConfig: { [key: number]: string } = {
+  0: 'Modeled History',
+  1: 'Early Century',
+  2: 'Mid Century',
+  3: 'Late Century',
+};
 
 function updateRow(
   config: SwitchTableConfig,
@@ -62,6 +74,14 @@ const sectionHeaderStyles = css`
   word-break: break-word;
 `;
 
+const sliderContainerStyles = (isVertical: boolean) => css`
+  background-color: inherit;
+  display: flex;
+  justify-content: center;
+  height: ${isVertical ? 150 : 75}px;
+  margin: ${isVertical ? '1rem 5rem' : '-0.625rem 5rem 0'};
+`;
+
 const smallLoadingSpinnerStyles = css`
   svg {
     display: inline-block;
@@ -77,12 +97,33 @@ const subheadingStyles = css`
   text-align: center;
 `;
 
+const textBoxStyles = css`
+  ${boxStyles};
+  border-color: #ded9d9;
+  color: #444;
+  background-color: #f9f9f9;
+`;
+
 function ExtremeWeather() {
   const { cipSummary, drinkingWater, hucBoundaries, mapView, watershed } =
     useContext(LocationSearchContext);
   const { dischargers, dischargersStatus } = useDischargers();
   const { tribalLayer, visibleLayers, waterbodyLayer } = useLayers();
   const waterbodies = useWaterbodyFeatures();
+
+  const [currentWeather, setCurrentWeather] = useState<SwitchTableConfig>({
+    updateCount: 0,
+    items: currentWatherDefaults,
+  });
+  const [historicalRisk, setHistoricalRisk] = useState<SwitchTableConfig>({
+    updateCount: 0,
+    items: historicalDefaults,
+  });
+  const [potentiallyVulnerable, setPotentiallyVulnerable] =
+    useState<SwitchTableConfig>({
+      updateCount: 0,
+      items: potentiallyVulnerableDefaults,
+    });
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -101,212 +142,61 @@ function ExtremeWeather() {
     });
   }, [visibleLayers]);
 
-  const [currentWeather, setCurrentWeather] = useState<SwitchTableConfig>({
-    updateCount: 0,
-    items: [
-      {
-        id: 'fire',
-        label: 'Fire',
-        checked: false,
-        disabled: false,
-        text: 'Prescribed Fire, Unhealther Air Quality',
-      },
-      {
-        id: 'drought',
-        label: 'Drought',
-        checked: false,
-        disabled: false,
-        text: 'Abnormally Dry',
-      },
-      {
-        id: 'inlandFlooding',
-        label: 'Inland Flooding',
-        checked: false,
-        disabled: false,
-        text: 'Flood Warning AND Rain Expected (next 72 hours)',
-      },
-      {
-        id: 'coastalFlooding',
-        label: 'Coastal Flooding',
-        checked: false,
-        disabled: false,
-        text: 'Flood Warning',
-      },
-      {
-        id: 'extremeHeat',
-        label: 'Extreme Heat',
-        checked: false,
-        disabled: false,
-        text: 'Excessive Heat Warning, Max Daily Air Temp: 103 F',
-      },
-      {
-        id: 'extremeCold',
-        label: 'Extreme Cold',
-        checked: false,
-        disabled: false,
-        text: 'Wind Chill Advisory, Min Daily Air Temp: 32 F',
-      },
-    ],
-  });
+  // sets up slider
+  const [slider, setSlider] = useState<__esri.Slider | null>(null);
+  useEffect(() => {
+    if (slider) return;
 
-  const [historicalRisk, setHistoricalRisk] = useState<SwitchTableConfig>({
-    updateCount: 0,
-    items: [
-      {
-        id: 'fire',
-        label: 'Fire',
-        checked: false,
-        disabled: false,
-        text: 'Max number of annual consecutive dry days: 11.3',
-      },
-      {
-        id: 'drought',
-        label: 'Drought',
-        checked: false,
-        disabled: false,
-        text: 'Change in annual days with no rain (dry days): 175',
-      },
-      {
-        id: 'inlandFlooding',
-        label: 'Inland Flooding',
-        checked: false,
-        disabled: false,
-        text: 'Change in annual days with rain (wet days): 188',
-      },
-      {
-        id: 'coastalFlooding',
-        label: 'Coastal Flooding',
-        checked: false,
-        disabled: false,
-        text: '% of county impacted by sea level rise: 2',
-      },
-      {
-        id: 'extremeHeat',
-        label: 'Extreme Heat',
-        checked: false,
-        disabled: false,
-        text: 'Change in annual days with max T over 90F: 25',
-      },
-    ],
-  });
+    const tickValues: number[] = Object.keys(tickConfig).map(Number);
+    const min = tickValues[0];
+    const max = tickValues[tickValues.length - 1];
+    setSlider(
+      new Slider({
+        container: 'slider',
+        // layout: 'vertical',
+        min,
+        max,
+        steps: 1,
+        tickConfigs: [
+          {
+            labelsVisible: true,
+            mode: 'position',
+            values: tickValues,
+            labelFormatFunction: (value, type) => {
+              return type === 'tick' ? tickConfig[value] : value.toString();
+            },
+          },
+        ],
+        values: [min, max],
+      }),
+    );
+  }, [slider]);
 
-  const [potentiallyVulnerable, setPotentiallyVulnerable] =
-    useState<SwitchTableConfig>({
-      updateCount: 0,
-      items: [
-        {
-          id: 'waterbodies',
-          label: 'Waterbodies',
-          checked: false,
-          count: '',
-          disabled: false,
-          layerId: 'waterbodyLayer',
-          status: 'idle',
-        },
-        {
-          id: 'impairedWaterbodies',
-          label: 'Impaired',
-          count: '',
-          indent: true,
-          status: 'idle',
-        },
-        {
-          id: 'goodWaterbodies',
-          label: 'Good',
-          count: '',
-          indent: true,
-          status: 'idle',
-        },
-        {
-          id: 'unknownWaterbodies',
-          label: 'Unknown',
-          count: '',
-          indent: true,
-          status: 'idle',
-        },
-        {
-          id: 'dischargers',
-          label: 'Permitted Dischargers',
-          checked: false,
-          count: '',
-          disabled: false,
-          layerId: 'dischargersLayer',
-          status: 'idle',
-        },
-        {
-          id: 'drinkingWaterSystems',
-          label: 'Public Drinking Water Systems',
-          checked: false,
-          count: '',
-          disabled: false,
-          layerId: 'providersLayer',
-          status: 'idle',
-        },
-        {
-          id: 'surfaceWaterSources',
-          label: 'Surface Water Sources',
-          count: '',
-          indent: true,
-          status: 'idle',
-        },
-        {
-          id: 'groundWaterSources',
-          label: 'Ground Water Sources',
-          count: '',
-          indent: true,
-          status: 'idle',
-        },
-        {
-          id: 'disadvantagedCommunities',
-          label: 'Overburdened, Underserved, and Disadvantaged Communities',
-          checked: false,
-          count: 0,
-          disabled: false,
-        },
-        {
-          id: 'tribes',
-          label: 'Tribes',
-          checked: false,
-          count: 0,
-          disabled: false,
-          layerId: 'tribalLayer',
-        },
-        {
-          id: 'hasTerritories',
-          label: 'Territories or Island State?',
-          indent: true,
-          text: 'No',
-        },
-        {
-          id: 'pollutantStorageTanks',
-          label: 'Above and below ground pollutant storage tanks',
-          checked: false,
-          count: 5,
-          disabled: false,
-        },
-        {
-          id: 'landCover',
-          label: 'Land cover',
-          checked: false,
-          disabled: false,
-          layerId: 'landCoverLayer',
-        },
-        {
-          id: 'wells',
-          label: 'Wells',
-          checked: false,
-          count: 30,
-          disabled: false,
-        },
-        {
-          id: 'dams',
-          label: 'Dams',
-          checked: false,
-          count: '2',
-          disabled: false,
-        },
-      ],
-    });
+  const [sliderWidth, setSliderWidth] = useState(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const observer = useMemo(
+    () =>
+      new (window as any).ResizeObserver((entries: any) => {
+        if (entries[0]) {
+          const { width } = entries[0].contentRect;
+          setSliderWidth(width);
+        }
+      }),
+    [],
+  );
+  useLayoutEffect(() => {
+    if (!sliderRef?.current) return;
+    observer.observe(sliderRef.current);
+    return () => {
+      observer.disconnect();
+    };
+  }, [observer, sliderRef]);
+
+  useEffect(() => {
+    if (!slider) return;
+    if (sliderWidth < sliderVerticalBreak) slider.layout = 'vertical';
+    else slider.layout = 'horizontal';
+  }, [slider, sliderWidth]);
 
   // update waterbodies
   useEffect(() => {
@@ -478,8 +368,6 @@ function ExtremeWeather() {
     queryTribal();
   }, [hucBoundaries, tribalLayer]);
 
-  const yearsRange = [1970, 2024];
-
   return (
     <div css={containerStyles}>
       <SwitchTable
@@ -494,19 +382,19 @@ function ExtremeWeather() {
         Historical Risk and Potential Future Scenarios
       </div>
 
-      <DateSlider
-        max={yearsRange[1]}
-        min={yearsRange[0]}
-        disabled={!yearsRange[0] || !yearsRange[1]}
-        onChange={() => {}}
-        range={yearsRange}
-        headerElm={
-          <p css={subheadingStyles}>
-            <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-            &nbsp;&nbsp; Date range for the <em>{watershed.name}</em> watershed{' '}
-          </p>
-        }
-      />
+      <div css={textBoxStyles}>
+        <p css={subheadingStyles}>
+          <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
+          &nbsp;&nbsp; Date range for the <em>{watershed.name}</em> watershed{' '}
+        </p>
+
+        <div
+          css={sliderContainerStyles(sliderWidth < sliderVerticalBreak)}
+          ref={sliderRef}
+        >
+          <div id="slider" />
+        </div>
+      </div>
 
       <SwitchTable
         hideHeader={true}
@@ -656,3 +544,198 @@ type SwitchTableConfig = {
   updateCount: number;
   items: Row[];
 };
+
+const currentWatherDefaults: Row[] = [
+  {
+    id: 'fire',
+    label: 'Fire',
+    checked: false,
+    disabled: false,
+    text: 'Prescribed Fire, Unhealther Air Quality',
+  },
+  {
+    id: 'drought',
+    label: 'Drought',
+    checked: false,
+    disabled: false,
+    text: 'Abnormally Dry',
+  },
+  {
+    id: 'inlandFlooding',
+    label: 'Inland Flooding',
+    checked: false,
+    disabled: false,
+    text: 'Flood Warning AND Rain Expected (next 72 hours)',
+  },
+  {
+    id: 'coastalFlooding',
+    label: 'Coastal Flooding',
+    checked: false,
+    disabled: false,
+    text: 'Flood Warning',
+  },
+  {
+    id: 'extremeHeat',
+    label: 'Extreme Heat',
+    checked: false,
+    disabled: false,
+    text: 'Excessive Heat Warning, Max Daily Air Temp: 103 F',
+  },
+  {
+    id: 'extremeCold',
+    label: 'Extreme Cold',
+    checked: false,
+    disabled: false,
+    text: 'Wind Chill Advisory, Min Daily Air Temp: 32 F',
+  },
+];
+const historicalDefaults: Row[] = [
+  {
+    id: 'fire',
+    label: 'Fire',
+    checked: false,
+    disabled: false,
+    text: 'Max number of annual consecutive dry days: 11.3',
+  },
+  {
+    id: 'drought',
+    label: 'Drought',
+    checked: false,
+    disabled: false,
+    text: 'Change in annual days with no rain (dry days): 175',
+  },
+  {
+    id: 'inlandFlooding',
+    label: 'Inland Flooding',
+    checked: false,
+    disabled: false,
+    text: 'Change in annual days with rain (wet days): 188',
+  },
+  {
+    id: 'coastalFlooding',
+    label: 'Coastal Flooding',
+    checked: false,
+    disabled: false,
+    text: '% of county impacted by sea level rise: 2',
+  },
+  {
+    id: 'extremeHeat',
+    label: 'Extreme Heat',
+    checked: false,
+    disabled: false,
+    text: 'Change in annual days with max T over 90F: 25',
+  },
+];
+const potentiallyVulnerableDefaults: Row[] = [
+  {
+    id: 'waterbodies',
+    label: 'Waterbodies',
+    checked: false,
+    count: '',
+    disabled: false,
+    layerId: 'waterbodyLayer',
+    status: 'idle',
+  },
+  {
+    id: 'impairedWaterbodies',
+    label: 'Impaired',
+    count: '',
+    indent: true,
+    status: 'idle',
+  },
+  {
+    id: 'goodWaterbodies',
+    label: 'Good',
+    count: '',
+    indent: true,
+    status: 'idle',
+  },
+  {
+    id: 'unknownWaterbodies',
+    label: 'Unknown',
+    count: '',
+    indent: true,
+    status: 'idle',
+  },
+  {
+    id: 'dischargers',
+    label: 'Permitted Dischargers',
+    checked: false,
+    count: '',
+    disabled: false,
+    layerId: 'dischargersLayer',
+    status: 'idle',
+  },
+  {
+    id: 'drinkingWaterSystems',
+    label: 'Public Drinking Water Systems',
+    checked: false,
+    count: '',
+    disabled: false,
+    layerId: 'providersLayer',
+    status: 'idle',
+  },
+  {
+    id: 'surfaceWaterSources',
+    label: 'Surface Water Sources',
+    count: '',
+    indent: true,
+    status: 'idle',
+  },
+  {
+    id: 'groundWaterSources',
+    label: 'Ground Water Sources',
+    count: '',
+    indent: true,
+    status: 'idle',
+  },
+  {
+    id: 'disadvantagedCommunities',
+    label: 'Overburdened, Underserved, and Disadvantaged Communities',
+    checked: false,
+    count: 0,
+    disabled: false,
+  },
+  {
+    id: 'tribes',
+    label: 'Tribes',
+    checked: false,
+    count: 0,
+    disabled: false,
+    layerId: 'tribalLayer',
+  },
+  {
+    id: 'hasTerritories',
+    label: 'Territories or Island State?',
+    indent: true,
+    text: 'No',
+  },
+  {
+    id: 'pollutantStorageTanks',
+    label: 'Above and below ground pollutant storage tanks',
+    checked: false,
+    count: 5,
+    disabled: false,
+  },
+  {
+    id: 'landCover',
+    label: 'Land cover',
+    checked: false,
+    disabled: false,
+    layerId: 'landCoverLayer',
+  },
+  {
+    id: 'wells',
+    label: 'Wells',
+    checked: false,
+    count: 30,
+    disabled: false,
+  },
+  {
+    id: 'dams',
+    label: 'Dams',
+    checked: false,
+    count: '2',
+    disabled: false,
+  },
+];
