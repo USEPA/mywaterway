@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import Color from '@arcgis/core/Color';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import Layer from '@arcgis/core/layers/Layer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import * as geometryEngineAsync from '@arcgis/core/geometry/geometryEngineAsync';
 import Graphic from '@arcgis/core/Graphic';
@@ -1568,6 +1569,18 @@ function useSharedLayers({
     return landCoverLayer;
   }
 
+  async function getWildfiresLayer() {
+    const wildfiresLayer = (await Layer.fromArcGISServerUrl({
+      url: services.data.wildfires,
+    })) as __esri.GroupLayer;
+    wildfiresLayer.id = 'wildfiresLayer';
+    wildfiresLayer.listMode = 'hide-children';
+    wildfiresLayer.title = 'USA Wildfires';
+    wildfiresLayer.visible = false;
+    setLayer('wildfiresLayer', wildfiresLayer);
+    return wildfiresLayer;
+  }
+
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
@@ -1596,6 +1609,8 @@ function useSharedLayers({
 
     const landCover = getLandCoverLayer();
 
+    const wildfiresLayer = getWildfiresLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1610,6 +1625,7 @@ function useSharedLayers({
       countyLayer,
       watershedsLayer,
       allWaterbodiesLayer,
+      wildfiresLayer,
     ].filter((layer) => layer !== null);
   };
 }

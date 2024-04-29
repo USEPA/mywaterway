@@ -44,11 +44,12 @@ function updateRow(
   config: SwitchTableConfig,
   status: FetchStatus,
   id: string,
-  value: number | unknown[] | null = null,
+  value: number | string | unknown[] | null = null,
 ) {
   const row = config.items.find((c) => c.id === id);
   if (row) {
-    row.count = countOrNotAvailable(value, status);
+    row.text =
+      typeof value === 'string' ? value : countOrNotAvailable(value, status);
     row.status = status;
   }
 }
@@ -108,7 +109,8 @@ function ExtremeWeather() {
   const { cipSummary, drinkingWater, hucBoundaries, mapView, watershed } =
     useContext(LocationSearchContext);
   const { dischargers, dischargersStatus } = useDischargers();
-  const { tribalLayer, visibleLayers, waterbodyLayer } = useLayers();
+  const { tribalLayer, visibleLayers, waterbodyLayer, wildfiresLayer } =
+    useLayers();
   const waterbodies = useWaterbodyFeatures();
 
   const [currentWeather, setCurrentWeather] = useState<SwitchTableConfig>({
@@ -129,7 +131,7 @@ function ExtremeWeather() {
   // used for when the user toggles layers in full screen mode and then
   // exits full screen.
   useEffect(() => {
-    setPotentiallyVulnerable((config) => {
+    function handleSetting(config: SwitchTableConfig) {
       Object.entries(visibleLayers).forEach(([layerId, visible]) => {
         const row = config.items.find((l) => l.layerId === layerId);
         if (!row || !row.hasOwnProperty('checked')) return;
@@ -139,7 +141,10 @@ function ExtremeWeather() {
         ...config,
         updateCount: config.updateCount + 1,
       };
-    });
+    }
+
+    setCurrentWeather(handleSetting);
+    setPotentiallyVulnerable(handleSetting);
   }, [visibleLayers]);
 
   // sets up slider
@@ -153,7 +158,6 @@ function ExtremeWeather() {
     setSlider(
       new Slider({
         container: 'slider',
-        // layout: 'vertical',
         min,
         max,
         steps: 1,
@@ -322,7 +326,7 @@ function ExtremeWeather() {
   useEffect(() => {
     if (!hucBoundaries || !tribalLayer) return;
 
-    async function queryTribal() {
+    async function queryLayer() {
       if (!hucBoundaries || !tribalLayer) return;
 
       setPotentiallyVulnerable((config) => {
@@ -365,8 +369,67 @@ function ExtremeWeather() {
         });
       }
     }
-    queryTribal();
+    queryLayer();
   }, [hucBoundaries, tribalLayer]);
+
+  // update wildfires
+  useEffect(() => {
+    if (!hucBoundaries || !wildfiresLayer) return;
+
+    async function queryLayer() {
+      if (!hucBoundaries || !wildfiresLayer) return;
+
+      setCurrentWeather((config) => {
+        updateRow(config, 'pending', 'fire');
+        return {
+          ...config,
+          updateCount: config.updateCount + 1,
+        };
+      });
+
+      try {
+        const incidentsLayer = wildfiresLayer.layers.find(
+          (l) => isFeatureLayer(l) && l.layerId === 0,
+        ) as __esri.FeatureLayer;
+        const response = await incidentsLayer.queryFeatures({
+          geometry: hucBoundaries.features[0].geometry,
+          outFields: ['DailyAcres'],
+        });
+        let numFires = response.features.length;
+        let acresBurned = 0;
+        response.features.forEach(
+          (feature) => (acresBurned += feature.attributes.DailyAcres),
+        );
+
+        let status = '';
+        if (numFires === 0) status = 'No Fires';
+        else {
+          if (numFires === 1) status = '1 Fire, ';
+          else status = `${numFires} Fires, `;
+
+          if (acresBurned === 1) status += '1 Acre Burned';
+          else status += `${acresBurned} Acres Burned`;
+        }
+
+        setCurrentWeather((config) => {
+          updateRow(config, 'success', 'fire', status);
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      } catch (ex) {
+        setCurrentWeather((config) => {
+          updateRow(config, 'failure', 'fire');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      }
+    }
+    queryLayer();
+  }, [hucBoundaries, wildfiresLayer]);
 
   return (
     <div css={containerStyles}>
@@ -471,7 +534,7 @@ function SwitchTable({
               ? '1.6rem'
               : '4rem'
             : undefined;
-          const itemValue = item.text ?? item.count;
+          const itemValue = item.text;
           return (
             <tr key={uniqueId(id)}>
               <td>
@@ -531,7 +594,6 @@ export default function ExtremeWeatherContainer() {
 
 type Row = {
   checked?: boolean;
-  count?: string | number;
   disabled?: boolean;
   id: string;
   indent?: boolean;
@@ -551,7 +613,9 @@ const currentWatherDefaults: Row[] = [
     label: 'Fire',
     checked: false,
     disabled: false,
-    text: 'Prescribed Fire, Unhealther Air Quality',
+    layerId: 'wildfiresLayer',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'drought',
@@ -631,78 +695,78 @@ const potentiallyVulnerableDefaults: Row[] = [
     id: 'waterbodies',
     label: 'Waterbodies',
     checked: false,
-    count: '',
     disabled: false,
     layerId: 'waterbodyLayer',
     status: 'idle',
+    text: '',
   },
   {
     id: 'impairedWaterbodies',
     label: 'Impaired',
-    count: '',
     indent: true,
     status: 'idle',
+    text: '',
   },
   {
     id: 'goodWaterbodies',
     label: 'Good',
-    count: '',
     indent: true,
     status: 'idle',
+    text: '',
   },
   {
     id: 'unknownWaterbodies',
     label: 'Unknown',
-    count: '',
     indent: true,
     status: 'idle',
+    text: '',
   },
   {
     id: 'dischargers',
     label: 'Permitted Dischargers',
     checked: false,
-    count: '',
     disabled: false,
     layerId: 'dischargersLayer',
     status: 'idle',
+    text: '',
   },
   {
     id: 'drinkingWaterSystems',
     label: 'Public Drinking Water Systems',
     checked: false,
-    count: '',
     disabled: false,
     layerId: 'providersLayer',
     status: 'idle',
+    text: '',
   },
   {
     id: 'surfaceWaterSources',
     label: 'Surface Water Sources',
-    count: '',
     indent: true,
     status: 'idle',
+    text: '',
   },
   {
     id: 'groundWaterSources',
     label: 'Ground Water Sources',
-    count: '',
     indent: true,
     status: 'idle',
+    text: '',
   },
   {
     id: 'disadvantagedCommunities',
     label: 'Overburdened, Underserved, and Disadvantaged Communities',
     checked: false,
-    count: 0,
     disabled: false,
+    text: '',
   },
   {
     id: 'tribes',
     label: 'Tribes',
     checked: false,
-    count: 0,
     disabled: false,
     layerId: 'tribalLayer',
+    text: '',
   },
   {
     id: 'hasTerritories',
@@ -714,8 +778,8 @@ const potentiallyVulnerableDefaults: Row[] = [
     id: 'pollutantStorageTanks',
     label: 'Above and below ground pollutant storage tanks',
     checked: false,
-    count: 5,
     disabled: false,
+    text: '5',
   },
   {
     id: 'landCover',
@@ -728,14 +792,14 @@ const potentiallyVulnerableDefaults: Row[] = [
     id: 'wells',
     label: 'Wells',
     checked: false,
-    count: 30,
     disabled: false,
+    text: '30',
   },
   {
     id: 'dams',
     label: 'Dams',
     checked: false,
-    count: '2',
     disabled: false,
+    text: '2',
   },
 ];

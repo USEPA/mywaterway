@@ -65,6 +65,7 @@
     "waterbodies": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0"
   },
   "printService": "https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+  "wildfires": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/USA_Wildfires_v1/FeatureServer/",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -395,6 +396,11 @@
       "urlLookup": "printService",
       "wildcardUrl": "{urlLookup}*",
       "name": "print service"
+    },
+    {
+      "urlLookup": "wildfires",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Wildfires"
     }
   ]
 }
