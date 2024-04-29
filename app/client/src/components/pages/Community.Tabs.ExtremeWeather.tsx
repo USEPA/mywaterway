@@ -458,7 +458,7 @@ function ExtremeWeather() {
         mapView={mapView}
         value={currentWeather}
         setter={setCurrentWeather}
-        columns={['Current Severe Weather Events', 'Status Within Map Extent']}
+        columns={['Current Severe Weather Events', 'Status Within Watershed']}
       />
 
       <div css={sectionHeaderStyles}>
