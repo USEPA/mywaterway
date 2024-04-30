@@ -135,7 +135,7 @@ function ExtremeWeather() {
     function handleSetting(config: SwitchTableConfig) {
       Object.entries(visibleLayers).forEach(([layerId, visible]) => {
         const row = config.items.find((l) => l.layerId === layerId);
-        if (!row || !row.hasOwnProperty('checked')) return;
+        if (!row?.hasOwnProperty('checked')) return;
         row.checked = visible;
       });
       return {
@@ -388,66 +388,76 @@ function ExtremeWeather() {
         };
       });
 
-      // setup the watch event to see when the layer finishes loading
-      const newWatcher = reactiveUtils.watch(
-        () => wildfiresLayer.loadStatus,
-        async () => {
-          if (['failed', 'loaded'].includes(wildfiresLayer.loadStatus))
-            newWatcher.remove();
-          if (wildfiresLayer.loadStatus === 'failed') {
-            setCurrentWeather((config) => {
-              updateRow(config, 'failure', 'fire');
-              return {
-                ...config,
-                updateCount: config.updateCount + 1,
-              };
-            });
-            return;
-          }
-
-          try {
-            const incidentsLayer = wildfiresLayer.layers.find(
-              (l) => isFeatureLayer(l) && l.layerId === 0,
-            ) as __esri.FeatureLayer;
-            const response = await incidentsLayer.queryFeatures({
-              geometry: hucBoundaries.features[0].geometry,
-              outFields: ['DailyAcres'],
-            });
-            let numFires = response.features.length;
-            let acresBurned = 0;
-            response.features.forEach(
-              (feature) => (acresBurned += feature.attributes.DailyAcres),
-            );
-
-            let status = '';
-            if (numFires === 0) status = 'No Fires';
-            else {
-              if (numFires === 1) status = '1 Fire, ';
-              else status = `${numFires} Fires, `;
-
-              if (acresBurned === 1) status += '1 Acre Burned';
-              else status += `${acresBurned} Acres Burned`;
-            }
-
-            setCurrentWeather((config) => {
-              updateRow(config, 'success', 'fire', status);
-              return {
-                ...config,
-                updateCount: config.updateCount + 1,
-              };
-            });
-          } catch (ex) {
-            setCurrentWeather((config) => {
-              updateRow(config, 'failure', 'fire');
-              return {
-                ...config,
-                updateCount: config.updateCount + 1,
-              };
-            });
-          }
-        },
-      );
+      if (['failed', 'loaded'].includes(wildfiresLayer.loadStatus)) {
+        queryLayerInner();
+      } else {
+        // setup the watch event to see when the layer finishes loading
+        const newWatcher = reactiveUtils.watch(
+          () => wildfiresLayer.loadStatus,
+          () => {
+            if (['failed', 'loaded'].includes(wildfiresLayer.loadStatus))
+              newWatcher.remove();
+            queryLayerInner();
+          },
+        );
+      }
     }
+
+    async function queryLayerInner() {
+      if (!wildfiresLayer) return;
+      if (wildfiresLayer.loadStatus === 'failed') {
+        setCurrentWeather((config) => {
+          updateRow(config, 'failure', 'fire');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+        return;
+      }
+
+      try {
+        const incidentsLayer = wildfiresLayer.layers.find(
+          (l) => isFeatureLayer(l) && l.layerId === 0,
+        ) as __esri.FeatureLayer;
+        const response = await incidentsLayer.queryFeatures({
+          geometry: hucBoundaries.features[0].geometry,
+          outFields: ['DailyAcres'],
+        });
+        let numFires = response.features.length;
+        let acresBurned = 0;
+        response.features.forEach(
+          (feature) => (acresBurned += feature.attributes.DailyAcres),
+        );
+
+        let status = '';
+        if (numFires === 0) status = 'No Fires';
+        else {
+          if (numFires === 1) status = '1 Fire, ';
+          else status = `${numFires} Fires, `;
+
+          if (acresBurned === 1) status += '1 Acre Burned';
+          else status += `${acresBurned} Acres Burned`;
+        }
+
+        setCurrentWeather((config) => {
+          updateRow(config, 'success', 'fire', status);
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      } catch (ex) {
+        setCurrentWeather((config) => {
+          updateRow(config, 'failure', 'fire');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      }
+    }
+
     queryLayer();
   }, [hucBoundaries, wildfiresLayer]);
 
@@ -536,7 +546,7 @@ function SwitchTable({
   mapView,
   value,
   setter,
-}: SwitchTableProps) {
+}: Readonly<SwitchTableProps>) {
   return (
     <table css={modifiedToggleTableStyles(hideHeader)} className="table">
       <thead className={hideHeader ? 'sr-only' : ''}>
