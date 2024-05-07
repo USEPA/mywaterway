@@ -586,9 +586,11 @@ function SwitchTable({
                           );
                           if (!itemUpdate) return config;
 
-                          config.updateCount += 1;
                           itemUpdate.checked = checked;
-                          return config;
+                          return {
+                            ...config,
+                            updateCount: config.updateCount + 1,
+                          };
                         });
                       }}
                     />
