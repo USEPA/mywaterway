@@ -8,16 +8,13 @@ import {
   SetStateAction,
   useContext,
   useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
   useState,
 } from 'react';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
-import Slider from '@arcgis/core/widgets/Slider';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import Slider from 'components/shared/Slider';
 import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 // contexts
@@ -28,18 +25,29 @@ import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
 import { isFeatureLayer } from 'utils/mapFunctions';
 import { countOrNotAvailable, summarizeAssessments } from 'utils/utils';
 // styles
-import { boxStyles } from 'components/shared/Box';
 import { toggleTableStyles } from 'styles/index';
 // types
 import { FetchStatus } from 'types';
 
 const sliderVerticalBreak = 300;
-const tickConfig: { [key: number]: string } = {
-  0: 'Modeled History',
-  1: 'Early Century',
-  2: 'Mid Century',
-  3: 'Late Century',
-};
+const tickList = [
+  {
+    value: 0,
+    label: 'Modeled History',
+  },
+  {
+    value: 1,
+    label: 'Early Century',
+  },
+  {
+    value: 2,
+    label: 'Mid Century',
+  },
+  {
+    value: 3,
+    label: 'Late Century',
+  },
+];
 
 function updateRow(
   config: SwitchTableConfig,
@@ -76,14 +84,6 @@ const sectionHeaderStyles = css`
   word-break: break-word;
 `;
 
-const sliderContainerStyles = (isVertical: boolean) => css`
-  background-color: inherit;
-  display: flex;
-  justify-content: center;
-  height: ${isVertical ? 150 : 75}px;
-  margin: ${isVertical ? '1rem 5rem' : '-0.625rem 5rem 0'};
-`;
-
 const smallLoadingSpinnerStyles = css`
   svg {
     display: inline-block;
@@ -97,13 +97,6 @@ const subheadingStyles = css`
   font-weight: bold;
   padding-bottom: 0;
   text-align: center;
-`;
-
-const textBoxStyles = css`
-  ${boxStyles};
-  border-color: #ded9d9;
-  color: #444;
-  background-color: #f9f9f9;
 `;
 
 function ExtremeWeather() {
@@ -147,61 +140,6 @@ function ExtremeWeather() {
     setCurrentWeather(handleSetting);
     setPotentiallyVulnerable(handleSetting);
   }, [visibleLayers]);
-
-  // sets up slider
-  const [slider, setSlider] = useState<__esri.Slider | null>(null);
-  useEffect(() => {
-    if (slider) return;
-
-    const tickValues: number[] = Object.keys(tickConfig).map(Number);
-    const min = tickValues[0];
-    const max = tickValues[tickValues.length - 1];
-    setSlider(
-      new Slider({
-        container: 'slider',
-        min,
-        max,
-        steps: 1,
-        tickConfigs: [
-          {
-            labelsVisible: true,
-            mode: 'position',
-            values: tickValues,
-            labelFormatFunction: (value, type) => {
-              return type === 'tick' ? tickConfig[value] : value.toString();
-            },
-          },
-        ],
-        values: [min, max],
-      }),
-    );
-  }, [slider]);
-
-  const [sliderWidth, setSliderWidth] = useState(0);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const observer = useMemo(
-    () =>
-      new (window as any).ResizeObserver((entries: any) => {
-        if (entries[0]) {
-          const { width } = entries[0].contentRect;
-          setSliderWidth(width);
-        }
-      }),
-    [],
-  );
-  useLayoutEffect(() => {
-    if (!sliderRef?.current) return;
-    observer.observe(sliderRef.current);
-    return () => {
-      observer.disconnect();
-    };
-  }, [observer, sliderRef]);
-
-  useEffect(() => {
-    if (!slider) return;
-    if (sliderWidth < sliderVerticalBreak) slider.layout = 'vertical';
-    else slider.layout = 'horizontal';
-  }, [slider, sliderWidth]);
 
   // update waterbodies
   useEffect(() => {
@@ -475,19 +413,20 @@ function ExtremeWeather() {
         Historical Risk and Potential Future Scenarios
       </div>
 
-      <div css={textBoxStyles}>
-        <p css={subheadingStyles}>
-          <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-          &nbsp;&nbsp; Date range for the <em>{watershed.name}</em> watershed{' '}
-        </p>
-
-        <div
-          css={sliderContainerStyles(sliderWidth < sliderVerticalBreak)}
-          ref={sliderRef}
-        >
-          <div id="slider" />
-        </div>
-      </div>
+      <Slider
+        list={tickList}
+        max={tickList[tickList.length - 1].value}
+        range={[tickList[0].value, tickList[tickList.length - 1].value]}
+        onChange={(_value) => {}}
+        sliderVerticalBreak={sliderVerticalBreak}
+        valueLabelDisplay="off"
+        headerElm={
+          <p css={subheadingStyles}>
+            <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
+            &nbsp;&nbsp; Date range for the <em>{watershed.name}</em> watershed{' '}
+          </p>
+        }
+      />
 
       <SwitchTable
         hideHeader={true}
