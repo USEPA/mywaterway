@@ -73,7 +73,7 @@
     "@visx/xychart": "3.8.0",
     "file-saver": "2.0.5",
     "glossary-panel": "github:Eastern-Research-Group/glossary",
-    "highcharts": "11.3.0",
+    "highcharts": "11.4.1",
     "highcharts-react-official": "3.2.1",
     "html-to-image": "1.11.11",
     "papaparse": "5.4.1",

@@ -91,7 +91,6 @@ function ColumnChart({
   yMax,
   zoomType,
 }: ColumnChartProps) {
-  console.log(JSON.stringify(series[0].zones));
   const options = useMemo<Highcharts.Options>(() => {
     return {
       caption: {
