@@ -141,6 +141,7 @@ export function useLayers() {
       usgsStreamgagesLayer,
       waterbodyLayer,
       watershedsLayer,
+      wildfiresLayer,
       wildScenicRiversLayer,
       wsioHealthIndexLayer,
     } = layers;
@@ -151,6 +152,7 @@ export function useLayers() {
       landCoverLayer,
       protectedAreasLayer,
       protectedAreasHighlightLayer,
+      wildfiresLayer,
       wildScenicRiversLayer,
       tribalLayer,
       congressionalLayer,
@@ -311,6 +313,7 @@ const groupLayerIds = [
   'surroundingCyanLayer',
   'tribalLayer',
   'waterbodyLayer',
+  'wildfiresLayer',
 ] as const;
 
 const mapImageLayerIds = [

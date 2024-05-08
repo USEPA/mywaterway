@@ -12,7 +12,6 @@ import {
 } from 'components/shared/AccordionMapHighlight';
 import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import { tabsStyles } from 'components/shared/ContentTabs';
-import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip } from 'components/shared/HelpTooltip';
@@ -30,6 +29,7 @@ import {
 } from 'components/shared/MapLegend';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
+import Slider from 'components/shared/Slider';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
@@ -1126,14 +1126,14 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 <LoadingSpinner />
               )}
               {monitoringPeriodOfRecordStatus === 'success' && (
-                <DateSlider
+                <Slider
                   max={monitoringYearsRange[1]}
                   min={monitoringYearsRange[0]}
                   disabled={
                     !monitoringYearsRange[0] || !monitoringYearsRange[1]
                   }
                   onChange={handleDateSliderChange}
-                  range={selectedMonitoringYearsRange}
+                  range={[monitoringYearsRange[0], monitoringYearsRange[1]]}
                   headerElm={
                     <p css={subheadingStyles}>
                       <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />

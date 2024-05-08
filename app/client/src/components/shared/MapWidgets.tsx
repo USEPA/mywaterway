@@ -222,6 +222,7 @@ const orderedLayers = [
   'tribalLayer-4',
   'tribalLayer-5',
   'wsioHealthIndexLayer',
+  'wildfiresLayer',
   'wildScenicRiversLayer',
   'protectedAreasHighlightLayer',
   'protectedAreasLayer',

@@ -19,7 +19,6 @@ import Select from 'react-select';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { BoxContent, FlexRow } from 'components/shared/BoxContent';
-import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
@@ -33,6 +32,7 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import NavBar from 'components/shared/NavBar';
 import Page from 'components/shared/Page';
 import ReactTable, { generateFilterInput } from 'components/shared/ReactTable';
+import Slider from 'components/shared/Slider';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
@@ -1256,7 +1256,7 @@ function CharacteristicChartSection({
               max={maxYear}
               disabled={!records.length}
               onChange={(newDomain) => setSelectedYears(newDomain)}
-              range={selectedYears}
+              range={[minYear, maxYear]}
             />
             <div css={selectContainerStyles}>
               <span>
@@ -1955,7 +1955,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
             max={maxYear}
             min={minYear}
             onChange={(newRange) => setRange(newRange)}
-            range={range}
+            range={[minYear, maxYear]}
           />
         )}
         <div css={boxSectionStyles}>
@@ -2434,7 +2434,7 @@ function SliderContainer({ min, max, onChange, range }) {
 
   return (
     <div css={sliderContainerStyles}>
-      <DateSlider min={min} max={max} onChange={onChange} range={range} />
+      <Slider min={min} max={max} onChange={onChange} range={range} />
     </div>
   );
 }

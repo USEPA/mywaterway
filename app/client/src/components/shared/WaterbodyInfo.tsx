@@ -23,8 +23,8 @@ import {
 } from 'components/shared/MessageBoxes';
 import Modal from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
+import Slider from 'components/shared/Slider';
 import { Sparkline } from 'components/shared/Sparkline';
-import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import {
@@ -1467,18 +1467,11 @@ const showLessMoreStyles = css`
   }
 `;
 
-const sliderContainerStyles = css`
-  margin: auto;
-  width: 90%;
-`;
-
 const subheadingStyles = css`
   font-weight: bold;
   padding-bottom: 0;
   text-align: center;
 `;
-
-const oneDay = 1000 * 60 * 60 * 24;
 
 const pixelAreaKm = (300 * 300) / 10 ** 6;
 const pixelAreaMi = squareKmToSquareMi(pixelAreaKm);
@@ -1789,6 +1782,7 @@ function CyanContent({
 
   const [dates, setDates] = useState<number[]>([]);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
+  const [initialDate, setInitialDate] = useState<number | null>(null);
 
   // Parse slider values from the new data
   useEffect(() => {
@@ -1808,6 +1802,7 @@ function CyanContent({
     );
 
     setDates(newDates);
+    setInitialDate(newSelectedDate);
     setSelectedDate(newSelectedDate);
   }, [cellConcentration]);
 
@@ -2128,7 +2123,7 @@ function CyanContent({
   }, [cellConcentration]);
 
   const handleSliderChange = useCallback(
-    (value: number) => setSelectedDate(value),
+    (values: number[]) => setSelectedDate(values[0]),
     [],
   );
 
@@ -2141,6 +2136,11 @@ function CyanContent({
       getAverageNonLandPixelArea(cellConcentration.data),
     )} mi${String.fromCodePoint(0x00b2)}`;
   }
+
+  const tickList = dates.map((d) => ({
+    label: epochToMonthDay(d),
+    value: d,
+  }));
 
   return (
     <>
@@ -2220,34 +2220,35 @@ function CyanContent({
             )}
 
             {/* If `selectedDate` is null, no date with data was found */}
-            {selectedDate ? (
+            {initialDate && selectedDate ? (
               <>
-                <div css={marginBoxStyles(textBoxStyles)}>
-                  <p css={subheadingStyles}>
-                    <HelpTooltip
-                      label={
-                        <>
-                          Adjust the slider handle to view the day's blue-green
-                          algae satellite imagery on the map.
-                          <br />
-                          Data for the previous day typically becomes available
-                          between 9 - 11am EST.
-                        </>
-                      }
-                    />
-                    &nbsp;&nbsp; Date Selection
-                  </p>
-
-                  <div css={sliderContainerStyles}>
-                    <TickSlider
-                      getTickLabel={epochToMonthDay}
-                      loading={imageStatus === 'pending'}
-                      onChange={handleSliderChange}
-                      steps={dates}
-                      stepSize={oneDay}
-                      value={selectedDate}
-                    />
-                  </div>
+                <div style={{ margin: '1em 0' }}>
+                  <Slider
+                    list={tickList}
+                    min={dates[0]}
+                    max={dates[dates.length - 1]}
+                    onChange={handleSliderChange}
+                    range={[initialDate]}
+                    sliderVerticalBreak={250}
+                    steps={null}
+                    valueLabelDisplay="off"
+                    headerElm={
+                      <p css={subheadingStyles}>
+                        <HelpTooltip
+                          label={
+                            <>
+                              Adjust the slider handle to view the day's
+                              blue-green algae satellite imagery on the map.
+                              <br />
+                              Data for the previous day typically becomes
+                              available between 9 - 11am EST.
+                            </>
+                          }
+                        />
+                        &nbsp;&nbsp; Date Selection
+                      </p>
+                    }
+                  />
                 </div>
 
                 {imageStatus === 'failure' && (

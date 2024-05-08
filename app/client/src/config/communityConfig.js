@@ -12,6 +12,7 @@ import Monitoring from 'components/pages/Community.Tabs.Monitoring';
 import IdentifiedIssues from 'components/pages/Community.Tabs.IdentifiedIssues';
 import Restore from 'components/pages/Community.Tabs.Restore';
 import Protect from 'components/pages/Community.Tabs.Protect';
+import ExtremeWeather from 'components/pages/Community.Tabs.ExtremeWeather';
 import { DisclaimerModal } from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
@@ -26,6 +27,7 @@ import monitoringIcon from 'images/monitoring.png';
 import identifiedIssuesIcon from 'images/identified-issues.png';
 import restoreIcon from 'images/restore.png';
 import protectIcon from 'images/protect.png';
+import extremeWeatherIcon from 'images/extreme-weather.png';
 
 function OverviewUpper() {
   return (
@@ -267,6 +269,42 @@ function MonitoringUpper() {
   );
 }
 
+function ExtremeWeatherUpper() {
+  return (
+    <>
+      <p>
+        <strong>Extreme Weather</strong> is monitored by federal agencies.
+        Universities and others also help detect current extreme weather events
+        and potential future climate concerns.
+      </p>
+      <p>
+        Explore the map and information below to find out about current and
+        potential future weather and climate conditions.
+      </p>
+
+      <DisclaimerModal>
+        <p>
+          The condition of a waterbody is dynamic and can change at any time,
+          and the information in How’s My Waterway should only be used for
+          general reference. This monitoring section only displays data that has
+          been shared with EPA and doesn’t represent all data collected on a
+          specific waterbody. For the most current data, refer to local or state
+          real-time water quality reports.
+        </p>
+
+        <p>
+          Furthermore, users of this application should not rely on information
+          relating to environmental laws and regulations posted on this
+          application. Application users are solely responsible for ensuring
+          that they are in compliance with all relevant environmental laws and
+          regulations. In addition, EPA cannot attest to the accuracy of data
+          provided by organizations outside of the federal government.
+        </p>
+      </DisclaimerModal>
+    </>
+  );
+}
+
 function IdentifiedIssuesUpper() {
   return (
     <p>
@@ -376,6 +414,17 @@ const tabs = [
       cyanLayer: true,
       searchIconLayer: true,
       usgsStreamgagesLayer: true,
+    },
+  },
+  {
+    title: 'Extreme Weather',
+    route: '/community/{urlSearch}/extreme-weather',
+    icon: extremeWeatherIcon,
+    upper: <ExtremeWeatherUpper />,
+    lower: <ExtremeWeather />,
+    layers: {
+      boundariesLayer: true,
+      searchIconLayer: true,
     },
   },
   {
