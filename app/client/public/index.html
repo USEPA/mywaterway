@@ -598,10 +598,16 @@
     },
   ];
 
-  // Configure analytics destinations for non-production environments.
-  // Production will use the analytics injected by the EPA template.
+  // Configure analytics destinations.
   let trackingId;
-  if (window.location.hostname === "mywaterway-stage.app.cloud.gov") {
+  if (
+    window.location.hostname === 'mywaterway.epa.gov' ||
+    window.location.hostname === 'mywaterway-prod.app.cloud.gov'
+  ) {
+    //EPA (Production)
+    trackingId = "G-2SEC4V3SK9";
+    configureGoogleAnalytics(trackingId);
+  } else if (window.location.hostname === "mywaterway-stage.app.cloud.gov") {
     // Stage
     trackingId = "G-8ZG01NLPFL";
     configureGoogleAnalytics(trackingId);
@@ -610,8 +616,7 @@
     window.location.hostname === "localhost"
   ) {
     // Dev
-    // trackingId = "G-X6JSLPJCWP";
-    trackingId = "G-2SEC4V3SK9"; // Prod Testing
+    trackingId = "G-X6JSLPJCWP";
     configureGoogleAnalytics(trackingId, true);
   }
 
