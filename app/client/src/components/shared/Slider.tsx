@@ -155,7 +155,13 @@ function Slider({
       ? 'vertical'
       : 'horizontal';
 
-  function valuetext(value: number) {
+  function getAriaLabelText(index: number) {
+    if (range.length === 1 && index === 0) return 'Selection';
+    if (range.length > 1 && index === 0) return 'Range Start';
+    if (range.length > 1 && index === range.length - 1) return 'Range End';
+    return `Range Index ${index + 1}`;
+  }
+  function getAriaValueText(value: number) {
     const tick = tickList.find((i) => i.value === value);
     return tick ? tick.label : value.toString();
   }
@@ -175,8 +181,8 @@ function Slider({
             <SliderStyled
               defaultValue={range}
               disabled={disabled}
-              getAriaLabel={valuetext}
-              getAriaValueText={valuetext}
+              getAriaLabel={getAriaLabelText}
+              getAriaValueText={getAriaValueText}
               marks={tickList}
               max={maxValue}
               min={minValue}
