@@ -150,10 +150,8 @@ function Slider({
       tickList.push({ label: maxValue.toString(), value: maxValue });
   }
 
-  const orientation =
-    sliderVerticalBreak && sliderWidth < sliderVerticalBreak
-      ? 'vertical'
-      : 'horizontal';
+  const isVertical =
+    sliderVerticalBreak && sliderWidth < sliderVerticalBreak ? true : false;
 
   function getAriaLabelText(index: number) {
     if (range.length === 1 && index === 0) return 'Selection';
@@ -172,7 +170,7 @@ function Slider({
       <div css={sliderContainerStylesOuter(Boolean(list))}>
         <div
           css={sliderContainerStyles(
-            false,
+            isVertical,
             ['on', 'auto'].includes(valueLabelDisplay),
           )}
           ref={sliderRef}
@@ -186,7 +184,7 @@ function Slider({
               marks={tickList}
               max={maxValue}
               min={minValue}
-              orientation={orientation}
+              orientation={isVertical ? 'vertical' : 'horizontal'}
               step={steps}
               valueLabelDisplay={valueLabelDisplay}
               onChangeCommitted={(_event, value) =>

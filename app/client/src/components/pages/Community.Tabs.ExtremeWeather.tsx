@@ -29,7 +29,6 @@ import { toggleTableStyles } from 'styles/index';
 // types
 import { FetchStatus } from 'types';
 
-const sliderVerticalBreak = 300;
 const tickList = [
   {
     value: 0,
@@ -418,7 +417,7 @@ function ExtremeWeather() {
         max={tickList[tickList.length - 1].value}
         range={[tickList[0].value, tickList[tickList.length - 1].value]}
         onChange={(_value) => {}}
-        sliderVerticalBreak={sliderVerticalBreak}
+        sliderVerticalBreak={300}
         valueLabelDisplay="off"
         headerElm={
           <p css={subheadingStyles}>

@@ -2229,6 +2229,7 @@ function CyanContent({
                     max={dates[dates.length - 1]}
                     onChange={handleSliderChange}
                     range={[initialDate]}
+                    sliderVerticalBreak={250}
                     steps={null}
                     valueLabelDisplay="off"
                     headerElm={
