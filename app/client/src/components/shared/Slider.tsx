@@ -63,7 +63,7 @@ const SliderStyled = styled(MuiSlider)(({ theme }) => ({
     },
   },
   '& .MuiSlider-valueLabel': {
-    backgroundColor: '#d5e6ee', // TODO pull from colors??
+    backgroundColor: '#d5e6ee',
     borderRadius: '10%',
     color: '#444',
     fontFamily:
