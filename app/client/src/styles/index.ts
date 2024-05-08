@@ -83,6 +83,7 @@ export const iconStyles = css`
 export const fonts = {
   primary: `'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial', sans-serif`,
   secondary: `'Roboto Slab', serif`,
+  tertiary: `'Merriweather Web', Georgia, Cambria, 'Times New Roman'`,
 };
 
 export const groupHeadingStyles: CSSObjectWithLabel = {

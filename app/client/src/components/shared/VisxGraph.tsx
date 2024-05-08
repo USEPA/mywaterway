@@ -25,8 +25,8 @@ const DEFAULT_COLOR = '#2C2E43';
 */
 
 const axisTitleStyles = {
-  fontFamily: fonts.primary,
-  fontSize: '1rem',
+  fontFamily: fonts.tertiary,
+  fontSize: '0.85rem',
   fontWeight: 'bold',
 };
 
