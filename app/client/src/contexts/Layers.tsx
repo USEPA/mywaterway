@@ -116,6 +116,7 @@ export function useLayers() {
       actionsWaterbodies,
       allWaterbodiesLayer,
       boundariesLayer,
+      cmraScreeningLayer,
       congressionalLayer,
       countyLayer,
       cyanLayer,
@@ -149,6 +150,7 @@ export function useLayers() {
     return [
       ejscreenLayer,
       wsioHealthIndexLayer,
+      cmraScreeningLayer,
       landCoverLayer,
       protectedAreasLayer,
       protectedAreasHighlightLayer,
@@ -279,6 +281,7 @@ export function useLayersDispatch() {
 
 const featureLayerIds = [
   'waterbodyAreas',
+  'cmraScreeningLayer',
   'countyLayer',
   'congressionalLayer',
   'dischargersLayer',

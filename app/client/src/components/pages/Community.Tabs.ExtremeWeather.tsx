@@ -23,7 +23,11 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
 import { isFeatureLayer } from 'utils/mapFunctions';
-import { countOrNotAvailable, summarizeAssessments } from 'utils/utils';
+import {
+  countOrNotAvailable,
+  formatNumber,
+  summarizeAssessments,
+} from 'utils/utils';
 // styles
 import { toggleTableStyles } from 'styles/index';
 // types
@@ -47,6 +51,56 @@ const tickList = [
     label: 'Late Century',
   },
 ];
+
+type HistoricType =
+  | 'fire'
+  | 'drought'
+  | 'inlandFlooding'
+  | 'coastalFlooding'
+  | 'extremeHeat';
+
+function getHistoricValues(
+  attributes: any,
+  type: HistoricType,
+): {
+  [key: number]: number;
+} {
+  let key = 'MEAN_';
+  if (type === 'fire' || type === 'drought') key += 'CONSECDD';
+  if (type === 'inlandFlooding') key += 'CONSECWD';
+  if (type === 'coastalFlooding') key += 'SLR';
+  if (type === 'extremeHeat') key += 'TMAX90F';
+  return {
+    0: attributes[`HISTORIC_${key}`],
+    1: attributes[`RCP45EARLY_${key}`],
+    2: attributes[`RCP45MID_${key}`],
+    3: attributes[`RCP45LATE_${key}`],
+  };
+}
+
+function getHistoricValue(
+  attributes: any,
+  range: number[],
+  type: HistoricType,
+  aggType: 'difference' | 'max',
+  digits: number = 1,
+) {
+  const rangeStart = range[0];
+  const rangeEnd = range[1];
+
+  let value = 0;
+  let values = getHistoricValues(attributes, type);
+  if (aggType === 'difference') value = values[rangeEnd] - values[rangeStart];
+  if (aggType === 'max') {
+    const array = Object.keys(values)
+      .map(Number)
+      .filter((k) => k >= rangeStart && k <= rangeEnd)
+      .map((k) => values[k]);
+    value = Math.max(...array);
+  }
+
+  return formatNumber(value, digits, true);
+}
 
 function updateRow(
   config: SwitchTableConfig,
@@ -99,11 +153,22 @@ const subheadingStyles = css`
 `;
 
 function ExtremeWeather() {
-  const { cipSummary, drinkingWater, hucBoundaries, mapView, watershed } =
-    useContext(LocationSearchContext);
+  const {
+    cipSummary,
+    countyBoundaries,
+    drinkingWater,
+    hucBoundaries,
+    mapView,
+    watershed,
+  } = useContext(LocationSearchContext);
   const { dischargers, dischargersStatus } = useDischargers();
-  const { tribalLayer, visibleLayers, waterbodyLayer, wildfiresLayer } =
-    useLayers();
+  const {
+    cmraScreeningLayer,
+    tribalLayer,
+    visibleLayers,
+    waterbodyLayer,
+    wildfiresLayer,
+  } = useLayers();
   const waterbodies = useWaterbodyFeatures();
 
   const [currentWeather, setCurrentWeather] = useState<SwitchTableConfig>({
@@ -398,6 +463,95 @@ function ExtremeWeather() {
     queryLayer();
   }, [hucBoundaries, wildfiresLayer]);
 
+  // update cmra screening
+  const [range, setRange] = useState([
+    tickList[0].value,
+    tickList[tickList.length - 1].value,
+  ]);
+  useEffect(() => {
+    if (
+      !cmraScreeningLayer ||
+      !countyBoundaries ||
+      countyBoundaries?.features?.length < 1
+    )
+      return;
+
+    async function queryLayer() {
+      if (!cmraScreeningLayer) return;
+
+      setHistoricalRisk((config) => {
+        updateRow(config, 'pending', 'fire');
+        updateRow(config, 'pending', 'drought');
+        updateRow(config, 'pending', 'inlandFlooding');
+        updateRow(config, 'pending', 'coastalFlooding');
+        updateRow(config, 'pending', 'extremeHeat');
+        return {
+          ...config,
+          updateCount: config.updateCount + 1,
+        };
+      });
+
+      try {
+        const fips = countyBoundaries.features[0].attributes.FIPS;
+        const response = await cmraScreeningLayer.queryFeatures({
+          outFields: cmraScreeningLayer.outFields,
+          where: `GEOID = '${fips}'`,
+        });
+
+        if (response.features.length === 0) {
+          setHistoricalRisk((config) => {
+            updateRow(config, 'success', 'fire', '');
+            updateRow(config, 'success', 'drought', '');
+            updateRow(config, 'success', 'inlandFlooding', '');
+            updateRow(config, 'success', 'coastalFlooding', '');
+            updateRow(config, 'success', 'extremeHeat', '');
+            return {
+              ...config,
+              updateCount: config.updateCount + 1,
+            };
+          });
+        }
+
+        const attributes = response.features[0].attributes;
+        const isSame = range[0] === range[1];
+        const startText = isSame ? 'Max number of' : 'Change in';
+        const aggType = isSame ? 'max' : 'difference';
+
+        const fireText = `${startText} annual consecutive (dry days): ${getHistoricValue(attributes, range, 'fire', aggType)}`;
+        const droughtText = `${startText} annual days with no rain (dry days): ${getHistoricValue(attributes, range, 'drought', aggType)}`;
+        const inlandFloodingText = `${startText} annual days with rain (wet days): ${getHistoricValue(attributes, range, 'inlandFlooding', aggType)}`;
+        const coastalFloodingText = `% of county impacted by sea level rise: ${getHistoricValue(attributes, range, 'coastalFlooding', 'max')}`;
+        const extremeHeatText = `${startText} annual days with max temperature over 90°F: ${getHistoricValue(attributes, range, 'extremeHeat', aggType)}`;
+
+        setHistoricalRisk((config) => {
+          updateRow(config, 'success', 'fire', fireText);
+          updateRow(config, 'success', 'drought', droughtText);
+          updateRow(config, 'success', 'inlandFlooding', inlandFloodingText);
+          updateRow(config, 'success', 'coastalFlooding', coastalFloodingText);
+          updateRow(config, 'success', 'extremeHeat', extremeHeatText);
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      } catch (ex) {
+        setHistoricalRisk((config) => {
+          updateRow(config, 'failure', 'fire');
+          updateRow(config, 'failure', 'drought');
+          updateRow(config, 'failure', 'inlandFlooding');
+          updateRow(config, 'failure', 'coastalFlooding');
+          updateRow(config, 'failure', 'extremeHeat');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      }
+    }
+
+    queryLayer();
+  }, [cmraScreeningLayer, countyBoundaries, range]);
+
   return (
     <div css={containerStyles}>
       <SwitchTable
@@ -416,8 +570,9 @@ function ExtremeWeather() {
         list={tickList}
         max={tickList[tickList.length - 1].value}
         range={[tickList[0].value, tickList[tickList.length - 1].value]}
-        onChange={(_value) => {}}
+        onChange={(value) => setRange(value)}
         sliderVerticalBreak={300}
+        steps={null}
         valueLabelDisplay="off"
         headerElm={
           <p css={subheadingStyles}>

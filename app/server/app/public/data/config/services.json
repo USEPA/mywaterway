@@ -69,6 +69,7 @@
     "portalId": "d957997ccee7408287a963600a77f61f",
     "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/USA_Wildfires_v1/FeatureServer/"
   },
+  "cmraScreeningData": "https://services3.arcgis.com/0Fs3HcaFfvzXvm7w/ArcGIS/rest/services/CMRA_Screening_Data/FeatureServer/0",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -404,6 +405,11 @@
       "urlLookup": "wildfires.url",
       "wildcardUrl": "{urlLookup}*",
       "name": "Wildfires"
+    },
+    {
+      "urlLookup": "cmraScreeningData",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "CMRA screening data"
     }
   ]
 }

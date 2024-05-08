@@ -1298,7 +1298,7 @@ function useSharedLayers({
   }
 
   function getCountyLayer() {
-    const countyLayerOutFields = ['NAME', 'CNTY_FIPS', 'STATE_NAME'];
+    const countyLayerOutFields = ['CNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
     const countyLayer = new FeatureLayer({
       id: 'countyLayer',
       url: services.data.counties,
@@ -1584,6 +1584,39 @@ function useSharedLayers({
     return wildfiresLayer;
   }
 
+  async function getCmraScreeningLayer() {
+    const cmraScreeningLayer = new FeatureLayer({
+      id: 'cmraScreeningLayer',
+      title: 'CMRA Screening',
+      legendEnabled: false,
+      listMode: 'hide',
+      url: services.data.cmraScreeningData,
+      visible: false,
+      outFields: [
+        'GEOID',
+        'CountyName',
+        'HISTORIC_MEAN_CONSECDD',
+        'RCP45EARLY_MEAN_CONSECDD',
+        'RCP45MID_MEAN_CONSECDD',
+        'RCP45LATE_MEAN_CONSECDD',
+        'HISTORIC_MEAN_CONSECWD',
+        'RCP45EARLY_MEAN_CONSECWD',
+        'RCP45MID_MEAN_CONSECWD',
+        'RCP45LATE_MEAN_CONSECWD',
+        'HISTORIC_MEAN_SLR',
+        'RCP45EARLY_MEAN_SLR',
+        'RCP45MID_MEAN_SLR',
+        'RCP45LATE_MEAN_SLR',
+        'HISTORIC_MEAN_TMAX90F',
+        'RCP45EARLY_MEAN_TMAX90F',
+        'RCP45MID_MEAN_TMAX90F',
+        'RCP45LATE_MEAN_TMAX90F',
+      ],
+    });
+    setLayer('cmraScreeningLayer', cmraScreeningLayer);
+    return cmraScreeningLayer;
+  }
+
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
@@ -1614,9 +1647,12 @@ function useSharedLayers({
 
     const wildfiresLayer = getWildfiresLayer();
 
+    const cmraScreeningLayer = getCmraScreeningLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
+      cmraScreeningLayer,
       landCover,
       protectedAreasLayer,
       protectedAreasHighlightLayer,
