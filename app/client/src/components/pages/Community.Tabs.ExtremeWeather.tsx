@@ -52,13 +52,6 @@ const tickList = [
   },
 ];
 
-type HistoricType =
-  | 'fire'
-  | 'drought'
-  | 'inlandFlooding'
-  | 'coastalFlooding'
-  | 'extremeHeat';
-
 function getHistoricValues(
   attributes: any,
   type: HistoricType,
@@ -72,9 +65,9 @@ function getHistoricValues(
   if (type === 'extremeHeat') key += 'TMAX90F';
   return {
     0: attributes[`HISTORIC_${key}`],
-    1: attributes[`RCP45EARLY_${key}`],
-    2: attributes[`RCP45MID_${key}`],
-    3: attributes[`RCP45LATE_${key}`],
+    1: attributes[`RCP85EARLY_${key}`],
+    2: attributes[`RCP85MID_${key}`],
+    3: attributes[`RCP85LATE_${key}`],
   };
 }
 
@@ -99,7 +92,13 @@ function getHistoricValue(
     value = Math.max(...array);
   }
 
-  return formatNumber(value, digits, true);
+  // determine directionality
+  const directionality =
+    aggType === 'difference'
+      ? `${value < 0 ? 'decreased' : 'increased'} by `
+      : '';
+
+  return `${directionality}${formatNumber(Math.abs(value), digits, true)}`;
 }
 
 function updateRow(
@@ -159,7 +158,6 @@ function ExtremeWeather() {
     drinkingWater,
     hucBoundaries,
     mapView,
-    watershed,
   } = useContext(LocationSearchContext);
   const { dischargers, dischargersStatus } = useDischargers();
   const {
@@ -520,7 +518,7 @@ function ExtremeWeather() {
         const fireText = `${startText} annual consecutive (dry days): ${getHistoricValue(attributes, range, 'fire', aggType)}`;
         const droughtText = `${startText} annual days with no rain (dry days): ${getHistoricValue(attributes, range, 'drought', aggType)}`;
         const inlandFloodingText = `${startText} annual days with rain (wet days): ${getHistoricValue(attributes, range, 'inlandFlooding', aggType)}`;
-        const coastalFloodingText = `% of county impacted by sea level rise: ${getHistoricValue(attributes, range, 'coastalFlooding', 'max')}`;
+        const coastalFloodingText = `${startText} % of county impacted by sea level rise: ${getHistoricValue(attributes, range, 'coastalFlooding', aggType)}`;
         const extremeHeatText = `${startText} annual days with max temperature over 90°F: ${getHistoricValue(attributes, range, 'extremeHeat', aggType)}`;
 
         setHistoricalRisk((config) => {
@@ -559,7 +557,7 @@ function ExtremeWeather() {
         mapView={mapView}
         value={currentWeather}
         setter={setCurrentWeather}
-        columns={['Current Severe Weather Events', 'Status Within Watershed']}
+        columns={['Current Severe Weather Events', 'Status Within County']}
       />
 
       <div css={sectionHeaderStyles}>
@@ -577,7 +575,7 @@ function ExtremeWeather() {
         headerElm={
           <p css={subheadingStyles}>
             <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-            &nbsp;&nbsp; Date range for the <em>{watershed.name}</em> watershed{' '}
+            &nbsp;&nbsp; Date range for the <em>TBD</em> county{' '}
           </p>
         }
       />
@@ -717,6 +715,13 @@ export default function ExtremeWeatherContainer() {
   );
 }
 
+type HistoricType =
+  | 'fire'
+  | 'drought'
+  | 'inlandFlooding'
+  | 'coastalFlooding'
+  | 'extremeHeat';
+
 type Row = {
   checked?: boolean;
   disabled?: boolean;
@@ -727,6 +732,7 @@ type Row = {
   status?: FetchStatus;
   text?: string;
 };
+
 type SwitchTableConfig = {
   updateCount: number;
   items: Row[];
@@ -784,35 +790,40 @@ const historicalDefaults: Row[] = [
     label: 'Fire',
     checked: false,
     disabled: false,
-    text: 'Max number of annual consecutive dry days: 11.3',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'drought',
     label: 'Drought',
     checked: false,
     disabled: false,
-    text: 'Change in annual days with no rain (dry days): 175',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'inlandFlooding',
     label: 'Inland Flooding',
     checked: false,
     disabled: false,
-    text: 'Change in annual days with rain (wet days): 188',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'coastalFlooding',
     label: 'Coastal Flooding',
     checked: false,
     disabled: false,
-    text: '% of county impacted by sea level rise: 2',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'extremeHeat',
     label: 'Extreme Heat',
     checked: false,
     disabled: false,
-    text: 'Change in annual days with max T over 90F: 25',
+    status: 'idle',
+    text: '',
   },
 ];
 const potentiallyVulnerableDefaults: Row[] = [
