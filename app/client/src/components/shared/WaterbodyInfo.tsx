@@ -279,6 +279,13 @@ const buttonsContainer = css`
   }
 `;
 
+const slimTextBoxStyles = css`
+  ${textBoxStyles};
+
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+`;
+
 const buttonStyles = css`
   color: ${colors.white()};
   background-color: ${colors.blue()};
@@ -1670,7 +1677,7 @@ function CyanDailyContent({
           />
         )}
 
-        <div css={textBoxStyles}>
+        <div css={slimTextBoxStyles}>
           <ListContent
             rows={[
               {
@@ -2144,7 +2151,7 @@ function CyanContent({
 
   return (
     <>
-      <div css={textBoxStyles}>
+      <div css={slimTextBoxStyles}>
         <ListContent
           rows={[
             {
