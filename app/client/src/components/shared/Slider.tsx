@@ -52,6 +52,10 @@ const sliderContainerStyles = (
     : showValues
       ? '1.75rem 2rem 0'
       : `0 2rem ${marginBottom}`};
+
+  .MuiSlider-markLabel {
+    text-align: ${isVertical ? 'left' : 'center'};
+  }
 `;
 
 const sliderContainerStylesOuter = (hasList: boolean) => css`
