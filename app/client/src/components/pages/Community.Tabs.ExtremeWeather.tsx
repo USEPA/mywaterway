@@ -5,6 +5,7 @@ import { css } from '@emotion/react';
 import uniqueId from 'lodash/uniqueId';
 import {
   Dispatch,
+  Fragment,
   SetStateAction,
   useContext,
   useEffect,
@@ -36,19 +37,47 @@ import { FetchStatus } from 'types';
 const tickList = [
   {
     value: 0,
-    label: 'Modeled History',
+    label: (
+      <Fragment>
+        Modeled History
+        <br />
+        <em>(1976 - 2005)</em>
+      </Fragment>
+    ),
+    labelAria: 'Modeled History (1976 - 2005)',
   },
   {
     value: 1,
-    label: 'Early Century',
+    label: (
+      <Fragment>
+        Early Century
+        <br />
+        <em>(2015 - 2044)</em>
+      </Fragment>
+    ),
+    labelAria: 'Early Century (2015 - 2044)',
   },
   {
     value: 2,
-    label: 'Mid Century',
+    label: (
+      <Fragment>
+        Mid Century
+        <br />
+        <em>(2035 - 2064)</em>
+      </Fragment>
+    ),
+    labelAria: 'Mid Century (2035 - 2064)',
   },
   {
     value: 3,
-    label: 'Late Century',
+    label: (
+      <Fragment>
+        Late Century
+        <br />
+        <em>(2070 - 2099)</em>
+      </Fragment>
+    ),
+    labelAria: 'Late Century (2070 - 2099)',
   },
 ];
 
@@ -566,6 +595,7 @@ function ExtremeWeather() {
 
       <Slider
         list={tickList}
+        marginBottom={'1.5rem'}
         max={tickList[tickList.length - 1].value}
         range={[tickList[0].value, tickList[tickList.length - 1].value]}
         onChange={(value) => setRange(value)}

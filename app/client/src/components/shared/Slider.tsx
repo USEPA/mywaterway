@@ -16,13 +16,18 @@ import { textBoxStyles } from 'components/shared/MessageBoxes';
 
 function getTicks(valuesArray: number[], maxTicks: number) {
   if (valuesArray.length <= maxTicks)
-    return valuesArray.map((y) => ({ label: y.toString(), value: y }));
+    return valuesArray.map((y) => ({
+      label: y.toString(),
+      labelAria: y.toString(),
+      value: y,
+    }));
 
   const tickList = [];
   const length = valuesArray.length;
   const skip = Math.round(length / maxTicks);
   for (let i = 0; i < length; i += skip) {
-    tickList.push({ label: valuesArray[i].toString(), value: valuesArray[i] });
+    const label = valuesArray[i].toString();
+    tickList.push({ label, labelAria: label, value: valuesArray[i] });
   }
 
   return tickList;
@@ -31,7 +36,11 @@ function getTicks(valuesArray: number[], maxTicks: number) {
 /*
  ** Styles
  */
-const sliderContainerStyles = (isVertical: boolean, showValues: boolean) => css`
+const sliderContainerStyles = (
+  isVertical: boolean,
+  showValues: boolean,
+  marginBottom: string,
+) => css`
   align-items: flex-end;
   display: flex;
   gap: 1em;
@@ -42,7 +51,7 @@ const sliderContainerStyles = (isVertical: boolean, showValues: boolean) => css`
     ? '1rem 2rem'
     : showValues
       ? '1.75rem 2rem 0'
-      : '0 2rem'};
+      : `0 2rem ${marginBottom}`};
 `;
 
 const sliderContainerStylesOuter = (hasList: boolean) => css`
@@ -88,6 +97,7 @@ type Props = {
   disabled?: boolean;
   headerElm?: ReactNode;
   list?: Mark[];
+  marginBottom?: string;
   min?: number;
   max?: number;
   onChange: (newValues: number[]) => void;
@@ -101,6 +111,7 @@ function Slider({
   disabled = false,
   headerElm = <></>,
   list,
+  marginBottom = '0',
   min = 0,
   max = new Date().getFullYear(),
   onChange,
@@ -147,7 +158,11 @@ function Slider({
     const valuesArray = [...Array(max - min + 1).keys()].map((x) => x + min);
     tickList = getTicks(valuesArray, maxTicks);
     if (tickList.slice(-1)[0].value !== maxValue)
-      tickList.push({ label: maxValue.toString(), value: maxValue });
+      tickList.push({
+        label: maxValue.toString(),
+        labelAria: maxValue.toString(),
+        value: maxValue,
+      });
   }
 
   const isVertical =
@@ -161,7 +176,9 @@ function Slider({
   }
   function getAriaValueText(value: number) {
     const tick = tickList.find((i) => i.value === value);
-    return tick ? tick.label : value.toString();
+    return tick
+      ? tick.labelAria ?? tick?.label?.toString() ?? ''
+      : value.toString();
   }
 
   return (
@@ -172,6 +189,7 @@ function Slider({
           css={sliderContainerStyles(
             isVertical,
             ['on', 'auto'].includes(valueLabelDisplay),
+            marginBottom,
           )}
           ref={sliderRef}
         >
@@ -200,4 +218,4 @@ function Slider({
 
 export default Slider;
 
-type Mark = { label: string; value: number };
+type Mark = { label: string | ReactNode; labelAria?: string; value: number };
