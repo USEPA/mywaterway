@@ -1,5 +1,6 @@
 {
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+  "esriWebMapBase": "https://www.arcgis.com/sharing/rest/content/items",
   "wbd": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6",
   "wbdUnconstrained": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19",
   "counties": "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties/FeatureServer/0",
@@ -70,6 +71,27 @@
     "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/USA_Wildfires_v1/FeatureServer/"
   },
   "cmraScreeningData": "https://services3.arcgis.com/0Fs3HcaFfvzXvm7w/ArcGIS/rest/services/CMRA_Screening_Data/FeatureServer/0",
+  "droughtRealtime": {
+    "portalId": "7d4cc55ecaef4ceb82c8d05b13e0d049",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/US_Drought_Intensity_v1/FeatureServer/3"
+  },
+  "inlandFloodingRealtime": {
+    "portalId": "caffd8e5be444cfb84de0fcdd25b5214",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NDFD_Precipitation_v1/FeatureServer/2"
+  },
+  "coastalFloodingRealtime": {
+    "portalId": "82d09c4566f34e9e96420ec92172d8e4",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NWS_Watches_Warnings_v1/FeatureServer/6"
+  },
+  "extremeHeatRealtime": {
+    "portalId": "0a5fe1d4de9d4a7783708e2d5c2115b2",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NDFD_DailyTemperature_v1/FeatureServer/1"
+  },
+  "extremeColdRealtime": {
+    "portalId": "385a1e5f039d4371ae999c740d6c9d13",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NDFD_DailyTemperature_v1/FeatureServer/0"
+  },
+  "watchesWarnings": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NWS_Watches_Warnings_v1/FeatureServer/6",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -410,6 +432,41 @@
       "urlLookup": "cmraScreeningData",
       "wildcardUrl": "{urlLookup}*",
       "name": "CMRA screening data"
+    },
+    {
+      "urlLookup": "droughtRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Drought Realtime"
+    },
+    {
+      "urlLookup": "inlandFloodingRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Inland Flooding Realtime"
+    },
+    {
+      "urlLookup": "coastalFloodingRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Coastal Flooding Realtime"
+    },
+    {
+      "urlLookup": "extremeHeatRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Extreme Heat Realtime"
+    },
+    {
+      "urlLookup": "extremeColdRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Extreme Cold Realtime"
+    },
+    {
+      "urlLookup": "watchesWarnings",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Weather Watches, Warnings, and Advisories"
+    },
+    {
+      "urlLookup": "esriWebMapBase",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Get WebMap Definition"
     }
   ]
 }

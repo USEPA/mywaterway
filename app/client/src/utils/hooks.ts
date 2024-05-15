@@ -14,10 +14,12 @@ import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import PopupTemplate from '@arcgis/core/PopupTemplate';
 import PortalItem from '@arcgis/core/portal/PortalItem';
 import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
+import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
@@ -35,6 +37,7 @@ import {
 } from 'contexts/LookupFiles';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -1584,7 +1587,7 @@ function useSharedLayers({
     return wildfiresLayer;
   }
 
-  async function getCmraScreeningLayer() {
+  function getCmraScreeningLayer() {
     const cmraScreeningLayer = new FeatureLayer({
       id: 'cmraScreeningLayer',
       title: 'CMRA Screening',
@@ -1615,6 +1618,130 @@ function useSharedLayers({
     });
     setLayer('cmraScreeningLayer', cmraScreeningLayer);
     return cmraScreeningLayer;
+  }
+
+  async function getDroughtRealtimeLayer() {
+    const layer = (await Layer.fromPortalItem({
+      portalItem: new PortalItem({
+        id: services.data.droughtRealtime.portalId,
+      }),
+    })) as __esri.FeatureLayer;
+    layer.id = 'droughtRealtimeLayer';
+    layer.listMode = 'show';
+    layer.title = 'Drought Real-Time';
+    layer.visible = false;
+    setLayer('droughtRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getInlandFloodingRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'inlandFloodingRealtimeLayer',
+      title: 'Inland Flooding Real-Time',
+      visible: false,
+    });
+    getSubLayerDefinitions(
+      services.data.inlandFloodingRealtime.portalId,
+      layer,
+    );
+    setLayer('inlandFloodingRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getCoastalFloodingRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'coastalFloodingRealtimeLayer',
+      title: 'Coastal Flooding Real-Time',
+      visible: false,
+    });
+    getSubLayerDefinitions(
+      services.data.coastalFloodingRealtime.portalId,
+      layer,
+    );
+    setLayer('coastalFloodingRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getExtremeHeatRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'extremeHeatRealtimeLayer',
+      title: 'Extreme Heat Real-Time',
+      visible: false,
+    });
+    getSubLayerDefinitions(services.data.extremeHeatRealtime.portalId, layer);
+    setLayer('extremeHeatRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getExtremeColdRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'extremeColdRealtimeLayer',
+      title: 'Extreme Cold Real-Time',
+      visible: false,
+    });
+    getSubLayerDefinitions(services.data.extremeColdRealtime.portalId, layer);
+    setLayer('extremeColdRealtimeLayer', layer);
+    return layer;
+  }
+
+  // loads sublayers from a webmap portalid
+  async function getSubLayerDefinitions(
+    portalId: string,
+    groupLayer: __esri.GroupLayer,
+  ) {
+    const layers: __esri.Layer[] = [];
+    try {
+      // get webmap definition
+      const webMapDef = await fetchCheck(
+        `${services.data.esriWebMapBase}/${portalId}/data?f=json`,
+      );
+      for (const layer of webMapDef.operationalLayers) {
+        const layerIndex = layer.url.split('/').pop();
+
+        // get layer definition
+        const webMapLayerRes = await fetchCheck(
+          `${services.data.esriWebMapBase}/${layer.itemId}/data?f=json`,
+        );
+        const webMapLayerDef = webMapLayerRes.layers.find(
+          (l: any) => l.id === parseInt(layerIndex),
+        );
+
+        // use jsonUtils to convert the REST API renderer to an ArcGIS JS renderer
+        let renderer: __esri.Renderer | undefined = undefined;
+        if (webMapLayerDef?.layerDefinition?.drawingInfo?.renderer) {
+          renderer = rendererJsonUtils.fromJSON(
+            webMapLayerDef.layerDefinition.drawingInfo.renderer,
+          );
+        }
+        if (layer.layerDefinition?.drawingInfo?.renderer) {
+          renderer = rendererJsonUtils.fromJSON(
+            layer.layerDefinition.drawingInfo.renderer,
+          );
+        }
+
+        let popupTemplate: __esri.PopupTemplate | undefined = undefined;
+        if (webMapLayerDef?.popupInfo) {
+          popupTemplate = PopupTemplate.fromJSON(webMapLayerDef.popupInfo);
+        }
+        if (layer.popupInfo) {
+          popupTemplate = PopupTemplate.fromJSON(layer.popupInfo);
+        }
+
+        layers.push(
+          new FeatureLayer({
+            ...layer,
+            ...webMapLayerDef?.layerDefinition,
+            ...layer.layerDefinition,
+            renderer,
+            popupTemplate,
+          }),
+        );
+      }
+
+      groupLayer.layers.addMany(layers);
+    } catch (ex) {
+      console.error('ERROR pulling in layer: ', ex);
+    }
   }
 
   // Gets the settings for the WSIO Health Index layer.
@@ -1649,11 +1776,26 @@ function useSharedLayers({
 
     const cmraScreeningLayer = getCmraScreeningLayer();
 
+    const droughtRealtimeLayer = getDroughtRealtimeLayer();
+
+    const inlandFloodingRealtimeLayer = getInlandFloodingRealtimeLayer();
+
+    const coastalFloodingRealtimeLayer = getCoastalFloodingRealtimeLayer();
+
+    const extremeHeatRealtimeLayer = getExtremeHeatRealtimeLayer();
+
+    const extremeColdRealtimeLayer = getExtremeColdRealtimeLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
       cmraScreeningLayer,
       landCover,
+      inlandFloodingRealtimeLayer,
+      droughtRealtimeLayer,
+      extremeHeatRealtimeLayer,
+      extremeColdRealtimeLayer,
+      coastalFloodingRealtimeLayer,
       protectedAreasLayer,
       protectedAreasHighlightLayer,
       wildScenicRiversLayer,

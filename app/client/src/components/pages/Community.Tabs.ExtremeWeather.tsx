@@ -23,10 +23,11 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
-import { isFeatureLayer } from 'utils/mapFunctions';
+import { isFeatureLayer, isGroupLayer } from 'utils/mapFunctions';
 import {
   countOrNotAvailable,
   formatNumber,
+  sentenceJoin,
   summarizeAssessments,
 } from 'utils/utils';
 // styles
@@ -81,6 +82,32 @@ const tickList = [
   },
 ];
 
+// checks if all layers are in group layer
+function allLayersAdded(
+  layer: __esri.FeatureLayer | __esri.GroupLayer,
+  queries: {
+    serviceItemId?: string;
+    query: __esri.Query | __esri.QueryProperties;
+  }[],
+) {
+  if (isFeatureLayer(layer)) return true;
+
+  const itemIds = queries.map((q) => q.serviceItemId);
+  return itemIds.every((itemId) =>
+    !itemId ? false : findByItemId(layer, itemId),
+  );
+}
+
+// finds a layer by itemId, serviceItemId or layerId
+function findByItemId(layer: __esri.GroupLayer, itemId: string) {
+  return layer.layers.find(
+    (l: any) =>
+      l.itemId === itemId ||
+      l.serviceItemId === itemId ||
+      l.layerId.toString() === itemId,
+  );
+}
+
 function getHistoricValues(
   attributes: any,
   type: HistoricType,
@@ -128,6 +155,155 @@ function getHistoricValue(
       : '';
 
   return `${directionality}${formatNumber(Math.abs(value), digits, true)}`;
+}
+
+// queries an individual layer after watcher finds layer has been loaded
+async function queryLayer({
+  layer,
+  query,
+}: {
+  layer: __esri.FeatureLayer;
+  query: __esri.Query | __esri.QueryProperties;
+}) {
+  return new Promise<__esri.FeatureSet>((resolve, reject) => {
+    if (['failed', 'loaded'].includes(layer.loadStatus)) {
+      queryLayerInner({
+        layer,
+        query,
+        resolve,
+        reject,
+      });
+    } else {
+      // setup the watch event to see when the layer finishes loading
+      const newWatcher = reactiveUtils.watch(
+        () => layer.loadStatus,
+        () => {
+          if (['failed', 'loaded'].includes(layer.loadStatus))
+            newWatcher.remove();
+          queryLayerInner({
+            layer,
+            query,
+            resolve,
+            reject,
+          });
+        },
+      );
+    }
+  });
+}
+
+// queries an individual layer
+async function queryLayerInner({
+  layer,
+  query,
+  resolve,
+  reject,
+}: {
+  layer: __esri.FeatureLayer;
+  query: __esri.Query | __esri.QueryProperties;
+  resolve: (value: __esri.FeatureSet | PromiseLike<__esri.FeatureSet>) => void;
+  reject: (reason?: any) => void;
+}) {
+  if (layer.loadStatus === 'failed')
+    reject(`Failed to load layer: ${layer.title}`);
+
+  try {
+    resolve(await layer.queryFeatures(query));
+  } catch (ex) {
+    reject(`Failed to query layer ${layer.title}`);
+  }
+}
+
+// queries multiple layers after watcher finds all necessary layers have
+// been loaded
+async function queryLayers({
+  layer,
+  queries,
+  onSuccess,
+  onError,
+}: {
+  layer: __esri.FeatureLayer | __esri.GroupLayer;
+  queries: {
+    serviceItemId?: string;
+    query: __esri.Query | __esri.QueryProperties;
+  }[];
+  onSuccess: (response: __esri.FeatureSet[]) => void;
+  onError: () => void;
+}) {
+  if (allLayersAdded(layer, queries)) {
+    queryLayersInner({
+      layer,
+      queries,
+      onSuccess,
+      onError,
+    });
+  } else {
+    const groupLayer = layer as __esri.GroupLayer;
+
+    // setup the watch event to see when the layer finishes loading
+    const newWatcher = reactiveUtils.watch(
+      () => groupLayer.layers.length,
+      () => {
+        if (!allLayersAdded(layer, queries)) return;
+
+        newWatcher.remove();
+        if (timeout) clearTimeout(timeout);
+        queryLayersInner({
+          layer,
+          queries,
+          onSuccess,
+          onError,
+        });
+      },
+    );
+
+    // error this out if it takes too long
+    const timeout = setTimeout(() => {
+      onError();
+      if (newWatcher) newWatcher.remove();
+    }, 60000);
+  }
+}
+
+// queries multiple layers
+async function queryLayersInner({
+  layer,
+  queries,
+  onSuccess,
+  onError,
+}: {
+  layer: __esri.FeatureLayer | __esri.GroupLayer;
+  queries: {
+    serviceItemId?: string;
+    query: __esri.Query | __esri.QueryProperties;
+  }[];
+  onSuccess: (response: __esri.FeatureSet[]) => void;
+  onError: () => void;
+}) {
+  try {
+    const promises: Promise<__esri.FeatureSet>[] = [];
+    queries.forEach((q) => {
+      let childLayer = layer;
+      if (isGroupLayer(layer) && q.serviceItemId) {
+        const temp = findByItemId(layer, q.serviceItemId);
+        if (temp) childLayer = temp as __esri.FeatureLayer;
+      }
+
+      if (isFeatureLayer(childLayer)) {
+        promises.push(
+          queryLayer({
+            layer: childLayer,
+            query: q.query,
+          }),
+        );
+      }
+    });
+
+    onSuccess(await Promise.all(promises));
+  } catch (ex) {
+    console.error(ex);
+    onError();
+  }
 }
 
 function updateRow(
@@ -191,6 +367,11 @@ function ExtremeWeather() {
   const { dischargers, dischargersStatus } = useDischargers();
   const {
     cmraScreeningLayer,
+    coastalFloodingRealtimeLayer,
+    droughtRealtimeLayer,
+    extremeColdRealtimeLayer,
+    extremeHeatRealtimeLayer,
+    inlandFloodingRealtimeLayer,
     tribalLayer,
     visibleLayers,
     waterbodyLayer,
@@ -406,56 +587,29 @@ function ExtremeWeather() {
   useEffect(() => {
     if (!hucBoundaries || !wildfiresLayer) return;
 
-    async function queryLayer() {
-      if (!hucBoundaries || !wildfiresLayer) return;
+    setCurrentWeather((config) => {
+      updateRow(config, 'pending', 'fire');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
 
-      setCurrentWeather((config) => {
-        updateRow(config, 'pending', 'fire');
-        return {
-          ...config,
-          updateCount: config.updateCount + 1,
-        };
-      });
-
-      if (['failed', 'loaded'].includes(wildfiresLayer.loadStatus)) {
-        queryLayerInner();
-      } else {
-        // setup the watch event to see when the layer finishes loading
-        const newWatcher = reactiveUtils.watch(
-          () => wildfiresLayer.loadStatus,
-          () => {
-            if (['failed', 'loaded'].includes(wildfiresLayer.loadStatus))
-              newWatcher.remove();
-            queryLayerInner();
+    queryLayers({
+      layer: wildfiresLayer,
+      queries: [
+        {
+          serviceItemId: '0',
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['DailyAcres'],
           },
-        );
-      }
-    }
-
-    async function queryLayerInner() {
-      if (!wildfiresLayer) return;
-      if (wildfiresLayer.loadStatus === 'failed') {
-        setCurrentWeather((config) => {
-          updateRow(config, 'failure', 'fire');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-        return;
-      }
-
-      try {
-        const incidentsLayer = wildfiresLayer.layers.find(
-          (l) => isFeatureLayer(l) && l.layerId === 0,
-        ) as __esri.FeatureLayer;
-        const response = await incidentsLayer.queryFeatures({
-          geometry: hucBoundaries.features[0].geometry,
-          outFields: ['DailyAcres'],
-        });
-        let numFires = response.features.length;
+        },
+      ],
+      onSuccess: (response) => {
+        let numFires = response[0].features.length;
         let acresBurned = 0;
-        response.features.forEach(
+        response[0].features.forEach(
           (feature) => (acresBurned += feature.attributes.DailyAcres),
         );
 
@@ -476,18 +630,16 @@ function ExtremeWeather() {
             updateCount: config.updateCount + 1,
           };
         });
-      } catch (ex) {
+      },
+      onError: () =>
         setCurrentWeather((config) => {
           updateRow(config, 'failure', 'fire');
           return {
             ...config,
             updateCount: config.updateCount + 1,
           };
-        });
-      }
-    }
-
-    queryLayer();
+        }),
+    });
   }, [hucBoundaries, wildfiresLayer]);
 
   // update cmra screening
@@ -578,6 +730,340 @@ function ExtremeWeather() {
 
     queryLayer();
   }, [cmraScreeningLayer, countyBoundaries, range]);
+
+  // update drought
+  useEffect(() => {
+    if (!hucBoundaries || !droughtRealtimeLayer) return;
+
+    setCurrentWeather((config) => {
+      updateRow(config, 'pending', 'drought');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    queryLayers({
+      layer: droughtRealtimeLayer,
+      queries: [
+        {
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['dm'],
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        const dmEnum: { [key: string]: string } = {
+          '-1': 'No Drought',
+          '0': 'Abnormally Dry',
+          '1': 'Moderate Drought',
+          '2': 'Severe Drought',
+          '3': 'Extreme Drought',
+          '4': 'Exceptional Drought',
+        };
+
+        let maxCategory = -1;
+        responses[0].features.forEach((f) => {
+          maxCategory = Math.max(maxCategory, f.attributes.dm);
+        });
+
+        setCurrentWeather((config) => {
+          updateRow(
+            config,
+            'success',
+            'drought',
+            dmEnum[maxCategory.toString()],
+          );
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () =>
+        setCurrentWeather((config) => {
+          updateRow(config, 'failure', 'drought');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        }),
+    });
+  }, [hucBoundaries, droughtRealtimeLayer]);
+
+  // update inland flooding
+  useEffect(() => {
+    if (!hucBoundaries || !inlandFloodingRealtimeLayer) return;
+
+    setCurrentWeather((config) => {
+      updateRow(config, 'pending', 'inlandFlooding');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    // TODO consider moving serviceItemId to config
+    queryLayers({
+      layer: inlandFloodingRealtimeLayer,
+      queries: [
+        {
+          serviceItemId: 'a6134ae01aad44c499d12feec782b386', // watches warnings
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['Event'],
+          },
+        },
+        {
+          serviceItemId: 'f9e9283b9c9741d09aad633f68758bf6', // precipitation
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['category', 'label'],
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        const watchRes = responses[0];
+        const floodRes = responses[1];
+
+        let statuses: string[] = [];
+        watchRes.features.forEach((f) => {
+          statuses.push(f.attributes.Event);
+        });
+        if (floodRes.features.length > 0)
+          statuses.push('Rain Expected (next 72 hours)');
+
+        setCurrentWeather((config) => {
+          updateRow(
+            config,
+            'success',
+            'inlandFlooding',
+            statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
+          );
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () => {
+        setCurrentWeather((config) => {
+          updateRow(config, 'failure', 'inlandFlooding');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+    });
+  }, [hucBoundaries, inlandFloodingRealtimeLayer]);
+
+  // update costal flooding
+  useEffect(() => {
+    if (!hucBoundaries || !coastalFloodingRealtimeLayer) return;
+
+    setCurrentWeather((config) => {
+      updateRow(config, 'pending', 'coastalFlooding');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    queryLayers({
+      layer: coastalFloodingRealtimeLayer,
+      queries: [
+        {
+          serviceItemId: '22726ed54d804f3e9134550406520405', // watches warnings
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['Event'],
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        let statuses: string[] = [];
+        responses[0].features.forEach((f) => {
+          statuses.push(f.attributes.Event);
+        });
+
+        setCurrentWeather((config) => {
+          updateRow(
+            config,
+            'success',
+            'coastalFlooding',
+            statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
+          );
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () => {
+        setCurrentWeather((config) => {
+          updateRow(config, 'failure', 'coastalFlooding');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+    });
+  }, [hucBoundaries, coastalFloodingRealtimeLayer]);
+
+  // update extreme cold
+  useEffect(() => {
+    if (!hucBoundaries || !extremeColdRealtimeLayer) return;
+
+    setCurrentWeather((config) => {
+      updateRow(config, 'pending', 'extremeCold');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    queryLayers({
+      layer: extremeColdRealtimeLayer,
+      queries: [
+        {
+          serviceItemId: 'a6134ae01aad44c499d12feec782b386', // watches warnings
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['Event'],
+
+            // workaround because the web map filters these out with the unique value renderer instead of by definition expression
+            where:
+              "Event IN ('Extreme Cold Warning', 'Extreme Cold Watch', 'Wind Chill Advisory', 'Wind Chill Warning', 'Wind Chill Watch')",
+          },
+        },
+        {
+          serviceItemId: '0ae7cf18df0a4b4d9e7eea665f00500d', // min temperature
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['Temp'],
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        const watchRes = responses[0];
+        const tempRes = responses[1];
+
+        let statuses: string[] = [];
+        watchRes.features.forEach((f) => {
+          statuses.push(f.attributes.Event);
+        });
+
+        let minTemp = Number.MAX_SAFE_INTEGER;
+        tempRes.features.forEach((f) => {
+          const temp = f.attributes.Temp;
+          if (temp < minTemp) minTemp = temp;
+        });
+        if (minTemp < Number.MAX_SAFE_INTEGER)
+          statuses.push(`Min Daily Air Temp: ${minTemp}°F`);
+
+        setCurrentWeather((config) => {
+          updateRow(
+            config,
+            'success',
+            'extremeCold',
+            statuses.length === 0 ? 'No Extreme Cold' : sentenceJoin(statuses),
+          );
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () => {
+        setCurrentWeather((config) => {
+          updateRow(config, 'failure', 'extremeCold');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+    });
+  }, [hucBoundaries, extremeColdRealtimeLayer]);
+
+  // update extreme heat
+  useEffect(() => {
+    if (!hucBoundaries || !extremeHeatRealtimeLayer) return;
+
+    setCurrentWeather((config) => {
+      updateRow(config, 'pending', 'extremeHeat');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    queryLayers({
+      layer: extremeHeatRealtimeLayer,
+      queries: [
+        {
+          serviceItemId: 'a6134ae01aad44c499d12feec782b386', // watches warnings
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['Event'],
+
+            // workaround because the web map filters these out with the unique value renderer instead of by definition expression
+            where:
+              "Event IN ('Excessive Heat Warning', 'Excessive Heat Watch', 'Heat Advisory')",
+          },
+        },
+        {
+          serviceItemId: '0ae7cf18df0a4b4d9e7eea665f00500d', // min temperature
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['Temp'],
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        const watchRes = responses[0];
+        const tempRes = responses[1];
+
+        let statuses: string[] = [];
+        watchRes.features.forEach((f) => {
+          statuses.push(f.attributes.Event);
+        });
+
+        let maxTemp = Number.MIN_SAFE_INTEGER;
+        tempRes.features.forEach((f) => {
+          const temp = f.attributes.Temp;
+          if (temp > maxTemp) maxTemp = temp;
+        });
+        if (maxTemp > Number.MIN_SAFE_INTEGER)
+          statuses.push(`Max Daily Air Temp: ${maxTemp}°F`);
+
+        setCurrentWeather((config) => {
+          updateRow(
+            config,
+            'success',
+            'extremeHeat',
+            statuses.length === 0 ? 'No Extreme Heat' : sentenceJoin(statuses),
+          );
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () => {
+        setCurrentWeather((config) => {
+          updateRow(config, 'failure', 'extremeHeat');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+    });
+  }, [hucBoundaries, extremeHeatRealtimeLayer]);
 
   return (
     <div css={containerStyles}>
@@ -783,35 +1269,45 @@ const currentWatherDefaults: Row[] = [
     label: 'Drought',
     checked: false,
     disabled: false,
-    text: 'Abnormally Dry',
+    layerId: 'droughtRealtimeLayer',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'inlandFlooding',
     label: 'Inland Flooding',
     checked: false,
     disabled: false,
-    text: 'Flood Warning AND Rain Expected (next 72 hours)',
+    layerId: 'inlandFloodingRealtimeLayer',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'coastalFlooding',
     label: 'Coastal Flooding',
     checked: false,
     disabled: false,
-    text: 'Flood Warning',
+    layerId: 'coastalFloodingRealtimeLayer',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'extremeHeat',
     label: 'Extreme Heat',
     checked: false,
     disabled: false,
-    text: 'Excessive Heat Warning, Max Daily Air Temp: 103 F',
+    layerId: 'extremeHeatRealtimeLayer',
+    status: 'idle',
+    text: '',
   },
   {
     id: 'extremeCold',
     label: 'Extreme Cold',
     checked: false,
     disabled: false,
-    text: 'Wind Chill Advisory, Min Daily Air Temp: 32 F',
+    layerId: 'extremeColdRealtimeLayer',
+    status: 'idle',
+    text: '',
   },
 ];
 const historicalDefaults: Row[] = [

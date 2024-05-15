@@ -139,6 +139,14 @@ export function getExtensionFromPath(primary: string, backup: string = '') {
   return extension;
 }
 
+export function sentenceJoin(values: string[]) {
+  // remove duplicates
+  values = [...new Set(values)];
+
+  if (values.length <= 1) return values.join('');
+  return `${values.slice(0, -1).join(', ')} and ${values.slice(-1)}`;
+}
+
 export function titleCase(string: string) {
   const smallWords =
     /^(a[nst]?|and|but|by|en|for|i[fn]|o[fn]|n?or|per|the|to|vs?.?|via)$/i;
