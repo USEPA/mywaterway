@@ -222,14 +222,14 @@ function DrinkingWater() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
-    countyBoundaries,
-    drinkingWater,
-    watershed,
-    mapView,
     atHucBoundaries,
-    drinkingWaterTabIndex,
-    setDrinkingWaterTabIndex,
+    countyBoundaries,
     currentExtent,
+    drinkingWater,
+    drinkingWaterTabIndex,
+    mapView,
+    setDrinkingWaterTabIndex,
+    watershed,
   } = useContext(LocationSearchContext);
 
   const {
@@ -255,7 +255,10 @@ function DrinkingWater() {
       return;
     }
 
-    setCountyGraphic(providersLayer.graphics.at(0));
+    const graphic = providersLayer.graphics.find(
+      (g) => g.attributes.FIPS === countyBoundaries.attributes.FIPS,
+    );
+    if (graphic) setCountyGraphic(graphic);
   }, [providersLayer, countyBoundaries]);
 
   // toggle map layers' visibility when a tab changes
@@ -313,6 +316,10 @@ function DrinkingWater() {
     ) {
       setMapZoom(currentExtent);
       mapView.goTo(countyGraphic);
+      providersLayer?.graphics.forEach((graphic) => {
+        graphic.visible =
+          graphic.attributes.FIPS === countyGraphic.attributes.FIPS;
+      });
       return;
     }
 
@@ -322,13 +329,14 @@ function DrinkingWater() {
       mapView.goTo(currentExtent);
     }
   }, [
-    drinkingWaterTabIndex,
-    countyGraphic,
-    mapView,
     atHucBoundaries,
-    previousTabIndex,
-    mapZoom,
+    countyGraphic,
     currentExtent,
+    drinkingWaterTabIndex,
+    mapView,
+    mapZoom,
+    previousTabIndex,
+    providersLayer,
   ]);
 
   // create mapZoomRef, and keep it in sync with mapZoom state,
@@ -364,9 +372,12 @@ function DrinkingWater() {
   let tribalWithdrawerCount = 0;
   let totalWithdrawersCount = 0; // total withdrawers
   let bothCount = 0;
-  if (drinkingWater.data) {
+  let fips = countyBoundaries?.attributes.FIPS;
+  if (drinkingWater.data?.[fips]) {
     // handle providers separately
-    const allProviders = drinkingWater.data.filter((system) => !system.huc12);
+    const allProviders = drinkingWater.data[fips].filter(
+      (system) => !system.huc12,
+    );
     allProviders.forEach((provider) => {
       if (provider.tribal_name) tribalProviderCount++;
       providers.push(provider);
@@ -376,7 +387,9 @@ function DrinkingWater() {
     }
 
     // find all withdrawers
-    const allWithdrawers = drinkingWater.data.filter((system) => system.huc12);
+    const allWithdrawers = drinkingWater.data[fips].filter(
+      (system) => system.huc12,
+    );
 
     // find duplicate withdrawers based on pwsid
     const lookup = allWithdrawers.reduce((a, e) => {
@@ -450,10 +463,7 @@ function DrinkingWater() {
     }
   }
 
-  let county = '';
-  if (countyBoundaries?.features?.length > 0) {
-    county = countyBoundaries.features[0].attributes.NAME;
-  }
+  const county = countyBoundaries?.attributes?.NAME ?? '';
 
   const [providersSortBy, setProvidersSortBy] = useState('population');
   const [withdrawersSortBy, setWithdrawersSortBy] = useState('population');
@@ -619,14 +629,14 @@ function DrinkingWater() {
 
               {drinkingWater.status === 'success' && (
                 <>
-                  {drinkingWater.data.length === 0 && (
+                  {drinkingWater.data[fips].length === 0 && (
                     <p css={centeredTextStyles}>
                       There is no drinking water data for the{' '}
                       <em>{watershed.name}</em> watershed.
                     </p>
                   )}
 
-                  {drinkingWater.data.length > 0 && (
+                  {drinkingWater.data[fips].length > 0 && (
                     <>
                       {providers.length === 0 && (
                         <div css={infoBoxStyles}>
@@ -768,14 +778,14 @@ function DrinkingWater() {
 
               {drinkingWater.status === 'success' && (
                 <>
-                  {drinkingWater.data.length === 0 && (
+                  {drinkingWater.data[fips].length === 0 && (
                     <p css={centeredTextStyles}>
                       There is no drinking water data for the{' '}
                       <em>{watershed.name}</em> watershed.
                     </p>
                   )}
 
-                  {drinkingWater.data.length > 0 && (
+                  {drinkingWater.data[fips].length > 0 && (
                     <>
                       {totalWithdrawersCount === 0 && (
                         <div css={infoBoxStyles}>

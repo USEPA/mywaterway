@@ -2,6 +2,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
+import { EmotionJSX } from '@emotion/react/types/jsx-namespace';
 import uniqueId from 'lodash/uniqueId';
 import {
   Dispatch,
@@ -11,6 +12,11 @@ import {
   useEffect,
   useState,
 } from 'react';
+import Select, {
+  components,
+  OptionProps,
+  SingleValueProps,
+} from 'react-select';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
@@ -31,56 +37,66 @@ import {
   summarizeAssessments,
 } from 'utils/utils';
 // styles
-import { toggleTableStyles } from 'styles/index';
+import { reactSelectStyles, toggleTableStyles } from 'styles/index';
 // types
 import { FetchStatus } from 'types';
 
-const tickList = [
-  {
-    value: 0,
-    label: (
-      <Fragment>
-        Modeled History
-        <br />
-        <em>(1976 - 2005)</em>
-      </Fragment>
-    ),
-    labelAria: 'Modeled History (1976 - 2005)',
-  },
-  {
-    value: 1,
-    label: (
-      <Fragment>
-        Early Century
-        <br />
-        <em>(2015 - 2044)</em>
-      </Fragment>
-    ),
-    labelAria: 'Early Century (2015 - 2044)',
-  },
-  {
-    value: 2,
-    label: (
-      <Fragment>
-        Mid Century
-        <br />
-        <em>(2035 - 2064)</em>
-      </Fragment>
-    ),
-    labelAria: 'Mid Century (2035 - 2064)',
-  },
-  {
-    value: 3,
-    label: (
-      <Fragment>
-        Late Century
-        <br />
-        <em>(2070 - 2099)</em>
-      </Fragment>
-    ),
-    labelAria: 'Late Century (2070 - 2099)',
-  },
-];
+function getTickList(inline = false) {
+  const separator = inline ? ' ' : <br />;
+  return [
+    {
+      value: 0,
+      label: (
+        <Fragment>
+          Modeled History
+          {separator}
+          <em>(1976 - 2005)</em>
+        </Fragment>
+      ),
+      labelAria: 'Modeled History (1976 - 2005)',
+    },
+    {
+      value: 1,
+      label: (
+        <Fragment>
+          Early Century
+          {separator}
+          <em>(2015 - 2044)</em>
+        </Fragment>
+      ),
+      labelAria: 'Early Century (2015 - 2044)',
+    },
+    {
+      value: 2,
+      label: (
+        <Fragment>
+          Mid Century
+          {separator}
+          <em>(2035 - 2064)</em>
+        </Fragment>
+      ),
+      labelAria: 'Mid Century (2035 - 2064)',
+    },
+    {
+      value: 3,
+      label: (
+        <Fragment>
+          Late Century
+          {separator}
+          <em>(2070 - 2099)</em>
+        </Fragment>
+      ),
+      labelAria: 'Late Century (2070 - 2099)',
+    },
+  ];
+}
+
+const tickList = getTickList();
+const timeframeOptions = getTickList(true).map((t) => ({
+  label: t.labelAria,
+  labelHtml: t.label,
+  value: t.value,
+}));
 
 // checks if all layers are in group layer
 function allLayersAdded(
@@ -329,16 +345,34 @@ const containerStyles = css`
   }
 `;
 
-const sectionHeaderStyles = css`
+const countySelectStyles = css`
+  margin-bottom: 1rem;
+`;
+
+const screenLabelStyles = css`
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: bold;
+  margin-bottom: 0.125rem;
+`;
+
+const sectionHeaderContainerStyles = css`
   background-color: #f0f6f9;
   border-top: 1px solid #dee2e6;
+  padding: 0.75rem;
+`;
+
+const sectionHeaderStyles = css`
   font-size: 1em;
   font-weight: bold;
   line-height: 1.5;
   overflow-wrap: anywhere;
-  padding: 0.75rem;
   vertical-align: bottom;
   word-break: break-word;
+`;
+
+const sectionHeaderSelectStyles = css`
+  margin: 0.5rem 0.5rem 0.25rem;
 `;
 
 const smallLoadingSpinnerStyles = css`
@@ -354,6 +388,11 @@ const subheadingStyles = css`
   font-weight: bold;
   padding-bottom: 0;
   text-align: center;
+`;
+
+const tableRowSectionHeaderStyles = css`
+  font-weight: bold;
+  text-align: left !important;
 `;
 
 function ExtremeWeather() {
@@ -372,6 +411,7 @@ function ExtremeWeather() {
     extremeColdRealtimeLayer,
     extremeHeatRealtimeLayer,
     inlandFloodingRealtimeLayer,
+    providersLayer,
     tribalLayer,
     visibleLayers,
     waterbodyLayer,
@@ -383,6 +423,11 @@ function ExtremeWeather() {
     updateCount: 0,
     items: currentWatherDefaults,
   });
+  const [historicalRiskRange, setHistoricalRiskRange] =
+    useState<SwitchTableConfig>({
+      updateCount: 0,
+      items: historicalRangeDefaults,
+    });
   const [historicalRisk, setHistoricalRisk] = useState<SwitchTableConfig>({
     updateCount: 0,
     items: historicalDefaults,
@@ -392,6 +437,12 @@ function ExtremeWeather() {
       updateCount: 0,
       items: potentiallyVulnerableDefaults,
     });
+
+  const [timeframeSelection, setTimeframeSelection] = useState<{
+    label: string;
+    labelHtml: EmotionJSX.Element;
+    value: number;
+  }>(timeframeOptions[0]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -412,6 +463,50 @@ function ExtremeWeather() {
     setCurrentWeather(handleSetting);
     setPotentiallyVulnerable(handleSetting);
   }, [visibleLayers]);
+
+  const [countyOptions, setCountyOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [countySelected, setCountySelected] = useState<{
+    label: string;
+    value: string;
+  } | null>(null);
+  useEffect(() => {
+    const countyOptions = providersLayer?.graphics.toArray().map((c) => {
+      return {
+        label: c.attributes.NAME.toString(),
+        value: c.attributes.FIPS.toString(),
+      };
+    });
+    if (countyOptions) {
+      setCountyOptions(countyOptions);
+
+      const county = countyOptions.find(
+        (c) => c.value === countyBoundaries.attributes.FIPS,
+      );
+      if (county) setCountySelected(county);
+    }
+  }, [countyBoundaries, providersLayer]);
+
+  useEffect(() => {
+    if (!countySelected) return;
+
+    let countyGraphic: __esri.Graphic | null = null;
+    providersLayer?.graphics.forEach((graphic) => {
+      if (graphic.attributes.FIPS === countySelected.value) {
+        graphic.visible = true;
+        countyGraphic = graphic;
+      } else graphic.visible = false;
+    });
+    if (providersLayer?.visible) mapView.goTo(countyGraphic);
+
+    return function resetCountyVisibility() {
+      providersLayer?.graphics.forEach((graphic) => {
+        graphic.visible =
+          graphic.attributes.FIPS === countyBoundaries.attributes.FIPS;
+      });
+    };
+  }, [countyBoundaries, countySelected, mapView, providersLayer]);
 
   // update waterbodies
   useEffect(() => {
@@ -485,6 +580,7 @@ function ExtremeWeather() {
 
   // update drinking water
   useEffect(() => {
+    if (!countySelected) return;
     if (drinkingWater.status === 'fetching') {
       setPotentiallyVulnerable((config) => {
         updateRow(config, drinkingWater.status, 'drinkingWaterSystems');
@@ -499,10 +595,12 @@ function ExtremeWeather() {
     }
 
     setPotentiallyVulnerable((config) => {
+      if (!countySelected) return config;
+
       let totalSystems = 0;
       let groundWater = 0;
       let surfaceWater = 0;
-      drinkingWater.data.forEach((system: any) => {
+      drinkingWater.data[countySelected.value].forEach((system: any) => {
         if (system.huc12) return;
         totalSystems += 1;
         if (system.gw_sw_code === 'GW') groundWater += 1;
@@ -531,7 +629,7 @@ function ExtremeWeather() {
         updateCount: config.updateCount + 1,
       };
     });
-  }, [drinkingWater]);
+  }, [countySelected, drinkingWater]);
 
   // update tribal
   useEffect(() => {
@@ -648,15 +746,10 @@ function ExtremeWeather() {
     tickList[tickList.length - 1].value,
   ]);
   useEffect(() => {
-    if (
-      !cmraScreeningLayer ||
-      !countyBoundaries ||
-      countyBoundaries?.features?.length < 1
-    )
-      return;
+    if (!cmraScreeningLayer || !countySelected) return;
 
     async function queryLayer() {
-      if (!cmraScreeningLayer) return;
+      if (!cmraScreeningLayer || !countySelected) return;
 
       setHistoricalRisk((config) => {
         updateRow(config, 'pending', 'fire');
@@ -669,16 +762,37 @@ function ExtremeWeather() {
           updateCount: config.updateCount + 1,
         };
       });
+      setHistoricalRiskRange((config) => {
+        updateRow(config, 'pending', 'fire');
+        updateRow(config, 'pending', 'drought');
+        updateRow(config, 'pending', 'inlandFlooding');
+        updateRow(config, 'pending', 'coastalFlooding');
+        updateRow(config, 'pending', 'extremeHeat');
+        return {
+          ...config,
+          updateCount: config.updateCount + 1,
+        };
+      });
 
       try {
-        const fips = countyBoundaries.features[0].attributes.FIPS;
         const response = await cmraScreeningLayer.queryFeatures({
           outFields: cmraScreeningLayer.outFields,
-          where: `GEOID = '${fips}'`,
+          where: `GEOID = '${countySelected.value}'`,
         });
 
         if (response.features.length === 0) {
           setHistoricalRisk((config) => {
+            updateRow(config, 'success', 'fire', '');
+            updateRow(config, 'success', 'drought', '');
+            updateRow(config, 'success', 'inlandFlooding', '');
+            updateRow(config, 'success', 'coastalFlooding', '');
+            updateRow(config, 'success', 'extremeHeat', '');
+            return {
+              ...config,
+              updateCount: config.updateCount + 1,
+            };
+          });
+          setHistoricalRiskRange((config) => {
             updateRow(config, 'success', 'fire', '');
             updateRow(config, 'success', 'drought', '');
             updateRow(config, 'success', 'inlandFlooding', '');
@@ -713,8 +827,30 @@ function ExtremeWeather() {
             updateCount: config.updateCount + 1,
           };
         });
+        setHistoricalRiskRange((config) => {
+          updateRow(config, 'success', 'fire', fireText);
+          updateRow(config, 'success', 'drought', droughtText);
+          updateRow(config, 'success', 'inlandFlooding', inlandFloodingText);
+          updateRow(config, 'success', 'coastalFlooding', coastalFloodingText);
+          updateRow(config, 'success', 'extremeHeat', extremeHeatText);
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
       } catch (ex) {
         setHistoricalRisk((config) => {
+          updateRow(config, 'failure', 'fire');
+          updateRow(config, 'failure', 'drought');
+          updateRow(config, 'failure', 'inlandFlooding');
+          updateRow(config, 'failure', 'coastalFlooding');
+          updateRow(config, 'failure', 'extremeHeat');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+        setHistoricalRiskRange((config) => {
           updateRow(config, 'failure', 'fire');
           updateRow(config, 'failure', 'drought');
           updateRow(config, 'failure', 'inlandFlooding');
@@ -729,7 +865,7 @@ function ExtremeWeather() {
     }
 
     queryLayer();
-  }, [cmraScreeningLayer, countyBoundaries, range]);
+  }, [cmraScreeningLayer, countySelected, range]);
 
   // update drought
   useEffect(() => {
@@ -1075,8 +1211,24 @@ function ExtremeWeather() {
         columns={['Current Severe Weather Events', 'Status Within Watershed']}
       />
 
-      <div css={sectionHeaderStyles}>
-        Historical Risk and Potential Future Scenarios
+      <div css={countySelectStyles}>
+        <span css={screenLabelStyles}>County:</span>
+        <Select
+          aria-label="County"
+          className="select"
+          inputId="county"
+          isSearchable={false}
+          options={countyOptions}
+          value={countySelected}
+          onChange={(ev) => setCountySelected(ev)}
+          styles={reactSelectStyles}
+        />
+      </div>
+
+      <div css={sectionHeaderContainerStyles}>
+        <div css={sectionHeaderStyles}>
+          Historical Risk and Potential Future Scenarios
+        </div>
       </div>
 
       <Slider
@@ -1091,10 +1243,60 @@ function ExtremeWeather() {
         headerElm={
           <p css={subheadingStyles}>
             <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-            &nbsp;&nbsp; Date range for the <em>TBD</em> county{' '}
+            &nbsp;&nbsp; Date range for the <em>{countySelected?.label}</em>{' '}
+            county{' '}
           </p>
         }
       />
+
+      <SwitchTable
+        hideHeader={true}
+        id="historical-risk-range-switch"
+        mapView={mapView}
+        value={historicalRiskRange}
+        setter={setHistoricalRiskRange}
+        columns={[
+          'Historical Risk and Potential Future Scenarios',
+          'Status Within County',
+        ]}
+      />
+
+      <div css={sectionHeaderContainerStyles}>
+        <div css={sectionHeaderStyles}>
+          Historical Risk and Potential Future Scenarios
+        </div>
+        <div css={sectionHeaderSelectStyles}>
+          <span css={screenLabelStyles}>Timeframe:</span>
+          <Select
+            aria-label="Timeframe"
+            className="select"
+            inputId="timeframe"
+            isSearchable={false}
+            options={timeframeOptions}
+            styles={reactSelectStyles}
+            value={timeframeSelection}
+            onChange={(ev) => {
+              if (ev) setTimeframeSelection(ev);
+            }}
+            components={{
+              Option: (props: OptionProps<any>) => {
+                return (
+                  <components.Option {...props}>
+                    {(props.data as any).labelHtml}
+                  </components.Option>
+                );
+              },
+              SingleValue: ({ children, ...props }: SingleValueProps<any>) => {
+                return (
+                  <components.SingleValue {...props}>
+                    {(props.data as any).labelHtml}
+                  </components.SingleValue>
+                );
+              },
+            }}
+          />
+        </div>
+      </div>
 
       <SwitchTable
         hideHeader={true}
@@ -1104,7 +1306,7 @@ function ExtremeWeather() {
         setter={setHistoricalRisk}
         columns={[
           'Historical Risk and Potential Future Scenarios',
-          'Status within map extent',
+          'Status Within County',
         ]}
       />
 
@@ -1154,6 +1356,7 @@ function SwitchTable({
   value,
   setter,
 }: Readonly<SwitchTableProps>) {
+  const hasSubheadings = value.items.findIndex((i) => i.subHeading) > -1;
   return (
     <table css={modifiedToggleTableStyles(hideHeader)} className="table">
       <thead className={hideHeader ? 'sr-only' : ''}>
@@ -1166,19 +1369,37 @@ function SwitchTable({
       <tbody>
         {value.items.map((item) => {
           const layer = mapView?.map.findLayerById(item.layerId ?? '');
-          const marginLeft = item.indent
+          let marginLeftBase = item.indent
             ? item.checked !== undefined
               ? '1.6rem'
               : '4rem'
             : undefined;
+          const marginLeft = hasSubheadings
+            ? `calc(${marginLeftBase ?? '0px'} + 1rem)`
+            : marginLeftBase;
           const itemValue = item.text;
+
+          if (item.subHeading) {
+            return (
+              <tr>
+                <th
+                  colSpan={2}
+                  scope="colgroup"
+                  css={tableRowSectionHeaderStyles}
+                >
+                  {item.label}
+                </th>
+              </tr>
+            );
+          }
+
           return (
             <tr key={uniqueId(id)}>
               <td>
                 {item.checked === undefined ? (
                   <span style={{ marginLeft }}>{item.label}</span>
                 ) : (
-                  <label css={toggleStyles}>
+                  <label css={toggleStyles} style={{ marginLeft }}>
                     <Switch
                       checked={item.checked}
                       disabled={item.disabled || !item.layerId || !layer}
@@ -1201,7 +1422,7 @@ function SwitchTable({
                         });
                       }}
                     />
-                    <span style={{ marginLeft: marginLeft }}>{item.label}</span>
+                    <span style={{ marginLeft: '0.5rem' }}>{item.label}</span>
                   </label>
                 )}
               </td>
@@ -1246,6 +1467,7 @@ type Row = {
   label: string;
   layerId?: string;
   status?: FetchStatus;
+  subHeading?: boolean;
   text?: string;
 };
 
@@ -1310,6 +1532,38 @@ const currentWatherDefaults: Row[] = [
     text: '',
   },
 ];
+const historicalRangeDefaults: Row[] = [
+  {
+    id: 'fire',
+    label: 'Fire',
+    status: 'idle',
+    text: '',
+  },
+  {
+    id: 'drought',
+    label: 'Drought',
+    status: 'idle',
+    text: '',
+  },
+  {
+    id: 'inlandFlooding',
+    label: 'Inland Flooding',
+    status: 'idle',
+    text: '',
+  },
+  {
+    id: 'coastalFlooding',
+    label: 'Coastal Flooding',
+    status: 'idle',
+    text: '',
+  },
+  {
+    id: 'extremeHeat',
+    label: 'Extreme Heat',
+    status: 'idle',
+    text: '',
+  },
+];
 const historicalDefaults: Row[] = [
   {
     id: 'fire',
@@ -1353,6 +1607,26 @@ const historicalDefaults: Row[] = [
   },
 ];
 const potentiallyVulnerableDefaults: Row[] = [
+  // all
+  {
+    id: 'allSubHeading',
+    label: 'Entire Map',
+    subHeading: true,
+  },
+  {
+    id: 'landCover',
+    label: 'Land cover',
+    checked: false,
+    disabled: false,
+    layerId: 'landCoverLayer',
+  },
+
+  // huc
+  {
+    id: 'hucSubHeading',
+    label: 'Within Watershed',
+    subHeading: true,
+  },
   {
     id: 'waterbodies',
     label: 'Waterbodies',
@@ -1393,6 +1667,41 @@ const potentiallyVulnerableDefaults: Row[] = [
     text: '',
   },
   {
+    id: 'tribes',
+    label: 'Tribes',
+    checked: false,
+    disabled: false,
+    layerId: 'tribalLayer',
+    text: '',
+  },
+  {
+    id: 'hasTerritories',
+    label: 'Territories or Island State?',
+    indent: true,
+    text: 'No',
+  },
+  {
+    id: 'pollutantStorageTanks',
+    label: 'Above and below ground pollutant storage tanks',
+    checked: false,
+    disabled: false,
+    text: '5',
+  },
+  {
+    id: 'dams',
+    label: 'Dams',
+    checked: false,
+    disabled: false,
+    text: '2',
+  },
+
+  // county
+  {
+    id: 'hucSubHeading',
+    label: 'Within County',
+    subHeading: true,
+  },
+  {
     id: 'drinkingWaterSystems',
     label: 'Public Drinking Water Systems',
     checked: false,
@@ -1423,45 +1732,10 @@ const potentiallyVulnerableDefaults: Row[] = [
     text: '',
   },
   {
-    id: 'tribes',
-    label: 'Tribes',
-    checked: false,
-    disabled: false,
-    layerId: 'tribalLayer',
-    text: '',
-  },
-  {
-    id: 'hasTerritories',
-    label: 'Territories or Island State?',
-    indent: true,
-    text: 'No',
-  },
-  {
-    id: 'pollutantStorageTanks',
-    label: 'Above and below ground pollutant storage tanks',
-    checked: false,
-    disabled: false,
-    text: '5',
-  },
-  {
-    id: 'landCover',
-    label: 'Land cover',
-    checked: false,
-    disabled: false,
-    layerId: 'landCoverLayer',
-  },
-  {
     id: 'wells',
     label: 'Wells',
     checked: false,
     disabled: false,
     text: '30',
-  },
-  {
-    id: 'dams',
-    label: 'Dams',
-    checked: false,
-    disabled: false,
-    text: '2',
   },
 ];
