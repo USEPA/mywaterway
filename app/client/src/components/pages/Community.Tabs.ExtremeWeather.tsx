@@ -131,8 +131,10 @@ function getHistoricValues(
   [key: number]: number;
 } {
   let key = 'MEAN_';
-  if (type === 'fire' || type === 'drought') key += 'CONSECDD';
+  if (type === 'fire') key += 'CONSECDD';
+  if (type === 'drought') key += 'PRLT0IN';
   if (type === 'inlandFlooding') key += 'CONSECWD';
+  if (type === 'inlandFloodingInches') key += 'PR_ANNUAL';
   if (type === 'coastalFlooding') key += 'SLR';
   if (type === 'extremeHeat') key += 'TMAX90F';
   return {
@@ -1456,6 +1458,7 @@ type HistoricType =
   | 'fire'
   | 'drought'
   | 'inlandFlooding'
+  | 'inlandFloodingInches'
   | 'coastalFlooding'
   | 'extremeHeat';
 
