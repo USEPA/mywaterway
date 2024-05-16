@@ -127,10 +127,11 @@ function findByItemId(layer: __esri.GroupLayer, itemId: string) {
 function getHistoricValues(
   attributes: any,
   type: HistoricType,
+  aggType: 'MAX' | 'MIN' | 'MEAN' = 'MEAN',
 ): {
   [key: number]: number;
 } {
-  let key = 'MEAN_';
+  let key = `${aggType}_`;
   if (type === 'fire') key += 'CONSECDD';
   if (type === 'drought') key += 'PRLT0IN';
   if (type === 'inlandFlooding') key += 'CONSECWD';
@@ -147,6 +148,18 @@ function getHistoricValues(
 
 function getHistoricValue(
   attributes: any,
+  timeframe: number,
+  type: HistoricType,
+  serviceAggType: 'MAX' | 'MIN' | 'MEAN' = 'MEAN',
+  digits: number = 1,
+) {
+  let values = getHistoricValues(attributes, type, serviceAggType);
+
+  return formatNumber(Math.abs(values[timeframe]), digits, true);
+}
+
+function getHistoricValueRange(
+  attributes: any,
   range: number[],
   type: HistoricType,
   aggType: 'difference' | 'max',
@@ -156,7 +169,11 @@ function getHistoricValue(
   const rangeEnd = range[1];
 
   let value = 0;
-  let values = getHistoricValues(attributes, type);
+  let values = getHistoricValues(
+    attributes,
+    type,
+    aggType === 'max' ? 'MAX' : 'MEAN',
+  );
   if (aggType === 'difference') value = values[rangeEnd] - values[rangeStart];
   if (aggType === 'max') {
     const array = Object.keys(values)
@@ -753,7 +770,7 @@ function ExtremeWeather() {
     async function queryLayer() {
       if (!cmraScreeningLayer || !countySelected) return;
 
-      setHistoricalRisk((config) => {
+      setHistoricalRiskRange((config) => {
         updateRow(config, 'pending', 'fire');
         updateRow(config, 'pending', 'drought');
         updateRow(config, 'pending', 'inlandFlooding');
@@ -764,7 +781,74 @@ function ExtremeWeather() {
           updateCount: config.updateCount + 1,
         };
       });
-      setHistoricalRiskRange((config) => {
+
+      try {
+        const response = await cmraScreeningLayer.queryFeatures({
+          outFields: cmraScreeningLayer.outFields,
+          where: `GEOID = '${countySelected.value}'`,
+        });
+
+        if (response.features.length === 0) {
+          setHistoricalRiskRange((config) => {
+            updateRow(config, 'success', 'fire', '');
+            updateRow(config, 'success', 'drought', '');
+            updateRow(config, 'success', 'inlandFlooding', '');
+            updateRow(config, 'success', 'coastalFlooding', '');
+            updateRow(config, 'success', 'extremeHeat', '');
+            return {
+              ...config,
+              updateCount: config.updateCount + 1,
+            };
+          });
+        }
+
+        const attributes = response.features[0].attributes;
+        const isSame = range[0] === range[1];
+        const startText = isSame ? 'Max number of' : 'Change in';
+        const aggType = isSame ? 'max' : 'difference';
+
+        const fireText = `${startText} annual consecutive (dry days): ${getHistoricValueRange(attributes, range, 'fire', aggType)}`;
+        const droughtText = `${startText} annual days with no rain (dry days): ${getHistoricValueRange(attributes, range, 'drought', aggType)}`;
+        const inlandFloodingText = `${startText} annual days with rain (wet days): ${getHistoricValueRange(attributes, range, 'inlandFlooding', aggType)}`;
+        const coastalFloodingText = `${startText.replace(' number of', '')} % of county impacted by sea level rise: ${getHistoricValueRange(attributes, range, 'coastalFlooding', aggType)}`;
+        const extremeHeatText = `${startText} annual days with max temperature over 90°F: ${getHistoricValueRange(attributes, range, 'extremeHeat', aggType)}`;
+
+        setHistoricalRiskRange((config) => {
+          updateRow(config, 'success', 'fire', fireText);
+          updateRow(config, 'success', 'drought', droughtText);
+          updateRow(config, 'success', 'inlandFlooding', inlandFloodingText);
+          updateRow(config, 'success', 'coastalFlooding', coastalFloodingText);
+          updateRow(config, 'success', 'extremeHeat', extremeHeatText);
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      } catch (ex) {
+        setHistoricalRiskRange((config) => {
+          updateRow(config, 'failure', 'fire');
+          updateRow(config, 'failure', 'drought');
+          updateRow(config, 'failure', 'inlandFlooding');
+          updateRow(config, 'failure', 'coastalFlooding');
+          updateRow(config, 'failure', 'extremeHeat');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      }
+    }
+
+    queryLayer();
+  }, [cmraScreeningLayer, countySelected, range]);
+
+  useEffect(() => {
+    if (!cmraScreeningLayer || !countySelected) return;
+
+    async function queryLayer() {
+      if (!cmraScreeningLayer || !countySelected) return;
+
+      setHistoricalRisk((config) => {
         updateRow(config, 'pending', 'fire');
         updateRow(config, 'pending', 'drought');
         updateRow(config, 'pending', 'inlandFlooding');
@@ -794,42 +878,18 @@ function ExtremeWeather() {
               updateCount: config.updateCount + 1,
             };
           });
-          setHistoricalRiskRange((config) => {
-            updateRow(config, 'success', 'fire', '');
-            updateRow(config, 'success', 'drought', '');
-            updateRow(config, 'success', 'inlandFlooding', '');
-            updateRow(config, 'success', 'coastalFlooding', '');
-            updateRow(config, 'success', 'extremeHeat', '');
-            return {
-              ...config,
-              updateCount: config.updateCount + 1,
-            };
-          });
         }
 
         const attributes = response.features[0].attributes;
-        const isSame = range[0] === range[1];
-        const startText = isSame ? 'Max number of' : 'Change in';
-        const aggType = isSame ? 'max' : 'difference';
+        const range = timeframeSelection.value;
 
-        const fireText = `${startText} annual consecutive (dry days): ${getHistoricValue(attributes, range, 'fire', aggType)}`;
-        const droughtText = `${startText} annual days with no rain (dry days): ${getHistoricValue(attributes, range, 'drought', aggType)}`;
-        const inlandFloodingText = `${startText} annual days with rain (wet days): ${getHistoricValue(attributes, range, 'inlandFlooding', aggType)}`;
-        const coastalFloodingText = `${startText} % of county impacted by sea level rise: ${getHistoricValue(attributes, range, 'coastalFlooding', aggType)}`;
-        const extremeHeatText = `${startText} annual days with max temperature over 90°F: ${getHistoricValue(attributes, range, 'extremeHeat', aggType)}`;
+        const fireText = `Max number of annual consecutive (dry days): ${getHistoricValue(attributes, range, 'fire', 'MAX')}`;
+        const droughtText = `Annual days with no rain (dry days): ${getHistoricValue(attributes, range, 'drought')}`;
+        const inlandFloodingText = `Average annual total precipitation: ${getHistoricValue(attributes, range, 'inlandFloodingInches')} inches`;
+        const coastalFloodingText = `% of county impacted by sea level rise: ${getHistoricValue(attributes, range, 'coastalFlooding')}`;
+        const extremeHeatText = `Annual days with max temperature over 90°F: ${getHistoricValue(attributes, range, 'extremeHeat', 'MAX')}`;
 
         setHistoricalRisk((config) => {
-          updateRow(config, 'success', 'fire', fireText);
-          updateRow(config, 'success', 'drought', droughtText);
-          updateRow(config, 'success', 'inlandFlooding', inlandFloodingText);
-          updateRow(config, 'success', 'coastalFlooding', coastalFloodingText);
-          updateRow(config, 'success', 'extremeHeat', extremeHeatText);
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-        setHistoricalRiskRange((config) => {
           updateRow(config, 'success', 'fire', fireText);
           updateRow(config, 'success', 'drought', droughtText);
           updateRow(config, 'success', 'inlandFlooding', inlandFloodingText);
@@ -852,22 +912,11 @@ function ExtremeWeather() {
             updateCount: config.updateCount + 1,
           };
         });
-        setHistoricalRiskRange((config) => {
-          updateRow(config, 'failure', 'fire');
-          updateRow(config, 'failure', 'drought');
-          updateRow(config, 'failure', 'inlandFlooding');
-          updateRow(config, 'failure', 'coastalFlooding');
-          updateRow(config, 'failure', 'extremeHeat');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
       }
     }
 
     queryLayer();
-  }, [cmraScreeningLayer, countySelected, range]);
+  }, [cmraScreeningLayer, countySelected, timeframeSelection]);
 
   // update drought
   useEffect(() => {
