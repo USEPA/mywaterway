@@ -450,6 +450,7 @@ function ExtremeWeather() {
     extremeHeatRealtimeLayer,
     inlandFloodingRealtimeLayer,
     providersLayer,
+    sewerOverflowsLayer,
     storageTanksLayer,
     tribalLayer,
     visibleLayers,
@@ -1353,6 +1354,52 @@ function ExtremeWeather() {
         }),
     });
   }, [hucBoundaries, storageTanksLayer]);
+
+  // update combined sewer overflows
+  useEffect(() => {
+    if (!hucBoundaries || !sewerOverflowsLayer) return;
+
+    setPotentiallyVulnerable((config) => {
+      updateRow(config, 'pending', 'combinedSewerOverflows');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    queryLayers({
+      layer: sewerOverflowsLayer,
+      queries: [
+        {
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        setPotentiallyVulnerable((config) => {
+          updateRow(
+            config,
+            'success',
+            'combinedSewerOverflows',
+            responses[0].features.length,
+          );
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () =>
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'failure', 'combinedSewerOverflows');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        }),
+    });
+  }, [hucBoundaries, sewerOverflowsLayer]);
 
   return (
     <div css={containerStyles}>
@@ -2310,7 +2357,15 @@ const potentiallyVulnerableDefaults: Row[] = [
     disabled: false,
     label: 'Above and below ground pollutant storage tanks',
     layerId: 'storageTanksLayer',
-    text: '5',
+    text: '',
+  },
+  {
+    id: 'combinedSewerOverflows',
+    checked: false,
+    disabled: false,
+    label: 'Combined Sewer Overflows',
+    layerId: 'sewerOverflowsLayer',
+    text: '',
   },
   {
     id: 'dams',

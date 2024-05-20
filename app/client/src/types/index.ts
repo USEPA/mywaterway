@@ -352,6 +352,7 @@ export type PopupAttributes =
   | MonitoringLocationAttributes
   | NonProfitAttributes
   | ProtectedAreaAttributes
+  | SewerOverflowAttributes
   | StorageTankAttributes
   | TribeAttributes
   | UpstreamWatershedAttributes
@@ -399,6 +400,12 @@ export type ServicesState =
   | { status: 'fetching'; data: null }
   | { status: 'failure'; data: string }
   | { status: 'success'; data: ServicesData };
+
+export type SewerOverflowAttributes = {
+  facility_name: string;
+  npdes_id: string;
+  dmr_tracking: string;
+};
 
 export type StorageTankAttributes = {
   Closed_USTs: number;

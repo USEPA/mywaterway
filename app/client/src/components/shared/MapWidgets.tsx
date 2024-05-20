@@ -202,6 +202,7 @@ const orderedLayers = [
   'issuesLayer',
   'dischargersLayer',
   'surroundingDischargersLayer',
+  'sewerOverflowsLayer',
   'storageTanksLayer',
   'cyanLayer',
   'surroundingCyanLayer',

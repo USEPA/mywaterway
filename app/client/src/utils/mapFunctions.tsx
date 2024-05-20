@@ -746,6 +746,11 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = attributes.Name;
   }
 
+  // Sewer Overflows
+  else if ('dmr_tracking' in attributes) {
+    title = attributes.facility_name;
+  }
+
   return title;
 }
 
@@ -867,6 +872,11 @@ export function getPopupContent({
     // Storage Tanks
     else if ('Open_USTs' in attributes) {
       type = 'Pollutant Storage Tank';
+    }
+
+    // Sewer Overflows
+    else if ('dmr_tracking' in attributes) {
+      type = 'Combined Sewer Overflow';
     }
   }
 

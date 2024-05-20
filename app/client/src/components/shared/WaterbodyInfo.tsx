@@ -1055,6 +1055,23 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const sewerOverflowsContent = (
+    <ListContent
+      rows={[
+        {
+          label: 'Facility Name',
+          value: attributes.facility_name,
+        },
+        {
+          label: 'NPDES ID',
+          value: attributes.npdes_id,
+        },
+      ]}
+      styles={listContentStyles}
+    />
+  );
+
+  // jsx
   const storageTankContent = (
     <ListContent
       rows={[
@@ -1262,6 +1279,7 @@ function WaterbodyInfo({
   if (type === 'Protected Areas') content = protectedAreaContent;
   if (type === 'Demographic Indicators') content = ejscreenContent;
   if (type === 'Pollutant Storage Tank') content = storageTankContent;
+  if (type === 'Combined Sewer Overflow') content = sewerOverflowsContent;
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }

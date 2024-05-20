@@ -1611,6 +1611,42 @@ function useSharedLayers({
     return storageTanksLayer;
   }
 
+  function getSewerOverflowsLayer() {
+    const outFields = [
+      'facility_name',
+      'npdes_id',
+      'dmr_tracking',
+    ];
+
+    const sewerOverflowsLayer = new FeatureLayer({
+      id: 'sewerOverflowsLayer',
+      url: services.data.combinedSewerOverflows,
+      title: 'Combined Sewer Overflows',
+      listMode: 'hide-children',
+      visible: false,
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({
+          style: 'circle',
+          color: '#833599',
+          size: 4,
+          outline: {
+            style: 'solid',
+            color: '#000',
+            width: 0.7,
+          },
+        }),
+      }),
+      outFields,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields,
+      },
+    });
+    setLayer('sewerOverflowsLayer', sewerOverflowsLayer);
+    return sewerOverflowsLayer;
+  }
+
   async function getWildfiresLayer() {
     const wildfiresLayer = (await Layer.fromPortalItem({
       portalItem: new PortalItem({
@@ -1933,6 +1969,8 @@ function useSharedLayers({
 
     const storageTanksLayer = getStorageTanksLayer();
 
+    const sewerOverflowsLayer = getSewerOverflowsLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1956,6 +1994,7 @@ function useSharedLayers({
       allWaterbodiesLayer,
       wildfiresLayer,
       storageTanksLayer,
+      sewerOverflowsLayer,
     ].filter((layer) => layer !== null);
   };
 }
