@@ -513,6 +513,8 @@ function ExtremeWeather() {
     value: string;
   } | null>(null);
   useEffect(() => {
+    if (!countyBoundaries) return;
+
     const countyOptions = providersLayer?.graphics.toArray().map((c) => {
       return {
         label: c.attributes.NAME.toString(),
@@ -539,12 +541,12 @@ function ExtremeWeather() {
         countyGraphic = graphic;
       } else graphic.visible = false;
     });
-    if (providersLayer?.visible) mapView.goTo(countyGraphic);
+    if (providersLayer?.visible && countyGraphic) mapView.goTo(countyGraphic);
 
     return function resetCountyVisibility() {
       providersLayer?.graphics.forEach((graphic) => {
         graphic.visible =
-          graphic.attributes.FIPS === countyBoundaries.attributes.FIPS;
+          graphic.attributes.FIPS === countyBoundaries?.attributes?.FIPS;
       });
     };
   }, [countyBoundaries, countySelected, mapView, providersLayer]);

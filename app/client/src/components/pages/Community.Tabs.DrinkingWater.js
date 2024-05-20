@@ -256,7 +256,7 @@ function DrinkingWater() {
     }
 
     const graphic = providersLayer.graphics.find(
-      (g) => g.attributes.FIPS === countyBoundaries.attributes.FIPS,
+      (g) => g.attributes.FIPS === countyBoundaries?.attributes?.FIPS,
     );
     if (graphic) setCountyGraphic(graphic);
   }, [providersLayer, countyBoundaries]);
@@ -372,7 +372,7 @@ function DrinkingWater() {
   let tribalWithdrawerCount = 0;
   let totalWithdrawersCount = 0; // total withdrawers
   let bothCount = 0;
-  let fips = countyBoundaries?.attributes.FIPS;
+  let fips = countyBoundaries?.attributes?.FIPS;
   if (drinkingWater.data?.[fips]) {
     // handle providers separately
     const allProviders = drinkingWater.data[fips].filter(
