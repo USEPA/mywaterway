@@ -1498,7 +1498,7 @@ function ExtremeWeather() {
         value={potentiallyVulnerable}
         setter={setPotentiallyVulnerable}
         columns={[
-          'Potentially Vulnerable Waters/Related Assets or Communities',
+          'Potentially Vulnerable Waters, Infrastructure or Communities',
           'Count',
         ]}
       />
