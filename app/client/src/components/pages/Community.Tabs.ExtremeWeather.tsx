@@ -2258,12 +2258,6 @@ const potentiallyVulnerableDefaults: Row[] = [
     text: '',
   },
   {
-    id: 'hasTerritories',
-    label: 'Territories or Island State?',
-    indent: true,
-    text: 'No',
-  },
-  {
     id: 'pollutantStorageTanks',
     label: 'Above and below ground pollutant storage tanks',
     checked: false,
