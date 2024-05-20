@@ -352,6 +352,7 @@ export type PopupAttributes =
   | MonitoringLocationAttributes
   | NonProfitAttributes
   | ProtectedAreaAttributes
+  | StorageTankAttributes
   | TribeAttributes
   | UpstreamWatershedAttributes
   | UsgsStreamgageAttributes
@@ -398,6 +399,14 @@ export type ServicesState =
   | { status: 'fetching'; data: null }
   | { status: 'failure'; data: string }
   | { status: 'success'; data: ServicesData };
+
+export type StorageTankAttributes = {
+  Closed_USTs: number;
+  Facility_ID: string;
+  Name: string;
+  Open_USTs: number;
+  TOS_USTs: number;
+};
 
 export interface StreamgageMeasurement {
   parameterCategory: string;

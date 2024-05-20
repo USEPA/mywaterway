@@ -1055,6 +1055,35 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const storageTankContent = (
+    <ListContent
+      rows={[
+        {
+          label: 'Facility Name',
+          value: attributes.Name,
+        },
+        {
+          label: 'Facility ID',
+          value: attributes.Facility_ID,
+        },
+        {
+          label: 'Open Storage Tanks',
+          value: attributes.Open_USTs,
+        },
+        {
+          label: 'Closed Storage Tanks',
+          value: attributes.Closed_USTs,
+        },
+        {
+          label: 'Temporarily Out of Service Storage Tanks',
+          value: attributes.TOS_USTs,
+        },
+      ]}
+      styles={listContentStyles}
+    />
+  );
+
+  // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
   const actionContent = <>{extraContent}</>;
 
@@ -1232,6 +1261,7 @@ function WaterbodyInfo({
   if (type === 'Alaska Native Village') content = alaskaNativeVillageContent;
   if (type === 'Protected Areas') content = protectedAreaContent;
   if (type === 'Demographic Indicators') content = ejscreenContent;
+  if (type === 'Pollutant Storage Tank') content = storageTankContent;
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }

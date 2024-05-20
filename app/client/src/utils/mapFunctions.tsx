@@ -741,6 +741,11 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = `Watershed for Currently Selected Location: ${attributes.name} (${attributes.huc12})`;
   }
 
+  // Storage Tanks
+  else if ('Open_USTs' in attributes) {
+    title = attributes.Name;
+  }
+
   return title;
 }
 
@@ -857,6 +862,11 @@ export function getPopupContent({
     // Watershed
     else if ('huc12' in attributes) {
       type = 'Watershed';
+    }
+
+    // Storage Tanks
+    else if ('Open_USTs' in attributes) {
+      type = 'Pollutant Storage Tank';
     }
   }
 

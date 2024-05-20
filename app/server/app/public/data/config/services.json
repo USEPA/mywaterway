@@ -98,6 +98,7 @@
     "late": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/CMRA_SLR_Inundation_RCP85_Late_2090/ImageServer",
     "levees": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/LA_TX_Leveed_Areas/ImageServer"
   },
+  "undergroundStorageTanks": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/UST_Finder_Feature_Layer_2/FeatureServer/0",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -493,6 +494,11 @@
       "urlLookup": "seaLevelRise.levees",
       "wildcardUrl": "{urlLookup}*",
       "name": "Sea Level Rise Levee Protected Areas"
+    },
+    {
+      "urlLookup": "undergroundStorageTanks",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Underground Storage Tanks"
     }
   ]
 }

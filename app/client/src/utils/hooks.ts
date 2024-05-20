@@ -1574,6 +1574,43 @@ function useSharedLayers({
     return landCoverLayer;
   }
 
+  function getStorageTanksLayer() {
+    const outFields = [
+      'Closed_USTs',
+      'Facility_ID',
+      'Name',
+      'Open_USTs',
+      'TOS_USTs',
+    ];
+
+    const storageTanksLayer = new FeatureLayer({
+      id: 'storageTanksLayer',
+      url: services.data.undergroundStorageTanks,
+      title: 'Underground Storage Tanks',
+      listMode: 'hide-children',
+      visible: false,
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({
+          style: 'triangle',
+          color: '#93AD34',
+          outline: {
+            style: 'solid',
+            color: '#000',
+            width: 1,
+          },
+        }),
+      }),
+      outFields,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields,
+      },
+    });
+    setLayer('storageTanksLayer', storageTanksLayer);
+    return storageTanksLayer;
+  }
+
   async function getWildfiresLayer() {
     const wildfiresLayer = (await Layer.fromPortalItem({
       portalItem: new PortalItem({
@@ -1894,6 +1931,8 @@ function useSharedLayers({
 
     const coastalFloodingLayer = getCoastalFloodingLayer();
 
+    const storageTanksLayer = getStorageTanksLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1916,6 +1955,7 @@ function useSharedLayers({
       watershedsLayer,
       allWaterbodiesLayer,
       wildfiresLayer,
+      storageTanksLayer,
     ].filter((layer) => layer !== null);
   };
 }

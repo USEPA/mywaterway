@@ -450,6 +450,7 @@ function ExtremeWeather() {
     extremeHeatRealtimeLayer,
     inlandFloodingRealtimeLayer,
     providersLayer,
+    storageTanksLayer,
     tribalLayer,
     visibleLayers,
     waterbodyLayer,
@@ -1306,6 +1307,52 @@ function ExtremeWeather() {
       },
     });
   }, [hucBoundaries, extremeHeatRealtimeLayer]);
+
+  // update storage tanks
+  useEffect(() => {
+    if (!hucBoundaries || !storageTanksLayer) return;
+
+    setPotentiallyVulnerable((config) => {
+      updateRow(config, 'pending', 'pollutantStorageTanks');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    queryLayers({
+      layer: storageTanksLayer,
+      queries: [
+        {
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        setPotentiallyVulnerable((config) => {
+          updateRow(
+            config,
+            'success',
+            'pollutantStorageTanks',
+            responses[0].features.length,
+          );
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () =>
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'failure', 'pollutantStorageTanks');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        }),
+    });
+  }, [hucBoundaries, storageTanksLayer]);
 
   return (
     <div css={containerStyles}>
@@ -2259,9 +2306,10 @@ const potentiallyVulnerableDefaults: Row[] = [
   },
   {
     id: 'pollutantStorageTanks',
-    label: 'Above and below ground pollutant storage tanks',
     checked: false,
     disabled: false,
+    label: 'Above and below ground pollutant storage tanks',
+    layerId: 'storageTanksLayer',
     text: '5',
   },
   {
