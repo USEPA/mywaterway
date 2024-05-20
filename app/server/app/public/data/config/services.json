@@ -92,6 +92,12 @@
     "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NDFD_DailyTemperature_v1/FeatureServer/0"
   },
   "watchesWarnings": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NWS_Watches_Warnings_v1/FeatureServer/6",
+  "seaLevelRise": {
+    "early": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/CMRA_SLR_Inundation_RCP85_Early_2030/ImageServer",
+    "mid": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/CMRA_SLR_Inundation_RCP85_Mid_2050/ImageServer",
+    "late": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/CMRA_SLR_Inundation_RCP85_Late_2090/ImageServer",
+    "levees": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/LA_TX_Leveed_Areas/ImageServer"
+  },
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -467,6 +473,26 @@
       "urlLookup": "esriWebMapBase",
       "wildcardUrl": "{urlLookup}*",
       "name": "Get WebMap Definition"
+    },
+    {
+      "urlLookup": "seaLevelRise.early",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Sea Level Rise Early Century"
+    },
+    {
+      "urlLookup": "seaLevelRise.mid",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Sea Level Rise Mid Century"
+    },
+    {
+      "urlLookup": "seaLevelRise.late",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Sea Level Rise Late Century"
+    },
+    {
+      "urlLookup": "seaLevelRise.levees",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Sea Level Rise Levee Protected Areas"
     }
   ]
 }

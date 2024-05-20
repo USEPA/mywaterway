@@ -124,25 +124,35 @@ function findByItemId(layer: __esri.GroupLayer, itemId: string) {
   );
 }
 
-function getHistoricValues(
-  attributes: any,
-  type: HistoricType,
-  aggType: 'MAX' | 'MIN' | 'MEAN' = 'MEAN',
-): {
-  [key: number]: number;
-} {
-  let key = `${aggType}_`;
+function getHistoricKey(type: HistoricType, timeframe: number) {
+  let key = '';
+  if (timeframe === 0) key += 'HISTORIC_';
+  if (timeframe === 1) key += 'RCP85EARLY_';
+  if (timeframe === 2) key += 'RCP85MID_';
+  if (timeframe === 3) key += 'RCP85LATE_';
+
+  key += 'MEAN_';
   if (type === 'fire') key += 'CONSECDD';
   if (type === 'drought') key += 'PRLT0IN';
   if (type === 'inlandFlooding') key += 'CONSECWD';
   if (type === 'inlandFloodingInches') key += 'PR_ANNUAL';
   if (type === 'coastalFlooding') key += 'SLR';
   if (type === 'extremeHeat') key += 'TMAX90F';
+
+  return key;
+}
+
+function getHistoricValues(
+  attributes: any,
+  type: HistoricType,
+): {
+  [key: number]: number;
+} {
   return {
-    0: attributes[`HISTORIC_${key}`],
-    1: attributes[`RCP85EARLY_${key}`],
-    2: attributes[`RCP85MID_${key}`],
-    3: attributes[`RCP85LATE_${key}`],
+    0: attributes[getHistoricKey(type, 0)],
+    1: attributes[getHistoricKey(type, 1)],
+    2: attributes[getHistoricKey(type, 2)],
+    3: attributes[getHistoricKey(type, 3)],
   };
 }
 
@@ -150,10 +160,9 @@ function getHistoricValue(
   attributes: any,
   timeframe: number,
   type: HistoricType,
-  serviceAggType: 'MAX' | 'MIN' | 'MEAN' = 'MEAN',
   digits: number = 1,
 ) {
-  let values = getHistoricValues(attributes, type, serviceAggType);
+  let values = getHistoricValues(attributes, type);
 
   return formatNumber(Math.abs(values[timeframe]), digits, true);
 }
@@ -169,11 +178,7 @@ function getHistoricValueRange(
   const rangeEnd = range[1];
 
   let value = 0;
-  let values = getHistoricValues(
-    attributes,
-    type,
-    aggType === 'max' ? 'MAX' : 'MEAN',
-  );
+  let values = getHistoricValues(attributes, type);
   if (aggType === 'difference') value = values[rangeEnd] - values[rangeStart];
   if (aggType === 'max') {
     const array = Object.keys(values)
@@ -347,11 +352,24 @@ function updateRow(
   id: string,
   value: number | string | unknown[] | null = null,
 ) {
+  updateRowField(
+    config,
+    id,
+    'text',
+    typeof value === 'string' ? value : countOrNotAvailable(value, status),
+  );
+  updateRowField(config, id, 'status', status);
+}
+
+function updateRowField(
+  config: SwitchTableConfig,
+  id: string,
+  field: string,
+  value: number | string | boolean | unknown[] | null = null,
+) {
   const row = config.items.find((c) => c.id === id);
   if (row) {
-    row.text =
-      typeof value === 'string' ? value : countOrNotAvailable(value, status);
-    row.status = status;
+    row[field as keyof Row] = value;
   }
 }
 
@@ -425,6 +443,7 @@ function ExtremeWeather() {
   const { dischargers, dischargersStatus } = useDischargers();
   const {
     cmraScreeningLayer,
+    coastalFloodingLayer,
     coastalFloodingRealtimeLayer,
     droughtRealtimeLayer,
     extremeColdRealtimeLayer,
@@ -527,6 +546,15 @@ function ExtremeWeather() {
     };
   }, [countyBoundaries, countySelected, mapView, providersLayer]);
 
+  useEffect(() => {
+    return function cleanup() {
+      setHistoricalRisk({
+        updateCount: 0,
+        items: historicalDefaults,
+      });
+    };
+  }, []);
+
   // update waterbodies
   useEffect(() => {
     if (cipSummary.status === 'fetching') {
@@ -619,7 +647,7 @@ function ExtremeWeather() {
       let totalSystems = 0;
       let groundWater = 0;
       let surfaceWater = 0;
-      drinkingWater.data[countySelected.value].forEach((system: any) => {
+      drinkingWater?.data?.[countySelected.value]?.forEach((system: any) => {
         if (system.huc12) return;
         totalSystems += 1;
         if (system.gw_sw_code === 'GW') groundWater += 1;
@@ -759,7 +787,7 @@ function ExtremeWeather() {
     });
   }, [hucBoundaries, wildfiresLayer]);
 
-  // update cmra screening
+  // update historical/future (cmra screening)
   const [range, setRange] = useState([
     tickList[0].value,
     tickList[tickList.length - 1].value,
@@ -842,6 +870,7 @@ function ExtremeWeather() {
     queryLayer();
   }, [cmraScreeningLayer, countySelected, range]);
 
+  // update historical/future (cmra screening) with map
   useEffect(() => {
     if (!cmraScreeningLayer || !countySelected) return;
 
@@ -851,7 +880,7 @@ function ExtremeWeather() {
       setHistoricalRisk((config) => {
         updateRow(config, 'pending', 'fire');
         updateRow(config, 'pending', 'drought');
-        updateRow(config, 'pending', 'inlandFlooding');
+        updateRow(config, 'pending', 'inlandFloodingInches');
         updateRow(config, 'pending', 'coastalFlooding');
         updateRow(config, 'pending', 'extremeHeat');
         return {
@@ -870,7 +899,7 @@ function ExtremeWeather() {
           setHistoricalRisk((config) => {
             updateRow(config, 'success', 'fire', '');
             updateRow(config, 'success', 'drought', '');
-            updateRow(config, 'success', 'inlandFlooding', '');
+            updateRow(config, 'success', 'inlandFloodingInches', '');
             updateRow(config, 'success', 'coastalFlooding', '');
             updateRow(config, 'success', 'extremeHeat', '');
             return {
@@ -883,16 +912,21 @@ function ExtremeWeather() {
         const attributes = response.features[0].attributes;
         const range = timeframeSelection.value;
 
-        const fireText = `Max number of annual consecutive (dry days): ${getHistoricValue(attributes, range, 'fire', 'MAX')}`;
+        const fireText = `Max number of annual consecutive (dry days): ${getHistoricValue(attributes, range, 'fire')}`;
         const droughtText = `Annual days with no rain (dry days): ${getHistoricValue(attributes, range, 'drought')}`;
         const inlandFloodingText = `Average annual total precipitation: ${getHistoricValue(attributes, range, 'inlandFloodingInches')} inches`;
         const coastalFloodingText = `% of county impacted by sea level rise: ${getHistoricValue(attributes, range, 'coastalFlooding')}`;
-        const extremeHeatText = `Annual days with max temperature over 90°F: ${getHistoricValue(attributes, range, 'extremeHeat', 'MAX')}`;
+        const extremeHeatText = `Annual days with max temperature over 90°F: ${getHistoricValue(attributes, range, 'extremeHeat')}`;
 
         setHistoricalRisk((config) => {
           updateRow(config, 'success', 'fire', fireText);
           updateRow(config, 'success', 'drought', droughtText);
-          updateRow(config, 'success', 'inlandFlooding', inlandFloodingText);
+          updateRow(
+            config,
+            'success',
+            'inlandFloodingInches',
+            inlandFloodingText,
+          );
           updateRow(config, 'success', 'coastalFlooding', coastalFloodingText);
           updateRow(config, 'success', 'extremeHeat', extremeHeatText);
           return {
@@ -904,7 +938,7 @@ function ExtremeWeather() {
         setHistoricalRisk((config) => {
           updateRow(config, 'failure', 'fire');
           updateRow(config, 'failure', 'drought');
-          updateRow(config, 'failure', 'inlandFlooding');
+          updateRow(config, 'failure', 'inlandFloodingInches');
           updateRow(config, 'failure', 'coastalFlooding');
           updateRow(config, 'failure', 'extremeHeat');
           return {
@@ -917,6 +951,27 @@ function ExtremeWeather() {
 
     queryLayer();
   }, [cmraScreeningLayer, countySelected, timeframeSelection]);
+
+  // update historical/future coastal flooding
+  useEffect(() => {
+    if (!coastalFloodingLayer) return;
+
+    coastalFloodingLayer.layers.forEach((l, index) => {
+      if (index === 0) return;
+
+      const active = timeframeSelection.value === index;
+      l.visible = active;
+      l.listMode = active ? 'show' : 'hide';
+    });
+  }, [coastalFloodingLayer, timeframeSelection]);
+
+  useEffect(() => {
+    if (!coastalFloodingLayer) return;
+    return function cleanup() {
+      coastalFloodingLayer.visible = false;
+      coastalFloodingLayer.listMode = 'hide';
+    };
+  }, [coastalFloodingLayer]);
 
   // update drought
   useEffect(() => {
@@ -1254,7 +1309,7 @@ function ExtremeWeather() {
 
   return (
     <div css={containerStyles}>
-      <SwitchTable
+      <SelectionTable
         id="current-weather-switch"
         mapView={mapView}
         value={currentWeather}
@@ -1300,7 +1355,7 @@ function ExtremeWeather() {
         }
       />
 
-      <SwitchTable
+      <SelectionTable
         hideHeader={true}
         id="historical-risk-range-switch"
         mapView={mapView}
@@ -1349,19 +1404,48 @@ function ExtremeWeather() {
         </div>
       </div>
 
-      <SwitchTable
+      <SelectionTable
         hideHeader={true}
         id="historical-risk-switch"
         mapView={mapView}
+        timeframe={timeframeSelection.value}
+        type="radio"
         value={historicalRisk}
         setter={setHistoricalRisk}
         columns={[
           'Historical Risk and Potential Future Scenarios',
           'Status Within County',
         ]}
+        callback={(row: Row, layer: __esri.Layer) => {
+          if (!layer || !isFeatureLayer(layer)) return;
+
+          if (row.id !== 'coastalFlooding') {
+            // get field
+            const field = getHistoricKey(
+              row.id as HistoricType,
+              timeframeSelection.value,
+            );
+
+            layer.title = `${row.label} ${timeframeSelection.label}`;
+
+            // update field renderer
+            (layer.renderer as __esri.ClassBreaksRenderer).field = field;
+
+            // update field visual variables
+            (
+              layer.renderer as __esri.ClassBreaksRenderer
+            ).visualVariables.forEach((variable) => {
+              if (variable.type === 'color') variable.field = field;
+            });
+
+            // update field popup expression
+            if (layer.popupTemplate?.expressionInfos?.length > 0)
+              layer.popupTemplate.expressionInfos[0].expression = `Round($feature.${field}, 1)`;
+          }
+        }}
       />
 
-      <SwitchTable
+      <SelectionTable
         id="potentially-vulnerable-switch"
         mapView={mapView}
         value={potentiallyVulnerable}
@@ -1390,24 +1474,40 @@ const toggleStyles = css`
   }
 `;
 
-type SwitchTableProps = {
+type SelectionTableProps = {
+  callback?: (row: Row, layer: __esri.Layer) => void;
   columns: string[];
   hideHeader?: boolean;
   id: string;
   mapView: __esri.MapView;
+  timeframe?: number;
+  type?: 'radio' | 'switch';
   value: SwitchTableConfig;
   setter: Dispatch<SetStateAction<SwitchTableConfig>>;
 };
 
-function SwitchTable({
+function SelectionTable({
+  callback,
   columns,
   hideHeader,
   id,
   mapView,
+  timeframe,
+  type = 'switch',
   value,
   setter,
-}: Readonly<SwitchTableProps>) {
+}: Readonly<SelectionTableProps>) {
   const hasSubheadings = value.items.findIndex((i) => i.subHeading) > -1;
+
+  const [selectedRow, setSelectedRow] = useState<Row | null>(null);
+
+  useEffect(() => {
+    if (!callback || !selectedRow || typeof timeframe !== 'number') return;
+
+    const layer = mapView?.map.findLayerById(selectedRow.layerId ?? '');
+    callback(selectedRow, layer);
+  }, [callback, mapView, selectedRow, timeframe]);
+
   return (
     <table css={modifiedToggleTableStyles(hideHeader)} className="table">
       <thead className={hideHeader ? 'sr-only' : ''}>
@@ -1432,7 +1532,7 @@ function SwitchTable({
 
           if (item.subHeading) {
             return (
-              <tr>
+              <tr key={uniqueId(id)}>
                 <th
                   colSpan={2}
                   scope="colgroup"
@@ -1451,28 +1551,85 @@ function SwitchTable({
                   <span style={{ marginLeft }}>{item.label}</span>
                 ) : (
                   <label css={toggleStyles} style={{ marginLeft }}>
-                    <Switch
-                      checked={item.checked}
-                      disabled={item.disabled || !item.layerId || !layer}
-                      onChange={(checked) => {
-                        if (!layer || !item.layerId) return;
+                    {type === 'radio' && (
+                      <input
+                        type="radio"
+                        checked={item.checked}
+                        disabled={item.disabled}
+                        name={id}
+                        value={item.id}
+                        onChange={() => {}}
+                        onClick={() => {
+                          let newSelectedRow: Row | null = null;
+                          setter((config) => {
+                            config.items.forEach((cw) => {
+                              cw.checked = cw.id === item.id && !cw.checked;
+                              if (cw.id === item.id && cw.checked)
+                                newSelectedRow = item;
 
-                        layer.visible = checked;
+                              const layer = mapView?.map.findLayerById(
+                                cw.layerId ?? '',
+                              );
+                              if (!layer) return;
 
-                        setter((config) => {
-                          const itemUpdate = config.items.find(
-                            (cw) => cw.id === item.id,
-                          );
-                          if (!itemUpdate) return config;
+                              if (
+                                cw.layerId !== item.layerId ||
+                                cw.id === item.id
+                              ) {
+                                layer.visible = cw.checked;
+                                layer.listMode = cw.checked ? 'show' : 'hide';
+                              }
 
-                          itemUpdate.checked = checked;
-                          return {
-                            ...config,
-                            updateCount: config.updateCount + 1,
-                          };
-                        });
-                      }}
-                    />
+                              // update layer properties
+                              if (
+                                cw.id === item.id &&
+                                item.layerProperties &&
+                                isFeatureLayer(layer)
+                              ) {
+                                Object.entries(item.layerProperties).forEach(
+                                  ([key, value]) => {
+                                    (layer as any)[key] = value;
+                                  },
+                                );
+                              }
+                            });
+
+                            return {
+                              ...config,
+                              updateCount: config.updateCount + 1,
+                            };
+                          });
+
+                          setSelectedRow(newSelectedRow);
+                        }}
+                      />
+                    )}
+                    {type === 'switch' && (
+                      <Switch
+                        checked={item.checked}
+                        disabled={item.disabled || !item.layerId || !layer}
+                        onChange={(checked) => {
+                          if (!layer || !item.layerId) return;
+
+                          layer.visible = checked;
+
+                          setter((config) => {
+                            const itemUpdate = config.items.find(
+                              (cw) => cw.id === item.id,
+                            );
+                            if (!itemUpdate) return config;
+
+                            itemUpdate.checked = checked;
+                            return {
+                              ...config,
+                              updateCount: config.updateCount + 1,
+                            };
+                          });
+
+                          if (callback) callback(item, layer);
+                        }}
+                      />
+                    )}
                     <span style={{ marginLeft: '0.5rem' }}>{item.label}</span>
                   </label>
                 )}
@@ -1518,6 +1675,7 @@ type Row = {
   indent?: boolean;
   label: string;
   layerId?: string;
+  layerProperties?: any;
   status?: FetchStatus;
   subHeading?: boolean;
   text?: string;
@@ -1622,28 +1780,308 @@ const historicalDefaults: Row[] = [
     label: 'Fire',
     checked: false,
     disabled: false,
+    layerId: 'cmraScreeningLayer',
     status: 'idle',
     text: '',
+    layerProperties: {
+      blendMode: 'multiply',
+      title: 'Fire',
+      renderer: {
+        type: 'class-breaks',
+        field: 'HISTORIC_MAX_CONSECDD',
+        classBreakInfos: [
+          {
+            minValue: -9007199254740991,
+            maxValue: 9007199254740991,
+            symbol: {
+              type: 'simple-fill',
+              color: [170, 170, 170, 255],
+              outline: {
+                type: 'simple-line',
+                color: [225, 229, 232, 107],
+                width: 0,
+                style: 'solid',
+              },
+              style: 'solid',
+            },
+          },
+        ],
+        visualVariables: [
+          {
+            type: 'color',
+            field: 'HISTORIC_MAX_CONSECDD',
+            stops: [
+              {
+                color: [255, 255, 178, 255],
+                value: 10,
+              },
+              {
+                color: [254, 204, 92, 255],
+                value: 19,
+              },
+              {
+                color: [253, 141, 60, 255],
+                value: 28,
+              },
+              {
+                color: [240, 59, 32, 255],
+                value: 37,
+              },
+              {
+                color: [189, 0, 38, 255],
+                value: 46,
+              },
+            ],
+          },
+          {
+            type: 'size',
+            valueExpression: '$view.scale',
+            stops: [
+              {
+                size: 0.042905885932572586,
+                value: 1066256,
+              },
+              {
+                size: 0.021452942966286293,
+                value: 3332050,
+              },
+              {
+                size: 0.010726471483143147,
+                value: 13328201,
+              },
+              {
+                size: 0,
+                value: 26656402,
+              },
+            ],
+            target: 'outline',
+          },
+        ],
+      },
+      popupTemplate: {
+        title: '{CountyName}, {StateAbbr}',
+        content: [
+          {
+            type: 'text',
+            text: '<p><span style="font-size:18px;"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Maximum number of consecutive dry days</strong></p>',
+          },
+        ],
+        expressionInfos: [
+          {
+            name: 'roundedValue',
+            expression: 'Round($feature.HISTORIC_MAX_CONSECDD, 1)',
+            returnType: 'number',
+          },
+        ],
+      },
+    },
   },
   {
     id: 'drought',
     label: 'Drought',
     checked: false,
     disabled: false,
+    layerId: 'cmraScreeningLayer',
     status: 'idle',
     text: '',
+    layerProperties: {
+      blendMode: 'multiply',
+      title: 'Drought',
+      renderer: {
+        type: 'class-breaks',
+        field: 'HISTORIC_MEAN_PRLT0IN',
+        classBreakInfos: [
+          {
+            minValue: -9007199254740991,
+            maxValue: 9007199254740991,
+            symbol: {
+              type: 'simple-fill',
+              color: [170, 170, 170, 255],
+              outline: {
+                type: 'simple-line',
+                color: [225, 229, 232, 107],
+                width: 0,
+                style: 'solid',
+              },
+              style: 'solid',
+            },
+          },
+        ],
+        visualVariables: [
+          {
+            type: 'color',
+            field: 'HISTORIC_MEAN_PRLT0IN',
+            stops: [
+              {
+                color: [255, 255, 178, 255],
+                value: 169,
+              },
+              {
+                color: [254, 204, 92, 255],
+                value: 187,
+              },
+              {
+                color: [253, 141, 60, 255],
+                value: 206,
+              },
+              {
+                color: [240, 59, 32, 255],
+                value: 224,
+              },
+              {
+                color: [189, 0, 38, 255],
+                value: 243,
+              },
+            ],
+          },
+          {
+            type: 'size',
+            valueExpression: '$view.scale',
+            stops: [
+              {
+                size: 0.042905885932572586,
+                value: 1066256,
+              },
+              {
+                size: 0.021452942966286293,
+                value: 3332050,
+              },
+              {
+                size: 0.010726471483143147,
+                value: 13328201,
+              },
+              {
+                size: 0,
+                value: 26656402,
+              },
+            ],
+            target: 'outline',
+          },
+        ],
+      },
+      popupTemplate: {
+        title: '{CountyName}, {StateAbbr}',
+        content: [
+          {
+            type: 'text',
+            text: '<p><span style="font-size:18px;"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Days per year with no precipitation (dry days)</strong></p>',
+          },
+        ],
+        expressionInfos: [
+          {
+            name: 'roundedValue',
+            expression: 'Round($feature.HISTORIC_MEAN_PRLT0IN, 1)',
+            returnType: 'number',
+          },
+        ],
+      },
+    },
   },
   {
-    id: 'inlandFlooding',
+    id: 'inlandFloodingInches',
     label: 'Inland Flooding',
     checked: false,
     disabled: false,
+    layerId: 'cmraScreeningLayer',
     status: 'idle',
     text: '',
+    layerProperties: {
+      blendMode: 'multiply',
+      title: 'Fire',
+      renderer: {
+        type: 'class-breaks',
+        field: 'HISTORIC_MEAN_PR_ANNUAL',
+        classBreakInfos: [
+          {
+            minValue: -9007199254740991,
+            maxValue: 9007199254740991,
+            symbol: {
+              type: 'simple-fill',
+              color: [170, 170, 170, 255],
+              outline: {
+                type: 'simple-line',
+                color: [225, 229, 232, 107],
+                width: 0,
+                style: 'solid',
+              },
+              style: 'solid',
+            },
+          },
+        ],
+        visualVariables: [
+          {
+            type: 'color',
+            field: 'HISTORIC_MEAN_PR_ANNUAL',
+            stops: [
+              {
+                color: [255, 255, 204, 255],
+                value: 25,
+              },
+              {
+                color: [161, 218, 180, 255],
+                value: 32.5,
+              },
+              {
+                color: [65, 182, 196, 255],
+                value: 40,
+              },
+              {
+                color: [44, 127, 184, 255],
+                value: 48,
+              },
+              {
+                color: [37, 52, 148, 255],
+                value: 56,
+              },
+            ],
+          },
+          {
+            type: 'size',
+            valueExpression: '$view.scale',
+            stops: [
+              {
+                size: 0.042905885932572586,
+                value: 1066256,
+              },
+              {
+                size: 0.021452942966286293,
+                value: 3332050,
+              },
+              {
+                size: 0.010726471483143147,
+                value: 13328201,
+              },
+              {
+                size: 0,
+                value: 26656402,
+              },
+            ],
+            target: 'outline',
+          },
+        ],
+      },
+      popupTemplate: {
+        title: '{CountyName}, {StateAbbr}',
+        content: [
+          {
+            type: 'text',
+            text: '<p><span style="font-size:18px;"><strong>{expression/roundedValue} &nbsp;Inches</strong></span></p><p><strong>Average annual total precipitation</strong></p>',
+          },
+        ],
+        expressionInfos: [
+          {
+            name: 'roundedValue',
+            expression: 'Round($feature.HISTORIC_MEAN_PR_ANNUAL, 1)',
+            returnType: 'number',
+          },
+        ],
+      },
+    },
   },
   {
     id: 'coastalFlooding',
     label: 'Coastal Flooding',
+    layerId: 'coastalFloodingLayer',
     checked: false,
     disabled: false,
     status: 'idle',
@@ -1654,8 +2092,101 @@ const historicalDefaults: Row[] = [
     label: 'Extreme Heat',
     checked: false,
     disabled: false,
+    layerId: 'cmraScreeningLayer',
     status: 'idle',
     text: '',
+    layerProperties: {
+      blendMode: 'multiply',
+      title: 'Extreme Heat',
+      renderer: {
+        type: 'class-breaks',
+        field: 'HISTORIC_MAX_TMAX90F',
+        classBreakInfos: [
+          {
+            minValue: -9007199254740991,
+            maxValue: 9007199254740991,
+            symbol: {
+              type: 'simple-fill',
+              color: [170, 170, 170, 255],
+              outline: {
+                type: 'simple-line',
+                color: [225, 229, 232, 107],
+                width: 0,
+                style: 'solid',
+              },
+              style: 'solid',
+            },
+          },
+        ],
+        visualVariables: [
+          {
+            type: 'color',
+            field: 'HISTORIC_MAX_TMAX90F',
+            stops: [
+              {
+                color: [255, 255, 178, 255],
+                value: 58,
+              },
+              {
+                color: [254, 204, 92, 255],
+                value: 80.7,
+              },
+              {
+                color: [253, 141, 60, 255],
+                value: 103,
+              },
+              {
+                color: [240, 59, 32, 255],
+                value: 126,
+              },
+              {
+                color: [189, 0, 38, 255],
+                value: 149,
+              },
+            ],
+          },
+          {
+            type: 'size',
+            valueExpression: '$view.scale',
+            stops: [
+              {
+                size: 0.042905885932572586,
+                value: 1066256,
+              },
+              {
+                size: 0.021452942966286293,
+                value: 3332050,
+              },
+              {
+                size: 0.010726471483143147,
+                value: 13328201,
+              },
+              {
+                size: 0,
+                value: 26656402,
+              },
+            ],
+            target: 'outline',
+          },
+        ],
+      },
+      popupTemplate: {
+        title: '{CountyName}, {StateAbbr}',
+        content: [
+          {
+            type: 'text',
+            text: '<p><span style="font-size:18px;"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Annual days with maximum temperature &gt; 90</strong><span style="background-color:rgb(255,255,255);color:rgb(50,50,50);"><strong>°F</strong></span></p>',
+          },
+        ],
+        expressionInfos: [
+          {
+            name: 'roundedValue',
+            expression: 'Round($feature.HISTORIC_MAX_TMAX90F, 1)',
+            returnType: 'number',
+          },
+        ],
+      },
+    },
   },
 ];
 const potentiallyVulnerableDefaults: Row[] = [

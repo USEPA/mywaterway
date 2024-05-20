@@ -10,6 +10,7 @@ import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Handles from '@arcgis/core/core/Handles';
+import ImageryTileLayer from '@arcgis/core/layers/ImageryTileLayer';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
@@ -1618,26 +1619,6 @@ function useSharedLayers({
         'RCP85EARLY_MEAN_TMAX90F',
         'RCP85MID_MEAN_TMAX90F',
         'RCP85LATE_MEAN_TMAX90F',
-        'HISTORIC_MAX_CONSECDD',
-        'RCP85EARLY_MAX_CONSECDD',
-        'RCP85MID_MAX_CONSECDD',
-        'RCP85LATE_MAX_CONSECDD',
-        'HISTORIC_MAX_PRLT0IN',
-        'RCP85EARLY_MAX_PRLT0IN',
-        'RCP85MID_MAX_PRLT0IN',
-        'RCP85LATE_MAX_PRLT0IN',
-        'HISTORIC_MAX_CONSECWD',
-        'RCP85EARLY_MAX_CONSECWD',
-        'RCP85MID_MAX_CONSECWD',
-        'RCP85LATE_MAX_CONSECWD',
-        'HISTORIC_MAX_SLR',
-        'RCP85EARLY_MAX_SLR',
-        'RCP85MID_MAX_SLR',
-        'RCP85LATE_MAX_SLR',
-        'HISTORIC_MAX_TMAX90F',
-        'RCP85EARLY_MAX_TMAX90F',
-        'RCP85MID_MAX_TMAX90F',
-        'RCP85LATE_MAX_TMAX90F',
         'HISTORIC_MEAN_PR_ANNUAL',
         'RCP85EARLY_MEAN_PR_ANNUAL',
         'RCP85MID_MEAN_PR_ANNUAL',
@@ -1709,6 +1690,103 @@ function useSharedLayers({
     });
     getSubLayerDefinitions(services.data.extremeColdRealtime.portalId, layer);
     setLayer('extremeColdRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getCoastalFloodingLayer() {
+    const centuryEnum = {
+      early: 2035,
+      mid: 2050,
+      late: 2090,
+    };
+    const renderer = new UniqueValueRenderer({
+      field: 'Value',
+      uniqueValueInfos: [
+        {
+          label: 'Sea Level Rise',
+          value: 1,
+          symbol: new SimpleFillSymbol({
+            color: [61, 143, 246, 255],
+            outline: {
+              color: [0, 0, 0, 0],
+              width: 0,
+              style: 'solid',
+            },
+            style: 'solid',
+          }),
+        },
+      ],
+    });
+
+    const getSeaLevelLayer = (century: 'early' | 'mid' | 'late') => {
+      return new ImageryTileLayer({
+        url: services.data.seaLevelRise[century],
+        title: `Sea Level Rise ${century[0].toUpperCase() + century.slice(1)} Century`,
+        blendMode: 'multiply',
+        renderer,
+        visible: false,
+        popupEnabled: true,
+        popupTemplate: {
+          title: '',
+          content: [
+            {
+              type: 'text',
+              text: `<div style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);box-sizing:inherit;color:rgb(50, 50, 50);font-family:&quot;Avenir Next&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;font-size:14px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin-bottom:24px;orphans:2;padding:0px 7px;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><div style="box-sizing:inherit;"><div style="box-sizing:inherit;"><div style="box-sizing:inherit;text-align:center;"><p style="box-sizing:inherit;font-size:14px;line-height:normal;margin:0px 0px 1.2em;"><span style="font-size:medium;">this area will be</span>&nbsp;<br><span style="font-size:large;"><font style="box-sizing:inherit;"><strong>Below Sea Level</strong></font></span><br><br><span style="font-size:medium;"><font style="box-sizing:inherit;">based on&nbsp;<strong>Intermediate-High</strong>&nbsp;scenario in year&nbsp;<strong>${centuryEnum[century]}</strong></font></span></p><p style="box-sizing:inherit;font-size:14px;line-height:normal;margin:0px 0px 1.2em;">&nbsp;</p><div style="box-sizing:inherit;text-align:left;"><span style="font-size:small;">Source: Global Sea Level Rise Scenarios for the United States (by William Sweet et al., 2022)</span></div></div></div></div></div><div style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);box-sizing:inherit;color:rgb(50, 50, 50);font-family:&quot;Avenir Next&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;font-size:14px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin-bottom:0px;orphans:2;padding:0px 7px;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><div style="box-sizing:inherit;"><div style="box-sizing:inherit;"><p style="box-sizing:inherit;font-size:14px;line-height:normal;margin:0px 0px 1.2em;"><span style="font-size:10px;"><font style="box-sizing:inherit;"><i>(Intermediate-High = 1.5 meters of Global Sea Level Rise by Year &nbsp;2100)</i></font></span></p></div></div></div>`,
+            },
+          ],
+        },
+      });
+    };
+
+    const leveeLayer = new ImageryTileLayer({
+      url: services.data.seaLevelRise.levees,
+      title: 'Leveed Areas',
+      blendMode: 'multiply',
+      popupEnabled: true,
+      visible: true,
+      renderer: new UniqueValueRenderer({
+        field: 'value',
+        uniqueValueInfos: [
+          {
+            label: 'Levee Protected Areas',
+            value: 1,
+            symbol: new SimpleFillSymbol({
+              color: [92, 92, 92, 255],
+              outline: {
+                color: [0, 0, 0, 0],
+                width: 0,
+                style: 'solid',
+              },
+              style: 'solid',
+            }),
+          },
+        ],
+      }),
+      popupTemplate: {
+        title: '',
+        outFields: ['value'],
+        content: [
+          {
+            type: 'text',
+            text: 'value: {$feature.value} <p><span style="background-color:rgb(255,255,255);color:rgb(0,0,0);font-family:Calibri, sans-serif;font-size:14.6667px;">This&nbsp;</span><span style="background-color:white;color:rgb(36,36,36);font-family:&quot;Segoe UI&quot;, sans-serif;font-size:10.5pt;">area is below Sea Level and protected by a levee.</span></p>',
+          },
+        ],
+      },
+    });
+
+    const layer = new GroupLayer({
+      id: 'coastalFloodingLayer',
+      title: 'Coastal Flooding',
+      visible: false,
+      listMode: 'hide',
+      layers: [
+        leveeLayer,
+        getSeaLevelLayer('early'),
+        getSeaLevelLayer('mid'),
+        getSeaLevelLayer('late'),
+      ],
+    });
+    setLayer('coastalFloodingLayer', layer);
     return layer;
   }
 
@@ -1814,6 +1892,8 @@ function useSharedLayers({
 
     const extremeColdRealtimeLayer = getExtremeColdRealtimeLayer();
 
+    const coastalFloodingLayer = getCoastalFloodingLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1824,6 +1904,7 @@ function useSharedLayers({
       extremeHeatRealtimeLayer,
       extremeColdRealtimeLayer,
       coastalFloodingRealtimeLayer,
+      coastalFloodingLayer,
       protectedAreasLayer,
       protectedAreasHighlightLayer,
       wildScenicRiversLayer,

@@ -117,6 +117,7 @@ export function useLayers() {
       allWaterbodiesLayer,
       boundariesLayer,
       cmraScreeningLayer,
+      coastalFloodingLayer,
       coastalFloodingRealtimeLayer,
       congressionalLayer,
       countyLayer,
@@ -162,6 +163,7 @@ export function useLayers() {
       extremeHeatRealtimeLayer,
       extremeColdRealtimeLayer,
       coastalFloodingRealtimeLayer,
+      coastalFloodingLayer,
       protectedAreasLayer,
       protectedAreasHighlightLayer,
       wildfiresLayer,
@@ -322,6 +324,7 @@ const graphicsLayerIds = [
 
 const groupLayerIds = [
   'allWaterbodiesLayer',
+  'coastalFloodingLayer',
   'coastalFloodingRealtimeLayer',
   'cyanLayer',
   'ejscreenLayer',
