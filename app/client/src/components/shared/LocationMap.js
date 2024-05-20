@@ -1757,11 +1757,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView.closePopup();
 
     // zoom to the graphic, and update the home widget, and close any popups
-    mapView.when(() => {
-      mapView.goTo(graphic).then(() => {
-        setAtHucBoundaries(true);
+    if (!window.location.pathname.includes('/extreme-weather')) {
+      mapView.when(() => {
+        mapView.goTo(graphic).then(() => {
+          setAtHucBoundaries(true);
+        });
       });
-    });
+    }
   }, [
     getTemplate,
     getTitle,
