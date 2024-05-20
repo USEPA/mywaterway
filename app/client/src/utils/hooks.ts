@@ -1586,7 +1586,7 @@ function useSharedLayers({
     const storageTanksLayer = new FeatureLayer({
       id: 'storageTanksLayer',
       url: services.data.undergroundStorageTanks,
-      title: 'Underground Storage Tanks',
+      title: 'Pollutant Storage Tanks',
       listMode: 'hide-children',
       visible: false,
       renderer: new SimpleRenderer({
@@ -1612,11 +1612,7 @@ function useSharedLayers({
   }
 
   function getSewerOverflowsLayer() {
-    const outFields = [
-      'facility_name',
-      'npdes_id',
-      'dmr_tracking',
-    ];
+    const outFields = ['facility_name', 'npdes_id', 'dmr_tracking'];
 
     const sewerOverflowsLayer = new FeatureLayer({
       id: 'sewerOverflowsLayer',
@@ -1645,6 +1641,20 @@ function useSharedLayers({
     });
     setLayer('sewerOverflowsLayer', sewerOverflowsLayer);
     return sewerOverflowsLayer;
+  }
+
+  async function getDamsLayer() {
+    const damsLayer = (await Layer.fromPortalItem({
+      portalItem: new PortalItem({
+        id: services.data.dams.portalId,
+      }),
+    })) as __esri.FeatureLayer;
+    damsLayer.id = 'damsLayer';
+    damsLayer.listMode = 'hide-children';
+    damsLayer.title = 'Dams';
+    damsLayer.visible = false;
+    setLayer('damsLayer', damsLayer);
+    return damsLayer;
   }
 
   async function getWildfiresLayer() {
@@ -1971,6 +1981,8 @@ function useSharedLayers({
 
     const sewerOverflowsLayer = getSewerOverflowsLayer();
 
+    const damsLayer = getDamsLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1992,8 +2004,9 @@ function useSharedLayers({
       countyLayer,
       watershedsLayer,
       allWaterbodiesLayer,
-      wildfiresLayer,
       storageTanksLayer,
+      damsLayer,
+      wildfiresLayer,
       sewerOverflowsLayer,
     ].filter((layer) => layer !== null);
   };

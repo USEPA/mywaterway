@@ -445,6 +445,7 @@ function ExtremeWeather() {
     cmraScreeningLayer,
     coastalFloodingLayer,
     coastalFloodingRealtimeLayer,
+    damsLayer,
     droughtRealtimeLayer,
     extremeColdRealtimeLayer,
     extremeHeatRealtimeLayer,
@@ -1400,6 +1401,48 @@ function ExtremeWeather() {
         }),
     });
   }, [hucBoundaries, sewerOverflowsLayer]);
+
+  // update dams count
+  useEffect(() => {
+    if (!hucBoundaries || !damsLayer) return;
+
+    setPotentiallyVulnerable((config) => {
+      updateRow(config, 'pending', 'dams');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    queryLayers({
+      layer: damsLayer,
+      queries: [
+        {
+          query: {
+            geometry: hucBoundaries.features[0].geometry,
+            outFields: ['OBJECTID'],
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'success', 'dams', responses[0].features.length);
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () =>
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'failure', 'dams');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        }),
+    });
+  }, [hucBoundaries, damsLayer]);
 
   return (
     <div css={containerStyles}>
@@ -2369,10 +2412,11 @@ const potentiallyVulnerableDefaults: Row[] = [
   },
   {
     id: 'dams',
-    label: 'Dams',
     checked: false,
     disabled: false,
-    text: '2',
+    label: 'Dams',
+    layerId: 'damsLayer',
+    text: '',
   },
 
   // county

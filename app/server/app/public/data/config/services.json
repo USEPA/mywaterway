@@ -100,6 +100,10 @@
   },
   "undergroundStorageTanks": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/UST_Finder_Feature_Layer_2/FeatureServer/0",
   "combinedSewerOverflows": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Combined_Sewer_Overflows/FeatureServer/0",
+  "dams": {
+    "portalId": "a4c195b7a6b74f278ff43e5d60c6915d",
+    "url": "https://services2.arcgis.com/FiaPA4ga0iQKduv3/ArcGIS/rest/services/NID_v1/FeatureServer/0"
+  },
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -505,6 +509,11 @@
       "urlLookup": "combinedSewerOverflows",
       "wildcardUrl": "{urlLookup}*",
       "name": "Combined Sewer Overflows"
+    },
+    {
+      "urlLookup": "dams.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Dams"
     }
   ]
 }
