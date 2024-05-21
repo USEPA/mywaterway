@@ -25,7 +25,7 @@ import Slider from 'components/shared/Slider';
 import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 // contexts
-import { useLayers } from 'contexts/Layers';
+import { LayersState, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
@@ -1636,6 +1636,8 @@ function SelectionTable({
   value,
   setter,
 }: Readonly<SelectionTableProps>) {
+  const { updateVisibleLayers } = useLayers();
+
   const hasSubheadings = value.items.findIndex((i) => i.subHeading) > -1;
 
   const [selectedRow, setSelectedRow] = useState<Row | null>(null);
@@ -1700,46 +1702,53 @@ function SelectionTable({
                         onChange={() => {}}
                         onClick={() => {
                           let newSelectedRow: Row | null = null;
-                          setter((config) => {
-                            config.items.forEach((cw) => {
-                              cw.checked = cw.id === item.id && !cw.checked;
-                              if (cw.id === item.id && cw.checked)
-                                newSelectedRow = item;
+                          let newVisibleLayers: Partial<
+                            LayersState['visible']
+                          > = {};
 
-                              const layer = mapView?.map.findLayerById(
-                                cw.layerId ?? '',
+                          const valueTemp = { ...value };
+                          valueTemp.items.forEach((cw) => {
+                            cw.checked = cw.id === item.id && !cw.checked;
+                            if (cw.id === item.id && cw.checked)
+                              newSelectedRow = item;
+
+                            const layer = mapView?.map.findLayerById(
+                              cw.layerId ?? '',
+                            );
+                            if (!layer) return;
+
+                            if (
+                              cw.layerId !== item.layerId ||
+                              cw.id === item.id
+                            ) {
+                              layer.visible = cw.checked;
+                              layer.listMode = cw.checked ? 'show' : 'hide';
+
+                              newVisibleLayers[
+                                cw.layerId as keyof LayersState['visible']
+                              ] = cw.checked;
+                            }
+
+                            // update layer properties
+                            if (
+                              cw.id === item.id &&
+                              item.layerProperties &&
+                              isFeatureLayer(layer)
+                            ) {
+                              Object.entries(item.layerProperties).forEach(
+                                ([key, value]) => {
+                                  (layer as any)[key] = value;
+                                },
                               );
-                              if (!layer) return;
-
-                              if (
-                                cw.layerId !== item.layerId ||
-                                cw.id === item.id
-                              ) {
-                                layer.visible = cw.checked;
-                                layer.listMode = cw.checked ? 'show' : 'hide';
-                              }
-
-                              // update layer properties
-                              if (
-                                cw.id === item.id &&
-                                item.layerProperties &&
-                                isFeatureLayer(layer)
-                              ) {
-                                Object.entries(item.layerProperties).forEach(
-                                  ([key, value]) => {
-                                    (layer as any)[key] = value;
-                                  },
-                                );
-                              }
-                            });
-
-                            return {
-                              ...config,
-                              updateCount: config.updateCount + 1,
-                            };
+                            }
                           });
 
+                          setter({
+                            ...valueTemp,
+                            updateCount: valueTemp.updateCount + 1,
+                          });
                           setSelectedRow(newSelectedRow);
+                          updateVisibleLayers(newVisibleLayers);
                         }}
                       />
                     )}
@@ -1763,6 +1772,11 @@ function SelectionTable({
                               ...config,
                               updateCount: config.updateCount + 1,
                             };
+                          });
+
+                          updateVisibleLayers({
+                            [item.layerId as keyof LayersState['visible']]:
+                              layer.visible,
                           });
 
                           if (callback) callback(item, layer);
