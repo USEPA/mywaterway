@@ -347,6 +347,7 @@ export type PopupAttributes =
   | ChangeLocationAttributes
   | CongressionalDistrictAttributes
   | CountyAttributes
+  | CyanWaterbodyAttributes
   | DischargerAttributes
   | EjScreenAttributes
   | MonitoringLocationAttributes
@@ -360,9 +361,9 @@ export type PopupAttributes =
   | VillageAttributes
   | WaterbodyAttributes
   | WatershedAttributes
+  | WellAttributes
   | WildScenicRiverAttributes
-  | WsioHealthIndexAttributes
-  | CyanWaterbodyAttributes;
+  | WsioHealthIndexAttributes;
 
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
@@ -606,6 +607,11 @@ export interface WatershedAttributes {
   huc12: string;
   name: string;
 }
+
+export type WellAttributes = {
+  Wells_2020: number;
+  Wells_Density_2020: number;
+};
 
 export type WidgetLayer =
   | {

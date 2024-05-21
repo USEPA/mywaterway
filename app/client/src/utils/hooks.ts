@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import Color from '@arcgis/core/Color';
+import ColorVariable from '@arcgis/core/renderers/visualVariables/ColorVariable';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Layer from '@arcgis/core/layers/Layer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
@@ -1671,6 +1672,67 @@ function useSharedLayers({
     return wildfiresLayer;
   }
 
+  async function getWellsLayer() {
+    const outFields = ['Wells_2020', 'Wells_Density_2020'];
+
+    const wellsLayer = new FeatureLayer({
+      id: 'wellsLayer',
+      url: services.data.wells,
+      title: 'Wells',
+      listMode: 'hide-children',
+      minScale: 0,
+      maxScale: 0,
+      visible: false,
+      renderer: new SimpleRenderer({
+        symbol: new SimpleFillSymbol({
+          color: '#F2F0F7',
+          outline: {
+            style: 'solid',
+            color: '#828282',
+            width: 0.2,
+          },
+        }),
+        visualVariables: [
+          new ColorVariable({
+            valueExpression: '$feature.Wells_Density_2020',
+            valueExpressionTitle: '2020 Well Density (Wells / Sq. Km.)',
+            legendOptions: {},
+            stops: [
+              {
+                color: [242, 240, 247, 255],
+                value: 0.1,
+              },
+              {
+                color: [203, 201, 226, 255],
+                value: 3.8,
+              },
+              {
+                color: [158, 154, 200, 255],
+                value: 7.5,
+              },
+              {
+                color: [117, 107, 177, 255],
+                value: 11.2,
+              },
+              {
+                color: [84, 39, 143, 255],
+                value: 15,
+              },
+            ],
+          }),
+        ],
+      }),
+      outFields,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields,
+      },
+    });
+    setLayer('wellsLayer', wellsLayer);
+    return wellsLayer;
+  }
+
   function getCmraScreeningLayer() {
     const cmraScreeningLayer = new FeatureLayer({
       id: 'cmraScreeningLayer',
@@ -1983,9 +2045,12 @@ function useSharedLayers({
 
     const damsLayer = getDamsLayer();
 
+    const wellsLayer = getWellsLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
+      wellsLayer,
       cmraScreeningLayer,
       landCover,
       inlandFloodingRealtimeLayer,

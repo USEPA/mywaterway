@@ -151,6 +151,7 @@ export function useLayers() {
       usgsStreamgagesLayer,
       waterbodyLayer,
       watershedsLayer,
+      wellsLayer,
       wildfiresLayer,
       wildScenicRiversLayer,
       wsioHealthIndexLayer,
@@ -159,6 +160,7 @@ export function useLayers() {
     return [
       ejscreenLayer,
       wsioHealthIndexLayer,
+      wellsLayer,
       cmraScreeningLayer,
       landCoverLayer,
       inlandFloodingRealtimeLayer,
@@ -315,6 +317,7 @@ const featureLayerIds = [
   'waterbodyLines',
   'waterbodyPoints',
   'watershedsLayer',
+  'wellsLayer',
   'wildScenicRiversLayer',
   'wsioHealthIndexLayer',
 ] as const;

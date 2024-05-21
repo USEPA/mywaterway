@@ -456,6 +456,7 @@ function ExtremeWeather() {
     tribalLayer,
     visibleLayers,
     waterbodyLayer,
+    wellsLayer,
     wildfiresLayer,
   } = useLayers();
   const waterbodies = useWaterbodyFeatures();
@@ -1445,6 +1446,67 @@ function ExtremeWeather() {
         }),
     });
   }, [hucBoundaries, damsLayer]);
+
+  // update wells count
+  useEffect(() => {
+    if (!countySelected || !providersLayer || !wellsLayer) return;
+
+    setPotentiallyVulnerable((config) => {
+      updateRow(config, 'pending', 'wells');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    const countyBoundaries = providersLayer.graphics.find(
+      (g) => g.attributes.FIPS === countySelected.value,
+    );
+
+    if (!countyBoundaries) {
+      setPotentiallyVulnerable((config) => {
+        updateRow(config, 'failure', 'wells');
+        return {
+          ...config,
+          updateCount: config.updateCount + 1,
+        };
+      });
+    }
+
+    queryLayers({
+      layer: wellsLayer,
+      queries: [
+        {
+          query: {
+            outFields: ['Wells_2020'],
+            where: `GEOID LIKE '${countySelected.value}%'`,
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        let numWells = 0;
+        responses[0].features.forEach((f) => {
+          numWells += f.attributes.Wells_2020;
+        });
+
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'success', 'wells', numWells);
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () =>
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'failure', 'wells');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        }),
+    });
+  }, [countySelected, providersLayer, wellsLayer]);
 
   return (
     <div css={containerStyles}>
@@ -2473,9 +2535,10 @@ const potentiallyVulnerableDefaults: Row[] = [
   },
   {
     id: 'wells',
-    label: 'Wells',
     checked: false,
     disabled: false,
-    text: '30',
+    label: 'Wells',
+    layerId: 'wellsLayer',
+    text: '',
   },
 ];

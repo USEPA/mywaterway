@@ -229,6 +229,8 @@ const orderedLayers = [
   'wildScenicRiversLayer',
   'protectedAreasHighlightLayer',
   'protectedAreasLayer',
+  'wellsLayer',
+  'cmraScreeningLayer',
   'ejscreenLayer',
   'landCoverLayer',
   'searchIconLayer',

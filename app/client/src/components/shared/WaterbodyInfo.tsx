@@ -1101,6 +1101,18 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const wellsContent = (
+    <>
+      {labelValue('Wells', attributes.Wells_2020)}
+
+      {labelValue(
+        'Well Density (Wells / Sq. Km.) ',
+        attributes.Wells_Density_2020,
+      )}
+    </>
+  );
+
+  // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
   const actionContent = <>{extraContent}</>;
 
@@ -1280,6 +1292,7 @@ function WaterbodyInfo({
   if (type === 'Demographic Indicators') content = ejscreenContent;
   if (type === 'Pollutant Storage Tank') content = storageTankContent;
   if (type === 'Combined Sewer Overflow') content = sewerOverflowsContent;
+  if (type === 'Wells') content = wellsContent;
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }

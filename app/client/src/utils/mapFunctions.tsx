@@ -751,6 +751,11 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = attributes.facility_name;
   }
 
+  // Wells
+  else if ('Wells_2020' in attributes) {
+    title = '';
+  }
+
   return title;
 }
 
@@ -877,6 +882,11 @@ export function getPopupContent({
     // Sewer Overflows
     else if ('dmr_tracking' in attributes) {
       type = 'Combined Sewer Overflow';
+    }
+
+    // Wells
+    else if ('Wells_2020' in attributes) {
+      type = 'Wells';
     }
   }
 

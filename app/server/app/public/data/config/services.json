@@ -104,6 +104,7 @@
     "portalId": "a4c195b7a6b74f278ff43e5d60c6915d",
     "url": "https://services2.arcgis.com/FiaPA4ga0iQKduv3/ArcGIS/rest/services/NID_v1/FeatureServer/0"
   },
+  "wells": "https://geodata.epa.gov/arcgis/rest/services/ORD/PrivateDomesticWells2020/MapServer/6",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -514,6 +515,11 @@
       "urlLookup": "dams.url",
       "wildcardUrl": "{urlLookup}*",
       "name": "Dams"
+    },
+    {
+      "urlLookup": "wells",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Wells"
     }
   ]
 }
