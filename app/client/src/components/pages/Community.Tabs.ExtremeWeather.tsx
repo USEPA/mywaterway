@@ -48,404 +48,12 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 const historicalTooltip =
   'The displayed statistics are generated from official U.S. climate projections for the greenhouse gas business as usual "Higher Emissions Scenario (RCP 8.5)".';
 
-function getTickList(inline = false) {
-  const separator = inline ? ' ' : <br />;
-  return [
-    {
-      value: 0,
-      label: (
-        <Fragment>
-          Modeled History
-          {separator}
-          <em>(1976 - 2005)</em>
-        </Fragment>
-      ),
-      labelAria: 'Modeled History (1976 - 2005)',
-    },
-    {
-      value: 1,
-      label: (
-        <Fragment>
-          Early Century
-          {separator}
-          <em>(2015 - 2044)</em>
-        </Fragment>
-      ),
-      labelAria: 'Early Century (2015 - 2044)',
-    },
-    {
-      value: 2,
-      label: (
-        <Fragment>
-          Mid Century
-          {separator}
-          <em>(2035 - 2064)</em>
-        </Fragment>
-      ),
-      labelAria: 'Mid Century (2035 - 2064)',
-    },
-    {
-      value: 3,
-      label: (
-        <Fragment>
-          Late Century
-          {separator}
-          <em>(2070 - 2099)</em>
-        </Fragment>
-      ),
-      labelAria: 'Late Century (2070 - 2099)',
-    },
-  ];
-}
-
 const tickList = getTickList();
 const timeframeOptions = getTickList(true).map((t) => ({
   label: t.labelAria,
   labelHtml: t.label,
   value: t.value,
 }));
-
-// checks if all layers are in group layer
-function allLayersAdded(
-  layer: __esri.FeatureLayer | __esri.GroupLayer,
-  queries: {
-    serviceItemId?: string;
-    query: __esri.Query | __esri.QueryProperties;
-  }[],
-) {
-  if (isFeatureLayer(layer)) return true;
-
-  const itemIds = queries.map((q) => q.serviceItemId);
-  return itemIds.every((itemId) =>
-    !itemId ? false : findByItemId(layer, itemId),
-  );
-}
-
-// finds a layer by itemId, serviceItemId or layerId
-function findByItemId(layer: __esri.GroupLayer, itemId: string) {
-  return layer.layers.find(
-    (l: any) =>
-      l.itemId === itemId ||
-      l.serviceItemId === itemId ||
-      l.layerId.toString() === itemId,
-  );
-}
-
-function getHistoricKey(type: HistoricType, timeframe: number) {
-  let key = '';
-  if (timeframe === 0) key += 'HISTORIC_';
-  if (timeframe === 1) key += 'RCP85EARLY_';
-  if (timeframe === 2) key += 'RCP85MID_';
-  if (timeframe === 3) key += 'RCP85LATE_';
-
-  key += 'MEAN_';
-  if (type === 'fire') key += 'CONSECDD';
-  if (type === 'drought') key += 'PRLT0IN';
-  if (type === 'inlandFlooding') key += 'CONSECWD';
-  if (type === 'inlandFloodingInches') key += 'PR_ANNUAL';
-  if (type === 'coastalFlooding') key += 'SLR';
-  if (type === 'extremeHeat') key += 'TMAX90F';
-
-  return key;
-}
-
-function getHistoricValues(
-  attributes: any,
-  type: HistoricType,
-): {
-  [key: number]: number;
-} {
-  return {
-    0: attributes[getHistoricKey(type, 0)],
-    1: attributes[getHistoricKey(type, 1)],
-    2: attributes[getHistoricKey(type, 2)],
-    3: attributes[getHistoricKey(type, 3)],
-  };
-}
-
-function getHistoricValue(
-  attributes: any,
-  timeframe: number,
-  type: HistoricType,
-  digits: number = 1,
-) {
-  let values = getHistoricValues(attributes, type);
-
-  return formatNumber(Math.abs(values[timeframe]), digits, true);
-}
-
-function getHistoricValueRange(
-  attributes: any,
-  range: number[],
-  type: HistoricType,
-  aggType: 'difference' | 'max',
-  digits: number = 1,
-) {
-  const rangeStart = range[0];
-  const rangeEnd = range[1];
-
-  let value = 0;
-  let values = getHistoricValues(attributes, type);
-  if (aggType === 'difference') value = values[rangeEnd] - values[rangeStart];
-  if (aggType === 'max') {
-    const array = Object.keys(values)
-      .map(Number)
-      .filter((k) => k >= rangeStart && k <= rangeEnd)
-      .map((k) => values[k]);
-    value = Math.max(...array);
-  }
-
-  // determine directionality
-  const directionality =
-    aggType === 'difference'
-      ? `${value < 0 ? 'decreased' : 'increased'} by `
-      : '';
-
-  return `${directionality}${formatNumber(Math.abs(value), digits, true)}`;
-}
-
-// queries an individual layer after watcher finds layer has been loaded
-async function queryLayer({
-  layer,
-  query,
-}: {
-  layer: __esri.FeatureLayer;
-  query: __esri.Query | __esri.QueryProperties;
-}) {
-  return new Promise<__esri.FeatureSet>((resolve, reject) => {
-    if (['failed', 'loaded'].includes(layer.loadStatus)) {
-      queryLayerInner({
-        layer,
-        query,
-        resolve,
-        reject,
-      });
-    } else {
-      // setup the watch event to see when the layer finishes loading
-      const newWatcher = reactiveUtils.watch(
-        () => layer.loadStatus,
-        () => {
-          if (['failed', 'loaded'].includes(layer.loadStatus))
-            newWatcher.remove();
-          queryLayerInner({
-            layer,
-            query,
-            resolve,
-            reject,
-          });
-        },
-      );
-    }
-  });
-}
-
-// queries an individual layer
-async function queryLayerInner({
-  layer,
-  query,
-  resolve,
-  reject,
-}: {
-  layer: __esri.FeatureLayer;
-  query: __esri.Query | __esri.QueryProperties;
-  resolve: (value: __esri.FeatureSet | PromiseLike<__esri.FeatureSet>) => void;
-  reject: (reason?: any) => void;
-}) {
-  if (layer.loadStatus === 'failed')
-    reject(`Failed to load layer: ${layer.title}`);
-
-  try {
-    resolve(await layer.queryFeatures(query));
-  } catch (ex) {
-    reject(`Failed to query layer ${layer.title}`);
-  }
-}
-
-// queries multiple layers after watcher finds all necessary layers have
-// been loaded
-async function queryLayers({
-  layer,
-  queries,
-  onSuccess,
-  onError,
-}: {
-  layer: __esri.FeatureLayer | __esri.GroupLayer;
-  queries: {
-    serviceItemId?: string;
-    query: __esri.Query | __esri.QueryProperties;
-  }[];
-  onSuccess: (response: __esri.FeatureSet[]) => void;
-  onError: () => void;
-}) {
-  if (allLayersAdded(layer, queries)) {
-    queryLayersInner({
-      layer,
-      queries,
-      onSuccess,
-      onError,
-    });
-  } else {
-    const groupLayer = layer as __esri.GroupLayer;
-
-    // setup the watch event to see when the layer finishes loading
-    const newWatcher = reactiveUtils.watch(
-      () => groupLayer.layers.length,
-      () => {
-        if (!allLayersAdded(layer, queries)) return;
-
-        newWatcher.remove();
-        if (timeout) clearTimeout(timeout);
-        queryLayersInner({
-          layer,
-          queries,
-          onSuccess,
-          onError,
-        });
-      },
-    );
-
-    // error this out if it takes too long
-    const timeout = setTimeout(() => {
-      onError();
-      if (newWatcher) newWatcher.remove();
-    }, 60000);
-  }
-}
-
-// queries multiple layers
-async function queryLayersInner({
-  layer,
-  queries,
-  onSuccess,
-  onError,
-}: {
-  layer: __esri.FeatureLayer | __esri.GroupLayer;
-  queries: {
-    serviceItemId?: string;
-    query: __esri.Query | __esri.QueryProperties;
-  }[];
-  onSuccess: (response: __esri.FeatureSet[]) => void;
-  onError: () => void;
-}) {
-  try {
-    const promises: Promise<__esri.FeatureSet>[] = [];
-    queries.forEach((q) => {
-      let childLayer = layer;
-      if (isGroupLayer(layer) && q.serviceItemId) {
-        const temp = findByItemId(layer, q.serviceItemId);
-        if (temp) childLayer = temp as __esri.FeatureLayer;
-      }
-
-      if (isFeatureLayer(childLayer)) {
-        promises.push(
-          queryLayer({
-            layer: childLayer,
-            query: q.query,
-          }),
-        );
-      }
-    });
-
-    onSuccess(await Promise.all(promises));
-  } catch (ex) {
-    console.error(ex);
-    onError();
-  }
-}
-
-function updateRow(
-  config: SwitchTableConfig,
-  status: FetchStatus,
-  id: string,
-  value: number | string | unknown[] | null = null,
-) {
-  updateRowField(
-    config,
-    id,
-    'text',
-    typeof value === 'string' ? value : countOrNotAvailable(value, status),
-  );
-  updateRowField(config, id, 'status', status);
-}
-
-function updateRowField(
-  config: SwitchTableConfig,
-  id: string,
-  field: string,
-  value: number | string | boolean | unknown[] | null = null,
-) {
-  const row = config.items.find((c) => c.id === id);
-  if (row) {
-    row[field as keyof Row] = value;
-  }
-}
-
-/*
- * Styles
- */
-const containerStyles = css`
-  @media (min-width: 960px) {
-    padding: 1em;
-  }
-`;
-
-const countySelectStyles = css`
-  margin-bottom: 1rem;
-`;
-
-const modifiedErrorBoxStyles = css`
-  ${errorBoxStyles};
-  margin-bottom: 1em;
-  text-align: center;
-`;
-
-const screenLabelStyles = css`
-  display: inline-block;
-  font-size: 0.875rem;
-  font-weight: bold;
-  margin-bottom: 0.125rem;
-`;
-
-const sectionHeaderContainerStyles = css`
-  background-color: #f0f6f9;
-  border-top: 1px solid #dee2e6;
-  padding: 0.75rem;
-`;
-
-const sectionHeaderStyles = css`
-  display: flex;
-  justify-content: space-between;
-  font-size: 1em;
-  font-weight: bold;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-  vertical-align: bottom;
-  word-break: break-word;
-`;
-
-const sectionHeaderSelectStyles = css`
-  margin: 0.5rem 0.5rem 0.25rem;
-`;
-
-const smallLoadingSpinnerStyles = css`
-  svg {
-    display: inline-block;
-    margin: 0;
-    height: 0.9rem;
-    width: 0.9rem;
-  }
-`;
-
-const subheadingStyles = css`
-  font-weight: bold;
-  padding-bottom: 0;
-  text-align: center;
-`;
-
-const tableRowSectionHeaderStyles = css`
-  font-weight: bold;
-  text-align: left !important;
-`;
 
 function ExtremeWeather() {
   const { dischargers, dischargersStatus } = useDischargers();
@@ -2109,6 +1717,406 @@ export default function ExtremeWeatherContainer() {
     </TabErrorBoundary>
   );
 }
+
+/*
+ * Helpers
+ */
+
+// checks if all layers are in group layer
+function allLayersAdded(
+  layer: __esri.FeatureLayer | __esri.GroupLayer,
+  queries: {
+    serviceItemId?: string;
+    query: __esri.Query | __esri.QueryProperties;
+  }[],
+) {
+  if (isFeatureLayer(layer)) return true;
+
+  const itemIds = queries.map((q) => q.serviceItemId);
+  return itemIds.every((itemId) =>
+    !itemId ? false : findByItemId(layer, itemId),
+  );
+}
+
+// finds a layer by itemId, serviceItemId or layerId
+function findByItemId(layer: __esri.GroupLayer, itemId: string) {
+  return layer.layers.find(
+    (l: any) =>
+      l.itemId === itemId ||
+      l.serviceItemId === itemId ||
+      l.layerId.toString() === itemId,
+  );
+}
+
+function getHistoricKey(type: HistoricType, timeframe: number) {
+  let key = '';
+  if (timeframe === 0) key += 'HISTORIC_';
+  if (timeframe === 1) key += 'RCP85EARLY_';
+  if (timeframe === 2) key += 'RCP85MID_';
+  if (timeframe === 3) key += 'RCP85LATE_';
+
+  key += 'MEAN_';
+  if (type === 'fire') key += 'CONSECDD';
+  if (type === 'drought') key += 'PRLT0IN';
+  if (type === 'inlandFlooding') key += 'CONSECWD';
+  if (type === 'inlandFloodingInches') key += 'PR_ANNUAL';
+  if (type === 'coastalFlooding') key += 'SLR';
+  if (type === 'extremeHeat') key += 'TMAX90F';
+
+  return key;
+}
+
+function getHistoricValue(
+  attributes: any,
+  timeframe: number,
+  type: HistoricType,
+  digits: number = 1,
+) {
+  let values = getHistoricValues(attributes, type);
+
+  return formatNumber(Math.abs(values[timeframe]), digits, true);
+}
+
+function getHistoricValueRange(
+  attributes: any,
+  range: number[],
+  type: HistoricType,
+  aggType: 'difference' | 'max',
+  digits: number = 1,
+) {
+  const rangeStart = range[0];
+  const rangeEnd = range[1];
+
+  let value = 0;
+  let values = getHistoricValues(attributes, type);
+  if (aggType === 'difference') value = values[rangeEnd] - values[rangeStart];
+  if (aggType === 'max') {
+    const array = Object.keys(values)
+      .map(Number)
+      .filter((k) => k >= rangeStart && k <= rangeEnd)
+      .map((k) => values[k]);
+    value = Math.max(...array);
+  }
+
+  // determine directionality
+  const directionality =
+    aggType === 'difference'
+      ? `${value < 0 ? 'decreased' : 'increased'} by `
+      : '';
+
+  return `${directionality}${formatNumber(Math.abs(value), digits, true)}`;
+}
+
+function getHistoricValues(
+  attributes: any,
+  type: HistoricType,
+): {
+  [key: number]: number;
+} {
+  return {
+    0: attributes[getHistoricKey(type, 0)],
+    1: attributes[getHistoricKey(type, 1)],
+    2: attributes[getHistoricKey(type, 2)],
+    3: attributes[getHistoricKey(type, 3)],
+  };
+}
+
+function getTickList(inline = false) {
+  const separator = inline ? ' ' : <br />;
+  return [
+    {
+      value: 0,
+      label: (
+        <Fragment>
+          Modeled History
+          {separator}
+          <em>(1976 - 2005)</em>
+        </Fragment>
+      ),
+      labelAria: 'Modeled History (1976 - 2005)',
+    },
+    {
+      value: 1,
+      label: (
+        <Fragment>
+          Early Century
+          {separator}
+          <em>(2015 - 2044)</em>
+        </Fragment>
+      ),
+      labelAria: 'Early Century (2015 - 2044)',
+    },
+    {
+      value: 2,
+      label: (
+        <Fragment>
+          Mid Century
+          {separator}
+          <em>(2035 - 2064)</em>
+        </Fragment>
+      ),
+      labelAria: 'Mid Century (2035 - 2064)',
+    },
+    {
+      value: 3,
+      label: (
+        <Fragment>
+          Late Century
+          {separator}
+          <em>(2070 - 2099)</em>
+        </Fragment>
+      ),
+      labelAria: 'Late Century (2070 - 2099)',
+    },
+  ];
+}
+
+// queries an individual layer after watcher finds layer has been loaded
+async function queryLayer({
+  layer,
+  query,
+}: {
+  layer: __esri.FeatureLayer;
+  query: __esri.Query | __esri.QueryProperties;
+}) {
+  return new Promise<__esri.FeatureSet>((resolve, reject) => {
+    if (['failed', 'loaded'].includes(layer.loadStatus)) {
+      queryLayerInner({
+        layer,
+        query,
+        resolve,
+        reject,
+      });
+    } else {
+      // setup the watch event to see when the layer finishes loading
+      const newWatcher = reactiveUtils.watch(
+        () => layer.loadStatus,
+        () => {
+          if (['failed', 'loaded'].includes(layer.loadStatus))
+            newWatcher.remove();
+          queryLayerInner({
+            layer,
+            query,
+            resolve,
+            reject,
+          });
+        },
+      );
+    }
+  });
+}
+
+// queries an individual layer
+async function queryLayerInner({
+  layer,
+  query,
+  resolve,
+  reject,
+}: {
+  layer: __esri.FeatureLayer;
+  query: __esri.Query | __esri.QueryProperties;
+  resolve: (value: __esri.FeatureSet | PromiseLike<__esri.FeatureSet>) => void;
+  reject: (reason?: any) => void;
+}) {
+  if (layer.loadStatus === 'failed')
+    reject(`Failed to load layer: ${layer.title}`);
+
+  try {
+    resolve(await layer.queryFeatures(query));
+  } catch (ex) {
+    reject(`Failed to query layer ${layer.title}`);
+  }
+}
+
+// queries multiple layers after watcher finds all necessary layers have
+// been loaded
+async function queryLayers({
+  layer,
+  queries,
+  onSuccess,
+  onError,
+}: {
+  layer: __esri.FeatureLayer | __esri.GroupLayer;
+  queries: {
+    serviceItemId?: string;
+    query: __esri.Query | __esri.QueryProperties;
+  }[];
+  onSuccess: (response: __esri.FeatureSet[]) => void;
+  onError: () => void;
+}) {
+  if (allLayersAdded(layer, queries)) {
+    queryLayersInner({
+      layer,
+      queries,
+      onSuccess,
+      onError,
+    });
+  } else {
+    const groupLayer = layer as __esri.GroupLayer;
+
+    // setup the watch event to see when the layer finishes loading
+    const newWatcher = reactiveUtils.watch(
+      () => groupLayer.layers.length,
+      () => {
+        if (!allLayersAdded(layer, queries)) return;
+
+        newWatcher.remove();
+        if (timeout) clearTimeout(timeout);
+        queryLayersInner({
+          layer,
+          queries,
+          onSuccess,
+          onError,
+        });
+      },
+    );
+
+    // error this out if it takes too long
+    const timeout = setTimeout(() => {
+      onError();
+      if (newWatcher) newWatcher.remove();
+    }, 60000);
+  }
+}
+
+// queries multiple layers
+async function queryLayersInner({
+  layer,
+  queries,
+  onSuccess,
+  onError,
+}: {
+  layer: __esri.FeatureLayer | __esri.GroupLayer;
+  queries: {
+    serviceItemId?: string;
+    query: __esri.Query | __esri.QueryProperties;
+  }[];
+  onSuccess: (response: __esri.FeatureSet[]) => void;
+  onError: () => void;
+}) {
+  try {
+    const promises: Promise<__esri.FeatureSet>[] = [];
+    queries.forEach((q) => {
+      let childLayer = layer;
+      if (isGroupLayer(layer) && q.serviceItemId) {
+        const temp = findByItemId(layer, q.serviceItemId);
+        if (temp) childLayer = temp as __esri.FeatureLayer;
+      }
+
+      if (isFeatureLayer(childLayer)) {
+        promises.push(
+          queryLayer({
+            layer: childLayer,
+            query: q.query,
+          }),
+        );
+      }
+    });
+
+    onSuccess(await Promise.all(promises));
+  } catch (ex) {
+    console.error(ex);
+    onError();
+  }
+}
+
+function updateRow(
+  config: SwitchTableConfig,
+  status: FetchStatus,
+  id: string,
+  value: number | string | unknown[] | null = null,
+) {
+  updateRowField(
+    config,
+    id,
+    'text',
+    typeof value === 'string' ? value : countOrNotAvailable(value, status),
+  );
+  updateRowField(config, id, 'status', status);
+}
+
+function updateRowField(
+  config: SwitchTableConfig,
+  id: string,
+  field: string,
+  value: number | string | boolean | unknown[] | null = null,
+) {
+  const row = config.items.find((c) => c.id === id);
+  if (row) {
+    row[field as keyof Row] = value;
+  }
+}
+
+/*
+ * Styles
+ */
+const containerStyles = css`
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
+`;
+
+const countySelectStyles = css`
+  margin-bottom: 1rem;
+`;
+
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin-bottom: 1em;
+  text-align: center;
+`;
+
+const screenLabelStyles = css`
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: bold;
+  margin-bottom: 0.125rem;
+`;
+
+const sectionHeaderContainerStyles = css`
+  background-color: #f0f6f9;
+  border-top: 1px solid #dee2e6;
+  padding: 0.75rem;
+`;
+
+const sectionHeaderStyles = css`
+  display: flex;
+  justify-content: space-between;
+  font-size: 1em;
+  font-weight: bold;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  vertical-align: bottom;
+  word-break: break-word;
+`;
+
+const sectionHeaderSelectStyles = css`
+  margin: 0.5rem 0.5rem 0.25rem;
+`;
+
+const smallLoadingSpinnerStyles = css`
+  svg {
+    display: inline-block;
+    margin: 0;
+    height: 0.9rem;
+    width: 0.9rem;
+  }
+`;
+
+const subheadingStyles = css`
+  font-weight: bold;
+  padding-bottom: 0;
+  text-align: center;
+`;
+
+const tableRowSectionHeaderStyles = css`
+  font-weight: bold;
+  text-align: left !important;
+`;
+
+/*
+ * Types
+ */
 
 type HistoricType =
   | 'fire'
