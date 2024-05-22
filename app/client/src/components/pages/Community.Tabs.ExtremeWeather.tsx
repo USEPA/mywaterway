@@ -446,6 +446,7 @@ function ExtremeWeather() {
     coastalFloodingLayer,
     coastalFloodingRealtimeLayer,
     damsLayer,
+    disadvantagedCommunitiesLayer,
     droughtRealtimeLayer,
     extremeColdRealtimeLayer,
     extremeHeatRealtimeLayer,
@@ -1449,7 +1450,7 @@ function ExtremeWeather() {
 
   // update wells count
   useEffect(() => {
-    if (!countySelected || !providersLayer || !wellsLayer) return;
+    if (!countySelected || !wellsLayer) return;
 
     setPotentiallyVulnerable((config) => {
       updateRow(config, 'pending', 'wells');
@@ -1458,20 +1459,6 @@ function ExtremeWeather() {
         updateCount: config.updateCount + 1,
       };
     });
-
-    const countyBoundaries = providersLayer.graphics.find(
-      (g) => g.attributes.FIPS === countySelected.value,
-    );
-
-    if (!countyBoundaries) {
-      setPotentiallyVulnerable((config) => {
-        updateRow(config, 'failure', 'wells');
-        return {
-          ...config,
-          updateCount: config.updateCount + 1,
-        };
-      });
-    }
 
     queryLayers({
       layer: wellsLayer,
@@ -1506,7 +1493,65 @@ function ExtremeWeather() {
           };
         }),
     });
-  }, [countySelected, providersLayer, wellsLayer]);
+  }, [countySelected, wellsLayer]);
+
+  // update disadvantaged communities
+  useEffect(() => {
+    if (!countySelected || !disadvantagedCommunitiesLayer) return;
+
+    setPotentiallyVulnerable((config) => {
+      updateRow(config, 'pending', 'disadvantagedCommunities');
+      return {
+        ...config,
+        updateCount: config.updateCount + 1,
+      };
+    });
+
+    queryLayers({
+      layer: disadvantagedCommunitiesLayer,
+      queries: [
+        {
+          query: {
+            outFields: ['SN_C', 'SN_T'],
+            where: `GEOID10 LIKE '${countySelected.value}%'`,
+          },
+        },
+      ],
+      onSuccess: (responses) => {
+        // SN_C === 1 is disadvantaged
+        // SN_C === 0 and SN_T === ' ' is not disadvantaged
+        // SN_C === 0 and SN_T === '0' is partially disadvantaged
+        // SN_C === 0 and SN_T === '1' is disadvantaged
+        // else is not disadvantaged
+        const disadvantagedCommunities = responses[0].features.filter(
+          (f) =>
+            f.attributes.SN_C === 1 ||
+            (f.attributes.SN_C === 0 && ['0', '1'].includes(f.attributes.SN_T)),
+        ).length;
+
+        setPotentiallyVulnerable((config) => {
+          updateRow(
+            config,
+            'success',
+            'disadvantagedCommunities',
+            disadvantagedCommunities,
+          );
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        });
+      },
+      onError: () =>
+        setPotentiallyVulnerable((config) => {
+          updateRow(config, 'failure', 'disadvantagedCommunities');
+          return {
+            ...config,
+            updateCount: config.updateCount + 1,
+          };
+        }),
+    });
+  }, [countySelected, disadvantagedCommunitiesLayer]);
 
   return (
     <div css={containerStyles}>
@@ -2528,9 +2573,10 @@ const potentiallyVulnerableDefaults: Row[] = [
   },
   {
     id: 'disadvantagedCommunities',
-    label: 'Overburdened, Underserved, and Disadvantaged Communities',
     checked: false,
     disabled: false,
+    layerId: 'disadvantagedCommunitiesLayer',
+    label: 'Overburdened, Underserved, and Disadvantaged Communities',
     text: '',
   },
   {
