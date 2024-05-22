@@ -1,0 +1,644 @@
+{
+  "currentWatherDefaults": [
+    {
+      "id": "fire",
+      "label": "Fire",
+      "checked": false,
+      "disabled": false,
+      "layerId": "wildfiresLayer",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "drought",
+      "label": "Drought",
+      "checked": false,
+      "disabled": false,
+      "layerId": "droughtRealtimeLayer",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "inlandFlooding",
+      "label": "Inland Flooding",
+      "checked": false,
+      "disabled": false,
+      "layerId": "inlandFloodingRealtimeLayer",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "coastalFlooding",
+      "label": "Coastal Flooding",
+      "checked": false,
+      "disabled": false,
+      "layerId": "coastalFloodingRealtimeLayer",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "extremeHeat",
+      "label": "Extreme Heat",
+      "checked": false,
+      "disabled": false,
+      "layerId": "extremeHeatRealtimeLayer",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "extremeCold",
+      "label": "Extreme Cold",
+      "checked": false,
+      "disabled": false,
+      "layerId": "extremeColdRealtimeLayer",
+      "status": "idle",
+      "text": ""
+    }
+  ],
+
+  "historicalRangeDefaults": [
+    {
+      "id": "fire",
+      "label": "Fire",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "drought",
+      "label": "Drought",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "inlandFlooding",
+      "label": "Inland Flooding",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "coastalFlooding",
+      "label": "Coastal Flooding",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "extremeHeat",
+      "label": "Extreme Heat",
+      "status": "idle",
+      "text": ""
+    }
+  ],
+
+  "historicalDefaults": [
+    {
+      "id": "fire",
+      "label": "Fire",
+      "checked": false,
+      "disabled": false,
+      "layerId": "cmraScreeningLayer",
+      "status": "idle",
+      "text": "",
+      "layerProperties": {
+        "blendMode": "multiply",
+        "title": "Fire",
+        "renderer": {
+          "type": "class-breaks",
+          "field": "HISTORIC_MAX_CONSECDD",
+          "classBreakInfos": [
+            {
+              "minValue": -9007199254740991,
+              "maxValue": 9007199254740991,
+              "symbol": {
+                "type": "simple-fill",
+                "color": [170, 170, 170, 255],
+                "outline": {
+                  "type": "simple-line",
+                  "color": [225, 229, 232, 107],
+                  "width": 0,
+                  "style": "solid"
+                },
+                "style": "solid"
+              }
+            }
+          ],
+          "visualVariables": [
+            {
+              "type": "color",
+              "field": "HISTORIC_MAX_CONSECDD",
+              "stops": [
+                {
+                  "color": [255, 255, 178, 255],
+                  "value": 10
+                },
+                {
+                  "color": [254, 204, 92, 255],
+                  "value": 19
+                },
+                {
+                  "color": [253, 141, 60, 255],
+                  "value": 28
+                },
+                {
+                  "color": [240, 59, 32, 255],
+                  "value": 37
+                },
+                {
+                  "color": [189, 0, 38, 255],
+                  "value": 46
+                }
+              ]
+            },
+            {
+              "type": "size",
+              "valueExpression": "$view.scale",
+              "stops": [
+                {
+                  "size": 0.042905885932572586,
+                  "value": 1066256
+                },
+                {
+                  "size": 0.021452942966286293,
+                  "value": 3332050
+                },
+                {
+                  "size": 0.010726471483143147,
+                  "value": 13328201
+                },
+                {
+                  "size": 0,
+                  "value": 26656402
+                }
+              ],
+              "target": "outline"
+            }
+          ]
+        },
+        "popupTemplate": {
+          "title": "{CountyName}, {StateAbbr}",
+          "content": [
+            {
+              "type": "text",
+              "text": "<p><span style=\"font-size:18px;\"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Maximum number of consecutive dry days</strong></p>"
+            }
+          ],
+          "expressionInfos": [
+            {
+              "name": "roundedValue",
+              "expression": "Round($feature.HISTORIC_MAX_CONSECDD, 1)",
+              "returnType": "number"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "drought",
+      "label": "Drought",
+      "checked": false,
+      "disabled": false,
+      "layerId": "cmraScreeningLayer",
+      "status": "idle",
+      "text": "",
+      "layerProperties": {
+        "blendMode": "multiply",
+        "title": "Drought",
+        "renderer": {
+          "type": "class-breaks",
+          "field": "HISTORIC_MEAN_PRLT0IN",
+          "classBreakInfos": [
+            {
+              "minValue": -9007199254740991,
+              "maxValue": 9007199254740991,
+              "symbol": {
+                "type": "simple-fill",
+                "color": [170, 170, 170, 255],
+                "outline": {
+                  "type": "simple-line",
+                  "color": [225, 229, 232, 107],
+                  "width": 0,
+                  "style": "solid"
+                },
+                "style": "solid"
+              }
+            }
+          ],
+          "visualVariables": [
+            {
+              "type": "color",
+              "field": "HISTORIC_MEAN_PRLT0IN",
+              "stops": [
+                {
+                  "color": [255, 255, 178, 255],
+                  "value": 169
+                },
+                {
+                  "color": [254, 204, 92, 255],
+                  "value": 187
+                },
+                {
+                  "color": [253, 141, 60, 255],
+                  "value": 206
+                },
+                {
+                  "color": [240, 59, 32, 255],
+                  "value": 224
+                },
+                {
+                  "color": [189, 0, 38, 255],
+                  "value": 243
+                }
+              ]
+            },
+            {
+              "type": "size",
+              "valueExpression": "$view.scale",
+              "stops": [
+                {
+                  "size": 0.042905885932572586,
+                  "value": 1066256
+                },
+                {
+                  "size": 0.021452942966286293,
+                  "value": 3332050
+                },
+                {
+                  "size": 0.010726471483143147,
+                  "value": 13328201
+                },
+                {
+                  "size": 0,
+                  "value": 26656402
+                }
+              ],
+              "target": "outline"
+            }
+          ]
+        },
+        "popupTemplate": {
+          "title": "{CountyName}, {StateAbbr}",
+          "content": [
+            {
+              "type": "text",
+              "text": "<p><span style=\"font-size:18px;\"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Days per year with no precipitation (dry days)</strong></p>"
+            }
+          ],
+          "expressionInfos": [
+            {
+              "name": "roundedValue",
+              "expression": "Round($feature.HISTORIC_MEAN_PRLT0IN, 1)",
+              "returnType": "number"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "inlandFloodingInches",
+      "label": "Inland Flooding",
+      "checked": false,
+      "disabled": false,
+      "layerId": "cmraScreeningLayer",
+      "status": "idle",
+      "text": "",
+      "layerProperties": {
+        "blendMode": "multiply",
+        "title": "Fire",
+        "renderer": {
+          "type": "class-breaks",
+          "field": "HISTORIC_MEAN_PR_ANNUAL",
+          "classBreakInfos": [
+            {
+              "minValue": -9007199254740991,
+              "maxValue": 9007199254740991,
+              "symbol": {
+                "type": "simple-fill",
+                "color": [170, 170, 170, 255],
+                "outline": {
+                  "type": "simple-line",
+                  "color": [225, 229, 232, 107],
+                  "width": 0,
+                  "style": "solid"
+                },
+                "style": "solid"
+              }
+            }
+          ],
+          "visualVariables": [
+            {
+              "type": "color",
+              "field": "HISTORIC_MEAN_PR_ANNUAL",
+              "stops": [
+                {
+                  "color": [255, 255, 204, 255],
+                  "value": 25
+                },
+                {
+                  "color": [161, 218, 180, 255],
+                  "value": 32.5
+                },
+                {
+                  "color": [65, 182, 196, 255],
+                  "value": 40
+                },
+                {
+                  "color": [44, 127, 184, 255],
+                  "value": 48
+                },
+                {
+                  "color": [37, 52, 148, 255],
+                  "value": 56
+                }
+              ]
+            },
+            {
+              "type": "size",
+              "valueExpression": "$view.scale",
+              "stops": [
+                {
+                  "size": 0.042905885932572586,
+                  "value": 1066256
+                },
+                {
+                  "size": 0.021452942966286293,
+                  "value": 3332050
+                },
+                {
+                  "size": 0.010726471483143147,
+                  "value": 13328201
+                },
+                {
+                  "size": 0,
+                  "value": 26656402
+                }
+              ],
+              "target": "outline"
+            }
+          ]
+        },
+        "popupTemplate": {
+          "title": "{CountyName}, {StateAbbr}",
+          "content": [
+            {
+              "type": "text",
+              "text": "<p><span style=\"font-size:18px;\"><strong>{expression/roundedValue} &nbsp;Inches</strong></span></p><p><strong>Average annual total precipitation</strong></p>"
+            }
+          ],
+          "expressionInfos": [
+            {
+              "name": "roundedValue",
+              "expression": "Round($feature.HISTORIC_MEAN_PR_ANNUAL, 1)",
+              "returnType": "number"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "coastalFlooding",
+      "label": "Coastal Flooding",
+      "layerId": "coastalFloodingLayer",
+      "checked": false,
+      "disabled": false,
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "extremeHeat",
+      "label": "Extreme Heat",
+      "checked": false,
+      "disabled": false,
+      "layerId": "cmraScreeningLayer",
+      "status": "idle",
+      "text": "",
+      "layerProperties": {
+        "blendMode": "multiply",
+        "title": "Extreme Heat",
+        "renderer": {
+          "type": "class-breaks",
+          "field": "HISTORIC_MAX_TMAX90F",
+          "classBreakInfos": [
+            {
+              "minValue": -9007199254740991,
+              "maxValue": 9007199254740991,
+              "symbol": {
+                "type": "simple-fill",
+                "color": [170, 170, 170, 255],
+                "outline": {
+                  "type": "simple-line",
+                  "color": [225, 229, 232, 107],
+                  "width": 0,
+                  "style": "solid"
+                },
+                "style": "solid"
+              }
+            }
+          ],
+          "visualVariables": [
+            {
+              "type": "color",
+              "field": "HISTORIC_MAX_TMAX90F",
+              "stops": [
+                {
+                  "color": [255, 255, 178, 255],
+                  "value": 58
+                },
+                {
+                  "color": [254, 204, 92, 255],
+                  "value": 80.7
+                },
+                {
+                  "color": [253, 141, 60, 255],
+                  "value": 103
+                },
+                {
+                  "color": [240, 59, 32, 255],
+                  "value": 126
+                },
+                {
+                  "color": [189, 0, 38, 255],
+                  "value": 149
+                }
+              ]
+            },
+            {
+              "type": "size",
+              "valueExpression": "$view.scale",
+              "stops": [
+                {
+                  "size": 0.042905885932572586,
+                  "value": 1066256
+                },
+                {
+                  "size": 0.021452942966286293,
+                  "value": 3332050
+                },
+                {
+                  "size": 0.010726471483143147,
+                  "value": 13328201
+                },
+                {
+                  "size": 0,
+                  "value": 26656402
+                }
+              ],
+              "target": "outline"
+            }
+          ]
+        },
+        "popupTemplate": {
+          "title": "{CountyName}, {StateAbbr}",
+          "content": [
+            {
+              "type": "text",
+              "text": "<p><span style=\"font-size:18px;\"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Annual days with maximum temperature &gt; 90</strong><span style=\"background-color:rgb(255,255,255);color:rgb(50,50,50);\"><strong>°F</strong></span></p>"
+            }
+          ],
+          "expressionInfos": [
+            {
+              "name": "roundedValue",
+              "expression": "Round($feature.HISTORIC_MAX_TMAX90F, 1)",
+              "returnType": "number"
+            }
+          ]
+        }
+      }
+    }
+  ],
+
+  "potentiallyVulnerableDefaults": [
+    {
+      "id": "hucSubHeading",
+      "label": "Within Watershed",
+      "subHeading": true
+    },
+    {
+      "id": "waterbodies",
+      "label": "Waterbodies",
+      "checked": false,
+      "disabled": false,
+      "layerId": "waterbodyLayer",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "impairedWaterbodies",
+      "label": "Impaired",
+      "indent": true,
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "goodWaterbodies",
+      "label": "Good",
+      "indent": true,
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "unknownWaterbodies",
+      "label": "Unknown",
+      "indent": true,
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "dischargers",
+      "label": "Permitted Dischargers",
+      "checked": false,
+      "disabled": false,
+      "layerId": "dischargersLayer",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "tribes",
+      "label": "Tribes",
+      "checked": false,
+      "disabled": false,
+      "layerId": "tribalLayer",
+      "text": ""
+    },
+    {
+      "id": "pollutantStorageTanks",
+      "checked": false,
+      "disabled": false,
+      "label": "Above and below ground pollutant storage tanks",
+      "layerId": "storageTanksLayer",
+      "text": ""
+    },
+    {
+      "id": "combinedSewerOverflows",
+      "checked": false,
+      "disabled": false,
+      "label": "Combined Sewer Overflows",
+      "layerId": "sewerOverflowsLayer",
+      "text": ""
+    },
+    {
+      "id": "dams",
+      "checked": false,
+      "disabled": false,
+      "label": "Dams",
+      "layerId": "damsLayer",
+      "text": ""
+    },
+
+    {
+      "id": "hucSubHeading",
+      "label": "Within County",
+      "subHeading": true
+    },
+    {
+      "id": "drinkingWaterSystems",
+      "label": "Public Drinking Water Systems",
+      "checked": false,
+      "disabled": false,
+      "layerId": "providersLayer",
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "surfaceWaterSources",
+      "label": "Surface Water Sources",
+      "indent": true,
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "groundWaterSources",
+      "label": "Ground Water Sources",
+      "indent": true,
+      "status": "idle",
+      "text": ""
+    },
+    {
+      "id": "disadvantagedCommunities",
+      "checked": false,
+      "disabled": false,
+      "layerId": "disadvantagedCommunitiesLayer",
+      "label": "Overburdened, Underserved, and Disadvantaged Communities",
+      "text": ""
+    },
+    {
+      "id": "wells",
+      "checked": false,
+      "disabled": false,
+      "label": "Wells",
+      "layerId": "wellsLayer",
+      "text": ""
+    },
+
+    {
+      "id": "allSubHeading",
+      "label": "Entire Map",
+      "subHeading": true
+    },
+    {
+      "id": "landCover",
+      "label": "Land cover",
+      "checked": false,
+      "disabled": false,
+      "layerId": "landCoverLayer"
+    }
+  ]
+}

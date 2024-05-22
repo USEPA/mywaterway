@@ -1,4 +1,3 @@
-// @flow
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
@@ -21,12 +20,16 @@ import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import ShowLessMore from 'components/shared/ShowLessMore';
 import Slider from 'components/shared/Slider';
 import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+// config
+import { tabErrorBoundaryMessage } from 'config/errorMessages';
 // contexts
 import { LayersState, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useExtremeWeatherContext } from 'contexts/LookupFiles';
 // utils
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
 import { isFeatureLayer, isGroupLayer } from 'utils/mapFunctions';
@@ -40,7 +43,7 @@ import {
 import { reactSelectStyles, toggleTableStyles } from 'styles/index';
 // types
 import { FetchStatus } from 'types';
-import ShowLessMore from 'components/shared/ShowLessMore';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 
 const historicalTooltip =
   'The displayed statistics are generated from official U.S. climate projections for the greenhouse gas business as usual "Higher Emissions Scenario (RCP 8.5)".';
@@ -390,6 +393,12 @@ const countySelectStyles = css`
   margin-bottom: 1rem;
 `;
 
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin-bottom: 1em;
+  text-align: center;
+`;
+
 const screenLabelStyles = css`
   display: inline-block;
   font-size: 0.875rem;
@@ -439,6 +448,9 @@ const tableRowSectionHeaderStyles = css`
 `;
 
 function ExtremeWeather() {
+  const { dischargers, dischargersStatus } = useDischargers();
+  const extremeWeatherConfig = useExtremeWeatherContext();
+  const waterbodies = useWaterbodyFeatures();
   const {
     cipSummary,
     countyBoundaries,
@@ -446,7 +458,6 @@ function ExtremeWeather() {
     hucBoundaries,
     mapView,
   } = useContext(LocationSearchContext);
-  const { dischargers, dischargersStatus } = useDischargers();
   const {
     cmraScreeningLayer,
     coastalFloodingLayer,
@@ -466,26 +477,53 @@ function ExtremeWeather() {
     wellsLayer,
     wildfiresLayer,
   } = useLayers();
-  const waterbodies = useWaterbodyFeatures();
 
   const [currentWeather, setCurrentWeather] = useState<SwitchTableConfig>({
     updateCount: 0,
-    items: currentWatherDefaults,
+    items: [],
   });
   const [historicalRiskRange, setHistoricalRiskRange] =
     useState<SwitchTableConfig>({
       updateCount: 0,
-      items: historicalRangeDefaults,
+      items: [],
     });
   const [historicalRisk, setHistoricalRisk] = useState<SwitchTableConfig>({
     updateCount: 0,
-    items: historicalDefaults,
+    items: [],
   });
   const [potentiallyVulnerable, setPotentiallyVulnerable] =
     useState<SwitchTableConfig>({
       updateCount: 0,
-      items: potentiallyVulnerableDefaults,
+      items: [],
     });
+
+  useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
+
+    function initialize(
+      setter: Dispatch<SetStateAction<SwitchTableConfig>>,
+      items: Row[],
+    ) {
+      setter({
+        updateCount: 0,
+        items,
+      });
+    }
+
+    initialize(
+      setCurrentWeather,
+      extremeWeatherConfig.data.currentWatherDefaults,
+    );
+    initialize(
+      setHistoricalRiskRange,
+      extremeWeatherConfig.data.historicalRangeDefaults,
+    );
+    initialize(setHistoricalRisk, extremeWeatherConfig.data.historicalDefaults);
+    initialize(
+      setPotentiallyVulnerable,
+      extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+    );
+  }, [extremeWeatherConfig]);
 
   const [timeframeSelection, setTimeframeSelection] = useState<{
     label: string;
@@ -497,6 +535,8 @@ function ExtremeWeather() {
   // used for when the user toggles layers in full screen mode and then
   // exits full screen.
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
+
     function handleSetting(config: SwitchTableConfig) {
       Object.entries(visibleLayers).forEach(([layerId, visible]) => {
         const row = config.items.find((l) => l.layerId === layerId);
@@ -511,7 +551,7 @@ function ExtremeWeather() {
 
     setCurrentWeather(handleSetting);
     setPotentiallyVulnerable(handleSetting);
-  }, [visibleLayers]);
+  }, [extremeWeatherConfig, visibleLayers]);
 
   const [countyOptions, setCountyOptions] = useState<
     { label: string; value: string }[]
@@ -560,16 +600,19 @@ function ExtremeWeather() {
   }, [countyBoundaries, countySelected, mapView, providersLayer]);
 
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     return function cleanup() {
       setHistoricalRisk({
         updateCount: 0,
-        items: historicalDefaults,
+        items: extremeWeatherConfig.data.historicalDefaults,
       });
     };
-  }, []);
+  }, [extremeWeatherConfig]);
 
   // update waterbodies
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
+
     if (cipSummary.status === 'fetching') {
       setPotentiallyVulnerable((config) => {
         updateRow(config, cipSummary.status, 'waterbodies');
@@ -614,10 +657,12 @@ function ExtremeWeather() {
         updateCount: config.updateCount + 1,
       };
     });
-  }, [cipSummary, waterbodies, waterbodyLayer]);
+  }, [cipSummary, extremeWeatherConfig, waterbodies, waterbodyLayer]);
 
   // update dischargers
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
+
     if (dischargersStatus === 'pending') {
       setPotentiallyVulnerable((config) => {
         updateRow(config, dischargersStatus, 'dischargers');
@@ -636,11 +681,13 @@ function ExtremeWeather() {
         updateCount: config.updateCount + 1,
       };
     });
-  }, [dischargers, dischargersStatus]);
+  }, [dischargers, dischargersStatus, extremeWeatherConfig]);
 
   // update drinking water
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected) return;
+
     if (drinkingWater.status === 'fetching') {
       setPotentiallyVulnerable((config) => {
         updateRow(config, drinkingWater.status, 'drinkingWaterSystems');
@@ -689,10 +736,11 @@ function ExtremeWeather() {
         updateCount: config.updateCount + 1,
       };
     });
-  }, [countySelected, drinkingWater]);
+  }, [countySelected, drinkingWater, extremeWeatherConfig]);
 
   // update tribal
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !tribalLayer) return;
 
     async function queryLayer() {
@@ -739,10 +787,11 @@ function ExtremeWeather() {
       }
     }
     queryLayer();
-  }, [hucBoundaries, tribalLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, tribalLayer]);
 
   // update wildfires
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !wildfiresLayer) return;
 
     setCurrentWeather((config) => {
@@ -798,7 +847,7 @@ function ExtremeWeather() {
           };
         }),
     });
-  }, [hucBoundaries, wildfiresLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, wildfiresLayer]);
 
   // update historical/future (cmra screening)
   const [range, setRange] = useState([
@@ -806,6 +855,7 @@ function ExtremeWeather() {
     tickList[tickList.length - 1].value,
   ]);
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!cmraScreeningLayer || !countySelected) return;
 
     async function queryLayer() {
@@ -881,10 +931,11 @@ function ExtremeWeather() {
     }
 
     queryLayer();
-  }, [cmraScreeningLayer, countySelected, range]);
+  }, [cmraScreeningLayer, countySelected, extremeWeatherConfig, range]);
 
   // update historical/future (cmra screening) with map
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!cmraScreeningLayer || !countySelected) return;
 
     async function queryLayer() {
@@ -963,7 +1014,12 @@ function ExtremeWeather() {
     }
 
     queryLayer();
-  }, [cmraScreeningLayer, countySelected, timeframeSelection]);
+  }, [
+    cmraScreeningLayer,
+    countySelected,
+    extremeWeatherConfig,
+    timeframeSelection,
+  ]);
 
   // update historical/future coastal flooding
   useEffect(() => {
@@ -988,6 +1044,7 @@ function ExtremeWeather() {
 
   // update drought
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !droughtRealtimeLayer) return;
 
     setCurrentWeather((config) => {
@@ -1045,10 +1102,11 @@ function ExtremeWeather() {
           };
         }),
     });
-  }, [hucBoundaries, droughtRealtimeLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, droughtRealtimeLayer]);
 
   // update inland flooding
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !inlandFloodingRealtimeLayer) return;
 
     setCurrentWeather((config) => {
@@ -1112,10 +1170,11 @@ function ExtremeWeather() {
         });
       },
     });
-  }, [hucBoundaries, inlandFloodingRealtimeLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, inlandFloodingRealtimeLayer]);
 
   // update costal flooding
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !coastalFloodingRealtimeLayer) return;
 
     setCurrentWeather((config) => {
@@ -1166,10 +1225,11 @@ function ExtremeWeather() {
         });
       },
     });
-  }, [hucBoundaries, coastalFloodingRealtimeLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, coastalFloodingRealtimeLayer]);
 
   // update extreme cold
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !extremeColdRealtimeLayer) return;
 
     setCurrentWeather((config) => {
@@ -1242,10 +1302,11 @@ function ExtremeWeather() {
         });
       },
     });
-  }, [hucBoundaries, extremeColdRealtimeLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, extremeColdRealtimeLayer]);
 
   // update extreme heat
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !extremeHeatRealtimeLayer) return;
 
     setCurrentWeather((config) => {
@@ -1318,10 +1379,11 @@ function ExtremeWeather() {
         });
       },
     });
-  }, [hucBoundaries, extremeHeatRealtimeLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, extremeHeatRealtimeLayer]);
 
   // update storage tanks
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !storageTanksLayer) return;
 
     setPotentiallyVulnerable((config) => {
@@ -1364,10 +1426,11 @@ function ExtremeWeather() {
           };
         }),
     });
-  }, [hucBoundaries, storageTanksLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, storageTanksLayer]);
 
   // update combined sewer overflows
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !sewerOverflowsLayer) return;
 
     setPotentiallyVulnerable((config) => {
@@ -1410,10 +1473,11 @@ function ExtremeWeather() {
           };
         }),
     });
-  }, [hucBoundaries, sewerOverflowsLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, sewerOverflowsLayer]);
 
   // update dams count
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucBoundaries || !damsLayer) return;
 
     setPotentiallyVulnerable((config) => {
@@ -1452,10 +1516,11 @@ function ExtremeWeather() {
           };
         }),
     });
-  }, [hucBoundaries, damsLayer]);
+  }, [extremeWeatherConfig, hucBoundaries, damsLayer]);
 
   // update wells count
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected || !wellsLayer) return;
 
     setPotentiallyVulnerable((config) => {
@@ -1499,10 +1564,11 @@ function ExtremeWeather() {
           };
         }),
     });
-  }, [countySelected, wellsLayer]);
+  }, [countySelected, extremeWeatherConfig, wellsLayer]);
 
   // update disadvantaged communities
   useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected || !disadvantagedCommunitiesLayer) return;
 
     setPotentiallyVulnerable((config) => {
@@ -1557,7 +1623,17 @@ function ExtremeWeather() {
           };
         }),
     });
-  }, [countySelected, disadvantagedCommunitiesLayer]);
+  }, [countySelected, disadvantagedCommunitiesLayer, extremeWeatherConfig]);
+
+  if (extremeWeatherConfig.status === 'fetching') return <LoadingSpinner />;
+  if (extremeWeatherConfig.status === 'failure')
+    return (
+      <div css={containerStyles}>
+        <div css={modifiedErrorBoxStyles}>
+          <p>{tabErrorBoundaryMessage('Extreme Weather')}</p>
+        </div>
+      </div>
+    );
 
   return (
     <div css={containerStyles}>
@@ -2059,646 +2135,3 @@ type SwitchTableConfig = {
   updateCount: number;
   items: Row[];
 };
-
-const currentWatherDefaults: Row[] = [
-  {
-    id: 'fire',
-    label: 'Fire',
-    checked: false,
-    disabled: false,
-    layerId: 'wildfiresLayer',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'drought',
-    label: 'Drought',
-    checked: false,
-    disabled: false,
-    layerId: 'droughtRealtimeLayer',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'inlandFlooding',
-    label: 'Inland Flooding',
-    checked: false,
-    disabled: false,
-    layerId: 'inlandFloodingRealtimeLayer',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'coastalFlooding',
-    label: 'Coastal Flooding',
-    checked: false,
-    disabled: false,
-    layerId: 'coastalFloodingRealtimeLayer',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'extremeHeat',
-    label: 'Extreme Heat',
-    checked: false,
-    disabled: false,
-    layerId: 'extremeHeatRealtimeLayer',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'extremeCold',
-    label: 'Extreme Cold',
-    checked: false,
-    disabled: false,
-    layerId: 'extremeColdRealtimeLayer',
-    status: 'idle',
-    text: '',
-  },
-];
-const historicalRangeDefaults: Row[] = [
-  {
-    id: 'fire',
-    label: 'Fire',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'drought',
-    label: 'Drought',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'inlandFlooding',
-    label: 'Inland Flooding',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'coastalFlooding',
-    label: 'Coastal Flooding',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'extremeHeat',
-    label: 'Extreme Heat',
-    status: 'idle',
-    text: '',
-  },
-];
-const historicalDefaults: Row[] = [
-  {
-    id: 'fire',
-    label: 'Fire',
-    checked: false,
-    disabled: false,
-    layerId: 'cmraScreeningLayer',
-    status: 'idle',
-    text: '',
-    layerProperties: {
-      blendMode: 'multiply',
-      title: 'Fire',
-      renderer: {
-        type: 'class-breaks',
-        field: 'HISTORIC_MAX_CONSECDD',
-        classBreakInfos: [
-          {
-            minValue: -9007199254740991,
-            maxValue: 9007199254740991,
-            symbol: {
-              type: 'simple-fill',
-              color: [170, 170, 170, 255],
-              outline: {
-                type: 'simple-line',
-                color: [225, 229, 232, 107],
-                width: 0,
-                style: 'solid',
-              },
-              style: 'solid',
-            },
-          },
-        ],
-        visualVariables: [
-          {
-            type: 'color',
-            field: 'HISTORIC_MAX_CONSECDD',
-            stops: [
-              {
-                color: [255, 255, 178, 255],
-                value: 10,
-              },
-              {
-                color: [254, 204, 92, 255],
-                value: 19,
-              },
-              {
-                color: [253, 141, 60, 255],
-                value: 28,
-              },
-              {
-                color: [240, 59, 32, 255],
-                value: 37,
-              },
-              {
-                color: [189, 0, 38, 255],
-                value: 46,
-              },
-            ],
-          },
-          {
-            type: 'size',
-            valueExpression: '$view.scale',
-            stops: [
-              {
-                size: 0.042905885932572586,
-                value: 1066256,
-              },
-              {
-                size: 0.021452942966286293,
-                value: 3332050,
-              },
-              {
-                size: 0.010726471483143147,
-                value: 13328201,
-              },
-              {
-                size: 0,
-                value: 26656402,
-              },
-            ],
-            target: 'outline',
-          },
-        ],
-      },
-      popupTemplate: {
-        title: '{CountyName}, {StateAbbr}',
-        content: [
-          {
-            type: 'text',
-            text: '<p><span style="font-size:18px;"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Maximum number of consecutive dry days</strong></p>',
-          },
-        ],
-        expressionInfos: [
-          {
-            name: 'roundedValue',
-            expression: 'Round($feature.HISTORIC_MAX_CONSECDD, 1)',
-            returnType: 'number',
-          },
-        ],
-      },
-    },
-  },
-  {
-    id: 'drought',
-    label: 'Drought',
-    checked: false,
-    disabled: false,
-    layerId: 'cmraScreeningLayer',
-    status: 'idle',
-    text: '',
-    layerProperties: {
-      blendMode: 'multiply',
-      title: 'Drought',
-      renderer: {
-        type: 'class-breaks',
-        field: 'HISTORIC_MEAN_PRLT0IN',
-        classBreakInfos: [
-          {
-            minValue: -9007199254740991,
-            maxValue: 9007199254740991,
-            symbol: {
-              type: 'simple-fill',
-              color: [170, 170, 170, 255],
-              outline: {
-                type: 'simple-line',
-                color: [225, 229, 232, 107],
-                width: 0,
-                style: 'solid',
-              },
-              style: 'solid',
-            },
-          },
-        ],
-        visualVariables: [
-          {
-            type: 'color',
-            field: 'HISTORIC_MEAN_PRLT0IN',
-            stops: [
-              {
-                color: [255, 255, 178, 255],
-                value: 169,
-              },
-              {
-                color: [254, 204, 92, 255],
-                value: 187,
-              },
-              {
-                color: [253, 141, 60, 255],
-                value: 206,
-              },
-              {
-                color: [240, 59, 32, 255],
-                value: 224,
-              },
-              {
-                color: [189, 0, 38, 255],
-                value: 243,
-              },
-            ],
-          },
-          {
-            type: 'size',
-            valueExpression: '$view.scale',
-            stops: [
-              {
-                size: 0.042905885932572586,
-                value: 1066256,
-              },
-              {
-                size: 0.021452942966286293,
-                value: 3332050,
-              },
-              {
-                size: 0.010726471483143147,
-                value: 13328201,
-              },
-              {
-                size: 0,
-                value: 26656402,
-              },
-            ],
-            target: 'outline',
-          },
-        ],
-      },
-      popupTemplate: {
-        title: '{CountyName}, {StateAbbr}',
-        content: [
-          {
-            type: 'text',
-            text: '<p><span style="font-size:18px;"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Days per year with no precipitation (dry days)</strong></p>',
-          },
-        ],
-        expressionInfos: [
-          {
-            name: 'roundedValue',
-            expression: 'Round($feature.HISTORIC_MEAN_PRLT0IN, 1)',
-            returnType: 'number',
-          },
-        ],
-      },
-    },
-  },
-  {
-    id: 'inlandFloodingInches',
-    label: 'Inland Flooding',
-    checked: false,
-    disabled: false,
-    layerId: 'cmraScreeningLayer',
-    status: 'idle',
-    text: '',
-    layerProperties: {
-      blendMode: 'multiply',
-      title: 'Fire',
-      renderer: {
-        type: 'class-breaks',
-        field: 'HISTORIC_MEAN_PR_ANNUAL',
-        classBreakInfos: [
-          {
-            minValue: -9007199254740991,
-            maxValue: 9007199254740991,
-            symbol: {
-              type: 'simple-fill',
-              color: [170, 170, 170, 255],
-              outline: {
-                type: 'simple-line',
-                color: [225, 229, 232, 107],
-                width: 0,
-                style: 'solid',
-              },
-              style: 'solid',
-            },
-          },
-        ],
-        visualVariables: [
-          {
-            type: 'color',
-            field: 'HISTORIC_MEAN_PR_ANNUAL',
-            stops: [
-              {
-                color: [255, 255, 204, 255],
-                value: 25,
-              },
-              {
-                color: [161, 218, 180, 255],
-                value: 32.5,
-              },
-              {
-                color: [65, 182, 196, 255],
-                value: 40,
-              },
-              {
-                color: [44, 127, 184, 255],
-                value: 48,
-              },
-              {
-                color: [37, 52, 148, 255],
-                value: 56,
-              },
-            ],
-          },
-          {
-            type: 'size',
-            valueExpression: '$view.scale',
-            stops: [
-              {
-                size: 0.042905885932572586,
-                value: 1066256,
-              },
-              {
-                size: 0.021452942966286293,
-                value: 3332050,
-              },
-              {
-                size: 0.010726471483143147,
-                value: 13328201,
-              },
-              {
-                size: 0,
-                value: 26656402,
-              },
-            ],
-            target: 'outline',
-          },
-        ],
-      },
-      popupTemplate: {
-        title: '{CountyName}, {StateAbbr}',
-        content: [
-          {
-            type: 'text',
-            text: '<p><span style="font-size:18px;"><strong>{expression/roundedValue} &nbsp;Inches</strong></span></p><p><strong>Average annual total precipitation</strong></p>',
-          },
-        ],
-        expressionInfos: [
-          {
-            name: 'roundedValue',
-            expression: 'Round($feature.HISTORIC_MEAN_PR_ANNUAL, 1)',
-            returnType: 'number',
-          },
-        ],
-      },
-    },
-  },
-  {
-    id: 'coastalFlooding',
-    label: 'Coastal Flooding',
-    layerId: 'coastalFloodingLayer',
-    checked: false,
-    disabled: false,
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'extremeHeat',
-    label: 'Extreme Heat',
-    checked: false,
-    disabled: false,
-    layerId: 'cmraScreeningLayer',
-    status: 'idle',
-    text: '',
-    layerProperties: {
-      blendMode: 'multiply',
-      title: 'Extreme Heat',
-      renderer: {
-        type: 'class-breaks',
-        field: 'HISTORIC_MAX_TMAX90F',
-        classBreakInfos: [
-          {
-            minValue: -9007199254740991,
-            maxValue: 9007199254740991,
-            symbol: {
-              type: 'simple-fill',
-              color: [170, 170, 170, 255],
-              outline: {
-                type: 'simple-line',
-                color: [225, 229, 232, 107],
-                width: 0,
-                style: 'solid',
-              },
-              style: 'solid',
-            },
-          },
-        ],
-        visualVariables: [
-          {
-            type: 'color',
-            field: 'HISTORIC_MAX_TMAX90F',
-            stops: [
-              {
-                color: [255, 255, 178, 255],
-                value: 58,
-              },
-              {
-                color: [254, 204, 92, 255],
-                value: 80.7,
-              },
-              {
-                color: [253, 141, 60, 255],
-                value: 103,
-              },
-              {
-                color: [240, 59, 32, 255],
-                value: 126,
-              },
-              {
-                color: [189, 0, 38, 255],
-                value: 149,
-              },
-            ],
-          },
-          {
-            type: 'size',
-            valueExpression: '$view.scale',
-            stops: [
-              {
-                size: 0.042905885932572586,
-                value: 1066256,
-              },
-              {
-                size: 0.021452942966286293,
-                value: 3332050,
-              },
-              {
-                size: 0.010726471483143147,
-                value: 13328201,
-              },
-              {
-                size: 0,
-                value: 26656402,
-              },
-            ],
-            target: 'outline',
-          },
-        ],
-      },
-      popupTemplate: {
-        title: '{CountyName}, {StateAbbr}',
-        content: [
-          {
-            type: 'text',
-            text: '<p><span style="font-size:18px;"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Annual days with maximum temperature &gt; 90</strong><span style="background-color:rgb(255,255,255);color:rgb(50,50,50);"><strong>°F</strong></span></p>',
-          },
-        ],
-        expressionInfos: [
-          {
-            name: 'roundedValue',
-            expression: 'Round($feature.HISTORIC_MAX_TMAX90F, 1)',
-            returnType: 'number',
-          },
-        ],
-      },
-    },
-  },
-];
-const potentiallyVulnerableDefaults: Row[] = [
-  // huc
-  {
-    id: 'hucSubHeading',
-    label: 'Within Watershed',
-    subHeading: true,
-  },
-  {
-    id: 'waterbodies',
-    label: 'Waterbodies',
-    checked: false,
-    disabled: false,
-    layerId: 'waterbodyLayer',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'impairedWaterbodies',
-    label: 'Impaired',
-    indent: true,
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'goodWaterbodies',
-    label: 'Good',
-    indent: true,
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'unknownWaterbodies',
-    label: 'Unknown',
-    indent: true,
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'dischargers',
-    label: 'Permitted Dischargers',
-    checked: false,
-    disabled: false,
-    layerId: 'dischargersLayer',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'tribes',
-    label: 'Tribes',
-    checked: false,
-    disabled: false,
-    layerId: 'tribalLayer',
-    text: '',
-  },
-  {
-    id: 'pollutantStorageTanks',
-    checked: false,
-    disabled: false,
-    label: 'Above and below ground pollutant storage tanks',
-    layerId: 'storageTanksLayer',
-    text: '',
-  },
-  {
-    id: 'combinedSewerOverflows',
-    checked: false,
-    disabled: false,
-    label: 'Combined Sewer Overflows',
-    layerId: 'sewerOverflowsLayer',
-    text: '',
-  },
-  {
-    id: 'dams',
-    checked: false,
-    disabled: false,
-    label: 'Dams',
-    layerId: 'damsLayer',
-    text: '',
-  },
-
-  // county
-  {
-    id: 'hucSubHeading',
-    label: 'Within County',
-    subHeading: true,
-  },
-  {
-    id: 'drinkingWaterSystems',
-    label: 'Public Drinking Water Systems',
-    checked: false,
-    disabled: false,
-    layerId: 'providersLayer',
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'surfaceWaterSources',
-    label: 'Surface Water Sources',
-    indent: true,
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'groundWaterSources',
-    label: 'Ground Water Sources',
-    indent: true,
-    status: 'idle',
-    text: '',
-  },
-  {
-    id: 'disadvantagedCommunities',
-    checked: false,
-    disabled: false,
-    layerId: 'disadvantagedCommunitiesLayer',
-    label: 'Overburdened, Underserved, and Disadvantaged Communities',
-    text: '',
-  },
-  {
-    id: 'wells',
-    checked: false,
-    disabled: false,
-    label: 'Wells',
-    layerId: 'wellsLayer',
-    text: '',
-  },
-
-  // all
-  {
-    id: 'allSubHeading',
-    label: 'Entire Map',
-    subHeading: true,
-  },
-  {
-    id: 'landCover',
-    label: 'Land cover',
-    checked: false,
-    disabled: false,
-    layerId: 'landCoverLayer',
-  },
-];
