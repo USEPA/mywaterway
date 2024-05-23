@@ -105,6 +105,7 @@ function ExtremeWeather() {
       items: [],
     });
 
+  // initializes state for switch tables
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
 
@@ -143,11 +144,22 @@ function ExtremeWeather() {
   // used for when the user toggles layers in full screen mode and then
   // exits full screen.
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
+    if (extremeWeatherConfig.status !== 'success' || !mapView) return;
 
-    function handleSetting(config: SwitchTableConfig) {
+    function handleSetting(
+      config: SwitchTableConfig,
+      additionalTest?: (layer: __esri.Layer, id: string) => boolean,
+    ) {
       Object.entries(visibleLayers).forEach(([layerId, visible]) => {
-        const row = config.items.find((l) => l.layerId === layerId);
+        const layer = !additionalTest
+          ? null
+          : mapView.map.layers.find((l: __esri.Layer) => l.id === layerId);
+
+        const row = config.items.find(
+          (l) =>
+            l.layerId === layerId &&
+            (!additionalTest || additionalTest(layer, l.id)),
+        );
         if (!row?.hasOwnProperty('checked')) return;
         row.checked = visible;
       });
@@ -155,7 +167,21 @@ function ExtremeWeather() {
 
     setTableConfig(setCurrentWeather, handleSetting);
     setTableConfig(setPotentiallyVulnerable, handleSetting);
-  }, [extremeWeatherConfig, visibleLayers]);
+    setTableConfig(setHistoricalRisk, (config) =>
+      handleSetting(config, (layer, id) => {
+        if (!layer) return true;
+
+        let search = '';
+        if (id === 'fire') search = 'Fire';
+        if (id === 'drought') search = 'Drought';
+        if (id === 'inlandFloodingInches') search = 'Inland Flooding';
+        if (id === 'coastalFlooding') search = 'Coastal Flooding';
+        if (id === 'extremeHeat') search = 'Extreme Heat';
+
+        return layer.title.includes(search);
+      }),
+    );
+  }, [extremeWeatherConfig, mapView, visibleLayers]);
 
   const [countyOptions, setCountyOptions] = useState<
     { label: string; value: string }[]
@@ -206,21 +232,11 @@ function ExtremeWeather() {
     };
   }, [countyBoundaries, countySelected, mapView, providersLayer]);
 
+  // gets the geometry of the hucBoundaries
   const [hucGeometry, setHucGeometry] = useState<__esri.Geometry | null>(null);
   useEffect(() => {
     setHucGeometry(hucBoundaries?.features?.[0]?.geometry ?? null);
   }, [hucBoundaries]);
-
-  // resets the historical/future map section
-  useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
-    return function cleanup() {
-      setHistoricalRisk({
-        updateCount: 0,
-        items: extremeWeatherConfig.data.historicalDefaults,
-      });
-    };
-  }, [extremeWeatherConfig]);
 
   // update waterbodies
   useEffect(() => {
