@@ -120,7 +120,7 @@ function ExtremeWeather() {
 
     initialize(
       setCurrentWeather,
-      extremeWeatherConfig.data.currentWatherDefaults,
+      extremeWeatherConfig.data.currentWeatherDefaults,
     );
     initialize(
       setHistoricalRiskRange,
@@ -151,14 +151,10 @@ function ExtremeWeather() {
         if (!row?.hasOwnProperty('checked')) return;
         row.checked = visible;
       });
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
     }
 
-    setCurrentWeather(handleSetting);
-    setPotentiallyVulnerable(handleSetting);
+    setTableConfig(setCurrentWeather, handleSetting);
+    setTableConfig(setPotentiallyVulnerable, handleSetting);
   }, [extremeWeatherConfig, visibleLayers]);
 
   const [countyOptions, setCountyOptions] = useState<
@@ -168,6 +164,8 @@ function ExtremeWeather() {
     label: string;
     value: string;
   } | null>(null);
+
+  // initializes the county select
   useEffect(() => {
     if (!countyBoundaries) return;
 
@@ -187,6 +185,7 @@ function ExtremeWeather() {
     }
   }, [countyBoundaries, providersLayer]);
 
+  // ensures the correct county is shown on the map
   useEffect(() => {
     if (!countySelected) return;
 
@@ -207,6 +206,12 @@ function ExtremeWeather() {
     };
   }, [countyBoundaries, countySelected, mapView, providersLayer]);
 
+  const [hucGeometry, setHucGeometry] = useState<__esri.Geometry | null>(null);
+  useEffect(() => {
+    setHucGeometry(hucBoundaries?.features?.[0]?.geometry ?? null);
+  }, [hucBoundaries]);
+
+  // resets the historical/future map section
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
     return function cleanup() {
@@ -221,49 +226,37 @@ function ExtremeWeather() {
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
 
-    if (cipSummary.status === 'fetching') {
-      setPotentiallyVulnerable((config) => {
-        updateRow(config, cipSummary.status, 'waterbodies');
-        updateRow(config, cipSummary.status, 'goodWaterbodies');
-        updateRow(config, cipSummary.status, 'impairedWaterbodies');
-        updateRow(config, cipSummary.status, 'unknownWaterbodies');
-        return {
-          ...config,
-          updateCount: config.updateCount + 1,
-        };
+    const status = cipSummary.status;
+
+    if (status === 'fetching') {
+      setTableConfig(setPotentiallyVulnerable, (config) => {
+        updateRow(config, status, 'waterbodies');
+        updateRow(config, status, 'goodWaterbodies');
+        updateRow(config, status, 'impairedWaterbodies');
+        updateRow(config, status, 'unknownWaterbodies');
       });
       return;
     }
-    if (cipSummary.status === 'success' && (!waterbodyLayer || !waterbodies))
-      return;
+    if (status === 'success' && (!waterbodyLayer || !waterbodies)) return;
 
     const summary = summarizeAssessments(waterbodies ?? [], 'overallstatus');
-    setPotentiallyVulnerable((config) => {
-      updateRow(config, cipSummary.status, 'waterbodies', summary.total);
+    setTableConfig(setPotentiallyVulnerable, (config) => {
+      updateRow(config, status, 'waterbodies', summary.total);
+      updateRow(config, status, 'goodWaterbodies', summary['Fully Supporting']);
       updateRow(
         config,
-        cipSummary.status,
-        'goodWaterbodies',
-        summary['Fully Supporting'],
-      );
-      updateRow(
-        config,
-        cipSummary.status,
+        status,
         'impairedWaterbodies',
         summary['Not Supporting'],
       );
       updateRow(
         config,
-        cipSummary.status,
+        status,
         'unknownWaterbodies',
         summary.unassessed +
           summary['Insufficient Information'] +
           summary['Not Assessed'],
       );
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
     });
   }, [cipSummary, extremeWeatherConfig, waterbodies, waterbodyLayer]);
 
@@ -271,24 +264,18 @@ function ExtremeWeather() {
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
 
+    const id = 'dischargers';
     if (dischargersStatus === 'pending') {
-      setPotentiallyVulnerable((config) => {
-        updateRow(config, dischargersStatus, 'dischargers');
-        return {
-          ...config,
-          updateCount: config.updateCount + 1,
-        };
-      });
+      setTableConfigSingle(setPotentiallyVulnerable, dischargersStatus, id);
       return;
     }
 
-    setPotentiallyVulnerable((config) => {
-      updateRow(config, dischargersStatus, 'dischargers', dischargers);
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
+    setTableConfigSingle(
+      setPotentiallyVulnerable,
+      dischargersStatus,
+      id,
+      dischargers,
+    );
   }, [dischargers, dischargersStatus, extremeWeatherConfig]);
 
   // update drinking water
@@ -296,20 +283,17 @@ function ExtremeWeather() {
     if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected) return;
 
-    if (drinkingWater.status === 'fetching') {
-      setPotentiallyVulnerable((config) => {
-        updateRow(config, drinkingWater.status, 'drinkingWaterSystems');
-        updateRow(config, drinkingWater.status, 'groundWaterSources');
-        updateRow(config, drinkingWater.status, 'surfaceWaterSources');
-        return {
-          ...config,
-          updateCount: config.updateCount + 1,
-        };
+    const status = drinkingWater.status;
+    if (status === 'fetching') {
+      setTableConfig(setPotentiallyVulnerable, (config) => {
+        updateRow(config, status, 'drinkingWaterSystems');
+        updateRow(config, status, 'groundWaterSources');
+        updateRow(config, status, 'surfaceWaterSources');
       });
       return;
     }
 
-    setPotentiallyVulnerable((config) => {
+    setTableConfig(setPotentiallyVulnerable, (config) => {
       if (!countySelected) return config;
 
       let totalSystems = 0;
@@ -321,110 +305,53 @@ function ExtremeWeather() {
         if (system.gw_sw_code === 'GW') groundWater += 1;
         if (system.gw_sw_code === 'SW') surfaceWater += 1;
       });
-      updateRow(
-        config,
-        drinkingWater.status,
-        'drinkingWaterSystems',
-        totalSystems,
-      );
-      updateRow(
-        config,
-        drinkingWater.status,
-        'groundWaterSources',
-        groundWater,
-      );
-      updateRow(
-        config,
-        drinkingWater.status,
-        'surfaceWaterSources',
-        surfaceWater,
-      );
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
+      updateRow(config, status, 'drinkingWaterSystems', totalSystems);
+      updateRow(config, status, 'groundWaterSources', groundWater);
+      updateRow(config, status, 'surfaceWaterSources', surfaceWater);
     });
   }, [countySelected, drinkingWater, extremeWeatherConfig]);
 
   // update tribal
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !tribalLayer) return;
+    if (!hucGeometry || !tribalLayer) return;
 
-    async function queryLayer() {
-      if (!hucBoundaries || !tribalLayer) return;
-
-      setPotentiallyVulnerable((config) => {
-        updateRow(config, 'pending', 'tribes');
-        return {
-          ...config,
-          updateCount: config.updateCount + 1,
-        };
-      });
-
-      const requests: Promise<number>[] = [];
-      tribalLayer.layers.forEach((layer) => {
-        if (!isFeatureLayer(layer)) return;
-        requests.push(
-          layer.queryFeatureCount({
-            geometry: hucBoundaries.features[0].geometry,
-          }),
-        );
-      });
-
-      try {
-        const responses = await Promise.all(requests);
+    const id = 'tribes';
+    queryLayers({
+      id,
+      layer: tribalLayer,
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      setter: setPotentiallyVulnerable,
+      responseParser: (responses) => {
         let numTribes = 0;
-        responses.forEach((res) => (numTribes += res));
-
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'success', 'tribes', numTribes);
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      } catch (ex) {
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'failure', 'tribes');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      }
-    }
-    queryLayer();
-  }, [extremeWeatherConfig, hucBoundaries, tribalLayer]);
+        responses.forEach((res) => (numTribes += res.features.length));
+        return [
+          {
+            id,
+            value: numTribes,
+          },
+        ];
+      },
+    });
+  }, [extremeWeatherConfig, hucGeometry, tribalLayer]);
 
   // update wildfires
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !wildfiresLayer) return;
+    if (!hucGeometry || !wildfiresLayer) return;
 
-    setCurrentWeather((config) => {
-      updateRow(config, 'pending', 'fire');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'fire';
     queryLayers({
+      id,
       layer: wildfiresLayer,
-      queries: [
-        {
-          serviceItemId: '0',
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['DailyAcres'],
-          },
-        },
-      ],
-      onSuccess: (response) => {
-        let numFires = response[0].features.length;
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      setter: setCurrentWeather,
+      responseParser: (responses) => {
+        let numFires = responses[0].features.length;
         let acresBurned = 0;
-        response[0].features.forEach(
+        responses[0].features.forEach(
           (feature) => (acresBurned += feature.attributes.DailyAcres),
         );
 
@@ -438,24 +365,15 @@ function ExtremeWeather() {
           else status += `${acresBurned} Acres Burned`;
         }
 
-        setCurrentWeather((config) => {
-          updateRow(config, 'success', 'fire', status);
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        return [
+          {
+            id,
+            value: status,
+          },
+        ];
       },
-      onError: () =>
-        setCurrentWeather((config) => {
-          updateRow(config, 'failure', 'fire');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        }),
     });
-  }, [extremeWeatherConfig, hucBoundaries, wildfiresLayer]);
+  }, [extremeWeatherConfig, hucGeometry, wildfiresLayer]);
 
   // update historical/future (cmra screening)
   const [range, setRange] = useState([
@@ -466,42 +384,33 @@ function ExtremeWeather() {
     if (extremeWeatherConfig.status !== 'success') return;
     if (!cmraScreeningLayer || !countySelected) return;
 
-    async function queryLayer() {
-      if (!cmraScreeningLayer || !countySelected) return;
-
-      setHistoricalRiskRange((config) => {
-        updateRow(config, 'pending', 'fire');
-        updateRow(config, 'pending', 'drought');
-        updateRow(config, 'pending', 'inlandFlooding');
-        updateRow(config, 'pending', 'coastalFlooding');
-        updateRow(config, 'pending', 'extremeHeat');
-        return {
-          ...config,
-          updateCount: config.updateCount + 1,
-        };
-      });
-
-      try {
-        const response = await cmraScreeningLayer.queryFeatures({
-          outFields: cmraScreeningLayer.outFields,
-          where: `GEOID = '${countySelected.value}'`,
-        });
-
-        if (response.features.length === 0) {
-          setHistoricalRiskRange((config) => {
-            updateRow(config, 'success', 'fire', '');
-            updateRow(config, 'success', 'drought', '');
-            updateRow(config, 'success', 'inlandFlooding', '');
-            updateRow(config, 'success', 'coastalFlooding', '');
-            updateRow(config, 'success', 'extremeHeat', '');
-            return {
-              ...config,
-              updateCount: config.updateCount + 1,
-            };
-          });
+    queryLayers({
+      id: 'fire',
+      layer: cmraScreeningLayer,
+      config: extremeWeatherConfig.data.historicalRangeDefaults,
+      setter: setHistoricalRiskRange,
+      outIds: [
+        'fire',
+        'drought',
+        'inlandFlooding',
+        'coastalFlooding',
+        'extremeHeat',
+      ],
+      whereReplacer: (where: string) => {
+        return where.replace('{HMW_COUNTY_FIPS}', countySelected.value);
+      },
+      responseParser: (responses) => {
+        if (responses[0].features.length === 0) {
+          return [
+            { id: 'fire', value: '' },
+            { id: 'drought', value: '' },
+            { id: 'inlandFlooding', value: '' },
+            { id: 'coastalFlooding', value: '' },
+            { id: 'extremeHeat', value: '' },
+          ];
         }
 
-        const attributes = response.features[0].attributes;
+        const attributes = responses[0].features[0].attributes;
         const isSame = range[0] === range[1];
         const startText = isSame ? 'Max number of' : 'Change in';
         const aggType = isSame ? 'max' : 'difference';
@@ -512,33 +421,15 @@ function ExtremeWeather() {
         const coastalFloodingText = `${startText.replace(' number of', '')} % of county impacted by sea level rise: ${getHistoricValueRange(attributes, range, 'coastalFlooding', aggType)}`;
         const extremeHeatText = `${startText} annual days with max temperature over 90°F: ${getHistoricValueRange(attributes, range, 'extremeHeat', aggType)}`;
 
-        setHistoricalRiskRange((config) => {
-          updateRow(config, 'success', 'fire', fireText);
-          updateRow(config, 'success', 'drought', droughtText);
-          updateRow(config, 'success', 'inlandFlooding', inlandFloodingText);
-          updateRow(config, 'success', 'coastalFlooding', coastalFloodingText);
-          updateRow(config, 'success', 'extremeHeat', extremeHeatText);
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      } catch (ex) {
-        setHistoricalRiskRange((config) => {
-          updateRow(config, 'failure', 'fire');
-          updateRow(config, 'failure', 'drought');
-          updateRow(config, 'failure', 'inlandFlooding');
-          updateRow(config, 'failure', 'coastalFlooding');
-          updateRow(config, 'failure', 'extremeHeat');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      }
-    }
-
-    queryLayer();
+        return [
+          { id: 'fire', value: fireText },
+          { id: 'drought', value: droughtText },
+          { id: 'inlandFlooding', value: inlandFloodingText },
+          { id: 'coastalFlooding', value: coastalFloodingText },
+          { id: 'extremeHeat', value: extremeHeatText },
+        ];
+      },
+    });
   }, [cmraScreeningLayer, countySelected, extremeWeatherConfig, range]);
 
   // update historical/future (cmra screening) with map
@@ -546,42 +437,33 @@ function ExtremeWeather() {
     if (extremeWeatherConfig.status !== 'success') return;
     if (!cmraScreeningLayer || !countySelected) return;
 
-    async function queryLayer() {
-      if (!cmraScreeningLayer || !countySelected) return;
-
-      setHistoricalRisk((config) => {
-        updateRow(config, 'pending', 'fire');
-        updateRow(config, 'pending', 'drought');
-        updateRow(config, 'pending', 'inlandFloodingInches');
-        updateRow(config, 'pending', 'coastalFlooding');
-        updateRow(config, 'pending', 'extremeHeat');
-        return {
-          ...config,
-          updateCount: config.updateCount + 1,
-        };
-      });
-
-      try {
-        const response = await cmraScreeningLayer.queryFeatures({
-          outFields: cmraScreeningLayer.outFields,
-          where: `GEOID = '${countySelected.value}'`,
-        });
-
-        if (response.features.length === 0) {
-          setHistoricalRisk((config) => {
-            updateRow(config, 'success', 'fire', '');
-            updateRow(config, 'success', 'drought', '');
-            updateRow(config, 'success', 'inlandFloodingInches', '');
-            updateRow(config, 'success', 'coastalFlooding', '');
-            updateRow(config, 'success', 'extremeHeat', '');
-            return {
-              ...config,
-              updateCount: config.updateCount + 1,
-            };
-          });
+    queryLayers({
+      id: 'fire',
+      layer: cmraScreeningLayer,
+      config: extremeWeatherConfig.data.historicalDefaults,
+      setter: setHistoricalRisk,
+      outIds: [
+        'fire',
+        'drought',
+        'inlandFloodingInches',
+        'coastalFlooding',
+        'extremeHeat',
+      ],
+      whereReplacer: (where: string) => {
+        return where.replace('{HMW_COUNTY_FIPS}', countySelected.value);
+      },
+      responseParser: (responses) => {
+        if (responses[0].features.length === 0) {
+          return [
+            { id: 'fire', value: '' },
+            { id: 'drought', value: '' },
+            { id: 'inlandFloodingInches', value: '' },
+            { id: 'coastalFlooding', value: '' },
+            { id: 'extremeHeat', value: '' },
+          ];
         }
 
-        const attributes = response.features[0].attributes;
+        const attributes = responses[0].features[0].attributes;
         const range = timeframeSelection.value;
 
         const fireText = `Max number of annual consecutive (dry days): ${getHistoricValue(attributes, range, 'fire')}`;
@@ -590,38 +472,15 @@ function ExtremeWeather() {
         const coastalFloodingText = `% of county impacted by sea level rise: ${getHistoricValue(attributes, range, 'coastalFlooding')}`;
         const extremeHeatText = `Annual days with max temperature over 90°F: ${getHistoricValue(attributes, range, 'extremeHeat')}`;
 
-        setHistoricalRisk((config) => {
-          updateRow(config, 'success', 'fire', fireText);
-          updateRow(config, 'success', 'drought', droughtText);
-          updateRow(
-            config,
-            'success',
-            'inlandFloodingInches',
-            inlandFloodingText,
-          );
-          updateRow(config, 'success', 'coastalFlooding', coastalFloodingText);
-          updateRow(config, 'success', 'extremeHeat', extremeHeatText);
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      } catch (ex) {
-        setHistoricalRisk((config) => {
-          updateRow(config, 'failure', 'fire');
-          updateRow(config, 'failure', 'drought');
-          updateRow(config, 'failure', 'inlandFloodingInches');
-          updateRow(config, 'failure', 'coastalFlooding');
-          updateRow(config, 'failure', 'extremeHeat');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      }
-    }
-
-    queryLayer();
+        return [
+          { id: 'fire', value: fireText },
+          { id: 'drought', value: droughtText },
+          { id: 'inlandFloodingInches', value: inlandFloodingText },
+          { id: 'coastalFlooding', value: coastalFloodingText },
+          { id: 'extremeHeat', value: extremeHeatText },
+        ];
+      },
+    });
   }, [
     cmraScreeningLayer,
     countySelected,
@@ -653,27 +512,16 @@ function ExtremeWeather() {
   // update drought
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !droughtRealtimeLayer) return;
+    if (!hucGeometry || !droughtRealtimeLayer) return;
 
-    setCurrentWeather((config) => {
-      updateRow(config, 'pending', 'drought');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'drought';
     queryLayers({
+      id,
       layer: droughtRealtimeLayer,
-      queries: [
-        {
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['dm'],
-          },
-        },
-      ],
-      onSuccess: (responses) => {
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      setter: setCurrentWeather,
+      responseParser: (responses) => {
         const dmEnum: { [key: string]: string } = {
           '-1': 'No Drought',
           '0': 'Abnormally Dry',
@@ -688,63 +536,29 @@ function ExtremeWeather() {
           maxCategory = Math.max(maxCategory, f.attributes.dm);
         });
 
-        setCurrentWeather((config) => {
-          updateRow(
-            config,
-            'success',
-            'drought',
-            dmEnum[maxCategory.toString()],
-          );
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        return [
+          {
+            id,
+            value: dmEnum[maxCategory.toString()],
+          },
+        ];
       },
-      onError: () =>
-        setCurrentWeather((config) => {
-          updateRow(config, 'failure', 'drought');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        }),
     });
-  }, [extremeWeatherConfig, hucBoundaries, droughtRealtimeLayer]);
+  }, [extremeWeatherConfig, hucGeometry, droughtRealtimeLayer]);
 
   // update inland flooding
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !inlandFloodingRealtimeLayer) return;
+    if (!hucGeometry || !inlandFloodingRealtimeLayer) return;
 
-    setCurrentWeather((config) => {
-      updateRow(config, 'pending', 'inlandFlooding');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
-    // TODO consider moving serviceItemId to config
+    const id = 'inlandFlooding';
     queryLayers({
+      id,
       layer: inlandFloodingRealtimeLayer,
-      queries: [
-        {
-          serviceItemId: 'a6134ae01aad44c499d12feec782b386', // watches warnings
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['Event'],
-          },
-        },
-        {
-          serviceItemId: 'f9e9283b9c9741d09aad633f68758bf6', // precipitation
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['category', 'label'],
-          },
-        },
-      ],
-      onSuccess: (responses) => {
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      setter: setCurrentWeather,
+      responseParser: (responses) => {
         const watchRes = responses[0];
         const floodRes = responses[1];
 
@@ -755,122 +569,59 @@ function ExtremeWeather() {
         if (floodRes.features.length > 0)
           statuses.push('Rain Expected (next 72 hours)');
 
-        setCurrentWeather((config) => {
-          updateRow(
-            config,
-            'success',
-            'inlandFlooding',
-            statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
-          );
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      },
-      onError: () => {
-        setCurrentWeather((config) => {
-          updateRow(config, 'failure', 'inlandFlooding');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        return [
+          {
+            id,
+            value:
+              statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
+          },
+        ];
       },
     });
-  }, [extremeWeatherConfig, hucBoundaries, inlandFloodingRealtimeLayer]);
+  }, [extremeWeatherConfig, hucGeometry, inlandFloodingRealtimeLayer]);
 
   // update costal flooding
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !coastalFloodingRealtimeLayer) return;
+    if (!hucGeometry || !coastalFloodingRealtimeLayer) return;
 
-    setCurrentWeather((config) => {
-      updateRow(config, 'pending', 'coastalFlooding');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'coastalFlooding';
     queryLayers({
+      id,
       layer: coastalFloodingRealtimeLayer,
-      queries: [
-        {
-          serviceItemId: '22726ed54d804f3e9134550406520405', // watches warnings
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['Event'],
-          },
-        },
-      ],
-      onSuccess: (responses) => {
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      setter: setCurrentWeather,
+      responseParser: (responses) => {
         let statuses: string[] = [];
         responses[0].features.forEach((f) => {
           statuses.push(f.attributes.Event);
         });
 
-        setCurrentWeather((config) => {
-          updateRow(
-            config,
-            'success',
-            'coastalFlooding',
-            statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
-          );
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      },
-      onError: () => {
-        setCurrentWeather((config) => {
-          updateRow(config, 'failure', 'coastalFlooding');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        return [
+          {
+            id,
+            value:
+              statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
+          },
+        ];
       },
     });
-  }, [extremeWeatherConfig, hucBoundaries, coastalFloodingRealtimeLayer]);
+  }, [extremeWeatherConfig, hucGeometry, coastalFloodingRealtimeLayer]);
 
   // update extreme cold
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !extremeColdRealtimeLayer) return;
+    if (!hucGeometry || !extremeColdRealtimeLayer) return;
 
-    setCurrentWeather((config) => {
-      updateRow(config, 'pending', 'extremeCold');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'extremeCold';
     queryLayers({
+      id,
       layer: extremeColdRealtimeLayer,
-      queries: [
-        {
-          serviceItemId: 'a6134ae01aad44c499d12feec782b386', // watches warnings
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['Event'],
-
-            // workaround because the web map filters these out with the unique value renderer instead of by definition expression
-            where:
-              "Event IN ('Extreme Cold Warning', 'Extreme Cold Watch', 'Wind Chill Advisory', 'Wind Chill Warning', 'Wind Chill Watch')",
-          },
-        },
-        {
-          serviceItemId: '0ae7cf18df0a4b4d9e7eea665f00500d', // min temperature
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['Temp'],
-          },
-        },
-      ],
-      onSuccess: (responses) => {
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      setter: setCurrentWeather,
+      responseParser: (responses) => {
         const watchRes = responses[0];
         const tempRes = responses[1];
 
@@ -887,67 +638,32 @@ function ExtremeWeather() {
         if (minTemp < Number.MAX_SAFE_INTEGER)
           statuses.push(`Min Daily Air Temp: ${minTemp}°F`);
 
-        setCurrentWeather((config) => {
-          updateRow(
-            config,
-            'success',
-            'extremeCold',
-            statuses.length === 0 ? 'No Extreme Cold' : sentenceJoin(statuses),
-          );
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      },
-      onError: () => {
-        setCurrentWeather((config) => {
-          updateRow(config, 'failure', 'extremeCold');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        return [
+          {
+            id,
+            value:
+              statuses.length === 0
+                ? 'No Extreme Cold'
+                : sentenceJoin(statuses),
+          },
+        ];
       },
     });
-  }, [extremeWeatherConfig, hucBoundaries, extremeColdRealtimeLayer]);
+  }, [extremeWeatherConfig, hucGeometry, extremeColdRealtimeLayer]);
 
   // update extreme heat
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !extremeHeatRealtimeLayer) return;
+    if (!hucGeometry || !extremeHeatRealtimeLayer) return;
 
-    setCurrentWeather((config) => {
-      updateRow(config, 'pending', 'extremeHeat');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'extremeHeat';
     queryLayers({
+      id,
       layer: extremeHeatRealtimeLayer,
-      queries: [
-        {
-          serviceItemId: 'a6134ae01aad44c499d12feec782b386', // watches warnings
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['Event'],
-
-            // workaround because the web map filters these out with the unique value renderer instead of by definition expression
-            where:
-              "Event IN ('Excessive Heat Warning', 'Excessive Heat Watch', 'Heat Advisory')",
-          },
-        },
-        {
-          serviceItemId: '0ae7cf18df0a4b4d9e7eea665f00500d', // min temperature
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['Temp'],
-          },
-        },
-      ],
-      onSuccess: (responses) => {
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      setter: setCurrentWeather,
+      responseParser: (responses) => {
         const watchRes = responses[0];
         const tempRes = responses[1];
 
@@ -964,213 +680,117 @@ function ExtremeWeather() {
         if (maxTemp > Number.MIN_SAFE_INTEGER)
           statuses.push(`Max Daily Air Temp: ${maxTemp}°F`);
 
-        setCurrentWeather((config) => {
-          updateRow(
-            config,
-            'success',
-            'extremeHeat',
-            statuses.length === 0 ? 'No Extreme Heat' : sentenceJoin(statuses),
-          );
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
-      },
-      onError: () => {
-        setCurrentWeather((config) => {
-          updateRow(config, 'failure', 'extremeHeat');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        return [
+          {
+            id,
+            value:
+              statuses.length === 0
+                ? 'No Extreme Heat'
+                : sentenceJoin(statuses),
+          },
+        ];
       },
     });
-  }, [extremeWeatherConfig, hucBoundaries, extremeHeatRealtimeLayer]);
+
+    setTableConfigSingle(setCurrentWeather, 'pending', id);
+  }, [extremeWeatherConfig, hucGeometry, extremeHeatRealtimeLayer]);
 
   // update storage tanks
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !storageTanksLayer) return;
+    if (!hucGeometry || !storageTanksLayer) return;
 
-    setPotentiallyVulnerable((config) => {
-      updateRow(config, 'pending', 'pollutantStorageTanks');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'pollutantStorageTanks';
     queryLayers({
+      id,
       layer: storageTanksLayer,
-      queries: [
-        {
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      setter: setPotentiallyVulnerable,
+      responseParser: (responses) => {
+        return [
+          {
+            id,
+            value: responses[0].features.length,
           },
-        },
-      ],
-      onSuccess: (responses) => {
-        setPotentiallyVulnerable((config) => {
-          updateRow(
-            config,
-            'success',
-            'pollutantStorageTanks',
-            responses[0].features.length,
-          );
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        ];
       },
-      onError: () =>
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'failure', 'pollutantStorageTanks');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        }),
     });
-  }, [extremeWeatherConfig, hucBoundaries, storageTanksLayer]);
+  }, [extremeWeatherConfig, hucGeometry, storageTanksLayer]);
 
   // update combined sewer overflows
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !sewerOverflowsLayer) return;
+    if (!hucGeometry || !sewerOverflowsLayer) return;
 
-    setPotentiallyVulnerable((config) => {
-      updateRow(config, 'pending', 'combinedSewerOverflows');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'combinedSewerOverflows';
     queryLayers({
+      id,
       layer: sewerOverflowsLayer,
-      queries: [
-        {
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      setter: setPotentiallyVulnerable,
+      responseParser: (responses) => {
+        return [
+          {
+            id,
+            value: responses[0].features.length,
           },
-        },
-      ],
-      onSuccess: (responses) => {
-        setPotentiallyVulnerable((config) => {
-          updateRow(
-            config,
-            'success',
-            'combinedSewerOverflows',
-            responses[0].features.length,
-          );
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        ];
       },
-      onError: () =>
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'failure', 'combinedSewerOverflows');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        }),
     });
-  }, [extremeWeatherConfig, hucBoundaries, sewerOverflowsLayer]);
+  }, [extremeWeatherConfig, hucGeometry, sewerOverflowsLayer]);
 
   // update dams count
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucBoundaries || !damsLayer) return;
+    if (!hucGeometry || !damsLayer) return;
 
-    setPotentiallyVulnerable((config) => {
-      updateRow(config, 'pending', 'dams');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'dams';
     queryLayers({
+      id,
       layer: damsLayer,
-      queries: [
-        {
-          query: {
-            geometry: hucBoundaries.features[0].geometry,
-            outFields: ['OBJECTID'],
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      setter: setPotentiallyVulnerable,
+      responseParser: (responses) => {
+        return [
+          {
+            id,
+            value: responses[0].features.length,
           },
-        },
-      ],
-      onSuccess: (responses) => {
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'success', 'dams', responses[0].features.length);
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        ];
       },
-      onError: () =>
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'failure', 'dams');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        }),
     });
-  }, [extremeWeatherConfig, hucBoundaries, damsLayer]);
+  }, [extremeWeatherConfig, hucGeometry, damsLayer]);
 
   // update wells count
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected || !wellsLayer) return;
 
-    setPotentiallyVulnerable((config) => {
-      updateRow(config, 'pending', 'wells');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'wells';
     queryLayers({
+      id,
       layer: wellsLayer,
-      queries: [
-        {
-          query: {
-            outFields: ['Wells_2020'],
-            where: `GEOID LIKE '${countySelected.value}%'`,
-          },
-        },
-      ],
-      onSuccess: (responses) => {
+      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      setter: setPotentiallyVulnerable,
+      whereReplacer: (where: string) => {
+        return where.replace('{HMW_COUNTY_FIPS}', countySelected.value);
+      },
+      responseParser: (responses) => {
         let numWells = 0;
         responses[0].features.forEach((f) => {
           numWells += f.attributes.Wells_2020;
         });
 
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'success', 'wells', numWells);
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        return [
+          {
+            id,
+            value: numWells,
+          },
+        ];
       },
-      onError: () =>
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'failure', 'wells');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        }),
     });
   }, [countySelected, extremeWeatherConfig, wellsLayer]);
 
@@ -1179,25 +799,16 @@ function ExtremeWeather() {
     if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected || !disadvantagedCommunitiesLayer) return;
 
-    setPotentiallyVulnerable((config) => {
-      updateRow(config, 'pending', 'disadvantagedCommunities');
-      return {
-        ...config,
-        updateCount: config.updateCount + 1,
-      };
-    });
-
+    const id = 'disadvantagedCommunities';
     queryLayers({
+      id,
       layer: disadvantagedCommunitiesLayer,
-      queries: [
-        {
-          query: {
-            outFields: ['SN_C', 'SN_T'],
-            where: `GEOID10 LIKE '${countySelected.value}%'`,
-          },
-        },
-      ],
-      onSuccess: (responses) => {
+      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      setter: setPotentiallyVulnerable,
+      whereReplacer: (where: string) => {
+        return where.replace('{HMW_COUNTY_FIPS}', countySelected.value);
+      },
+      responseParser: (responses) => {
         // SN_C === 1 is disadvantaged
         // SN_C === 0 and SN_T === ' ' is not disadvantaged
         // SN_C === 0 and SN_T === '0' is partially disadvantaged
@@ -1209,27 +820,13 @@ function ExtremeWeather() {
             (f.attributes.SN_C === 0 && ['0', '1'].includes(f.attributes.SN_T)),
         ).length;
 
-        setPotentiallyVulnerable((config) => {
-          updateRow(
-            config,
-            'success',
-            'disadvantagedCommunities',
-            disadvantagedCommunities,
-          );
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        });
+        return [
+          {
+            id,
+            value: disadvantagedCommunities,
+          },
+        ];
       },
-      onError: () =>
-        setPotentiallyVulnerable((config) => {
-          updateRow(config, 'failure', 'disadvantagedCommunities');
-          return {
-            ...config,
-            updateCount: config.updateCount + 1,
-          };
-        }),
     });
   }, [countySelected, disadvantagedCommunitiesLayer, extremeWeatherConfig]);
 
@@ -1666,17 +1263,13 @@ function SelectionTable({
 
                           layer.visible = checked;
 
-                          setter((config) => {
+                          setTableConfig(setter, (config) => {
                             const itemUpdate = config.items.find(
                               (cw) => cw.id === item.id,
                             );
                             if (!itemUpdate) return config;
 
                             itemUpdate.checked = checked;
-                            return {
-                              ...config,
-                              updateCount: config.updateCount + 1,
-                            };
                           });
 
                           updateVisibleLayers({
@@ -1725,10 +1318,7 @@ export default function ExtremeWeatherContainer() {
 // checks if all layers are in group layer
 function allLayersAdded(
   layer: __esri.FeatureLayer | __esri.GroupLayer,
-  queries: {
-    serviceItemId?: string;
-    query: __esri.Query | __esri.QueryProperties;
-  }[],
+  queries: ExtremeWeatherQuery[],
 ) {
   if (isFeatureLayer(layer)) return true;
 
@@ -1744,7 +1334,8 @@ function findByItemId(layer: __esri.GroupLayer, itemId: string) {
     (l: any) =>
       l.itemId === itemId ||
       l.serviceItemId === itemId ||
-      l.layerId.toString() === itemId,
+      l.layerId.toString() === itemId ||
+      l.id === itemId,
   );
 }
 
@@ -1931,25 +1522,44 @@ async function queryLayerInner({
 // queries multiple layers after watcher finds all necessary layers have
 // been loaded
 async function queryLayers({
+  config,
+  geometry,
+  id,
   layer,
-  queries,
-  onSuccess,
-  onError,
+  outIds,
+  responseParser,
+  setter,
+  whereReplacer,
 }: {
+  config: Row[];
+  geometry?: __esri.Geometry;
+  id: string;
   layer: __esri.FeatureLayer | __esri.GroupLayer;
-  queries: {
-    serviceItemId?: string;
-    query: __esri.Query | __esri.QueryProperties;
-  }[];
-  onSuccess: (response: __esri.FeatureSet[]) => void;
-  onError: () => void;
+  outIds?: string[];
+  responseParser: (
+    response: __esri.FeatureSet[],
+  ) => { id: string; value?: number | string | unknown[] | null }[];
+  setter: Dispatch<SetStateAction<SwitchTableConfig>>;
+  whereReplacer?: (where: string) => string;
 }) {
-  if (allLayersAdded(layer, queries)) {
+  const defaultValues = !outIds ? [{ id }] : outIds.map((id) => ({ id }));
+  const configRow = config.find((i: Row) => i.id === id);
+  if (!configRow || !configRow.queries) {
+    setTableConfig(setter, (config) => {
+      updateMultipleRows(config, 'failure', defaultValues);
+    });
+    return;
+  }
+
+  if (allLayersAdded(layer, configRow.queries)) {
     queryLayersInner({
+      configRow,
+      defaultValues,
+      geometry,
       layer,
-      queries,
-      onSuccess,
-      onError,
+      responseParser,
+      setter,
+      whereReplacer,
     });
   } else {
     const groupLayer = layer as __esri.GroupLayer;
@@ -1958,22 +1568,28 @@ async function queryLayers({
     const newWatcher = reactiveUtils.watch(
       () => groupLayer.layers.length,
       () => {
-        if (!allLayersAdded(layer, queries)) return;
+        if (!configRow?.queries || !allLayersAdded(layer, configRow.queries))
+          return;
 
         newWatcher.remove();
         if (timeout) clearTimeout(timeout);
         queryLayersInner({
+          configRow,
+          defaultValues,
+          geometry,
           layer,
-          queries,
-          onSuccess,
-          onError,
+          responseParser,
+          setter,
+          whereReplacer,
         });
       },
     );
 
     // error this out if it takes too long
     const timeout = setTimeout(() => {
-      onError();
+      setTableConfig(setter, (config) => {
+        updateMultipleRows(config, 'failure', defaultValues);
+      });
       if (newWatcher) newWatcher.remove();
     }, 60000);
   }
@@ -1981,22 +1597,35 @@ async function queryLayers({
 
 // queries multiple layers
 async function queryLayersInner({
+  configRow,
+  defaultValues,
+  geometry,
   layer,
-  queries,
-  onSuccess,
-  onError,
+  responseParser,
+  setter,
+  whereReplacer,
 }: {
-  layer: __esri.FeatureLayer | __esri.GroupLayer;
-  queries: {
-    serviceItemId?: string;
-    query: __esri.Query | __esri.QueryProperties;
+  configRow: Row;
+  defaultValues: {
+    id: string;
   }[];
-  onSuccess: (response: __esri.FeatureSet[]) => void;
-  onError: () => void;
+  geometry?: __esri.Geometry;
+  layer: __esri.FeatureLayer | __esri.GroupLayer;
+  responseParser: (
+    response: __esri.FeatureSet[],
+  ) => { id: string; value?: number | string | unknown[] | null }[];
+  setter: Dispatch<SetStateAction<SwitchTableConfig>>;
+  whereReplacer?: (where: string) => string;
 }) {
+  if (!configRow.queries) return;
+
+  setTableConfig(setter, (config) => {
+    updateMultipleRows(config, 'pending', defaultValues);
+  });
+
   try {
     const promises: Promise<__esri.FeatureSet>[] = [];
-    queries.forEach((q) => {
+    configRow.queries.forEach((q) => {
       let childLayer = layer;
       if (isGroupLayer(layer) && q.serviceItemId) {
         const temp = findByItemId(layer, q.serviceItemId);
@@ -2004,20 +1633,74 @@ async function queryLayersInner({
       }
 
       if (isFeatureLayer(childLayer)) {
+        let query = { ...q.query };
+        if (geometry) query['geometry'] = geometry;
+        if (whereReplacer && q.query.where)
+          query['where'] = whereReplacer(q.query.where);
+        if (!q.query.outFields) query['outFields'] = childLayer.outFields;
+
         promises.push(
           queryLayer({
             layer: childLayer,
-            query: q.query,
+            query,
           }),
         );
       }
     });
 
-    onSuccess(await Promise.all(promises));
+    const output = responseParser(await Promise.all(promises));
+    setTableConfig(setter, (config) => {
+      updateMultipleRows(
+        config,
+        'success',
+        output.map((item) => ({ id: item.id, value: item.value })),
+      );
+    });
   } catch (ex) {
     console.error(ex);
-    onError();
+    setTableConfig(setter, (config) => {
+      updateMultipleRows(config, 'failure', defaultValues);
+    });
   }
+}
+
+function setTableConfig(
+  setter: Dispatch<SetStateAction<SwitchTableConfig>>,
+  callback: (config: SwitchTableConfig) => void,
+) {
+  setter((config) => {
+    callback(config);
+    return setTableConfigOutput(config);
+  });
+}
+
+function setTableConfigOutput(config: SwitchTableConfig) {
+  return {
+    ...config,
+    updateCount: config.updateCount + 1,
+  };
+}
+
+function setTableConfigSingle(
+  setter: Dispatch<SetStateAction<SwitchTableConfig>>,
+  status: FetchStatus,
+  id: string,
+  value?: number | string | unknown[] | null,
+) {
+  setter((config) => {
+    updateRow(config, status, id, value);
+    return setTableConfigOutput(config);
+  });
+}
+
+function updateMultipleRows(
+  config: SwitchTableConfig,
+  status: FetchStatus,
+  values: { id: string; value?: number | string | unknown[] | null }[],
+) {
+  values.forEach((item) => {
+    updateRow(config, status, item.id, item.value);
+  });
 }
 
 function updateRow(
@@ -2118,6 +1801,11 @@ const tableRowSectionHeaderStyles = css`
  * Types
  */
 
+type ExtremeWeatherQuery = {
+  serviceItemId?: string;
+  query: __esri.Query | __esri.QueryProperties;
+};
+
 type HistoricType =
   | 'fire'
   | 'drought'
@@ -2134,6 +1822,7 @@ type Row = {
   label: string;
   layerId?: string;
   layerProperties?: any;
+  queries?: ExtremeWeatherQuery[];
   status?: FetchStatus;
   subHeading?: boolean;
   text?: string;

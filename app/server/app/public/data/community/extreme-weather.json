@@ -1,5 +1,5 @@
 {
-  "currentWatherDefaults": [
+  "currentWeatherDefaults": [
     {
       "id": "fire",
       "label": "Fire",
@@ -7,7 +7,15 @@
       "disabled": false,
       "layerId": "wildfiresLayer",
       "status": "idle",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "serviceItemId": "0",
+          "query": {
+            "outFields": ["DailyAcres"]
+          }
+        }
+      ]
     },
     {
       "id": "drought",
@@ -16,7 +24,14 @@
       "disabled": false,
       "layerId": "droughtRealtimeLayer",
       "status": "idle",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "outFields": ["dm"]
+          }
+        }
+      ]
     },
     {
       "id": "inlandFlooding",
@@ -25,7 +40,21 @@
       "disabled": false,
       "layerId": "inlandFloodingRealtimeLayer",
       "status": "idle",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "serviceItemId": "a6134ae01aad44c499d12feec782b386",
+          "query": {
+            "outFields": ["Event"]
+          }
+        },
+        {
+          "serviceItemId": "f9e9283b9c9741d09aad633f68758bf6",
+          "query": {
+            "outFields": ["category", "label"]
+          }
+        }
+      ]
     },
     {
       "id": "coastalFlooding",
@@ -34,7 +63,15 @@
       "disabled": false,
       "layerId": "coastalFloodingRealtimeLayer",
       "status": "idle",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "serviceItemId": "22726ed54d804f3e9134550406520405",
+          "query": {
+            "outFields": ["Event"]
+          }
+        }
+      ]
     },
     {
       "id": "extremeHeat",
@@ -43,7 +80,22 @@
       "disabled": false,
       "layerId": "extremeHeatRealtimeLayer",
       "status": "idle",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "serviceItemId": "a6134ae01aad44c499d12feec782b386",
+          "query": {
+            "outFields": ["Event"],
+            "where": "Event IN ('Excessive Heat Warning', 'Excessive Heat Watch', 'Heat Advisory')"
+          }
+        },
+        {
+          "serviceItemId": "0ae7cf18df0a4b4d9e7eea665f00500d",
+          "query": {
+            "outFields": ["Temp"]
+          }
+        }
+      ]
     },
     {
       "id": "extremeCold",
@@ -52,40 +104,22 @@
       "disabled": false,
       "layerId": "extremeColdRealtimeLayer",
       "status": "idle",
-      "text": ""
-    }
-  ],
-
-  "historicalRangeDefaults": [
-    {
-      "id": "fire",
-      "label": "Fire",
-      "status": "idle",
-      "text": ""
-    },
-    {
-      "id": "drought",
-      "label": "Drought",
-      "status": "idle",
-      "text": ""
-    },
-    {
-      "id": "inlandFlooding",
-      "label": "Inland Flooding",
-      "status": "idle",
-      "text": ""
-    },
-    {
-      "id": "coastalFlooding",
-      "label": "Coastal Flooding",
-      "status": "idle",
-      "text": ""
-    },
-    {
-      "id": "extremeHeat",
-      "label": "Extreme Heat",
-      "status": "idle",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "serviceItemId": "a6134ae01aad44c499d12feec782b386",
+          "query": {
+            "outFields": ["Event"],
+            "where": "Event IN ('Extreme Cold Warning', 'Extreme Cold Watch', 'Wind Chill Advisory', 'Wind Chill Warning', 'Wind Chill Watch')"
+          }
+        },
+        {
+          "serviceItemId": "0ae7cf18df0a4b4d9e7eea665f00500d",
+          "query": {
+            "outFields": ["Temp"]
+          }
+        }
+      ]
     }
   ],
 
@@ -98,6 +132,13 @@
       "layerId": "cmraScreeningLayer",
       "status": "idle",
       "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ],
       "layerProperties": {
         "blendMode": "multiply",
         "title": "Fire",
@@ -199,6 +240,13 @@
       "layerId": "cmraScreeningLayer",
       "status": "idle",
       "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ],
       "layerProperties": {
         "blendMode": "multiply",
         "title": "Drought",
@@ -300,6 +348,13 @@
       "layerId": "cmraScreeningLayer",
       "status": "idle",
       "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ],
       "layerProperties": {
         "blendMode": "multiply",
         "title": "Fire",
@@ -400,7 +455,14 @@
       "checked": false,
       "disabled": false,
       "status": "idle",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ]
     },
     {
       "id": "extremeHeat",
@@ -410,6 +472,13 @@
       "layerId": "cmraScreeningLayer",
       "status": "idle",
       "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ],
       "layerProperties": {
         "blendMode": "multiply",
         "title": "Extreme Heat",
@@ -505,6 +574,74 @@
     }
   ],
 
+  "historicalRangeDefaults": [
+    {
+      "id": "fire",
+      "label": "Fire",
+      "status": "idle",
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ]
+    },
+    {
+      "id": "drought",
+      "label": "Drought",
+      "status": "idle",
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ]
+    },
+    {
+      "id": "inlandFlooding",
+      "label": "Inland Flooding",
+      "status": "idle",
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ]
+    },
+    {
+      "id": "coastalFlooding",
+      "label": "Coastal Flooding",
+      "status": "idle",
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ]
+    },
+    {
+      "id": "extremeHeat",
+      "label": "Extreme Heat",
+      "status": "idle",
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ]
+    }
+  ],
+
   "potentiallyVulnerableDefaults": [
     {
       "id": "hucSubHeading",
@@ -556,7 +693,39 @@
       "checked": false,
       "disabled": false,
       "layerId": "tribalLayer",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "serviceItemId": "tribalLayer-1",
+          "query": {
+            "outFields": ["OBJECTID"]
+          }
+        },
+        {
+          "serviceItemId": "tribalLayer-2",
+          "query": {
+            "outFields": ["OBJECTID"]
+          }
+        },
+        {
+          "serviceItemId": "tribalLayer-3",
+          "query": {
+            "outFields": ["OBJECTID"]
+          }
+        },
+        {
+          "serviceItemId": "tribalLayer-4",
+          "query": {
+            "outFields": ["OBJECTID"]
+          }
+        },
+        {
+          "serviceItemId": "tribalLayer-5",
+          "query": {
+            "outFields": ["OBJECTID"]
+          }
+        }
+      ]
     },
     {
       "id": "pollutantStorageTanks",
@@ -564,7 +733,14 @@
       "disabled": false,
       "label": "Above and below ground pollutant storage tanks",
       "layerId": "storageTanksLayer",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "outFields": ["OBJECTID"]
+          }
+        }
+      ]
     },
     {
       "id": "combinedSewerOverflows",
@@ -572,7 +748,14 @@
       "disabled": false,
       "label": "Combined Sewer Overflows",
       "layerId": "sewerOverflowsLayer",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "outFields": ["OBJECTID"]
+          }
+        }
+      ]
     },
     {
       "id": "dams",
@@ -580,7 +763,14 @@
       "disabled": false,
       "label": "Dams",
       "layerId": "damsLayer",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "outFields": ["OBJECTID"]
+          }
+        }
+      ]
     },
 
     {
@@ -617,7 +807,15 @@
       "disabled": false,
       "layerId": "disadvantagedCommunitiesLayer",
       "label": "Overburdened, Underserved, and Disadvantaged Communities",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "outFields": ["SN_C", "SN_T"],
+            "where": "GEOID10 LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ]
     },
     {
       "id": "wells",
@@ -625,7 +823,15 @@
       "disabled": false,
       "label": "Wells",
       "layerId": "wellsLayer",
-      "text": ""
+      "text": "",
+      "queries": [
+        {
+          "query": {
+            "outFields": ["Wells_2020"],
+            "where": "GEOID LIKE '{HMW_COUNTY_FIPS}%'"
+          }
+        }
+      ]
     },
 
     {
