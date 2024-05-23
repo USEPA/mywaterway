@@ -856,21 +856,6 @@ function ExtremeWeather() {
       </div>
     );
 
-  const Option = (props: OptionProps<any>) => {
-    return (
-      <components.Option {...props}>
-        {(props.data as any).labelHtml}
-      </components.Option>
-    );
-  };
-  const SingleValue = ({ children, ...props }: SingleValueProps<any>) => {
-    return (
-      <components.SingleValue {...props}>
-        {(props.data as any).labelHtml}
-      </components.SingleValue>
-    );
-  };
-
   return (
     <div css={containerStyles}>
       <SelectionTable
@@ -1333,6 +1318,21 @@ export default function ExtremeWeatherContainer() {
 /*
  * Helpers
  */
+
+const Option = (props: OptionProps<any>) => {
+  return (
+    <components.Option {...props}>
+      {(props.data as any).labelHtml}
+    </components.Option>
+  );
+};
+const SingleValue = ({ children, ...props }: SingleValueProps<any>) => {
+  return (
+    <components.SingleValue {...props}>
+      {(props.data as any).labelHtml}
+    </components.SingleValue>
+  );
+};
 
 // checks if all layers are in group layer
 function allLayersAdded(
