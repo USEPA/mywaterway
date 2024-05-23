@@ -856,6 +856,21 @@ function ExtremeWeather() {
       </div>
     );
 
+  const Option = (props: OptionProps<any>) => {
+    return (
+      <components.Option {...props}>
+        {(props.data as any).labelHtml}
+      </components.Option>
+    );
+  };
+  const SingleValue = ({ children, ...props }: SingleValueProps<any>) => {
+    return (
+      <components.SingleValue {...props}>
+        {(props.data as any).labelHtml}
+      </components.SingleValue>
+    );
+  };
+
   return (
     <div css={containerStyles}>
       <SelectionTable
@@ -937,23 +952,11 @@ function ExtremeWeather() {
             styles={reactSelectStyles}
             value={timeframeSelection}
             onChange={(ev) => {
-              if (ev) setTimeframeSelection(ev);
+              if (ev) setTimeframeSelection(ev as typeof timeframeSelection);
             }}
             components={{
-              Option: (props: OptionProps<any>) => {
-                return (
-                  <components.Option {...props}>
-                    {(props.data as any).labelHtml}
-                  </components.Option>
-                );
-              },
-              SingleValue: ({ children, ...props }: SingleValueProps<any>) => {
-                return (
-                  <components.SingleValue {...props}>
-                    {(props.data as any).labelHtml}
-                  </components.SingleValue>
-                );
-              },
+              Option,
+              SingleValue,
             }}
           />
         </div>
@@ -1000,7 +1003,7 @@ function ExtremeWeather() {
         }}
       />
 
-      <p>
+      <div>
         <a
           href="https://resilience.climate.gov/pages/data-sources"
           target="_blank"
@@ -1058,7 +1061,7 @@ function ExtremeWeather() {
                   rel="noopener noreferrer"
                 >
                   Applied Climate Information System
-                </a>
+                </a>{' '}
                 (ACIS). This webservice facilitated processing of the raw data
                 values to obtain the climate hazard metrics available in CMRA.
               </li>
@@ -1072,7 +1075,7 @@ function ExtremeWeather() {
                   rel="noopener noreferrer"
                 >
                   Bias Corrected Spatially Downscaled
-                </a>
+                </a>{' '}
                 (BCSD) method was used. Data were accessed from{' '}
                 <a
                   href="https://waterdata.usgs.gov/blog/gdp-moving/"
@@ -1100,7 +1103,7 @@ function ExtremeWeather() {
             </ul>
           }
         />
-      </p>
+      </div>
 
       <SelectionTable
         id="potentially-vulnerable-switch"
@@ -1554,13 +1557,13 @@ async function queryLayers({
   outIds?: string[];
   responseParser: (
     response: __esri.FeatureSet[],
-  ) => { id: string; value?: number | string | unknown[] | null }[];
+  ) => { id: string; value?: RowValue }[];
   setter: Dispatch<SetStateAction<SwitchTableConfig>>;
   whereReplacer?: (where: string) => string;
 }) {
   const defaultValues = !outIds ? [{ id }] : outIds.map((id) => ({ id }));
   const configRow = config.find((i: Row) => i.id === id);
-  if (!configRow || !configRow.queries) {
+  if (!configRow?.queries) {
     setTableConfig(setter, (config) => {
       updateMultipleRows(config, 'failure', defaultValues);
     });
@@ -1629,7 +1632,7 @@ async function queryLayersInner({
   layer: __esri.FeatureLayer | __esri.GroupLayer;
   responseParser: (
     response: __esri.FeatureSet[],
-  ) => { id: string; value?: number | string | unknown[] | null }[];
+  ) => { id: string; value?: RowValue }[];
   setter: Dispatch<SetStateAction<SwitchTableConfig>>;
   whereReplacer?: (where: string) => string;
 }) {
@@ -1701,7 +1704,7 @@ function setTableConfigSingle(
   setter: Dispatch<SetStateAction<SwitchTableConfig>>,
   status: FetchStatus,
   id: string,
-  value?: number | string | unknown[] | null,
+  value?: RowValue,
 ) {
   setter((config) => {
     updateRow(config, status, id, value);
@@ -1712,7 +1715,7 @@ function setTableConfigSingle(
 function updateMultipleRows(
   config: SwitchTableConfig,
   status: FetchStatus,
-  values: { id: string; value?: number | string | unknown[] | null }[],
+  values: { id: string; value?: RowValue }[],
 ) {
   values.forEach((item) => {
     updateRow(config, status, item.id, item.value);
@@ -1723,7 +1726,7 @@ function updateRow(
   config: SwitchTableConfig,
   status: FetchStatus,
   id: string,
-  value: number | string | unknown[] | null = null,
+  value: RowValue = null,
 ) {
   updateRowField(
     config,
@@ -1738,7 +1741,7 @@ function updateRowField(
   config: SwitchTableConfig,
   id: string,
   field: string,
-  value: number | string | boolean | unknown[] | null = null,
+  value: RowValue | boolean = null,
 ) {
   const row = config.items.find((c) => c.id === id);
   if (row) {
@@ -1843,6 +1846,8 @@ type Row = {
   subHeading?: boolean;
   text?: string;
 };
+
+type RowValue = number | string | unknown[] | null;
 
 type SwitchTableConfig = {
   updateCount: number;
