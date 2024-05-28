@@ -1914,6 +1914,15 @@ function useSharedLayers({
       ],
       title: '',
     });
+
+    damsLayer.when(() => {
+      if (!damsLayer.renderer) return;
+
+      const renderer = damsLayer.renderer as UniqueValueRenderer;
+      if (renderer.uniqueValueGroups.length === 0) return;
+      renderer.uniqueValueGroups[0].heading = 'Hazard Potential Classification';
+    });
+
     setLayer('damsLayer', damsLayer);
     return damsLayer;
   }
