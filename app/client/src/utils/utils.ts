@@ -60,15 +60,22 @@ export function countOrNotAvailable(
   return (countOrData?.length ?? 0).toLocaleString();
 }
 
-export function formatNumber(number: number, digits: number = 0) {
+export function formatNumber(
+  number: number,
+  digits: number = 0,
+  removeTrailingZeros: boolean = false,
+) {
   if (!number) return '0';
 
   if (number !== 0 && Math.abs(number) < 1) return '< 1';
 
-  return number.toLocaleString([], {
+  const value = number.toLocaleString([], {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
+
+  if (removeTrailingZeros) return parseFloat(value).toLocaleString();
+  return value;
 }
 
 export function isAbort(error: unknown) {
@@ -130,6 +137,14 @@ export function getExtensionFromPath(primary: string, backup: string = '') {
 
   if (!extension) return 'UNKNOWN';
   return extension;
+}
+
+export function sentenceJoin(values: string[]) {
+  // remove duplicates
+  values = [...new Set(values)];
+
+  if (values.length <= 1) return values.join('');
+  return `${values.slice(0, -1).join(', ')} and ${values.slice(-1)}`;
 }
 
 export function titleCase(string: string) {

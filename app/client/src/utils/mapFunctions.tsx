@@ -741,6 +741,21 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = `Watershed for Currently Selected Location: ${attributes.name} (${attributes.huc12})`;
   }
 
+  // Storage Tanks
+  else if ('Open_USTs' in attributes) {
+    title = attributes.Name;
+  }
+
+  // Sewer Overflows
+  else if ('dmr_tracking' in attributes) {
+    title = attributes.facility_name;
+  }
+
+  // Wells
+  else if ('Wells_2020' in attributes) {
+    title = '';
+  }
+
   return title;
 }
 
@@ -857,6 +872,21 @@ export function getPopupContent({
     // Watershed
     else if ('huc12' in attributes) {
       type = 'Watershed';
+    }
+
+    // Storage Tanks
+    else if ('Open_USTs' in attributes) {
+      type = 'Pollutant Storage Tank';
+    }
+
+    // Sewer Overflows
+    else if ('dmr_tracking' in attributes) {
+      type = 'Combined Sewer Overflow';
+    }
+
+    // Wells
+    else if ('Wells_2020' in attributes) {
+      type = 'Wells';
     }
   }
 

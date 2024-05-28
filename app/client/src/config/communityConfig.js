@@ -425,6 +425,8 @@ const tabs = [
     layers: {
       boundariesLayer: true,
       searchIconLayer: true,
+      providersLayer: true,
+      waterbodyLayer: true,
     },
   },
   {

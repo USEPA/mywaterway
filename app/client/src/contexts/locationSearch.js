@@ -134,7 +134,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     assessmentUnitId: '',
     grts: { status: 'fetching', data: [] },
     attainsPlans: { status: 'fetching', data: {} },
-    drinkingWater: { status: 'fetching', data: [] },
+    drinkingWater: { status: 'fetching', data: {} },
     cipSummary: { status: 'fetching', data: {} },
     nonprofits: { status: 'fetching', data: [] },
     mapView: null,
@@ -405,7 +405,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         grts: { status: 'fetching', data: [] },
         attainsPlans: { status: 'fetching', data: {} },
         cipSummary: { status: 'fetching', data: {} },
-        drinkingWater: { status: 'fetching', data: [] },
+        drinkingWater: { status: 'fetching', data: {} },
       });
 
       // remove map content
@@ -432,7 +432,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         grts: { status: 'success', data: [] },
         attainsPlans: { status: 'success', data: {} },
         cipSummary: { status: 'success', data: {} },
-        drinkingWater: { status: 'success', data: [] },
+        drinkingWater: { status: 'success', data: {} },
       });
 
       // remove map content

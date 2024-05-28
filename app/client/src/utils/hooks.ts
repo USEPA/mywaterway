@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import Color from '@arcgis/core/Color';
+import ColorVariable from '@arcgis/core/renderers/visualVariables/ColorVariable';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Layer from '@arcgis/core/layers/Layer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
@@ -10,14 +11,17 @@ import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Handles from '@arcgis/core/core/Handles';
+import ImageryTileLayer from '@arcgis/core/layers/ImageryTileLayer';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import PopupTemplate from '@arcgis/core/PopupTemplate';
 import PortalItem from '@arcgis/core/portal/PortalItem';
 import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
+import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
@@ -35,6 +39,7 @@ import {
 } from 'contexts/LookupFiles';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -1298,7 +1303,7 @@ function useSharedLayers({
   }
 
   function getCountyLayer() {
-    const countyLayerOutFields = ['NAME', 'CNTY_FIPS', 'STATE_NAME'];
+    const countyLayerOutFields = ['CNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
     const countyLayer = new FeatureLayer({
       id: 'countyLayer',
       url: services.data.counties,
@@ -1570,6 +1575,358 @@ function useSharedLayers({
     return landCoverLayer;
   }
 
+  function getStorageTanksLayer() {
+    const outFields = [
+      'Closed_USTs',
+      'Facility_ID',
+      'Name',
+      'Open_USTs',
+      'TOS_USTs',
+    ];
+
+    const storageTanksLayer = new FeatureLayer({
+      id: 'storageTanksLayer',
+      url: services.data.undergroundStorageTanks,
+      title: 'Pollutant Storage Tanks',
+      listMode: 'hide-children',
+      visible: false,
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({
+          style: 'triangle',
+          color: '#93AD34',
+          outline: {
+            style: 'solid',
+            color: '#000',
+            width: 1,
+          },
+        }),
+      }),
+      outFields,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields,
+      },
+    });
+    setLayer('storageTanksLayer', storageTanksLayer);
+    return storageTanksLayer;
+  }
+
+  function getSewerOverflowsLayer() {
+    const outFields = ['facility_name', 'npdes_id', 'dmr_tracking'];
+
+    const sewerOverflowsLayer = new FeatureLayer({
+      id: 'sewerOverflowsLayer',
+      url: services.data.combinedSewerOverflows,
+      title: 'Combined Sewer Overflows',
+      listMode: 'hide-children',
+      visible: false,
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({
+          style: 'circle',
+          color: '#833599',
+          size: 4,
+          outline: {
+            style: 'solid',
+            color: '#000',
+            width: 0.7,
+          },
+        }),
+      }),
+      outFields,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields,
+      },
+    });
+    setLayer('sewerOverflowsLayer', sewerOverflowsLayer);
+    return sewerOverflowsLayer;
+  }
+
+  async function getDamsLayer() {
+    const damsLayer = (await Layer.fromPortalItem({
+      portalItem: new PortalItem({
+        id: services.data.dams.portalId,
+      }),
+    })) as __esri.FeatureLayer;
+    damsLayer.id = 'damsLayer';
+    damsLayer.listMode = 'hide-children';
+    damsLayer.title = 'Dams';
+    damsLayer.visible = false;
+    damsLayer.popupTemplate = new PopupTemplate({
+      content: [
+        {
+          type: 'text',
+          text: '<p style="text-align:center;"><span><strong>{expression/expr0}</strong></span><br><span>({NIDID})</span></p><p><span><strong>Owner Type:</strong> {expression/expr60}</span><br><span><strong>Designed for:</strong> {expression/expr16}</span><br><span><strong>Year completed:</strong> {expression/expr59}</span><br><span><strong>City:</strong> {expression/expr5}</span><br><span><strong>State:</strong> {STATE}</span><br><span><strong>Condition Assessment:</strong> {CONDITION_ASSESSMENT}</span><br><span><strong>Recent Assessment Date:</strong> {CONDITION_ASSESS_DATE}</span></p><p style="text-align:center;"><span><strong>Specifics</strong></span></p><p><span><strong>Type:</strong>&nbsp;{expression/expr13}</span><br><span><strong>Core:</strong>&nbsp;{expression/expr14}</span><br><span><strong>Foundation:</strong> {expression/expr15}</span><br><span style="font-size:14px;"><strong>Dam length:</strong> {expression/expr38} ft</span><br><span style="font-size:14px;"><strong>Dam height:</strong> {expression/expr39} ft</span></p>',
+        },
+      ],
+      expressionInfos: [
+        {
+          name: 'expr0',
+          title: 'Dam Name',
+          expression:
+            '//expression to remove blank attributes and display proper case.\n\nvar c = Proper($feature["NAME"], \'everyword\')\n\niif(c == "", "Unknown", c)',
+          returnType: 'string',
+        },
+        {
+          name: 'expr5',
+          title: 'City',
+          expression:
+            '//expression to remove blank attributes and display proper case.\n\nvar c = Proper($feature.CITY, \'everyword\')\n\niif(c == "", "Unknown", c)',
+          returnType: 'string',
+        },
+        {
+          name: 'expr13',
+          title: 'Dam Type',
+          expression:
+            '//expression to remove blank attributes.\n\nvar c = $feature.PRIMARY_DAM_TYPE\n\nDefaultValue(c, "Unknown")',
+          returnType: 'string',
+        },
+        {
+          name: 'expr14',
+          title: 'Core Type',
+          expression:
+            '//expression to remove blank attributes.\n\nvar c = $feature.CORE_TYPES\n\nDefaultValue(c, "Unknown")',
+          returnType: 'string',
+        },
+        {
+          name: 'expr15',
+          title: 'Foundation',
+          expression:
+            '//expression to remove blank attributes.\n\nvar c = $feature.FOUNDATIONS\n\nDefaultValue(c, "Unknown")',
+          returnType: 'string',
+        },
+        {
+          name: 'expr16',
+          title: 'Purposes',
+          expression:
+            "//expression to remove empty attributes from the field.\n\nDefaultValue($feature.PURPOSES, 'Unknown')",
+          returnType: 'string',
+        },
+        {
+          name: 'expr38',
+          title: 'Dam Length (feet)',
+          expression:
+            '//expression to populate blank fields.\n\nvar d = IsEmpty($feature["DAM_LENGTH"])\nvar l = Number($feature["DAM_LENGTH"])\n\nIIf(d == true, -99999, l)',
+          returnType: 'number',
+        },
+        {
+          name: 'expr39',
+          title: 'Dam Height (feet)',
+          expression:
+            '//expression to populate blank fields.\n\nvar d = IsEmpty($feature["DAM_HEIGHT"])\nvar h = Number($feature["DAM_HEIGHT"])\n\nIIf(d == true, -99999, h)',
+          returnType: 'number',
+        },
+        {
+          name: 'expr59',
+          title: 'Year Completed',
+          expression:
+            '//expression to make blanks "Unknown" and return a date as text.\n\nvar d = Text($feature["YEAR_COMPLETED"])\nvar e = IsEmpty($feature["YEAR_COMPLETED"])\n\nWhen(\ne == true, "Unknown",\nd)',
+          returnType: 'string',
+        },
+        {
+          name: 'expr60',
+          title: 'Owner Type',
+          expression:
+            "//expression to remove empty attributes from the field.\n\nDefaultValue($feature.OWNER_TYPES, 'Unknown')",
+          returnType: 'string',
+        },
+      ],
+      fieldInfos: [
+        {
+          fieldName: 'NIDID',
+          isEditable: true,
+          label: 'National Inventory of Dams ID (NID ID)',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'CITY',
+          isEditable: true,
+          label: 'City',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'STATE',
+          isEditable: true,
+          label: 'State',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'PURPOSES',
+          isEditable: true,
+          label: 'Purposes',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'YEAR_COMPLETED',
+          format: {
+            digitSeparator: false,
+            places: 0,
+          },
+          isEditable: true,
+          label: 'Year Completed',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'DAM_LENGTH',
+          format: {
+            digitSeparator: true,
+            places: 0,
+          },
+          isEditable: true,
+          label: 'Dam Length (feet)',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'DAM_HEIGHT',
+          format: {
+            digitSeparator: true,
+            places: 2,
+          },
+          isEditable: true,
+          label: 'Dam Height (feet)',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'NAME',
+          isEditable: true,
+          label: 'Dam Name',
+          visible: false,
+        },
+        {
+          fieldName: 'OWNER_TYPES',
+          isEditable: true,
+          label: 'Owner Types',
+          visible: false,
+        },
+        {
+          fieldName: 'PRIMARY_DAM_TYPE',
+          isEditable: true,
+          label: 'Primary Dam Type',
+          visible: false,
+        },
+        {
+          fieldName: 'CORE_TYPES',
+          isEditable: true,
+          label: 'Core Types',
+          visible: false,
+        },
+        {
+          fieldName: 'FOUNDATIONS',
+          isEditable: true,
+          label: 'The material upon which dam is founded',
+          visible: false,
+        },
+        {
+          fieldName: 'CONDITION_ASSESSMENT',
+          isEditable: true,
+          label: 'Dam Condition Assessment',
+          visible: false,
+        },
+        {
+          fieldName: 'CONDITION_ASSESS_DATE',
+          isEditable: true,
+          label: 'Recent Dam Assessment Date',
+          visible: false,
+        },
+        {
+          fieldName: 'expression/expr0',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr5',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr13',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr14',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr15',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr16',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr38',
+          format: {
+            digitSeparator: true,
+            places: 0,
+          },
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr39',
+          format: {
+            digitSeparator: true,
+            places: 0,
+          },
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr59',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr60',
+          isEditable: true,
+          visible: false,
+        },
+      ],
+      outFields: [
+        'CITY',
+        'CONDITION_ASSESSMENT',
+        'CONDITION_ASSESS_DATE',
+        'CORE_TYPES',
+        'DAM_HEIGHT',
+        'DAM_LENGTH',
+        'FOUNDATIONS',
+        'NAME',
+        'NIDID',
+        'OWNER_TYPES',
+        'PRIMARY_DAM_TYPE',
+        'PURPOSES',
+        'STATE',
+        'YEAR_COMPLETED',
+      ],
+      title: '',
+    });
+
+    damsLayer.when(() => {
+      if (!damsLayer.renderer) return;
+
+      const renderer = damsLayer.renderer as UniqueValueRenderer;
+      if (renderer.uniqueValueGroups.length === 0) return;
+      renderer.uniqueValueGroups[0].heading = 'Hazard Potential Classification';
+    });
+
+    setLayer('damsLayer', damsLayer);
+    return damsLayer;
+  }
+
   async function getWildfiresLayer() {
     const wildfiresLayer = (await Layer.fromPortalItem({
       portalItem: new PortalItem({
@@ -1582,6 +1939,344 @@ function useSharedLayers({
     wildfiresLayer.visible = false;
     setLayer('wildfiresLayer', wildfiresLayer);
     return wildfiresLayer;
+  }
+
+  async function getWellsLayer() {
+    const outFields = ['Wells_2020', 'Wells_Density_2020'];
+
+    const wellsLayer = new FeatureLayer({
+      id: 'wellsLayer',
+      url: services.data.wells,
+      title: 'Wells',
+      listMode: 'hide-children',
+      minScale: 0,
+      maxScale: 0,
+      visible: false,
+      renderer: new SimpleRenderer({
+        symbol: new SimpleFillSymbol({
+          color: '#F2F0F7',
+          outline: {
+            style: 'solid',
+            color: '#828282',
+            width: 0.2,
+          },
+        }),
+        visualVariables: [
+          new ColorVariable({
+            valueExpression: '$feature.Wells_Density_2020',
+            valueExpressionTitle: '2020 Well Density (Wells / Sq. Km.)',
+            legendOptions: {},
+            stops: [
+              {
+                color: [242, 240, 247, 255],
+                value: 0.1,
+              },
+              {
+                color: [203, 201, 226, 255],
+                value: 3.8,
+              },
+              {
+                color: [158, 154, 200, 255],
+                value: 7.5,
+              },
+              {
+                color: [117, 107, 177, 255],
+                value: 11.2,
+              },
+              {
+                color: [84, 39, 143, 255],
+                value: 15,
+              },
+            ],
+          }),
+        ],
+      }),
+      outFields,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields,
+      },
+    });
+    setLayer('wellsLayer', wellsLayer);
+    return wellsLayer;
+  }
+
+  function getCmraScreeningLayer() {
+    const cmraScreeningLayer = new FeatureLayer({
+      id: 'cmraScreeningLayer',
+      title: 'CMRA Screening',
+      legendEnabled: false,
+      listMode: 'hide',
+      url: services.data.cmraScreeningData,
+      visible: false,
+      outFields: [
+        'GEOID',
+        'CountyName',
+        'HISTORIC_MEAN_CONSECDD',
+        'RCP85EARLY_MEAN_CONSECDD',
+        'RCP85MID_MEAN_CONSECDD',
+        'RCP85LATE_MEAN_CONSECDD',
+        'HISTORIC_MEAN_PRLT0IN',
+        'RCP85EARLY_MEAN_PRLT0IN',
+        'RCP85MID_MEAN_PRLT0IN',
+        'RCP85LATE_MEAN_PRLT0IN',
+        'HISTORIC_MEAN_CONSECWD',
+        'RCP85EARLY_MEAN_CONSECWD',
+        'RCP85MID_MEAN_CONSECWD',
+        'RCP85LATE_MEAN_CONSECWD',
+        'HISTORIC_MEAN_SLR',
+        'RCP85EARLY_MEAN_SLR',
+        'RCP85MID_MEAN_SLR',
+        'RCP85LATE_MEAN_SLR',
+        'HISTORIC_MEAN_TMAX90F',
+        'RCP85EARLY_MEAN_TMAX90F',
+        'RCP85MID_MEAN_TMAX90F',
+        'RCP85LATE_MEAN_TMAX90F',
+        'HISTORIC_MEAN_PR_ANNUAL',
+        'RCP85EARLY_MEAN_PR_ANNUAL',
+        'RCP85MID_MEAN_PR_ANNUAL',
+        'RCP85LATE_MEAN_PR_ANNUAL',
+      ],
+    });
+    setLayer('cmraScreeningLayer', cmraScreeningLayer);
+    return cmraScreeningLayer;
+  }
+
+  async function getDroughtRealtimeLayer() {
+    const layer = (await Layer.fromPortalItem({
+      portalItem: new PortalItem({
+        id: services.data.droughtRealtime.portalId,
+      }),
+    })) as __esri.FeatureLayer;
+    layer.id = 'droughtRealtimeLayer';
+    layer.listMode = 'show';
+    layer.title = 'Drought Real-Time';
+    layer.visible = false;
+    setLayer('droughtRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getInlandFloodingRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'inlandFloodingRealtimeLayer',
+      title: 'Inland Flooding Real-Time',
+      visible: false,
+    });
+    getSubLayerDefinitions(
+      services.data.inlandFloodingRealtime.portalId,
+      layer,
+    );
+    setLayer('inlandFloodingRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getCoastalFloodingRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'coastalFloodingRealtimeLayer',
+      title: 'Coastal Flooding Real-Time',
+      visible: false,
+    });
+    getSubLayerDefinitions(
+      services.data.coastalFloodingRealtime.portalId,
+      layer,
+    );
+    setLayer('coastalFloodingRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getExtremeHeatRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'extremeHeatRealtimeLayer',
+      title: 'Extreme Heat Real-Time',
+      visible: false,
+    });
+    getSubLayerDefinitions(services.data.extremeHeatRealtime.portalId, layer);
+    setLayer('extremeHeatRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getExtremeColdRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'extremeColdRealtimeLayer',
+      title: 'Extreme Cold Real-Time',
+      visible: false,
+    });
+    getSubLayerDefinitions(services.data.extremeColdRealtime.portalId, layer);
+    setLayer('extremeColdRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getCoastalFloodingLayer() {
+    const centuryEnum = {
+      early: 2035,
+      mid: 2050,
+      late: 2090,
+    };
+    const renderer = new UniqueValueRenderer({
+      field: 'Value',
+      uniqueValueInfos: [
+        {
+          label: 'Sea Level Rise',
+          value: 1,
+          symbol: new SimpleFillSymbol({
+            color: [61, 143, 246, 255],
+            outline: {
+              color: [0, 0, 0, 0],
+              width: 0,
+              style: 'solid',
+            },
+            style: 'solid',
+          }),
+        },
+      ],
+    });
+
+    const getSeaLevelLayer = (century: 'early' | 'mid' | 'late') => {
+      return new ImageryTileLayer({
+        url: services.data.seaLevelRise[century],
+        title: `Sea Level Rise ${century[0].toUpperCase() + century.slice(1)} Century`,
+        blendMode: 'multiply',
+        renderer,
+        visible: false,
+        popupEnabled: true,
+        popupTemplate: {
+          title: '',
+          content: [
+            {
+              type: 'text',
+              text: `<div style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);box-sizing:inherit;color:rgb(50, 50, 50);font-family:&quot;Avenir Next&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;font-size:14px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin-bottom:24px;orphans:2;padding:0px 7px;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><div style="box-sizing:inherit;"><div style="box-sizing:inherit;"><div style="box-sizing:inherit;text-align:center;"><p style="box-sizing:inherit;font-size:14px;line-height:normal;margin:0px 0px 1.2em;"><span style="font-size:medium;">this area will be</span>&nbsp;<br><span style="font-size:large;"><font style="box-sizing:inherit;"><strong>Below Sea Level</strong></font></span><br><br><span style="font-size:medium;"><font style="box-sizing:inherit;">based on&nbsp;<strong>Intermediate-High</strong>&nbsp;scenario in year&nbsp;<strong>${centuryEnum[century]}</strong></font></span></p><p style="box-sizing:inherit;font-size:14px;line-height:normal;margin:0px 0px 1.2em;">&nbsp;</p><div style="box-sizing:inherit;text-align:left;"><span style="font-size:small;">Source: Global Sea Level Rise Scenarios for the United States (by William Sweet et al., 2022)</span></div></div></div></div></div><div style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);box-sizing:inherit;color:rgb(50, 50, 50);font-family:&quot;Avenir Next&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;font-size:14px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin-bottom:0px;orphans:2;padding:0px 7px;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><div style="box-sizing:inherit;"><div style="box-sizing:inherit;"><p style="box-sizing:inherit;font-size:14px;line-height:normal;margin:0px 0px 1.2em;"><span style="font-size:10px;"><font style="box-sizing:inherit;"><i>(Intermediate-High = 1.5 meters of Global Sea Level Rise by Year &nbsp;2100)</i></font></span></p></div></div></div>`,
+            },
+          ],
+        },
+      });
+    };
+
+    const leveeLayer = new ImageryTileLayer({
+      url: services.data.seaLevelRise.levees,
+      title: 'Leveed Areas',
+      blendMode: 'multiply',
+      popupEnabled: true,
+      visible: true,
+      renderer: new UniqueValueRenderer({
+        field: 'value',
+        uniqueValueInfos: [
+          {
+            label: 'Levee Protected Areas',
+            value: 1,
+            symbol: new SimpleFillSymbol({
+              color: [92, 92, 92, 255],
+              outline: {
+                color: [0, 0, 0, 0],
+                width: 0,
+                style: 'solid',
+              },
+              style: 'solid',
+            }),
+          },
+        ],
+      }),
+      popupTemplate: {
+        title: '',
+        outFields: ['value'],
+        content: [
+          {
+            type: 'text',
+            text: 'value: {$feature.value} <p><span style="background-color:rgb(255,255,255);color:rgb(0,0,0);font-family:Calibri, sans-serif;font-size:14.6667px;">This&nbsp;</span><span style="background-color:white;color:rgb(36,36,36);font-family:&quot;Segoe UI&quot;, sans-serif;font-size:10.5pt;">area is below Sea Level and protected by a levee.</span></p>',
+          },
+        ],
+      },
+    });
+
+    const layer = new GroupLayer({
+      id: 'coastalFloodingLayer',
+      title: 'Coastal Flooding',
+      visible: false,
+      listMode: 'hide',
+      layers: [
+        leveeLayer,
+        getSeaLevelLayer('early'),
+        getSeaLevelLayer('mid'),
+        getSeaLevelLayer('late'),
+      ],
+    });
+    setLayer('coastalFloodingLayer', layer);
+    return layer;
+  }
+
+  // loads sublayers from a webmap portalid
+  async function getSubLayerDefinitions(
+    portalId: string,
+    groupLayer: __esri.GroupLayer,
+  ) {
+    const layers: __esri.Layer[] = [];
+    try {
+      // get webmap definition
+      const webMapDef = await fetchCheck(
+        `${services.data.esriWebMapBase}/${portalId}/data?f=json`,
+      );
+      for (const layer of webMapDef.operationalLayers) {
+        const layerIndex = layer.url.split('/').pop();
+
+        // get layer definition
+        const webMapLayerRes = await fetchCheck(
+          `${services.data.esriWebMapBase}/${layer.itemId}/data?f=json`,
+        );
+        const webMapLayerDef = webMapLayerRes.layers.find(
+          (l: any) => l.id === parseInt(layerIndex),
+        );
+
+        // use jsonUtils to convert the REST API renderer to an ArcGIS JS renderer
+        let renderer: __esri.Renderer | undefined = undefined;
+        if (webMapLayerDef?.layerDefinition?.drawingInfo?.renderer) {
+          renderer = rendererJsonUtils.fromJSON(
+            webMapLayerDef.layerDefinition.drawingInfo.renderer,
+          );
+        }
+        if (layer.layerDefinition?.drawingInfo?.renderer) {
+          renderer = rendererJsonUtils.fromJSON(
+            layer.layerDefinition.drawingInfo.renderer,
+          );
+        }
+
+        let popupTemplate: __esri.PopupTemplate | undefined = undefined;
+        if (webMapLayerDef?.popupInfo) {
+          popupTemplate = PopupTemplate.fromJSON(webMapLayerDef.popupInfo);
+        }
+        if (layer.popupInfo) {
+          popupTemplate = PopupTemplate.fromJSON(layer.popupInfo);
+        }
+
+        layers.push(
+          new FeatureLayer({
+            ...layer,
+            ...webMapLayerDef?.layerDefinition,
+            ...layer.layerDefinition,
+            renderer,
+            popupTemplate,
+          }),
+        );
+      }
+
+      groupLayer.layers.addMany(layers);
+    } catch (ex) {
+      console.error('ERROR pulling in layer: ', ex);
+    }
+  }
+
+  async function getDisadvantagedCommunitiesLayer() {
+    const disadvantagedCommunitiesLayer = (await Layer.fromPortalItem({
+      portalItem: new PortalItem({
+        id: services.data.disadvantagedCommunities.portalId,
+      }),
+    })) as __esri.FeatureLayer;
+    disadvantagedCommunitiesLayer.id = 'disadvantagedCommunitiesLayer';
+    disadvantagedCommunitiesLayer.listMode = 'hide-children';
+    disadvantagedCommunitiesLayer.title =
+      'Overburdened, Underserved, and Disadvantaged Communities';
+    disadvantagedCommunitiesLayer.visible = false;
+    setLayer('disadvantagedCommunitiesLayer', disadvantagedCommunitiesLayer);
+    return disadvantagedCommunitiesLayer;
   }
 
   // Gets the settings for the WSIO Health Index layer.
@@ -1614,10 +2309,43 @@ function useSharedLayers({
 
     const wildfiresLayer = getWildfiresLayer();
 
+    const cmraScreeningLayer = getCmraScreeningLayer();
+
+    const droughtRealtimeLayer = getDroughtRealtimeLayer();
+
+    const inlandFloodingRealtimeLayer = getInlandFloodingRealtimeLayer();
+
+    const coastalFloodingRealtimeLayer = getCoastalFloodingRealtimeLayer();
+
+    const extremeHeatRealtimeLayer = getExtremeHeatRealtimeLayer();
+
+    const extremeColdRealtimeLayer = getExtremeColdRealtimeLayer();
+
+    const coastalFloodingLayer = getCoastalFloodingLayer();
+
+    const storageTanksLayer = getStorageTanksLayer();
+
+    const sewerOverflowsLayer = getSewerOverflowsLayer();
+
+    const damsLayer = getDamsLayer();
+
+    const wellsLayer = getWellsLayer();
+
+    const disadvantagedCommunitiesLayer = getDisadvantagedCommunitiesLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
+      wellsLayer,
+      disadvantagedCommunitiesLayer,
+      cmraScreeningLayer,
       landCover,
+      inlandFloodingRealtimeLayer,
+      droughtRealtimeLayer,
+      extremeHeatRealtimeLayer,
+      extremeColdRealtimeLayer,
+      coastalFloodingRealtimeLayer,
+      coastalFloodingLayer,
       protectedAreasLayer,
       protectedAreasHighlightLayer,
       wildScenicRiversLayer,
@@ -1628,7 +2356,10 @@ function useSharedLayers({
       countyLayer,
       watershedsLayer,
       allWaterbodiesLayer,
+      storageTanksLayer,
+      damsLayer,
       wildfiresLayer,
+      sewerOverflowsLayer,
     ].filter((layer) => layer !== null);
   };
 }

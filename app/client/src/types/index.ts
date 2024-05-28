@@ -347,20 +347,23 @@ export type PopupAttributes =
   | ChangeLocationAttributes
   | CongressionalDistrictAttributes
   | CountyAttributes
+  | CyanWaterbodyAttributes
   | DischargerAttributes
   | EjScreenAttributes
   | MonitoringLocationAttributes
   | NonProfitAttributes
   | ProtectedAreaAttributes
+  | SewerOverflowAttributes
+  | StorageTankAttributes
   | TribeAttributes
   | UpstreamWatershedAttributes
   | UsgsStreamgageAttributes
   | VillageAttributes
   | WaterbodyAttributes
   | WatershedAttributes
+  | WellAttributes
   | WildScenicRiverAttributes
-  | WsioHealthIndexAttributes
-  | CyanWaterbodyAttributes;
+  | WsioHealthIndexAttributes;
 
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
@@ -398,6 +401,20 @@ export type ServicesState =
   | { status: 'fetching'; data: null }
   | { status: 'failure'; data: string }
   | { status: 'success'; data: ServicesData };
+
+export type SewerOverflowAttributes = {
+  facility_name: string;
+  npdes_id: string;
+  dmr_tracking: string;
+};
+
+export type StorageTankAttributes = {
+  Closed_USTs: number;
+  Facility_ID: string;
+  Name: string;
+  Open_USTs: number;
+  TOS_USTs: number;
+};
 
 export interface StreamgageMeasurement {
   parameterCategory: string;
@@ -590,6 +607,11 @@ export interface WatershedAttributes {
   huc12: string;
   name: string;
 }
+
+export type WellAttributes = {
+  Wells_2020: number;
+  Wells_Density_2020: number;
+};
 
 export type WidgetLayer =
   | {
