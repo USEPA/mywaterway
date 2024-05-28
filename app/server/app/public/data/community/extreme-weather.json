@@ -679,15 +679,6 @@
       "text": ""
     },
     {
-      "id": "dischargers",
-      "label": "Permitted Dischargers",
-      "checked": false,
-      "disabled": false,
-      "layerId": "dischargersLayer",
-      "status": "idle",
-      "text": ""
-    },
-    {
       "id": "tribes",
       "label": "Tribes",
       "checked": false,
@@ -726,6 +717,15 @@
           }
         }
       ]
+    },
+    {
+      "id": "dischargers",
+      "label": "Permitted Dischargers",
+      "checked": false,
+      "disabled": false,
+      "layerId": "dischargersLayer",
+      "status": "idle",
+      "text": ""
     },
     {
       "id": "pollutantStorageTanks",
