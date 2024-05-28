@@ -27,6 +27,7 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
+  useAttainsUseFieldsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -79,6 +80,7 @@ function StateMap({
   const fetchedDataDispatch = useFetchedDataDispatch();
   const navigate = useNavigate();
 
+  const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -114,6 +116,7 @@ function StateMap({
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
+    if (attainsUseFields.status !== 'success') return;
 
     const popupTemplate = {
       outFields: ['*'],
@@ -122,7 +125,7 @@ function StateMap({
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          services,
+          lookupFiles: { attainsUseFields, services },
           stateNationalUses,
         }),
     };
@@ -225,6 +228,7 @@ function StateMap({
 
     setLayersInitialized(true);
   }, [
+    attainsUseFields,
     getSharedLayers,
     setLayer,
     setResetHandler,

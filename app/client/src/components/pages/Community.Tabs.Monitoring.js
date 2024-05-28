@@ -658,9 +658,9 @@ function CurrentConditionsTab({
                     >
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
-                          type="USGS Sensors"
                           feature={feature}
-                          services={services}
+                          lookupFiles={{ services }}
+                          type="USGS Sensors"
                         />
 
                         <ViewOnMapButton feature={feature} />
@@ -691,8 +691,8 @@ function CurrentConditionsTab({
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
                           feature={feature}
+                          lookupFiles={{ services }}
                           mapView={mapView}
-                          services={services}
                           type="Blue-Green Algae"
                         />
                         <ViewOnMapButton feature={feature} fieldName="FID" />
@@ -1008,9 +1008,9 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         >
           <div css={accordionContentStyles}>
             <WaterbodyInfo
-              type="Past Water Conditions"
               feature={feature}
-              services={services}
+              lookupFiles={{ services }}
+              type="Past Water Conditions"
             />
             <ViewOnMapButton feature={feature} />
           </div>

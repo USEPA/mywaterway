@@ -56,6 +56,18 @@ export type AssessmentUseAttainmentState =
   | { status: 'failure'; data: null }
   | { status: 'success'; data: AssessmentUseAttainmentByGroup };
 
+export type AttainsUseField = {
+  category: string;
+  label: string;
+  term: string;
+  value: string;
+};
+
+export type AttainsUseFieldState =
+  | { status: 'fetching'; data: null }
+  | { status: 'failure'; data: null }
+  | { status: 'success'; data: AttainsUseField };
+
 export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
 }
@@ -361,6 +373,12 @@ export type PopupAttributes =
   | WildScenicRiverAttributes
   | WsioHealthIndexAttributes
   | CyanWaterbodyAttributes;
+
+export type PopupLookupFiles = {
+  attainsUseFields?: LookupFile;
+  services: ServicesState;
+  stateNationalUses?: LookupFile;
+};
 
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;

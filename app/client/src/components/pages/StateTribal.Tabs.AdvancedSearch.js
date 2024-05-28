@@ -24,6 +24,7 @@ import {
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import {
+  useAttainsUseFieldsContext,
   useReportStatusMappingContext,
   useServicesContext,
 } from 'contexts/LookupFiles';
@@ -37,7 +38,7 @@ import {
   useWaterbodyOnMap,
 } from 'utils/hooks';
 // data
-import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
+import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
 import { reactSelectStyles } from 'styles/index';
 // errors
@@ -248,6 +249,7 @@ const screenLabelWithPaddingStyles = css`
 
 function AdvancedSearch() {
   const { getSignal } = useAbort();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
 
   const {
@@ -840,7 +842,7 @@ function AdvancedSearch() {
             aria-label="Use Groups"
             isMulti
             isSearchable={false}
-            options={useFields}
+            options={attainsUseFields.data}
             value={useFilter}
             onChange={updateUseFilter}
             styles={reactSelectStyles}

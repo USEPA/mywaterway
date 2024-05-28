@@ -37,6 +37,7 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useAttainsParametersContext,
+  useAttainsUseFieldsContext,
   useOrganizationsContext,
   useServicesContext,
   useStateNationalUsesContext,
@@ -102,6 +103,7 @@ type Props = {
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { getSignal } = useAbort();
 
+  const attainsUseFields = useAttainsUseFieldsContext();
   const attainsParameters = useAttainsParametersContext();
   const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
@@ -665,11 +667,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          services,
+          lookupFiles: { attainsUseFields, services },
           stateNationalUses,
         }),
     };
-  }, [navigate, services, stateNationalUses]);
+  }, [attainsUseFields, navigate, services, stateNationalUses]);
 
   const handleMapServiceError = useCallback(
     (err) => {

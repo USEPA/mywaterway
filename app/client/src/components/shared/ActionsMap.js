@@ -238,7 +238,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 feature,
                 extraContent: unitIds[auId](reportingCycle, true),
                 navigate,
-                services,
+                lookupFiles: { services },
                 stateNationalUses,
               });
             } else if (includePhoto) {
@@ -260,7 +260,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 feature,
                 extraContent,
                 navigate,
-                services,
+                lookupFiles: { services },
                 stateNationalUses,
               });
             } else {
@@ -269,7 +269,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
               content = getPopupContent({
                 feature,
                 navigate,
-                services,
+                lookupFiles: { services },
                 stateNationalUses,
               });
             }

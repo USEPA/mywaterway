@@ -24,6 +24,8 @@ function getLookupFile(filename: string, setVariable: Function) {
 type LookupFiles = {
   attainsParameters: LookupFile,
   setAttainsParameters: Function,
+  attainsUseFields: LookupFile,
+  setAttainsUseFields: Function,
   dataSources: LookupFile,
   documentOrder: LookupFile,
   setDocumentOrder: Function,
@@ -54,6 +56,8 @@ type LookupFiles = {
 const LookupFilesContext: Object = createContext<LookupFiles>({
   attainsParameters: { status: 'fetching', data: null },
   setAttainsParameters: () => {},
+  attainsUseFields: { status: 'fetching', data: null },
+  setAttainsUseFields: () => {},
   dataSources: { status: 'fetching', data: null },
   setDataSources: () => {},
   documentOrder: { status: 'fetching', data: null },
@@ -88,6 +92,10 @@ type Props = {
 
 function LookupFilesProvider({ children }: Props) {
   const [attainsParameters, setAttainsParameters] = useState({
+    status: 'fetching',
+    data: null,
+  });
+  const [attainsUseFields, setAttainsUseFields] = useState({
     status: 'fetching',
     data: null,
   });
@@ -148,6 +156,8 @@ function LookupFilesProvider({ children }: Props) {
     () => ({
       attainsParameters,
       setAttainsParameters,
+      attainsUseFields,
+      setAttainsUseFields,
       dataSources,
       setDataSources,
       documentOrder,
@@ -177,6 +187,7 @@ function LookupFilesProvider({ children }: Props) {
     }),
     [
       attainsParameters,
+      attainsUseFields,
       dataSources,
       documentOrder,
       educatorMaterials,
@@ -200,7 +211,7 @@ function LookupFilesProvider({ children }: Props) {
   );
 }
 
-// Custom hook for the dataPage.json file.
+// Custom hook for the attains/parameters.json file.
 let attainsParametersInitialized = false; // global var for ensuring fetch only happens once
 function useAttainsParametersContext() {
   const { attainsParameters, setAttainsParameters } =
@@ -213,6 +224,21 @@ function useAttainsParametersContext() {
   }
 
   return attainsParameters;
+}
+
+// Custom hook for the attains/useFields.json file.
+let attainsUseFieldsInitialized = false; // global var for ensuring fetch only happens once
+function useAttainsUseFieldsContext() {
+  const { attainsUseFields, setAttainsUseFields } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!attainsUseFieldsInitialized) {
+    attainsUseFieldsInitialized = true;
+    getLookupFile('attains/useFields.json', setAttainsUseFields);
+  }
+
+  return attainsUseFields;
 }
 
 // Custom hook for the dataPage.json file.
@@ -459,6 +485,7 @@ export {
   LookupFilesContext,
   LookupFilesProvider,
   useAttainsParametersContext,
+  useAttainsUseFieldsContext,
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,

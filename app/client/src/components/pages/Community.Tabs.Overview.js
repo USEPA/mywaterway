@@ -592,8 +592,8 @@ function MonitoringAndSensorsTab({
             <div css={accordionContentStyles}>
               <WaterbodyInfo
                 feature={feature}
+                lookupFiles={{ services }}
                 mapView={mapView}
-                services={services}
                 type="Blue-Green Algae"
               />
               <ViewOnMapButton feature={feature} fieldName="FID" />
@@ -654,9 +654,9 @@ function MonitoringAndSensorsTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
-                type={monitoringType}
                 feature={feature}
-                services={services}
+                lookupFiles={{ services }}
+                type={monitoringType}
               />
               <ViewOnMapButton feature={feature} />
             </div>

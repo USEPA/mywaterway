@@ -30,6 +30,7 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
+  useAttainsUseFieldsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -473,8 +474,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         mapView,
         selectedGraphic,
         dynamicPopupFields,
-        services,
-        stateNationalUses,
+        {
+          services,
+          stateNationalUses,
+        },
         navigate,
       );
     });
@@ -769,6 +772,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 }
 
 function useDynamicPopup() {
+  const attainsUseFields = useAttainsUseFieldsContext();
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
@@ -842,9 +846,8 @@ function useDynamicPopup() {
         return getPopupContent({
           feature: graphic.graphic,
           fields,
+          lookupFiles: { attainsUseFields, services, stateNationalUses },
           mapView,
-          services,
-          stateNationalUses,
           navigate,
         });
       }
@@ -855,12 +858,12 @@ function useDynamicPopup() {
         getClickedHuc: checkHuc ? getClickedHuc(location) : null,
         mapView,
         resetData: reset,
-        services,
-        stateNationalUses,
+        lookupFiles: { attainsUseFields, services, stateNationalUses },
         navigate,
       });
     },
     [
+      attainsUseFields,
       getClickedHuc,
       getHucBoundaries,
       getMapView,

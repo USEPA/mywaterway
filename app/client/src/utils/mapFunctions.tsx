@@ -21,10 +21,9 @@ import type {
   ClickedHucState,
   Feature,
   ImpairmentFields,
-  LookupFile,
   ParentLayer,
   PopupAttributes,
-  ServicesState,
+  PopupLookupFiles,
   SuperLayer,
   TribeAttributes,
   VillageAttributes,
@@ -584,8 +583,7 @@ export const openPopup = (
   view: __esri.MapView,
   feature: __esri.Graphic,
   fields: __esri.Field[],
-  services: ServicesState,
-  stateNationalUses: LookupFile,
+  lookupFiles: PopupLookupFiles,
   navigate: NavigateFunction,
 ) => {
   const fieldName = feature.attributes?.fieldName;
@@ -602,8 +600,7 @@ export const openPopup = (
           feature: feature.graphic,
           fields,
           fieldName,
-          services,
-          stateNationalUses,
+          lookupFiles,
           navigate,
         }),
     });
@@ -751,8 +748,7 @@ export function getPopupContent({
   getClickedHuc,
   mapView,
   resetData,
-  services,
-  stateNationalUses,
+  lookupFiles,
   fields,
   navigate,
 }: {
@@ -762,8 +758,7 @@ export function getPopupContent({
   getClickedHuc?: Promise<ClickedHucState> | null;
   mapView?: __esri.MapView;
   resetData?: () => void;
-  services?: ServicesState;
-  stateNationalUses?: LookupFile;
+  lookupFiles?: PopupLookupFiles;
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
 }) {
@@ -869,8 +864,7 @@ export function getPopupContent({
       getClickedHuc={getClickedHuc}
       mapView={mapView}
       resetData={resetData}
-      services={services}
-      stateNationalUses={stateNationalUses}
+      lookupFiles={lookupFiles}
       fields={fields}
       navigate={navigate}
     />

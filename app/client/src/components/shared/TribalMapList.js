@@ -1074,9 +1074,9 @@ function MonitoringTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
-                type="Past Water Conditions"
                 feature={feature}
-                services={services}
+                lookupFiles={{services}}
+                type="Past Water Conditions"
               />
               <ViewOnMapButton feature={feature} />
             </div>

@@ -26,7 +26,7 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import Slider from 'components/shared/Slider';
 import { Sparkline } from 'components/shared/Sparkline';
 // utilities
-import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
+import { impairmentFields } from 'config/attainsToHmwMapping';
 import {
   createRelativeDailyTimestampRange,
   epochToMonthDay,
@@ -81,12 +81,13 @@ import type { NavigateFunction } from 'react-router-dom';
 import type {
   AssessmentUseAttainmentByGroup,
   AssessmentUseAttainmentState,
+  AttainsUseField,
   ChangeLocationAttributes,
   ClickedHucState,
   FetchState,
   FetchStateWithDefault,
-  LookupFile,
   MonitoringLocationAttributes,
+  PopupLookupFiles,
   ServicesState,
   StreamgageMeasurement,
   UsgsStreamgageAttributes,
@@ -407,9 +408,8 @@ type WaterbodyInfoProps = {
   feature: __esri.Graphic;
   fieldName?: string | null;
   fields?: __esri.Field[] | null;
+  lookupFiles?: PopupLookupFiles;
   mapView?: __esri.MapView;
-  services?: ServicesState;
-  stateNationalUses?: LookupFile;
   type: string;
 };
 
@@ -417,14 +417,13 @@ type WaterbodyInfoProps = {
 ## Components
 */
 function WaterbodyInfo({
-  type,
+  extraContent,
   feature,
   fieldName = null,
-  extraContent,
-  mapView,
-  services,
-  stateNationalUses,
   fields,
+  lookupFiles,
+  mapView,
+  type,
 }: WaterbodyInfoProps) {
   const { attributes } = feature;
   const onWaterbodyReportPage =
@@ -478,9 +477,8 @@ function WaterbodyInfo({
       </p>
     );
 
-  const [selectedUseField, setSelectedUseField] = useState<
-    (typeof useFields)[number] | null
-  >(null);
+  const [selectedUseField, setSelectedUseField] =
+    useState<AttainsUseField | null>(null);
   const [useAttainments, setUseAttainments] =
     useState<AssessmentUseAttainmentState>({
       data: null,
@@ -489,8 +487,8 @@ function WaterbodyInfo({
   const fetchDetailedUses = useCallback(() => {
     if (type !== 'Waterbody' && type !== 'Waterbody State Overview') return;
     if (
-      services?.status !== 'success' ||
-      stateNationalUses?.status !== 'success' ||
+      lookupFiles?.services?.status !== 'success' ||
+      lookupFiles?.stateNationalUses?.status !== 'success' ||
       useAttainments?.status === 'success'
     )
       return;
@@ -499,7 +497,7 @@ function WaterbodyInfo({
       feature.attributes;
 
     const url =
-      services.data.attains.serviceUrl +
+      lookupFiles.services.data.attains.serviceUrl +
       `assessments?assessmentUnitIdentifier=${assessmentunitidentifier}` +
       `&organizationId=${organizationid}` +
       `&reportingCycle=${reportingcycle}` +
@@ -534,7 +532,7 @@ function WaterbodyInfo({
         };
         assessment.useAttainments.forEach((useAttainment: any) => {
           // check if it is other in stateNationalUses
-          const nationalUse = stateNationalUses.data.find(
+          const nationalUse = lookupFiles?.stateNationalUses?.data.find(
             (u: any) =>
               u.orgId === organizationid && u.name === useAttainment.useName,
           );
@@ -548,14 +546,7 @@ function WaterbodyInfo({
         console.error(err);
         setUseAttainments({ data: null, status: 'failure' });
       });
-  }, [
-    feature,
-    services,
-    setUseAttainments,
-    stateNationalUses,
-    type,
-    useAttainments,
-  ]);
+  }, [feature, lookupFiles, setUseAttainments, type, useAttainments]);
 
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
@@ -585,12 +576,14 @@ function WaterbodyInfo({
     const useBasedCondition = getWaterbodyCondition(attributes, field);
 
     // create applicable fields to check against when displaying the table
-    const waterbodyConditions = useFields.map((useField) => {
+    const waterbodyConditions = (
+      lookupFiles?.attainsUseFields?.data as AttainsUseField[]
+    )?.map((useField: AttainsUseField) => {
       return getWaterbodyCondition(attributes, useField.value).label;
     });
 
     const applicableFields =
-      waterbodyConditions.filter((value) => {
+      waterbodyConditions?.filter((value) => {
         return value !== 'Not Applicable';
       }) || [];
 
@@ -637,141 +630,146 @@ function WaterbodyInfo({
                   </tr>
                 </thead>
                 <tbody>
-                  {useFields.map((useField) => {
-                    const value = getWaterbodyCondition(
-                      attributes,
-                      useField.value,
-                    ).label;
+                  {lookupFiles?.attainsUseFields?.data?.map(
+                    (useField: AttainsUseField) => {
+                      const value = getWaterbodyCondition(
+                        attributes,
+                        useField.value,
+                      ).label;
 
-                    if (value === 'Not Applicable') return null;
-                    return (
-                      <tr key={useField.value}>
-                        <td>
-                          <GlossaryTerm term={useField.term}>
-                            {useField.label}
-                          </GlossaryTerm>
-                        </td>
-                        <td>
-                          <GlossaryTerm
-                            term={
-                              value === 'Good'
-                                ? 'Good Waters'
-                                : value === 'Impaired' ||
-                                    value === 'Impaired (Issues Identified)'
-                                  ? 'Impaired Waters'
-                                  : 'Condition Unknown'
-                            }
-                          >
-                            {value}
-                          </GlossaryTerm>
-                        </td>
-                        <td>
-                          <Modal
-                            label={`Detailed Uses for ${useField.label}`}
-                            maxWidth="35rem"
-                            onClose={() => setSelectedUseField(null)}
-                            triggerElm={
-                              <button
-                                aria-label={`View detailed uses for ${useField.label}`}
-                                title={`View detailed uses for ${useField.label}`}
-                                css={modifiedIconButtonStyles}
-                                onClick={() => {
-                                  setSelectedUseField(useField);
-                                  fetchDetailedUses();
-                                }}
-                              >
-                                <i
-                                  aria-hidden
-                                  className="fas fa-info-circle"
-                                ></i>
-                              </button>
-                            }
-                          >
-                            {useAttainments.status === 'fetching' && (
-                              <LoadingSpinner />
-                            )}
-
-                            {selectedUseField &&
-                              useAttainments.status === 'success' && (
-                                <table css={modalTableStyles} className="table">
-                                  <thead>
-                                    <tr>
-                                      <th>
-                                        Detailed{' '}
-                                        <em>{selectedUseField.label}</em> Uses
-                                      </th>
-                                      <th>Condition</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {useAttainments.data[
-                                      selectedUseField.category
-                                    ].map((use: any) => {
-                                      const useCode = use.useAttainmentCode;
-                                      const value =
-                                        useCode === 'F'
-                                          ? 'Good'
-                                          : useCode === 'N'
-                                            ? 'Impaired'
-                                            : 'Condition Unknown';
-
-                                      return (
-                                        <tr key={use.useName}>
-                                          <td>{use.useName}</td>
-                                          <td
-                                            css={css`
-                                              min-width: 100px;
-                                            `}
-                                          >
-                                            {['F', 'N', 'I', 'X'].includes(
-                                              useCode,
-                                            ) ? (
-                                              <GlossaryTerm
-                                                term={
-                                                  value === 'Good'
-                                                    ? 'Good Waters'
-                                                    : value === 'Impaired'
-                                                      ? 'Impaired Waters'
-                                                      : 'Condition Unknown'
-                                                }
-                                              >
-                                                {value}
-                                              </GlossaryTerm>
-                                            ) : (
-                                              use.useAttainmentCodeName
-                                            )}
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                  </tbody>
-                                </table>
+                      if (value === 'Not Applicable') return null;
+                      return (
+                        <tr key={useField.value}>
+                          <td>
+                            <GlossaryTerm term={useField.term}>
+                              {useField.label}
+                            </GlossaryTerm>
+                          </td>
+                          <td>
+                            <GlossaryTerm
+                              term={
+                                value === 'Good'
+                                  ? 'Good Waters'
+                                  : value === 'Impaired' ||
+                                      value === 'Impaired (Issues Identified)'
+                                    ? 'Impaired Waters'
+                                    : 'Condition Unknown'
+                              }
+                            >
+                              {value}
+                            </GlossaryTerm>
+                          </td>
+                          <td>
+                            <Modal
+                              label={`Detailed Uses for ${useField.label}`}
+                              maxWidth="35rem"
+                              onClose={() => setSelectedUseField(null)}
+                              triggerElm={
+                                <button
+                                  aria-label={`View detailed uses for ${useField.label}`}
+                                  title={`View detailed uses for ${useField.label}`}
+                                  css={modifiedIconButtonStyles}
+                                  onClick={() => {
+                                    setSelectedUseField(useField);
+                                    fetchDetailedUses();
+                                  }}
+                                >
+                                  <i
+                                    aria-hidden
+                                    className="fas fa-info-circle"
+                                  ></i>
+                                </button>
+                              }
+                            >
+                              {useAttainments.status === 'fetching' && (
+                                <LoadingSpinner />
                               )}
 
-                            <p css={infoBoxStyles}>
-                              For more information view the{' '}
-                              <a
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                href={
-                                  `/waterbody-report/` +
-                                  `${attributes.organizationid}/` +
-                                  `${attributes.assessmentunitidentifier}/` +
-                                  `${attributes.reportingcycle || ''}`
-                                }
-                              >
-                                Waterbody Report
-                              </a>{' '}
-                              <small css={modifiedDisclaimerStyles}>
-                                (opens new browser tab)
-                              </small>
-                              .
-                            </p>
-                          </Modal>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                              {selectedUseField &&
+                                useAttainments.status === 'success' && (
+                                  <table
+                                    css={modalTableStyles}
+                                    className="table"
+                                  >
+                                    <thead>
+                                      <tr>
+                                        <th>
+                                          Detailed{' '}
+                                          <em>{selectedUseField.label}</em> Uses
+                                        </th>
+                                        <th>Condition</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {useAttainments.data[
+                                        selectedUseField.category
+                                      ].map((use: any) => {
+                                        const useCode = use.useAttainmentCode;
+                                        const value =
+                                          useCode === 'F'
+                                            ? 'Good'
+                                            : useCode === 'N'
+                                              ? 'Impaired'
+                                              : 'Condition Unknown';
+
+                                        return (
+                                          <tr key={use.useName}>
+                                            <td>{use.useName}</td>
+                                            <td
+                                              css={css`
+                                                min-width: 100px;
+                                              `}
+                                            >
+                                              {['F', 'N', 'I', 'X'].includes(
+                                                useCode,
+                                              ) ? (
+                                                <GlossaryTerm
+                                                  term={
+                                                    value === 'Good'
+                                                      ? 'Good Waters'
+                                                      : value === 'Impaired'
+                                                        ? 'Impaired Waters'
+                                                        : 'Condition Unknown'
+                                                  }
+                                                >
+                                                  {value}
+                                                </GlossaryTerm>
+                                              ) : (
+                                                use.useAttainmentCodeName
+                                              )}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                )}
+
+                              <p css={infoBoxStyles}>
+                                For more information view the{' '}
+                                <a
+                                  rel="noopener noreferrer"
+                                  target="_blank"
+                                  href={
+                                    `/waterbody-report/` +
+                                    `${attributes.organizationid}/` +
+                                    `${attributes.assessmentunitidentifier}/` +
+                                    `${attributes.reportingcycle || ''}`
+                                  }
+                                >
+                                  Waterbody Report
+                                </a>{' '}
+                                <small css={modifiedDisclaimerStyles}>
+                                  (opens new browser tab)
+                                </small>
+                                .
+                              </p>
+                            </Modal>
+                          </td>
+                        </tr>
+                      );
+                    },
+                  )}
                 </tbody>
               </table>
             )}
@@ -1072,11 +1070,11 @@ function WaterbodyInfo({
   });
   useEffect(() => {
     if (type !== 'Restoration Plans' && type !== 'Protection Plans') return;
-    if (services?.status !== 'success') return;
+    if (lookupFiles?.services?.status !== 'success') return;
 
     const auId = attributes.assessmentunitidentifier;
     const url =
-      services.data.attains.serviceUrl +
+      lookupFiles.services.data.attains.serviceUrl +
       `actions?assessmentUnitIdentifier=${auId}` +
       `&organizationIdentifier=${attributes.organizationid}` +
       `&summarize=Y`;
@@ -1121,8 +1119,8 @@ function WaterbodyInfo({
   }, [
     attributes.assessmentunitidentifier,
     attributes.organizationid,
+    lookupFiles,
     type,
-    services,
   ]);
 
   // jsx
@@ -1213,22 +1211,36 @@ function WaterbodyInfo({
   if (!attributes) return null;
 
   let content = null;
-  if (type === 'Waterbody') content = baseWaterbodyContent();
+  if (
+    type === 'Waterbody' &&
+    lookupFiles?.attainsUseFields?.status === 'success'
+  )
+    content = baseWaterbodyContent();
   if (type === 'Restoration Plans') content = projectContent();
   if (type === 'Protection Plans') content = projectContent();
   if (type === 'Permitted Discharger') content = dischargerContent;
   if (type === 'USGS Sensors') {
     content = (
-      <UsgsStreamgagesContent feature={feature} services={services ?? null} />
+      <UsgsStreamgagesContent
+        feature={feature}
+        services={lookupFiles?.services ?? null}
+      />
     );
   }
   if (type === 'Past Water Conditions') {
     content = (
-      <MonitoringLocationsContent feature={feature} services={services} />
+      <MonitoringLocationsContent
+        feature={feature}
+        services={lookupFiles?.services}
+      />
     );
   }
   if (type === 'Nonprofit') content = nonprofitContent;
-  if (type === 'Waterbody State Overview') content = waterbodyStateContent;
+  if (
+    type === 'Waterbody State Overview' &&
+    lookupFiles?.attainsUseFields?.status === 'success'
+  )
+    content = waterbodyStateContent;
   if (type === 'Action') content = actionContent;
   if (type === 'County') content = countyContent();
   if (type === 'Tribe') content = tribeContent;
@@ -1247,7 +1259,7 @@ function WaterbodyInfo({
       <CyanContent
         feature={feature}
         mapView={mapView}
-        services={services ?? null}
+        services={lookupFiles?.services ?? null}
       />
     );
   }
@@ -1256,31 +1268,29 @@ function WaterbodyInfo({
 }
 
 type MapPopupProps = {
-  type: string;
-  feature: __esri.Graphic | ChangeLocationPopup;
-  navigate: NavigateFunction;
-  fieldName?: string | null;
   extraContent?: ReactNode | null;
-  getClickedHuc?: Promise<ClickedHucState> | null;
-  mapView?: __esri.MapView;
-  resetData?: () => void;
-  services?: ServicesState;
-  stateNationalUses?: LookupFile;
+  feature: __esri.Graphic | ChangeLocationPopup;
+  fieldName?: string | null;
   fields?: __esri.Field[] | null;
+  getClickedHuc?: Promise<ClickedHucState> | null;
+  lookupFiles?: PopupLookupFiles;
+  mapView?: __esri.MapView;
+  navigate: NavigateFunction;
+  resetData?: () => void;
+  type: string;
 };
 
 function MapPopup({
-  type,
+  extraContent,
   feature,
   fieldName,
-  extraContent,
-  getClickedHuc,
-  mapView,
-  resetData,
-  services,
-  stateNationalUses,
   fields,
+  getClickedHuc,
+  lookupFiles,
+  mapView,
   navigate,
+  resetData,
+  type,
 }: Readonly<MapPopupProps>) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<ClickedHucState>({
@@ -1412,8 +1422,7 @@ function MapPopup({
             fieldName={fieldName}
             extraContent={extraContent}
             mapView={mapView}
-            services={services}
-            stateNationalUses={stateNationalUses}
+            lookupFiles={lookupFiles}
             fields={fields}
           />
         </div>
