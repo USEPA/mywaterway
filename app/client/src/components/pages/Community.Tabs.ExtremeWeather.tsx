@@ -20,6 +20,7 @@ import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import Modal from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Slider from 'components/shared/Slider';
 import Switch from 'components/shared/Switch';
@@ -40,7 +41,11 @@ import {
   summarizeAssessments,
 } from 'utils/utils';
 // styles
-import { reactSelectStyles, toggleTableStyles } from 'styles/index';
+import {
+  iconButtonStyles,
+  reactSelectStyles,
+  toggleTableStyles,
+} from 'styles/index';
 // types
 import { FetchStatus } from 'types';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -1113,10 +1118,7 @@ const toggleStyles = css`
   display: flex;
   align-items: center;
   margin-bottom: 0;
-
-  span {
-    margin-left: 0.5rem;
-  }
+  gap: 0.5rem;
 `;
 
 type SelectionTableProps = {
@@ -1193,7 +1195,7 @@ function SelectionTable({
 
           return (
             <tr key={uniqueId(id)}>
-              <td>
+              <td css={toggleStyles}>
                 {item.checked === undefined ? (
                   <span style={{ marginLeft }}>{item.label}</span>
                 ) : (
@@ -1285,8 +1287,26 @@ function SelectionTable({
                         }}
                       />
                     )}
-                    <span style={{ marginLeft: '0.5rem' }}>{item.label}</span>
+                    <span>{item.label}</span>
                   </label>
+                )}
+
+                {item.infoText && (
+                  <Modal
+                    label={`Additional information for ${item.label}`}
+                    maxWidth="35rem"
+                    triggerElm={
+                      <button
+                        aria-label={`View additional information for ${item.label}`}
+                        title={`View additional information for ${item.label}`}
+                        css={modifiedIconButtonStyles}
+                      >
+                        <i aria-hidden className="fas fa-info-circle"></i>
+                      </button>
+                    }
+                  >
+                    <div dangerouslySetInnerHTML={{ __html: item.infoText }} />
+                  </Modal>
                 )}
               </td>
               <td>
@@ -1768,6 +1788,12 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+const modifiedIconButtonStyles = css`
+  ${iconButtonStyles}
+  margin-right: 0.25rem;
+  color: #485566;
+`;
+
 const screenLabelStyles = css`
   display: inline-block;
   font-size: 0.875rem;
@@ -1838,6 +1864,7 @@ type Row = {
   disabled?: boolean;
   id: string;
   indent?: boolean;
+  infoText?: string;
   label: string;
   layerId?: string;
   layerProperties?: any;
