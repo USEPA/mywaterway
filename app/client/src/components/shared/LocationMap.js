@@ -36,13 +36,13 @@ import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
+  useAttainsParametersContext,
   useOrganizationsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
-import { parameterList } from 'config/attainsParameters';
 // errors
 import {
   geocodeError,
@@ -102,6 +102,7 @@ type Props = {
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { getSignal } = useAbort();
 
+  const attainsParameters = useAttainsParametersContext();
   const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
@@ -308,7 +309,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
           return tempObject;
         }
-        const parametersObject = createParametersObject(parameterList);
+        const parametersObject = createParametersObject(attainsParameters.data);
 
         return {
           limited: true,
@@ -345,7 +346,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         };
       });
     },
-    [stateNationalUses],
+    [attainsParameters, stateNationalUses],
   );
 
   const handleOrphanedFeatures = useCallback(

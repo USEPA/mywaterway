@@ -22,6 +22,8 @@ function getLookupFile(filename: string, setVariable: Function) {
 
 // --- components ---
 type LookupFiles = {
+  attainsParameters: LookupFile,
+  setAttainsParameters: Function,
   dataSources: LookupFile,
   documentOrder: LookupFile,
   setDocumentOrder: Function,
@@ -50,6 +52,8 @@ type LookupFiles = {
 };
 
 const LookupFilesContext: Object = createContext<LookupFiles>({
+  attainsParameters: { status: 'fetching', data: null },
+  setAttainsParameters: () => {},
   dataSources: { status: 'fetching', data: null },
   setDataSources: () => {},
   documentOrder: { status: 'fetching', data: null },
@@ -83,6 +87,10 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
+  const [attainsParameters, setAttainsParameters] = useState({
+    status: 'fetching',
+    data: null,
+  });
   const [dataSources, setDataSources] = useState({
     status: 'fetching',
     data: null,
@@ -138,6 +146,8 @@ function LookupFilesProvider({ children }: Props) {
 
   const state = useMemo(
     () => ({
+      attainsParameters,
+      setAttainsParameters,
       dataSources,
       setDataSources,
       documentOrder,
@@ -166,6 +176,7 @@ function LookupFilesProvider({ children }: Props) {
       setWaterTypeOptions,
     }),
     [
+      attainsParameters,
       dataSources,
       documentOrder,
       educatorMaterials,
@@ -187,6 +198,21 @@ function LookupFilesProvider({ children }: Props) {
       {children}
     </LookupFilesContext.Provider>
   );
+}
+
+// Custom hook for the dataPage.json file.
+let attainsParametersInitialized = false; // global var for ensuring fetch only happens once
+function useAttainsParametersContext() {
+  const { attainsParameters, setAttainsParameters } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!attainsParametersInitialized) {
+    attainsParametersInitialized = true;
+    getLookupFile('attains/parameters.json', setAttainsParameters);
+  }
+
+  return attainsParameters;
 }
 
 // Custom hook for the dataPage.json file.
@@ -432,6 +458,7 @@ function useWaterTypeOptionsContext() {
 export {
   LookupFilesContext,
   LookupFilesProvider,
+  useAttainsParametersContext,
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,
