@@ -1654,6 +1654,266 @@ function useSharedLayers({
     damsLayer.listMode = 'hide-children';
     damsLayer.title = 'Dams';
     damsLayer.visible = false;
+    damsLayer.popupTemplate = new PopupTemplate({
+      content: [
+        {
+          type: 'text',
+          text: '<p style="text-align:center;"><span style="font-size:18px;"><strong>{expression/expr0}</strong></span><br><span style="font-size:14px;">({NIDID})</span></p><p><span style="font-size:18px;">Owner Type: {expression/expr60}</span><br><span style="font-size:18px;">Designed for: {expression/expr16}</span><br><span style="font-size:18px;">Year completed: {expression/expr59}</span><br><span style="font-size:18px;">City: {expression/expr5}</span><br><span style="font-size:18px;">State: {STATE}</span><br><span style="font-size:18px;">Condition Assessment: {CONDITION_ASSESSMENT}</span><br><span style="font-size:18px;">Recent Assessment Date: {CONDITION_ASSESS_DATE}</span></p><p style="text-align:center;"><span style="font-size:18px;"><strong>Specifics</strong></span></p><p><span style="font-size:18px;">Type:&nbsp;{expression/expr13}</span><br><span style="font-size:18px;">Core:&nbsp;{expression/expr14}</span><br><span style="font-size:18px;">Foundation: {expression/expr15}</span><br><span style="font-size:18px;">Dam length: {expression/expr38} ft</span><br><span style="font-size:18px;">Dam height: {expression/expr39} ft</span></p>',
+        },
+      ],
+      expressionInfos: [
+        {
+          name: 'expr0',
+          title: 'Dam Name',
+          expression:
+            '//expression to remove blank attributes and display proper case.\n\nvar c = Proper($feature["NAME"], \'everyword\')\n\niif(c == "", "Unknown", c)',
+          returnType: 'string',
+        },
+        {
+          name: 'expr5',
+          title: 'City',
+          expression:
+            '//expression to remove blank attributes and display proper case.\n\nvar c = Proper($feature.CITY, \'everyword\')\n\niif(c == "", "Unknown", c)',
+          returnType: 'string',
+        },
+        {
+          name: 'expr13',
+          title: 'Dam Type',
+          expression:
+            '//expression to remove blank attributes.\n\nvar c = $feature.PRIMARY_DAM_TYPE\n\nDefaultValue(c, "Unknown")',
+          returnType: 'string',
+        },
+        {
+          name: 'expr14',
+          title: 'Core Type',
+          expression:
+            '//expression to remove blank attributes.\n\nvar c = $feature.CORE_TYPES\n\nDefaultValue(c, "Unknown")',
+          returnType: 'string',
+        },
+        {
+          name: 'expr15',
+          title: 'Foundation',
+          expression:
+            '//expression to remove blank attributes.\n\nvar c = $feature.FOUNDATIONS\n\nDefaultValue(c, "Unknown")',
+          returnType: 'string',
+        },
+        {
+          name: 'expr16',
+          title: 'Purposes',
+          expression:
+            "//expression to remove empty attributes from the field.\n\nDefaultValue($feature.PURPOSES, 'Unknown')",
+          returnType: 'string',
+        },
+        {
+          name: 'expr38',
+          title: 'Dam Length (feet)',
+          expression:
+            '//expression to populate blank fields.\n\nvar d = IsEmpty($feature["DAM_LENGTH"])\nvar l = Number($feature["DAM_LENGTH"])\n\nIIf(d == true, -99999, l)',
+          returnType: 'number',
+        },
+        {
+          name: 'expr39',
+          title: 'Dam Height (feet)',
+          expression:
+            '//expression to populate blank fields.\n\nvar d = IsEmpty($feature["DAM_HEIGHT"])\nvar h = Number($feature["DAM_HEIGHT"])\n\nIIf(d == true, -99999, h)',
+          returnType: 'number',
+        },
+        {
+          name: 'expr59',
+          title: 'Year Completed',
+          expression:
+            '//expression to make blanks "Unknown" and return a date as text.\n\nvar d = Text($feature["YEAR_COMPLETED"])\nvar e = IsEmpty($feature["YEAR_COMPLETED"])\n\nWhen(\ne == true, "Unknown",\nd)',
+          returnType: 'string',
+        },
+        {
+          name: 'expr60',
+          title: 'Owner Type',
+          expression:
+            "//expression to remove empty attributes from the field.\n\nDefaultValue($feature.OWNER_TYPES, 'Unknown')",
+          returnType: 'string',
+        },
+      ],
+      fieldInfos: [
+        {
+          fieldName: 'NIDID',
+          isEditable: true,
+          label: 'National Inventory of Dams ID (NID ID)',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'CITY',
+          isEditable: true,
+          label: 'City',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'STATE',
+          isEditable: true,
+          label: 'State',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'PURPOSES',
+          isEditable: true,
+          label: 'Purposes',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'YEAR_COMPLETED',
+          format: {
+            digitSeparator: false,
+            places: 0,
+          },
+          isEditable: true,
+          label: 'Year Completed',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'DAM_LENGTH',
+          format: {
+            digitSeparator: true,
+            places: 0,
+          },
+          isEditable: true,
+          label: 'Dam Length (feet)',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'DAM_HEIGHT',
+          format: {
+            digitSeparator: true,
+            places: 2,
+          },
+          isEditable: true,
+          label: 'Dam Height (feet)',
+          tooltip: '',
+          visible: true,
+        },
+        {
+          fieldName: 'NAME',
+          isEditable: true,
+          label: 'Dam Name',
+          visible: false,
+        },
+        {
+          fieldName: 'OWNER_TYPES',
+          isEditable: true,
+          label: 'Owner Types',
+          visible: false,
+        },
+        {
+          fieldName: 'PRIMARY_DAM_TYPE',
+          isEditable: true,
+          label: 'Primary Dam Type',
+          visible: false,
+        },
+        {
+          fieldName: 'CORE_TYPES',
+          isEditable: true,
+          label: 'Core Types',
+          visible: false,
+        },
+        {
+          fieldName: 'FOUNDATIONS',
+          isEditable: true,
+          label: 'The material upon which dam is founded',
+          visible: false,
+        },
+        {
+          fieldName: 'CONDITION_ASSESSMENT',
+          isEditable: true,
+          label: 'Dam Condition Assessment',
+          visible: false,
+        },
+        {
+          fieldName: 'CONDITION_ASSESS_DATE',
+          isEditable: true,
+          label: 'Recent Dam Assessment Date',
+          visible: false,
+        },
+        {
+          fieldName: 'expression/expr0',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr5',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr13',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr14',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr15',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr16',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr38',
+          format: {
+            digitSeparator: true,
+            places: 0,
+          },
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr39',
+          format: {
+            digitSeparator: true,
+            places: 0,
+          },
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr59',
+          isEditable: true,
+          visible: true,
+        },
+        {
+          fieldName: 'expression/expr60',
+          isEditable: true,
+          visible: false,
+        },
+      ],
+      outFields: [
+        'CITY',
+        'CONDITION_ASSESSMENT',
+        'CONDITION_ASSESS_DATE',
+        'CORE_TYPES',
+        'DAM_HEIGHT',
+        'DAM_LENGTH',
+        'FOUNDATIONS',
+        'NAME',
+        'NIDID',
+        'OWNER_TYPES',
+        'PRIMARY_DAM_TYPE',
+        'PURPOSES',
+        'STATE',
+        'YEAR_COMPLETED',
+      ],
+      title: '',
+    });
     setLayer('damsLayer', damsLayer);
     return damsLayer;
   }
