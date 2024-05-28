@@ -219,7 +219,7 @@
           "content": [
             {
               "type": "text",
-              "text": "<p><span style=\"font-size:18px;\"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Maximum number of consecutive dry days</strong></p>"
+              "text": "<p><span><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Maximum number of consecutive dry days</strong></p>"
             }
           ],
           "expressionInfos": [
@@ -327,7 +327,7 @@
           "content": [
             {
               "type": "text",
-              "text": "<p><span style=\"font-size:18px;\"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Days per year with no precipitation (dry days)</strong></p>"
+              "text": "<p><span><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Days per year with no precipitation (dry days)</strong></p>"
             }
           ],
           "expressionInfos": [
@@ -435,7 +435,7 @@
           "content": [
             {
               "type": "text",
-              "text": "<p><span style=\"font-size:18px;\"><strong>{expression/roundedValue} &nbsp;Inches</strong></span></p><p><strong>Average annual total precipitation</strong></p>"
+              "text": "<p><span><strong>{expression/roundedValue} &nbsp;Inches</strong></span></p><p><strong>Average annual total precipitation</strong></p>"
             }
           ],
           "expressionInfos": [
@@ -559,7 +559,7 @@
           "content": [
             {
               "type": "text",
-              "text": "<p><span style=\"font-size:18px;\"><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Annual days with maximum temperature &gt; 90</strong><span style=\"background-color:rgb(255,255,255);color:rgb(50,50,50);\"><strong>°F</strong></span></p>"
+              "text": "<p><span><strong>{expression/roundedValue} &nbsp;Days</strong></span></p><p><strong>Annual days with maximum temperature &gt; 90</strong><span style=\"background-color:rgb(255,255,255);color:rgb(50,50,50);\"><strong>°F</strong></span></p>"
             }
           ],
           "expressionInfos": [
