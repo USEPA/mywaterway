@@ -6,6 +6,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -23,6 +24,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
+import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
 import { containsScriptTag, indicesOf, isClick, isHuc12 } from 'utils/utils';
 import { splitSuggestedSearch } from 'utils/mapFunctions';
@@ -165,126 +167,161 @@ function LocationSearch({ route, label }: Props) {
   const clearButton = useRef(null);
   const clearEnterPress = useKeyPress('Enter', clearButton);
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
+  const [searchWidget, setSearchWidget] = useState(null);
 
   const placeholder = 'Search by address, zip code, or place...';
-  const [allSources] = useState([
-    {
-      type: 'default',
-      name: 'All',
-      placeholder,
-    },
-    {
-      type: 'ArcGIS',
-      name: 'Address, zip code, and place search',
-      placeholder,
-      sources: [
-        {
-          url: services.data.locatorUrl,
-          countryCode: 'USA',
-          searchFields: ['Loc_name'],
-          suggestionTemplate: '{Loc_name}',
-          exactMatch: false,
-          outFields: [
-            'Loc_name',
-            'City',
-            'Place_addr',
-            'Region',
-            'RegionAbbr',
-            'Country',
-            'Addr_type',
-          ],
-          placeholder,
-          name: 'ArcGIS',
-        },
-      ],
-    },
-    {
-      type: 'group',
-      name: 'EPA Tribal Areas',
-      placeholder: 'Search EPA tribal areas...',
-      sources: [
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/1`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - Alaska Native Villages',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/2`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - American Indian Reservations',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/3`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - American Indian Off-Reservation Trust Lands',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/4`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - American Indian Oklahoma Statistical Areas',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/5`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'Virginia Federally Recognized Tribes',
-        },
-      ],
-    },
-    {
-      type: 'layer',
-      name: 'Watershed',
-      placeholder: 'Search watersheds...',
-      sources: [
-        {
-          layer: new FeatureLayer({
-            url: services.data.wbdUnconstrained,
-            listMode: 'hide',
-          }),
-          searchFields: ['name', 'huc12'],
-          suggestionTemplate: '{name} ({huc12})',
-          exactMatch: false,
-          outFields: ['name', 'huc12'],
-          placeholder: placeholder,
-          name: 'Watersheds',
-        },
-      ],
-    },
-  ]);
+  const allSources = useMemo(
+    () => [
+      {
+        type: 'default',
+        name: 'All',
+        placeholder,
+      },
+      {
+        type: 'ArcGIS',
+        name: 'Address, zip code, and place search',
+        placeholder,
+        sources: [
+          {
+            url: services.data.locatorUrl,
+            countryCode: 'USA',
+            searchFields: ['Loc_name'],
+            suggestionTemplate: '{Loc_name}',
+            exactMatch: false,
+            outFields: [
+              'Loc_name',
+              'City',
+              'Place_addr',
+              'Region',
+              'RegionAbbr',
+              'Country',
+              'Addr_type',
+            ],
+            placeholder,
+            name: 'ArcGIS',
+          },
+        ],
+      },
+      {
+        type: 'group',
+        name: 'EPA Tribal Areas',
+        placeholder: 'Search EPA tribal areas...',
+        sources: [
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/1`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            placeholder: placeholder,
+            name: 'EPA Tribal Areas - Alaska Native Villages',
+          },
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/2`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            placeholder: placeholder,
+            name: 'EPA Tribal Areas - American Indian Reservations',
+          },
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/3`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            placeholder: placeholder,
+            name: 'EPA Tribal Areas - American Indian Off-Reservation Trust Lands',
+          },
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/4`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            placeholder: placeholder,
+            name: 'EPA Tribal Areas - American Indian Oklahoma Statistical Areas',
+          },
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/5`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            placeholder: placeholder,
+            name: 'Virginia Federally Recognized Tribes',
+          },
+        ],
+      },
+      {
+        type: 'layer',
+        name: 'Watershed',
+        placeholder: 'Search watersheds...',
+        sources: [
+          {
+            layer: new FeatureLayer({
+              url: services.data.wbdUnconstrained,
+              listMode: 'hide',
+            }),
+            searchFields: ['name', 'huc12'],
+            suggestionTemplate: '{name} ({huc12})',
+            exactMatch: false,
+            outFields: ['name', 'huc12'],
+            placeholder: placeholder,
+            name: 'Watersheds',
+          },
+        ],
+      },
+      {
+        type: 'webservice',
+        name: 'Monitoring Location',
+        placeholder: 'Search monitoring locations...',
+        sources: [
+          {
+            placeholder: placeholder,
+            name: 'Monitoring Locations',
+            getSuggestions: ({ maxSuggestions, suggestTerm }) => {
+              return fetchCheck(
+                `${services.data.waterQualityPortal.domainValues}/monitoringlocation?text=${suggestTerm}&mimeType=json&pagesize=${maxSuggestions}`,
+              )
+                .then((res) => {
+                  const sourceIndex = searchWidget?.sources.findIndex(
+                    (source) => source.name === 'Monitoring Locations',
+                  );
+                  if (!sourceIndex) return [];
+
+                  return res.codes.map((code) => ({
+                    key: code.value,
+                    text: `${code.desc} (${code.value})`,
+                    sourceIndex,
+                  }));
+                })
+                .catch((_err) => {
+                  setErrorMessage(webServiceErrorMessage);
+                });
+            },
+          },
+        ],
+      },
+    ],
+    [searchWidget, services],
+  );
 
   // geolocating state for updating the 'Use My Location' button
   const [geolocating, setGeolocating] = useState(false);
@@ -301,7 +338,6 @@ function LocationSearch({ route, label }: Props) {
   const [errorMessage, setErrorMessage] = useState('');
 
   // Initialize the esri search widget
-  const [searchWidget, setSearchWidget] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   useEffect(() => {
     if (searchWidget) return;
@@ -581,6 +617,20 @@ function LocationSearch({ route, label }: Props) {
                 // extract the huc from "Watershed (huc)" and search on the huc
                 const huc = result.text.split('(')[1].replace(')', '');
                 formSubmit(huc);
+              } else if (source.source.name === 'Monitoring Locations') {
+                // query WQP's station service to get the lat/long
+                const url = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
+                fetchCheck(url)
+                  .then((res) => {
+                    const geometry = {
+                      longitude: res.features[0].geometry.coordinates[0],
+                      latitude: res.features[0].geometry.coordinates[1],
+                    };
+                    formSubmit(result.key, geometry);
+                  })
+                  .catch((_err) => {
+                    setErrorMessage(webServiceErrorMessage);
+                  });
               } else {
                 // query to get the feature and search based on the centroid
                 const params = result.source.layer.createQuery();
