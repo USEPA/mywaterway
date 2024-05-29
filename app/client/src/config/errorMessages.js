@@ -64,6 +64,10 @@ export const protectNonpointSourceError =
 export const restoreNonpointSourceError =
   'The nonpoint source projects are temporarily unavailable, please try again later.';
 
+// grts.epa.gov stories HUC12 service
+export const restoreStoriesError =
+  'Watershed stories are temporarily unavailable, please try again later.';
+
 // attains.epa.gov - Plans Service
 export const restorationPlanError =
   'The restoration plans are temporarily unavailable, please try again later.';

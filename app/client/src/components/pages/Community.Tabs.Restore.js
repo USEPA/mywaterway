@@ -10,7 +10,11 @@ import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  errorBoxStyles,
+  infoBoxStyles,
+  textBoxStyles,
+} from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import {
   keyMetricsStyles,
@@ -26,10 +30,13 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { getUrlFromMarkup } from 'components/shared/Regex';
 import { useWaterbodyOnMap } from 'utils/hooks';
 import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
-import { countOrNotAvailable } from 'utils/utils';
+import { countOrNotAvailable, getExtensionFromPath } from 'utils/utils';
+// styles
+import { iconStyles } from 'styles';
 // errors
 import {
   restoreNonpointSourceError,
+  restoreStoriesError,
   restorationPlanError,
 } from 'config/errorMessages';
 
@@ -51,8 +58,22 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
+const linkBoxStyles = css``;
+
+const storyStyles = css`
+  padding: 0 0.75em 0.75em;
+
+  div {
+    ${textBoxStyles}
+    padding: 0.75em;
+  }
+`;
+
 function Restore() {
-  const { attainsPlans, grts, watershed } = useContext(LocationSearchContext);
+  const { attainsPlans, grts, grtsStories, watershed } = useContext(
+    LocationSearchContext,
+  );
+  console.log('grtsStories', grtsStories);
 
   const { updateVisibleLayers } = useLayers();
 
@@ -60,20 +81,21 @@ function Restore() {
   useWaterbodyOnMap('restoreTab', 'overallstatus');
 
   const sortedGrtsData =
-    grts.data.items && grts.data.items.length > 0
-      ? grts.data.items
-          .sort((a, b) => a.prj_title.localeCompare(b.prj_title))
-          .filter((project) => {
-            return !project.ws_protect_ind || project.ws_protect_ind === 'N';
-          })
-      : [];
+    grts.data.items
+      ?.filter((project) => {
+        return !project.ws_protect_ind || project.ws_protect_ind === 'N';
+      })
+      .sort((a, b) => a.prj_title.localeCompare(b.prj_title)) ?? [];
+
+  const sortedStoriesData =
+    grtsStories.data.items
+      ?.filter((story) => story.ss_overview && story.web_link) // Filter stories that have no description text or url
+      .sort((a, b) => a.ss_title.localeCompare(b.ss_title)) ?? [];
 
   const sortedAttainsPlanData =
-    attainsPlans.data.items && attainsPlans.data.items.length > 0
-      ? attainsPlans.data.items
-          .filter((item) => item.actionTypeCode !== 'Protection Approach')
-          .sort((a, b) => a.actionName.localeCompare(b.actionName))
-      : [];
+    attainsPlans.data.items
+      ?.filter((item) => item.actionTypeCode !== 'Protection Approach')
+      .sort((a, b) => a.actionName.localeCompare(b.actionName)) ?? [];
 
   return (
     <div css={containerStyles}>
@@ -98,6 +120,16 @@ function Restore() {
           )}
           <p css={keyMetricLabelStyles}>Plans</p>
         </div>
+        <div css={keyMetricStyles}>
+          {grtsStories.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : (
+            <span css={keyMetricNumberStyles}>
+              {countOrNotAvailable(sortedStoriesData, grtsStories.status)}
+            </span>
+          )}
+          <p css={keyMetricLabelStyles}>Stories</p>
+        </div>
       </div>
 
       <div css={tabsStyles}>
@@ -109,6 +141,7 @@ function Restore() {
           <TabList>
             <Tab>Nonpoint Source Projects</Tab>
             <Tab>Restoration Plans</Tab>
+            <Tab>Success Stories</Tab>
           </TabList>
 
           <TabPanels>
@@ -393,6 +426,84 @@ function Restore() {
                             </AccordionItem>
                           );
                         })}
+                      </AccordionList>
+                    )}
+                  </>
+                )}
+              </>
+            </TabPanel>
+
+            <TabPanel>
+              <>
+                <p>Some descriptive text</p>
+                {grtsStories.status === 'fetching' && <LoadingSpinner />}
+                {grtsStories.status === 'failure' && (
+                  <div css={errorBoxStyles}>
+                    <p>{restoreStoriesError}</p>
+                  </div>
+                )}
+                {grtsStories.status === 'success' && (
+                  <>
+                    {sortedStoriesData.length === 0 && (
+                      <div css={infoBoxStyles}>
+                        <p css={textStyles}>
+                          There are no stories available for the{' '}
+                          <em>{watershed.name}</em> watershed.
+                        </p>
+                      </div>
+                    )}
+
+                    {sortedStoriesData.length > 0 && (
+                      <AccordionList
+                        title={
+                          <>
+                            There{' '}
+                            {sortedStoriesData.length === 1 ? 'is' : 'are'}{' '}
+                            <strong>
+                              {sortedStoriesData.length.toLocaleString()}
+                            </strong>{' '}
+                            {sortedStoriesData.length === 1
+                              ? 'story'
+                              : 'stories'}{' '}
+                            about Nonpoint Source projects funded from EPA
+                            grants under the{' '}
+                            <GlossaryTerm term="Clean Water Act Section 319 Projects">
+                              Clean Water Act Section 319
+                            </GlossaryTerm>{' '}
+                            that benefit waterbodies in the{' '}
+                            <em>{watershed.name}</em> watershed.
+                          </>
+                        }
+                      >
+                        {sortedStoriesData.map((item) => (
+                          <AccordionItem
+                            ariaLabel={item.ss_title}
+                            key={item.ss_seq}
+                            title={<strong>{item.ss_title}</strong>}
+                          >
+                            <div css={storyStyles}>
+                              <p>{item.ss_overview}</p>
+                              <div css={linkBoxStyles}>
+                                <a
+                                  href={item.web_link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <i
+                                    css={iconStyles}
+                                    className="fas fa-file-alt"
+                                    aria-hidden="true"
+                                  />
+                                  {getExtensionFromPath(item.web_link)}
+                                </a>
+                                &nbsp;&nbsp;
+                                <small css={disclaimerStyles}>
+                                  (opens new browser tab)
+                                </small>
+                              </div>
+                            </div>
+                          </AccordionItem>
+                        ))}
                       </AccordionList>
                     )}
                   </>

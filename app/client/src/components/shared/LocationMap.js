@@ -138,6 +138,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setDrinkingWater,
     setStatesData,
     setGrts,
+    setGrtsStories,
     setFishingInfo,
     setHucBoundaries,
     setAtHucBoundaries,
@@ -966,12 +967,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .catch((err) => {
           console.error(err);
           setGrts({
-            data: [],
+            data: {},
             status: 'failure',
           });
         });
     },
     [setGrts, services],
+  );
+
+  const queryGrtsHuc12Stories = useCallback(
+    (huc12Param) => {
+      //fetchCheck(`${services.data.grts.getSSByHUC12}${huc12Param}`)
+      import('config/grtsStoriesExample')
+        .then((res) => res.default)
+        .then((res) => {
+          setGrtsStories({
+            data: res,
+            status: 'success',
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          setGrtsStories({
+            data: {},
+            status: 'failure',
+          });
+        });
+    },
+    [setGrtsStories, services],
   );
 
   // Runs a query to get the plans for the selected huc.
@@ -1309,6 +1332,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setHuc12(huc12);
           processBoundariesData(response);
           queryGrtsHuc12(huc12);
+          queryGrtsHuc12Stories(huc12);
           queryAttainsPlans(huc12);
 
           // create canonical link and JSON LD
@@ -1326,6 +1350,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setHuc12,
       processBoundariesData,
       queryGrtsHuc12,
+      queryGrtsHuc12Stories,
       queryAttainsPlans,
       handleNoDataAvailable,
     ],
