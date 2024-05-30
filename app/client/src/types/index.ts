@@ -56,6 +56,19 @@ export type AssessmentUseAttainmentState =
   | { status: 'failure'; data: null }
   | { status: 'success'; data: AssessmentUseAttainmentByGroup };
 
+export type AttainsImpairmentField = {
+  label: string;
+  parameterGroup: string;
+  sentence: string | null;
+  term: string;
+  value: string;
+};
+
+export type AttainsImpairmentFieldState =
+  | { status: 'fetching'; data: null }
+  | { status: 'failure'; data: null }
+  | { status: 'success'; data: AttainsImpairmentField[] };
+
 export type AttainsUseField = {
   category: string;
   label: string;
@@ -66,7 +79,7 @@ export type AttainsUseField = {
 export type AttainsUseFieldState =
   | { status: 'fetching'; data: null }
   | { status: 'failure'; data: null }
-  | { status: 'success'; data: AttainsUseField };
+  | { status: 'success'; data: AttainsUseField[] };
 
 export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
@@ -226,14 +239,6 @@ export interface Huc12SummaryData {
   }[];
 }
 
-export type ImpairmentFields = {
-  value: string;
-  parameterGroup: string;
-  label: string;
-  term: string;
-  sentence: JSX.Element | null;
-}[];
-
 export type LookupFile = {
   status: 'fetching' | 'success' | 'failure';
   data: any;
@@ -375,7 +380,8 @@ export type PopupAttributes =
   | CyanWaterbodyAttributes;
 
 export type PopupLookupFiles = {
-  attainsUseFields?: LookupFile;
+  attainsImpairmentFields?: AttainsImpairmentFieldState;
+  attainsUseFields?: AttainsUseFieldState;
   services: ServicesState;
   stateNationalUses?: LookupFile;
 };

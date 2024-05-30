@@ -30,6 +30,7 @@ import AlertMessage from 'components/shared/AlertMessage';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import {
+  useAttainsImpairmentFieldsContext,
   useAttainsUseFieldsContext,
   useServicesContext,
   useStateNationalUsesContext,
@@ -46,11 +47,13 @@ const modifiedErrorBoxStyles = css`
 `;
 
 function AppRoutes() {
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
 
   if (
+    attainsImpairmentFields.status === 'fetching' ||
     attainsUseFields.status === 'fetching' ||
     services.status === 'fetching' ||
     stateNationalUses.status === 'fetching'
@@ -59,6 +62,7 @@ function AppRoutes() {
   }
 
   if (
+    attainsImpairmentFields.status === 'failure' ||
     attainsUseFields.status === 'failure' ||
     services.status === 'failure' ||
     stateNationalUses.status === 'failure'

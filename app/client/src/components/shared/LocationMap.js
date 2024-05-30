@@ -36,14 +36,13 @@ import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
+  useAttainsImpairmentFieldsContext,
   useAttainsParametersContext,
   useAttainsUseFieldsContext,
   useOrganizationsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
-// data
-import { impairmentFields } from 'config/attainsToHmwMapping';
 // errors
 import {
   geocodeError,
@@ -103,8 +102,9 @@ type Props = {
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { getSignal } = useAbort();
 
-  const attainsUseFields = useAttainsUseFieldsContext();
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsParameters = useAttainsParametersContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
@@ -305,7 +305,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             tempObject[parameter] = checkParameterStatus(
               parameter,
               assessment.parameters,
-              impairmentFields,
+              attainsImpairmentFields.data,
               attainsDomainsData,
             );
           });
@@ -348,7 +348,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         };
       });
     },
-    [attainsParameters, stateNationalUses],
+    [attainsImpairmentFields, attainsParameters, stateNationalUses],
   );
 
   const handleOrphanedFeatures = useCallback(
@@ -667,11 +667,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          lookupFiles: { attainsUseFields, services },
+          lookupFiles: { attainsImpairmentFields, attainsUseFields, services },
           stateNationalUses,
         }),
     };
-  }, [attainsUseFields, navigate, services, stateNationalUses]);
+  }, [
+    attainsImpairmentFields,
+    attainsUseFields,
+    navigate,
+    services,
+    stateNationalUses,
+  ]);
 
   const handleMapServiceError = useCallback(
     (err) => {

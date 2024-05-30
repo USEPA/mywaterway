@@ -17,10 +17,10 @@ import { getSelectedCommunityTab } from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  AttainsImpairmentField,
   ChangeLocationAttributes,
   ClickedHucState,
   Feature,
-  ImpairmentFields,
   ParentLayer,
   PopupAttributes,
   PopupLookupFiles,
@@ -1083,7 +1083,7 @@ export function hasDefinitionExpression(layer: __esri.Layer) {
 
 // translate scientific parameter names
 export const getMappedParameter = (
-  parameterFields: ImpairmentFields,
+  parameterFields: AttainsImpairmentField[],
   parameter: string,
 ) => {
   const filteredFields = parameterFields.filter(

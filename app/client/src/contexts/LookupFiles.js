@@ -22,6 +22,8 @@ function getLookupFile(filename: string, setVariable: Function) {
 
 // --- components ---
 type LookupFiles = {
+  attainsImpairmentFields: LookupFile,
+  setAttainsImpairmentFields: Function,
   attainsParameters: LookupFile,
   setAttainsParameters: Function,
   attainsUseFields: LookupFile,
@@ -54,6 +56,8 @@ type LookupFiles = {
 };
 
 const LookupFilesContext: Object = createContext<LookupFiles>({
+  attainsImpairmentFields: { status: 'fetching', data: null },
+  setAttainsImpairmentFields: () => {},
   attainsParameters: { status: 'fetching', data: null },
   setAttainsParameters: () => {},
   attainsUseFields: { status: 'fetching', data: null },
@@ -91,6 +95,10 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
+  const [attainsImpairmentFields, setAttainsImpairmentFields] = useState({
+    status: 'fetching',
+    data: null,
+  });
   const [attainsParameters, setAttainsParameters] = useState({
     status: 'fetching',
     data: null,
@@ -154,6 +162,8 @@ function LookupFilesProvider({ children }: Props) {
 
   const state = useMemo(
     () => ({
+      attainsImpairmentFields,
+      setAttainsImpairmentFields,
       attainsParameters,
       setAttainsParameters,
       attainsUseFields,
@@ -186,6 +196,7 @@ function LookupFilesProvider({ children }: Props) {
       setWaterTypeOptions,
     }),
     [
+      attainsImpairmentFields,
       attainsParameters,
       attainsUseFields,
       dataSources,
@@ -209,6 +220,21 @@ function LookupFilesProvider({ children }: Props) {
       {children}
     </LookupFilesContext.Provider>
   );
+}
+
+// Custom hook for the attains/parameters.json file.
+let attainsImpairmentFieldsInitialized = false; // global var for ensuring fetch only happens once
+function useAttainsImpairmentFieldsContext() {
+  const { attainsImpairmentFields, setAttainsImpairmentFields } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!attainsImpairmentFieldsInitialized) {
+    attainsImpairmentFieldsInitialized = true;
+    getLookupFile('attains/impairmentFields.json', setAttainsImpairmentFields);
+  }
+
+  return attainsImpairmentFields;
 }
 
 // Custom hook for the attains/parameters.json file.
@@ -484,6 +510,7 @@ function useWaterTypeOptionsContext() {
 export {
   LookupFilesContext,
   LookupFilesProvider,
+  useAttainsImpairmentFieldsContext,
   useAttainsParametersContext,
   useAttainsUseFieldsContext,
   useDataSourcesContext,

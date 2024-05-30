@@ -30,6 +30,7 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
+  useAttainsImpairmentFieldsContext,
   useAttainsUseFieldsContext,
   useServicesContext,
   useStateNationalUsesContext,
@@ -437,6 +438,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     wildScenicRiversLayer,
   } = useLayers();
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const navigate = useNavigate();
@@ -475,13 +478,23 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         selectedGraphic,
         dynamicPopupFields,
         {
+          attainsImpairmentFields,
+          attainsUseFields,
           services,
           stateNationalUses,
         },
         navigate,
       );
     });
-  }, [mapView, navigate, selectedGraphic, services, stateNationalUses]);
+  }, [
+    attainsImpairmentFields,
+    attainsUseFields,
+    mapView,
+    navigate,
+    selectedGraphic,
+    services,
+    stateNationalUses,
+  ]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);
@@ -772,6 +785,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 }
 
 function useDynamicPopup() {
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
   const navigate = useNavigate();
   const services = useServicesContext();
@@ -846,7 +860,12 @@ function useDynamicPopup() {
         return getPopupContent({
           feature: graphic.graphic,
           fields,
-          lookupFiles: { attainsUseFields, services, stateNationalUses },
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            services,
+            stateNationalUses,
+          },
           mapView,
           navigate,
         });
@@ -858,11 +877,17 @@ function useDynamicPopup() {
         getClickedHuc: checkHuc ? getClickedHuc(location) : null,
         mapView,
         resetData: reset,
-        lookupFiles: { attainsUseFields, services, stateNationalUses },
+        lookupFiles: {
+          attainsImpairmentFields,
+          attainsUseFields,
+          services,
+          stateNationalUses,
+        },
         navigate,
       });
     },
     [
+      attainsImpairmentFields,
       attainsUseFields,
       getClickedHuc,
       getHucBoundaries,

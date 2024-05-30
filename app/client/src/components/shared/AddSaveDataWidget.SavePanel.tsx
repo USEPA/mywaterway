@@ -16,12 +16,14 @@ import {
   successBoxStyles,
 } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
-// config
-import { impairmentFields } from 'config/attainsToHmwMapping';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { LocationSearchContext, Status } from 'contexts/locationSearch';
-import { useLayerProps, useServicesContext } from 'contexts/LookupFiles';
+import {
+  useAttainsImpairmentFieldsContext,
+  useLayerProps,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
 import {
@@ -253,6 +255,7 @@ function SavePanel({ visible }: Readonly<Props>) {
     setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const cipSummary = useContext(LocationSearchContext).cipSummary as {
     status: Status;
     data: Huc12SummaryData;
@@ -704,7 +707,7 @@ function SavePanel({ visible }: Readonly<Props>) {
         cipSummary.data.items[0].summaryByParameterImpairments.forEach(
           (param) => {
             const mappedParameter = getMappedParameter(
-              impairmentFields,
+              attainsImpairmentFields.data,
               param['parameterGroupName'],
             );
             if (!mappedParameter) return;

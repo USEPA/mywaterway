@@ -24,6 +24,7 @@ import {
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import {
+  useAttainsImpairmentFieldsContext,
   useAttainsUseFieldsContext,
   useReportStatusMappingContext,
   useServicesContext,
@@ -37,8 +38,6 @@ import {
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
 } from 'utils/hooks';
-// data
-import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
 import { reactSelectStyles } from 'styles/index';
 // errors
@@ -249,6 +248,7 @@ const screenLabelWithPaddingStyles = css`
 
 function AdvancedSearch() {
   const { getSignal } = useAbort();
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
 
@@ -308,7 +308,7 @@ function AdvancedSearch() {
     });
 
     // get the public friendly versions of the parameterGroups
-    let parameterGroupOptions = impairmentFields.filter((field) =>
+    let parameterGroupOptions = attainsImpairmentFields.data.filter((field) =>
       uniqueParameterGroups.includes(field.parameterGroup.toUpperCase()),
     );
 
@@ -318,7 +318,7 @@ function AdvancedSearch() {
     });
 
     setParameterGroupOptions(parameterGroupOptions);
-  }, [currentSummary]);
+  }, [attainsImpairmentFields, currentSummary]);
 
   // Get the maxRecordCount of the watersheds layer
   const [watershedMrcError, setWatershedMrcError] = useState(false);

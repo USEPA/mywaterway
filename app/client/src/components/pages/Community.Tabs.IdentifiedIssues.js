@@ -14,7 +14,6 @@ import {
 } from 'components/shared/AccordionMapHighlight';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import { impairmentFields } from 'config/attainsToHmwMapping';
 import Switch from 'components/shared/Switch';
 import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -33,6 +32,7 @@ import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useAttainsImpairmentFieldsContext } from 'contexts/LookupFiles';
 // utilities
 import { countOrNotAvailable, formatNumber } from 'utils/utils';
 import { getMappedParameter, plotIssues } from 'utils/mapFunctions';
@@ -98,6 +98,7 @@ const modifiedTabLegendStyles = css`
 `;
 
 function IdentifiedIssues() {
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const navigate = useNavigate();
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
@@ -162,11 +163,11 @@ function IdentifiedIssues() {
       features.forEach((feature) => {
         if (
           feature?.attributes &&
-          impairmentFields.findIndex(
+          attainsImpairmentFields.data.findIndex(
             (field) => feature.attributes[field.value] === 'Cause',
           ) !== -1
         ) {
-          impairmentFields.forEach((field) => {
+          attainsImpairmentFields.data.forEach((field) => {
             // if impairment is not a cause, ignore it. overview waterbody listview only displays impairments that are causes
             if (feature.attributes[field.value] !== 'Cause') return null;
             else if (parameterToggleObject[field.label] || showAllParameters) {
@@ -179,6 +180,7 @@ function IdentifiedIssues() {
       plotIssues(Array.from(waterbodiesToShow), issuesLayer, navigate);
     }
   }, [
+    attainsImpairmentFields,
     getAllFeatures,
     issuesLayer,
     parameterToggleObject,
@@ -201,13 +203,14 @@ function IdentifiedIssues() {
 
     // generate an object with all possible parameters to store which ones are displayed
     const parameterToggles = {};
-    impairmentFields.forEach((param) => {
+    attainsImpairmentFields.data.forEach((param) => {
       parameterToggles[param.label] = true;
     });
 
     setParameterToggleObject(parameterToggles);
     setPollutionParameters(parameterToggles);
   }, [
+    attainsImpairmentFields,
     showAllPolluted,
     pollutionParameters,
     setComponentMounted,
@@ -282,7 +285,7 @@ function IdentifiedIssues() {
     // get a list of all parameters displayed in table and push them to array
     cipSummaryData.items[0].summaryByParameterImpairments.forEach((param) => {
       const mappedParameter = getMappedParameter(
-        impairmentFields,
+        attainsImpairmentFields.data,
         param['parameterGroupName'],
       );
 
@@ -723,7 +726,7 @@ function IdentifiedIssues() {
 
                                       const mappedParameter =
                                         getMappedParameter(
-                                          impairmentFields,
+                                          attainsImpairmentFields.data,
                                           param['parameterGroupName'],
                                         );
                                       // if service contains a parameter we have no mapping for

@@ -25,8 +25,6 @@ import Modal from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Slider from 'components/shared/Slider';
 import { Sparkline } from 'components/shared/Sparkline';
-// utilities
-import { impairmentFields } from 'config/attainsToHmwMapping';
 import {
   createRelativeDailyTimestampRange,
   epochToMonthDay,
@@ -429,7 +427,9 @@ function WaterbodyInfo({
   const onWaterbodyReportPage =
     window.location.pathname.indexOf('waterbody-report') !== -1;
   const waterbodyPollutionCategories = (label: string) => {
-    const pollutionCategories = impairmentFields
+    const pollutionCategories = (
+      lookupFiles?.attainsImpairmentFields?.data ?? []
+    )
       .filter((field) => attributes[field.value] === 'Cause')
       .sort((a, b) =>
         a.label.toUpperCase().localeCompare(b.label.toUpperCase()),
