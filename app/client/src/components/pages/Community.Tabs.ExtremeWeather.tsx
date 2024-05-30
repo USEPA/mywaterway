@@ -1186,14 +1186,9 @@ function SelectionTable({
       <tbody>
         {value.items.map((item) => {
           const layer = mapView?.map.findLayerById(item.layerId ?? '');
-          let marginLeftBase = item.indent
-            ? item.checked !== undefined
-              ? '1.6rem'
-              : '4rem'
-            : undefined;
           const marginLeft = hasSubheadings
-            ? `calc(${marginLeftBase ?? '0px'} + 1rem)`
-            : marginLeftBase;
+            ? `calc(${item.indent ?? '0px'} + 1rem)`
+            : item.indent;
           const itemValue = item.text;
 
           if (item.subHeading) {
@@ -1880,7 +1875,7 @@ type Row = {
   checked?: boolean;
   disabled?: boolean;
   id: string;
-  indent?: boolean;
+  indent?: string;
   infoText?: string;
   label: string;
   layerId?: string;
