@@ -2,11 +2,13 @@
 /** @jsxImportSource @emotion/react */
 
 import { useState, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 import type { Node } from 'react';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
 // components
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import NavBar from 'components/shared/NavBar';
 import DataContent from 'components/shared/DataContent';
 import AboutContent from 'components/shared/AboutContent';
@@ -314,6 +316,41 @@ function Page({ children }: Props) {
 
     setInterceptorsInitialized(true);
   }, [interceptorsInitialized, services]);
+
+  const [pollInitialized, setPollInitialized] = useState(false);
+  useEffect(() => {
+    if (pollInitialized) return;
+
+    // poll for rendering glossary terms from html
+    function poll() {
+      const glossarySpans = document.querySelectorAll(
+        'span[data-glossary-term]',
+      );
+      glossarySpans.forEach((span) => {
+        if (
+          !span.dataset.hasOwnProperty('glossaryTerm') ||
+          !span.dataset.hasOwnProperty('term')
+        )
+          return;
+
+        const node = document.createElement('span');
+        createRoot(node).render(
+          <GlossaryTerm term={span.dataset.term}>
+            {span.innerText}
+          </GlossaryTerm>,
+        );
+        span.parentNode.replaceChild(node, span);
+      });
+
+      setTimeout(() => {
+        poll();
+      }, 250);
+    }
+
+    poll();
+
+    setPollInitialized(true);
+  }, [pollInitialized]);
 
   return (
     <>
