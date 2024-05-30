@@ -55,6 +55,7 @@ import {
   isPoint,
   openPopup,
   shallowCompare,
+  hideShowGraphicsFill,
 } from 'utils/mapFunctions';
 // types
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
@@ -840,9 +841,7 @@ function useDynamicPopup() {
       if (
         !location ||
         onTribePage ||
-        (hucBoundaries &&
-          hucBoundaries.features.length > 0 &&
-          hucBoundaries.features[0].geometry.contains(location))
+        hucBoundaries?.geometry.contains(location)
       ) {
         return getPopupContent({
           feature: graphic.graphic,
@@ -1027,20 +1026,14 @@ function useSharedLayers({
           | __esri.Map;
         if (!parent || (!(parent instanceof Map) && !isGroupLayer(parent)))
           return;
-        // find the boundaries layer
-        parent.layers.forEach((layer) => {
-          if (layer.id !== 'boundariesLayer' || !isGraphicsLayer(layer)) return;
 
-          // remove shading when wsio layer is on and add
-          // shading back in when wsio layer is off
-          const newGraphics = layer.graphics.clone();
-          newGraphics.forEach((graphic) => {
-            graphic.symbol.color.a = wsioHealthIndexLayer.visible ? 0 : 0.5;
-          });
+        // find the layer
+        const layer = parent.layers.find((l) => l.id === 'boundariesLayer');
+        if (!layer || !isGraphicsLayer(layer)) return;
 
-          // re-draw the graphics
-          layer.graphics = newGraphics;
-        });
+        // remove shading when wsio layer is on and add
+        // shading back in when wsio layer is off
+        hideShowGraphicsFill(layer, !wsioHealthIndexLayer.visible);
       },
     );
 

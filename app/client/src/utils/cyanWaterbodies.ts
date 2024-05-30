@@ -77,7 +77,7 @@ function useUpdateData() {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!hucBoundaries?.features?.length) {
+    if (!hucBoundaries) {
       setHucData([]);
       fetchedDataDispatch({
         type: 'success',
@@ -90,7 +90,7 @@ function useUpdateData() {
     if (services.status !== 'success') return;
 
     const fetchPromise = fetchCyanWaterbodies(
-      hucBoundaries.features[0].geometry,
+      hucBoundaries.geometry,
       services.data,
       controller.signal,
     );

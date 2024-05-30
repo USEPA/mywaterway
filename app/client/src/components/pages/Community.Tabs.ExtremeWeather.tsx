@@ -33,7 +33,11 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useExtremeWeatherContext } from 'contexts/LookupFiles';
 // utils
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
-import { isFeatureLayer, isGroupLayer } from 'utils/mapFunctions';
+import {
+  hideShowGraphicsFill,
+  isFeatureLayer,
+  isGroupLayer,
+} from 'utils/mapFunctions';
 import {
   countOrNotAvailable,
   formatNumber,
@@ -72,6 +76,7 @@ function ExtremeWeather() {
     mapView,
   } = useContext(LocationSearchContext);
   const {
+    boundariesLayer,
     cmraScreeningLayer,
     coastalFloodingLayer,
     coastalFloodingRealtimeLayer,
@@ -138,6 +143,18 @@ function ExtremeWeather() {
       extremeWeatherConfig.data.potentiallyVulnerableDefaults,
     );
   }, [extremeWeatherConfig]);
+
+  // removes fill from huc/county boundaries
+  useEffect(() => {
+    if (!boundariesLayer || !providersLayer) return;
+
+    hideShowGraphicsFill(boundariesLayer, false);
+    hideShowGraphicsFill(providersLayer, false);
+    return function cleanup() {
+      hideShowGraphicsFill(boundariesLayer, true);
+      hideShowGraphicsFill(providersLayer, true, 0.15);
+    };
+  }, [boundariesLayer, countyBoundaries, hucBoundaries, providersLayer]);
 
   const [timeframeSelection, setTimeframeSelection] = useState<{
     label: string;
@@ -240,7 +257,7 @@ function ExtremeWeather() {
   // gets the geometry of the hucBoundaries
   const [hucGeometry, setHucGeometry] = useState<__esri.Geometry | null>(null);
   useEffect(() => {
-    setHucGeometry(hucBoundaries?.features?.[0]?.geometry ?? null);
+    setHucGeometry(hucBoundaries?.geometry ?? null);
   }, [hucBoundaries]);
 
   // update waterbodies
