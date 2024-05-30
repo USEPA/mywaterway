@@ -33,6 +33,8 @@ type LookupFiles = {
   setDocumentOrder: Function,
   educatorMaterials: LookupFile,
   setEducatorMaterials: Function,
+  extremeWeather: LookupFile,
+  setExtremeWeather: Function,
   layerProps: LookupFile,
   setLayerProps: Function,
   nars: LookupFile,
@@ -68,6 +70,8 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setDocumentOrder: () => {},
   educatorMaterials: { status: 'fetching', data: null },
   setEducatorMaterials: () => {},
+  extremeWeather: { status: 'fetching', data: null },
+  setExtremeWeather: () => {},
   layerProps: { status: 'fetching', data: null },
   setLayerProps: () => {},
   nars: { status: 'fetching', data: null },
@@ -116,6 +120,10 @@ function LookupFilesProvider({ children }: Props) {
     data: {},
   });
   const [educatorMaterials, setEducatorMaterials] = useState({
+    status: 'fetching',
+    data: {},
+  });
+  const [extremeWeather, setExtremeWeather] = useState({
     status: 'fetching',
     data: {},
   });
@@ -174,6 +182,8 @@ function LookupFilesProvider({ children }: Props) {
       setDocumentOrder,
       educatorMaterials,
       setEducatorMaterials,
+      extremeWeather,
+      setExtremeWeather,
       layerProps,
       setLayerProps,
       nars,
@@ -202,6 +212,7 @@ function LookupFilesProvider({ children }: Props) {
       dataSources,
       documentOrder,
       educatorMaterials,
+      extremeWeather,
       layerProps,
       nars,
       notifications,
@@ -308,6 +319,20 @@ function useEducatorMaterialsContext() {
   }
 
   return educatorMaterials;
+}
+
+// Custom hook for the extreme-weather.json file.
+let extremeWeatherInitialized = false; // global var for ensuring fetch only happens once
+function useExtremeWeatherContext() {
+  const { extremeWeather, setExtremeWeather } = useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!extremeWeatherInitialized) {
+    extremeWeatherInitialized = true;
+    getLookupFile('community/extreme-weather.json', setExtremeWeather);
+  }
+
+  return extremeWeather;
 }
 
 // Custom hook for the layerProps.json file.
@@ -516,6 +541,7 @@ export {
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,
+  useExtremeWeatherContext,
   useLayerProps,
   useNarsContext,
   useNotificationsContext,

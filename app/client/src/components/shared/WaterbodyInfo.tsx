@@ -1060,6 +1060,64 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const sewerOverflowsContent = (
+    <ListContent
+      rows={[
+        {
+          label: 'Facility Name',
+          value: attributes.facility_name,
+        },
+        {
+          label: 'NPDES ID',
+          value: attributes.npdes_id,
+        },
+      ]}
+      styles={listContentStyles}
+    />
+  );
+
+  // jsx
+  const storageTankContent = (
+    <ListContent
+      rows={[
+        {
+          label: 'Facility Name',
+          value: attributes.Name,
+        },
+        {
+          label: 'Facility ID',
+          value: attributes.Facility_ID,
+        },
+        {
+          label: 'Open Storage Tanks',
+          value: attributes.Open_USTs,
+        },
+        {
+          label: 'Closed Storage Tanks',
+          value: attributes.Closed_USTs,
+        },
+        {
+          label: 'Temporarily Out of Service Storage Tanks',
+          value: attributes.TOS_USTs,
+        },
+      ]}
+      styles={listContentStyles}
+    />
+  );
+
+  // jsx
+  const wellsContent = (
+    <>
+      {labelValue('Wells', attributes.Wells_2020)}
+
+      {labelValue(
+        'Well Density (Wells / Sq. Km.) ',
+        attributes.Wells_Density_2020,
+      )}
+    </>
+  );
+
+  // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
   const actionContent = <>{extraContent}</>;
 
@@ -1251,6 +1309,9 @@ function WaterbodyInfo({
   if (type === 'Alaska Native Village') content = alaskaNativeVillageContent;
   if (type === 'Protected Areas') content = protectedAreaContent;
   if (type === 'Demographic Indicators') content = ejscreenContent;
+  if (type === 'Pollutant Storage Tank') content = storageTankContent;
+  if (type === 'Combined Sewer Overflow') content = sewerOverflowsContent;
+  if (type === 'Wells') content = wellsContent;
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }

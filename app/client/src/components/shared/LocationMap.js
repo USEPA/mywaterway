@@ -6,13 +6,15 @@ import type { Node } from 'react';
 import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
-import Polygon from '@arcgis/core/geometry/Polygon';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import * as locator from '@arcgis/core/rest/locator';
 import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
+import Point from '@arcgis/core/geometry/Point';
+import Polygon from '@arcgis/core/geometry/Polygon';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
@@ -1378,7 +1380,93 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }),
         );
 
+        getCounties(longitude, latitude, hucRes);
+
         callback();
+      };
+
+      const getCounties = (longitude, latitude, hucRes) => {
+        const location = new Point({
+          longitude: longitude,
+          latitude: latitude,
+          spatialReference: {
+            wkid: 102100,
+          },
+        });
+        const queryGeometry =
+          hucRes.features.length > 0 ? hucRes.features[0].geometry : location;
+
+        const url = `${services.data.counties}/query`;
+        const countiesQuery = {
+          returnGeometry: true,
+          geometry: queryGeometry.clone(),
+          outFields: ['*'],
+          signal: getSignal(),
+        };
+        query
+          .executeQueryJSON(url, countiesQuery)
+          .then((countiesRes) => {
+            if (!providersLayer) return;
+
+            // not all locations have a State and County code, check for it
+            const graphicsToAdd = [];
+            let newCountyBoundaries = null;
+            countiesRes.features.forEach((feature) => {
+              // check if location intersects
+              let visible = false;
+              if (
+                geometryEngine.intersects(location, feature.geometry) &&
+                feature.attributes
+              ) {
+                const stateCode = feature.attributes.STATE_FIPS;
+                const countyCode = feature.attributes.FIPS.substring(2, 5);
+                visible = true;
+                setFIPS({
+                  stateCode: stateCode,
+                  countyCode: countyCode,
+                  status: 'success',
+                });
+                newCountyBoundaries = feature;
+              }
+
+              graphicsToAdd.push(
+                new Graphic({
+                  attributes: feature.attributes,
+                  visible,
+                  geometry: new Polygon({
+                    spatialReference: countiesRes.spatialReference,
+                    rings: feature.geometry.rings,
+                  }),
+                  symbol: new SimpleFillSymbol({
+                    color: [0, 0, 0, 0.15],
+                    outline: {
+                      color: colors.yellow(),
+                      width: 3,
+                      style: 'solid',
+                    },
+                  }),
+                }),
+              );
+            });
+            providersLayer.graphics.removeAll();
+            providersLayer.graphics.addMany(graphicsToAdd);
+            setCountyBoundaries(newCountyBoundaries);
+          })
+          .catch((err) => {
+            if (isAbort(err)) return;
+            console.error(err);
+            setCountyBoundaries(null);
+            setMapLoading(false);
+            setDrinkingWater({
+              data: {},
+              status: 'failure',
+            });
+            setFIPS({
+              stateCode: '',
+              countyCode: '',
+              status: 'failure',
+            });
+          });
       };
 
       // Parse the search text to see if it is from a non-esri search suggestion
@@ -1506,78 +1594,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             countyCode: '',
             status: 'fetching',
           });
-
-          const url = `${services.data.counties}/query`;
-          const countiesQuery = {
-            returnGeometry: true,
-            geometry: location.location.clone(),
-            outFields: ['*'],
-            signal: getSignal(),
-          };
-          query
-            .executeQueryJSON(url, countiesQuery)
-            .then((countiesRes) => {
-              if (!providersLayer) return;
-
-              // not all locations have a State and County code, check for it
-              if (
-                countiesRes.features &&
-                countiesRes.features.length > 0 &&
-                countiesRes.features[0].attributes
-              ) {
-                const feature = countiesRes.features[0];
-                const stateCode = feature.attributes.STATE_FIPS;
-                const countyCode = feature.attributes.FIPS.substring(2, 5);
-                setFIPS({
-                  stateCode: stateCode,
-                  countyCode: countyCode,
-                  status: 'success',
-                });
-
-                const graphic = new Graphic({
-                  attributes: feature.attributes,
-                  geometry: new Polygon({
-                    spatialReference: countiesRes.spatialReference,
-                    rings: feature.geometry.rings,
-                  }),
-                  symbol: new SimpleFillSymbol({
-                    color: [0, 0, 0, 0.15],
-                    outline: {
-                      color: colors.yellow(),
-                      width: 3,
-                      style: 'solid',
-                    },
-                  }),
-                });
-
-                providersLayer.graphics.removeAll();
-                providersLayer.graphics.add(graphic);
-              } else {
-                setFIPS({
-                  stateCode: '',
-                  countyCode: '',
-                  status: 'failure',
-                });
-                providersLayer.graphics.removeAll();
-              }
-
-              setCountyBoundaries(countiesRes);
-            })
-            .catch((err) => {
-              if (isAbort(err)) return;
-              console.error(err);
-              setCountyBoundaries(null);
-              setMapLoading(false);
-              setDrinkingWater({
-                data: [],
-                status: 'failure',
-              });
-              setFIPS({
-                stateCode: '',
-                countyCode: '',
-                status: 'failure',
-              });
-            });
         })
         .catch((err) => {
           if (isAbort(err)) return;
@@ -1613,7 +1629,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           // set drinkingWater to an empty array, since we don't have
           // the necessary parameters for the GetPWSWMHUC12 call
           setDrinkingWater({
-            data: [],
+            data: {},
             status: 'success',
           });
         });
@@ -1750,11 +1766,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView.closePopup();
 
     // zoom to the graphic, and update the home widget, and close any popups
-    mapView.when(() => {
-      mapView.goTo(graphic).then(() => {
-        setAtHucBoundaries(true);
+    if (!window.location.pathname.includes('/extreme-weather')) {
+      mapView.when(() => {
+        mapView.goTo(graphic).then(() => {
+          setAtHucBoundaries(true);
+        });
       });
-    });
+    }
   }, [
     getTemplate,
     getTitle,
@@ -1770,12 +1788,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useEffect(() => {
     if (!countyBoundaries || !hucResponse || !location) return;
 
-    if (
-      countyBoundaries.features.length === 0 ||
-      hucResponse.features.length === 0
-    ) {
+    if (hucResponse.features.length === 0) {
       setDrinkingWater({
-        data: [],
+        data: {},
         status: 'success',
       });
     } else {
@@ -1786,29 +1801,43 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         FIPS.countyCode === ''
       ) {
         setDrinkingWater({
-          data: [],
+          data: {},
           status: 'failure',
         });
         return;
       }
 
-      const drinkingWaterUrl =
-        `${services.data.dwmaps.GetPWSWMHUC12FIPS}` +
-        `${hucResponse.features[0].attributes.huc12}/` +
-        `${FIPS.stateCode}/` +
-        `${FIPS.countyCode}`;
+      const promises = [];
 
-      fetchCheck(drinkingWaterUrl)
-        .then((drinkingWaterRes) => {
+      // cloning to ensure order is preserved
+      const countyGraphics = providersLayer.graphics.clone().toArray();
+      countyGraphics.forEach((graphic) => {
+        const drinkingWaterUrl =
+          `${services.data.dwmaps.GetPWSWMHUC12FIPS}` +
+          `${hucResponse.features[0].attributes.huc12}/` +
+          `${graphic.attributes.STATE_FIPS}/` +
+          `${graphic.attributes.CNTY_FIPS}`;
+
+        promises.push(fetchCheck(drinkingWaterUrl));
+      });
+
+      Promise.all(promises)
+        .then((responses) => {
+          const newData = {};
+          responses.forEach((res, index) => {
+            const fips = countyGraphics[index].attributes.FIPS;
+            newData[fips] = res.items;
+          });
+
           setDrinkingWater({
-            data: drinkingWaterRes.items,
+            data: newData,
             status: 'success',
           });
         })
         .catch((err) => {
           console.error(err);
           setDrinkingWater({
-            data: [],
+            data: {},
             status: 'failure',
           });
         });
@@ -1818,6 +1847,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     countyBoundaries,
     hucResponse,
     location,
+    providersLayer,
     setDrinkingWater,
     services,
   ]);
