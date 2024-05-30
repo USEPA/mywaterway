@@ -304,7 +304,7 @@ function LocationSearch({ route, label }: Props) {
                   const sourceIndex = searchWidget?.sources.findIndex(
                     (source) => source.name === 'Monitoring Locations',
                   );
-                  if (!sourceIndex) return [];
+                  if (!Number.isFinite(sourceIndex)) return [];
 
                   return res.codes.map((code) => ({
                     key: code.value,
