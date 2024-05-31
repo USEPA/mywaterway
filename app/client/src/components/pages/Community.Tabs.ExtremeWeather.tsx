@@ -375,12 +375,17 @@ function ExtremeWeather() {
     });
   }, [extremeWeatherConfig, hucGeometry, tribalLayer]);
 
+  const [currentLoading, setCurrentLoading] = useState(false);
   useEffect(() => {
-    // verify all queries complete
     const allComplete = currentWeather.items.every(
       (i) => i.status && ['success', 'failure'].includes(i.status),
     );
-    if (!allComplete) return;
+    setCurrentLoading(!allComplete);
+  }, [currentWeather]);
+
+  // turns on layers for layers with weather warnings/alerts
+  useEffect(() => {
+    if (currentLoading) return;
 
     // get object of new visible layers
     const newVisibleLayers: { [key: string]: boolean } = {};
@@ -392,7 +397,7 @@ function ExtremeWeather() {
     // make layers visible
     if (Object.keys(newVisibleLayers).length > 0)
       updateVisibleLayers(newVisibleLayers);
-  }, [currentWeather, updateVisibleLayers]);
+  }, [currentLoading, currentWeather, updateVisibleLayers]);
 
   // update wildfires
   useEffect(() => {
