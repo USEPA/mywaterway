@@ -79,13 +79,12 @@ function ExtremeWeather() {
     boundariesLayer,
     cmraScreeningLayer,
     coastalFloodingLayer,
-    coastalFloodingRealtimeLayer,
     damsLayer,
     disadvantagedCommunitiesLayer,
     droughtRealtimeLayer,
     extremeColdRealtimeLayer,
     extremeHeatRealtimeLayer,
-    inlandFloodingRealtimeLayer,
+    floodingRealtimeLayer,
     providersLayer,
     sewerOverflowsLayer,
     storageTanksLayer,
@@ -584,24 +583,28 @@ function ExtremeWeather() {
     });
   }, [extremeWeatherConfig, hucGeometry, droughtRealtimeLayer]);
 
-  // update inland flooding
+  // update flooding
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucGeometry || !inlandFloodingRealtimeLayer) return;
+    if (!hucGeometry || !floodingRealtimeLayer) return;
 
-    const id = 'inlandFlooding';
+    const id = 'flooding';
     queryLayers({
       id,
-      layer: inlandFloodingRealtimeLayer,
+      layer: floodingRealtimeLayer,
       geometry: hucGeometry,
       config: extremeWeatherConfig.data.currentWeatherDefaults,
       setter: setCurrentWeather,
       responseParser: (responses) => {
         const watchRes = responses[0];
-        const floodRes = responses[1];
+        const coastalWatchRes = responses[1];
+        const floodRes = responses[2];
 
         let statuses: string[] = [];
         watchRes.features.forEach((f) => {
+          statuses.push(f.attributes.Event);
+        });
+        coastalWatchRes.features.forEach((f) => {
           statuses.push(f.attributes.Event);
         });
         if (floodRes.features.length > 0)
@@ -616,36 +619,7 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, inlandFloodingRealtimeLayer]);
-
-  // update costal flooding
-  useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucGeometry || !coastalFloodingRealtimeLayer) return;
-
-    const id = 'coastalFlooding';
-    queryLayers({
-      id,
-      layer: coastalFloodingRealtimeLayer,
-      geometry: hucGeometry,
-      config: extremeWeatherConfig.data.currentWeatherDefaults,
-      setter: setCurrentWeather,
-      responseParser: (responses) => {
-        let statuses: string[] = [];
-        responses[0].features.forEach((f) => {
-          statuses.push(f.attributes.Event);
-        });
-
-        return [
-          {
-            id,
-            value:
-              statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
-          },
-        ];
-      },
-    });
-  }, [extremeWeatherConfig, hucGeometry, coastalFloodingRealtimeLayer]);
+  }, [extremeWeatherConfig, floodingRealtimeLayer, hucGeometry]);
 
   // update extreme cold
   useEffect(() => {
