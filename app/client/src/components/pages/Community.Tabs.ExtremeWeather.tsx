@@ -245,7 +245,7 @@ function ExtremeWeather() {
         countyGraphic = graphic;
       } else graphic.visible = false;
     });
-    if (providersLayer?.visible && countyGraphic) mapView.goTo(countyGraphic);
+    if (countyGraphic) mapView.when().then(() => mapView.goTo(countyGraphic));
 
     return function resetCountyVisibility() {
       providersLayer?.graphics.forEach((graphic) => {
