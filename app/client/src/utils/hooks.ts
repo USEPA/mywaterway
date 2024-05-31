@@ -2052,22 +2052,29 @@ function useSharedLayers({
 
   function getInlandFloodingRealtimeLayer() {
     const layer = new GroupLayer({
-      id: 'floodingRealtimeLayer',
-      title: 'Flooding Real-Time',
+      id: 'inlandFloodingRealtimeLayer',
+      title: 'Inland Flooding Real-Time',
       visible: false,
     });
-
     getSubLayerDefinitions(
       services.data.inlandFloodingRealtime.portalId,
       layer,
     );
+    setLayer('inlandFloodingRealtimeLayer', layer);
+    return layer;
+  }
+
+  function getCoastalFloodingRealtimeLayer() {
+    const layer = new GroupLayer({
+      id: 'coastalFloodingRealtimeLayer',
+      title: 'Coastal Flooding Real-Time',
+      visible: false,
+    });
     getSubLayerDefinitions(
       services.data.coastalFloodingRealtime.portalId,
       layer,
-      ['70c973c7e48949f9845e320f3b79a1d7'],
     );
-
-    setLayer('floodingRealtimeLayer', layer);
+    setLayer('coastalFloodingRealtimeLayer', layer);
     return layer;
   }
 
@@ -2194,7 +2201,6 @@ function useSharedLayers({
   async function getSubLayerDefinitions(
     portalId: string,
     groupLayer: __esri.GroupLayer,
-    serviceItemIdsToIgnore: string[] = [],
   ) {
     const layers: __esri.Layer[] = [];
     try {
@@ -2203,8 +2209,6 @@ function useSharedLayers({
         `${services.data.esriWebMapBase}/${portalId}/data?f=json`,
       );
       for (const layer of webMapDef.operationalLayers) {
-        if (serviceItemIdsToIgnore.includes(layer.itemId)) continue;
-
         const layerIndex = layer.url.split('/').pop();
 
         // get layer definition
@@ -2302,7 +2306,9 @@ function useSharedLayers({
 
     const droughtRealtimeLayer = getDroughtRealtimeLayer();
 
-    const floodingRealtimeLayer = getInlandFloodingRealtimeLayer();
+    const inlandFloodingRealtimeLayer = getInlandFloodingRealtimeLayer();
+
+    const coastalFloodingRealtimeLayer = getCoastalFloodingRealtimeLayer();
 
     const extremeHeatRealtimeLayer = getExtremeHeatRealtimeLayer();
 
@@ -2327,10 +2333,11 @@ function useSharedLayers({
       disadvantagedCommunitiesLayer,
       cmraScreeningLayer,
       landCover,
-      floodingRealtimeLayer,
+      inlandFloodingRealtimeLayer,
       droughtRealtimeLayer,
       extremeHeatRealtimeLayer,
       extremeColdRealtimeLayer,
+      coastalFloodingRealtimeLayer,
       coastalFloodingLayer,
       protectedAreasLayer,
       protectedAreasHighlightLayer,

@@ -79,12 +79,13 @@ function ExtremeWeather() {
     boundariesLayer,
     cmraScreeningLayer,
     coastalFloodingLayer,
+    coastalFloodingRealtimeLayer,
     damsLayer,
     disadvantagedCommunitiesLayer,
     droughtRealtimeLayer,
     extremeColdRealtimeLayer,
     extremeHeatRealtimeLayer,
-    floodingRealtimeLayer,
+    inlandFloodingRealtimeLayer,
     providersLayer,
     sewerOverflowsLayer,
     storageTanksLayer,
@@ -402,6 +403,8 @@ function ExtremeWeather() {
           else status += `${acresBurned} Acres Burned`;
         }
 
+        if (numFires > 0) wildfiresLayer.visible = true;
+
         return [
           {
             id,
@@ -573,6 +576,8 @@ function ExtremeWeather() {
           maxCategory = Math.max(maxCategory, f.attributes.dm);
         });
 
+        if (maxCategory > 1) droughtRealtimeLayer.visible = true;
+
         return [
           {
             id,
@@ -583,32 +588,31 @@ function ExtremeWeather() {
     });
   }, [extremeWeatherConfig, hucGeometry, droughtRealtimeLayer]);
 
-  // update flooding
+  // update inland flooding
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
-    if (!hucGeometry || !floodingRealtimeLayer) return;
+    if (!hucGeometry || !inlandFloodingRealtimeLayer) return;
 
-    const id = 'flooding';
+    const id = 'inlandFlooding';
     queryLayers({
       id,
-      layer: floodingRealtimeLayer,
+      layer: inlandFloodingRealtimeLayer,
       geometry: hucGeometry,
       config: extremeWeatherConfig.data.currentWeatherDefaults,
       setter: setCurrentWeather,
       responseParser: (responses) => {
         const watchRes = responses[0];
-        const coastalWatchRes = responses[1];
-        const floodRes = responses[2];
+        const floodRes = responses[1];
 
         let statuses: string[] = [];
         watchRes.features.forEach((f) => {
           statuses.push(f.attributes.Event);
         });
-        coastalWatchRes.features.forEach((f) => {
-          statuses.push(f.attributes.Event);
-        });
         if (floodRes.features.length > 0)
           statuses.push('Rain Expected (next 72 hours)');
+
+        if (watchRes.features.length > 0)
+          inlandFloodingRealtimeLayer.visible = true;
 
         return [
           {
@@ -619,7 +623,39 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, floodingRealtimeLayer, hucGeometry]);
+  }, [extremeWeatherConfig, hucGeometry, inlandFloodingRealtimeLayer]);
+
+  // update costal flooding
+  useEffect(() => {
+    if (extremeWeatherConfig.status !== 'success') return;
+    if (!hucGeometry || !coastalFloodingRealtimeLayer) return;
+
+    const id = 'coastalFlooding';
+    queryLayers({
+      id,
+      layer: coastalFloodingRealtimeLayer,
+      geometry: hucGeometry,
+      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      setter: setCurrentWeather,
+      responseParser: (responses) => {
+        let statuses: string[] = [];
+        responses[0].features.forEach((f) => {
+          statuses.push(f.attributes.Event);
+        });
+
+        if (responses[0].features.length > 0)
+          coastalFloodingRealtimeLayer.visible = true;
+
+        return [
+          {
+            id,
+            value:
+              statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
+          },
+        ];
+      },
+    });
+  }, [coastalFloodingRealtimeLayer, extremeWeatherConfig, hucGeometry]);
 
   // update extreme cold
   useEffect(() => {
@@ -649,6 +685,9 @@ function ExtremeWeather() {
         });
         if (minTemp < Number.MAX_SAFE_INTEGER)
           statuses.push(`Min Daily Air Temp: ${minTemp}°F`);
+
+        if (watchRes.features.length > 0)
+          extremeColdRealtimeLayer.visible = true;
 
         return [
           {
@@ -691,6 +730,9 @@ function ExtremeWeather() {
         });
         if (maxTemp > Number.MIN_SAFE_INTEGER)
           statuses.push(`Max Daily Air Temp: ${maxTemp}°F`);
+
+        if (watchRes.features.length > 0)
+          extremeHeatRealtimeLayer.visible = true;
 
         return [
           {
@@ -1658,7 +1700,10 @@ async function queryLayersInner({
       }
 
       if (isFeatureLayer(childLayer)) {
-        let query = { ...q.query };
+        let query = {
+          where: childLayer.definitionExpression,
+          ...q.query,
+        };
         if (geometry) query['geometry'] = geometry;
         if (whereReplacer && q.query.where)
           query['where'] = whereReplacer(q.query.where);

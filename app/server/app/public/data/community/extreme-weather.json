@@ -34,11 +34,11 @@
       ]
     },
     {
-      "id": "flooding",
-      "label": "Flooding",
+      "id": "inlandFlooding",
+      "label": "Inland Flooding",
       "checked": false,
       "disabled": false,
-      "layerId": "floodingRealtimeLayer",
+      "layerId": "inlandFloodingRealtimeLayer",
       "status": "idle",
       "text": "",
       "queries": [
@@ -49,15 +49,26 @@
           }
         },
         {
-          "serviceItemId": "22726ed54d804f3e9134550406520405",
-          "query": {
-            "outFields": ["Event"]
-          }
-        },
-        {
           "serviceItemId": "f9e9283b9c9741d09aad633f68758bf6",
           "query": {
             "outFields": ["category", "label"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "coastalFlooding",
+      "label": "Coastal Flooding",
+      "checked": false,
+      "disabled": false,
+      "layerId": "coastalFloodingRealtimeLayer",
+      "status": "idle",
+      "text": "",
+      "queries": [
+        {
+          "serviceItemId": "22726ed54d804f3e9134550406520405",
+          "query": {
+            "outFields": ["Event"]
           }
         }
       ]
