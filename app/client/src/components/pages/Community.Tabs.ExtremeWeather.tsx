@@ -90,6 +90,7 @@ function ExtremeWeather() {
     sewerOverflowsLayer,
     storageTanksLayer,
     tribalLayer,
+    updateVisibleLayers,
     visibleLayers,
     waterbodyLayer,
     wellsLayer,
@@ -374,6 +375,25 @@ function ExtremeWeather() {
     });
   }, [extremeWeatherConfig, hucGeometry, tribalLayer]);
 
+  useEffect(() => {
+    // verify all queries complete
+    const allComplete = currentWeather.items.every(
+      (i) => i.status && ['success', 'failure'].includes(i.status),
+    );
+    if (!allComplete) return;
+
+    // get object of new visible layers
+    const newVisibleLayers: { [key: string]: boolean } = {};
+    currentWeather.items.forEach((item) => {
+      if (!item.layerId || item.checked === undefined) return;
+      newVisibleLayers[item.layerId] = item.checked;
+    });
+
+    // make layers visible
+    if (Object.keys(newVisibleLayers).length > 0)
+      updateVisibleLayers(newVisibleLayers);
+  }, [currentWeather, updateVisibleLayers]);
+
   // update wildfires
   useEffect(() => {
     if (extremeWeatherConfig.status !== 'success') return;
@@ -403,10 +423,9 @@ function ExtremeWeather() {
           else status += `${acresBurned} Acres Burned`;
         }
 
-        if (numFires > 0) wildfiresLayer.visible = true;
-
         return [
           {
+            checked: numFires > 0,
             id,
             value: status,
           },
@@ -576,10 +595,9 @@ function ExtremeWeather() {
           maxCategory = Math.max(maxCategory, f.attributes.dm);
         });
 
-        if (maxCategory > 1) droughtRealtimeLayer.visible = true;
-
         return [
           {
+            checked: maxCategory > 1,
             id,
             value: dmEnum[maxCategory.toString()],
           },
@@ -611,11 +629,9 @@ function ExtremeWeather() {
         if (floodRes.features.length > 0)
           statuses.push('Rain Expected (next 72 hours)');
 
-        if (watchRes.features.length > 0)
-          inlandFloodingRealtimeLayer.visible = true;
-
         return [
           {
+            checked: watchRes.features.length > 0,
             id,
             value:
               statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
@@ -643,11 +659,9 @@ function ExtremeWeather() {
           statuses.push(f.attributes.Event);
         });
 
-        if (responses[0].features.length > 0)
-          coastalFloodingRealtimeLayer.visible = true;
-
         return [
           {
+            checked: responses[0].features.length > 0,
             id,
             value:
               statuses.length === 0 ? 'No Flooding' : sentenceJoin(statuses),
@@ -686,11 +700,9 @@ function ExtremeWeather() {
         if (minTemp < Number.MAX_SAFE_INTEGER)
           statuses.push(`Min Daily Air Temp: ${minTemp}°F`);
 
-        if (watchRes.features.length > 0)
-          extremeColdRealtimeLayer.visible = true;
-
         return [
           {
+            checked: watchRes.features.length > 0,
             id,
             value:
               statuses.length === 0
@@ -731,11 +743,9 @@ function ExtremeWeather() {
         if (maxTemp > Number.MIN_SAFE_INTEGER)
           statuses.push(`Max Daily Air Temp: ${maxTemp}°F`);
 
-        if (watchRes.features.length > 0)
-          extremeHeatRealtimeLayer.visible = true;
-
         return [
           {
+            checked: watchRes.features.length > 0,
             id,
             value:
               statuses.length === 0
@@ -1680,7 +1690,7 @@ async function queryLayersInner({
   layer: __esri.FeatureLayer | __esri.GroupLayer;
   responseParser: (
     response: __esri.FeatureSet[],
-  ) => { id: string; value?: RowValue }[];
+  ) => { checked?: boolean; id: string; value?: RowValue }[];
   setter: Dispatch<SetStateAction<SwitchTableConfig>>;
   whereReplacer?: (where: string) => string;
 }) {
@@ -1723,7 +1733,11 @@ async function queryLayersInner({
       updateMultipleRows(
         config,
         'success',
-        output.map((item) => ({ id: item.id, value: item.value })),
+        output.map((item) => ({
+          checked: item.checked,
+          id: item.id,
+          value: item.value,
+        })),
       );
     });
   } catch (ex) {
@@ -1766,10 +1780,10 @@ function setTableConfigSingle(
 function updateMultipleRows(
   config: SwitchTableConfig,
   status: FetchStatus,
-  values: { id: string; value?: RowValue }[],
+  values: { checked?: boolean; id: string; value?: RowValue }[],
 ) {
   values.forEach((item) => {
-    updateRow(config, status, item.id, item.value);
+    updateRow(config, status, item.id, item.value, item.checked);
   });
 }
 
@@ -1778,6 +1792,7 @@ function updateRow(
   status: FetchStatus,
   id: string,
   value: RowValue = null,
+  checked?: boolean,
 ) {
   updateRowField(
     config,
@@ -1786,6 +1801,7 @@ function updateRow(
     typeof value === 'string' ? value : countOrNotAvailable(value, status),
   );
   updateRowField(config, id, 'status', status);
+  if (checked !== undefined) updateRowField(config, id, 'checked', checked);
 }
 
 function updateRowField(
