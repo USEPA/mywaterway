@@ -197,6 +197,7 @@ function DataContent() {
             description,
             extraContent,
             id,
+            includeExit,
             linkHref,
             linkLabel,
             shortName,
@@ -213,6 +214,16 @@ function DataContent() {
                 <a href={linkHref} target="_blank" rel="noopener noreferrer">
                   {linkLabel}
                 </a>
+                {includeExit && (
+                  <a
+                    class="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
+                )}
               </div>
               <p dangerouslySetInnerHTML={{ __html: description }} />
               <br />
