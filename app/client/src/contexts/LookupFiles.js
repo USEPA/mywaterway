@@ -53,6 +53,8 @@ type LookupFiles = {
   setSurveyMapping: Function,
   tribeMapping: LookupFile,
   setTribeMapping: Function,
+  usgsStaParameters: LookupFile,
+  setUsgsStaParameters: Function,
   waterTypeOptions: LookupFile,
   setWaterTypeOptions: Function,
 };
@@ -90,6 +92,8 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setSurveyMapping: () => {},
   tribeMapping: { status: 'fetching', data: null },
   setTribeMapping: () => {},
+  usgsStaParameters: { status: 'fetching', data: null },
+  setUsgsStaParameters: () => {},
   waterTypeOptions: { status: 'fetching', data: null },
   setWaterTypeOptions: () => {},
 });
@@ -163,6 +167,10 @@ function LookupFilesProvider({ children }: Props) {
     status: 'fetching',
     data: [],
   });
+  const [usgsStaParameters, setUsgsStaParameters] = useState({
+    status: 'fetching',
+    data: [],
+  });
   const [waterTypeOptions, setWaterTypeOptions] = useState({
     status: 'fetching',
     data: {},
@@ -202,6 +210,8 @@ function LookupFilesProvider({ children }: Props) {
       setSurveyMapping,
       tribeMapping,
       setTribeMapping,
+      usgsStaParameters,
+      setUsgsStaParameters,
       waterTypeOptions,
       setWaterTypeOptions,
     }),
@@ -222,6 +232,7 @@ function LookupFilesProvider({ children }: Props) {
       stateNationalUses,
       surveyMapping,
       tribeMapping,
+      usgsStaParameters,
       waterTypeOptions,
     ],
   );
@@ -517,6 +528,21 @@ function useTribeMappingContext() {
   return tribeMapping;
 }
 
+// Custom hook for the community/usgs-sta-parameters.json file.
+let usgsStaParametersInitialized = false; // global var for ensuring fetch only happens once
+function useUsgsStaParametersContext() {
+  const { usgsStaParameters, setUsgsStaParameters } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!usgsStaParametersInitialized) {
+    usgsStaParametersInitialized = true;
+    getLookupFile('community/usgs-sta-parameters.json', setUsgsStaParameters);
+  }
+
+  return usgsStaParameters;
+}
+
 // Custom hook for the waterTypeOptions.json lookup file.
 let waterTypeOptionsInitialized = false; // global var for ensuring fetch only happens once
 function useWaterTypeOptionsContext() {
@@ -551,5 +577,6 @@ export {
   useStateNationalUsesContext,
   useSurveyMappingContext,
   useTribeMappingContext,
+  useUsgsStaParametersContext,
   useWaterTypeOptionsContext,
 };

@@ -7,7 +7,10 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useServicesContext,
+  useUsgsStaParametersContext,
+} from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
@@ -19,8 +22,6 @@ import {
   useAllFeaturesLayers,
   useLocalData,
 } from 'utils/boundariesToggleLayer';
-// config
-import { usgsStaParameters } from 'config/usgsStaParameters';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
@@ -33,6 +34,7 @@ import type {
   UsgsStreamgagesData,
   Feature,
   FetchSuccessState,
+  UsgsStaParameter,
 } from 'types';
 import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
@@ -79,6 +81,7 @@ export function useStreamgages() {
 function useUpdateData() {
   // Build the data update function
   const { huc12, mapView } = useContext(LocationSearchContext);
+  const usgsStaParameters = useUsgsStaParametersContext();
   const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
@@ -98,6 +101,7 @@ function useUpdateData() {
     }
 
     if (services.status !== 'success') return;
+    if (usgsStaParameters.status !== 'success') return;
 
     const hucDvFilter = `huc=${huc12.substring(0, 8)}`;
     const hucThingsFilter = `$filter=properties/hydrologicUnit eq '${huc12}'`;
@@ -110,6 +114,7 @@ function useUpdateData() {
       ],
       fetchedDataDispatch,
       localFetchedDataKey,
+      usgsStaParameters.data,
     ).then((data) => {
       setHucData(data);
     });
@@ -117,7 +122,7 @@ function useUpdateData() {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, services]);
+  }, [fetchedDataDispatch, huc12, services, usgsStaParameters]);
 
   const extentDvFilter = useRef<string | null>(null);
   const extentThingsFilter = useRef<string | null>(null);
@@ -125,6 +130,7 @@ function useUpdateData() {
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
       if (services.status !== 'success') return;
+      if (usgsStaParameters.status !== 'success') return;
 
       const newExtentDvFilter = await getExtentDvFilter(mapView);
       const newExtentThingsFilter = await getExtentThingsFilter(mapView);
@@ -161,10 +167,11 @@ function useUpdateData() {
         ],
         fetchedDataDispatch,
         surroundingFetchedDataKey,
+        usgsStaParameters.data,
         hucData, // Filter out HUC data
       );
     },
-    [fetchedDataDispatch, hucData, mapView, services],
+    [fetchedDataDispatch, hucData, mapView, services, usgsStaParameters],
   );
 
   return updateSurroundingData;
@@ -256,6 +263,7 @@ async function fetchAndTransformData(
   promises: UsgsFetchPromises,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'usgsStreamgages' | 'surroundingUsgsStreamgages',
+  usgsStaParameters: UsgsStaParameter[],
   additionalData?: UsgsStreamgageAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -264,6 +272,7 @@ async function fetchAndTransformData(
   if (responses.every((res) => res.status === 'success')) {
     const usgsStreamgageAttributes = transformServiceData(
       ...(responses.map((res) => res.data) as UsgsServiceData),
+      usgsStaParameters,
     );
     const payload = additionalData
       ? filterData(usgsStreamgageAttributes, additionalData, dataKeys)
@@ -292,6 +301,7 @@ function transformServiceData(
   usgsDailyAverages: UsgsDailyAveragesData,
   usgsPrecipitation: UsgsPrecipitationData,
   usgsStreamgages: UsgsStreamgagesData,
+  usgsStaParameters: UsgsStaParameter[],
 ) {
   const gages = usgsStreamgages.value.map((gage) => {
     const streamgageMeasurements: {

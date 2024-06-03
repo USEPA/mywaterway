@@ -471,6 +471,15 @@ export interface UpstreamWatershedAttributes {
   xwalk_huc12: string;
 }
 
+export type UsgsStaParameter = {
+  staParameterCode: string;
+  staDescription: string;
+  hmwCategory: 'exclude' | 'primary' | 'secondary';
+  hmwOrder: number | null;
+  hmwName: string;
+  hmwUnits: string;
+};
+
 export interface UsgsStreamgageAttributes {
   monitoringType: 'USGS Sensors';
   siteId: string;
