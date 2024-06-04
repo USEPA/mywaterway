@@ -2240,15 +2240,26 @@ function useSharedLayers({
           popupTemplate = PopupTemplate.fromJSON(layer.popupInfo);
         }
 
-        layers.push(
-          new FeatureLayer({
-            ...layer,
-            ...webMapLayerDef?.layerDefinition,
-            ...layer.layerDefinition,
-            renderer,
-            popupTemplate,
-          }),
-        );
+        const layerProperties = {
+          ...layer,
+          ...webMapLayerDef?.layerDefinition,
+          ...layer.layerDefinition,
+          renderer,
+          popupTemplate,
+        };
+
+        if (layerProperties.orderBy) {
+          layerProperties.orderBy = layerProperties.orderBy.map((o: any) => {
+            let order = 'descending';
+            if (o.order.includes('asc')) order = 'ascending';
+            return {
+              ...o,
+              order,
+            };
+          });
+        }
+
+        layers.push(new FeatureLayer(layerProperties));
       }
 
       groupLayer.layers.addMany(layers);
