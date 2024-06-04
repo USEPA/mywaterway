@@ -2273,7 +2273,7 @@ function useSharedLayers({
   }
 
   // Gets the settings for the WSIO Health Index layer.
-  return function getSharedLayers() {
+  return async function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
 
     const protectedAreasLayer = getProtectedAreasLayer();
@@ -2300,11 +2300,11 @@ function useSharedLayers({
 
     const landCover = getLandCoverLayer();
 
-    const wildfiresLayer = getWildfiresLayer();
+    const wildfiresLayer = await getWildfiresLayer();
 
     const cmraScreeningLayer = getCmraScreeningLayer();
 
-    const droughtRealtimeLayer = getDroughtRealtimeLayer();
+    const droughtRealtimeLayer = await getDroughtRealtimeLayer();
 
     const inlandFloodingRealtimeLayer = getInlandFloodingRealtimeLayer();
 
@@ -2320,11 +2320,12 @@ function useSharedLayers({
 
     const sewerOverflowsLayer = getSewerOverflowsLayer();
 
-    const damsLayer = getDamsLayer();
+    const damsLayer = await getDamsLayer();
 
-    const wellsLayer = getWellsLayer();
+    const wellsLayer = await getWellsLayer();
 
-    const disadvantagedCommunitiesLayer = getDisadvantagedCommunitiesLayer();
+    const disadvantagedCommunitiesLayer =
+      await getDisadvantagedCommunitiesLayer();
 
     return [
       ejscreen,
