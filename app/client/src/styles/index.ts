@@ -199,6 +199,8 @@ export const toggleTableStyles = css`
   th {
     :last-of-type {
       text-align: right;
+      overflow-wrap: unset;
+      word-break: unset;
     }
   }
 
