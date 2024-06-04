@@ -73,7 +73,6 @@ function Restore() {
   const { attainsPlans, grts, grtsStories, watershed } = useContext(
     LocationSearchContext,
   );
-  console.log('grtsStories', grtsStories);
 
   const { updateVisibleLayers } = useLayers();
 
