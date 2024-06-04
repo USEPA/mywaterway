@@ -22,7 +22,6 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
-import { modifiedTableStyles } from 'styles';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -32,7 +31,7 @@ import { useWaterbodyOnMap } from 'utils/hooks';
 import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
 import { countOrNotAvailable, getExtensionFromPath } from 'utils/utils';
 // styles
-import { iconStyles } from 'styles';
+import { iconStyles, modifiedTableStyles } from 'styles';
 // errors
 import {
   restoreNonpointSourceError,
