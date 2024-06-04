@@ -921,240 +921,250 @@ function ExtremeWeather() {
         columns={['Current Severe Weather Events', 'Status Within Watershed']}
       />
 
-      <div css={sectionHeaderContainerStyles}>
-        <div css={countySelectStyles}>
-          <span css={screenLabelStyles}>County:</span>
-          <Select
-            aria-label="County"
-            className="select"
-            inputId="county"
-            isSearchable={false}
-            options={countyOptions}
-            value={countySelected}
-            onChange={(ev) => setCountySelected(ev)}
-            styles={reactSelectStyles}
+      <div css={countySectionOuterStyles}>
+        <div css={sectionHeaderContainerStyles}>
+          <div css={countySelectStyles}>
+            <span css={countyLabelStyles}>County:</span>
+            <Select
+              aria-label="County"
+              className="select"
+              inputId="county"
+              isSearchable={false}
+              options={countyOptions}
+              value={countySelected}
+              onChange={(ev) => setCountySelected(ev)}
+              styles={reactSelectStyles}
+            />
+          </div>
+
+          <strong>
+            The yellow outline on the map shows the county or municipality
+            selected above.
+          </strong>
+        </div>
+
+        <div css={countySectionInnerStyles}>
+          <div css={sectionHeaderContainerStyles}>
+            <div css={sectionHeaderStyles}>
+              Historical Risk and Potential Future Scenarios
+              <HelpTooltip label={historicalTooltip} />
+            </div>
+          </div>
+
+          <Slider
+            list={tickList}
+            marginBottom={'1.5rem'}
+            max={tickList[tickList.length - 1].value}
+            range={[tickList[0].value, tickList[tickList.length - 1].value]}
+            onChange={(value) => setRange(value)}
+            sliderVerticalBreak={300}
+            steps={null}
+            valueLabelDisplay="off"
+            headerElm={
+              <p css={subheadingStyles}>
+                <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
+                &nbsp;&nbsp; Date range for the <em>{countySelected?.label}</em>{' '}
+                county{' '}
+              </p>
+            }
+          />
+
+          <SelectionTable
+            hideHeader={true}
+            id="historical-risk-range-switch"
+            mapView={mapView}
+            value={historicalRiskRange}
+            setter={setHistoricalRiskRange}
+            columns={[
+              'Historical Risk and Potential Future Scenarios',
+              'Status Within County',
+            ]}
+          />
+
+          <div css={sectionHeaderContainerStyles}>
+            <div css={sectionHeaderStyles}>
+              Historical Risk and Potential Future Scenarios
+              <HelpTooltip label={historicalTooltip} />
+            </div>
+            <div css={sectionHeaderSelectStyles}>
+              <span css={screenLabelStyles}>Timeframe:</span>
+              <Select
+                aria-label="Timeframe"
+                className="select"
+                inputId="timeframe"
+                isSearchable={false}
+                options={timeframeOptions}
+                styles={reactSelectStyles}
+                value={timeframeSelection}
+                onChange={(ev) => {
+                  if (ev)
+                    setTimeframeSelection(ev as typeof timeframeSelection);
+                }}
+                components={{
+                  Option,
+                  SingleValue,
+                }}
+              />
+            </div>
+          </div>
+
+          <SelectionTable
+            hideHeader={true}
+            id="historical-risk-switch"
+            mapView={mapView}
+            timeframe={timeframeSelection.value}
+            type="radio"
+            value={historicalRisk}
+            setter={setHistoricalRisk}
+            columns={[
+              'Historical Risk and Potential Future Scenarios',
+              'Status Within County',
+            ]}
+            callback={(row: Row, layer: __esri.Layer) => {
+              if (!layer || !isFeatureLayer(layer)) return;
+
+              if (row.id !== 'coastalFlooding') {
+                // get field
+                const field = getHistoricKey(
+                  row.id as HistoricType,
+                  timeframeSelection.value,
+                );
+
+                layer.title = `${row.label} ${timeframeSelection.label}`;
+
+                // update field renderer
+                (layer.renderer as __esri.ClassBreaksRenderer).field = field;
+
+                // update field visual variables
+                (
+                  layer.renderer as __esri.ClassBreaksRenderer
+                ).visualVariables.forEach((variable) => {
+                  if (variable.type === 'color') variable.field = field;
+                });
+
+                // update field popup expression
+                if (layer.popupTemplate?.expressionInfos?.length > 0)
+                  layer.popupTemplate.expressionInfos[0].expression = `Round($feature.${field}, 1)`;
+              }
+            }}
+          />
+
+          <div>
+            <a
+              href="https://resilience.climate.gov/pages/data-sources"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Read more about how the data was processed
+            </a>{' '}
+            <strong>(see about "Climate Data Summaries" section).</strong>{' '}
+            <ShowLessMore
+              charLimit={0}
+              text={
+                <ul>
+                  <li>
+                    Climate summaries for the contiguous 48 states were derived
+                    from data generated for the 4th National Climate Assessment.
+                    These data were accessed from the{' '}
+                    <a
+                      href="https://scenarios.globalchange.gov/loca-viewer/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Scenarios for the National Climate Assessment
+                    </a>{' '}
+                    website. The 30-year mean values for 4 time periods
+                    (historic, early-, mid-, and late-century) and two climate
+                    scenarios (RCP 4.5 and 8.5) were derived from the{' '}
+                    <a
+                      href="https://journals.ametsoc.org/view/journals/hydr/15/6/jhm-d-14-0082_1.xml"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Localized Constructed Analogs
+                    </a>{' '}
+                    (LOCA) downscaled climate model ensembles, processed by the
+                    Technical Support Unit at NOAA’s National Center for
+                    Environmental Information. The netCDF data from the website
+                    were summarized by county and census tract using the Zonal
+                    Statistics as Table utility in ArcGIS Pro. The results were
+                    joined into the corresponding geography polygons. A minimum,
+                    maximum, and mean value for each variable was calculated.
+                    This process was repeated for each time range and scenario.
+                    In order to display the full range of projections from
+                    individual climate models for each period, data originally
+                    obtained from{' '}
+                    <a
+                      href="https://waterdata.usgs.gov/blog/gdp-moving/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      USGS THREDDS
+                    </a>{' '}
+                    servers were accessed via the Regional Climate Center’s{' '}
+                    <a
+                      href="https://www.rcc-acis.org/docs_webservices.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Applied Climate Information System
+                    </a>{' '}
+                    (ACIS). This webservice facilitated processing of the raw
+                    data values to obtain the climate hazard metrics available
+                    in CMRA.
+                  </li>
+                  <li>
+                    As LOCA was only generated for the contiguous 48 states (and
+                    the District of Columbia), alternatives were used for Alaska
+                    and Hawaii. In Alaska, the{' '}
+                    <a
+                      href="https://link.springer.com/article/10.1023/B:CLIM.0000013685.99609.9e"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Bias Corrected Spatially Downscaled
+                    </a>{' '}
+                    (BCSD) method was used. Data were accessed from{' '}
+                    <a
+                      href="https://waterdata.usgs.gov/blog/gdp-moving/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      USGS THREDDS servers
+                    </a>
+                    . The same variables provided for LOCA were calculated from
+                    BCSD ensemble means. However, only RCP 8.5 was available.
+                    Minimum, maximum, and mean values for county and census
+                    tracts were calculated in the same way as above. For Hawaii,
+                    statistics for two summary geographies were accessed from
+                    the U.S. Climate Resilience Toolkit’s{' '}
+                    <a
+                      href="https://crt-climate-explorer.nemac.org/faq/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Climate Explorer
+                    </a>
+                    : Northern Islands (Honolulu County, Kauaʻi County) and
+                    Southern Islands (Maui County, Hawai'i County).
+                  </li>
+                </ul>
+              }
+            />
+          </div>
+
+          <SelectionTable
+            id="potentially-vulnerable-switch"
+            mapView={mapView}
+            value={potentiallyVulnerable}
+            setter={setPotentiallyVulnerable}
+            columns={[
+              'Potentially Vulnerable Waters, Infrastructure or Communities',
+              'Count',
+            ]}
           />
         </div>
       </div>
-
-      <br />
-
-      <div css={sectionHeaderContainerStyles}>
-        <div css={sectionHeaderStyles}>
-          Historical Risk and Potential Future Scenarios
-          <HelpTooltip label={historicalTooltip} />
-        </div>
-      </div>
-
-      <Slider
-        list={tickList}
-        marginBottom={'1.5rem'}
-        max={tickList[tickList.length - 1].value}
-        range={[tickList[0].value, tickList[tickList.length - 1].value]}
-        onChange={(value) => setRange(value)}
-        sliderVerticalBreak={300}
-        steps={null}
-        valueLabelDisplay="off"
-        headerElm={
-          <p css={subheadingStyles}>
-            <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-            &nbsp;&nbsp; Date range for the <em>{countySelected?.label}</em>{' '}
-            county{' '}
-          </p>
-        }
-      />
-
-      <SelectionTable
-        hideHeader={true}
-        id="historical-risk-range-switch"
-        mapView={mapView}
-        value={historicalRiskRange}
-        setter={setHistoricalRiskRange}
-        columns={[
-          'Historical Risk and Potential Future Scenarios',
-          'Status Within County',
-        ]}
-      />
-
-      <div css={sectionHeaderContainerStyles}>
-        <div css={sectionHeaderStyles}>
-          Historical Risk and Potential Future Scenarios
-          <HelpTooltip label={historicalTooltip} />
-        </div>
-        <div css={sectionHeaderSelectStyles}>
-          <span css={screenLabelStyles}>Timeframe:</span>
-          <Select
-            aria-label="Timeframe"
-            className="select"
-            inputId="timeframe"
-            isSearchable={false}
-            options={timeframeOptions}
-            styles={reactSelectStyles}
-            value={timeframeSelection}
-            onChange={(ev) => {
-              if (ev) setTimeframeSelection(ev as typeof timeframeSelection);
-            }}
-            components={{
-              Option,
-              SingleValue,
-            }}
-          />
-        </div>
-      </div>
-
-      <SelectionTable
-        hideHeader={true}
-        id="historical-risk-switch"
-        mapView={mapView}
-        timeframe={timeframeSelection.value}
-        type="radio"
-        value={historicalRisk}
-        setter={setHistoricalRisk}
-        columns={[
-          'Historical Risk and Potential Future Scenarios',
-          'Status Within County',
-        ]}
-        callback={(row: Row, layer: __esri.Layer) => {
-          if (!layer || !isFeatureLayer(layer)) return;
-
-          if (row.id !== 'coastalFlooding') {
-            // get field
-            const field = getHistoricKey(
-              row.id as HistoricType,
-              timeframeSelection.value,
-            );
-
-            layer.title = `${row.label} ${timeframeSelection.label}`;
-
-            // update field renderer
-            (layer.renderer as __esri.ClassBreaksRenderer).field = field;
-
-            // update field visual variables
-            (
-              layer.renderer as __esri.ClassBreaksRenderer
-            ).visualVariables.forEach((variable) => {
-              if (variable.type === 'color') variable.field = field;
-            });
-
-            // update field popup expression
-            if (layer.popupTemplate?.expressionInfos?.length > 0)
-              layer.popupTemplate.expressionInfos[0].expression = `Round($feature.${field}, 1)`;
-          }
-        }}
-      />
-
-      <div>
-        <a
-          href="https://resilience.climate.gov/pages/data-sources"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Read more about how the data was processed
-        </a>{' '}
-        <strong>(see about "Climate Data Summaries" section).</strong>{' '}
-        <ShowLessMore
-          charLimit={0}
-          text={
-            <ul>
-              <li>
-                Climate summaries for the contiguous 48 states were derived from
-                data generated for the 4th National Climate Assessment. These
-                data were accessed from the{' '}
-                <a
-                  href="https://scenarios.globalchange.gov/loca-viewer/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Scenarios for the National Climate Assessment
-                </a>{' '}
-                website. The 30-year mean values for 4 time periods (historic,
-                early-, mid-, and late-century) and two climate scenarios (RCP
-                4.5 and 8.5) were derived from the{' '}
-                <a
-                  href="https://journals.ametsoc.org/view/journals/hydr/15/6/jhm-d-14-0082_1.xml"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Localized Constructed Analogs
-                </a>{' '}
-                (LOCA) downscaled climate model ensembles, processed by the
-                Technical Support Unit at NOAA’s National Center for
-                Environmental Information. The netCDF data from the website were
-                summarized by county and census tract using the Zonal Statistics
-                as Table utility in ArcGIS Pro. The results were joined into the
-                corresponding geography polygons. A minimum, maximum, and mean
-                value for each variable was calculated. This process was
-                repeated for each time range and scenario. In order to display
-                the full range of projections from individual climate models for
-                each period, data originally obtained from{' '}
-                <a
-                  href="https://waterdata.usgs.gov/blog/gdp-moving/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  USGS THREDDS
-                </a>{' '}
-                servers were accessed via the Regional Climate Center’s{' '}
-                <a
-                  href="https://www.rcc-acis.org/docs_webservices.html"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Applied Climate Information System
-                </a>{' '}
-                (ACIS). This webservice facilitated processing of the raw data
-                values to obtain the climate hazard metrics available in CMRA.
-              </li>
-              <li>
-                As LOCA was only generated for the contiguous 48 states (and the
-                District of Columbia), alternatives were used for Alaska and
-                Hawaii. In Alaska, the{' '}
-                <a
-                  href="https://link.springer.com/article/10.1023/B:CLIM.0000013685.99609.9e"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Bias Corrected Spatially Downscaled
-                </a>{' '}
-                (BCSD) method was used. Data were accessed from{' '}
-                <a
-                  href="https://waterdata.usgs.gov/blog/gdp-moving/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  USGS THREDDS servers
-                </a>
-                . The same variables provided for LOCA were calculated from BCSD
-                ensemble means. However, only RCP 8.5 was available. Minimum,
-                maximum, and mean values for county and census tracts were
-                calculated in the same way as above. For Hawaii, statistics for
-                two summary geographies were accessed from the U.S. Climate
-                Resilience Toolkit’s{' '}
-                <a
-                  href="https://crt-climate-explorer.nemac.org/faq/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Climate Explorer
-                </a>
-                : Northern Islands (Honolulu County, Kauaʻi County) and Southern
-                Islands (Maui County, Hawai'i County).
-              </li>
-            </ul>
-          }
-        />
-      </div>
-
-      <SelectionTable
-        id="potentially-vulnerable-switch"
-        mapView={mapView}
-        value={potentiallyVulnerable}
-        setter={setPotentiallyVulnerable}
-        columns={[
-          'Potentially Vulnerable Waters, Infrastructure or Communities',
-          'Count',
-        ]}
-      />
     </div>
   );
 }
@@ -1830,6 +1840,21 @@ const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
   }
+`;
+
+const countyLabelStyles = css`
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 0.125rem;
+`;
+
+const countySectionInnerStyles = css`
+  margin: 1rem;
+`;
+
+const countySectionOuterStyles = css`
+  border: 1px solid black;
 `;
 
 const countySelectStyles = css`
