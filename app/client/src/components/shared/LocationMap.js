@@ -1221,7 +1221,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     (boundaries) => {
       let huc12Param = boundaries.features[0].attributes.huc12;
 
-      setHucBoundaries(boundaries);
+      const graphic = new Graphic({
+        geometry: {
+          type: 'polygon',
+          spatialReference: boundaries.spatialReference,
+          rings: boundaries.features[0].geometry.rings,
+        },
+        popupTemplate: {
+          title: getTitle,
+          content: getTemplate,
+          outFields: ['areasqkm'],
+        },
+        symbol: {
+          type: 'simple-fill', // autocasts as new SimpleFillSymbol()
+          color: [204, 255, 255, 0.5],
+          outline: {
+            color: [0, 0, 0],
+            width: 2,
+            style: 'dash',
+          },
+        },
+        attributes: boundaries.features[0].attributes,
+      });
+
+      // clear previously set graphic (from a previous search), and add graphic
+      boundariesLayer.graphics.removeAll();
+      boundariesLayer.graphics.add(graphic);
+      setHucBoundaries(graphic);
+
       // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
 
       // boundaries data, also has attributes for watershed
@@ -1263,18 +1290,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       );
     },
     [
+      boundariesLayer,
       getFishingLinkData,
+      getProtectedAreas,
       getSignal,
+      getTemplate,
+      getTitle,
       getWsioHealthIndexData,
       getWildScenicRivers,
-      getProtectedAreas,
       handleMapServiceError,
       handleMapServices,
+      services,
       setHucBoundaries,
       setStatesData,
       setWatershed,
       statesData.status,
-      services,
     ],
   );
 
@@ -1715,39 +1745,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [searchText, setHuc12]);
 
   useEffect(() => {
-    if (!mapView || !hucBoundaries?.features?.[0]) {
+    if (!mapView || !hucBoundaries) {
       return;
     }
 
-    const graphic = new Graphic({
-      geometry: {
-        type: 'polygon',
-        spatialReference: hucBoundaries.spatialReference,
-        rings: hucBoundaries.features[0].geometry.rings,
-      },
-      popupTemplate: {
-        title: getTitle,
-        content: getTemplate,
-        outFields: ['areasqkm'],
-      },
-      symbol: {
-        type: 'simple-fill', // autocasts as new SimpleFillSymbol()
-        color: [204, 255, 255, 0.5],
-        outline: {
-          color: [0, 0, 0],
-          width: 2,
-          style: 'dash',
-        },
-      },
-      attributes: hucBoundaries.features[0].attributes,
-    });
-
-    // clear previously set graphic (from a previous search), and add graphic
-    boundariesLayer.graphics.removeAll();
-    boundariesLayer.graphics.add(graphic);
-
     const currentViewpoint = new Viewpoint({
-      targetGeometry: graphic.geometry.extent,
+      targetGeometry: hucBoundaries.geometry.extent,
     });
 
     // store the current viewpoint in context
@@ -1759,7 +1762,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     // zoom to the graphic, and update the home widget, and close any popups
     if (!window.location.pathname.includes('/extreme-weather')) {
       mapView.when(() => {
-        mapView.goTo(graphic).then(() => {
+        mapView.goTo(hucBoundaries).then(() => {
           setAtHucBoundaries(true);
         });
       });

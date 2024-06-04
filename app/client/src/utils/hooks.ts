@@ -55,6 +55,7 @@ import {
   isPoint,
   openPopup,
   shallowCompare,
+  hideShowGraphicsFill,
 } from 'utils/mapFunctions';
 // types
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
@@ -840,9 +841,7 @@ function useDynamicPopup() {
       if (
         !location ||
         onTribePage ||
-        (hucBoundaries &&
-          hucBoundaries.features.length > 0 &&
-          hucBoundaries.features[0].geometry.contains(location))
+        hucBoundaries?.geometry.contains(location)
       ) {
         return getPopupContent({
           feature: graphic.graphic,
@@ -1027,20 +1026,14 @@ function useSharedLayers({
           | __esri.Map;
         if (!parent || (!(parent instanceof Map) && !isGroupLayer(parent)))
           return;
-        // find the boundaries layer
-        parent.layers.forEach((layer) => {
-          if (layer.id !== 'boundariesLayer' || !isGraphicsLayer(layer)) return;
 
-          // remove shading when wsio layer is on and add
-          // shading back in when wsio layer is off
-          const newGraphics = layer.graphics.clone();
-          newGraphics.forEach((graphic) => {
-            graphic.symbol.color.a = wsioHealthIndexLayer.visible ? 0 : 0.5;
-          });
+        // find the layer
+        const layer = parent.layers.find((l) => l.id === 'boundariesLayer');
+        if (!layer || !isGraphicsLayer(layer)) return;
 
-          // re-draw the graphics
-          layer.graphics = newGraphics;
-        });
+        // remove shading when wsio layer is on and add
+        // shading back in when wsio layer is off
+        hideShowGraphicsFill(layer, !wsioHealthIndexLayer.visible);
       },
     );
 
@@ -2247,15 +2240,26 @@ function useSharedLayers({
           popupTemplate = PopupTemplate.fromJSON(layer.popupInfo);
         }
 
-        layers.push(
-          new FeatureLayer({
-            ...layer,
-            ...webMapLayerDef?.layerDefinition,
-            ...layer.layerDefinition,
-            renderer,
-            popupTemplate,
-          }),
-        );
+        const layerProperties = {
+          ...layer,
+          ...webMapLayerDef?.layerDefinition,
+          ...layer.layerDefinition,
+          renderer,
+          popupTemplate,
+        };
+
+        if (layerProperties.orderBy) {
+          layerProperties.orderBy = layerProperties.orderBy.map((o: any) => {
+            let order = 'descending';
+            if (o.order.includes('asc')) order = 'ascending';
+            return {
+              ...o,
+              order,
+            };
+          });
+        }
+
+        layers.push(new FeatureLayer(layerProperties));
       }
 
       groupLayer.layers.addMany(layers);
@@ -2280,7 +2284,7 @@ function useSharedLayers({
   }
 
   // Gets the settings for the WSIO Health Index layer.
-  return function getSharedLayers() {
+  return async function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
 
     const protectedAreasLayer = getProtectedAreasLayer();
@@ -2307,11 +2311,11 @@ function useSharedLayers({
 
     const landCover = getLandCoverLayer();
 
-    const wildfiresLayer = getWildfiresLayer();
+    const wildfiresLayer = await getWildfiresLayer();
 
     const cmraScreeningLayer = getCmraScreeningLayer();
 
-    const droughtRealtimeLayer = getDroughtRealtimeLayer();
+    const droughtRealtimeLayer = await getDroughtRealtimeLayer();
 
     const inlandFloodingRealtimeLayer = getInlandFloodingRealtimeLayer();
 
@@ -2327,11 +2331,12 @@ function useSharedLayers({
 
     const sewerOverflowsLayer = getSewerOverflowsLayer();
 
-    const damsLayer = getDamsLayer();
+    const damsLayer = await getDamsLayer();
 
-    const wellsLayer = getWellsLayer();
+    const wellsLayer = await getWellsLayer();
 
-    const disadvantagedCommunitiesLayer = getDisadvantagedCommunitiesLayer();
+    const disadvantagedCommunitiesLayer =
+      await getDisadvantagedCommunitiesLayer();
 
     return [
       ejscreen,
