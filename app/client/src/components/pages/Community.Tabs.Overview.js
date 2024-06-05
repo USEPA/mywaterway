@@ -673,6 +673,7 @@ function MonitoringAndSensorsTab({
     [
       accordionItemToggleHandlers,
       characteristicGroupMappings,
+      cyanMetadata,
       expandedRows,
       filteredMonitoringAndSensors,
       mapView,
