@@ -47,6 +47,10 @@
   margin: unset;
 }
 
+.esri-legend__layer-cell--info:empty {
+  display: none;
+}
+
 .esri-print__header-title {
   font-size: 1.25em;
   font-weight: 500;
