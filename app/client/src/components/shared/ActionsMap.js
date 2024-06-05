@@ -99,13 +99,15 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       setLayer('actionsWaterbodies', localActionsLayer);
     }
 
-    setLayers([
-      ...getSharedLayers(),
-      localActionsLayer,
-      surroundingMonitoringLocationsLayer,
-    ]);
-    updateVisibleLayers({
-      actionsWaterbodies: true,
+    getSharedLayers().then((sharedLayers) => {
+      setLayers([
+        ...sharedLayers,
+        localActionsLayer,
+        surroundingMonitoringLocationsLayer,
+      ]);
+      updateVisibleLayers({
+        actionsWaterbodies: true,
+      });
     });
     setLayersInitialized(true);
   }, [

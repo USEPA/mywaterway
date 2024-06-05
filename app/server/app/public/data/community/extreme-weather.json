@@ -660,21 +660,21 @@
     {
       "id": "impairedWaterbodies",
       "label": "Impaired",
-      "indent": true,
+      "indent": "4rem",
       "status": "idle",
       "text": ""
     },
     {
       "id": "goodWaterbodies",
       "label": "Good",
-      "indent": true,
+      "indent": "4rem",
       "status": "idle",
       "text": ""
     },
     {
       "id": "unknownWaterbodies",
       "label": "Unknown",
-      "indent": true,
+      "indent": "4rem",
       "status": "idle",
       "text": ""
     },
@@ -782,8 +782,6 @@
     {
       "id": "drinkingWaterSystems",
       "label": "Public Drinking Water Systems",
-      "checked": false,
-      "disabled": false,
       "layerId": "providersLayer",
       "status": "idle",
       "text": ""
@@ -791,14 +789,14 @@
     {
       "id": "surfaceWaterSources",
       "label": "Surface Water Sources",
-      "indent": true,
+      "indent": "1rem",
       "status": "idle",
       "text": ""
     },
     {
       "id": "groundWaterSources",
       "label": "Ground Water Sources",
-      "indent": true,
+      "indent": "1rem",
       "status": "idle",
       "text": ""
     },

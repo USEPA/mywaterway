@@ -310,9 +310,7 @@ function MapMouseEvents({ view }: Props) {
               if (
                 !graphic &&
                 !onTribePage &&
-                (!hucBoundaries ||
-                  hucBoundaries.features.length === 0 ||
-                  !hucBoundaries.features[0].geometry.contains(location))
+                !hucBoundaries?.geometry.contains(location)
               ) {
                 //get the huc boundaries of where the user clicked
                 const queryParams = {

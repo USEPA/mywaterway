@@ -69,6 +69,7 @@ type State = {
   address: string,
   assessmentUnitId: string,
   grts: Object,
+  grtsStories: Object,
   attainsPlans: Object,
   drinkingWater: Object,
   cipSummary: { status: Status, data: Huc12SummaryData },
@@ -132,7 +133,8 @@ export class LocationSearchProvider extends Component<Props, State> {
     wildScenicRiversData: { status: 'fetching', data: [] },
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
-    grts: { status: 'fetching', data: [] },
+    grts: { status: 'fetching', data: {} },
+    grtsStories: { status: 'fetching', data: {} },
     attainsPlans: { status: 'fetching', data: {} },
     drinkingWater: { status: 'fetching', data: {} },
     cipSummary: { status: 'fetching', data: {} },
@@ -300,6 +302,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setGrts: (grts) => {
       this.setState({ grts });
     },
+    setGrtsStories: (grtsStories) => {
+      this.setState({ grtsStories });
+    },
     setAttainsPlans: (attainsPlans) => {
       this.setState({ attainsPlans });
     },
@@ -402,7 +407,8 @@ export class LocationSearchProvider extends Component<Props, State> {
         monitoringYearsRange: [0, 0],
         selectedMonitoringYearsRange: [0, 0],
         nonprofits: { status: 'fetching', data: [] },
-        grts: { status: 'fetching', data: [] },
+        grts: { status: 'fetching', data: {} },
+        grtsStories: { status: 'fetching', data: {} },
         attainsPlans: { status: 'fetching', data: {} },
         cipSummary: { status: 'fetching', data: {} },
         drinkingWater: { status: 'fetching', data: {} },
@@ -429,7 +435,8 @@ export class LocationSearchProvider extends Component<Props, State> {
         waterbodyCountMismatch: null,
         countyBoundaries: '',
         nonprofits: { status: 'success', data: [] },
-        grts: { status: 'success', data: [] },
+        grts: { status: 'success', data: {} },
+        grtsStories: { status: 'success', data: {} },
         attainsPlans: { status: 'success', data: {} },
         cipSummary: { status: 'success', data: {} },
         drinkingWater: { status: 'success', data: {} },

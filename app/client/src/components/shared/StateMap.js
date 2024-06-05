@@ -152,10 +152,6 @@ function StateMap({
       renderer: pointsRenderer,
       popupTemplate,
     });
-    setLayer('waterbodyPoints', waterbodyPoints);
-    setResetHandler('waterbodyPoints', () => {
-      setLayer('waterbodyPoints', null);
-    });
 
     const linesRenderer = {
       type: 'unique-value',
@@ -174,10 +170,6 @@ function StateMap({
       outFields: ['*'],
       renderer: linesRenderer,
       popupTemplate,
-    });
-    setLayer('waterbodyLines', waterbodyLines);
-    setResetHandler('waterbodyLines', () => {
-      setLayer('waterbodyLines', null);
     });
 
     const areasRenderer = {
@@ -198,10 +190,6 @@ function StateMap({
       renderer: areasRenderer,
       popupTemplate,
     });
-    setLayer('waterbodyAreas', waterbodyAreas);
-    setResetHandler('waterbodyAreas', () => {
-      setLayer('waterbodyAreas', null);
-    });
 
     // Make the waterbody layer into a single layer
     const waterbodyLayer = new GroupLayer({
@@ -212,23 +200,37 @@ function StateMap({
       legendEnabled: false,
     });
     waterbodyLayer.addMany([waterbodyAreas, waterbodyLines, waterbodyPoints]);
-    setLayer('waterbodyLayer', waterbodyLayer);
-    setResetHandler('waterbodyLayer', () => {
-      waterbodyLayer?.layers.removeAll();
-      setLayer('waterbodyLayer', null);
+
+    getSharedLayers().then((sharedLayers) => {
+      setLayer('waterbodyPoints', waterbodyPoints);
+      setResetHandler('waterbodyPoints', () => {
+        setLayer('waterbodyPoints', null);
+      });
+      setLayer('waterbodyLines', waterbodyLines);
+      setResetHandler('waterbodyLines', () => {
+        setLayer('waterbodyLines', null);
+      });
+      setLayer('waterbodyAreas', waterbodyAreas);
+      setResetHandler('waterbodyAreas', () => {
+        setLayer('waterbodyAreas', null);
+      });
+      setLayer('waterbodyLayer', waterbodyLayer);
+      setResetHandler('waterbodyLayer', () => {
+        waterbodyLayer?.layers.removeAll();
+        setLayer('waterbodyLayer', null);
+      });
+
+      setLayers([
+        ...sharedLayers,
+        surroundingCyanLayer,
+        surroundingDischargersLayer,
+        surroundingMonitoringLocationsLayer,
+        surroundingUsgsStreamgagesLayer,
+        waterbodyLayer,
+      ]);
+
+      updateVisibleLayers({ waterbodyLayer: true });
     });
-
-    setLayers([
-      ...getSharedLayers(),
-      surroundingCyanLayer,
-      surroundingDischargersLayer,
-      surroundingMonitoringLocationsLayer,
-      surroundingUsgsStreamgagesLayer,
-      waterbodyLayer,
-    ]);
-
-    updateVisibleLayers({ waterbodyLayer: true });
-
     setLayersInitialized(true);
   }, [
     attainsImpairmentFields,

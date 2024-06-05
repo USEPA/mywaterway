@@ -1145,3 +1145,18 @@ export function mapRestorationPlanToGlossary(
     planType
   );
 }
+
+// removes the fill from all graphics on a graphics layer
+export function hideShowGraphicsFill(
+  layer: __esri.GraphicsLayer,
+  showFill: boolean,
+  alpha = 0.5,
+) {
+  const newGraphics = layer.graphics.clone();
+  newGraphics.forEach((graphic) => {
+    graphic.symbol.color.a = showFill ? alpha : 0;
+  });
+
+  // re-draw the graphics
+  layer.graphics = newGraphics;
+}
