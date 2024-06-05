@@ -85,6 +85,16 @@ export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
 }
 
+export type CharacteristicGroupMappings = {
+  label: string;
+  groupNames: string[];
+}[];
+
+export type CharacteristicGroupMappingsState = {
+  status: 'fetching' | 'failure' | 'success';
+  data: CharacteristicGroupMappings;
+};
+
 export type ClickedHucState =
   | { status: 'fetching' | 'no-data' | 'none' | 'failure'; data: null }
   | { status: 'success'; data: WatershedAttributes };
@@ -385,6 +395,7 @@ export type PopupAttributes =
 export type PopupLookupFiles = {
   attainsImpairmentFields?: AttainsImpairmentFieldState;
   attainsUseFields?: AttainsUseFieldState;
+  characteristicGroupMappings?: CharacteristicGroupMappingsState;
   services: ServicesState;
   stateNationalUses?: LookupFile;
 };

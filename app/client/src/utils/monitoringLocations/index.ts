@@ -13,7 +13,10 @@ import {
   initialMonitoringGroups,
   LocationSearchContext,
 } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useCharacteristicGroupMappingsContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
@@ -27,12 +30,11 @@ import {
 } from 'utils/boundariesToggleLayer';
 import { stringifyAttributes } from 'utils/mapFunctions';
 import { parseAttributes } from 'utils/utils';
-// config
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type {
+  CharacteristicGroupMappings,
   Feature,
   FetchStatus,
   MonitoringLocationAttributes,
@@ -94,6 +96,7 @@ export function useMonitoringLocations() {
 }
 
 export function useMonitoringGroups() {
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const { monitoringGroups, setMonitoringGroups } = useContext(
     LocationSearchContext,
   );
@@ -101,14 +104,15 @@ export function useMonitoringGroups() {
 
   useEffect(() => {
     if (monitoringLocations.status !== 'success') return;
+    if (characteristicGroupMappings.status !== 'success') return;
 
     setMonitoringGroups(
       buildMonitoringGroups(
         monitoringLocations.data,
-        characteristicGroupMappings,
+        characteristicGroupMappings.data,
       ),
     );
-  }, [monitoringLocations, setMonitoringGroups]);
+  }, [characteristicGroupMappings, monitoringLocations, setMonitoringGroups]);
 
   return { monitoringGroups, setMonitoringGroups };
 }
@@ -116,6 +120,7 @@ export function useMonitoringGroups() {
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
 function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const {
     setMonitoringPeriodOfRecordStatus,
     setMonitoringYearsRange,
@@ -172,7 +177,7 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
       new URL('./periodOfRecord', import.meta.url),
     );
     // Tell the worker to start the task
-    recordsWorker.current.postMessage([url, characteristicGroupMappings]);
+    recordsWorker.current.postMessage([url, characteristicGroupMappings.data]);
     // Handle the worker's response
     recordsWorker.current.onmessage = (message) => {
       if (message.data && typeof message.data === 'string') {
@@ -182,7 +187,7 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
         setMonitoringAnnualRecords(parsedData);
       }
     };
-  }, [enabled, url]);
+  }, [characteristicGroupMappings, enabled, url]);
 
   useEffect(() => {
     return function cleanup() {
@@ -198,6 +203,7 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
 function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
   // Build the data update function
   const { mapView } = useContext(LocationSearchContext);
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
@@ -224,6 +230,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
       fetchMonitoringLocations(localFilter, services.data, controller.signal),
       fetchedDataDispatch,
       localFetchedDataKey,
+      characteristicGroupMappings.data,
     ).then((data) => {
       setLocalData(data);
     });
@@ -231,7 +238,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, localFilter, services]);
+  }, [characteristicGroupMappings, fetchedDataDispatch, localFilter, services]);
 
   // Add annual characteristic data to the local data
   const annualData = useMonitoringPeriodOfRecord(
@@ -268,10 +275,17 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
         ),
         fetchedDataDispatch,
         surroundingFetchedDataKey,
+        characteristicGroupMappings.data,
         localData, // Filter out HUC data
       );
     },
-    [fetchedDataDispatch, localData, mapView, services],
+    [
+      characteristicGroupMappings,
+      fetchedDataDispatch,
+      localData,
+      mapView,
+      services,
+    ],
   );
 
   return updateSurroundingData;
@@ -340,10 +354,11 @@ function buildFeatures(locations: MonitoringLocationAttributes[]) {
 
 function buildMonitoringGroups(
   stations: MonitoringLocationAttributes[],
-  mappings: typeof characteristicGroupMappings,
+  mappings: CharacteristicGroupMappings,
 ) {
   // build up monitoring stations, toggles, and groups
-  let locationGroups: MonitoringLocationGroups = initialMonitoringGroups();
+  let locationGroups: MonitoringLocationGroups =
+    initialMonitoringGroups(mappings);
 
   stations.forEach((station) => {
     // build up the monitoringLocationToggles and monitoringLocationGroups
@@ -459,13 +474,15 @@ async function fetchAndTransformData(
   promise: ReturnType<typeof fetchMonitoringLocations>,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'monitoringLocations' | 'surroundingMonitoringLocations',
+  characteristicGroupMappings: CharacteristicGroupMappings,
   dataToExclude?: MonitoringLocationAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
   const response = await promise;
   if (response.status === 'success') {
-    const monitoringLocations = transformServiceData(response.data) ?? [];
+    const monitoringLocations =
+      transformServiceData(response.data, characteristicGroupMappings) ?? [];
     const payload = dataToExclude
       ? filterData(monitoringLocations, dataToExclude, dataKeys)
       : monitoringLocations;
@@ -506,6 +523,7 @@ async function getExtentFilter(mapView: __esri.MapView | '') {
 }
 
 function parseStationLabelTotals(
+  characteristicGroupMappings: CharacteristicGroupMappings,
   totalsByGroup: MonitoringLocationAttributes['totalsByGroup'],
 ) {
   const subGroupsAdded = new Set();
@@ -534,6 +552,7 @@ function parseStationLabelTotals(
 
 function transformServiceData(
   data: MonitoringLocationsData,
+  characteristicGroupMappings: CharacteristicGroupMappings,
 ): MonitoringLocationAttributes[] {
   // sort descending order so that smaller graphics show up on top
   const stationsSorted = [...data.features];
@@ -574,6 +593,7 @@ function transformServiceData(
       totalsByGroup: station.properties.characteristicGroupResultCount,
       // counts for each top-tier characteristic group
       totalsByLabel: parseStationLabelTotals(
+        characteristicGroupMappings,
         station.properties.characteristicGroupResultCount,
       ),
       timeframe: null,

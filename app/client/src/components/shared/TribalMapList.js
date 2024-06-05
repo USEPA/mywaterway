@@ -48,6 +48,7 @@ import {
 } from 'contexts/locationSearch';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import {
+  useCharacteristicGroupMappingsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -927,6 +928,7 @@ function MonitoringTab({
   selectedCharacteristics,
   setSelectedCharacteristics,
 }: MonitoringTabProps) {
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const services = useServicesContext();
 
   const { monitoringLocations } = useMonitoringLocations();
@@ -1074,7 +1076,7 @@ function MonitoringTab({
             <div css={accordionContentStyles}>
               <WaterbodyInfo
                 feature={feature}
-                lookupFiles={{services}}
+                lookupFiles={{ characteristicGroupMappings, services}}
                 type="Past Water Conditions"
               />
               <ViewOnMapButton feature={feature} />

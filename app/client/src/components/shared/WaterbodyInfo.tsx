@@ -56,8 +56,6 @@ import {
   titleCaseWithExceptions,
   toFixedFloat,
 } from 'utils/utils';
-// data
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import cyanMetadata from 'config/cyanMetadata';
 // errors
 import { cyanError, waterbodyReportError } from 'config/errorMessages';
@@ -81,6 +79,8 @@ import type {
   AssessmentUseAttainmentState,
   AttainsUseField,
   ChangeLocationAttributes,
+  CharacteristicGroupMappings,
+  CharacteristicGroupMappingsState,
   ClickedHucState,
   FetchState,
   FetchStateWithDefault,
@@ -1288,6 +1288,7 @@ function WaterbodyInfo({
   if (type === 'Past Water Conditions') {
     content = (
       <MonitoringLocationsContent
+        characteristicGroupMappings={lookupFiles?.characteristicGroupMappings}
         feature={feature}
         services={lookupFiles?.services}
       />
@@ -2466,7 +2467,11 @@ interface SelectedGroups {
 }
 
 function buildGroups(
-  checkMappings: (groupName: string) => boolean,
+  characteristicGroupMappings: CharacteristicGroupMappings,
+  checkMappings: (
+    characteristicGroupMappings: CharacteristicGroupMappings,
+    groupName: string,
+  ) => boolean,
   totalsByGroup: string | { [groupName: string]: number },
 ): { newGroups: MappedGroups; newSelected: SelectedGroups } {
   const newGroups: MappedGroups = {};
@@ -2492,7 +2497,7 @@ function buildGroups(
             resultCount: stationGroups[groupName],
           };
         }
-      } else if (!checkMappings(groupName)) {
+      } else if (!checkMappings(characteristicGroupMappings, groupName)) {
         if (!newGroups['Other']) {
           newGroups['Other'] = { characteristicGroups: [], resultCount: 0 };
         }
@@ -2512,7 +2517,10 @@ function buildGroups(
   return { newGroups, newSelected };
 }
 
-function checkIfGroupInMapping(groupName: string): boolean {
+function checkIfGroupInMapping(
+  characteristicGroupMappings: CharacteristicGroupMappings,
+  groupName: string,
+): boolean {
   const result = characteristicGroupMappings.find((mapping) =>
     mapping.groupNames.includes(groupName),
   );
@@ -2520,6 +2528,7 @@ function checkIfGroupInMapping(groupName: string): boolean {
 }
 
 type MonitoringLocationsContentProps = {
+  characteristicGroupMappings?: CharacteristicGroupMappingsState;
   feature: __esri.Graphic;
   services?: ServicesState;
 };
@@ -2527,6 +2536,7 @@ type MonitoringLocationsContentProps = {
 type SelectedType = { [Property in keyof MappedGroups]: boolean };
 
 function MonitoringLocationsContent({
+  characteristicGroupMappings,
   feature,
   services,
 }: Readonly<MonitoringLocationsContentProps>) {
@@ -2563,27 +2573,20 @@ function MonitoringLocationsContent({
     uniqueId,
   } = attributes;
 
-  const [groups, setGroups] = useState(() => {
-    const { newGroups } = buildGroups(checkIfGroupInMapping, totalsByGroup);
-    return newGroups;
-  });
-  const [selected, setSelected] = useState(() => {
-    const newSelected: SelectedType = {};
-    Object.keys(groups).forEach((group) => {
-      newSelected[group] = true;
-    });
-    return newSelected;
-  });
-
+  const [groups, setGroups] = useState<MappedGroups | null>(null);
+  const [selected, setSelected] = useState<SelectedType | null>(null);
   useEffect(() => {
+    if (characteristicGroupMappings?.status !== 'success') return;
+
     const { newGroups, newSelected } = buildGroups(
+      characteristicGroupMappings.data,
       checkIfGroupInMapping,
       totalsByGroup,
     );
     setGroups(newGroups);
     setSelected(newSelected);
     setSelectAll(1);
-  }, [totalsByGroup]);
+  }, [characteristicGroupMappings, totalsByGroup]);
 
   const buildFilter = useCallback(
     (selectedNames: SelectedType, monitoringLocationData: MappedGroups) => {
@@ -2611,6 +2614,7 @@ function MonitoringLocationsContent({
   );
 
   useEffect(() => {
+    if (!groups || !selected) return;
     buildFilter(selected, groups);
   }, [buildFilter, groups, selected]);
 
@@ -2620,6 +2624,8 @@ function MonitoringLocationsContent({
 
   //Toggle an individual row and call the provided onChange event handler
   const toggleRow = (groupLabel: string, allGroups: Object) => {
+    if (!groups || !selected) return;
+
     // flip the current toggle
     const selectedGroups = { ...selected };
     selectedGroups[groupLabel] = !selected[groupLabel];
@@ -2659,6 +2665,8 @@ function MonitoringLocationsContent({
 
   //Toggle all rows and call the provided onChange event handler
   const toggleAllCheckboxes = () => {
+    if (!groups) return;
+
     let selectedGroups: SelectedGroups = {};
 
     if (Object.keys(groups).length > 0) {
@@ -2689,6 +2697,8 @@ function MonitoringLocationsContent({
   const [modalTriggered, setModalTriggered] = useState(false);
   useEffect(() => {
     if (!modalTriggered) return;
+    if (characteristicGroupMappings?.status !== 'success') return;
+
     if (Object.keys(totalsByCharacteristic).length) {
       setCharacteristics({
         status: 'success',
@@ -2716,7 +2726,7 @@ function MonitoringLocationsContent({
         .then((records) => {
           const { sites } = structurePeriodOfRecordData(
             records,
-            characteristicGroupMappings,
+            characteristicGroupMappings.data,
           );
           addAnnualData([attributes], sites);
           setCharacteristics({
@@ -2736,6 +2746,7 @@ function MonitoringLocationsContent({
     }
   }, [
     attributes,
+    characteristicGroupMappings,
     characteristicsByGroup,
     modalTriggered,
     orgId,
@@ -2746,7 +2757,7 @@ function MonitoringLocationsContent({
     uniqueId,
   ]);
 
-  const innerGroups = groups[selectedGroupLabel]?.characteristicGroups;
+  const innerGroups = groups?.[selectedGroupLabel]?.characteristicGroups ?? [];
   const groupCharacteristics = Object.entries(
     characteristics.data.totalsByCharacteristic,
   ).reduce((result, [charc, count]) => {
@@ -2848,11 +2859,11 @@ function MonitoringLocationsContent({
         />
       </div>
 
-      {Object.keys(groups).length === 0 && (
+      {(!groups || Object.keys(groups).length === 0) && (
         <p>No data available for this monitoring location.</p>
       )}
 
-      {Object.keys(groups).length > 0 && (
+      {groups && Object.keys(groups).length > 0 && (
         <table
           aria-label="Characteristic Groups Summary"
           css={measurementTableStyles()}
@@ -2893,7 +2904,7 @@ function MonitoringLocationsContent({
           <tbody>
             {Object.keys(groups).map((key) => {
               // ignore groups with 0 results
-              if (groups[key].resultCount === 0) {
+              if (groups?.[key].resultCount === 0) {
                 return null;
               }
               return (
@@ -2904,7 +2915,7 @@ function MonitoringLocationsContent({
                       css={checkboxStyles}
                       type="checkbox"
                       className="checkbox"
-                      checked={selected[key] === true || selectAll === 1}
+                      checked={selected?.[key] === true || selectAll === 1}
                       onChange={(_ev) => {
                         toggleRow(key, groups);
                       }}

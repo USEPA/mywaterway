@@ -28,6 +28,8 @@ type LookupFiles = {
   setAttainsParameters: Function,
   attainsUseFields: LookupFile,
   setAttainsUseFields: Function,
+  characteristicGroupMappings: LookupFile,
+  setCharacteristicGroupMappings: Function,
   dataSources: LookupFile,
   documentOrder: LookupFile,
   setDocumentOrder: Function,
@@ -66,6 +68,8 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setAttainsParameters: () => {},
   attainsUseFields: { status: 'fetching', data: null },
   setAttainsUseFields: () => {},
+  characteristicGroupMappings: { status: 'fetching', data: null },
+  setCharacteristicGroupMappings: () => {},
   dataSources: { status: 'fetching', data: null },
   setDataSources: () => {},
   documentOrder: { status: 'fetching', data: null },
@@ -115,6 +119,11 @@ function LookupFilesProvider({ children }: Props) {
     status: 'fetching',
     data: null,
   });
+  const [characteristicGroupMappings, setCharacteristicGroupMappings] =
+    useState({
+      status: 'fetching',
+      data: null,
+    });
   const [dataSources, setDataSources] = useState({
     status: 'fetching',
     data: null,
@@ -184,6 +193,8 @@ function LookupFilesProvider({ children }: Props) {
       setAttainsParameters,
       attainsUseFields,
       setAttainsUseFields,
+      characteristicGroupMappings,
+      setCharacteristicGroupMappings,
       dataSources,
       setDataSources,
       documentOrder,
@@ -219,6 +230,7 @@ function LookupFilesProvider({ children }: Props) {
       attainsImpairmentFields,
       attainsParameters,
       attainsUseFields,
+      characteristicGroupMappings,
       dataSources,
       documentOrder,
       educatorMaterials,
@@ -287,6 +299,24 @@ function useAttainsUseFieldsContext() {
   }
 
   return attainsUseFields;
+}
+
+// Custom hook for the community/characteristicGroupMappings.json file.
+let characteristicGroupMappingsInitialized = false; // global var for ensuring fetch only happens once
+function useCharacteristicGroupMappingsContext() {
+  const { characteristicGroupMappings, setCharacteristicGroupMappings } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!characteristicGroupMappingsInitialized) {
+    characteristicGroupMappingsInitialized = true;
+    getLookupFile(
+      'community/characteristicGroupMappings.json',
+      setCharacteristicGroupMappings,
+    );
+  }
+
+  return characteristicGroupMappings;
 }
 
 // Custom hook for the dataPage.json file.
@@ -564,6 +594,7 @@ export {
   useAttainsImpairmentFieldsContext,
   useAttainsParametersContext,
   useAttainsUseFieldsContext,
+  useCharacteristicGroupMappingsContext,
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,

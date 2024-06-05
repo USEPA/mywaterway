@@ -36,6 +36,7 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
   useAttainsImpairmentFieldsContext,
   useAttainsUseFieldsContext,
+  useCharacteristicGroupMappingsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -446,6 +447,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
   const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const navigate = useNavigate();
@@ -486,6 +488,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         {
           attainsImpairmentFields,
           attainsUseFields,
+          characteristicGroupMappings,
           services,
           stateNationalUses,
         },
@@ -495,6 +498,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   }, [
     attainsImpairmentFields,
     attainsUseFields,
+    characteristicGroupMappings,
     mapView,
     navigate,
     selectedGraphic,
@@ -793,6 +797,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 function useDynamicPopup() {
   const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
@@ -859,7 +864,7 @@ function useDynamicPopup() {
       if (
         !location ||
         onTribePage ||
-        hucBoundaries?.geometry.contains(location)
+        hucBoundaries?.geometry?.contains(location)
       ) {
         return getPopupContent({
           feature: graphic.graphic,
@@ -867,6 +872,7 @@ function useDynamicPopup() {
           lookupFiles: {
             attainsImpairmentFields,
             attainsUseFields,
+            characteristicGroupMappings,
             services,
             stateNationalUses,
           },
@@ -884,6 +890,7 @@ function useDynamicPopup() {
         lookupFiles: {
           attainsImpairmentFields,
           attainsUseFields,
+          characteristicGroupMappings,
           services,
           stateNationalUses,
         },
@@ -893,6 +900,7 @@ function useDynamicPopup() {
     [
       attainsImpairmentFields,
       attainsUseFields,
+      characteristicGroupMappings,
       getClickedHuc,
       getHucBoundaries,
       getMapView,
