@@ -994,7 +994,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [setGrtsStories, services],
+    [setGrtsStories],
   );
 
   // Runs a query to get the plans for the selected huc.
