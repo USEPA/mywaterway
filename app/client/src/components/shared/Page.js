@@ -8,12 +8,11 @@ import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
 // components
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import NavBar from 'components/shared/NavBar';
 import DataContent from 'components/shared/DataContent';
 import AboutContent from 'components/shared/AboutContent';
 import EducatorsContent from 'components/shared/EducatorsContent';
-import GlossaryPanel from 'components/shared/GlossaryPanel';
+import GlossaryPanel, { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
 import { useGlossaryState } from 'contexts/Glossary';
 import { useServicesContext } from 'contexts/LookupFiles';
