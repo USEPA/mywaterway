@@ -56,7 +56,6 @@ import {
   titleCaseWithExceptions,
   toFixedFloat,
 } from 'utils/utils';
-import cyanMetadata from 'config/cyanMetadata';
 // errors
 import { cyanError, waterbodyReportError } from 'config/errorMessages';
 // styles
@@ -1319,6 +1318,7 @@ function WaterbodyInfo({
   if (type === 'Blue-Green Algae') {
     content = (
       <CyanContent
+        cyanMetadata={lookupFiles?.cyanMetadata?.data ?? []}
         feature={feature}
         mapView={mapView}
         services={lookupFiles?.services ?? null}
@@ -1596,7 +1596,7 @@ function getAverageNonLandPixelArea(data: CellConcentrationData) {
   );
 }
 
-function getMaxCellConcentration(counts: number[]) {
+function getMaxCellConcentration(counts: number[], cyanMetadata: number[]) {
   if (!counts.length) return null;
   for (let i = counts.length - 1; i >= 0; i--) {
     if (counts[i] > 0) return cyanMetadata[i];
@@ -1647,12 +1647,14 @@ type ChartData = {
 };
 
 type CyanDailyContentProps = {
+  cyanMetadata: number[];
   data: CellConcentrationData[string];
   epochDate: number;
   waterbodyName: string;
 };
 
 function CyanDailyContent({
+  cyanMetadata,
   data,
   epochDate,
   waterbodyName,
@@ -1701,7 +1703,7 @@ function CyanDailyContent({
         },
       ],
     });
-  }, [data]);
+  }, [cyanMetadata, data]);
 
   if (!data) {
     return (
@@ -1718,7 +1720,7 @@ function CyanDailyContent({
       </p>
     );
   } else {
-    const maxCc = getMaxCellConcentration(data.measurements);
+    const maxCc = getMaxCellConcentration(data.measurements, cyanMetadata);
     return (
       <>
         <p css={subheadingStyles}>
@@ -1771,12 +1773,14 @@ function CyanDailyContent({
 }
 
 type CyanContentProps = {
+  cyanMetadata: number[];
   feature: __esri.Graphic;
   mapView?: __esri.MapView;
   services: ServicesState | null;
 };
 
 function CyanContent({
+  cyanMetadata,
   feature,
   mapView,
   services,
@@ -2337,6 +2341,7 @@ function CyanContent({
                 )}
 
                 <CyanDailyContent
+                  cyanMetadata={cyanMetadata}
                   data={cellConcentration.data[selectedDate.toString()]}
                   epochDate={selectedDate}
                   waterbodyName={attributes.GNIS_NAME}

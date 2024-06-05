@@ -39,6 +39,7 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
   useServicesContext,
 } from 'contexts/LookupFiles';
 // utilities
@@ -415,6 +416,7 @@ function MonitoringAndSensorsTab({
     useLayers();
 
   const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const cyanMetadata = useCyanMetadataContext();
   const services = useServicesContext();
 
   const [expandedRows, setExpandedRows] = useState([]);
@@ -596,7 +598,7 @@ function MonitoringAndSensorsTab({
             <div css={accordionContentStyles}>
               <WaterbodyInfo
                 feature={feature}
-                lookupFiles={{ services }}
+                lookupFiles={{ cyanMetadata, services }}
                 mapView={mapView}
                 type="Blue-Green Algae"
               />

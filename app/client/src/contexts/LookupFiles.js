@@ -30,6 +30,8 @@ type LookupFiles = {
   setAttainsUseFields: Function,
   characteristicGroupMappings: LookupFile,
   setCharacteristicGroupMappings: Function,
+  cyanMetadata: LookupFile,
+  setCyanMetadata: Function,
   dataSources: LookupFile,
   documentOrder: LookupFile,
   setDocumentOrder: Function,
@@ -70,6 +72,8 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setAttainsUseFields: () => {},
   characteristicGroupMappings: { status: 'fetching', data: null },
   setCharacteristicGroupMappings: () => {},
+  cyanMetadata: { status: 'fetching', data: null },
+  setCyanMetadata: () => {},
   dataSources: { status: 'fetching', data: null },
   setDataSources: () => {},
   documentOrder: { status: 'fetching', data: null },
@@ -124,6 +128,10 @@ function LookupFilesProvider({ children }: Props) {
       status: 'fetching',
       data: null,
     });
+  const [cyanMetadata, setCyanMetadata] = useState({
+    status: 'fetching',
+    data: null,
+  });
   const [dataSources, setDataSources] = useState({
     status: 'fetching',
     data: null,
@@ -195,6 +203,8 @@ function LookupFilesProvider({ children }: Props) {
       setAttainsUseFields,
       characteristicGroupMappings,
       setCharacteristicGroupMappings,
+      cyanMetadata,
+      setCyanMetadata,
       dataSources,
       setDataSources,
       documentOrder,
@@ -231,6 +241,7 @@ function LookupFilesProvider({ children }: Props) {
       attainsParameters,
       attainsUseFields,
       characteristicGroupMappings,
+      cyanMetadata,
       dataSources,
       documentOrder,
       educatorMaterials,
@@ -317,6 +328,20 @@ function useCharacteristicGroupMappingsContext() {
   }
 
   return characteristicGroupMappings;
+}
+
+// Custom hook for the community/cyan-metadata.json file.
+let cyanMetadataInitialized = false; // global var for ensuring fetch only happens once
+function useCyanMetadataContext() {
+  const { cyanMetadata, setCyanMetadata } = useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!cyanMetadataInitialized) {
+    cyanMetadataInitialized = true;
+    getLookupFile('community/cyan-metadata.json', setCyanMetadata);
+  }
+
+  return cyanMetadata;
 }
 
 // Custom hook for the dataPage.json file.
@@ -595,6 +620,7 @@ export {
   useAttainsParametersContext,
   useAttainsUseFieldsContext,
   useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,

@@ -37,6 +37,7 @@ import {
   useAttainsImpairmentFieldsContext,
   useAttainsUseFieldsContext,
   useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -448,6 +449,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
   const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const cyanMetadata = useCyanMetadataContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const navigate = useNavigate();
@@ -489,6 +491,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           attainsImpairmentFields,
           attainsUseFields,
           characteristicGroupMappings,
+          cyanMetadata,
           services,
           stateNationalUses,
         },
@@ -499,6 +502,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     attainsImpairmentFields,
     attainsUseFields,
     characteristicGroupMappings,
+    cyanMetadata,
     mapView,
     navigate,
     selectedGraphic,
@@ -798,6 +802,7 @@ function useDynamicPopup() {
   const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
   const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const cyanMetadata = useCyanMetadataContext();
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
@@ -873,6 +878,7 @@ function useDynamicPopup() {
             attainsImpairmentFields,
             attainsUseFields,
             characteristicGroupMappings,
+            cyanMetadata,
             services,
             stateNationalUses,
           },
@@ -891,6 +897,7 @@ function useDynamicPopup() {
           attainsImpairmentFields,
           attainsUseFields,
           characteristicGroupMappings,
+          cyanMetadata,
           services,
           stateNationalUses,
         },
@@ -901,6 +908,7 @@ function useDynamicPopup() {
       attainsImpairmentFields,
       attainsUseFields,
       characteristicGroupMappings,
+      cyanMetadata,
       getClickedHuc,
       getHucBoundaries,
       getMapView,

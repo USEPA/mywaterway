@@ -33,6 +33,7 @@ import {
   useAttainsImpairmentFieldsContext,
   useAttainsUseFieldsContext,
   useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -51,6 +52,7 @@ function AppRoutes() {
   const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
   const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const cyanMetadata = useCyanMetadataContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -58,6 +60,7 @@ function AppRoutes() {
     attainsImpairmentFields.status === 'fetching' ||
     attainsUseFields.status === 'fetching' ||
     characteristicGroupMappings.status === 'fetching' ||
+    cyanMetadata.status === 'fetching' ||
     services.status === 'fetching' ||
     stateNationalUses.status === 'fetching'
   ) {
@@ -68,6 +71,7 @@ function AppRoutes() {
     attainsImpairmentFields.status === 'failure' ||
     attainsUseFields.status === 'failure' ||
     characteristicGroupMappings.status === 'failure' ||
+    cyanMetadata.status === 'failure' ||
     services.status === 'failure' ||
     stateNationalUses.status === 'failure'
   ) {

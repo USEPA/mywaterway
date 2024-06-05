@@ -43,6 +43,7 @@ import {
 } from 'contexts/locationSearch';
 import {
   useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
   useServicesContext,
 } from 'contexts/LookupFiles';
 // utilities
@@ -439,6 +440,7 @@ function CurrentConditionsTab({
   // draw the waterbody on the map
   useWaterbodyOnMap();
 
+  const cyanMetadata = useCyanMetadataContext();
   const services = useServicesContext();
 
   const { mapView, watershed } = useContext(LocationSearchContext);
@@ -711,7 +713,7 @@ function CurrentConditionsTab({
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
                           feature={feature}
-                          lookupFiles={{ services }}
+                          lookupFiles={{ cyanMetadata, services }}
                           mapView={mapView}
                           type="Blue-Green Algae"
                         />

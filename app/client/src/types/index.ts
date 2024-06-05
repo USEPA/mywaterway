@@ -110,6 +110,11 @@ export interface CountyAttributes {
   STATE_NAME: string;
 }
 
+export type CyanMetadataState = {
+  status: 'fetching' | 'failure' | 'success';
+  data: number[];
+};
+
 export interface CyanWaterbodyAttributes {
   AREASQKM: number;
   FID: number;
@@ -396,6 +401,7 @@ export type PopupLookupFiles = {
   attainsImpairmentFields?: AttainsImpairmentFieldState;
   attainsUseFields?: AttainsUseFieldState;
   characteristicGroupMappings?: CharacteristicGroupMappingsState;
+  cyanMetadata?: CyanMetadataState;
   services: ServicesState;
   stateNationalUses?: LookupFile;
 };
