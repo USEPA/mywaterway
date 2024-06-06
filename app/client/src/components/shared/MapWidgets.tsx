@@ -482,25 +482,32 @@ function MapWidgets({
           (view.popup as PopupExt).currentAlignment,
         );
 
+        function getSortIndex(graphic: __esri.Graphic) {
+          const parentId = (graphic?.layer?.parent as __esri.GroupLayer)?.id;
+          return parentId === 'allWaterbodiesLayer' ? 1 : 0;
+        }
+
         const newFeatures: __esri.Graphic[] = [];
         const idsAdded: string[] = [];
-        features.forEach((item) => {
-          const id = item.attributes?.assessmentunitidentifier;
-          const geometryType = item.geometry?.type;
+        [...features]
+          .sort((a, b) => getSortIndex(a) - getSortIndex(b))
+          .forEach((item) => {
+            const id = item.attributes?.assessmentunitidentifier;
+            const geometryType = item.geometry?.type;
 
-          // exit early if the feature is not a waterbody
-          if (!id || !geometryType) {
+            // exit early if the feature is not a waterbody
+            if (!id || !geometryType) {
+              newFeatures.push(item);
+              return;
+            }
+
+            // filter out duplicate popups
+            const idType = `${id}-${geometryType}`;
+            if (idsAdded.includes(idType)) return;
+
             newFeatures.push(item);
-            return;
-          }
-
-          // filter out duplicate popups
-          const idType = `${id}-${geometryType}`;
-          if (idsAdded.includes(idType)) return;
-
-          newFeatures.push(item);
-          idsAdded.push(idType);
-        });
+            idsAdded.push(idType);
+          });
 
         if (newFeatures.length === 0) {
           view.closePopup();
