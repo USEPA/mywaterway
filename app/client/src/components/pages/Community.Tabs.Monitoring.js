@@ -1161,7 +1161,10 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                     !monitoringYearsRange[0] || !monitoringYearsRange[1]
                   }
                   onChange={handleDateSliderChange}
-                  range={[monitoringYearsRange[0], monitoringYearsRange[1]]}
+                  range={[
+                    selectedMonitoringYearsRange[0],
+                    selectedMonitoringYearsRange[1],
+                  ]}
                   headerElm={
                     <p css={subheadingStyles}>
                       <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />

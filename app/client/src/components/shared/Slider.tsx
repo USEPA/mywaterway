@@ -124,6 +124,7 @@ function Slider({
   steps = 1,
   valueLabelDisplay = 'on',
 }: Readonly<Props>) {
+  const [defaultRange] = useState(range);
   const [minValue, setMinValue] = useState(min);
   const [maxValue, setMaxValue] = useState(list ? list.length - 1 : max);
   useEffect(() => {
@@ -173,9 +174,10 @@ function Slider({
     sliderVerticalBreak && sliderWidth < sliderVerticalBreak ? true : false;
 
   function getAriaLabelText(index: number) {
-    if (range.length === 1 && index === 0) return 'Selection';
-    if (range.length > 1 && index === 0) return 'Range Start';
-    if (range.length > 1 && index === range.length - 1) return 'Range End';
+    if (defaultRange.length === 1 && index === 0) return 'Selection';
+    if (defaultRange.length > 1 && index === 0) return 'Range Start';
+    if (defaultRange.length > 1 && index === defaultRange.length - 1)
+      return 'Range End';
     return `Range Index ${index + 1}`;
   }
   function getAriaValueText(value: number) {
@@ -199,7 +201,7 @@ function Slider({
         >
           {minValue !== maxValue && (
             <SliderStyled
-              defaultValue={range}
+              defaultValue={defaultRange}
               disabled={disabled}
               getAriaLabel={getAriaLabelText}
               getAriaValueText={getAriaValueText}
