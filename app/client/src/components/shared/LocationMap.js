@@ -670,7 +670,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          lookupFiles: { attainsImpairmentFields, attainsUseFields, services },
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            services,
+            stateNationalUses,
+          },
           stateNationalUses,
         }),
     };

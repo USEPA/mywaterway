@@ -544,6 +544,7 @@ function isVillage(
 export function plotIssues(
   features: __esri.Graphic[],
   layer: any,
+  lookupFiles: PopupLookupFiles,
   navigate: NavigateFunction,
 ) {
   if (!features || !layer) return;
@@ -571,6 +572,7 @@ export function plotIssues(
           content: (feature: Feature) =>
             getPopupContent({
               feature: feature.graphic,
+              lookupFiles,
               navigate,
             }),
         },

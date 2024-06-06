@@ -32,7 +32,12 @@ import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useAttainsImpairmentFieldsContext } from 'contexts/LookupFiles';
+import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { countOrNotAvailable, formatNumber } from 'utils/utils';
 import { getMappedParameter, plotIssues } from 'utils/mapFunctions';
@@ -99,6 +104,9 @@ const modifiedTabLegendStyles = css`
 
 function IdentifiedIssues() {
   const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
+  const services = useServicesContext();
+  const stateNationalUses = useStateNationalUsesContext();
   const navigate = useNavigate();
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
@@ -177,16 +185,29 @@ function IdentifiedIssues() {
           });
         }
       });
-      plotIssues(Array.from(waterbodiesToShow), issuesLayer, navigate);
+      plotIssues(
+        Array.from(waterbodiesToShow),
+        issuesLayer,
+        {
+          attainsImpairmentFields,
+          attainsUseFields,
+          services,
+          stateNationalUses,
+        },
+        navigate,
+      );
     }
   }, [
     attainsImpairmentFields,
+    attainsUseFields,
     getAllFeatures,
     issuesLayer,
-    parameterToggleObject,
-    showAllParameters,
-    waterbodyLayer,
     navigate,
+    parameterToggleObject,
+    services,
+    showAllParameters,
+    stateNationalUses,
+    waterbodyLayer,
   ]);
 
   // emulate componentdidmount
