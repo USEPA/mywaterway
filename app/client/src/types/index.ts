@@ -56,6 +56,71 @@ export type AssessmentUseAttainmentState =
   | { status: 'failure'; data: null }
   | { status: 'success'; data: AssessmentUseAttainmentByGroup };
 
+export type AttainsAction = {
+  actionIdentifier: string;
+  actionName: string;
+  actionStatusCode: string;
+  actionTypeCode: string;
+  agencyCode: string;
+  completionDate: string;
+  organizationId: string;
+  associatedWaters: {
+    specificWaters: {
+      assessmentUnitIdentifier: string;
+      associatedPollutants: {
+        pollutantName: string;
+        pollutantSourceTypeCode: string;
+        explicitMarginofSafetyText: string | null;
+        implicitMarginofSafetyText: string | null;
+        permits: {
+          NPDESIdentifier: string;
+          otherIdentifier: string | null;
+          details: {
+            wasteLoadAllocationNumeric: number;
+            wasteLoadAllocationUnitsText: string;
+            seasonStartText: string | null;
+            seasonEndText: string | null;
+          }[];
+        }[];
+        TMDLEndPointText: string;
+      }[];
+      parameters: {
+        parameterName: string;
+        associatedPollutants: {
+          pollutantName: string;
+        }[];
+      }[];
+    }[];
+  };
+  documents: {
+    agencyCode: string;
+    documentTypes: {
+      documentTypeCode: string;
+    }[];
+    documentFileType: string;
+    documentFileName: string;
+    documentName: string;
+    documentDescription: string | null;
+    documentComments: string;
+    documentURL: string;
+  }[];
+  TMDLReportDetails: {
+    TMDLOtherIdentifier: string | null;
+    TMDLDate: string;
+    indianCountryIndicator: 'Y' | 'N';
+  };
+};
+
+export type AttainsActionsData = {
+  items: {
+    organizationIdentifier: string;
+    organizationName: string;
+    organizationTypeText: string;
+    actions: AttainsAction[];
+  }[];
+  count: number;
+};
+
 export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
 }

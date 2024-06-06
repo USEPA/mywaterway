@@ -13,10 +13,12 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // utilities
-import { getSelectedCommunityTab } from 'utils/utils';
+import { fetchCheck } from 'utils/fetchUtils';
+import { getSelectedCommunityTab, titleCaseWithExceptions } from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  AttainsActionsData,
   ChangeLocationAttributes,
   ClickedHucState,
   Feature,
@@ -1165,4 +1167,32 @@ export function hideShowGraphicsFill(
 
   // re-draw the graphics
   layer.graphics = newGraphics;
+}
+
+// queries the actions service with the url provided and returns basic info about the
+// action as well as a list of associated pollutants
+export async function getPollutantsFromAction(url: string) {
+  try {
+    const res: AttainsActionsData = await fetchCheck(url);
+    return res.items[0].actions.map((action) => {
+      // get water with matching assessment unit identifier
+      const pollutants = new Set<string>();
+      action.associatedWaters.specificWaters.forEach((water) => {
+        water.parameters.forEach((p) => {
+          if (!p?.parameterName) return;
+          pollutants.add(titleCaseWithExceptions(p.parameterName));
+        });
+      });
+
+      return {
+        id: action.actionIdentifier,
+        name: action.actionName,
+        pollutants: [...pollutants],
+        type: action.actionTypeCode,
+        date: action.completionDate,
+      };
+    });
+  } catch (ex) {
+    return [];
+  }
 }
