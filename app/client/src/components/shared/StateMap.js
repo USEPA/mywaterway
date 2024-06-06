@@ -128,8 +128,12 @@ function StateMap({
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          lookupFiles: { attainsImpairmentFields, attainsUseFields, services },
-          stateNationalUses,
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            services,
+            stateNationalUses,
+          },
         }),
     };
 

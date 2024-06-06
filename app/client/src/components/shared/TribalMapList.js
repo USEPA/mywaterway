@@ -48,6 +48,8 @@ import {
 } from 'contexts/locationSearch';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
   useCharacteristicGroupMappingsContext,
   useServicesContext,
   useStateNationalUsesContext,
@@ -598,6 +600,8 @@ function TribalMap({
   const { surroundingDischargersLayer } = useDischargersLayers();
   const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
@@ -627,8 +631,12 @@ function TribalMap({
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          services,
-          stateNationalUses,
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            services,
+            stateNationalUses,
+          }
         }),
     };
 
@@ -748,6 +756,8 @@ function TribalMap({
     setLayersInitialized(true);
   }, [
     activeState,
+    attainsImpairmentFields,
+    attainsUseFields,
     getSharedLayers,
     layersInitialized,
     monitoringLocationsLayer,

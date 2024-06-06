@@ -676,7 +676,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             services,
             stateNationalUses,
           },
-          stateNationalUses,
         }),
     };
   }, [

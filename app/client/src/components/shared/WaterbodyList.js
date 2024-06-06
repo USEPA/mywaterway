@@ -22,6 +22,7 @@ import {
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
+  useAttainsImpairmentFieldsContext,
   useAttainsUseFieldsContext,
   useServicesContext,
   useStateNationalUsesContext,
@@ -82,6 +83,7 @@ type Props = {
 function WaterbodyList({ waterbodies, title, fieldName }: Props) {
   const { cipSummary } = useContext(LocationSearchContext);
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
@@ -171,6 +173,7 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
                   feature={graphic}
                   fieldName={fieldName}
                   lookupFiles={{
+                    attainsImpairmentFields,
                     attainsUseFields,
                     services,
                     stateNationalUses,
