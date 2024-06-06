@@ -701,12 +701,13 @@ function WaterbodyReport() {
   // fetch waterbody actions from attains 'actions' web service, using the
   // 'organizationId' and 'assessmentUnitIdentifier' query string parameters
   useEffect(() => {
-    const url =
-      services.data.attains.serviceUrl +
+    if (services.status !== 'success') return;
+
+    const parameters =
       `actions?organizationIdentifier=${orgId}` +
       `&assessmentUnitIdentifier=${auId}`;
 
-    getPollutantsFromAction(url)
+    getPollutantsFromAction(services.data, parameters)
       .then((res) => {
         if (res.length === 0) {
           setWaterbodyActions({ status: 'pending', data: [] });
@@ -730,6 +731,7 @@ function WaterbodyReport() {
   useEffect(() => {
     if (actionsFetchedAgain) return;
     if (allParameterActionIds.status === 'fetching') return;
+    if (services.status !== 'success') return;
     if (waterbodyActions.status !== 'pending') return;
 
     // action ids from the initial attains 'actions' web service call
@@ -752,14 +754,13 @@ function WaterbodyReport() {
       return;
     }
 
-    const url =
-      services.data.attains.serviceUrl +
+    const parameters =
       `actions?organizationIdentifier=${orgId}` +
       `&actionIdentifier=${additionalIds.join(',')}`;
 
     setActionsFetchedAgain(true);
 
-    getPollutantsFromAction(url)
+    getPollutantsFromAction(services.data, parameters)
       .then((additionalActions) => {
         if (additionalActions.length === 0) {
           // if there are no new items (there should be), at least use the

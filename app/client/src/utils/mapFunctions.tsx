@@ -26,6 +26,7 @@ import type {
   LookupFile,
   ParentLayer,
   PopupAttributes,
+  ServicesData,
   ServicesState,
   SuperLayer,
   TribeAttributes,
@@ -1171,9 +1172,14 @@ export function hideShowGraphicsFill(
 
 // queries the actions service with the url provided and returns basic info about the
 // action as well as a list of associated pollutants
-export async function getPollutantsFromAction(url: string) {
+export async function getPollutantsFromAction(
+  services: ServicesData,
+  parameters: string,
+) {
   try {
+    const url = services.attains.serviceUrl + `actions?${parameters}`;
     const res: AttainsActionsData = await fetchCheck(url, null, 120_000);
+
     return res.items[0].actions.map((action) => {
       // get water with matching assessment unit identifier
       const pollutants = new Set<string>();

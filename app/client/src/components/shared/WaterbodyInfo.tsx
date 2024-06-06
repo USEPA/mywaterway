@@ -1104,13 +1104,11 @@ function WaterbodyInfo({
     if (type !== 'Restoration Plans' && type !== 'Protection Plans') return;
     if (services?.status !== 'success') return;
 
-    const auId = attributes.assessmentunitidentifier;
-    const url =
-      services.data.attains.serviceUrl +
-      `actions?assessmentUnitIdentifier=${auId}` +
+    const parameters =
+      `assessmentUnitIdentifier=${attributes.assessmentunitidentifier}` +
       `&organizationIdentifier=${attributes.organizationid}`;
 
-    getPollutantsFromAction(url)
+    getPollutantsFromAction(services.data, parameters)
       .then((res) => {
         setAttainsProjects({ status: 'success', data: res });
       })
