@@ -1173,7 +1173,7 @@ export function hideShowGraphicsFill(
 // action as well as a list of associated pollutants
 export async function getPollutantsFromAction(url: string) {
   try {
-    const res: AttainsActionsData = await fetchCheck(url);
+    const res: AttainsActionsData = await fetchCheck(url, null, 120_000);
     return res.items[0].actions.map((action) => {
       // get water with matching assessment unit identifier
       const pollutants = new Set<string>();
