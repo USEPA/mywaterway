@@ -716,8 +716,8 @@ function WaterbodyReport() {
         setWaterbodyActions({ status: 'pending', data: res });
       })
       .catch((ex) => {
-        setWaterbodyActions({ status: 'failure', data: [] });
         console.error(ex);
+        setWaterbodyActions({ status: 'failure', data: [] });
       });
   }, [auId, orgId, services]);
 
@@ -779,13 +779,14 @@ function WaterbodyReport() {
         }));
       })
       .catch((ex) => {
+        console.error(ex);
+
         // if the request failed, at least use the data from the initial
         // attains 'actions' web service call
         setWaterbodyActions((actions) => ({
           status: 'success',
           data: actions.data,
         }));
-        console.error(ex);
       });
   }, [
     actionsFetchedAgain,

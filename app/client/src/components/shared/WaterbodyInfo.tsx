@@ -35,6 +35,7 @@ import {
 } from 'utils/dateUtils';
 import { useAbort } from 'utils/hooks';
 import {
+  getPollutantsFromAction,
   getWaterbodyCondition,
   isClassBreaksRenderer,
   isFeatureLayer,
@@ -354,35 +355,6 @@ const tableFooterStyles = css`
 /*
 ## Types
 */
-interface ActionData {
-  actionIdentifier: string;
-  actionName: string;
-  agencyCode: string;
-  actionTypeCode: string;
-  actionStatusCode: string;
-  completionDate: string;
-  organizationId: string;
-  documents: ActionDocument[];
-  TMDLReportDetails: {
-    TMDLOtherIdentifier: string | null;
-    TMDLDate: string;
-    indianCountryIndicator: string;
-  };
-  associatedPollutants: Array<{ pollutantName: string; auCount: string }>;
-  parameters: Array<{ parameterName: string; auCount: string }>;
-  associatedActions: string[];
-}
-
-interface ActionDocument {
-  agencyCode: string;
-  documentTypes: Array<{ documentTypeCode: string }>;
-  documentFileType: string;
-  documentFileName: string;
-  documentName: string;
-  documentDescription: string | null;
-  documentComments: string | null;
-  documentURL: string | null;
-}
 
 interface AttainsProjectsDatum {
   id: string;
@@ -1136,45 +1108,15 @@ function WaterbodyInfo({
     const url =
       services.data.attains.serviceUrl +
       `actions?assessmentUnitIdentifier=${auId}` +
-      `&organizationIdentifier=${attributes.organizationid}` +
-      `&summarize=Y`;
+      `&organizationIdentifier=${attributes.organizationid}`;
 
-    fetchCheck(url)
+    getPollutantsFromAction(url)
       .then((res) => {
-        let attainsProjectsData: AttainsProjectsDatum[] = [];
-
-        if (res.items.length > 0) {
-          attainsProjectsData = res.items[0].actions.map(
-            (action: ActionData) => {
-              const pollutants = action
-                ? action.parameters.map((p) =>
-                    titleCaseWithExceptions(p.parameterName),
-                  )
-                : [];
-
-              return {
-                id: action.actionIdentifier,
-                orgId: attributes.organizationid,
-                name: action.actionName,
-                pollutants,
-                type: action.actionTypeCode,
-                date: action.completionDate,
-              };
-            },
-          );
-        }
-
-        setAttainsProjects({
-          status: 'success',
-          data: attainsProjectsData,
-        });
+        setAttainsProjects({ status: 'success', data: res });
       })
-      .catch((err) => {
-        console.error(err);
-        setAttainsProjects({
-          status: 'failure',
-          data: [],
-        });
+      .catch((ex) => {
+        console.error(ex);
+        setAttainsProjects({ status: 'failure', data: [] });
       });
   }, [
     attributes.assessmentunitidentifier,

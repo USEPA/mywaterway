@@ -1185,6 +1185,7 @@ export async function getPollutantsFromAction(url: string) {
       });
 
       return {
+        orgId: action.organizationId,
         id: action.actionIdentifier,
         name: action.actionName,
         pollutants: [...pollutants],
