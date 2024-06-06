@@ -1,4 +1,8 @@
 {
+  "expertQuery": {
+    "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
+    "attains": "https://api.epa.gov/expertquery-dev/api/attains"
+  },
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
   "wbd": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6",
   "wbdUnconstrained": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19",
@@ -71,6 +75,11 @@
     "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/USA_Wildfires_v1/FeatureServer/"
   },
   "googleAnalyticsMapping": [
+    {
+      "urlLookup": "expertQuery.attains",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "expert query - attains"
+    },
     {
       "urlLookup": "attains.serviceUrl",
       "wildcardUrl": "{urlLookup}actions*",

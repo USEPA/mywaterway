@@ -24,7 +24,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
 import { containsScriptTag, indicesOf, isClick, isHuc12 } from 'utils/utils';
 import { splitSuggestedSearch } from 'utils/mapFunctions';
@@ -319,6 +319,49 @@ function LocationSearch({ route, label }: Props) {
           },
         ],
       },
+      {
+        type: 'webservice',
+        name: 'Waterbody',
+        placeholder: 'Search waterbodies...',
+        sources: [
+          {
+            placeholder: placeholder,
+            name: 'Waterbodies',
+            getSuggestions: ({ maxSuggestions, suggestTerm }) => {
+              return fetchPost(
+                `${services.data.expertQuery.attains}/assessmentUnits/values/assessmentUnitId`,
+                {
+                  additionalColumns: ['assessmentUnitName'],
+                  direction: 'asc',
+                  limit: maxSuggestions,
+                  text: suggestTerm,
+                },
+                {
+                  'Content-Type': 'application/json',
+                  'X-Api-Key': services.data.expertQuery.apiKey,
+                },
+              )
+                .then((res) => {
+                  const sourceIndex = searchWidget?.sources.findIndex(
+                    (source) => source.name === 'Waterbodies',
+                  );
+                  if (!Number.isFinite(sourceIndex)) return [];
+
+                  return res.map(
+                    ({ assessmentUnitId, assessmentUnitName }) => ({
+                      key: assessmentUnitId,
+                      text: `${assessmentUnitName} (${assessmentUnitId})`,
+                      sourceIndex,
+                    }),
+                  );
+                })
+                .catch((_err) => {
+                  setErrorMessage(webServiceErrorMessage);
+                });
+            },
+          },
+        ],
+      },
     ],
     [searchWidget, services],
   );
@@ -510,7 +553,7 @@ function LocationSearch({ route, label }: Props) {
 
   // Performs the search operation
   const formSubmit = useCallback(
-    (newSearchTerm, geometry = null) => {
+    (newSearchTerm, geometry = null, target = route) => {
       setSuggestionsVisible(false);
       setCursor(-1);
 
@@ -537,7 +580,7 @@ function LocationSearch({ route, label }: Props) {
         setGeolocationError(false);
 
         // only navigate if search box contains text
-        navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
+        navigate(encodeURI(target.replace('{urlSearch}', urlSearch)));
       }
     },
     [navigate, route],
@@ -622,11 +665,61 @@ function LocationSearch({ route, label }: Props) {
                 const url = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
                 fetchCheck(url)
                   .then((res) => {
-                    const geometry = {
-                      longitude: res.features[0].geometry.coordinates[0],
-                      latitude: res.features[0].geometry.coordinates[1],
-                    };
-                    formSubmit(result.key, geometry);
+                    const feature = res.features[0];
+                    if (!feature) {
+                      setErrorMessage(webServiceErrorMessage);
+                      return;
+                    }
+                    const {
+                      properties: {
+                        MonitoringLocationIdentifier,
+                        OrganizationIdentifier,
+                        ProviderName,
+                      },
+                    } = feature;
+                    formSubmit(
+                      result.key,
+                      null,
+                      `/monitoring-report/${ProviderName}/${OrganizationIdentifier}/${MonitoringLocationIdentifier}`,
+                    );
+                  })
+                  .catch((_err) => {
+                    setErrorMessage(webServiceErrorMessage);
+                  });
+              } else if (source.source.name === 'Waterbodies') {
+                const url = `${services.data.expertQuery.attains}/assessmentUnits`;
+                fetchPost(
+                  url,
+                  {
+                    columns: [
+                      'assessmentUnitId',
+                      'organizationId',
+                      'reportingCycle',
+                    ],
+                    filters: {
+                      assessmentUnitId: [result.key],
+                    },
+                    options: { format: 'json' },
+                  },
+                  {
+                    'Content-Type': 'application/json',
+                    'X-Api-Key': services.data.expertQuery.apiKey,
+                  },
+                )
+                  .then((res) => {
+                    console.log(res);
+                    const item = res.data[0];
+                    if (!item) {
+                      setErrorMessage(webServiceErrorMessage);
+                      return;
+                    }
+                    const { assessmentUnitId, organizationId, reportingCycle } =
+                      item;
+                    formSubmit(
+                      result.key,
+                      null,
+                      `waterbody-report/${organizationId}/${assessmentUnitId}/${reportingCycle}`,
+                    );
                   })
                   .catch((_err) => {
                     setErrorMessage(webServiceErrorMessage);
