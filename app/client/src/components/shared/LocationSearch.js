@@ -169,18 +169,18 @@ function LocationSearch({ route, label }: Props) {
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
   const [searchWidget, setSearchWidget] = useState(null);
 
-  const placeholder = 'Search by address, zip code, or place...';
+  const allPlaceholder = 'Search by address, zip code, or place...';
   const allSources = useMemo(
     () => [
       {
         type: 'default',
         name: 'All',
-        placeholder,
+        placeholder: allPlaceholder,
       },
       {
         type: 'ArcGIS',
         name: 'Address, zip code, and place search',
-        placeholder,
+        placeholder: allPlaceholder,
         sources: [
           {
             url: services.data.locatorUrl,
@@ -197,7 +197,6 @@ function LocationSearch({ route, label }: Props) {
               'Country',
               'Addr_type',
             ],
-            placeholder,
             name: 'ArcGIS',
           },
         ],
@@ -216,7 +215,6 @@ function LocationSearch({ route, label }: Props) {
             suggestionTemplate: '{TRIBE_NAME}',
             exactMatch: false,
             outFields: ['TRIBE_NAME'],
-            placeholder: placeholder,
             name: 'EPA Tribal Areas - Alaska Native Villages',
           },
           {
@@ -228,7 +226,6 @@ function LocationSearch({ route, label }: Props) {
             suggestionTemplate: '{TRIBE_NAME}',
             exactMatch: false,
             outFields: ['TRIBE_NAME'],
-            placeholder: placeholder,
             name: 'EPA Tribal Areas - American Indian Reservations',
           },
           {
@@ -240,7 +237,6 @@ function LocationSearch({ route, label }: Props) {
             suggestionTemplate: '{TRIBE_NAME}',
             exactMatch: false,
             outFields: ['TRIBE_NAME'],
-            placeholder: placeholder,
             name: 'EPA Tribal Areas - American Indian Off-Reservation Trust Lands',
           },
           {
@@ -252,7 +248,6 @@ function LocationSearch({ route, label }: Props) {
             suggestionTemplate: '{TRIBE_NAME}',
             exactMatch: false,
             outFields: ['TRIBE_NAME'],
-            placeholder: placeholder,
             name: 'EPA Tribal Areas - American Indian Oklahoma Statistical Areas',
           },
           {
@@ -264,7 +259,6 @@ function LocationSearch({ route, label }: Props) {
             suggestionTemplate: '{TRIBE_NAME}',
             exactMatch: false,
             outFields: ['TRIBE_NAME'],
-            placeholder: placeholder,
             name: 'Virginia Federally Recognized Tribes',
           },
         ],
@@ -283,7 +277,6 @@ function LocationSearch({ route, label }: Props) {
             suggestionTemplate: '{name} ({huc12})',
             exactMatch: false,
             outFields: ['name', 'huc12'],
-            placeholder: placeholder,
             name: 'Watersheds',
           },
         ],
@@ -291,10 +284,11 @@ function LocationSearch({ route, label }: Props) {
       {
         type: 'webservice',
         name: 'Monitoring Location',
+        menuHeaderExtra:
+          '(Below items open into the Monitoring Report page in a new tab)',
         placeholder: 'Search monitoring locations...',
         sources: [
           {
-            placeholder: placeholder,
             name: 'Monitoring Locations',
             getSuggestions: ({ maxSuggestions, suggestTerm }) => {
               return fetchCheck(
@@ -304,11 +298,14 @@ function LocationSearch({ route, label }: Props) {
                   const sourceIndex = searchWidget?.sources.findIndex(
                     (source) => source.name === 'Monitoring Locations',
                   );
-                  if (!Number.isFinite(sourceIndex)) return [];
+                  if (!Number.isFinite(sourceIndex)) {
+                    console.error('Source "Monitoring Locations" not found');
+                    return [];
+                  }
 
-                  return res.codes.map((code) => ({
-                    key: code.value,
-                    text: `${code.desc} (${code.value})`,
+                  return res.codes.map(({ desc, value }) => ({
+                    key: value,
+                    text: `${desc} (${value})`,
                     sourceIndex,
                   }));
                 })
@@ -322,10 +319,11 @@ function LocationSearch({ route, label }: Props) {
       {
         type: 'webservice',
         name: 'Waterbody',
+        menuHeaderExtra:
+          '(Below items open into the Waterbody Report page in a new tab)',
         placeholder: 'Search waterbodies...',
         sources: [
           {
-            placeholder: placeholder,
             name: 'Waterbodies',
             getSuggestions: ({ maxSuggestions, suggestTerm }) => {
               return fetchPost(
@@ -345,7 +343,10 @@ function LocationSearch({ route, label }: Props) {
                   const sourceIndex = searchWidget?.sources.findIndex(
                     (source) => source.name === 'Waterbodies',
                   );
-                  if (!Number.isFinite(sourceIndex)) return [];
+                  if (!Number.isFinite(sourceIndex)) {
+                    console.error('Source "Waterbodies" not found');
+                    return [];
+                  }
 
                   return res.map(
                     ({ assessmentUnitId, assessmentUnitName }) => ({
@@ -392,7 +393,7 @@ function LocationSearch({ route, label }: Props) {
     });
 
     const search = new Search({
-      allPlaceholder: placeholder,
+      allPlaceholder,
       includeDefaultSources: false,
       locationEnabled: false,
       label: 'Search',
@@ -553,34 +554,38 @@ function LocationSearch({ route, label }: Props) {
 
   // Performs the search operation
   const formSubmit = useCallback(
-    (newSearchTerm, geometry = null, target = route) => {
+    ({ searchTerm, geometry, target = route }) => {
       setSuggestionsVisible(false);
       setCursor(-1);
 
-      newSearchTerm = newSearchTerm.replace(/[\n\r\t/]/g, ' ');
+      if (searchTerm) {
+        const newSearchTerm = searchTerm.replace(/[\n\r\t/]/g, ' ');
 
-      if (containsScriptTag(newSearchTerm)) {
-        setErrorMessage(invalidSearchError);
-        return;
-      }
+        if (containsScriptTag(newSearchTerm)) {
+          setErrorMessage(invalidSearchError);
+          return;
+        }
 
-      // get urlSearch parameter value
-      let urlSearch = null;
-      if (geometry) {
-        urlSearch = `${newSearchTerm.trim()}|${geometry.longitude}, ${
-          geometry.latitude
-        }`;
-      } else if (newSearchTerm) {
-        urlSearch = newSearchTerm.trim();
-      }
+        // get urlSearch parameter value
+        let urlSearch = null;
+        if (geometry) {
+          urlSearch = `${newSearchTerm.trim()}|${geometry.longitude}, ${
+            geometry.latitude
+          }`;
+        } else if (newSearchTerm) {
+          urlSearch = newSearchTerm.trim();
+        }
 
-      // navigate if the urlSearch value is available
-      if (urlSearch) {
-        setErrorMessage('');
-        setGeolocationError(false);
+        // navigate if the urlSearch value is available
+        if (urlSearch) {
+          setErrorMessage('');
+          setGeolocationError(false);
 
-        // only navigate if search box contains text
-        navigate(encodeURI(target.replace('{urlSearch}', urlSearch)));
+          // only navigate if search box contains text
+          navigate(encodeURI(target.replace('{urlSearch}', urlSearch)));
+        }
+      } else {
+        window.open(target, '_blank', 'noopener,noreferrer');
       }
     },
     [navigate, route],
@@ -591,10 +596,10 @@ function LocationSearch({ route, label }: Props) {
     if (!enterPress || cursor < -1 || cursor > resultsCombined.length) return;
 
     if (cursor === -1 || resultsCombined.length === 0) {
-      formSubmit(inputText);
+      formSubmit({ searchTerm: inputText });
     } else if (resultsCombined[cursor].text) {
       setInputText(resultsCombined[cursor].text);
-      formSubmit(resultsCombined[cursor].text);
+      formSubmit({ searchTerm: resultsCombined[cursor].text });
     }
   }, [cursor, enterPress, formSubmit, inputText, resultsCombined]);
 
@@ -655,11 +660,11 @@ function LocationSearch({ route, label }: Props) {
               if (source.source.name === 'ArcGIS') {
                 // use esri geocoder
                 searchWidget.search(result.text);
-                formSubmit(result.text);
+                formSubmit({ searchTerm: result.text });
               } else if (source.source.name === 'Watersheds') {
                 // extract the huc from "Watershed (huc)" and search on the huc
                 const huc = result.text.split('(')[1].replace(')', '');
-                formSubmit(huc);
+                formSubmit({ searchTerm: huc });
               } else if (source.source.name === 'Monitoring Locations') {
                 // query WQP's station service to get the lat/long
                 const url = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
@@ -677,11 +682,9 @@ function LocationSearch({ route, label }: Props) {
                         ProviderName,
                       },
                     } = feature;
-                    formSubmit(
-                      result.key,
-                      null,
-                      `/monitoring-report/${ProviderName}/${OrganizationIdentifier}/${MonitoringLocationIdentifier}`,
-                    );
+                    formSubmit({
+                      target: `/monitoring-report/${ProviderName}/${OrganizationIdentifier}/${MonitoringLocationIdentifier}`,
+                    });
                   })
                   .catch((_err) => {
                     setErrorMessage(webServiceErrorMessage);
@@ -707,7 +710,6 @@ function LocationSearch({ route, label }: Props) {
                   },
                 )
                   .then((res) => {
-                    console.log(res);
                     const item = res.data[0];
                     if (!item) {
                       setErrorMessage(webServiceErrorMessage);
@@ -715,11 +717,9 @@ function LocationSearch({ route, label }: Props) {
                     }
                     const { assessmentUnitId, organizationId, reportingCycle } =
                       item;
-                    formSubmit(
-                      result.key,
-                      null,
-                      `waterbody-report/${organizationId}/${assessmentUnitId}/${reportingCycle}`,
-                    );
+                    formSubmit({
+                      target: `waterbody-report/${organizationId}/${assessmentUnitId}/${reportingCycle}`,
+                    });
                   })
                   .catch((_err) => {
                     setErrorMessage(webServiceErrorMessage);
@@ -737,7 +737,7 @@ function LocationSearch({ route, label }: Props) {
                       const center =
                         res.features[0].geometry.centroid ??
                         res.features[0].geometry;
-                      formSubmit(result.text, center);
+                      formSubmit({ searchTerm: result.text, geometry: center });
                       searchWidget.search(result.text);
                     }
                   })
@@ -911,7 +911,7 @@ function LocationSearch({ route, label }: Props) {
         css={formStyles}
         onSubmit={(ev) => {
           ev.preventDefault();
-          formSubmit(inputText);
+          formSubmit({ searchTerm: inputText });
         }}
       >
         <div css={searchBoxStyles}>
@@ -1029,7 +1029,7 @@ function LocationSearch({ route, label }: Props) {
                   aria-autocomplete="list"
                   aria-haspopup="true"
                   data-node-ref="_inputNode"
-                  title={placeholder}
+                  title={selectedSource.placeholder}
                   value={
                     inputText === searchTerm &&
                     isHuc12(inputText) &&
@@ -1081,7 +1081,16 @@ function LocationSearch({ route, label }: Props) {
 
                         item.sources.forEach((nestedItem) => {
                           if (nestedItem.name === source.source.name) {
-                            newTitle = item.name;
+                            newTitle = (
+                              <>
+                                <div>{item.name}</div>
+                                {item.menuHeaderExtra && (
+                                  <div>
+                                    <small>{item.menuHeaderExtra}</small>
+                                  </div>
+                                )}
+                              </>
+                            );
                           }
                         });
                       });
