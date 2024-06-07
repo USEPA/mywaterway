@@ -433,7 +433,19 @@ function Restore() {
 
             <TabPanel>
               <>
-                <p>Some descriptive text</p>
+                <p>
+                  <GlossaryTerm term="Clean Water Act Section 319 Projects">
+                    Clean Water Act Section 319
+                  </GlossaryTerm>{' '}
+                  <GlossaryTerm term="Nonpoint Source Pollution">
+                    Nonpoint Source pollution
+                  </GlossaryTerm>{' '}
+                  success stories highlight waterbodies identified by states as
+                  being primarily nonpoint source-impaired and having achieved
+                  documented water quality improvements. These stories also
+                  describe innovative strategies used to reduce NPS pollution,
+                  the growth of partnerships and a diversity of funding sources.
+                </p>
                 {grtsStories.status === 'fetching' && <LoadingSpinner />}
                 {grtsStories.status === 'failure' && (
                   <div css={errorBoxStyles}>
@@ -478,6 +490,31 @@ function Restore() {
                             ariaLabel={item.ss_title}
                             key={item.ss_seq}
                             title={<strong>{item.ss_title}</strong>}
+                            subTitle={
+                              <>
+                                {item.type1_fiscal_year && (
+                                  <>
+                                    <em>Publication Year:</em>&nbsp;&nbsp;
+                                    {item.type1_fiscal_year}
+                                    <br />
+                                  </>
+                                )}
+                                {item.pollutants && (
+                                  <>
+                                    <em>Pollutants Addressed:</em>&nbsp;&nbsp;
+                                    {item.pollutants}
+                                    <br />
+                                  </>
+                                )}
+                                {item.poll_categories && (
+                                  <>
+                                    <em>Categories of Pollution:</em>
+                                    &nbsp;&nbsp;
+                                    {item.poll_categories}
+                                  </>
+                                )}
+                              </>
+                            }
                           >
                             <div css={storyStyles}>
                               <p>{item.ss_overview}</p>
