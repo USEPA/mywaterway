@@ -1893,7 +1893,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         );
       else queryPartial += `&${key}=${encodeURIComponent(value)}`;
       return query + queryPartial;
-    }, `${services.data.waterQualityPortal.userInterface}#dataProfile=resultPhysChem`);
+    }, `${services.data.waterQualityPortal.userInterface}#advanced=true&dataProfile=resultPhysChem`);
 
   if (checkboxes.all === Checkbox.indeterminate) {
     const selectedGroups = Object.values(checkboxes.groups)

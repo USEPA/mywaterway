@@ -2790,7 +2790,7 @@ function MonitoringLocationsContent({
     services?.status === 'success'
       ? `${services.data.waterQualityPortal.userInterface}#` +
         `siteid=${siteId}${charGroupFilters}` +
-        `&mimeType=xlsx&dataProfile=resultPhysChem` +
+        `&advanced=true&mimeType=xlsx&dataProfile=resultPhysChem` +
         `&providers=NWIS&providers=STEWARDS&providers=STORET`
       : null;
 
