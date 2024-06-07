@@ -3176,6 +3176,10 @@ function UsgsStreamgagesContent({
         <ListContent
           rows={[
             {
+              label: 'Organization Name',
+              value: orgId,
+            },
+            {
               label: <>Locat&shy;ion Name</>,
               value: locationName,
             },
@@ -3189,10 +3193,6 @@ function UsgsStreamgagesContent({
                 locationLongitude,
                 5,
               )}`,
-            },
-            {
-              label: 'Organization ID',
-              value: orgId,
             },
             {
               label: <>Monitor&shy;ing Site ID</>,
