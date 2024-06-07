@@ -305,7 +305,7 @@ function LocationSearch({ route, label }: Props) {
 
                   return res.codes.map(({ desc, value }) => ({
                     key: value,
-                    text: `${desc} (${value})`,
+                    text: `${desc ?? value} (${value})`,
                     sourceIndex,
                   }));
                 })
