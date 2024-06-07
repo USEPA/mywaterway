@@ -17,14 +17,13 @@ import { getSelectedCommunityTab } from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  AttainsImpairmentField,
   ChangeLocationAttributes,
   ClickedHucState,
   Feature,
-  ImpairmentFields,
-  LookupFile,
   ParentLayer,
   PopupAttributes,
-  ServicesState,
+  PopupLookupFiles,
   SuperLayer,
   TribeAttributes,
   VillageAttributes,
@@ -545,6 +544,7 @@ function isVillage(
 export function plotIssues(
   features: __esri.Graphic[],
   layer: any,
+  lookupFiles: PopupLookupFiles,
   navigate: NavigateFunction,
 ) {
   if (!features || !layer) return;
@@ -572,6 +572,7 @@ export function plotIssues(
           content: (feature: Feature) =>
             getPopupContent({
               feature: feature.graphic,
+              lookupFiles,
               navigate,
             }),
         },
@@ -584,8 +585,7 @@ export const openPopup = (
   view: __esri.MapView,
   feature: __esri.Graphic,
   fields: __esri.Field[],
-  services: ServicesState,
-  stateNationalUses: LookupFile,
+  lookupFiles: PopupLookupFiles,
   navigate: NavigateFunction,
 ) => {
   const fieldName = feature.attributes?.fieldName;
@@ -602,8 +602,7 @@ export const openPopup = (
           feature: feature.graphic,
           fields,
           fieldName,
-          services,
-          stateNationalUses,
+          lookupFiles,
           navigate,
         }),
     });
@@ -766,8 +765,7 @@ export function getPopupContent({
   getClickedHuc,
   mapView,
   resetData,
-  services,
-  stateNationalUses,
+  lookupFiles,
   fields,
   navigate,
 }: {
@@ -777,8 +775,7 @@ export function getPopupContent({
   getClickedHuc?: Promise<ClickedHucState> | null;
   mapView?: __esri.MapView;
   resetData?: () => void;
-  services?: ServicesState;
-  stateNationalUses?: LookupFile;
+  lookupFiles?: PopupLookupFiles;
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
 }) {
@@ -899,8 +896,7 @@ export function getPopupContent({
       getClickedHuc={getClickedHuc}
       mapView={mapView}
       resetData={resetData}
-      services={services}
-      stateNationalUses={stateNationalUses}
+      lookupFiles={lookupFiles}
       fields={fields}
       navigate={navigate}
     />
@@ -1119,7 +1115,7 @@ export function hasDefinitionExpression(layer: __esri.Layer) {
 
 // translate scientific parameter names
 export const getMappedParameter = (
-  parameterFields: ImpairmentFields,
+  parameterFields: AttainsImpairmentField[],
   parameter: string,
 ) => {
   const filteredFields = parameterFields.filter(

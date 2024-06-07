@@ -2,8 +2,6 @@ import Color from '@arcgis/core/Color';
 import Extent from '@arcgis/core/geometry/Extent';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import React, { Component, createContext } from 'react';
-// config
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // types
 import type { ReactNode } from 'react';
 import type {
@@ -17,7 +15,7 @@ import type {
   WatershedAttributes,
 } from 'types';
 
-export const initialMonitoringGroups = () => {
+export const initialMonitoringGroups = (characteristicGroupMappings) => {
   return characteristicGroupMappings.reduce((groups, next) => {
     groups[next.label] = {
       label: next.label,
@@ -165,7 +163,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     // monitoring panel
     monitoringPeriodOfRecordStatus: 'idle',
-    monitoringGroups: initialMonitoringGroups(),
+    monitoringGroups: {},
     monitoringFeatureUpdates: null,
     monitoringYearsRange: [0, 0],
     selectedMonitoringYearsRange: [0, 0],
@@ -402,7 +400,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         hucBoundaries: '',
         dischargerPermitComponents: null,
         monitoringPeriodOfRecordStatus: 'idle',
-        monitoringGroups: initialMonitoringGroups(),
+        monitoringGroups: {},
         monitoringFeatureUpdates: null,
         monitoringYearsRange: [0, 0],
         selectedMonitoringYearsRange: [0, 0],

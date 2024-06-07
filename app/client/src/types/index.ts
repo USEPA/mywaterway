@@ -56,9 +56,44 @@ export type AssessmentUseAttainmentState =
   | { status: 'failure'; data: null }
   | { status: 'success'; data: AssessmentUseAttainmentByGroup };
 
+export type AttainsImpairmentField = {
+  label: string;
+  parameterGroup: string;
+  sentence: string | null;
+  term: string;
+  value: string;
+};
+
+export type AttainsImpairmentFieldState =
+  | { status: 'fetching'; data: null }
+  | { status: 'failure'; data: null }
+  | { status: 'success'; data: AttainsImpairmentField[] };
+
+export type AttainsUseField = {
+  category: string;
+  label: string;
+  term: string;
+  value: string;
+};
+
+export type AttainsUseFieldState =
+  | { status: 'fetching'; data: null }
+  | { status: 'failure'; data: null }
+  | { status: 'success'; data: AttainsUseField[] };
+
 export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
 }
+
+export type CharacteristicGroupMappings = {
+  label: string;
+  groupNames: string[];
+}[];
+
+export type CharacteristicGroupMappingsState = {
+  status: 'fetching' | 'failure' | 'success';
+  data: CharacteristicGroupMappings;
+};
 
 export type ClickedHucState =
   | { status: 'fetching' | 'no-data' | 'none' | 'failure'; data: null }
@@ -74,6 +109,11 @@ export interface CountyAttributes {
   CNTY_FIPS: string;
   STATE_NAME: string;
 }
+
+export type CyanMetadataState = {
+  status: 'fetching' | 'failure' | 'success';
+  data: number[];
+};
 
 export interface CyanWaterbodyAttributes {
   AREASQKM: number;
@@ -213,14 +253,6 @@ export interface Huc12SummaryData {
     totalHucAreaSqMi: number;
   }[];
 }
-
-export type ImpairmentFields = {
-  value: string;
-  parameterGroup: string;
-  label: string;
-  term: string;
-  sentence: JSX.Element | null;
-}[];
 
 export type LookupFile = {
   status: 'fetching' | 'success' | 'failure';
@@ -365,6 +397,15 @@ export type PopupAttributes =
   | WildScenicRiverAttributes
   | WsioHealthIndexAttributes;
 
+export type PopupLookupFiles = {
+  attainsImpairmentFields?: AttainsImpairmentFieldState;
+  attainsUseFields?: AttainsUseFieldState;
+  characteristicGroupMappings?: CharacteristicGroupMappingsState;
+  cyanMetadata?: CyanMetadataState;
+  services: ServicesState;
+  stateNationalUses?: LookupFile;
+};
+
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
   Loc_Nm: string;
@@ -446,6 +487,15 @@ export interface TribeAttributes {
 export interface UpstreamWatershedAttributes {
   xwalk_huc12: string;
 }
+
+export type UsgsStaParameter = {
+  staParameterCode: string;
+  staDescription: string;
+  hmwCategory: 'exclude' | 'primary' | 'secondary';
+  hmwOrder: number | null;
+  hmwName: string;
+  hmwUnits: string;
+};
 
 export interface UsgsStreamgageAttributes {
   monitoringType: 'USGS Sensors';
