@@ -285,7 +285,7 @@ function LocationSearch({ route, label }: Props) {
         type: 'webservice',
         name: 'Monitoring Location',
         menuHeaderExtra:
-          '(Below items open into the Monitoring Report page in a new tab)',
+          '(Below items open into the Monitoring Report page in a new browser tab)',
         placeholder: 'Search monitoring locations...',
         sources: [
           {
@@ -320,7 +320,7 @@ function LocationSearch({ route, label }: Props) {
         type: 'webservice',
         name: 'Waterbody',
         menuHeaderExtra:
-          '(Below items open into the Waterbody Report page in a new tab)',
+          '(Below items open into the Waterbody Report page in a new browser tab)',
         placeholder: 'Search waterbodies...',
         sources: [
           {
