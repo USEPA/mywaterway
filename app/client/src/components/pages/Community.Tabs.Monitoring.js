@@ -918,7 +918,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     `${charGroupFilters}`;
 
   const portalUrl =
-    `${services.data.waterQualityPortal.userInterface}#huc=${huc12}` +
+    `${services.data.waterQualityPortal.userInterface}#advanced=true&huc=${huc12}` +
     `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
