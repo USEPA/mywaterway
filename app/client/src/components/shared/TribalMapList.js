@@ -48,6 +48,9 @@ import {
 } from 'contexts/locationSearch';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
+  useCharacteristicGroupMappingsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -108,7 +111,6 @@ const containerStyles = css`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
-  z-index: 1;
 `;
 
 const inputStyles = (smallScreen: boolean) => css`
@@ -482,7 +484,7 @@ function TribalMapList({
         css={css`
           ${containerStyles};
           height: ${mapListHeight}px;
-          width: '100%';
+          width: 100%;
           display: ${displayMode === 'map' && mapShown ? 'block' : 'none'};
         `}
       >
@@ -597,6 +599,8 @@ function TribalMap({
   const { surroundingDischargersLayer } = useDischargersLayers();
   const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
@@ -626,8 +630,12 @@ function TribalMap({
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          services,
-          stateNationalUses,
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            services,
+            stateNationalUses,
+          }
         }),
     };
 
@@ -747,6 +755,8 @@ function TribalMap({
     setLayersInitialized(true);
   }, [
     activeState,
+    attainsImpairmentFields,
+    attainsUseFields,
     getSharedLayers,
     layersInitialized,
     monitoringLocationsLayer,
@@ -927,6 +937,7 @@ function MonitoringTab({
   selectedCharacteristics,
   setSelectedCharacteristics,
 }: MonitoringTabProps) {
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const services = useServicesContext();
 
   const { monitoringLocations } = useMonitoringLocations();
@@ -1073,9 +1084,9 @@ function MonitoringTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
-                type="Past Water Conditions"
                 feature={feature}
-                services={services}
+                lookupFiles={{ characteristicGroupMappings, services}}
+                type="Past Water Conditions"
               />
               <ViewOnMapButton feature={feature} />
             </div>

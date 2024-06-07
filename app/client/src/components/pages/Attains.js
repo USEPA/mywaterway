@@ -12,11 +12,12 @@ import ReactTable from 'components/shared/ReactTable';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useAttainsImpairmentFieldsContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-// data
-import { impairmentFields } from 'config/attainsToHmwMapping';
 // errors
 import { attainsParameterServiceError } from 'config/errorMessages';
 
@@ -24,9 +25,9 @@ function compareContextName(objA, objB) {
   return objA['context'].localeCompare(objB['context']);
 }
 
-function getMatchingLabel(ATTAINSContext) {
+function getMatchingLabel(ATTAINSContext, attainsImpairmentFields) {
   return (
-    impairmentFields.filter((field) => {
+    attainsImpairmentFields.data.filter((field) => {
       return field.parameterGroup === ATTAINSContext;
     })[0]?.label ?? ATTAINSContext
   );
@@ -66,6 +67,7 @@ const modifiedErrorBoxStyles = css`
 `;
 
 function Attains() {
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const services = useServicesContext();
 
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ function Attains() {
     if (attainsData) {
       data = attainsData.map((obj) => {
         return {
-          hmwMapping: getMatchingLabel(obj.context),
+          hmwMapping: getMatchingLabel(obj.context, attainsImpairmentFields),
           attainsParameterGroup: obj.context,
           attainsParameterName: obj.name,
         };
@@ -109,7 +111,7 @@ function Attains() {
     }
 
     setMatchedMappings(data);
-  }, [attainsData]);
+  }, [attainsData, attainsImpairmentFields]);
 
   if (serviceError) {
     return (

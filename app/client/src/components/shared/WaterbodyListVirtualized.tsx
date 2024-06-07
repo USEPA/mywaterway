@@ -17,6 +17,7 @@ import {
 } from 'utils/mapFunctions';
 // contexts
 import {
+  useAttainsUseFieldsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -81,6 +82,7 @@ function WaterbodyListVirtualized({
   // Sort the waterbodies
   const [sortBy, setSortBy] = useState('assessmentunitname');
 
+  const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
@@ -212,10 +214,13 @@ function WaterbodyListVirtualized({
               >
                 <div css={waterbodyContentStyles}>
                   <WaterbodyInfo
-                    type="Waterbody State Overview"
                     feature={graphic}
-                    services={services}
-                    stateNationalUses={stateNationalUses}
+                    lookupFiles={{
+                      attainsUseFields,
+                      services,
+                      stateNationalUses,
+                    }}
+                    type="Waterbody State Overview"
                   />
                   <ViewOnMapButton
                     feature={graphic}

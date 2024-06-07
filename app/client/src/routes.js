@@ -30,6 +30,10 @@ import AlertMessage from 'components/shared/AlertMessage';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
+  useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -45,17 +49,32 @@ const modifiedErrorBoxStyles = css`
 `;
 
 function AppRoutes() {
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const cyanMetadata = useCyanMetadataContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
 
   if (
+    attainsImpairmentFields.status === 'fetching' ||
+    attainsUseFields.status === 'fetching' ||
+    characteristicGroupMappings.status === 'fetching' ||
+    cyanMetadata.status === 'fetching' ||
     services.status === 'fetching' ||
     stateNationalUses.status === 'fetching'
   ) {
     return <LoadingSpinner />;
   }
 
-  if (services.status === 'failure' || stateNationalUses.status === 'failure') {
+  if (
+    attainsImpairmentFields.status === 'failure' ||
+    attainsUseFields.status === 'failure' ||
+    characteristicGroupMappings.status === 'failure' ||
+    cyanMetadata.status === 'failure' ||
+    services.status === 'failure' ||
+    stateNationalUses.status === 'failure'
+  ) {
     return <div css={modifiedErrorBoxStyles}>{servicesLookupServiceError}</div>;
   }
 

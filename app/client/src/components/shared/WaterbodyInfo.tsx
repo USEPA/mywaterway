@@ -25,8 +25,6 @@ import Modal from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Slider from 'components/shared/Slider';
 import { Sparkline } from 'components/shared/Sparkline';
-// utilities
-import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import {
   createRelativeDailyTimestampRange,
   epochToMonthDay,
@@ -59,9 +57,6 @@ import {
   titleCaseWithExceptions,
   toFixedFloat,
 } from 'utils/utils';
-// data
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
-import cyanMetadata from 'config/cyanMetadata';
 // errors
 import { cyanError, waterbodyReportError } from 'config/errorMessages';
 // styles
@@ -82,12 +77,15 @@ import type { NavigateFunction } from 'react-router-dom';
 import type {
   AssessmentUseAttainmentByGroup,
   AssessmentUseAttainmentState,
+  AttainsUseField,
   ChangeLocationAttributes,
+  CharacteristicGroupMappings,
+  CharacteristicGroupMappingsState,
   ClickedHucState,
   FetchState,
   FetchStateWithDefault,
-  LookupFile,
   MonitoringLocationAttributes,
+  PopupLookupFiles,
   ServicesState,
   StreamgageMeasurement,
   UsgsStreamgageAttributes,
@@ -379,9 +377,8 @@ type WaterbodyInfoProps = {
   feature: __esri.Graphic;
   fieldName?: string | null;
   fields?: __esri.Field[] | null;
+  lookupFiles?: PopupLookupFiles;
   mapView?: __esri.MapView;
-  services?: ServicesState;
-  stateNationalUses?: LookupFile;
   type: string;
 };
 
@@ -389,20 +386,21 @@ type WaterbodyInfoProps = {
 ## Components
 */
 function WaterbodyInfo({
-  type,
+  extraContent,
   feature,
   fieldName = null,
-  extraContent,
-  mapView,
-  services,
-  stateNationalUses,
   fields,
+  lookupFiles,
+  mapView,
+  type,
 }: WaterbodyInfoProps) {
   const { attributes } = feature;
   const onWaterbodyReportPage =
     window.location.pathname.indexOf('waterbody-report') !== -1;
   const waterbodyPollutionCategories = (label: string) => {
-    const pollutionCategories = impairmentFields
+    const pollutionCategories = (
+      lookupFiles?.attainsImpairmentFields?.data ?? []
+    )
       .filter((field) => attributes[field.value] === 'Cause')
       .sort((a, b) =>
         a.label.toUpperCase().localeCompare(b.label.toUpperCase()),
@@ -450,9 +448,8 @@ function WaterbodyInfo({
       </p>
     );
 
-  const [selectedUseField, setSelectedUseField] = useState<
-    (typeof useFields)[number] | null
-  >(null);
+  const [selectedUseField, setSelectedUseField] =
+    useState<AttainsUseField | null>(null);
   const [useAttainments, setUseAttainments] =
     useState<AssessmentUseAttainmentState>({
       data: null,
@@ -461,8 +458,8 @@ function WaterbodyInfo({
   const fetchDetailedUses = useCallback(() => {
     if (type !== 'Waterbody' && type !== 'Waterbody State Overview') return;
     if (
-      services?.status !== 'success' ||
-      stateNationalUses?.status !== 'success' ||
+      lookupFiles?.services?.status !== 'success' ||
+      lookupFiles?.stateNationalUses?.status !== 'success' ||
       useAttainments?.status === 'success'
     )
       return;
@@ -471,7 +468,7 @@ function WaterbodyInfo({
       feature.attributes;
 
     const url =
-      services.data.attains.serviceUrl +
+      lookupFiles.services.data.attains.serviceUrl +
       `assessments?assessmentUnitIdentifier=${assessmentunitidentifier}` +
       `&organizationId=${organizationid}` +
       `&reportingCycle=${reportingcycle}` +
@@ -506,7 +503,7 @@ function WaterbodyInfo({
         };
         assessment.useAttainments.forEach((useAttainment: any) => {
           // check if it is other in stateNationalUses
-          const nationalUse = stateNationalUses.data.find(
+          const nationalUse = lookupFiles?.stateNationalUses?.data.find(
             (u: any) =>
               u.orgId === organizationid && u.name === useAttainment.useName,
           );
@@ -520,14 +517,7 @@ function WaterbodyInfo({
         console.error(err);
         setUseAttainments({ data: null, status: 'failure' });
       });
-  }, [
-    feature,
-    services,
-    setUseAttainments,
-    stateNationalUses,
-    type,
-    useAttainments,
-  ]);
+  }, [feature, lookupFiles, setUseAttainments, type, useAttainments]);
 
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
@@ -557,12 +547,14 @@ function WaterbodyInfo({
     const useBasedCondition = getWaterbodyCondition(attributes, field);
 
     // create applicable fields to check against when displaying the table
-    const waterbodyConditions = useFields.map((useField) => {
+    const waterbodyConditions = (
+      lookupFiles?.attainsUseFields?.data as AttainsUseField[]
+    )?.map((useField: AttainsUseField) => {
       return getWaterbodyCondition(attributes, useField.value).label;
     });
 
     const applicableFields =
-      waterbodyConditions.filter((value) => {
+      waterbodyConditions?.filter((value) => {
         return value !== 'Not Applicable';
       }) || [];
 
@@ -609,141 +601,146 @@ function WaterbodyInfo({
                   </tr>
                 </thead>
                 <tbody>
-                  {useFields.map((useField) => {
-                    const value = getWaterbodyCondition(
-                      attributes,
-                      useField.value,
-                    ).label;
+                  {lookupFiles?.attainsUseFields?.data?.map(
+                    (useField: AttainsUseField) => {
+                      const value = getWaterbodyCondition(
+                        attributes,
+                        useField.value,
+                      ).label;
 
-                    if (value === 'Not Applicable') return null;
-                    return (
-                      <tr key={useField.value}>
-                        <td>
-                          <GlossaryTerm term={useField.term}>
-                            {useField.label}
-                          </GlossaryTerm>
-                        </td>
-                        <td>
-                          <GlossaryTerm
-                            term={
-                              value === 'Good'
-                                ? 'Good Waters'
-                                : value === 'Impaired' ||
-                                    value === 'Impaired (Issues Identified)'
-                                  ? 'Impaired Waters'
-                                  : 'Condition Unknown'
-                            }
-                          >
-                            {value}
-                          </GlossaryTerm>
-                        </td>
-                        <td>
-                          <Modal
-                            label={`Detailed Uses for ${useField.label}`}
-                            maxWidth="35rem"
-                            onClose={() => setSelectedUseField(null)}
-                            triggerElm={
-                              <button
-                                aria-label={`View detailed uses for ${useField.label}`}
-                                title={`View detailed uses for ${useField.label}`}
-                                css={modifiedIconButtonStyles}
-                                onClick={() => {
-                                  setSelectedUseField(useField);
-                                  fetchDetailedUses();
-                                }}
-                              >
-                                <i
-                                  aria-hidden
-                                  className="fas fa-info-circle"
-                                ></i>
-                              </button>
-                            }
-                          >
-                            {useAttainments.status === 'fetching' && (
-                              <LoadingSpinner />
-                            )}
-
-                            {selectedUseField &&
-                              useAttainments.status === 'success' && (
-                                <table css={modalTableStyles} className="table">
-                                  <thead>
-                                    <tr>
-                                      <th>
-                                        Detailed{' '}
-                                        <em>{selectedUseField.label}</em> Uses
-                                      </th>
-                                      <th>Condition</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {useAttainments.data[
-                                      selectedUseField.category
-                                    ].map((use: any) => {
-                                      const useCode = use.useAttainmentCode;
-                                      const value =
-                                        useCode === 'F'
-                                          ? 'Good'
-                                          : useCode === 'N'
-                                            ? 'Impaired'
-                                            : 'Condition Unknown';
-
-                                      return (
-                                        <tr key={use.useName}>
-                                          <td>{use.useName}</td>
-                                          <td
-                                            css={css`
-                                              min-width: 100px;
-                                            `}
-                                          >
-                                            {['F', 'N', 'I', 'X'].includes(
-                                              useCode,
-                                            ) ? (
-                                              <GlossaryTerm
-                                                term={
-                                                  value === 'Good'
-                                                    ? 'Good Waters'
-                                                    : value === 'Impaired'
-                                                      ? 'Impaired Waters'
-                                                      : 'Condition Unknown'
-                                                }
-                                              >
-                                                {value}
-                                              </GlossaryTerm>
-                                            ) : (
-                                              use.useAttainmentCodeName
-                                            )}
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                  </tbody>
-                                </table>
+                      if (value === 'Not Applicable') return null;
+                      return (
+                        <tr key={useField.value}>
+                          <td>
+                            <GlossaryTerm term={useField.term}>
+                              {useField.label}
+                            </GlossaryTerm>
+                          </td>
+                          <td>
+                            <GlossaryTerm
+                              term={
+                                value === 'Good'
+                                  ? 'Good Waters'
+                                  : value === 'Impaired' ||
+                                      value === 'Impaired (Issues Identified)'
+                                    ? 'Impaired Waters'
+                                    : 'Condition Unknown'
+                              }
+                            >
+                              {value}
+                            </GlossaryTerm>
+                          </td>
+                          <td>
+                            <Modal
+                              label={`Detailed Uses for ${useField.label}`}
+                              maxWidth="35rem"
+                              onClose={() => setSelectedUseField(null)}
+                              triggerElm={
+                                <button
+                                  aria-label={`View detailed uses for ${useField.label}`}
+                                  title={`View detailed uses for ${useField.label}`}
+                                  css={modifiedIconButtonStyles}
+                                  onClick={() => {
+                                    setSelectedUseField(useField);
+                                    fetchDetailedUses();
+                                  }}
+                                >
+                                  <i
+                                    aria-hidden
+                                    className="fas fa-info-circle"
+                                  ></i>
+                                </button>
+                              }
+                            >
+                              {useAttainments.status === 'fetching' && (
+                                <LoadingSpinner />
                               )}
 
-                            <p css={infoBoxStyles}>
-                              For more information view the{' '}
-                              <a
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                href={
-                                  `/waterbody-report/` +
-                                  `${attributes.organizationid}/` +
-                                  `${attributes.assessmentunitidentifier}/` +
-                                  `${attributes.reportingcycle || ''}`
-                                }
-                              >
-                                Waterbody Report
-                              </a>{' '}
-                              <small css={modifiedDisclaimerStyles}>
-                                (opens new browser tab)
-                              </small>
-                              .
-                            </p>
-                          </Modal>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                              {selectedUseField &&
+                                useAttainments.status === 'success' && (
+                                  <table
+                                    css={modalTableStyles}
+                                    className="table"
+                                  >
+                                    <thead>
+                                      <tr>
+                                        <th>
+                                          Detailed{' '}
+                                          <em>{selectedUseField.label}</em> Uses
+                                        </th>
+                                        <th>Condition</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {useAttainments.data[
+                                        selectedUseField.category
+                                      ].map((use: any) => {
+                                        const useCode = use.useAttainmentCode;
+                                        const value =
+                                          useCode === 'F'
+                                            ? 'Good'
+                                            : useCode === 'N'
+                                              ? 'Impaired'
+                                              : 'Condition Unknown';
+
+                                        return (
+                                          <tr key={use.useName}>
+                                            <td>{use.useName}</td>
+                                            <td
+                                              css={css`
+                                                min-width: 100px;
+                                              `}
+                                            >
+                                              {['F', 'N', 'I', 'X'].includes(
+                                                useCode,
+                                              ) ? (
+                                                <GlossaryTerm
+                                                  term={
+                                                    value === 'Good'
+                                                      ? 'Good Waters'
+                                                      : value === 'Impaired'
+                                                        ? 'Impaired Waters'
+                                                        : 'Condition Unknown'
+                                                  }
+                                                >
+                                                  {value}
+                                                </GlossaryTerm>
+                                              ) : (
+                                                use.useAttainmentCodeName
+                                              )}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                )}
+
+                              <p css={infoBoxStyles}>
+                                For more information view the{' '}
+                                <a
+                                  rel="noopener noreferrer"
+                                  target="_blank"
+                                  href={
+                                    `/waterbody-report/` +
+                                    `${attributes.organizationid}/` +
+                                    `${attributes.assessmentunitidentifier}/` +
+                                    `${attributes.reportingcycle || ''}`
+                                  }
+                                >
+                                  Waterbody Report
+                                </a>{' '}
+                                <small css={modifiedDisclaimerStyles}>
+                                  (opens new browser tab)
+                                </small>
+                                .
+                              </p>
+                            </Modal>
+                          </td>
+                        </tr>
+                      );
+                    },
+                  )}
                 </tbody>
               </table>
             )}
@@ -1102,13 +1099,12 @@ function WaterbodyInfo({
   });
   useEffect(() => {
     if (type !== 'Restoration Plans' && type !== 'Protection Plans') return;
-    if (services?.status !== 'success') return;
+    if (lookupFiles?.services?.status !== 'success') return;
 
     const parameters =
       `assessmentUnitIdentifier=${attributes.assessmentunitidentifier}` +
       `&organizationIdentifier=${attributes.organizationid}`;
-
-    getPollutantsFromAction(services.data, parameters)
+    getPollutantsFromAction(lookupFiles.services.data, parameters)
       .then((res) => {
         setAttainsProjects({ status: 'success', data: res });
       })
@@ -1119,8 +1115,8 @@ function WaterbodyInfo({
   }, [
     attributes.assessmentunitidentifier,
     attributes.organizationid,
+    lookupFiles,
     type,
-    services,
   ]);
 
   // jsx
@@ -1211,22 +1207,37 @@ function WaterbodyInfo({
   if (!attributes) return null;
 
   let content = null;
-  if (type === 'Waterbody') content = baseWaterbodyContent();
+  if (
+    type === 'Waterbody' &&
+    lookupFiles?.attainsUseFields?.status === 'success'
+  )
+    content = baseWaterbodyContent();
   if (type === 'Restoration Plans') content = projectContent();
   if (type === 'Protection Plans') content = projectContent();
   if (type === 'Permitted Discharger') content = dischargerContent;
   if (type === 'USGS Sensors') {
     content = (
-      <UsgsStreamgagesContent feature={feature} services={services ?? null} />
+      <UsgsStreamgagesContent
+        feature={feature}
+        services={lookupFiles?.services ?? null}
+      />
     );
   }
   if (type === 'Past Water Conditions') {
     content = (
-      <MonitoringLocationsContent feature={feature} services={services} />
+      <MonitoringLocationsContent
+        characteristicGroupMappings={lookupFiles?.characteristicGroupMappings}
+        feature={feature}
+        services={lookupFiles?.services}
+      />
     );
   }
   if (type === 'Nonprofit') content = nonprofitContent;
-  if (type === 'Waterbody State Overview') content = waterbodyStateContent;
+  if (
+    type === 'Waterbody State Overview' &&
+    lookupFiles?.attainsUseFields?.status === 'success'
+  )
+    content = waterbodyStateContent;
   if (type === 'Action') content = actionContent;
   if (type === 'County') content = countyContent();
   if (type === 'Tribe') content = tribeContent;
@@ -1246,9 +1257,10 @@ function WaterbodyInfo({
   if (type === 'Blue-Green Algae') {
     content = (
       <CyanContent
+        cyanMetadata={lookupFiles?.cyanMetadata?.data ?? []}
         feature={feature}
         mapView={mapView}
-        services={services ?? null}
+        services={lookupFiles?.services ?? null}
       />
     );
   }
@@ -1257,31 +1269,29 @@ function WaterbodyInfo({
 }
 
 type MapPopupProps = {
-  type: string;
-  feature: __esri.Graphic | ChangeLocationPopup;
-  navigate: NavigateFunction;
-  fieldName?: string | null;
   extraContent?: ReactNode | null;
-  getClickedHuc?: Promise<ClickedHucState> | null;
-  mapView?: __esri.MapView;
-  resetData?: () => void;
-  services?: ServicesState;
-  stateNationalUses?: LookupFile;
+  feature: __esri.Graphic | ChangeLocationPopup;
+  fieldName?: string | null;
   fields?: __esri.Field[] | null;
+  getClickedHuc?: Promise<ClickedHucState> | null;
+  lookupFiles?: PopupLookupFiles;
+  mapView?: __esri.MapView;
+  navigate: NavigateFunction;
+  resetData?: () => void;
+  type: string;
 };
 
 function MapPopup({
-  type,
+  extraContent,
   feature,
   fieldName,
-  extraContent,
-  getClickedHuc,
-  mapView,
-  resetData,
-  services,
-  stateNationalUses,
   fields,
+  getClickedHuc,
+  lookupFiles,
+  mapView,
   navigate,
+  resetData,
+  type,
 }: Readonly<MapPopupProps>) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<ClickedHucState>({
@@ -1413,8 +1423,7 @@ function MapPopup({
             fieldName={fieldName}
             extraContent={extraContent}
             mapView={mapView}
-            services={services}
-            stateNationalUses={stateNationalUses}
+            lookupFiles={lookupFiles}
             fields={fields}
           />
         </div>
@@ -1526,7 +1535,7 @@ function getAverageNonLandPixelArea(data: CellConcentrationData) {
   );
 }
 
-function getMaxCellConcentration(counts: number[]) {
+function getMaxCellConcentration(counts: number[], cyanMetadata: number[]) {
   if (!counts.length) return null;
   for (let i = counts.length - 1; i >= 0; i--) {
     if (counts[i] > 0) return cyanMetadata[i];
@@ -1577,12 +1586,14 @@ type ChartData = {
 };
 
 type CyanDailyContentProps = {
+  cyanMetadata: number[];
   data: CellConcentrationData[string];
   epochDate: number;
   waterbodyName: string;
 };
 
 function CyanDailyContent({
+  cyanMetadata,
   data,
   epochDate,
   waterbodyName,
@@ -1631,7 +1642,7 @@ function CyanDailyContent({
         },
       ],
     });
-  }, [data]);
+  }, [cyanMetadata, data]);
 
   if (!data) {
     return (
@@ -1648,7 +1659,7 @@ function CyanDailyContent({
       </p>
     );
   } else {
-    const maxCc = getMaxCellConcentration(data.measurements);
+    const maxCc = getMaxCellConcentration(data.measurements, cyanMetadata);
     return (
       <>
         <p css={subheadingStyles}>
@@ -1701,12 +1712,14 @@ function CyanDailyContent({
 }
 
 type CyanContentProps = {
+  cyanMetadata: number[];
   feature: __esri.Graphic;
   mapView?: __esri.MapView;
   services: ServicesState | null;
 };
 
 function CyanContent({
+  cyanMetadata,
   feature,
   mapView,
   services,
@@ -2267,6 +2280,7 @@ function CyanContent({
                 )}
 
                 <CyanDailyContent
+                  cyanMetadata={cyanMetadata}
                   data={cellConcentration.data[selectedDate.toString()]}
                   epochDate={selectedDate}
                   waterbodyName={attributes.GNIS_NAME}
@@ -2397,7 +2411,11 @@ interface SelectedGroups {
 }
 
 function buildGroups(
-  checkMappings: (groupName: string) => boolean,
+  characteristicGroupMappings: CharacteristicGroupMappings,
+  checkMappings: (
+    characteristicGroupMappings: CharacteristicGroupMappings,
+    groupName: string,
+  ) => boolean,
   totalsByGroup: string | { [groupName: string]: number },
 ): { newGroups: MappedGroups; newSelected: SelectedGroups } {
   const newGroups: MappedGroups = {};
@@ -2423,7 +2441,7 @@ function buildGroups(
             resultCount: stationGroups[groupName],
           };
         }
-      } else if (!checkMappings(groupName)) {
+      } else if (!checkMappings(characteristicGroupMappings, groupName)) {
         if (!newGroups['Other']) {
           newGroups['Other'] = { characteristicGroups: [], resultCount: 0 };
         }
@@ -2443,7 +2461,10 @@ function buildGroups(
   return { newGroups, newSelected };
 }
 
-function checkIfGroupInMapping(groupName: string): boolean {
+function checkIfGroupInMapping(
+  characteristicGroupMappings: CharacteristicGroupMappings,
+  groupName: string,
+): boolean {
   const result = characteristicGroupMappings.find((mapping) =>
     mapping.groupNames.includes(groupName),
   );
@@ -2451,6 +2472,7 @@ function checkIfGroupInMapping(groupName: string): boolean {
 }
 
 type MonitoringLocationsContentProps = {
+  characteristicGroupMappings?: CharacteristicGroupMappingsState;
   feature: __esri.Graphic;
   services?: ServicesState;
 };
@@ -2458,6 +2480,7 @@ type MonitoringLocationsContentProps = {
 type SelectedType = { [Property in keyof MappedGroups]: boolean };
 
 function MonitoringLocationsContent({
+  characteristicGroupMappings,
   feature,
   services,
 }: Readonly<MonitoringLocationsContentProps>) {
@@ -2494,27 +2517,20 @@ function MonitoringLocationsContent({
     uniqueId,
   } = attributes;
 
-  const [groups, setGroups] = useState(() => {
-    const { newGroups } = buildGroups(checkIfGroupInMapping, totalsByGroup);
-    return newGroups;
-  });
-  const [selected, setSelected] = useState(() => {
-    const newSelected: SelectedType = {};
-    Object.keys(groups).forEach((group) => {
-      newSelected[group] = true;
-    });
-    return newSelected;
-  });
-
+  const [groups, setGroups] = useState<MappedGroups | null>(null);
+  const [selected, setSelected] = useState<SelectedType | null>(null);
   useEffect(() => {
+    if (characteristicGroupMappings?.status !== 'success') return;
+
     const { newGroups, newSelected } = buildGroups(
+      characteristicGroupMappings.data,
       checkIfGroupInMapping,
       totalsByGroup,
     );
     setGroups(newGroups);
     setSelected(newSelected);
     setSelectAll(1);
-  }, [totalsByGroup]);
+  }, [characteristicGroupMappings, totalsByGroup]);
 
   const buildFilter = useCallback(
     (selectedNames: SelectedType, monitoringLocationData: MappedGroups) => {
@@ -2542,6 +2558,7 @@ function MonitoringLocationsContent({
   );
 
   useEffect(() => {
+    if (!groups || !selected) return;
     buildFilter(selected, groups);
   }, [buildFilter, groups, selected]);
 
@@ -2551,6 +2568,8 @@ function MonitoringLocationsContent({
 
   //Toggle an individual row and call the provided onChange event handler
   const toggleRow = (groupLabel: string, allGroups: Object) => {
+    if (!groups || !selected) return;
+
     // flip the current toggle
     const selectedGroups = { ...selected };
     selectedGroups[groupLabel] = !selected[groupLabel];
@@ -2590,6 +2609,8 @@ function MonitoringLocationsContent({
 
   //Toggle all rows and call the provided onChange event handler
   const toggleAllCheckboxes = () => {
+    if (!groups) return;
+
     let selectedGroups: SelectedGroups = {};
 
     if (Object.keys(groups).length > 0) {
@@ -2620,6 +2641,8 @@ function MonitoringLocationsContent({
   const [modalTriggered, setModalTriggered] = useState(false);
   useEffect(() => {
     if (!modalTriggered) return;
+    if (characteristicGroupMappings?.status !== 'success') return;
+
     if (Object.keys(totalsByCharacteristic).length) {
       setCharacteristics({
         status: 'success',
@@ -2647,7 +2670,7 @@ function MonitoringLocationsContent({
         .then((records) => {
           const { sites } = structurePeriodOfRecordData(
             records,
-            characteristicGroupMappings,
+            characteristicGroupMappings.data,
           );
           addAnnualData([attributes], sites);
           setCharacteristics({
@@ -2667,6 +2690,7 @@ function MonitoringLocationsContent({
     }
   }, [
     attributes,
+    characteristicGroupMappings,
     characteristicsByGroup,
     modalTriggered,
     orgId,
@@ -2677,7 +2701,7 @@ function MonitoringLocationsContent({
     uniqueId,
   ]);
 
-  const innerGroups = groups[selectedGroupLabel]?.characteristicGroups;
+  const innerGroups = groups?.[selectedGroupLabel]?.characteristicGroups ?? [];
   const groupCharacteristics = Object.entries(
     characteristics.data.totalsByCharacteristic,
   ).reduce((result, [charc, count]) => {
@@ -2779,11 +2803,11 @@ function MonitoringLocationsContent({
         />
       </div>
 
-      {Object.keys(groups).length === 0 && (
+      {(!groups || Object.keys(groups).length === 0) && (
         <p>No data available for this monitoring location.</p>
       )}
 
-      {Object.keys(groups).length > 0 && (
+      {groups && Object.keys(groups).length > 0 && (
         <table
           aria-label="Characteristic Groups Summary"
           css={measurementTableStyles()}
@@ -2824,7 +2848,7 @@ function MonitoringLocationsContent({
           <tbody>
             {Object.keys(groups).map((key) => {
               // ignore groups with 0 results
-              if (groups[key].resultCount === 0) {
+              if (groups?.[key].resultCount === 0) {
                 return null;
               }
               return (
@@ -2835,7 +2859,7 @@ function MonitoringLocationsContent({
                       css={checkboxStyles}
                       type="checkbox"
                       className="checkbox"
-                      checked={selected[key] === true || selectAll === 1}
+                      checked={selected?.[key] === true || selectAll === 1}
                       onChange={(_ev) => {
                         toggleRow(key, groups);
                       }}
@@ -3019,7 +3043,6 @@ function UsgsStreamgagesContent({
 }: Readonly<UsgsStreamgagesContentProps>) {
   const {
     streamgageMeasurements,
-    orgName,
     locationName,
     locationType,
     siteId,
@@ -3092,8 +3115,8 @@ function UsgsStreamgagesContent({
         <ListContent
           rows={[
             {
-              label: <>Organ&shy;ization Name</>,
-              value: orgName,
+              label: 'Organization Name',
+              value: orgId,
             },
             {
               label: <>Locat&shy;ion Name</>,
@@ -3109,10 +3132,6 @@ function UsgsStreamgagesContent({
                 locationLongitude,
                 5,
               )}`,
-            },
-            {
-              label: 'Organization ID',
-              value: orgId,
             },
             {
               label: <>Monitor&shy;ing Site ID</>,

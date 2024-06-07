@@ -34,6 +34,10 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
+  useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -442,6 +446,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     wildScenicRiversLayer,
   } = useLayers();
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const cyanMetadata = useCyanMetadataContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const navigate = useNavigate();
@@ -479,12 +487,28 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         mapView,
         selectedGraphic,
         dynamicPopupFields,
-        services,
-        stateNationalUses,
+        {
+          attainsImpairmentFields,
+          attainsUseFields,
+          characteristicGroupMappings,
+          cyanMetadata,
+          services,
+          stateNationalUses,
+        },
         navigate,
       );
     });
-  }, [mapView, navigate, selectedGraphic, services, stateNationalUses]);
+  }, [
+    attainsImpairmentFields,
+    attainsUseFields,
+    characteristicGroupMappings,
+    cyanMetadata,
+    mapView,
+    navigate,
+    selectedGraphic,
+    services,
+    stateNationalUses,
+  ]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);
@@ -775,6 +799,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 }
 
 function useDynamicPopup() {
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const cyanMetadata = useCyanMetadataContext();
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
@@ -841,14 +869,20 @@ function useDynamicPopup() {
       if (
         !location ||
         onTribePage ||
-        hucBoundaries?.geometry.contains(location)
+        hucBoundaries?.geometry?.contains(location)
       ) {
         return getPopupContent({
           feature: graphic.graphic,
           fields,
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            characteristicGroupMappings,
+            cyanMetadata,
+            services,
+            stateNationalUses,
+          },
           mapView,
-          services,
-          stateNationalUses,
           navigate,
         });
       }
@@ -859,12 +893,22 @@ function useDynamicPopup() {
         getClickedHuc: checkHuc ? getClickedHuc(location) : null,
         mapView,
         resetData: reset,
-        services,
-        stateNationalUses,
+        lookupFiles: {
+          attainsImpairmentFields,
+          attainsUseFields,
+          characteristicGroupMappings,
+          cyanMetadata,
+          services,
+          stateNationalUses,
+        },
         navigate,
       });
     },
     [
+      attainsImpairmentFields,
+      attainsUseFields,
+      characteristicGroupMappings,
+      cyanMetadata,
       getClickedHuc,
       getHucBoundaries,
       getMapView,
