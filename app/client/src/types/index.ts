@@ -144,7 +144,9 @@ export type AttainsUseField = {
 export type AttainsUseFieldState =
   | { status: 'fetching'; data: null }
   | { status: 'failure'; data: null }
-  | { status: 'success'; data: AttainsUseField[] };export interface ChangeLocationAttributes {
+  | { status: 'success'; data: AttainsUseField[] };
+
+export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
 }
 
