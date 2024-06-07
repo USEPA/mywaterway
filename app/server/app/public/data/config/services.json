@@ -1,4 +1,8 @@
 {
+  "expertQuery": {
+    "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
+    "attains": "https://api.epa.gov/expertquery-dev/api/attains"
+  },
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
   "esriWebMapBase": "https://www.arcgis.com/sharing/rest/content/items",
   "wbd": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6",
@@ -21,6 +25,7 @@
   },
   "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/HMW%20Glossary/terms/full",
   "waterQualityPortal": {
+    "domainValues": "https://www.waterqualitydata.us/Codes",
     "userInterface": "https://www.waterqualitydata.us/",
     "stationSearch": "https://www.waterqualitydata.us/data/Station/search?",
     "resultSearch": "https://www.waterqualitydata.us/data/Result/search?",
@@ -111,6 +116,11 @@
     "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/usa_november_2022/FeatureServer"
   },
   "googleAnalyticsMapping": [
+    {
+      "urlLookup": "expertQuery.attains",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "expert query - attains"
+    },
     {
       "urlLookup": "attains.serviceUrl",
       "wildcardUrl": "{urlLookup}actions*",
@@ -216,6 +226,12 @@
       "wildcardUrl": "{urlLookup}*",
       "name": "echodata - echo metadata"
     },
+    {
+      "urlLookup": "waterQualityPortal.domainValues",
+      "wildcardUrl": "{urlLookup}/*?mimeType=json",
+      "name": "wqp - domain values"
+    },
+
     {
       "urlLookup": "waterQualityPortal.monitoringLocation",
       "wildcardUrl": "{urlLookup}search?mimeType=geojson&zip=no&huc=*",

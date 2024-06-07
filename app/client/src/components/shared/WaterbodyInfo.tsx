@@ -2930,12 +2930,12 @@ function MonitoringLocationsContent({
                   <td>{groups[key].resultCount.toLocaleString()}</td>
                   <td>
                     <Modal
-                      label={`Detailed Uses for ${key}`}
+                      label={`Detailed Characteristics for ${key}`}
                       maxWidth="36em"
                       triggerElm={
                         <button
-                          aria-label={`View detailed uses for ${key}`}
-                          title={`View detailed uses for ${key}`}
+                          aria-label={`View detailed characteristics for ${key}`}
+                          title={`View detailed characteristics for ${key}`}
                           css={modifiedIconButtonStyles}
                           onClick={() => {
                             setSelectedGroupLabel(key);
