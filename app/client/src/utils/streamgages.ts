@@ -104,7 +104,7 @@ function useUpdateData() {
     if (usgsStaParameters.status !== 'success') return;
 
     const hucDvFilter = `huc=${huc12.substring(0, 8)}`;
-    const hucThingsFilter = `$filter=properties/hydrologicUnit eq '${huc12}'`;
+    const hucThingsFilter = `$filter=properties/locationHUCTwelveDigitCode eq '${huc12}'`;
 
     fetchAndTransformData(
       [
@@ -359,7 +359,7 @@ function transformServiceData(
       monitoringType: 'USGS Sensors' as const,
       siteId: gage.properties.monitoringLocationNumber,
       orgId: gage.properties.agencyCode,
-      orgName: gage.properties.agency,
+      orgName: gage.properties.agencyCode,
       locationLongitude: gage.Locations[0].location.coordinates[0],
       locationLatitude: gage.Locations[0].location.coordinates[1],
       locationName: gage.properties.monitoringLocationName,
@@ -528,7 +528,7 @@ function fetchStreamgages(
 ): Promise<FetchState<UsgsStreamgagesData>> {
   const url =
     `${servicesData.usgsSensorThingsAPI}?` +
-    `$select=name,properties/active,properties/agency,properties/agencyCode,properties/monitoringLocationUrl,properties/monitoringLocationName,properties/monitoringLocationType,properties/monitoringLocationNumber,properties/hydrologicUnit&` +
+    `$select=name,properties/agencyCode,properties/monitoringLocationUrl,properties/monitoringLocationName,properties/monitoringLocationType,properties/monitoringLocationNumber,properties/locationHUCTwelveDigitCode&` +
     `$expand=Locations($select=location),Datastreams($select=description,properties/ParameterCode,properties/WebDescription,unitOfMeasurement/name,unitOfMeasurement/symbol;` +
     `$expand=Observations($select=phenomenonTime,result;` +
     `$top=1;` +

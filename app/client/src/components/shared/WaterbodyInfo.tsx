@@ -3104,7 +3104,6 @@ function UsgsStreamgagesContent({
 }: Readonly<UsgsStreamgagesContentProps>) {
   const {
     streamgageMeasurements,
-    orgName,
     locationName,
     locationType,
     siteId,
@@ -3176,10 +3175,6 @@ function UsgsStreamgagesContent({
       <div css={tableStyles} className="table">
         <ListContent
           rows={[
-            {
-              label: <>Organ&shy;ization Name</>,
-              value: orgName,
-            },
             {
               label: <>Locat&shy;ion Name</>,
               value: locationName,

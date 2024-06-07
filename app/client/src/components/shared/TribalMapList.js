@@ -111,7 +111,6 @@ const containerStyles = css`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
-  z-index: 1;
 `;
 
 const inputStyles = (smallScreen: boolean) => css`
@@ -485,7 +484,7 @@ function TribalMapList({
         css={css`
           ${containerStyles};
           height: ${mapListHeight}px;
-          width: '100%';
+          width: 100%;
           display: ${displayMode === 'map' && mapShown ? 'block' : 'none'};
         `}
       >
