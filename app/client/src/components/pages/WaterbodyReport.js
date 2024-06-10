@@ -703,8 +703,7 @@ function WaterbodyReport() {
   useEffect(() => {
     if (services.status !== 'success') return;
 
-    const parameters =
-      `organizationIdentifier=${orgId}` + `&assessmentUnitIdentifier=${auId}`;
+    const parameters = `organizationIdentifier=${orgId}&assessmentUnitIdentifier=${auId}`;
 
     getPollutantsFromAction(services.data, parameters)
       .then((res) => {
@@ -753,9 +752,7 @@ function WaterbodyReport() {
       return;
     }
 
-    const parameters =
-      `organizationIdentifier=${orgId}` +
-      `&actionIdentifier=${additionalIds.join(',')}`;
+    const parameters = `organizationIdentifier=${orgId}&actionIdentifier=${additionalIds.join(',')}`;
 
     setActionsFetchedAgain(true);
 
