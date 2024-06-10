@@ -34,7 +34,7 @@ export default {
       is_public: null,
       wb_ids:
         'BAYOU QUEUE DE TORTUE-FROM HEADWATERS TO MERMENTAU RIVER [LA050501_00]',
-      plts: 'Other',
+      pollutants: 'Agriculture',
     },
     {
       ss_seq: 1618,
@@ -53,7 +53,7 @@ export default {
       grts_prj_ids: null,
       notes:
         '1. Abstract - "to improve the health of the water body." Did you partner with LDAF and NRCS to reduce loadings affecting TDS and turbidity, and thus restore the FWP standard? The abstract is not clear in how the LDAF BMPs would have an effect on the TDS and turbidity loadings as it states, "Dredging has caused a reduction in flow velocity and eroding spoil banks have increased the amount of solids." Yet, in the problem paragraph, it list suspected sources as irrigated crop production, atmospheric deposition - toxics. Then it says flow alterations from water Diversions and non-irrigated crop production. This is confusing.\n2. The problem statement will need to coincide with the abstract.\n3. You need photos are the eroding banks, and how it looks now - which hopefully will indicate the difference that the BMPs made in reducing solids to the bayou.\n4.You may want to better link the grade structures with having an effect on reducing TDS. show a picture.\n5. The 2014 IR would be produced from WQ data collected in 2013, and earlier. How could the BMPs that were implemented beginning in April and October, 2013, have had any effect on the load reduction numbers associated with the WQ data that went into the 2014 IR?\n6. Project Highlights - probably should summarize the BMPs - record keeping, for instance, may not be the most convincing unit to help with reducing loads. Also, the shallow water for wildlife should not have been considered a benefit to reducing TDS loadings, as well as pest mgmt. Hopefully, 319 was not used for these.\n7. "Results" - The waterbody remains impaired for DO and turbidity, and the expectation that turbidity will be addressed in 2016. What are the expectations that DO will be addressed with the same BMPs?\n8. Under the Watershed Plan section, place reference in the notes to state when the plan was approved by EPA.\n\nPlease revisit this SS - and clear this up. Headquarters would send this back. Thanks.\n\nAdam Jorge:Change poll listings.10.23.17',
-      plncat_types: null,
+      poll_sources: 'Other',
       prj_hlight_bmp_comments:
         'LDAF began implementing BMPs in 2004 and completed implementation in January 2017. BMPs implemented to date include conservation crop rotation (328 sites; 1,117.4 acres [ac]), residue management (344 sites; 6,008.2 ac), grade stabilization structures (410 sites; 32 ac), irrigation land leveling (464 sites; 4,638.72 ac), shallow water for wildlife (646 sites; 3,112.4 ac), nutrient management (590 sites; 17,052.2 ac), pest management (595 sites; 17,052.2 ac), record keeping (tracking pesticide and nutrient use to avoid overapplication) (748 sites; 17,052.2 ac), and dry seeding (2,232.4 ac).\n\nA watershed implementation plan was developed for Bayou Queue de Tortue in 2013. Bayou Queue de Tortue was made a priority in The Gulf of Mexico Initiative (GoMI). BMP implementation occurred in 2012–2014 to improve ecosystem health in the Gulf of Mexico, and also as part of the National Water Quality Initiative (NWQI) starting in 2014. \n\nAfter reviewing the BMPs implemented and their purposes, LDEQ determined that the most effective in reducing the TDS loads are the grade stabilization structures (constructed between October 2013 and September 2016) and the irrigation land leveling technique (implemented between April 2013 and March 2017) (Figure 2).\n\nLDEQ and its partners began to see steady improvement in the TDS levels in early 2016. LDEQ plans to continue monitoring improvements from BMP implementation, and will use the information to apply to future restoration efforts in other watersheds. ',
       submit_by: null,
@@ -70,7 +70,7 @@ export default {
       is_public: null,
       wb_ids:
         'BAYOU QUEUE DE TORTUE-FROM HEADWATERS TO MERMENTAU RIVER [LA050501_00]',
-      plts: 'Other',
+      pollutants: 'Other',
     },
     {
       ss_seq: 1619,
@@ -89,7 +89,7 @@ export default {
       grts_prj_ids: null,
       notes:
         '1. Abstract - "to improve the health of the water body." Did you partner with LDAF and NRCS to reduce loadings affecting TDS and turbidity, and thus restore the FWP standard? The abstract is not clear in how the LDAF BMPs would have an effect on the TDS and turbidity loadings as it states, "Dredging has caused a reduction in flow velocity and eroding spoil banks have increased the amount of solids." Yet, in the problem paragraph, it list suspected sources as irrigated crop production, atmospheric deposition - toxics. Then it says flow alterations from water Diversions and non-irrigated crop production. This is confusing.\n2. The problem statement will need to coincide with the abstract.\n3. You need photos are the eroding banks, and how it looks now - which hopefully will indicate the difference that the BMPs made in reducing solids to the bayou.\n4.You may want to better link the grade structures with having an effect on reducing TDS. show a picture.\n5. The 2014 IR would be produced from WQ data collected in 2013, and earlier. How could the BMPs that were implemented beginning in April and October, 2013, have had any effect on the load reduction numbers associated with the WQ data that went into the 2014 IR?\n6. Project Highlights - probably should summarize the BMPs - record keeping, for instance, may not be the most convincing unit to help with reducing loads. Also, the shallow water for wildlife should not have been considered a benefit to reducing TDS loadings, as well as pest mgmt. Hopefully, 319 was not used for these.\n7. "Results" - The waterbody remains impaired for DO and turbidity, and the expectation that turbidity will be addressed in 2016. What are the expectations that DO will be addressed with the same BMPs?\n8. Under the Watershed Plan section, place reference in the notes to state when the plan was approved by EPA.\n\nPlease revisit this SS - and clear this up. Headquarters would send this back. Thanks.\n\nAdam Jorge:Change poll listings.10.23.17',
-      plncat_types: null,
+      poll_sources: 'Agriculture',
       prj_hlight_bmp_comments:
         'LDAF began implementing BMPs in 2004 and completed implementation in January 2017. BMPs implemented to date include conservation crop rotation (328 sites; 1,117.4 acres [ac]), residue management (344 sites; 6,008.2 ac), grade stabilization structures (410 sites; 32 ac), irrigation land leveling (464 sites; 4,638.72 ac), shallow water for wildlife (646 sites; 3,112.4 ac), nutrient management (590 sites; 17,052.2 ac), pest management (595 sites; 17,052.2 ac), record keeping (tracking pesticide and nutrient use to avoid overapplication) (748 sites; 17,052.2 ac), and dry seeding (2,232.4 ac).\n\nA watershed implementation plan was developed for Bayou Queue de Tortue in 2013. Bayou Queue de Tortue was made a priority in The Gulf of Mexico Initiative (GoMI). BMP implementation occurred in 2012–2014 to improve ecosystem health in the Gulf of Mexico, and also as part of the National Water Quality Initiative (NWQI) starting in 2014. \n\nAfter reviewing the BMPs implemented and their purposes, LDEQ determined that the most effective in reducing the TDS loads are the grade stabilization structures (constructed between October 2013 and September 2016) and the irrigation land leveling technique (implemented between April 2013 and March 2017) (Figure 2).\n\nLDEQ and its partners began to see steady improvement in the TDS levels in early 2016. LDEQ plans to continue monitoring improvements from BMP implementation, and will use the information to apply to future restoration efforts in other watersheds. ',
       submit_by: null,
@@ -106,7 +106,7 @@ export default {
       is_public: null,
       wb_ids:
         'BAYOU QUEUE DE TORTUE-FROM HEADWATERS TO MERMENTAU RIVER [LA050501_00]',
-      plts: 'Other',
+      pollutants: 'Agriculture',
     },
     {
       ss_seq: 1620,

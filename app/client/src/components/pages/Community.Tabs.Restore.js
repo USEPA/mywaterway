@@ -494,25 +494,20 @@ function Restore() {
                               <>
                                 {item.type1_fiscal_year && (
                                   <>
-                                    <em>Publication Year:</em>&nbsp;&nbsp;
+                                    Publication Year:&nbsp;&nbsp;
                                     {item.type1_fiscal_year}
                                     <br />
                                   </>
                                 )}
-                                {item.pollutants && (
-                                  <>
-                                    <em>Pollutants Addressed:</em>&nbsp;&nbsp;
-                                    {item.pollutants}
-                                    <br />
-                                  </>
-                                )}
-                                {item.poll_categories && (
-                                  <>
-                                    <em>Categories of Pollution:</em>
-                                    &nbsp;&nbsp;
-                                    {item.poll_categories}
-                                  </>
-                                )}
+                                <>
+                                  Pollutants Addressed:&nbsp;&nbsp;
+                                  {item.pollutants ?? 'N/A'}
+                                  <br />
+                                </>
+                                <>
+                                  Sources of Pollution: &nbsp;&nbsp;
+                                  {item.poll_sources ?? 'N/A'}
+                                </>
                               </>
                             }
                           >
