@@ -13,17 +13,20 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // utilities
-import { getSelectedCommunityTab } from 'utils/utils';
+import { fetchCheck } from 'utils/fetchUtils';
+import { getSelectedCommunityTab, titleCaseWithExceptions } from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
   AttainsImpairmentField,
+  AttainsActionsData,
   ChangeLocationAttributes,
   ClickedHucState,
   Feature,
   ParentLayer,
   PopupAttributes,
   PopupLookupFiles,
+  ServicesData,
   SuperLayer,
   TribeAttributes,
   VillageAttributes,
@@ -1161,4 +1164,38 @@ export function hideShowGraphicsFill(
 
   // re-draw the graphics
   layer.graphics = newGraphics;
+}
+
+// queries the actions service with the url provided and returns basic info about the
+// action as well as a list of associated pollutants
+export async function getPollutantsFromAction(
+  services: ServicesData,
+  parameters: string,
+) {
+  try {
+    const url = services.attains.serviceUrl + `actions?${parameters}`;
+    const res: AttainsActionsData = await fetchCheck(url, null, 120_000);
+
+    return res.items[0].actions.map((action) => {
+      // get water with matching assessment unit identifier
+      const pollutants = new Set<string>();
+      action.associatedWaters.specificWaters.forEach((water) => {
+        water.parameters.forEach((p) => {
+          if (!p?.parameterName) return;
+          pollutants.add(titleCaseWithExceptions(p.parameterName));
+        });
+      });
+
+      return {
+        orgId: action.organizationId,
+        id: action.actionIdentifier,
+        name: action.actionName,
+        pollutants: [...pollutants],
+        type: action.actionTypeCode,
+        date: action.completionDate,
+      };
+    });
+  } catch (ex) {
+    return [];
+  }
 }
