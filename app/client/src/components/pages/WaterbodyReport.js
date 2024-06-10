@@ -704,8 +704,7 @@ function WaterbodyReport() {
     if (services.status !== 'success') return;
 
     const parameters =
-      `actions?organizationIdentifier=${orgId}` +
-      `&assessmentUnitIdentifier=${auId}`;
+      `organizationIdentifier=${orgId}` + `&assessmentUnitIdentifier=${auId}`;
 
     getPollutantsFromAction(services.data, parameters)
       .then((res) => {
@@ -755,7 +754,7 @@ function WaterbodyReport() {
     }
 
     const parameters =
-      `actions?organizationIdentifier=${orgId}` +
+      `organizationIdentifier=${orgId}` +
       `&actionIdentifier=${additionalIds.join(',')}`;
 
     setActionsFetchedAgain(true);
