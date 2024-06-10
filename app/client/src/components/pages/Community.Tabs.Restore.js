@@ -487,18 +487,18 @@ function Restore() {
                       >
                         {sortedStoriesData.map((item) => (
                           <AccordionItem
-                            ariaLabel={item.ss_title}
+                            ariaLabel={item.ss_title ?? 'Unknown'}
                             key={item.ss_seq}
-                            title={<strong>{item.ss_title}</strong>}
+                            title={
+                              <strong>{item.ss_title ?? 'Unknown'}</strong>
+                            }
                             subTitle={
                               <>
-                                {item.type1_fiscal_year && (
-                                  <>
-                                    Publication Year:&nbsp;&nbsp;
-                                    {item.type1_fiscal_year}
-                                    <br />
-                                  </>
-                                )}
+                                <>
+                                  Publication Year:&nbsp;&nbsp;
+                                  {item.type1_fiscal_year ?? 'N/A'}
+                                  <br />
+                                </>
                                 <>
                                   Pollutants Addressed:&nbsp;&nbsp;
                                   {item.pollutants ?? 'N/A'}
