@@ -169,6 +169,7 @@ function LocationSearch({ route, label }: Props) {
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
   const [searchWidget, setSearchWidget] = useState(null);
 
+  // Store the waterbody suggestions to avoid a second fetch.
   const waterbodySuggestions = useRef(null);
 
   const allPlaceholder = 'Search by address, zip code, or place...';
