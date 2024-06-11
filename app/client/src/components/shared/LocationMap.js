@@ -990,9 +990,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const queryGrtsHuc12Stories = useCallback(
     (huc12Param) => {
-      //fetchCheck(`${services.data.grts.getSSByHUC12}${huc12Param}`)
-      import('config/grtsStoriesExample')
-        .then((res) => res.default)
+      fetchCheck(`${services.data.grts.getSSByHUC12}?huc12=${huc12Param}`)
         .then((res) => {
           setGrtsStories({
             data: res,
@@ -1007,7 +1005,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [setGrtsStories],
+    [services, setGrtsStories],
   );
 
   // Runs a query to get the plans for the selected huc.
