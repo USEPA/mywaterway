@@ -695,7 +695,7 @@ function LocationSearch({ route, label }: Props) {
                     setErrorMessage(webServiceErrorMessage);
                   });
               } else if (source.source.name === 'Waterbodies') {
-                const item = waterbodySuggestions.current.find(
+                const item = waterbodySuggestions.current?.find(
                   (wb) => wb.assessmentUnitId === result.key,
                 );
                 if (!item) {
