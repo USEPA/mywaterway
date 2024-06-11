@@ -7,10 +7,10 @@ export default {
       ss_title:
         'Implementing Agricultural Best Management Practices Reduces Total',
       ss_overview:
-        'As far back as 2002, the Louisiana Department of Environmental Quality (LDEQ) Integrated Report (IR) has indicated total dissolved solids (TDS), total suspended solids (TSS), sedimentation/siltation and turbidity as impairments to fish and wildlife propagation (FWP) use support in Bayou Queue de Tortue. LDEQ chose Bayou\nQueue de Tortue, LDEQ subsegment 050501, as one of the 40 priority watersheds and partnered with the Louisiana Department of Agriculture and Forestry (LDAF) and the U.S. Department of Agriculture (USDA) Natural Resources Conservation Service (NRCS) to implement best management practices (BMPs) to improve the health of the waterbody. The 2014 IR shows that FWP is no longer impaired due to TDS. It remains impaired by turbidity, but water quality data show progress. ',
+        'As far back as 2002, the Louisiana Department of Environmental Quality (LDEQ) Integrated Report (IR) has indicated total dissolved solids (TDS), total suspended solids (TSS), sedimentation/siltation and turbidity as impairments to fish and wildlife propagation (FWP) use support in Bayou Queue de Tortue. LDEQ chose Bayou\nQueue de Tortue, LDEQ subsegment 050501, as one of the 40 priority watersheds and partnered with the Louisiana Department of Agriculture and Forestry (LDAF) and the U.S. Department of Agriculture (USDA) Natural Resources Conservation Service (NRCS) to implement best management practices (BMPs) to improve the health of the waterbody. The 2014 IR shows that FWP is no longer impaired due to TDS. It remains impaired by turbidity, but water quality data show progress. As far back as 2002, the Louisiana Department of Environmental Quality (LDEQ) Integrated Report (IR) has indicated total dissolved solids (TDS), total suspended solids (TSS), sedimentation/siltation and turbidity as impairments to fish and wildlife propagation (FWP) use support in Bayou Queue de Tortue. LDEQ chose Bayou\nQueue de Tortue, LDEQ subsegment 050501, as one of the 40 priority watersheds and partnered with the Louisiana Department of Agriculture and Forestry (LDAF) and the U.S. Department of Agriculture (USDA) Natural Resources Conservation Service (NRCS) to implement best management practices (BMPs) to improve the health of the waterbody. The 2014 IR shows that FWP is no longer impaired due to TDS. It remains impaired by turbidity, but water quality data show progress. As far back as 2002, the Louisiana Department of Environmental Quality (LDEQ) Integrated Report (IR) has indicated total dissolved solids (TDS), total suspended solids (TSS), sedimentation/siltation and turbidity as impairments to fish and wildlife propagation (FWP) use support in Bayou Queue de Tortue. LDEQ chose Bayou\nQueue de Tortue, LDEQ subsegment 050501, as one of the 40 priority watersheds and partnered with the Louisiana Department of Agriculture and Forestry (LDAF) and the U.S. Department of Agriculture (USDA) Natural Resources Conservation Service (NRCS) to implement best management practices (BMPs) to improve the health of the waterbody. The 2014 IR shows that FWP is no longer impaired due to TDS. It remains impaired by turbidity, but water quality data show progress. ',
       ss_type: '1',
       num_wb_restored: null,
-      type1_fiscal_year: 2017,
+      type1_fiscal_year: 2016,
       publication_date: '2018-02-14T05:00:00Z',
       web_link:
         'https://www.epa.gov/sites/production/files/2018-02/documents/la_bayouqueuedetortue_1617_508.pdf',
@@ -46,7 +46,7 @@ export default {
         'Historical mining activities in southern Arizona’s Harshaw Creek basin left a legacy of mining waste that produced acid mine drainage. The Arizona Department of Environmental Quality (ADEQ) added a three-mile stretch of Upper Harshaw Creek (HUC 15050301-025A) to its 1996 and 1998 Clean Water Act (CWA) section 303(d) lists for impairments due to copper and acidity. ADEQ completed a total maximum daily load (TMDL) for copper and acidity in 2003. The U.S. Forest Service (USFS) conducted land reclamation and remediation work in the Harshaw Creek area between 2016 and 2019. This work helped to control acid mine drainage in the basin, which resulted in a measurable water quality improvement.',
       ss_type: '1',
       num_wb_restored: null,
-      type1_fiscal_year: 2017,
+      type1_fiscal_year: 2022,
       publication_date: '2018-02-14T05:00:00Z',
       web_link:
         'https://www.epa.gov/system/files/documents/2022-10/AZ_Harshaw%20Creek_2019_508.pdf',
@@ -82,7 +82,7 @@ export default {
         'Historical pesticide use in the Middle Gila River watershed contaminated aquatic life, making it unsafe for consumption. Based on these conditions, 12 segments within the Middle Gila River watershed were added to Arizona’s 2002 Clean Water Act (CWA) section 303(d) list for pesticide impairments (i.e., dichlorodiphenyltrichloroethane [DDT], chlordane and toxaphene). The natural degradation of the chemical constituents within the ecosystem, combined with landowner implementation of best management practices (BMPs), decreased pesticide levels in the watershed over time. Based on this improvement, Arizona removed 12 segments within the Middle Gila River watershed from itsimpaired waters list in 2014.',
       ss_type: '1',
       num_wb_restored: null,
-      type1_fiscal_year: 2017,
+      type1_fiscal_year: 2018,
       publication_date: '2018-02-14T05:00:00Z',
       web_link:
         'https://www.epa.gov/sites/production/files/2016-11/documents/az_middle_gila_508.pdf',
@@ -118,7 +118,7 @@ export default {
         'Shedding new light on the breeding patterns of the species, an oceanography study published Thursday by Harvard scientists revealed that salmon complete their annual transatlantic voyage using the same teleportation chamber as their ancestors. “This discovery helps solve the mystery of how these fish are able to travel hundreds of thousands of miles through the ocean to make it back to the rivers and streams where they were born,” said lead researcher Andy Nkosi, confirming that each generation of fish passes the exact geographic coordinates to press into the mass transporter’s keypad on to their offspring. “It’s fascinating to see how nature has responded to this unique ecological practice—it’s not an uncommon sight to see bears standing in wait right outside the teleporter in the hopes of catching a salmon as they resolidify after warping to fresh water.” Nkosi added that the salmon typically died shortly after spawning due to their destabilized DNA making their bodies disintegrate.',
       ss_type: '1',
       num_wb_restored: null,
-      type1_fiscal_year: 2017,
+      type1_fiscal_year: 2021,
       publication_date: '2018-02-14T05:00:00Z',
       web_link:
         'https://www.epa.gov/sites/production/files/2016-11/documents/az_middle_gila_508.pdf',

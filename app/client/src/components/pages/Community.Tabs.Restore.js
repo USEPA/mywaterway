@@ -1,7 +1,7 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
 // components
@@ -22,6 +22,7 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -31,7 +32,7 @@ import { useWaterbodyOnMap } from 'utils/hooks';
 import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
 import { countOrNotAvailable, getExtensionFromPath } from 'utils/utils';
 // styles
-import { iconStyles, modifiedTableStyles } from 'styles';
+import { fonts, iconStyles, modifiedTableStyles } from 'styles';
 // errors
 import {
   restoreNonpointSourceError,
@@ -59,8 +60,15 @@ const disclaimerStyles = css`
 
 const linkBoxStyles = css``;
 
-const storyStyles = css`
+const storySummaryStyles = css`
   padding: 0 0.75em 0.75em;
+
+  h3 {
+    display: inline-block;
+    font-family: ${fonts.primary};
+    font-size: 1em;
+    font-weight: bold;
+  }
 
   div {
     ${textBoxStyles}
@@ -78,6 +86,8 @@ function Restore() {
   // draw the waterbody on the map
   useWaterbodyOnMap('restoreTab', 'overallstatus');
 
+  const [storiesSortedBy, setStoriesSortedBy] = useState('ss_title');
+
   const sortedGrtsData =
     grts.data.items
       ?.filter((project) => {
@@ -88,7 +98,16 @@ function Restore() {
   const sortedStoriesData =
     grtsStories.data.items
       ?.filter((story) => story.ss_overview && story.web_link) // Filter stories that have no description text or url
-      .sort((a, b) => a.ss_title.localeCompare(b.ss_title)) ?? [];
+      .sort((a, b) => {
+        if (storiesSortedBy in a && storiesSortedBy in b) {
+          if (storiesSortedBy === 'type1_fiscal_year') {
+            return b[storiesSortedBy] - a[storiesSortedBy];
+          }
+
+          return a[storiesSortedBy].localeCompare(b[storiesSortedBy]);
+        } else if (storiesSortedBy in a) return -1;
+        else return 1;
+      }) ?? [];
 
   const sortedAttainsPlanData =
     attainsPlans.data.items
@@ -465,6 +484,17 @@ function Restore() {
 
                     {sortedStoriesData.length > 0 && (
                       <AccordionList
+                        onSortChange={({ value }) => setStoriesSortedBy(value)}
+                        sortOptions={[
+                          {
+                            label: 'Story Title',
+                            value: 'ss_title',
+                          },
+                          {
+                            label: 'Publication Year',
+                            value: 'type1_fiscal_year',
+                          },
+                        ]}
                         title={
                           <>
                             There{' '}
@@ -494,25 +524,35 @@ function Restore() {
                             }
                             subTitle={
                               <>
-                                <>
-                                  Publication Year:&nbsp;&nbsp;
-                                  {item.type1_fiscal_year ?? 'N/A'}
-                                  <br />
-                                </>
-                                <>
-                                  Pollutants Addressed:&nbsp;&nbsp;
-                                  {item.pollutants ?? 'N/A'}
-                                  <br />
-                                </>
-                                <>
-                                  Sources of Pollution: &nbsp;&nbsp;
-                                  {item.poll_sources ?? 'N/A'}
-                                </>
+                                Publication Year:&nbsp;&nbsp;
+                                {item.type1_fiscal_year ?? 'N/A'}
                               </>
                             }
                           >
-                            <div css={storyStyles}>
-                              <p>{item.ss_overview}</p>
+                            <ListContent
+                              rows={[
+                                {
+                                  label: 'Publication Year',
+                                  value: item.type1_fiscal_year ?? 'N/A',
+                                },
+                                {
+                                  label: 'Pollutants Addressed',
+                                  value: item.pollutants ?? 'N/A',
+                                },
+                                {
+                                  label: 'Sources of Pollution',
+                                  value: item.poll_sources ?? 'N/A',
+                                },
+                              ]}
+                            />
+                            <div css={storySummaryStyles}>
+                              <h3>Summary:</h3>
+                              <p>
+                                <ShowLessMore
+                                  charLimit={1000}
+                                  text={item.ss_overview}
+                                />
+                              </p>
                               <div css={linkBoxStyles}>
                                 <a
                                   href={item.web_link}
