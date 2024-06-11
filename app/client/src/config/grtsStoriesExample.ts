@@ -7,10 +7,10 @@ export default {
       ss_title:
         'Implementing Agricultural Best Management Practices Reduces Total',
       ss_overview:
-        'As far back as 2002, the Louisiana Department of Environmental Quality (LDEQ) Integrated Report (IR) has indicated total dissolved solids (TDS), total suspended solids (TSS), sedimentation/siltation and turbidity as impairments to fish and wildlife propagation (FWP) use support in Bayou Queue de Tortue. LDEQ chose Bayou\nQueue de Tortue, LDEQ subsegment 050501, as one of the 40 priority watersheds and partnered with the Louisiana Department of Agriculture and Forestry (LDAF) and the U.S. Department of Agriculture (USDA) Natural Resources Conservation Service (NRCS) to implement best management practices (BMPs) to improve the health of the waterbody. The 2014 IR shows that FWP is no longer impaired due to TDS. It remains impaired by turbidity, but water quality data show progress. ',
+        'As far back as 2002, the Louisiana Department of Environmental Quality (LDEQ) Integrated Report (IR) has indicated total dissolved solids (TDS), total suspended solids (TSS), sedimentation/siltation and turbidity as impairments to fish and wildlife propagation (FWP) use support in Bayou Queue de Tortue. LDEQ chose Bayou\nQueue de Tortue, LDEQ subsegment 050501, as one of the 40 priority watersheds and partnered with the Louisiana Department of Agriculture and Forestry (LDAF) and the U.S. Department of Agriculture (USDA) Natural Resources Conservation Service (NRCS) to implement best management practices (BMPs) to improve the health of the waterbody. The 2014 IR shows that FWP is no longer impaired due to TDS. It remains impaired by turbidity, but water quality data show progress. As far back as 2002, the Louisiana Department of Environmental Quality (LDEQ) Integrated Report (IR) has indicated total dissolved solids (TDS), total suspended solids (TSS), sedimentation/siltation and turbidity as impairments to fish and wildlife propagation (FWP) use support in Bayou Queue de Tortue. LDEQ chose Bayou\nQueue de Tortue, LDEQ subsegment 050501, as one of the 40 priority watersheds and partnered with the Louisiana Department of Agriculture and Forestry (LDAF) and the U.S. Department of Agriculture (USDA) Natural Resources Conservation Service (NRCS) to implement best management practices (BMPs) to improve the health of the waterbody. The 2014 IR shows that FWP is no longer impaired due to TDS. It remains impaired by turbidity, but water quality data show progress. As far back as 2002, the Louisiana Department of Environmental Quality (LDEQ) Integrated Report (IR) has indicated total dissolved solids (TDS), total suspended solids (TSS), sedimentation/siltation and turbidity as impairments to fish and wildlife propagation (FWP) use support in Bayou Queue de Tortue. LDEQ chose Bayou\nQueue de Tortue, LDEQ subsegment 050501, as one of the 40 priority watersheds and partnered with the Louisiana Department of Agriculture and Forestry (LDAF) and the U.S. Department of Agriculture (USDA) Natural Resources Conservation Service (NRCS) to implement best management practices (BMPs) to improve the health of the waterbody. The 2014 IR shows that FWP is no longer impaired due to TDS. It remains impaired by turbidity, but water quality data show progress. ',
       ss_type: '1',
       num_wb_restored: null,
-      type1_fiscal_year: 2017,
+      type1_fiscal_year: 2016,
       publication_date: '2018-02-14T05:00:00Z',
       web_link:
         'https://www.epa.gov/sites/production/files/2018-02/documents/la_bayouqueuedetortue_1617_508.pdf',
@@ -34,7 +34,7 @@ export default {
       is_public: null,
       wb_ids:
         'BAYOU QUEUE DE TORTUE-FROM HEADWATERS TO MERMENTAU RIVER [LA050501_00]',
-      plts: 'Other',
+      pollutants: 'Agriculture',
     },
     {
       ss_seq: 1618,
@@ -46,14 +46,14 @@ export default {
         'Historical mining activities in southern Arizona’s Harshaw Creek basin left a legacy of mining waste that produced acid mine drainage. The Arizona Department of Environmental Quality (ADEQ) added a three-mile stretch of Upper Harshaw Creek (HUC 15050301-025A) to its 1996 and 1998 Clean Water Act (CWA) section 303(d) lists for impairments due to copper and acidity. ADEQ completed a total maximum daily load (TMDL) for copper and acidity in 2003. The U.S. Forest Service (USFS) conducted land reclamation and remediation work in the Harshaw Creek area between 2016 and 2019. This work helped to control acid mine drainage in the basin, which resulted in a measurable water quality improvement.',
       ss_type: '1',
       num_wb_restored: null,
-      type1_fiscal_year: 2017,
+      type1_fiscal_year: 2022,
       publication_date: '2018-02-14T05:00:00Z',
       web_link:
         'https://www.epa.gov/system/files/documents/2022-10/AZ_Harshaw%20Creek_2019_508.pdf',
       grts_prj_ids: null,
       notes:
         '1. Abstract - "to improve the health of the water body." Did you partner with LDAF and NRCS to reduce loadings affecting TDS and turbidity, and thus restore the FWP standard? The abstract is not clear in how the LDAF BMPs would have an effect on the TDS and turbidity loadings as it states, "Dredging has caused a reduction in flow velocity and eroding spoil banks have increased the amount of solids." Yet, in the problem paragraph, it list suspected sources as irrigated crop production, atmospheric deposition - toxics. Then it says flow alterations from water Diversions and non-irrigated crop production. This is confusing.\n2. The problem statement will need to coincide with the abstract.\n3. You need photos are the eroding banks, and how it looks now - which hopefully will indicate the difference that the BMPs made in reducing solids to the bayou.\n4.You may want to better link the grade structures with having an effect on reducing TDS. show a picture.\n5. The 2014 IR would be produced from WQ data collected in 2013, and earlier. How could the BMPs that were implemented beginning in April and October, 2013, have had any effect on the load reduction numbers associated with the WQ data that went into the 2014 IR?\n6. Project Highlights - probably should summarize the BMPs - record keeping, for instance, may not be the most convincing unit to help with reducing loads. Also, the shallow water for wildlife should not have been considered a benefit to reducing TDS loadings, as well as pest mgmt. Hopefully, 319 was not used for these.\n7. "Results" - The waterbody remains impaired for DO and turbidity, and the expectation that turbidity will be addressed in 2016. What are the expectations that DO will be addressed with the same BMPs?\n8. Under the Watershed Plan section, place reference in the notes to state when the plan was approved by EPA.\n\nPlease revisit this SS - and clear this up. Headquarters would send this back. Thanks.\n\nAdam Jorge:Change poll listings.10.23.17',
-      plncat_types: null,
+      poll_sources: 'Other',
       prj_hlight_bmp_comments:
         'LDAF began implementing BMPs in 2004 and completed implementation in January 2017. BMPs implemented to date include conservation crop rotation (328 sites; 1,117.4 acres [ac]), residue management (344 sites; 6,008.2 ac), grade stabilization structures (410 sites; 32 ac), irrigation land leveling (464 sites; 4,638.72 ac), shallow water for wildlife (646 sites; 3,112.4 ac), nutrient management (590 sites; 17,052.2 ac), pest management (595 sites; 17,052.2 ac), record keeping (tracking pesticide and nutrient use to avoid overapplication) (748 sites; 17,052.2 ac), and dry seeding (2,232.4 ac).\n\nA watershed implementation plan was developed for Bayou Queue de Tortue in 2013. Bayou Queue de Tortue was made a priority in The Gulf of Mexico Initiative (GoMI). BMP implementation occurred in 2012–2014 to improve ecosystem health in the Gulf of Mexico, and also as part of the National Water Quality Initiative (NWQI) starting in 2014. \n\nAfter reviewing the BMPs implemented and their purposes, LDEQ determined that the most effective in reducing the TDS loads are the grade stabilization structures (constructed between October 2013 and September 2016) and the irrigation land leveling technique (implemented between April 2013 and March 2017) (Figure 2).\n\nLDEQ and its partners began to see steady improvement in the TDS levels in early 2016. LDEQ plans to continue monitoring improvements from BMP implementation, and will use the information to apply to future restoration efforts in other watersheds. ',
       submit_by: null,
@@ -70,7 +70,7 @@ export default {
       is_public: null,
       wb_ids:
         'BAYOU QUEUE DE TORTUE-FROM HEADWATERS TO MERMENTAU RIVER [LA050501_00]',
-      plts: 'Other',
+      pollutants: 'Other',
     },
     {
       ss_seq: 1619,
@@ -82,14 +82,14 @@ export default {
         'Historical pesticide use in the Middle Gila River watershed contaminated aquatic life, making it unsafe for consumption. Based on these conditions, 12 segments within the Middle Gila River watershed were added to Arizona’s 2002 Clean Water Act (CWA) section 303(d) list for pesticide impairments (i.e., dichlorodiphenyltrichloroethane [DDT], chlordane and toxaphene). The natural degradation of the chemical constituents within the ecosystem, combined with landowner implementation of best management practices (BMPs), decreased pesticide levels in the watershed over time. Based on this improvement, Arizona removed 12 segments within the Middle Gila River watershed from itsimpaired waters list in 2014.',
       ss_type: '1',
       num_wb_restored: null,
-      type1_fiscal_year: 2017,
+      type1_fiscal_year: 2018,
       publication_date: '2018-02-14T05:00:00Z',
       web_link:
         'https://www.epa.gov/sites/production/files/2016-11/documents/az_middle_gila_508.pdf',
       grts_prj_ids: null,
       notes:
         '1. Abstract - "to improve the health of the water body." Did you partner with LDAF and NRCS to reduce loadings affecting TDS and turbidity, and thus restore the FWP standard? The abstract is not clear in how the LDAF BMPs would have an effect on the TDS and turbidity loadings as it states, "Dredging has caused a reduction in flow velocity and eroding spoil banks have increased the amount of solids." Yet, in the problem paragraph, it list suspected sources as irrigated crop production, atmospheric deposition - toxics. Then it says flow alterations from water Diversions and non-irrigated crop production. This is confusing.\n2. The problem statement will need to coincide with the abstract.\n3. You need photos are the eroding banks, and how it looks now - which hopefully will indicate the difference that the BMPs made in reducing solids to the bayou.\n4.You may want to better link the grade structures with having an effect on reducing TDS. show a picture.\n5. The 2014 IR would be produced from WQ data collected in 2013, and earlier. How could the BMPs that were implemented beginning in April and October, 2013, have had any effect on the load reduction numbers associated with the WQ data that went into the 2014 IR?\n6. Project Highlights - probably should summarize the BMPs - record keeping, for instance, may not be the most convincing unit to help with reducing loads. Also, the shallow water for wildlife should not have been considered a benefit to reducing TDS loadings, as well as pest mgmt. Hopefully, 319 was not used for these.\n7. "Results" - The waterbody remains impaired for DO and turbidity, and the expectation that turbidity will be addressed in 2016. What are the expectations that DO will be addressed with the same BMPs?\n8. Under the Watershed Plan section, place reference in the notes to state when the plan was approved by EPA.\n\nPlease revisit this SS - and clear this up. Headquarters would send this back. Thanks.\n\nAdam Jorge:Change poll listings.10.23.17',
-      plncat_types: null,
+      poll_sources: 'Agriculture',
       prj_hlight_bmp_comments:
         'LDAF began implementing BMPs in 2004 and completed implementation in January 2017. BMPs implemented to date include conservation crop rotation (328 sites; 1,117.4 acres [ac]), residue management (344 sites; 6,008.2 ac), grade stabilization structures (410 sites; 32 ac), irrigation land leveling (464 sites; 4,638.72 ac), shallow water for wildlife (646 sites; 3,112.4 ac), nutrient management (590 sites; 17,052.2 ac), pest management (595 sites; 17,052.2 ac), record keeping (tracking pesticide and nutrient use to avoid overapplication) (748 sites; 17,052.2 ac), and dry seeding (2,232.4 ac).\n\nA watershed implementation plan was developed for Bayou Queue de Tortue in 2013. Bayou Queue de Tortue was made a priority in The Gulf of Mexico Initiative (GoMI). BMP implementation occurred in 2012–2014 to improve ecosystem health in the Gulf of Mexico, and also as part of the National Water Quality Initiative (NWQI) starting in 2014. \n\nAfter reviewing the BMPs implemented and their purposes, LDEQ determined that the most effective in reducing the TDS loads are the grade stabilization structures (constructed between October 2013 and September 2016) and the irrigation land leveling technique (implemented between April 2013 and March 2017) (Figure 2).\n\nLDEQ and its partners began to see steady improvement in the TDS levels in early 2016. LDEQ plans to continue monitoring improvements from BMP implementation, and will use the information to apply to future restoration efforts in other watersheds. ',
       submit_by: null,
@@ -106,7 +106,7 @@ export default {
       is_public: null,
       wb_ids:
         'BAYOU QUEUE DE TORTUE-FROM HEADWATERS TO MERMENTAU RIVER [LA050501_00]',
-      plts: 'Other',
+      pollutants: 'Agriculture',
     },
     {
       ss_seq: 1620,
@@ -118,7 +118,7 @@ export default {
         'Shedding new light on the breeding patterns of the species, an oceanography study published Thursday by Harvard scientists revealed that salmon complete their annual transatlantic voyage using the same teleportation chamber as their ancestors. “This discovery helps solve the mystery of how these fish are able to travel hundreds of thousands of miles through the ocean to make it back to the rivers and streams where they were born,” said lead researcher Andy Nkosi, confirming that each generation of fish passes the exact geographic coordinates to press into the mass transporter’s keypad on to their offspring. “It’s fascinating to see how nature has responded to this unique ecological practice—it’s not an uncommon sight to see bears standing in wait right outside the teleporter in the hopes of catching a salmon as they resolidify after warping to fresh water.” Nkosi added that the salmon typically died shortly after spawning due to their destabilized DNA making their bodies disintegrate.',
       ss_type: '1',
       num_wb_restored: null,
-      type1_fiscal_year: 2017,
+      type1_fiscal_year: 2021,
       publication_date: '2018-02-14T05:00:00Z',
       web_link:
         'https://www.epa.gov/sites/production/files/2016-11/documents/az_middle_gila_508.pdf',
