@@ -34,7 +34,8 @@ export default {
       is_public: null,
       wb_ids:
         'BAYOU QUEUE DE TORTUE-FROM HEADWATERS TO MERMENTAU RIVER [LA050501_00]',
-      pollutants: 'Agriculture',
+      pollutants:
+        'Agriculture,Pathogens,Pesticides,Mercury,Nutrients,Sediments,Trash,Temperature,Dioxins',
     },
     {
       ss_seq: 1618,
@@ -70,7 +71,8 @@ export default {
       is_public: null,
       wb_ids:
         'BAYOU QUEUE DE TORTUE-FROM HEADWATERS TO MERMENTAU RIVER [LA050501_00]',
-      pollutants: 'Other',
+      pollutants:
+        'Agriculture, Pathogens, Pesticides, Mercury, Nutrients, Sediments, Trash, Temperature, Dioxins',
     },
     {
       ss_seq: 1619,
