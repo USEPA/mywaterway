@@ -169,6 +169,9 @@ function LocationSearch({ route, label }: Props) {
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
   const [searchWidget, setSearchWidget] = useState(null);
 
+  // Store the waterbody suggestions to avoid a second fetch.
+  const waterbodySuggestions = useRef(null);
+
   const allPlaceholder = 'Search by address, zip code, or place...';
   const allSources = useMemo(
     () => [
@@ -329,7 +332,7 @@ function LocationSearch({ route, label }: Props) {
               return fetchPost(
                 `${services.data.expertQuery.attains}/assessmentUnits/values/assessmentUnitId`,
                 {
-                  additionalColumns: ['assessmentUnitName'],
+                  additionalColumns: ['assessmentUnitName', 'organizationId'],
                   direction: 'asc',
                   limit: maxSuggestions,
                   text: suggestTerm,
@@ -347,6 +350,8 @@ function LocationSearch({ route, label }: Props) {
                     console.error('Source "Waterbodies" not found');
                     return [];
                   }
+
+                  waterbodySuggestions.current = res;
 
                   return res.map(
                     ({ assessmentUnitId, assessmentUnitName }) => ({
@@ -690,40 +695,17 @@ function LocationSearch({ route, label }: Props) {
                     setErrorMessage(webServiceErrorMessage);
                   });
               } else if (source.source.name === 'Waterbodies') {
-                const url = `${services.data.expertQuery.attains}/assessmentUnits`;
-                fetchPost(
-                  url,
-                  {
-                    columns: [
-                      'assessmentUnitId',
-                      'organizationId',
-                      'reportingCycle',
-                    ],
-                    filters: {
-                      assessmentUnitId: [result.key],
-                    },
-                    options: { format: 'json' },
-                  },
-                  {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': services.data.expertQuery.apiKey,
-                  },
-                )
-                  .then((res) => {
-                    const item = res.data[0];
-                    if (!item) {
-                      setErrorMessage(webServiceErrorMessage);
-                      return;
-                    }
-                    const { assessmentUnitId, organizationId, reportingCycle } =
-                      item;
-                    formSubmit({
-                      target: `waterbody-report/${organizationId}/${assessmentUnitId}/${reportingCycle}`,
-                    });
-                  })
-                  .catch((_err) => {
-                    setErrorMessage(webServiceErrorMessage);
-                  });
+                const item = waterbodySuggestions.current?.find(
+                  (wb) => wb.assessmentUnitId === result.key,
+                );
+                if (!item) {
+                  setErrorMessage(webServiceErrorMessage);
+                  return;
+                }
+                const { assessmentUnitId, organizationId } = item;
+                formSubmit({
+                  target: `waterbody-report/${organizationId}/${assessmentUnitId}`,
+                });
               } else {
                 // query to get the feature and search based on the centroid
                 const params = result.source.layer.createQuery();
