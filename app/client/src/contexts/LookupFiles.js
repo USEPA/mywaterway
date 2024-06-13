@@ -22,6 +22,16 @@ function getLookupFile(filename: string, setVariable: Function) {
 
 // --- components ---
 type LookupFiles = {
+  attainsImpairmentFields: LookupFile,
+  setAttainsImpairmentFields: Function,
+  attainsParameters: LookupFile,
+  setAttainsParameters: Function,
+  attainsUseFields: LookupFile,
+  setAttainsUseFields: Function,
+  characteristicGroupMappings: LookupFile,
+  setCharacteristicGroupMappings: Function,
+  cyanMetadata: LookupFile,
+  setCyanMetadata: Function,
   dataSources: LookupFile,
   documentOrder: LookupFile,
   setDocumentOrder: Function,
@@ -47,11 +57,23 @@ type LookupFiles = {
   setSurveyMapping: Function,
   tribeMapping: LookupFile,
   setTribeMapping: Function,
+  usgsStaParameters: LookupFile,
+  setUsgsStaParameters: Function,
   waterTypeOptions: LookupFile,
   setWaterTypeOptions: Function,
 };
 
 const LookupFilesContext: Object = createContext<LookupFiles>({
+  attainsImpairmentFields: { status: 'fetching', data: null },
+  setAttainsImpairmentFields: () => {},
+  attainsParameters: { status: 'fetching', data: null },
+  setAttainsParameters: () => {},
+  attainsUseFields: { status: 'fetching', data: null },
+  setAttainsUseFields: () => {},
+  characteristicGroupMappings: { status: 'fetching', data: null },
+  setCharacteristicGroupMappings: () => {},
+  cyanMetadata: { status: 'fetching', data: null },
+  setCyanMetadata: () => {},
   dataSources: { status: 'fetching', data: null },
   setDataSources: () => {},
   documentOrder: { status: 'fetching', data: null },
@@ -78,6 +100,8 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setSurveyMapping: () => {},
   tribeMapping: { status: 'fetching', data: null },
   setTribeMapping: () => {},
+  usgsStaParameters: { status: 'fetching', data: null },
+  setUsgsStaParameters: () => {},
   waterTypeOptions: { status: 'fetching', data: null },
   setWaterTypeOptions: () => {},
 });
@@ -87,6 +111,27 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
+  const [attainsImpairmentFields, setAttainsImpairmentFields] = useState({
+    status: 'fetching',
+    data: null,
+  });
+  const [attainsParameters, setAttainsParameters] = useState({
+    status: 'fetching',
+    data: null,
+  });
+  const [attainsUseFields, setAttainsUseFields] = useState({
+    status: 'fetching',
+    data: null,
+  });
+  const [characteristicGroupMappings, setCharacteristicGroupMappings] =
+    useState({
+      status: 'fetching',
+      data: null,
+    });
+  const [cyanMetadata, setCyanMetadata] = useState({
+    status: 'fetching',
+    data: null,
+  });
   const [dataSources, setDataSources] = useState({
     status: 'fetching',
     data: null,
@@ -139,6 +184,10 @@ function LookupFilesProvider({ children }: Props) {
     status: 'fetching',
     data: [],
   });
+  const [usgsStaParameters, setUsgsStaParameters] = useState({
+    status: 'fetching',
+    data: [],
+  });
   const [waterTypeOptions, setWaterTypeOptions] = useState({
     status: 'fetching',
     data: {},
@@ -146,6 +195,16 @@ function LookupFilesProvider({ children }: Props) {
 
   const state = useMemo(
     () => ({
+      attainsImpairmentFields,
+      setAttainsImpairmentFields,
+      attainsParameters,
+      setAttainsParameters,
+      attainsUseFields,
+      setAttainsUseFields,
+      characteristicGroupMappings,
+      setCharacteristicGroupMappings,
+      cyanMetadata,
+      setCyanMetadata,
       dataSources,
       setDataSources,
       documentOrder,
@@ -172,10 +231,17 @@ function LookupFilesProvider({ children }: Props) {
       setSurveyMapping,
       tribeMapping,
       setTribeMapping,
+      usgsStaParameters,
+      setUsgsStaParameters,
       waterTypeOptions,
       setWaterTypeOptions,
     }),
     [
+      attainsImpairmentFields,
+      attainsParameters,
+      attainsUseFields,
+      characteristicGroupMappings,
+      cyanMetadata,
       dataSources,
       documentOrder,
       educatorMaterials,
@@ -189,6 +255,7 @@ function LookupFilesProvider({ children }: Props) {
       stateNationalUses,
       surveyMapping,
       tribeMapping,
+      usgsStaParameters,
       waterTypeOptions,
     ],
   );
@@ -198,6 +265,83 @@ function LookupFilesProvider({ children }: Props) {
       {children}
     </LookupFilesContext.Provider>
   );
+}
+
+// Custom hook for the attains/parameters.json file.
+let attainsImpairmentFieldsInitialized = false; // global var for ensuring fetch only happens once
+function useAttainsImpairmentFieldsContext() {
+  const { attainsImpairmentFields, setAttainsImpairmentFields } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!attainsImpairmentFieldsInitialized) {
+    attainsImpairmentFieldsInitialized = true;
+    getLookupFile('attains/impairmentFields.json', setAttainsImpairmentFields);
+  }
+
+  return attainsImpairmentFields;
+}
+
+// Custom hook for the attains/parameters.json file.
+let attainsParametersInitialized = false; // global var for ensuring fetch only happens once
+function useAttainsParametersContext() {
+  const { attainsParameters, setAttainsParameters } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!attainsParametersInitialized) {
+    attainsParametersInitialized = true;
+    getLookupFile('attains/parameters.json', setAttainsParameters);
+  }
+
+  return attainsParameters;
+}
+
+// Custom hook for the attains/useFields.json file.
+let attainsUseFieldsInitialized = false; // global var for ensuring fetch only happens once
+function useAttainsUseFieldsContext() {
+  const { attainsUseFields, setAttainsUseFields } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!attainsUseFieldsInitialized) {
+    attainsUseFieldsInitialized = true;
+    getLookupFile('attains/useFields.json', setAttainsUseFields);
+  }
+
+  return attainsUseFields;
+}
+
+// Custom hook for the community/characteristicGroupMappings.json file.
+let characteristicGroupMappingsInitialized = false; // global var for ensuring fetch only happens once
+function useCharacteristicGroupMappingsContext() {
+  const { characteristicGroupMappings, setCharacteristicGroupMappings } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!characteristicGroupMappingsInitialized) {
+    characteristicGroupMappingsInitialized = true;
+    getLookupFile(
+      'community/characteristicGroupMappings.json',
+      setCharacteristicGroupMappings,
+    );
+  }
+
+  return characteristicGroupMappings;
+}
+
+// Custom hook for the community/cyan-metadata.json file.
+let cyanMetadataInitialized = false; // global var for ensuring fetch only happens once
+function useCyanMetadataContext() {
+  const { cyanMetadata, setCyanMetadata } = useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!cyanMetadataInitialized) {
+    cyanMetadataInitialized = true;
+    getLookupFile('community/cyan-metadata.json', setCyanMetadata);
+  }
+
+  return cyanMetadata;
 }
 
 // Custom hook for the dataPage.json file.
@@ -439,6 +583,21 @@ function useTribeMappingContext() {
   return tribeMapping;
 }
 
+// Custom hook for the community/usgs-sta-parameters.json file.
+let usgsStaParametersInitialized = false; // global var for ensuring fetch only happens once
+function useUsgsStaParametersContext() {
+  const { usgsStaParameters, setUsgsStaParameters } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!usgsStaParametersInitialized) {
+    usgsStaParametersInitialized = true;
+    getLookupFile('community/usgs-sta-parameters.json', setUsgsStaParameters);
+  }
+
+  return usgsStaParameters;
+}
+
 // Custom hook for the waterTypeOptions.json lookup file.
 let waterTypeOptionsInitialized = false; // global var for ensuring fetch only happens once
 function useWaterTypeOptionsContext() {
@@ -457,6 +616,11 @@ function useWaterTypeOptionsContext() {
 export {
   LookupFilesContext,
   LookupFilesProvider,
+  useAttainsImpairmentFieldsContext,
+  useAttainsParametersContext,
+  useAttainsUseFieldsContext,
+  useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
   useDataSourcesContext,
   useDocumentOrderContext,
   useEducatorMaterialsContext,
@@ -470,5 +634,6 @@ export {
   useStateNationalUsesContext,
   useSurveyMappingContext,
   useTribeMappingContext,
+  useUsgsStaParametersContext,
   useWaterTypeOptionsContext,
 };

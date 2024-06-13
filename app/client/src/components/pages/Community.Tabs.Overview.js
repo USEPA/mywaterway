@@ -37,7 +37,11 @@ import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import {
   useCyanWaterbodies,
@@ -411,6 +415,8 @@ function MonitoringAndSensorsTab({
   const { cyanLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
     useLayers();
 
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const cyanMetadata = useCyanMetadataContext();
   const services = useServicesContext();
 
   const [expandedRows, setExpandedRows] = useState([]);
@@ -592,8 +598,8 @@ function MonitoringAndSensorsTab({
             <div css={accordionContentStyles}>
               <WaterbodyInfo
                 feature={feature}
+                lookupFiles={{ cyanMetadata, services }}
                 mapView={mapView}
-                services={services}
                 type="Blue-Green Algae"
               />
               <ViewOnMapButton feature={feature} fieldName="FID" />
@@ -654,9 +660,9 @@ function MonitoringAndSensorsTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
-                type={monitoringType}
                 feature={feature}
-                services={services}
+                lookupFiles={{ characteristicGroupMappings, services }}
+                type={monitoringType}
               />
               <ViewOnMapButton feature={feature} />
             </div>
@@ -666,6 +672,8 @@ function MonitoringAndSensorsTab({
     },
     [
       accordionItemToggleHandlers,
+      characteristicGroupMappings,
+      cyanMetadata,
       expandedRows,
       filteredMonitoringAndSensors,
       mapView,

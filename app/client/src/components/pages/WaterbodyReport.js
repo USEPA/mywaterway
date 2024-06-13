@@ -36,17 +36,15 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
-import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
+import {
+  getPollutantsFromAction,
+  mapRestorationPlanToGlossary,
+} from 'utils/mapFunctions';
 import { titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { colors } from 'styles/index';
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
-
-function filterActions(actions, orgId) {
-  // filter out any actions with org ids that don't match the one provided
-  return actions.filter((item) => item.organizationIdentifier === orgId);
-}
 
 const containerStyles = css`
   ${splitLayoutContainerStyles};
@@ -703,43 +701,23 @@ function WaterbodyReport() {
   // fetch waterbody actions from attains 'actions' web service, using the
   // 'organizationId' and 'assessmentUnitIdentifier' query string parameters
   useEffect(() => {
-    const url =
-      services.data.attains.serviceUrl +
-      `actions?organizationIdentifier=${orgId}` +
-      `&assessmentUnitIdentifier=${auId}` +
-      `&summarize=Y`;
+    if (services.status !== 'success') return;
 
-    fetchCheck(url).then(
-      (res) => {
-        // filter out any actions with org ids that don't match the one provided
-        const filteredActions = filterActions(res.items, orgId);
-        if (filteredActions.length < 1) {
+    const parameters = `organizationIdentifier=${orgId}&assessmentUnitIdentifier=${auId}`;
+
+    getPollutantsFromAction(services.data, parameters)
+      .then((res) => {
+        if (res.length === 0) {
           setWaterbodyActions({ status: 'pending', data: [] });
           return;
         }
 
-        const actions = filteredActions[0].actions.map((action) => {
-          // get water with matching assessment unit identifier
-          const pollutants = action.parameters.map((p) =>
-            titleCaseWithExceptions(p.parameterName),
-          );
-
-          return {
-            id: action.actionIdentifier,
-            name: action.actionName,
-            pollutants,
-            type: action.actionTypeCode,
-            date: action.completionDate,
-          };
-        });
-
-        setWaterbodyActions({ status: 'pending', data: actions });
-      },
-      (err) => {
+        setWaterbodyActions({ status: 'pending', data: res });
+      })
+      .catch((ex) => {
+        console.error(ex);
         setWaterbodyActions({ status: 'failure', data: [] });
-        console.error(err);
-      },
-    );
+      });
   }, [auId, orgId, services]);
 
   // call attains 'actions' web service again, this time using the
@@ -751,86 +729,62 @@ function WaterbodyReport() {
   useEffect(() => {
     if (actionsFetchedAgain) return;
     if (allParameterActionIds.status === 'fetching') return;
-    if (waterbodyActions.status === 'pending') {
-      // action ids from the initial attains 'actions' web service call
-      const initialIds = waterbodyActions.data.map((a) => a.id);
+    if (services.status !== 'success') return;
+    if (waterbodyActions.status !== 'pending') return;
 
-      // additional action ids from the parameters returned in the attains
-      // 'assessments' web service, that weren't returned in the initial
-      // attains 'actions' web service call
-      const additionalIds = allParameterActionIds.data.filter((id) => {
-        return initialIds.indexOf(id) === -1;
-      });
+    // action ids from the initial attains 'actions' web service call
+    const initialIds = waterbodyActions.data.map((a) => a.id);
 
-      // if there are no additional ids, use the data from initial attains
-      // 'actions' web service call
-      if (additionalIds.length === 0) {
-        setWaterbodyActions((actions) => ({
-          status: 'success',
-          data: actions.data,
-        }));
-        return;
-      }
+    // additional action ids from the parameters returned in the attains
+    // 'assessments' web service, that weren't returned in the initial
+    // attains 'actions' web service call
+    const additionalIds = allParameterActionIds.data.filter((id) => {
+      return initialIds.indexOf(id) === -1;
+    });
 
-      const url =
-        services.data.attains.serviceUrl +
-        `actions?organizationIdentifier=${orgId}` +
-        `&actionIdentifier=${additionalIds.join(',')}` +
-        `&summarize=Y`;
+    // if there are no additional ids, use the data from initial attains
+    // 'actions' web service call
+    if (additionalIds.length === 0) {
+      setWaterbodyActions((actions) => ({
+        status: 'success',
+        data: actions.data,
+      }));
+      return;
+    }
 
-      setActionsFetchedAgain(true);
+    const parameters = `organizationIdentifier=${orgId}&actionIdentifier=${additionalIds.join(',')}`;
 
-      fetchCheck(url)
-        .then((res) => {
-          if (res.items.length < 1) {
-            // if there are no new items (there should be), at least use the
-            // data from the initial attains 'actions' web service call
-            setWaterbodyActions((actions) => ({
-              status: 'success',
-              data: actions.data,
-            }));
-            return;
-          }
+    setActionsFetchedAgain(true);
 
-          // filter out any actions with org ids that don't match the one provided
-          const filteredActions = filterActions(res.items, orgId);
-
-          // build up additionalActions from each action in each item in the response
-          const additionalActions = [];
-
-          filteredActions.forEach((item) => {
-            item.actions.forEach((action) => {
-              const pollutants = action.parameters.map((p) => {
-                return titleCaseWithExceptions(p.parameterName);
-              });
-
-              additionalActions.push({
-                id: action.actionIdentifier,
-                name: action.actionName,
-                pollutants,
-                type: action.actionTypeCode,
-                date: action.completionDate,
-              });
-            });
-          });
-
-          // append additional actions to the data from the initial attains
-          // 'actions' web service call
-          setWaterbodyActions((actions) => ({
-            status: 'success',
-            data: actions.data.concat(...additionalActions),
-          }));
-        })
-        .catch((err) => {
-          console.error(err);
-          // if the request failed, at least use the data from the initial
-          // attains 'actions' web service call
+    getPollutantsFromAction(services.data, parameters)
+      .then((additionalActions) => {
+        if (additionalActions.length === 0) {
+          // if there are no new items (there should be), at least use the
+          // data from the initial attains 'actions' web service call
           setWaterbodyActions((actions) => ({
             status: 'success',
             data: actions.data,
           }));
-        });
-    }
+          return;
+        }
+
+        // append additional actions to the data from the initial attains
+        // 'actions' web service call
+        setWaterbodyActions((actions) => ({
+          status: 'success',
+          data: actions.data.concat(...additionalActions),
+        }));
+      })
+      .catch((ex) => {
+        console.error(ex);
+
+        // if the request failed, at least use the data from the initial
+        // attains 'actions' web service call
+        setWaterbodyActions((actions) => ({
+          status: 'success',
+          data: actions.data,
+        }));
+      });
   }, [
     actionsFetchedAgain,
     allParameterActionIds,

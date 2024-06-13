@@ -2,10 +2,8 @@
 /** @jsxImportSource @emotion/react */
 
 import { useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
 import { css } from '@emotion/react';
 // components
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { linkButtonStyles } from 'components/shared/LinkButton';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // config
@@ -157,24 +155,6 @@ function DataContent() {
 
   const { data, status } = useDataSourcesContext();
 
-  useEffect(() => {
-    if (status !== 'success') return;
-    const spans = Array.from(document.querySelectorAll('span'));
-    spans.forEach((span) => {
-      if (
-        !span.dataset.hasOwnProperty('glossaryTerm') ||
-        !span.dataset.hasOwnProperty('term')
-      )
-        return;
-
-      const node = document.createElement('span');
-      createRoot(node).render(
-        <GlossaryTerm term={span.dataset.term}>{span.innerText}</GlossaryTerm>,
-      );
-      span.parentNode.replaceChild(node, span);
-    });
-  }, [status]);
-
   if (status === 'fetching') return <LoadingSpinner />;
 
   if (status === 'failure') {
@@ -217,6 +197,7 @@ function DataContent() {
             description,
             extraContent,
             id,
+            includeExit,
             linkHref,
             linkLabel,
             shortName,
@@ -233,6 +214,16 @@ function DataContent() {
                 <a href={linkHref} target="_blank" rel="noopener noreferrer">
                   {linkLabel}
                 </a>
+                {includeExit && (
+                  <a
+                    class="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
+                )}
               </div>
               <p dangerouslySetInnerHTML={{ __html: description }} />
               <br />

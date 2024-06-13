@@ -13,18 +13,20 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // utilities
-import { getSelectedCommunityTab } from 'utils/utils';
+import { fetchCheck } from 'utils/fetchUtils';
+import { getSelectedCommunityTab, titleCaseWithExceptions } from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  AttainsImpairmentField,
+  AttainsActionsData,
   ChangeLocationAttributes,
   ClickedHucState,
   Feature,
-  ImpairmentFields,
-  LookupFile,
   ParentLayer,
   PopupAttributes,
-  ServicesState,
+  PopupLookupFiles,
+  ServicesData,
   SuperLayer,
   TribeAttributes,
   VillageAttributes,
@@ -545,6 +547,7 @@ function isVillage(
 export function plotIssues(
   features: __esri.Graphic[],
   layer: any,
+  lookupFiles: PopupLookupFiles,
   navigate: NavigateFunction,
 ) {
   if (!features || !layer) return;
@@ -572,6 +575,7 @@ export function plotIssues(
           content: (feature: Feature) =>
             getPopupContent({
               feature: feature.graphic,
+              lookupFiles,
               navigate,
             }),
         },
@@ -584,8 +588,7 @@ export const openPopup = (
   view: __esri.MapView,
   feature: __esri.Graphic,
   fields: __esri.Field[],
-  services: ServicesState,
-  stateNationalUses: LookupFile,
+  lookupFiles: PopupLookupFiles,
   navigate: NavigateFunction,
 ) => {
   const fieldName = feature.attributes?.fieldName;
@@ -602,8 +605,7 @@ export const openPopup = (
           feature: feature.graphic,
           fields,
           fieldName,
-          services,
-          stateNationalUses,
+          lookupFiles,
           navigate,
         }),
     });
@@ -766,8 +768,7 @@ export function getPopupContent({
   getClickedHuc,
   mapView,
   resetData,
-  services,
-  stateNationalUses,
+  lookupFiles,
   fields,
   navigate,
 }: {
@@ -777,8 +778,7 @@ export function getPopupContent({
   getClickedHuc?: Promise<ClickedHucState> | null;
   mapView?: __esri.MapView;
   resetData?: () => void;
-  services?: ServicesState;
-  stateNationalUses?: LookupFile;
+  lookupFiles?: PopupLookupFiles;
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
 }) {
@@ -899,8 +899,7 @@ export function getPopupContent({
       getClickedHuc={getClickedHuc}
       mapView={mapView}
       resetData={resetData}
-      services={services}
-      stateNationalUses={stateNationalUses}
+      lookupFiles={lookupFiles}
       fields={fields}
       navigate={navigate}
     />
@@ -1119,7 +1118,7 @@ export function hasDefinitionExpression(layer: __esri.Layer) {
 
 // translate scientific parameter names
 export const getMappedParameter = (
-  parameterFields: ImpairmentFields,
+  parameterFields: AttainsImpairmentField[],
   parameter: string,
 ) => {
   const filteredFields = parameterFields.filter(
@@ -1165,4 +1164,38 @@ export function hideShowGraphicsFill(
 
   // re-draw the graphics
   layer.graphics = newGraphics;
+}
+
+// queries the actions service with the url provided and returns basic info about the
+// action as well as a list of associated pollutants
+export async function getPollutantsFromAction(
+  services: ServicesData,
+  parameters: string,
+) {
+  try {
+    const url = services.attains.serviceUrl + `actions?${parameters}`;
+    const res: AttainsActionsData = await fetchCheck(url, null, 120_000);
+
+    return res.items[0].actions.map((action) => {
+      // get water with matching assessment unit identifier
+      const pollutants = new Set<string>();
+      action.associatedWaters.specificWaters.forEach((water) => {
+        water.parameters.forEach((p) => {
+          if (!p?.parameterName) return;
+          pollutants.add(titleCaseWithExceptions(p.parameterName));
+        });
+      });
+
+      return {
+        orgId: action.organizationId,
+        id: action.actionIdentifier,
+        name: action.actionName,
+        pollutants: [...pollutants],
+        type: action.actionTypeCode,
+        date: action.completionDate,
+      };
+    });
+  } catch (ex) {
+    return [];
+  }
 }

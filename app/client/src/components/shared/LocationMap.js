@@ -38,13 +38,13 @@ import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsParametersContext,
+  useAttainsUseFieldsContext,
   useOrganizationsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
-// data
-import { impairmentFields } from 'config/attainsToHmwMapping';
-import { parameterList } from 'config/attainsParameters';
 // errors
 import {
   geocodeError,
@@ -104,6 +104,9 @@ type Props = {
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { getSignal } = useAbort();
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsParameters = useAttainsParametersContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
@@ -138,6 +141,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setDrinkingWater,
     setStatesData,
     setGrts,
+    setGrtsStories,
     setFishingInfo,
     setHucBoundaries,
     setAtHucBoundaries,
@@ -304,13 +308,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             tempObject[parameter] = checkParameterStatus(
               parameter,
               assessment.parameters,
-              impairmentFields,
+              attainsImpairmentFields.data,
               attainsDomainsData,
             );
           });
           return tempObject;
         }
-        const parametersObject = createParametersObject(parameterList);
+        const parametersObject = createParametersObject(attainsParameters.data);
 
         return {
           limited: true,
@@ -347,7 +351,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         };
       });
     },
-    [stateNationalUses],
+    [attainsImpairmentFields, attainsParameters, stateNationalUses],
   );
 
   const handleOrphanedFeatures = useCallback(
@@ -666,11 +670,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          services,
-          stateNationalUses,
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            services,
+            stateNationalUses,
+          },
         }),
     };
-  }, [navigate, services, stateNationalUses]);
+  }, [
+    attainsImpairmentFields,
+    attainsUseFields,
+    navigate,
+    services,
+    stateNationalUses,
+  ]);
 
   const handleMapServiceError = useCallback(
     (err) => {
@@ -966,12 +980,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .catch((err) => {
           console.error(err);
           setGrts({
-            data: [],
+            data: {},
             status: 'failure',
           });
         });
     },
     [setGrts, services],
+  );
+
+  const queryGrtsHuc12Stories = useCallback(
+    (huc12Param) => {
+      //fetchCheck(`${services.data.grts.getSSByHUC12}${huc12Param}`)
+      import('config/grtsStoriesExample')
+        .then((res) => res.default)
+        .then((res) => {
+          setGrtsStories({
+            data: res,
+            status: 'success',
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          setGrtsStories({
+            data: {},
+            status: 'failure',
+          });
+        });
+    },
+    [setGrtsStories],
   );
 
   // Runs a query to get the plans for the selected huc.
@@ -1339,6 +1375,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setHuc12(huc12);
           processBoundariesData(response);
           queryGrtsHuc12(huc12);
+          queryGrtsHuc12Stories(huc12);
           queryAttainsPlans(huc12);
 
           // create canonical link and JSON LD
@@ -1356,6 +1393,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setHuc12,
       processBoundariesData,
       queryGrtsHuc12,
+      queryGrtsHuc12Stories,
       queryAttainsPlans,
       handleNoDataAvailable,
     ],
