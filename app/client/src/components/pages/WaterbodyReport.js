@@ -681,46 +681,44 @@ function WaterbodyReport() {
     );
   }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled, services]);
 
-  // Get all reporting cycles for the waterbody.
+  // get all reporting cycles for the waterbody
   const [allReportingCycles, setAllReportingCycles] = useState({
     status: 'fetching',
     data: [],
   });
-  console.log(allReportingCycles);
   useEffect(() => {
     if (services.status !== 'success') return;
 
-    // recursive function to fetch all reporting cycles for the waterbody (this will probably never take more than 1 call)
-    const fetchCycles = (acc = []) => {
-      fetchPost(
-        `${services.data.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
-        {
-          direction: 'asc',
-          filters: { assessmentUnitId: auId },
-          limit: services.data.expertQuery.valuesLimit,
-          ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
-        },
-        {
-          'Content-Type': 'application/json',
-          'X-Api-Key': services.data.expertQuery.apiKey,
-        },
-      )
-        .then((res) => {
-          const newValues = res.map((item) => item.reportingCycle);
-          if (newValues.length === services.data.expertQuery.valuesLimit) {
-            fetchCycles(acc.concat(newValues));
-          } else {
-            setAllReportingCycles({
-              status: 'success',
-              data: acc.concat(newValues),
-            });
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          setAllReportingCycles({ status: 'failure', data: [] });
-        });
-    };
+    // recursive function to page through all reporting cycles
+    async function fetchCycles(acc = []) {
+      try {
+        const res = await fetchPost(
+          `${services.data.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
+          {
+            direction: 'asc',
+            filters: { assessmentUnitId: auId },
+            limit: services.data.expertQuery.valuesLimit,
+            ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
+          },
+          {
+            'Content-Type': 'application/json',
+            'X-Api-Key': services.data.expertQuery.apiKey,
+          },
+        );
+        const newValues = res.map((item) => item.reportingCycle);
+        if (newValues.length === services.data.expertQuery.valuesLimit) {
+          fetchCycles(acc.concat(newValues));
+        } else {
+          setAllReportingCycles({
+            status: 'success',
+            data: acc.concat(newValues),
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        setAllReportingCycles({ status: 'failure', data: [] });
+      }
+    }
 
     fetchCycles();
   }, [auId, services]);
