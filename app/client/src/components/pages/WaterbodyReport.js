@@ -686,6 +686,7 @@ function WaterbodyReport() {
     status: 'fetching',
     data: [],
   });
+  console.log(allReportingCycles);
   useEffect(() => {
     if (services.status !== 'success') return;
 
@@ -845,6 +846,10 @@ function WaterbodyReport() {
     waterbodyTypes,
   ]);
 
+  const otherReportingCycles = allReportingCycles.data.filter(
+    (year) => year !== parseInt(reportingCycleFetch.year),
+  );
+
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
       <h3 css={infoBoxHeadingStyles}>
@@ -957,12 +962,9 @@ function WaterbodyReport() {
           reportingCycleFetch.status === 'success' && (
             <p>
               &nbsp;{' '}
-              {allReportingCycles.data.length > 0 ? (
+              {otherReportingCycles.length > 0 ? (
                 <>
-                  {allReportingCycles.data
-                    .filter(
-                      (year) => year !== parseInt(reportingCycleFetch.year),
-                    )
+                  {otherReportingCycles
                     .map((year) => (
                       <a
                         href={`/waterbody-report/${orgId}/${auId}/${year}`}
