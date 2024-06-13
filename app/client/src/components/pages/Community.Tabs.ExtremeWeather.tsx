@@ -45,6 +45,8 @@ import {
   summarizeAssessments,
 } from 'utils/utils';
 // styles
+import { linkButtonStyles } from 'components/shared/LinkButton';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
   iconButtonStyles,
   reactSelectStyles,
@@ -52,7 +54,6 @@ import {
 } from 'styles/index';
 // types
 import { FetchStatus } from 'types';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
 
 const historicalTooltip =
   'The displayed statistics are generated from official U.S. climate projections for the greenhouse gas business as usual "Higher Emissions Scenario (RCP 8.5)".';
@@ -981,7 +982,7 @@ function ExtremeWeather() {
             ]}
           />
 
-          <div css={sectionHeaderContainerStyles}>
+          <div css={sectionHeaderContainerShorterStyles}>
             <div css={sectionHeaderStyles}>
               Historical Risk and Potential Future Scenarios
               <HelpTooltip label={historicalTooltip} />
@@ -1006,6 +1007,19 @@ function ExtremeWeather() {
                 }}
               />
             </div>
+            <button
+              css={linkButtonStyles}
+              onClick={() => {
+                let newVisibleLayers: Partial<LayersState['visible']> = {};
+                historicalRisk.items.forEach((cw) => {
+                  newVisibleLayers[cw.layerId as keyof LayersState['visible']] =
+                    false;
+                });
+                updateVisibleLayers(newVisibleLayers);
+              }}
+            >
+              Clear Selection
+            </button>
           </div>
 
           <SelectionTable
@@ -1884,6 +1898,11 @@ const sectionHeaderContainerStyles = css`
   background-color: #f0f6f9;
   border-top: 1px solid #dee2e6;
   padding: 0.75rem;
+`;
+
+const sectionHeaderContainerShorterStyles = css`
+  ${sectionHeaderContainerStyles}
+  padding-bottom: 0.25rem;
 `;
 
 const sectionHeaderStyles = css`
