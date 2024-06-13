@@ -960,7 +960,9 @@ function WaterbodyReport() {
               {allReportingCycles.data.length > 0 ? (
                 <>
                   {allReportingCycles.data
-                    .filter((year) => year !== reportingCycleFetch.year)
+                    .filter(
+                      (year) => year !== parseInt(reportingCycleFetch.year),
+                    )
                     .map((year) => (
                       <a
                         href={`/waterbody-report/${orgId}/${auId}/${year}`}
