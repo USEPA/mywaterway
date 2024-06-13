@@ -681,17 +681,48 @@ function WaterbodyReport() {
     );
   }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled, services]);
 
-  // Get the reporting cycle from the map
-  const [mapReportingCycle, setMapReportingCycle] = useState('');
+  // Get all reporting cycles for the waterbody.
+  const [allReportingCycles, setAllReportingCycles] = useState({
+    status: 'fetching',
+    data: [],
+  });
   useEffect(() => {
-    if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
-      setMapReportingCycle(
-        mapLayer.layer.graphics.items[0].attributes.reportingcycle,
-      );
-    } else {
-      setMapReportingCycle('');
-    }
-  }, [mapLayer]);
+    if (services.status !== 'success') return;
+
+    // recursive function to fetch all reporting cycles for the waterbody (this will probably never take more than 1 call)
+    const fetchCycles = (acc = []) => {
+      fetchPost(
+        `${services.data.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
+        {
+          direction: 'asc',
+          filters: { assessmentUnitId: auId },
+          limit: services.data.expertQuery.valuesLimit,
+          ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
+        },
+        {
+          'Content-Type': 'application/json',
+          'X-Api-Key': services.data.expertQuery.apiKey,
+        },
+      )
+        .then((res) => {
+          const newValues = res.map((item) => item.reportingCycle);
+          if (newValues.length === services.data.expertQuery.valuesLimit) {
+            fetchCycles(acc.concat(newValues));
+          } else {
+            setAllReportingCycles({
+              status: 'success',
+              data: acc.concat(newValues),
+            });
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          setAllReportingCycles({ status: 'failure', data: [] });
+        });
+    };
+
+    fetchCycles();
+  }, [auId, services]);
 
   const [waterbodyActions, setWaterbodyActions] = useState({
     status: 'fetching',
@@ -913,6 +944,44 @@ function WaterbodyReport() {
       </div>
 
       <div css={inlineBoxSectionStyles}>
+        <h4>Other Years Reported:</h4>
+        {(allReportingCycles.status === 'fetching' ||
+          reportingCycleFetch.status === 'fetching') && <LoadingSpinner />}
+        {(allReportingCycles.status === 'failure' ||
+          reportingCycleFetch.status === 'failure') && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{waterbodyReportError('Assessment')}</p>
+          </div>
+        )}
+        {allReportingCycles.status === 'success' &&
+          reportingCycleFetch.status === 'success' && (
+            <p>
+              &nbsp;{' '}
+              {allReportingCycles.data.length > 0 ? (
+                <>
+                  {allReportingCycles.data
+                    .filter((year) => year !== reportingCycleFetch.year)
+                    .map((year) => (
+                      <a
+                        href={`/waterbody-report/${orgId}/${auId}/${year}`}
+                        key={year}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {year}
+                      </a>
+                    ))
+                    .reduce((prev, curr) => [prev, ', ', curr])}{' '}
+                  <small>(opens new browser tab)</small>
+                </>
+              ) : (
+                'None'
+              )}
+            </p>
+          )}
+      </div>
+
+      <div css={inlineBoxSectionStyles}>
         <h4>Organization Name (ID):&nbsp;</h4>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
@@ -1009,34 +1078,39 @@ function WaterbodyReport() {
     );
   }
 
+  const latestReportingCycle =
+    allReportingCycles.data[allReportingCycles.data.length - 1];
+
   return (
     <Page>
       <NavBar title="Waterbody Report" />
 
       <div css={containerStyles} data-content="container">
-        {mapReportingCycle > reportingCycle && (
-          <div css={infoBoxContainerStyles}>
-            <div css={infoBoxStyles}>
-              There is more recent data available for this waterbody. Please use
-              the following link to view the latest information:
-              <br />
-              <a
-                href={`/waterbody-report/${orgId}/${auId}/${mapReportingCycle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i
-                  css={iconStyles}
-                  className="fas fa-file-alt"
-                  aria-hidden="true"
-                />
-                View Waterbody Report for {mapReportingCycle}
-              </a>
-              &nbsp;&nbsp;
-              <small css={disclaimerStyles}>(opens new browser tab)</small>
+        {reportingCycleFetch.status === 'success' &&
+          allReportingCycles.status === 'success' &&
+          latestReportingCycle > reportingCycleFetch.year && (
+            <div css={infoBoxContainerStyles}>
+              <div css={infoBoxStyles}>
+                There is more recent data available for this waterbody. Please
+                use the following link to view the latest information:
+                <br />
+                <a
+                  href={`/waterbody-report/${orgId}/${auId}/${latestReportingCycle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-file-alt"
+                    aria-hidden="true"
+                  />
+                  View Waterbody Report for {latestReportingCycle}
+                </a>
+                &nbsp;&nbsp;
+                <small css={disclaimerStyles}>(opens new browser tab)</small>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         <WindowSize>
           {({ width, height }) => {
             return (
