@@ -369,8 +369,10 @@ function SavePanel({ visible }: Readonly<Props>) {
 
       if (e.removed.length > 0) {
         e.removed.forEach((layer) => {
-          layerWatchers[layer.id].remove();
-          delete layerWatchers[layer.id];
+          if (layerWatchers[layer.id]) {
+            layerWatchers[layer.id].remove();
+            delete layerWatchers[layer.id];
+          }
 
           setSaveLayersList((layersList) => {
             const newLayersList = { ...layersList };

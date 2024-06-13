@@ -537,11 +537,15 @@ function Restore() {
                                 },
                                 {
                                   label: 'Pollutants Addressed',
-                                  value: item.pollutants ?? 'N/A',
+                                  value:
+                                    item.pollutants?.split(':').join(', ') ??
+                                    'N/A',
                                 },
                                 {
                                   label: 'Sources of Pollution',
-                                  value: item.poll_sources ?? 'N/A',
+                                  value:
+                                    item.poll_sources?.split(':').join(', ') ??
+                                    'N/A',
                                 },
                               ]}
                             />
