@@ -47,7 +47,7 @@
   "grts": {
     "getGRTSHUC12": "https://ordspub.epa.gov/ords/grts_rest/grts_rest_apex/grts_rest_apex/GetProjectsByHUC12/",
     "getSSByState": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetSSByState/",
-    "getSSByHUC12": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetSSByHUC12/"
+    "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
     "serviceUrlDev": "http://54.209.48.156/attains-public/api/",
