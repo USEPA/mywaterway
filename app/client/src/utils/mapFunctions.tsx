@@ -14,7 +14,7 @@ import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-import { getSelectedCommunityTab, titleCaseWithExceptions } from 'utils/utils';
+import { getSelectedCommunityTab, titleCase, titleCaseWithExceptions } from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
@@ -758,6 +758,12 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = '';
   }
 
+  // Dams
+  else if ('PRIMARY_DAM_TYPE' in attributes) {
+    const name = !attributes.NAME ? 'Unknown' : titleCase(attributes.NAME);
+    title = `${name} (${attributes.NIDID})`;
+  }
+
   return title;
 }
 
@@ -887,6 +893,11 @@ export function getPopupContent({
     // Wells
     else if ('Wells_2020' in attributes) {
       type = 'Wells';
+    }
+
+    // Dams
+    else if ('PRIMARY_DAM_TYPE' in attributes) {
+      type = 'Dams';
     }
   }
 

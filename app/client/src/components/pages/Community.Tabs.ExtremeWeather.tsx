@@ -41,6 +41,7 @@ import {
 import {
   countOrNotAvailable,
   formatNumber,
+  parameterizedString,
   sentenceJoin,
   summarizeAssessments,
 } from 'utils/utils';
@@ -53,7 +54,7 @@ import {
   toggleTableStyles,
 } from 'styles/index';
 // types
-import { FetchStatus } from 'types';
+import { ExtremeWeatherQuery, ExtremeWeatherRow, FetchStatus } from 'types';
 
 const historicalTooltip =
   'The displayed statistics are generated from official U.S. climate projections for the greenhouse gas business as usual "Higher Emissions Scenario (RCP 8.5)".';
@@ -123,7 +124,7 @@ function ExtremeWeather() {
 
     function initialize(
       setter: Dispatch<SetStateAction<SwitchTableConfig>>,
-      items: Row[],
+      items: ExtremeWeatherRow[],
     ) {
       setter({
         updateCount: 0,
@@ -1034,7 +1035,7 @@ function ExtremeWeather() {
               'Historical Risk and Potential Future Scenarios',
               'Status Within County',
             ]}
-            callback={(row: Row, layer: __esri.Layer) => {
+            callback={(row: ExtremeWeatherRow, layer: __esri.Layer) => {
               if (!layer || !isFeatureLayer(layer)) return;
 
               if (row.id !== 'coastalFlooding') {
@@ -1196,7 +1197,7 @@ const toggleStyles = css`
 `;
 
 type SelectionTableProps = {
-  callback?: (row: Row, layer: __esri.Layer) => void;
+  callback?: (row: ExtremeWeatherRow, layer: __esri.Layer) => void;
   columns: string[];
   hideHeader?: boolean;
   id: string;
@@ -1222,7 +1223,9 @@ function SelectionTable({
 
   const hasSubheadings = value.items.findIndex((i) => i.subHeading) > -1;
 
-  const [selectedRow, setSelectedRow] = useState<Row | null>(null);
+  const [selectedRow, setSelectedRow] = useState<ExtremeWeatherRow | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!callback || !selectedRow || typeof timeframe !== 'number') return;
@@ -1278,7 +1281,7 @@ function SelectionTable({
                         value={item.id}
                         onChange={() => {}}
                         onClick={() => {
-                          let newSelectedRow: Row | null = null;
+                          let newSelectedRow: ExtremeWeatherRow | null = null;
                           let newVisibleLayers: Partial<
                             LayersState['visible']
                           > = {};
@@ -1374,7 +1377,11 @@ function SelectionTable({
                       </button>
                     }
                   >
-                    <div dangerouslySetInnerHTML={{ __html: item.infoText }} />
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: parameterizedString(item.infoText),
+                      }}
+                    />
                   </Modal>
                 )}
               </td>
@@ -1639,7 +1646,7 @@ async function queryLayers({
   setter,
   whereReplacer,
 }: {
-  config: Row[];
+  config: ExtremeWeatherRow[];
   geometry?: __esri.Geometry;
   id: string;
   layer: __esri.FeatureLayer | __esri.GroupLayer;
@@ -1651,7 +1658,7 @@ async function queryLayers({
   whereReplacer?: (where: string) => string;
 }) {
   const defaultValues = !outIds ? [{ id }] : outIds.map((id) => ({ id }));
-  const configRow = config.find((i: Row) => i.id === id);
+  const configRow = config.find((i: ExtremeWeatherRow) => i.id === id);
   if (!configRow?.queries) {
     setTableConfig(setter, (config) => {
       updateMultipleRows(config, 'failure', defaultValues);
@@ -1713,7 +1720,7 @@ async function queryLayersInner({
   setter,
   whereReplacer,
 }: {
-  configRow: Row;
+  configRow: ExtremeWeatherRow;
   defaultValues: {
     id: string;
   }[];
@@ -1843,7 +1850,7 @@ function updateRowField(
 ) {
   const row = config.items.find((c) => c.id === id);
   if (row) {
-    row[field as keyof Row] = value;
+    row[field as keyof ExtremeWeatherRow] = value;
   }
 }
 
@@ -1944,11 +1951,6 @@ const tableRowSectionHeaderStyles = css`
  * Types
  */
 
-type ExtremeWeatherQuery = {
-  serviceItemId?: string;
-  query: __esri.Query | __esri.QueryProperties;
-};
-
 type HistoricType =
   | 'fire'
   | 'drought'
@@ -1957,24 +1959,9 @@ type HistoricType =
   | 'coastalFlooding'
   | 'extremeHeat';
 
-type Row = {
-  checked?: boolean;
-  disabled?: boolean;
-  id: string;
-  indent?: string;
-  infoText?: string;
-  label: string;
-  layerId?: string;
-  layerProperties?: any;
-  queries?: ExtremeWeatherQuery[];
-  status?: FetchStatus;
-  subHeading?: boolean;
-  text?: string;
-};
-
 type RowValue = number | string | unknown[] | null;
 
 type SwitchTableConfig = {
   updateCount: number;
-  items: Row[];
+  items: ExtremeWeatherRow[];
 };
