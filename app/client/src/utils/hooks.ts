@@ -1624,9 +1624,14 @@ function useSharedLayers({
     const outFields = [
       'Closed_USTs',
       'Facility_ID',
+      'LandUse',
       'Name',
       'Open_USTs',
+      'Population_1500ft',
+      'Private_Wells_1500ft',
       'TOS_USTs',
+      'Within_100yr_Floodplain',
+      'Within_SPA',
     ];
 
     const storageTanksLayer = new FeatureLayer({
@@ -1658,7 +1663,15 @@ function useSharedLayers({
   }
 
   function getSewerOverflowsLayer() {
-    const outFields = ['facility_name', 'npdes_id', 'dmr_tracking'];
+    const outFields = [
+      'dmr_tracking',
+      'facility_lat',
+      'facility_lon',
+      'facility_name',
+      'npdes_id',
+      'permit_status_code',
+      'permit_type_code',
+    ];
 
     const sewerOverflowsLayer = new FeatureLayer({
       id: 'sewerOverflowsLayer',

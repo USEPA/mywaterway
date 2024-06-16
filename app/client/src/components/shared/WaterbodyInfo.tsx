@@ -1070,8 +1070,19 @@ function WaterbodyInfo({
     <ListContent
       rows={[
         {
-          label: 'Facility Name',
-          value: attributes.facility_name,
+          label: 'Permit Status',
+          value: attributes.permit_status_code,
+        },
+        {
+          label: 'Permit Type',
+          value: attributes.permit_type_code,
+        },
+        {
+          label: 'Latitude/Longitude',
+          value: `${toFixedFloat(
+            parseFloat(attributes.facility_lat),
+            5,
+          )}, ${toFixedFloat(parseFloat(attributes.facility_lon), 5)}`,
         },
         {
           label: 'NPDES ID',
@@ -1105,6 +1116,26 @@ function WaterbodyInfo({
         {
           label: 'Temporarily Out of Service Storage Tanks',
           value: attributes.TOS_USTs,
+        },
+        {
+          label: 'Land Use',
+          value: attributes.LandUse,
+        },
+        {
+          label: 'Population within 1500 ft',
+          value: attributes.Population_1500ft,
+        },
+        {
+          label: 'Wells within 1500 ft',
+          value: attributes.Private_Wells_1500ft,
+        },
+        {
+          label: 'Within Source Water Protection Area (SPA)',
+          value: attributes.Within_SPA,
+        },
+        {
+          label: 'Within 100-year Floodplain',
+          value: attributes.Within_100yr_Floodplain,
         },
       ]}
       styles={listContentStyles}
