@@ -170,7 +170,7 @@ function ExtremeWeather() {
         alpha: 0.15,
         symbol: getCountySymbol(),
       });
-      providersLayer.title = 'Who provides the drinking water here?';
+      providersLayer.title = 'Providers';
     };
   }, [boundariesLayer, countyBoundaries, hucBoundaries, providersLayer]);
 

@@ -586,7 +586,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     // create the layers for the map
     const providersLayer = new GraphicsLayer({
       id: 'providersLayer',
-      title: 'Who provides the drinking water here?',
+      title: 'Providers',
       listMode: 'show',
     });
     setLayer('providersLayer', providersLayer);
