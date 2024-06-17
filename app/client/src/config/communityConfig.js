@@ -1,7 +1,6 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
-import { css } from '@emotion/react';
 import React, { Fragment, useContext } from 'react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
