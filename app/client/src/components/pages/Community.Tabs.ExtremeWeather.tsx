@@ -50,6 +50,7 @@ import { linkButtonStyles } from 'components/shared/LinkButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
   iconButtonStyles,
+  paragraphStyles,
   reactSelectStyles,
   toggleTableStyles,
 } from 'styles/index';
@@ -1178,6 +1179,227 @@ function ExtremeWeather() {
               'Count',
             ]}
           />
+
+          <div>
+            <strong>Read more about</strong> how waters, communities, and assets
+            are vulnerable to various extreme events, and how people are
+            learning to adapt and build resiliency.
+            <ShowLessMore
+              charLimit={0}
+              text={
+                <>
+                  <span css={paragraphStyles}>
+                    Read more about how to adapt, mitigate, and build resiliency
+                    to extreme events and climate and climate:
+                  </span>
+                  <ul>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/climate-change-water-sector/office-water-climate-adaptation-implementation-plan"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Office of Water Climate Adaptation Implementation Plan
+                      </a>{' '}
+                      (see{' '}
+                      <em>
+                        Climate Vulnerabilities of Water Resources, Communities,
+                        and Office of Water Programs
+                      </em>{' '}
+                      section)
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/climate-change-water-sector"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        EPA Climate and Water Sector
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/cwsrf/clean-water-state-revolving-fund-cwsrf-factsheets"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        EPA funding for resiliency
+                      </a>
+                      <ul>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/sites/default/files/2021-01/documents/funding_resilient_infrastructure_and_communities_with_the_cwsrf.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Funding Resilient Infrastructure and Communities
+                            with the Clean Water State Revolving Fund (PDF)
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/system/files/documents/2022-08/Funding Drought Resiliency Projects with the CWSRF.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Funding Drought Resiliency Projects with the CWSRF
+                            (PDF)
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/system/files/documents/2022-10/Funding Wildfire Resiliency%2C Mitigation%2C and Recovery Projects with the SRF.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Funding Wildfire Resiliency, Mitigation, and
+                            Recovery Projects with the Clean Water and Drinking
+                            Water State Revolving Fund Programs (PDF)
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/system/files/documents/2023-03/climate-resilience-and-mitigation-with-cwsrf-and-wifia.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Increasing Climate Resilience and Mitigation with
+                            the Clean Water State Revolving Fund (CWSRF) and
+                            Water Infrastructure Finance and Innovation Act
+                            (WIFIA) Program (PDF)
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/arc-x/climate-adaptation-and-drought"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Climate Adaptation and Drought
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/crwu"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Creating Resilient Water Utilities (CRWU)
+                      </a>
+                    </li>
+                  </ul>
+                  <span css={paragraphStyles}>
+                    Read more about how waters, infrastructure, and communities
+                    are potentially vulnerable to extreme events and climate
+                    change:
+                  </span>
+                  <ul>
+                    <li>
+                      Water quality and quantity
+                      <ul>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/arc-x/climate-impacts-water-quality#:~:text=Harmful%20Algal%20Blooms,-Develop%20models%20to&text=In%20many%20areas%2C%20increased%20water,due%20to%20extreme%20storm%20events"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Climate Impacts on Water Quality
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/climate-research/ecosystems-water-quality-climate-change-research#WaterQuality"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Water Quality & Climate Change Research
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/water-research/wildfires-and-water-quality-research"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Wildfires and Water Quality Research
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      Infrastructure
+                      <ul>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/natural-disasters/flooding#:~:text=During%20a%20flood%2C%20underground%20storage,surface%20water%2C%20and%20groundwater%20contamination"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Underground Storage Tanks and Flooding
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://cfpub.epa.gov/si/si_public_record_Report.cfm?dirEntryId=361015&Lab=CESER"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Climate Change and Vulnerabilities Associated with
+                            Aboveground Storage Tanks
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/eco-research/community-vulnerabilities-contaminant-releases-extreme-events"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Community Vulnerabilities to Contaminant Releases
+                            from Extreme Events
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/arc-x/climate-impacts-water-utilities"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Wastewater systems, drinking water systems, and
+                            Combined Sewage Overflows (CSO’s)
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      Communities
+                      <ul>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/climateimpacts/climate-equity#:~:text=Some%20communities%20experience%20disproportionate%20impacts,affected%20most%20by%20climate%20change"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Climate Equity
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/climateimpacts/climate-change-and-health-socially-vulnerable-people#water"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Water-Related Illnesses and Climate Change
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </>
+              }
+            />
+          </div>
         </div>
       </div>
     </div>

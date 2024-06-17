@@ -112,6 +112,11 @@ export const noMapDataWarningStyles = css`
   }
 `;
 
+export const paragraphStyles = css`
+  display: block;
+  padding-top: 1.5em;
+`;
+
 export const reactSelectStyles = {
   group: (defaultStyles: CSSObjectWithLabel) => ({
     ...defaultStyles,

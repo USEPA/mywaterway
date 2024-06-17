@@ -1,5 +1,7 @@
 // @flow
+/** @jsxImportSource @emotion/react */
 
+import { css } from '@emotion/react';
 import React, { Fragment, useContext } from 'react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -17,6 +19,8 @@ import { DisclaimerModal } from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
+// styles
+import { paragraphStyles } from 'styles';
 // images
 import overviewIcon from 'images/overview.png';
 import drinkingWaterIcon from 'images/drinking-water.png';
@@ -272,15 +276,176 @@ function MonitoringUpper() {
 function ExtremeWeatherUpper() {
   return (
     <>
-      <p>
-        <strong>Extreme Weather</strong> is monitored by federal agencies.
-        Universities and others also help detect current extreme weather events
-        and potential future climate concerns.
-      </p>
-      <p>
-        Explore the map and information below to find out about current and
-        potential future weather and climate conditions.
-      </p>
+      <div>
+        Explore potentially vulnerable waters, infrastructure, and communities
+        alongside information on current, historical, and potential future{' '}
+        <strong>extreme weather events</strong> (and associated events like
+        wildfires) and <strong>climate</strong> for the selected watershed and
+        county. Extreme events such as drought and flooding, caused by natural
+        phenomena or human activity, typically happen infrequently, vary from
+        normal conditions in severity or duration, and can have severe impacts
+        on natural and human systems. Changes in climate over many years may
+        impact the frequency, intensity, duration, and timing of extreme events
+        in certain areas. Explore the map and information below to learn more.
+        <ShowLessMore
+          charLimit={0}
+          text={
+            <>
+              <span css={paragraphStyles}>
+                Extreme weather events impact both the quality and volume of
+                clean, safe water available for different uses such as drinking,
+                eating fish, recreation, and aquatic life. For example, intense
+                storms can increase pollution loads and accelerate erosion and
+                sedimentation, and drought dwindles water supplies, both of
+                which result in concentrated pollutant loads. Intense
+                rainstorms, flooding, drought, wildfire, and extreme
+                temperatures also stress and damage the operation of already
+                aging infrastructure and can disrupt or displace communities.
+                Here are examples of how extreme weather events and associated
+                environmental impacts can affect potentially vulnerable waters,
+                infrastructure, and communities:{' '}
+              </span>
+              <span css={paragraphStyles}>
+                <strong>Flooding</strong>: Heavy rainfall and intense storms can
+                cause flooding and damage critical infrastructure (e.g., sewer
+                systems and wastewater treatment facilities) and disrupt or
+                displace communities. During a flood, underground storage tank
+                (UST) systems may become displaced or damaged and release their
+                contents into the environment, causing soil, surface water, and
+                groundwater contamination.
+              </span>
+              <ul>
+                <li>
+                  <a
+                    href="https://www.epa.gov/green-infrastructure/manage-flood-risk"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Manage Flood Risk
+                  </a>
+                </li>
+              </ul>
+              <span css={paragraphStyles}>
+                <strong>Drought</strong>: Climate change is projected to
+                intensify drought across much of the country. During a drought,
+                water utilities can face a loss of water supply and increased
+                demand from customers. Drought can reduce short term water
+                sources, such as reservoir or lake levels, or affect longer-term
+                storage, such as mountain snowpack. Drought can also increase
+                drinking water treatment costs by concentrating contaminates in
+                source waters and thereby diminishing source water quality (see:{' '}
+                <a
+                  href="https://www.epa.gov/arc-x/climate-adaptation-and-source-water-impacts"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Climate Adaptation and Source Water Impacts
+                </a>
+                ).
+              </span>
+              <ul>
+                <li>
+                  <a
+                    href="https://www.epa.gov/natural-disasters/drought"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Drought
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/waterutilityresponse/drought-response-and-recovery-water-utilities"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Drought Response and Recovery for Water Utilities
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/crwu"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Creating Resilient Water Utilities (CRWU)
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/climate-change-water-sector/drought-and-water-scarcity-initiatives"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Drought and Water Scarcity Initiatives
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/water-research/drought-resilience-and-water-conservation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Drought Resilience and Water Conservation
+                  </a>
+                </li>
+              </ul>
+              <span css={paragraphStyles}>
+                <strong>Wildfire</strong>: Wildfire frequency, extent, and
+                intensity are projected to increase with higher temperatures and
+                drought conditions in parts of the United States. During active
+                burning, ash and contaminants associated with ash settle on
+                streams, lakes, and water reservoirs. Vegetation that holds soil
+                in place and retains water is burned away. In the aftermath of a
+                large wildfire, rainstorms flush vast quantities of ash,
+                sediment, nutrients and contaminants into streams, rivers, and
+                downstream reservoirs. The absence of vegetation in the
+                watershed can create conditions conducive to erosion and even
+                flooding, and naturally occurring and anthropogenic substances
+                can impact drinking water quality, discolor recreational waters,
+                and may potentially contribute to harmful algal blooms (see:{' '}
+                <a
+                  href="https://www.epa.gov/sciencematters/wildfires-how-do-they-affect-our-water-supplies"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Wildfires: How Do They Affect Our Water Supplies?
+                </a>
+                ).
+              </span>
+              <span css={paragraphStyles}>
+                <strong>Extreme heat</strong>: In many areas, increased water
+                temperatures (linked to increasing air temperature) will cause
+                eutrophication and excess algal growth, which may reduce
+                drinking water quality (see:{' '}
+                <a
+                  href="https://www.epa.gov/arc-x/climate-impacts-water-quality"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Climate Impacts on Water Quality
+                </a>
+                ).
+              </span>
+              <span css={paragraphStyles}>
+                <strong>Extreme cold</strong>: Water and wastewater utilities
+                are vulnerable to extreme cold and winter storms. Freezing
+                temperatures and winter storms can damage pipes, restrict water
+                intakes, and disrupt water services to communities (see:{' '}
+                <a
+                  href="https://19january2017snapshot.epa.gov/sites/production/files/2015-06/documents/extreme_cold_and_winter_storms.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Incident Action Checklist – Extreme Cold and Winter Storms
+                  (PDF)
+                </a>
+                ).
+              </span>
+            </>
+          }
+        />
+      </div>
 
       <DisclaimerModal>
         <p>
