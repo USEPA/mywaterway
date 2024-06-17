@@ -1085,7 +1085,10 @@ function useSharedLayers({
 
         // remove shading when wsio layer is on and add
         // shading back in when wsio layer is off
-        hideShowGraphicsFill(layer, !wsioHealthIndexLayer.visible);
+        hideShowGraphicsFill({
+          layer,
+          showFill: !wsioHealthIndexLayer.visible,
+        });
       },
     );
 

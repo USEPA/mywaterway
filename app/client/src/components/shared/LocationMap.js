@@ -16,7 +16,6 @@ import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import * as query from '@arcgis/core/rest/query';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
@@ -31,6 +30,7 @@ import {
   getPopupTitle,
   getUniqueWaterbodies,
   splitSuggestedSearch,
+  getCountySymbol,
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
@@ -78,8 +78,6 @@ import {
 } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
-// styles
-import { colors } from 'styles/index';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
@@ -1496,14 +1494,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                     spatialReference: countiesRes.spatialReference,
                     rings: feature.geometry.rings,
                   }),
-                  symbol: new SimpleFillSymbol({
-                    color: [0, 0, 0, 0.15],
-                    outline: {
-                      color: colors.yellow(),
-                      width: 3,
-                      style: 'solid',
-                    },
-                  }),
+                  symbol: getCountySymbol(),
                 }),
               );
             });

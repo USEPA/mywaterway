@@ -34,6 +34,7 @@ import { useExtremeWeatherContext } from 'contexts/LookupFiles';
 // utils
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
 import {
+  getCountySymbol,
   hideShowGraphicsFill,
   isFeatureLayer,
   isGroupLayer,
@@ -49,6 +50,7 @@ import {
 import { linkButtonStyles } from 'components/shared/LinkButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
+  colors,
   iconButtonStyles,
   paragraphStyles,
   reactSelectStyles,
@@ -152,11 +154,23 @@ function ExtremeWeather() {
   useEffect(() => {
     if (!boundariesLayer || !providersLayer) return;
 
-    hideShowGraphicsFill(boundariesLayer, false);
-    hideShowGraphicsFill(providersLayer, false);
+    hideShowGraphicsFill({ layer: boundariesLayer, showFill: false });
+    hideShowGraphicsFill({
+      layer: providersLayer,
+      showFill: false,
+      symbol: getCountySymbol(colors.black()),
+    });
+    providersLayer.title = 'Selected County';
+
     return function cleanup() {
-      hideShowGraphicsFill(boundariesLayer, true);
-      hideShowGraphicsFill(providersLayer, true, 0.15);
+      hideShowGraphicsFill({ layer: boundariesLayer, showFill: true });
+      hideShowGraphicsFill({
+        layer: providersLayer,
+        showFill: true,
+        alpha: 0.15,
+        symbol: getCountySymbol(),
+      });
+      providersLayer.title = 'Who provides the drinking water here?';
     };
   }, [boundariesLayer, countyBoundaries, hucBoundaries, providersLayer]);
 
