@@ -1,6 +1,6 @@
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
-import type { FetchStatus } from 'types';
+import type { FetchStatus, InfoText } from 'types';
 
 // utility function to split up an array into chunks of a designated length
 export function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
@@ -524,4 +524,23 @@ export function escapeForLucene(value: string) {
   ];
   const r = new RegExp('(\\' + a.join('|\\') + ')', 'g');
   return value.replace(r, '\\$1');
+}
+
+/**
+ * Replaces parameters in text attribute with corresponding attributes.
+ *
+ * @param config Configuration to do parameterized string on.
+ * @returns A string with necessary replacements.
+ */
+export function parameterizedString(config: InfoText | string) {
+  if (typeof config === 'string') return config;
+
+  let text = config.text;
+  Object.keys(config)
+    .filter((c) => c !== 'text')
+    .forEach((key) => {
+      const keyFull = `{${key}}`;
+      text = text.replaceAll(keyFull, config[key]);
+    });
+  return text;
 }

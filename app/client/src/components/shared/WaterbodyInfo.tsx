@@ -9,6 +9,7 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 import { css } from '@emotion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import * as symbolUtils from '@arcgis/core/symbols/support/symbolUtils';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { ListContent } from 'components/shared/BoxContent';
@@ -56,6 +57,7 @@ import {
   isAbort,
   titleCaseWithExceptions,
   toFixedFloat,
+  titleCase,
 } from 'utils/utils';
 // errors
 import { cyanError, waterbodyReportError } from 'config/errorMessages';
@@ -128,17 +130,42 @@ function labelValue(
   label: ReactNode | string,
   value: string,
   icon: ReactNode | null = null,
+  infoText: string | null = null,
 ) {
   return (
     <p>
-      <strong>{label}: </strong>
-      {icon ? (
+      <strong css={popupLabelValueStyles}>{label}: </strong>
+      <span css={popupLabelValueStyles}>
         <span css={popupIconStyles}>
-          {icon} {value}
+          {icon ? (
+            <>
+              {icon} {value}
+            </>
+          ) : (
+            value
+          )}
+          {infoText && (
+            <Modal
+              label={`Additional information for ${label}`}
+              maxWidth="35rem"
+              triggerElm={
+                <button
+                  aria-label={`View additional information for ${label}`}
+                  title={`View additional information for ${label}`}
+                  css={css`
+                    ${modifiedIconButtonStyles}
+                    margin-left: 5px;
+                  `}
+                >
+                  <i aria-hidden className="fas fa-info-circle"></i>
+                </button>
+              }
+            >
+              <div>{infoText}</div>
+            </Modal>
+          )}
         </span>
-      ) : (
-        value
-      )}
+      </span>
     </p>
   );
 }
@@ -262,7 +289,15 @@ const unitStyles = css`
 `;
 
 const popupIconStyles = css`
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 3px;
+`;
+
+const popupLabelValueStyles = css`
   display: inline-block;
+  vertical-align: middle;
 `;
 
 const paragraphStyles = css`
@@ -1035,8 +1070,19 @@ function WaterbodyInfo({
     <ListContent
       rows={[
         {
-          label: 'Facility Name',
-          value: attributes.facility_name,
+          label: 'Permit Status',
+          value: attributes.permit_status_code,
+        },
+        {
+          label: 'Permit Type',
+          value: attributes.permit_type_code,
+        },
+        {
+          label: 'Latitude/Longitude',
+          value: `${toFixedFloat(
+            parseFloat(attributes.facility_lat),
+            5,
+          )}, ${toFixedFloat(parseFloat(attributes.facility_lon), 5)}`,
         },
         {
           label: 'NPDES ID',
@@ -1071,6 +1117,26 @@ function WaterbodyInfo({
           label: 'Temporarily Out of Service Storage Tanks',
           value: attributes.TOS_USTs,
         },
+        {
+          label: 'Land Use',
+          value: attributes.LandUse,
+        },
+        {
+          label: 'Population within 1500 ft',
+          value: attributes.Population_1500ft,
+        },
+        {
+          label: 'Wells within 1500 ft',
+          value: attributes.Private_Wells_1500ft,
+        },
+        {
+          label: 'Within Source Water Protection Area (SPA)',
+          value: attributes.Within_SPA,
+        },
+        {
+          label: 'Within 100-year Floodplain',
+          value: attributes.Within_100yr_Floodplain,
+        },
       ]}
       styles={listContentStyles}
     />
@@ -1087,6 +1153,92 @@ function WaterbodyInfo({
       )}
     </>
   );
+
+  // jsx
+  const damsContent = () => {
+    const { CITY, DAM_LENGTH, DAM_HEIGHT, HAZARD_POTENTIAL } = attributes;
+
+    // get modal info text for hazard level, if applicable
+    const damsInfoText =
+      lookupFiles?.extremeWeatherConfig?.data?.potentiallyVulnerableDefaults?.find(
+        (i) => i.id === 'dams',
+      )?.infoText;
+    const hazardKey = HAZARD_POTENTIAL.toLowerCase();
+    const hazardTooltip =
+      damsInfoText && typeof damsInfoText !== 'string'
+        ? damsInfoText[hazardKey]
+        : null;
+
+    // get the symbol associated with the hazard level and show it in popup
+    const layer = mapView?.map.layers.find((l) => l.id === 'damsLayer');
+    const iconElement = document.createElement('span');
+    if (layer && isFeatureLayer(layer)) {
+      const symbol = (
+        layer.renderer as __esri.UniqueValueRenderer
+      ).uniqueValueInfos.find(
+        (v) => v.value.toString().toLowerCase() === hazardKey,
+      )?.symbol;
+      if (symbol)
+        symbolUtils.renderPreviewHTML(symbol, {
+          node: iconElement,
+          size: 10,
+        });
+    }
+
+    return (
+      <>
+        {labelValue('Owner Type', attributes.OWNER_TYPES || 'Unknown')}
+
+        {labelValue('Designed for', attributes.PURPOSES || 'Unknown')}
+
+        {labelValue('Year completed', attributes.YEAR_COMPLETED || 'Unknown')}
+
+        {labelValue('City', !CITY ? 'Unknown' : titleCase(CITY))}
+
+        {labelValue('State', attributes.STATE)}
+
+        {labelValue(
+          'Hazard Potential Index',
+          HAZARD_POTENTIAL,
+          <span
+            ref={(ref) => {
+              if (!ref) return;
+              ref.innerHTML = '';
+              ref.appendChild(iconElement);
+            }}
+          />,
+          hazardTooltip,
+        )}
+
+        {labelValue('Condition Assessment', attributes.CONDITION_ASSESSMENT)}
+
+        {labelValue(
+          'Recent Assessment Date',
+          new Date(attributes.CONDITION_ASSESS_DATE).toLocaleString(),
+        )}
+
+        <p style={{ textAlign: 'center' }}>
+          <strong>Specifics</strong>
+        </p>
+
+        {labelValue('Type', attributes.PRIMARY_DAM_TYPE || 'Unknown')}
+
+        {labelValue('Core', attributes.CORE_TYPES || 'Unknown')}
+
+        {labelValue('Foundation', attributes.FOUNDATIONS || 'Unknown')}
+
+        {labelValue(
+          'Dam length',
+          DAM_LENGTH ? `${DAM_LENGTH.toLocaleString()} ft` : 'Unknown',
+        )}
+
+        {labelValue(
+          'Dam height',
+          DAM_HEIGHT ? `${DAM_HEIGHT.toLocaleString()} ft` : 'Unknown',
+        )}
+      </>
+    );
+  };
 
   // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
@@ -1251,6 +1403,7 @@ function WaterbodyInfo({
   if (type === 'Pollutant Storage Tank') content = storageTankContent;
   if (type === 'Combined Sewer Overflow') content = sewerOverflowsContent;
   if (type === 'Wells') content = wellsContent;
+  if (type === 'Dams') content = damsContent();
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }

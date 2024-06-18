@@ -14,7 +14,11 @@ import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-import { getSelectedCommunityTab, titleCaseWithExceptions } from 'utils/utils';
+import {
+  getSelectedCommunityTab,
+  titleCase,
+  titleCaseWithExceptions,
+} from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
@@ -758,6 +762,12 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = '';
   }
 
+  // Dams
+  else if ('PRIMARY_DAM_TYPE' in attributes) {
+    const name = !attributes.NAME ? 'Unknown' : titleCase(attributes.NAME);
+    title = `${name} (${attributes.NIDID})`;
+  }
+
   return title;
 }
 
@@ -887,6 +897,11 @@ export function getPopupContent({
     // Wells
     else if ('Wells_2020' in attributes) {
       type = 'Wells';
+    }
+
+    // Dams
+    else if ('PRIMARY_DAM_TYPE' in attributes) {
+      type = 'Dams';
     }
   }
 
@@ -1022,6 +1037,18 @@ export function GradientIcon({
   );
 }
 
+// Gets the county symbol for drinking water and extreme weather tabs
+export function getCountySymbol(color = colors.yellow()) {
+  return new SimpleFillSymbol({
+    color: [0, 0, 0, 0.15],
+    outline: {
+      color,
+      width: 3,
+      style: 'solid',
+    },
+  });
+}
+
 // Gets the highlight symbol styles based on the provided geometry.
 export function getHighlightSymbol(
   geometry: __esri.Geometry,
@@ -1152,13 +1179,20 @@ export function mapRestorationPlanToGlossary(
 }
 
 // removes the fill from all graphics on a graphics layer
-export function hideShowGraphicsFill(
-  layer: __esri.GraphicsLayer,
-  showFill: boolean,
+export function hideShowGraphicsFill({
   alpha = 0.5,
-) {
+  layer,
+  showFill,
+  symbol = null,
+}: {
+  alpha?: number;
+  layer: __esri.GraphicsLayer;
+  showFill: boolean;
+  symbol?: __esri.Symbol | null;
+}) {
   const newGraphics = layer.graphics.clone();
   newGraphics.forEach((graphic) => {
+    if (symbol) graphic.symbol = symbol;
     graphic.symbol.color.a = showFill ? alpha : 0;
   });
 

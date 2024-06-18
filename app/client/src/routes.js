@@ -34,6 +34,7 @@ import {
   useAttainsUseFieldsContext,
   useCharacteristicGroupMappingsContext,
   useCyanMetadataContext,
+  useExtremeWeatherContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -53,6 +54,7 @@ function AppRoutes() {
   const attainsUseFields = useAttainsUseFieldsContext();
   const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const cyanMetadata = useCyanMetadataContext();
+  const extemeWeatherConfig = useExtremeWeatherContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -61,6 +63,7 @@ function AppRoutes() {
     attainsUseFields.status === 'fetching' ||
     characteristicGroupMappings.status === 'fetching' ||
     cyanMetadata.status === 'fetching' ||
+    extemeWeatherConfig.status === 'fetching' ||
     services.status === 'fetching' ||
     stateNationalUses.status === 'fetching'
   ) {
@@ -72,6 +75,7 @@ function AppRoutes() {
     attainsUseFields.status === 'failure' ||
     characteristicGroupMappings.status === 'failure' ||
     cyanMetadata.status === 'failure' ||
+    extemeWeatherConfig.status === 'failure' ||
     services.status === 'failure' ||
     stateNationalUses.status === 'failure'
   ) {

@@ -191,6 +191,24 @@ export interface CyanWaterbodyAttributes {
   orgName: 'Cyanobacteria Assessment Network (CyAN)';
 }
 
+export interface DamsAttributes {
+  CITY: string | null;
+  CONDITION_ASSESSMENT: string | null;
+  CONDITION_ASSESS_DATE: string;
+  CORE_TYPES: string;
+  DAM_HEIGHT: string;
+  DAM_LENGTH: string | null;
+  FOUNDATIONS: string;
+  HAZARD_POTENTIAL: string;
+  NAME: string;
+  NIDID: string | null;
+  OWNER_TYPES: string;
+  PRIMARY_DAM_TYPE: string;
+  PURPOSES: string;
+  STATE: string;
+  YEAR_COMPLETED: string;
+}
+
 export interface DischargerAttributes {
   CWPFormalEaCnt: string | null;
   CWPInspectionCount: string | null;
@@ -218,6 +236,36 @@ export interface DischargerPermitComponents {
 export interface EjScreenAttributes {
   T_OVR64PCT: string;
 }
+
+export type ExtremeWeatherQuery = {
+  serviceItemId?: string;
+  query: __esri.Query | __esri.QueryProperties;
+};
+
+export type ExtremeWeatherRow = {
+  checked?: boolean;
+  disabled?: boolean;
+  id: string;
+  indent?: string;
+  infoText?: InfoText | string;
+  label: string;
+  layerId?: string;
+  layerProperties?: any;
+  queries?: ExtremeWeatherQuery[];
+  status?: FetchStatus;
+  subHeading?: boolean;
+  text?: string;
+};
+
+export type ExtremeWeatherConfigState = {
+  status: 'fetching' | 'failure' | 'success';
+  data: {
+    currentWeatherDefaults: ExtremeWeatherRow[];
+    historicalDefaults: ExtremeWeatherRow[];
+    historicalRangeDefaults: ExtremeWeatherRow[];
+    potentiallyVulnerableDefaults: ExtremeWeatherRow[];
+  };
+};
 
 export interface Feature {
   graphic: __esri.Graphic;
@@ -318,6 +366,11 @@ export interface Huc12SummaryData {
     totalHucAreaSqMi: number;
   }[];
 }
+
+export type InfoText = {
+  text: string;
+  [key: string]: string;
+};
 
 export type LookupFile = {
   status: 'fetching' | 'success' | 'failure';
@@ -445,6 +498,7 @@ export type PopupAttributes =
   | CongressionalDistrictAttributes
   | CountyAttributes
   | CyanWaterbodyAttributes
+  | DamsAttributes
   | DischargerAttributes
   | EjScreenAttributes
   | MonitoringLocationAttributes
@@ -467,6 +521,7 @@ export type PopupLookupFiles = {
   attainsUseFields?: AttainsUseFieldState;
   characteristicGroupMappings?: CharacteristicGroupMappingsState;
   cyanMetadata?: CyanMetadataState;
+  extremeWeatherConfig?: ExtremeWeatherConfigState;
   services: ServicesState;
   stateNationalUses?: LookupFile;
 };

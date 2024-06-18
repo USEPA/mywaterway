@@ -761,7 +761,12 @@
       "id": "dams",
       "checked": false,
       "disabled": false,
-      "infoText": "<p style=\"font-size: 1rem;\">The National Inventory of Dams (NID) consists of dams meeting at least one of the following critieria:</p><ul><li>Dams where downstream flooding would likely result in loss of human life (high hazard potential).</li><li>Dams where downstream flooding would likely result in disruption of access to critical facilities, damage to public and private facilities, and require difficult mitigation efforts (significant hazard potential).</li><li>Dams that meet minimum height and reservoir size requirements, even though they do not pose the same level of life or economic risk as those above – these dams are typically equal to or exceed 25 feet in height and exceed 15 acre-feet in storage, or equal to or exceeding 50 acre-feet storage and exceeding 6 feet in height.</li></ul><p style=\"font-size: 1rem;\">The NID does not yet contain all dams in the U.S. that meet these criteria. Continued, routine updates to the NID and enhanced data collection efforts, focused on the most reliable data sources (primarily the many federal and state government dam regulatory programs), will help capture these dams and result in a more robust dataset over time.</p>",
+      "infoText": {
+        "text": "<p style=\"font-size: 1rem;\">The National Inventory of Dams (NID) consists of dams meeting at least one of the following critieria:</p><ul><li>Red-{high}</li><li>Blue-{significant}</li><li>Green-{low}</li></ul><p style=\"font-size: 1rem;\">The NID does not yet contain all dams in the U.S. that meet these criteria. Continued, routine updates to the NID and enhanced data collection efforts, focused on the most reliable data sources (primarily the many federal and state government dam regulatory programs), will help capture these dams and result in a more robust dataset over time.</p>",
+        "high": "Dams where downstream flooding would likely result in loss of human life (high hazard potential).",
+        "significant": "Dams where downstream flooding would likely result in disruption of access to critical facilities, damage to public and private facilities, and require difficult mitigation efforts (significant hazard potential).",
+        "low": "Dams that meet minimum height and reservoir size requirements, even though they do not pose the same level of life or economic risk as those above – these dams are typically equal to or exceed 25 feet in height and exceed 15 acre-feet in storage, or equal to or exceeding 50 acre-feet storage and exceeding 6 feet in height."
+      },
       "label": "Dams",
       "layerId": "damsLayer",
       "text": "",

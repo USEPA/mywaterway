@@ -34,6 +34,7 @@ import { useExtremeWeatherContext } from 'contexts/LookupFiles';
 // utils
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
 import {
+  getCountySymbol,
   hideShowGraphicsFill,
   isFeatureLayer,
   isGroupLayer,
@@ -41,18 +42,22 @@ import {
 import {
   countOrNotAvailable,
   formatNumber,
+  parameterizedString,
   sentenceJoin,
   summarizeAssessments,
 } from 'utils/utils';
 // styles
+import { linkButtonStyles } from 'components/shared/LinkButton';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
+  colors,
   iconButtonStyles,
+  paragraphStyles,
   reactSelectStyles,
   toggleTableStyles,
 } from 'styles/index';
 // types
-import { FetchStatus } from 'types';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { ExtremeWeatherQuery, ExtremeWeatherRow, FetchStatus } from 'types';
 
 const historicalTooltip =
   'The displayed statistics are generated from official U.S. climate projections for the greenhouse gas business as usual "Higher Emissions Scenario (RCP 8.5)".';
@@ -122,7 +127,7 @@ function ExtremeWeather() {
 
     function initialize(
       setter: Dispatch<SetStateAction<SwitchTableConfig>>,
-      items: Row[],
+      items: ExtremeWeatherRow[],
     ) {
       setter({
         updateCount: 0,
@@ -149,11 +154,23 @@ function ExtremeWeather() {
   useEffect(() => {
     if (!boundariesLayer || !providersLayer) return;
 
-    hideShowGraphicsFill(boundariesLayer, false);
-    hideShowGraphicsFill(providersLayer, false);
+    hideShowGraphicsFill({ layer: boundariesLayer, showFill: false });
+    hideShowGraphicsFill({
+      layer: providersLayer,
+      showFill: false,
+      symbol: getCountySymbol(colors.black()),
+    });
+    providersLayer.title = 'Selected County';
+
     return function cleanup() {
-      hideShowGraphicsFill(boundariesLayer, true);
-      hideShowGraphicsFill(providersLayer, true, 0.15);
+      hideShowGraphicsFill({ layer: boundariesLayer, showFill: true });
+      hideShowGraphicsFill({
+        layer: providersLayer,
+        showFill: true,
+        alpha: 0.15,
+        symbol: getCountySymbol(),
+      });
+      providersLayer.title = 'Providers';
     };
   }, [boundariesLayer, countyBoundaries, hucBoundaries, providersLayer]);
 
@@ -981,7 +998,7 @@ function ExtremeWeather() {
             ]}
           />
 
-          <div css={sectionHeaderContainerStyles}>
+          <div css={sectionHeaderContainerShorterStyles}>
             <div css={sectionHeaderStyles}>
               Historical Risk and Potential Future Scenarios
               <HelpTooltip label={historicalTooltip} />
@@ -1006,6 +1023,19 @@ function ExtremeWeather() {
                 }}
               />
             </div>
+            <button
+              css={linkButtonStyles}
+              onClick={() => {
+                let newVisibleLayers: Partial<LayersState['visible']> = {};
+                historicalRisk.items.forEach((cw) => {
+                  newVisibleLayers[cw.layerId as keyof LayersState['visible']] =
+                    false;
+                });
+                updateVisibleLayers(newVisibleLayers);
+              }}
+            >
+              Clear Selection
+            </button>
           </div>
 
           <SelectionTable
@@ -1020,7 +1050,7 @@ function ExtremeWeather() {
               'Historical Risk and Potential Future Scenarios',
               'Status Within County',
             ]}
-            callback={(row: Row, layer: __esri.Layer) => {
+            callback={(row: ExtremeWeatherRow, layer: __esri.Layer) => {
               if (!layer || !isFeatureLayer(layer)) return;
 
               if (row.id !== 'coastalFlooding') {
@@ -1163,6 +1193,227 @@ function ExtremeWeather() {
               'Count',
             ]}
           />
+
+          <div>
+            <strong>Read more about</strong> how waters, communities, and assets
+            are vulnerable to various extreme events, and how people are
+            learning to adapt and build resiliency.
+            <ShowLessMore
+              charLimit={0}
+              text={
+                <>
+                  <span css={paragraphStyles}>
+                    Read more about how to adapt, mitigate, and build resiliency
+                    to extreme events and climate and climate:
+                  </span>
+                  <ul>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/climate-change-water-sector/office-water-climate-adaptation-implementation-plan"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Office of Water Climate Adaptation Implementation Plan
+                      </a>{' '}
+                      (see{' '}
+                      <em>
+                        Climate Vulnerabilities of Water Resources, Communities,
+                        and Office of Water Programs
+                      </em>{' '}
+                      section)
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/climate-change-water-sector"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        EPA Climate and Water Sector
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/cwsrf/clean-water-state-revolving-fund-cwsrf-factsheets"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        EPA funding for resiliency
+                      </a>
+                      <ul>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/sites/default/files/2021-01/documents/funding_resilient_infrastructure_and_communities_with_the_cwsrf.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Funding Resilient Infrastructure and Communities
+                            with the Clean Water State Revolving Fund (PDF)
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/system/files/documents/2022-08/Funding Drought Resiliency Projects with the CWSRF.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Funding Drought Resiliency Projects with the CWSRF
+                            (PDF)
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/system/files/documents/2022-10/Funding Wildfire Resiliency%2C Mitigation%2C and Recovery Projects with the SRF.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Funding Wildfire Resiliency, Mitigation, and
+                            Recovery Projects with the Clean Water and Drinking
+                            Water State Revolving Fund Programs (PDF)
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/system/files/documents/2023-03/climate-resilience-and-mitigation-with-cwsrf-and-wifia.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Increasing Climate Resilience and Mitigation with
+                            the Clean Water State Revolving Fund (CWSRF) and
+                            Water Infrastructure Finance and Innovation Act
+                            (WIFIA) Program (PDF)
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/arc-x/climate-adaptation-and-drought"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Climate Adaptation and Drought
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.epa.gov/crwu"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Creating Resilient Water Utilities (CRWU)
+                      </a>
+                    </li>
+                  </ul>
+                  <span css={paragraphStyles}>
+                    Read more about how waters, infrastructure, and communities
+                    are potentially vulnerable to extreme events and climate
+                    change:
+                  </span>
+                  <ul>
+                    <li>
+                      Water quality and quantity
+                      <ul>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/arc-x/climate-impacts-water-quality#:~:text=Harmful%20Algal%20Blooms,-Develop%20models%20to&text=In%20many%20areas%2C%20increased%20water,due%20to%20extreme%20storm%20events"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Climate Impacts on Water Quality
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/climate-research/ecosystems-water-quality-climate-change-research#WaterQuality"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Water Quality & Climate Change Research
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/water-research/wildfires-and-water-quality-research"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Wildfires and Water Quality Research
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      Infrastructure
+                      <ul>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/natural-disasters/flooding#:~:text=During%20a%20flood%2C%20underground%20storage,surface%20water%2C%20and%20groundwater%20contamination"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Underground Storage Tanks and Flooding
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://cfpub.epa.gov/si/si_public_record_Report.cfm?dirEntryId=361015&Lab=CESER"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Climate Change and Vulnerabilities Associated with
+                            Aboveground Storage Tanks
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/eco-research/community-vulnerabilities-contaminant-releases-extreme-events"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Community Vulnerabilities to Contaminant Releases
+                            from Extreme Events
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/arc-x/climate-impacts-water-utilities"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Wastewater systems, drinking water systems, and
+                            Combined Sewage Overflows (CSO’s)
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      Communities
+                      <ul>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/climateimpacts/climate-equity#:~:text=Some%20communities%20experience%20disproportionate%20impacts,affected%20most%20by%20climate%20change"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Climate Equity
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/climateimpacts/climate-change-and-health-socially-vulnerable-people#water"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Water-Related Illnesses and Climate Change
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </>
+              }
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -1182,7 +1433,7 @@ const toggleStyles = css`
 `;
 
 type SelectionTableProps = {
-  callback?: (row: Row, layer: __esri.Layer) => void;
+  callback?: (row: ExtremeWeatherRow, layer: __esri.Layer) => void;
   columns: string[];
   hideHeader?: boolean;
   id: string;
@@ -1208,7 +1459,9 @@ function SelectionTable({
 
   const hasSubheadings = value.items.findIndex((i) => i.subHeading) > -1;
 
-  const [selectedRow, setSelectedRow] = useState<Row | null>(null);
+  const [selectedRow, setSelectedRow] = useState<ExtremeWeatherRow | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!callback || !selectedRow || typeof timeframe !== 'number') return;
@@ -1264,7 +1517,7 @@ function SelectionTable({
                         value={item.id}
                         onChange={() => {}}
                         onClick={() => {
-                          let newSelectedRow: Row | null = null;
+                          let newSelectedRow: ExtremeWeatherRow | null = null;
                           let newVisibleLayers: Partial<
                             LayersState['visible']
                           > = {};
@@ -1360,7 +1613,11 @@ function SelectionTable({
                       </button>
                     }
                   >
-                    <div dangerouslySetInnerHTML={{ __html: item.infoText }} />
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: parameterizedString(item.infoText),
+                      }}
+                    />
                   </Modal>
                 )}
               </td>
@@ -1625,7 +1882,7 @@ async function queryLayers({
   setter,
   whereReplacer,
 }: {
-  config: Row[];
+  config: ExtremeWeatherRow[];
   geometry?: __esri.Geometry;
   id: string;
   layer: __esri.FeatureLayer | __esri.GroupLayer;
@@ -1637,7 +1894,7 @@ async function queryLayers({
   whereReplacer?: (where: string) => string;
 }) {
   const defaultValues = !outIds ? [{ id }] : outIds.map((id) => ({ id }));
-  const configRow = config.find((i: Row) => i.id === id);
+  const configRow = config.find((i: ExtremeWeatherRow) => i.id === id);
   if (!configRow?.queries) {
     setTableConfig(setter, (config) => {
       updateMultipleRows(config, 'failure', defaultValues);
@@ -1699,7 +1956,7 @@ async function queryLayersInner({
   setter,
   whereReplacer,
 }: {
-  configRow: Row;
+  configRow: ExtremeWeatherRow;
   defaultValues: {
     id: string;
   }[];
@@ -1829,7 +2086,7 @@ function updateRowField(
 ) {
   const row = config.items.find((c) => c.id === id);
   if (row) {
-    row[field as keyof Row] = value;
+    row[field as keyof ExtremeWeatherRow] = value;
   }
 }
 
@@ -1886,6 +2143,11 @@ const sectionHeaderContainerStyles = css`
   padding: 0.75rem;
 `;
 
+const sectionHeaderContainerShorterStyles = css`
+  ${sectionHeaderContainerStyles}
+  padding-bottom: 0.25rem;
+`;
+
 const sectionHeaderStyles = css`
   display: flex;
   justify-content: space-between;
@@ -1925,11 +2187,6 @@ const tableRowSectionHeaderStyles = css`
  * Types
  */
 
-type ExtremeWeatherQuery = {
-  serviceItemId?: string;
-  query: __esri.Query | __esri.QueryProperties;
-};
-
 type HistoricType =
   | 'fire'
   | 'drought'
@@ -1938,24 +2195,9 @@ type HistoricType =
   | 'coastalFlooding'
   | 'extremeHeat';
 
-type Row = {
-  checked?: boolean;
-  disabled?: boolean;
-  id: string;
-  indent?: string;
-  infoText?: string;
-  label: string;
-  layerId?: string;
-  layerProperties?: any;
-  queries?: ExtremeWeatherQuery[];
-  status?: FetchStatus;
-  subHeading?: boolean;
-  text?: string;
-};
-
 type RowValue = number | string | unknown[] | null;
 
 type SwitchTableConfig = {
   updateCount: number;
-  items: Row[];
+  items: ExtremeWeatherRow[];
 };
