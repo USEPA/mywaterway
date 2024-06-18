@@ -76,7 +76,11 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { ServicesState, WatershedAttributes } from 'types';
+import type {
+  RndDraggableState,
+  ServicesState,
+  WatershedAttributes,
+} from 'types';
 // styles
 import { fonts } from 'styles';
 
@@ -751,7 +755,7 @@ function MapWidgets({
         : awdRect.left - mapRect.left - difference / 2;
     rnd.current.updatePosition({
       x: newPosition < 0 ? 0 : newPosition,
-      y: rnd.current.draggable.state.y,
+      y: (rnd.current.draggable.state as RndDraggableState).y,
     });
   }, []);
 

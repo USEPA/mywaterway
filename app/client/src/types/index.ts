@@ -476,6 +476,11 @@ export interface ProtectedAreaAttributes {
   Loc_Nm: string;
 }
 
+export interface RndDraggableState {
+  x: number;
+  y: number;
+}
+
 export interface ServicesData {
   attains: { serviceUrl: string };
   cyan: {
