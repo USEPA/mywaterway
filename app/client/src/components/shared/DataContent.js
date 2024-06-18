@@ -216,7 +216,7 @@ function DataContent() {
                 </a>
                 {includeExit && (
                   <a
-                    class="exit-disclaimer"
+                    className="exit-disclaimer"
                     href="https://www.epa.gov/home/exit-epa"
                     target="_blank"
                     rel="noopener noreferrer"
