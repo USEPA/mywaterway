@@ -33,7 +33,7 @@
     "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.598.0",
+    "@aws-sdk/client-s3": "3.600.0",
     "axios": "1.7.2",
     "dotenv": "16.4.5",
     "express": "4.19.2",
