@@ -45,7 +45,7 @@ export function generateFilterInput(placeholder = 'Filter column...') {
         css={inputStyles}
         type="text"
         placeholder={placeholder}
-        value={filterValue ? filterValue : ''}
+        value={filterValue || ''}
         onClick={(event) => event.stopPropagation()}
         onChange={
           (event) => setFilter(event.target.value || undefined) // Set undefined to remove the filter entirely

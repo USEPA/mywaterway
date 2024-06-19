@@ -986,7 +986,7 @@ function LocationSearch({ route, label }: Props) {
                       role="menuitem"
                       className={`esri-search__source esri-menu__list-item ${secondClass}`}
                       tabIndex="-1"
-                      key={`source-key-${sourceIndex}`}
+                      key={`source-key-${source.name}`}
                       onClick={handleSourceSelect}
                       onKeyDown={handleSourceSelect}
                     >
@@ -1049,7 +1049,7 @@ function LocationSearch({ route, label }: Props) {
                   role="menu"
                   data-node-ref="_suggestionListNode"
                 >
-                  {filteredSuggestions.map((source, suggestIndex) => {
+                  {filteredSuggestions.map((source) => {
                     function findGroupName() {
                       if (
                         source.source.name === 'ArcGIS World Geocoding Service'
@@ -1085,7 +1085,7 @@ function LocationSearch({ route, label }: Props) {
                     const title = findGroupName();
                     return (
                       <LayerSuggestions
-                        key={`layer-suggestions-key-${suggestIndex}`}
+                        key={`layer-suggestions-key-${source.source.name}`}
                         title={title}
                         source={source}
                         startIndex={layerEndIndex - (source.results.length - 1)}

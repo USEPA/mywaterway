@@ -12,8 +12,6 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
-// config
-import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // types
 import type {
   MonitoringFeatureUpdate,
@@ -21,7 +19,11 @@ import type {
   WatershedAttributes,
 } from 'types';
 // utils
-import { isInScale } from 'utils/mapFunctions';
+import {
+  getPopupContent,
+  graphicComparison,
+  isInScale,
+} from 'utils/mapFunctions';
 
 // --- types ---
 interface ClickEvent {
@@ -200,8 +202,6 @@ function updateGraphics(
 
 // --- components ---
 type Props = {
-  // map and view props auto passed from parent Map component by react-arcgis
-  map: any;
   view: any;
 };
 

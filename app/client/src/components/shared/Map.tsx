@@ -21,7 +21,11 @@ type Props = {
   startingExtent?: Object | null;
 };
 
-function Map({ children, layers = null, startingExtent = null }: Props) {
+function Map({
+  children,
+  layers = null,
+  startingExtent = null,
+}: Readonly<Props>) {
   const { widgetLayers } = useAddSaveDataWidgetState();
   const { basemap, highlightOptions, homeWidget, mapView, setMapView } =
     useContext(LocationSearchContext);
@@ -104,7 +108,7 @@ function Map({ children, layers = null, startingExtent = null }: Props) {
               view={mapView}
               layers={layers}
             />
-            <MapMouseEvents map={map} view={mapView} />
+            <MapMouseEvents view={mapView} />
           </>
         )}
       </div>
@@ -125,7 +129,7 @@ export function MapContainer(props: Props) {
   );
 }
 
-export default function MapWrapper(props: Props) {
+export default function MapWrapper(props: Readonly<Props>) {
   return (
     <FullscreenProvider>
       <MapContainer {...props} />

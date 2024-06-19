@@ -368,7 +368,7 @@ function MapWidgets({
   view,
   layers,
   onHomeWidgetRendered = () => {},
-}: Props) {
+}: Readonly<Props>) {
   const {
     addSaveDataWidgetVisible,
     setActiveTabIndex,
@@ -1278,10 +1278,10 @@ function MapWidgets({
 function ShowAddSaveDataWidget({
   addSaveDataWidgetVisible,
   setAddSaveDataWidgetVisible,
-}: {
+}: Readonly<{
   addSaveDataWidgetVisible: boolean;
   setAddSaveDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
-}) {
+}>) {
   const [hover, setHover] = useState(false);
 
   const clickHandler = useCallback(
@@ -1353,7 +1353,7 @@ function ExpandCollapse({
   fullscreenActive,
   setFullscreenActive,
   mapViewSetter,
-}: ExpandeCollapseProps) {
+}: Readonly<ExpandeCollapseProps>) {
   const [hover, setHover] = useState(false);
 
   const clickHandler = useCallback(
@@ -1586,7 +1586,7 @@ function ShowUpstreamWatershed({
   selectionActive = false,
   upstreamLayer,
   upstreamLoading,
-}: ShowUpstreamWatershedProps) {
+}: Readonly<ShowUpstreamWatershedProps>) {
   const [hover, setHover] = useState(false);
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
@@ -2879,7 +2879,7 @@ type DownloadWidgetProps = {
   view: __esri.MapView;
 };
 
-function DownloadWidget({ services, view }: DownloadWidgetProps) {
+function DownloadWidget({ services, view }: Readonly<DownloadWidgetProps>) {
   const layoutOptions: LayoutOptionType[] = [
     {
       value: 'a3-landscape',
