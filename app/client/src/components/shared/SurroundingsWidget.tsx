@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css, keyframes } from '@emotion/react';
 import { createPortal } from 'react-dom';
 import { Root, createRoot } from 'react-dom/client';
+import { CalciteAction, CalciteIcon } from '@esri/calcite-components-react';
+// components
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 // contexts
 import { useLayersState } from 'contexts/Layers';
 import {
@@ -109,7 +112,6 @@ function SurroundingsWidget(props: Readonly<SurroundingsWidgetProps>) {
       <SurroundingsWidgetTrigger
         contentVisible={contentVisible}
         disabled={isEmpty(layers)}
-        expanded={contentVisible}
         forwardedRef={triggerRef}
         onClick={toggleContentVisibility}
         updating={Object.entries(layersUpdating).some(
@@ -136,60 +138,82 @@ function SurroundingsWidgetContent({
     <div css={widgetContentStyles(visible)} role="region">
       <div>
         <h2 id="surrounding-features-widget-heading">Surrounding Features:</h2>
-        <div>
-          <ul aria-labelledby="surrounding-features-widget-heading">
-            {(Object.keys(toggles) as SurroundingFeaturesLayerId[]).map(
-              (id) => {
-                const layer = layers[id];
-                if (!layer) return null;
-                let title = `Show ${layer.title}`;
-                if (togglesDisabled[id]) {
-                  title = `${layer.title} Not Available`;
-                } else if (surroundingsVisible[id]) {
-                  title = `Hide ${layer.title}`;
-                }
-                const clickHandler = togglesDisabled[id]
-                  ? undefined
-                  : toggles[id](!surroundingsVisible[id]);
-                const updating =
-                  layersUpdating[id] &&
-                  surroundingsVisible[id] &&
-                  !togglesDisabled[id];
-                return (
-                  <li key={id}>
-                    <div title={title}>
-                      <div
-                        aria-checked={
-                          !togglesDisabled[id] && surroundingsVisible[id]
-                        }
-                        aria-labelledby={`label-${id}`}
-                        css={listItemContentStyles(togglesDisabled[id])}
-                        onClick={clickHandler}
-                        onKeyDown={clickHandler}
-                        role="switch"
-                        tabIndex={0}
-                      >
-                        <span
-                          aria-hidden="true"
-                          className={`esri-icon-${
-                            !togglesDisabled[id] && surroundingsVisible[id]
-                              ? ''
-                              : 'non-'
-                          }visible`}
-                        ></span>
-                        <span id={`label-${id}`}>
-                          {layer.title.replace('Surrounding ', '')}
-                        </span>
-                      </div>
-                    </div>
-                    <div css={updating ? loaderStyles : undefined}></div>
-                  </li>
-                );
-              },
-            )}
-          </ul>
+        <div
+          aria-labelledby="surrounding-features-widget-heading"
+          css={widgetListStyles}
+        >
+          {(Object.keys(toggles) as SurroundingFeaturesLayerId[]).map((id) => (
+            <SurroundingsWidgetButton
+              key={id}
+              id={id}
+              layers={layers}
+              layersUpdating={layersUpdating}
+              surroundingsVisible={surroundingsVisible}
+              toggles={toggles}
+              togglesDisabled={togglesDisabled}
+            />
+          ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function SurroundingsWidgetButton({
+  id,
+  layers,
+  layersUpdating,
+  surroundingsVisible,
+  toggles,
+  togglesDisabled,
+}: SurroundingsWidgetButtonProps) {
+  const [hover, setHover] = useState(false);
+
+  const layer = layers[id];
+  if (!layer) return null;
+  let title = `Show ${layer.title}`;
+  if (togglesDisabled[id]) {
+    title = `${layer.title} Not Available`;
+  } else if (surroundingsVisible[id]) {
+    title = `Hide ${layer.title}`;
+  }
+  const clickHandler = togglesDisabled[id]
+    ? undefined
+    : toggles[id](!surroundingsVisible[id]);
+  const updating =
+    layersUpdating[id] && surroundingsVisible[id] && !togglesDisabled[id];
+  const visible = !togglesDisabled[id] && surroundingsVisible[id];
+  return (
+    <div css={widgetListItemStyles}>
+      <div title={title}>
+        <div
+          aria-checked={visible}
+          aria-labelledby={`label-${id}`}
+          css={listItemContentStyles(togglesDisabled[id], hover)}
+          onFocus={() => setHover(true)}
+          onBlur={() => setHover(false)}
+          onMouseOver={() => setHover(true)}
+          onMouseOut={() => setHover(false)}
+          onClick={clickHandler}
+          onKeyDown={clickHandler}
+          role="switch"
+          tabIndex={0}
+        >
+          <span id={`label-${id}`}>
+            {layer.title.replace('Surrounding ', '')}
+          </span>
+          <div css={divActionStyle}>
+            {(hover || !visible) && (
+              <CalciteAction
+                icon={visible ? 'view-visible' : 'view-hide'}
+                scale="s"
+                text="Visibility"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+      <div css={updating ? loaderStyles : undefined}></div>
     </div>
   );
 }
@@ -201,7 +225,6 @@ function Portal({ children, container }: PortalProps) {
 function SurroundingsWidgetTrigger({
   contentVisible,
   disabled,
-  expanded,
   forwardedRef,
   onClick,
   updating,
@@ -210,12 +233,11 @@ function SurroundingsWidgetTrigger({
   const [hover, setHover] = useState(false);
 
   let title = 'Open Surrounding Features';
-  let iconClass = 'esri-icon esri-icon-globe';
+  let icon = 'globe';
   if (contentVisible) {
-    iconClass = 'esri-icon-collapse';
+    icon = 'chevrons-right';
     title = 'Close Surrounding Features';
   }
-  if (updating) iconClass = 'esri-icon-loading-indicator esri-rotating';
   if (disabled) title = 'Surrounding Features Widget Not Available';
 
   if (!visible) return null;
@@ -235,11 +257,7 @@ function SurroundingsWidgetTrigger({
       role="button"
       tabIndex={0}
     >
-      <span
-        aria-hidden="true"
-        className={iconClass}
-        css={buttonStyle(disabled, hover)}
-      />
+      {updating ? <LoadingSpinner /> : <CalciteIcon icon={icon} scale="s" />}
     </div>
   );
 }
@@ -248,40 +266,59 @@ function SurroundingsWidgetTrigger({
 ## Styles
 */
 
-const buttonStyle = (disabled: boolean, hover: boolean) => css`
-  margin: 8.5px;
-  fontsize: 15px;
-  text-align: center;
-  vertical-align: middle;
-  color: ${!disabled && hover ? 'black' : '#6E6E6E'};
-`;
-
 const divStyle = (disabled: boolean, hover: boolean) => css`
+  align-items: center;
   background-color: ${!disabled && hover ? '#F0F0F0' : 'white'};
   cursor: ${disabled ? 'default' : 'pointer'};
+  display: flex;
   height: 32px;
+  justify-content: center;
+  padding: 8.5px;
   opacity: ${disabled ? 0.5 : 1.0};
   position: relative;
   width: 32px;
+
+  --calcite-ui-icon-color: ${!disabled && hover ? 'black' : '#6E6E6E'};
 `;
 
-const listItemContentStyles = (disabled: boolean) => css`
-  align-items: flex-start;
+const divActionStyle = css`
+  align-items: center;
+  display: flex;
+  transition-property: none;
+
+  --calcite-color-foreground-2: #e9e9e9;
+
+  &:hover {
+    background-color: #e9e9e9;
+    --calcite-color-foreground-1: #e9e9e9;
+    --calcite-color-transparent-hover: #e9e9e9;
+    --calcite-ui-icon-color: black;
+  }
+`;
+
+const listItemContentStyles = (disabled: boolean, hover: boolean) => css`
+  background-color: ${!disabled && hover ? '#f3f3f3' : 'white'};
   color: ${disabled ? '#6e6e6e' : 'inherit'};
   cursor: ${disabled ? 'normal' : 'pointer'};
-  display: flex;
-  flex-flow: row;
-  gap: 5px;
-  justify-content: flex-start;
-  padding: 5px;
+  display: grid;
+  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
+    'Arial', sans-serif;
+  font-size: 1rem;
+  grid-template-columns: 86% 14%;
+  outline: none !important;
+  padding-left: 3px;
+  transition-property: none;
 
-  span:first-of-type {
-    font-size: 16px;
+  --calcite-color-foreground-1: ${!disabled && hover ? '#f3f3f3' : 'white'};
+  calcite-action {
+    pointer-events: none;
   }
 
   span:last-of-type {
-    font-size: 0.8125em;
+    font-size: 0.875em;
     margin: auto 0;
+    padding-inline: 0.75rem;
+    padding-block: 0.5rem;
   }
 `;
 
@@ -324,11 +361,11 @@ const widgetContentStyles = (visible: boolean) => css`
   right: 32px;
   top: 0px;
   visibility: ${visible ? 'visible' : 'hidden'};
-  width: auto;
+  width: 242px;
 
   & > div {
     padding-top: 10px;
-    width: 200px;
+    width: 242px;
 
     h2 {
       font-family: ${fonts.primary};
@@ -343,32 +380,20 @@ const widgetContentStyles = (visible: boolean) => css`
       color: #323232;
       display: flex;
       flex-flow: column;
-      padding: 12px 10px 0;
-
-      & > ul {
-        list-style: none;
-        padding: 2px;
-
-        & > li {
-          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-          line-height: 1;
-          margin-bottom: 10px;
-
-          & > div:first-of-type {
-            border-left: 3px solid transparent;
-            padding: 5px 5px 3.5px;
-          }
-
-          & > div:last-of-type {
-            width: 100%;
-            height: 1.5px;
-            position: relative;
-            overflow: hidden;
-          }
-        }
-      }
+      padding-top: 5px;
     }
   }
+`;
+
+const widgetListItemStyles = css`
+  border-block-end: 1px solid #dfdfdf;
+  line-height: 1.375;
+  margin: 0;
+`;
+
+const widgetListStyles = css`
+  list-style: none;
+  padding: 0;
 `;
 
 /*
@@ -383,11 +408,17 @@ type PortalProps = {
 type SurroundingsWidgetTriggerProps = {
   contentVisible: boolean;
   disabled: boolean;
-  expanded: boolean;
   forwardedRef: MutableRefObject<HTMLDivElement | null>;
   onClick: (ev: MouseEvent | KeyboardEvent) => void;
   updating: boolean;
   visible: boolean;
+};
+
+type SurroundingsWidgetButtonProps = Omit<
+  SurroundingsWidgetProps,
+  'triggerVisible'
+> & {
+  id: SurroundingFeaturesLayerId;
 };
 
 type SurroundingsWidgetContentProps = Omit<

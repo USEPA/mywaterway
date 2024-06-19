@@ -16,6 +16,7 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
+import { CalciteIcon } from '@esri/calcite-components-react';
 import { css } from '@emotion/react';
 import React, {
   useCallback,
@@ -70,12 +71,7 @@ import type {
   PDFFont,
   PDFPage,
 } from 'pdf-lib';
-import type {
-  CSSProperties,
-  Dispatch,
-  MutableRefObject,
-  SetStateAction,
-} from 'react';
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
   RndDraggableState,
   ServicesState,
@@ -1314,7 +1310,7 @@ function ShowAddSaveDataWidget({
           ? 'Open Add & Save Data Widget'
           : 'Close Add & Save Data Widget'
       }
-      style={hover ? divHoverStyle : divStyle}
+      css={divStyle(false, hover)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
@@ -1324,52 +1320,28 @@ function ShowAddSaveDataWidget({
       role="button"
       tabIndex={0}
     >
-      <span
-        aria-hidden="true"
-        className={
-          addSaveDataWidgetVisible
-            ? 'esri-icon-collapse'
-            : 'esri-icon-add-attachment'
-        }
-        style={hover ? buttonHoverStyle : buttonStyle}
+      <CalciteIcon
+        icon={addSaveDataWidgetVisible ? 'chevrons-right' : 'plus-square'}
+        scale="s"
       />
     </div>
   );
 }
 
-const buttonStyle: CSSProperties = {
-  margin: '8.5px',
-  fontSize: '15px',
-  textAlign: 'center',
-  verticalAlign: 'middle',
+const divStyle = (disabled: boolean, hover: boolean) => css`
+  align-items: center;
+  background-color: ${!disabled && hover ? '#F0F0F0' : 'white'};
+  cursor: ${disabled ? 'default' : 'pointer'};
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  padding: 8.5px;
+  opacity: ${disabled ? 0.5 : 1.0};
+  position: relative;
+  width: 32px;
 
-  backgroundColor: 'white',
-  color: '#6E6E6E',
-};
-
-const buttonHoverStyle: CSSProperties = {
-  margin: '8.5px',
-  fontSize: '15px',
-  textAlign: 'center',
-  verticalAlign: 'middle',
-
-  backgroundColor: '#F0F0F0',
-  color: 'black',
-  cursor: 'pointer',
-};
-
-const divStyle = {
-  height: '32px',
-  width: '32px',
-  backgroundColor: 'white',
-};
-
-const divHoverStyle = {
-  height: '32px',
-  width: '32px',
-  backgroundColor: '#F0F0F0',
-  cursor: 'pointer',
-};
+  --calcite-ui-icon-color: ${!disabled && hover ? 'black' : '#6E6E6E'};
+`;
 
 type ExpandeCollapseProps = {
   fullscreenActive: boolean;
@@ -1412,7 +1384,7 @@ function ExpandCollapse({
           ? 'Exit Fullscreen Map View'
           : 'Enter Fullscreen Map View'
       }
-      style={hover ? divHoverStyle : divStyle}
+      css={divStyle(false, hover)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
@@ -1422,14 +1394,9 @@ function ExpandCollapse({
       role="button"
       tabIndex={0}
     >
-      <span
-        aria-hidden="true"
-        className={
-          fullscreenActive
-            ? 'esri-icon esri-icon-zoom-in-fixed'
-            : 'esri-icon esri-icon-zoom-out-fixed'
-        }
-        style={hover ? buttonHoverStyle : buttonStyle}
+      <CalciteIcon
+        icon={fullscreenActive ? 'zoom-in-fixed' : 'zoom-out-fixed'}
+        scale="s"
       />
     </div>
   );
@@ -1647,14 +1614,10 @@ function ShowUpstreamWatershed({
   else if (upstreamVisible) title = 'Hide Upstream Watershed';
   else if (selectionActive) title = 'Cancel Watershed Selection';
 
-  let iconClass = 'esri-icon esri-icon-overview-arrow-top-left';
-  if (upstreamVisible) iconClass = 'esri-icon-collapse';
-  if (upstreamLoading) iconClass = 'esri-icon-loading-indicator esri-rotating';
-
   return (
     <div
       title={title}
-      style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
+      css={divStyle(upstreamWidgetDisabled, hover)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
@@ -1664,13 +1627,21 @@ function ShowUpstreamWatershed({
       role="button"
       tabIndex={0}
     >
-      <span
-        aria-hidden="true"
-        className={iconClass}
-        style={
-          !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
-        }
-      />
+      {upstreamLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <span
+          css={css`
+            display: flex;
+            ${!upstreamVisible && 'transform: rotate(-45deg);'}
+          `}
+        >
+          <CalciteIcon
+            icon={upstreamVisible ? 'chevrons-right' : 'arrow-bold-up'}
+            scale="s"
+          />
+        </span>
+      )}
     </div>
   );
 }
