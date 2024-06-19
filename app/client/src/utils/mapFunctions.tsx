@@ -629,10 +629,12 @@ export const openPopup = (
 
   // open the popup
   view.popup = new Popup({
-    collapseEnabled: false,
     features: [feature],
     location: popupPoint,
     visible: true,
+    visibleElements: {
+      collapseButton: false,
+    },
   });
 };
 

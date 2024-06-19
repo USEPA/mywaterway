@@ -223,10 +223,12 @@ function MapMouseEvents({ view }: Props) {
     (point: __esri.Point, boundaries: __esri.FeatureSet) => {
       view.closePopup();
       view.popup = new Popup({
-        collapseEnabled: false,
         location: point,
         title: 'Change to this location?',
         visible: true,
+        visibleElements: {
+          collapseButton: false,
+        },
         content: getPopupContent({
           navigate,
           resetData: () => {
@@ -293,10 +295,12 @@ function MapMouseEvents({ view }: Props) {
                 prioritizePopup(graphics, onTribePage);
                 setSelectedGraphic(graphic);
                 view.popup = new Popup({
-                  collapseEnabled: false,
                   features: graphics,
                   location: point,
                   visible: true,
+                  visibleElements: {
+                    collapseButton: false,
+                  },
                 });
               } else {
                 setSelectedGraphic(null);

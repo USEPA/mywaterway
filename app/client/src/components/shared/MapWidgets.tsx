@@ -455,16 +455,14 @@ function MapWidgets({
           const styles = document.createElement('style');
           styles.id = id;
           styles.innerHTML = `
-            calcite-flow,
-            calcite-action,
-            calcite-action-bar {
-              --calcite-ui-border-3: white;
-              --calcite-ui-foreground-1: white;
-              --calcite-ui-foreground-2: white;
-              --calcite-ui-foreground-3: white;
-              --calcite-ui-text-1: black;
-              --calcite-ui-text-2: black;
-              --calcite-ui-text-3: black;
+            .esri-popup__main-container calcite-flow {
+              --calcite-color-border-3: white;
+              --calcite-color-foreground-1: white;
+              --calcite-color-foreground-2: white;
+              --calcite-color-foreground-3: white;
+              --calcite-color-text-1: black;
+              --calcite-color-text-2: black;
+              --calcite-color-text-3: black;
             }
           `;
           document.body.appendChild(styles);
