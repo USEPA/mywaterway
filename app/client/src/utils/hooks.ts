@@ -2210,25 +2210,21 @@ function useKeyPress(
     if (ev.key === targetKey) {
       ev.preventDefault();
       setKeyPressed(true);
+
+      // This prevents issues with search when users hold the enter key too long.
+      // Toggles this field just long enough to trigger useEffects.
+      setTimeout(() => setKeyPressed(false), 25);
     }
   }
-
-  const upHandler = ({ key }: { key: string }) => {
-    if (key === targetKey) {
-      setKeyPressed(false);
-    }
-  };
 
   useEffect(() => {
     if (!ref?.current?.addEventListener) return;
     const tempRef = ref.current;
 
     ref.current.addEventListener('keydown', downHandler);
-    ref.current.addEventListener('keyup', upHandler);
 
     return function cleanup() {
       tempRef.removeEventListener('keydown', downHandler);
-      tempRef.removeEventListener('keyup', upHandler);
     };
   });
 
