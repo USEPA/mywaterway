@@ -22,25 +22,9 @@
 }
 
 .esri-layer-list {
-  padding: 12px 10px 0;
-  background-color: inherit;
+  padding-top: 5px;
   overflow: visible !important;
   max-height: 100% !important;
-}
-
-.esri-layer-list__item-container {
-  padding: 5px;
-}
-
-.esri-layer-list__item-label {
-  padding: 5px;
-}
-
-.esri-layer-list__item {
-  margin: 0 0 10px;
-  border-bottom: none;
-  line-height: 1;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
 .esri-legend__symbol {
@@ -57,52 +41,12 @@
   line-height: 1.2;
 }
 
-.esri-layer-list__item-title {
-  align-self: center;
-  font-size: 0.8125em;
-}
-
 .esri-scale-bar {
   z-index: 0;
 }
 
 .esri-scale-bar__label {
   overflow: auto;
-}
-
-.esri-slider {
-  background-color: transparent;
-}
-
-.esri-slider__segment--interactive {
-  background-color: #0b89f4;
-}
-
-.esri-slider__track {
-  height: 0.25em !important;
-}
-
-.esri-slider--vertical {
-  width: 125px;
-}
-
-.esri-slider--vertical .esri-slider__content {
-  margin: 0;
-  width: max-content;
-}
-
-.esri-slider--vertical .esri-slider__tick-label {
-  margin-left: 65px;
-  width: 100px;
-}
-
-.esri-slider--vertical .esri-slider__ticks {
-  left: 50% !important;
-}
-
-.esri-slider--vertical .esri-slider__track {
-  padding-left: 1px;
-  width: 0.25em !important;
 }
 
 .esri-view-width-less-than-medium .esri-popup__main-container {
@@ -125,16 +69,20 @@
 }
 
 /* esri popup styles*/
-calcite-action,
-calcite-action-bar,
-calcite-flow {
-  --calcite-ui-border-3: #0674ba;
-  --calcite-ui-foreground-1: #0674ba;
-  --calcite-ui-foreground-2: #0674ba;
-  --calcite-ui-foreground-3: #0674ba;
-  --calcite-ui-text-1: white;
-  --calcite-ui-text-2: white;
-  --calcite-ui-text-3: white;
+.esri-popup__main-container calcite-flow,
+.esri-popup__main-container calcite-action,
+.esri-popup__main-container calcite-action-bar {
+  --calcite-color-border-3: #0674ba;
+  --calcite-color-foreground-1: #0674ba;
+  --calcite-color-foreground-2: #0674ba;
+  --calcite-color-foreground-3: #0674ba;
+  --calcite-color-text-1: white;
+  --calcite-color-text-2: white;
+  --calcite-color-text-3: white;
+}
+
+.esri-features__container:not(:empty) {
+  padding: 0;
 }
 
 .esri-features__container {

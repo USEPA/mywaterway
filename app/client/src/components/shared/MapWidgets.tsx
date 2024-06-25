@@ -16,6 +16,7 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
+import { CalciteIcon } from '@esri/calcite-components-react';
 import { css } from '@emotion/react';
 import React, {
   useCallback,
@@ -70,13 +71,12 @@ import type {
   PDFFont,
   PDFPage,
 } from 'pdf-lib';
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
-  CSSProperties,
-  Dispatch,
-  MutableRefObject,
-  SetStateAction,
-} from 'react';
-import type { ServicesState, WatershedAttributes } from 'types';
+  RndDraggableState,
+  ServicesState,
+  WatershedAttributes,
+} from 'types';
 // styles
 import { fonts } from 'styles';
 
@@ -368,7 +368,7 @@ function MapWidgets({
   view,
   layers,
   onHomeWidgetRendered = () => {},
-}: Props) {
+}: Readonly<Props>) {
   const {
     addSaveDataWidgetVisible,
     setActiveTabIndex,
@@ -451,16 +451,14 @@ function MapWidgets({
           const styles = document.createElement('style');
           styles.id = id;
           styles.innerHTML = `
-            calcite-flow,
-            calcite-action,
-            calcite-action-bar {
-              --calcite-ui-border-3: white;
-              --calcite-ui-foreground-1: white;
-              --calcite-ui-foreground-2: white;
-              --calcite-ui-foreground-3: white;
-              --calcite-ui-text-1: black;
-              --calcite-ui-text-2: black;
-              --calcite-ui-text-3: black;
+            .esri-popup__main-container calcite-flow {
+              --calcite-color-border-3: white;
+              --calcite-color-foreground-1: white;
+              --calcite-color-foreground-2: white;
+              --calcite-color-foreground-3: white;
+              --calcite-color-text-1: black;
+              --calcite-color-text-2: black;
+              --calcite-color-text-3: black;
             }
           `;
           document.body.appendChild(styles);
@@ -751,7 +749,7 @@ function MapWidgets({
         : awdRect.left - mapRect.left - difference / 2;
     rnd.current.updatePosition({
       x: newPosition < 0 ? 0 : newPosition,
-      y: rnd.current.draggable.state.y,
+      y: (rnd.current.draggable.state as RndDraggableState).y,
     });
   }, []);
 
@@ -1280,10 +1278,10 @@ function MapWidgets({
 function ShowAddSaveDataWidget({
   addSaveDataWidgetVisible,
   setAddSaveDataWidgetVisible,
-}: {
+}: Readonly<{
   addSaveDataWidgetVisible: boolean;
   setAddSaveDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
-}) {
+}>) {
   const [hover, setHover] = useState(false);
 
   const clickHandler = useCallback(
@@ -1312,7 +1310,7 @@ function ShowAddSaveDataWidget({
           ? 'Open Add & Save Data Widget'
           : 'Close Add & Save Data Widget'
       }
-      style={hover ? divHoverStyle : divStyle}
+      css={divStyle(false, hover)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
@@ -1322,52 +1320,28 @@ function ShowAddSaveDataWidget({
       role="button"
       tabIndex={0}
     >
-      <span
-        aria-hidden="true"
-        className={
-          addSaveDataWidgetVisible
-            ? 'esri-icon-collapse'
-            : 'esri-icon-add-attachment'
-        }
-        style={hover ? buttonHoverStyle : buttonStyle}
+      <CalciteIcon
+        icon={addSaveDataWidgetVisible ? 'chevrons-right' : 'plus-square'}
+        scale="s"
       />
     </div>
   );
 }
 
-const buttonStyle: CSSProperties = {
-  margin: '8.5px',
-  fontSize: '15px',
-  textAlign: 'center',
-  verticalAlign: 'middle',
+const divStyle = (disabled: boolean, hover: boolean) => css`
+  align-items: center;
+  background-color: ${!disabled && hover ? '#F0F0F0' : 'white'};
+  cursor: ${disabled ? 'default' : 'pointer'};
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  padding: 8.5px;
+  opacity: ${disabled ? 0.5 : 1.0};
+  position: relative;
+  width: 32px;
 
-  backgroundColor: 'white',
-  color: '#6E6E6E',
-};
-
-const buttonHoverStyle: CSSProperties = {
-  margin: '8.5px',
-  fontSize: '15px',
-  textAlign: 'center',
-  verticalAlign: 'middle',
-
-  backgroundColor: '#F0F0F0',
-  color: 'black',
-  cursor: 'pointer',
-};
-
-const divStyle = {
-  height: '32px',
-  width: '32px',
-  backgroundColor: 'white',
-};
-
-const divHoverStyle = {
-  height: '32px',
-  width: '32px',
-  backgroundColor: '#F0F0F0',
-  cursor: 'pointer',
-};
+  --calcite-ui-icon-color: ${!disabled && hover ? 'black' : '#6E6E6E'};
+`;
 
 type ExpandeCollapseProps = {
   fullscreenActive: boolean;
@@ -1379,7 +1353,7 @@ function ExpandCollapse({
   fullscreenActive,
   setFullscreenActive,
   mapViewSetter,
-}: ExpandeCollapseProps) {
+}: Readonly<ExpandeCollapseProps>) {
   const [hover, setHover] = useState(false);
 
   const clickHandler = useCallback(
@@ -1410,7 +1384,7 @@ function ExpandCollapse({
           ? 'Exit Fullscreen Map View'
           : 'Enter Fullscreen Map View'
       }
-      style={hover ? divHoverStyle : divStyle}
+      css={divStyle(false, hover)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
@@ -1420,14 +1394,9 @@ function ExpandCollapse({
       role="button"
       tabIndex={0}
     >
-      <span
-        aria-hidden="true"
-        className={
-          fullscreenActive
-            ? 'esri-icon esri-icon-zoom-in-fixed'
-            : 'esri-icon esri-icon-zoom-out-fixed'
-        }
-        style={hover ? buttonHoverStyle : buttonStyle}
+      <CalciteIcon
+        icon={fullscreenActive ? 'zoom-in-fixed' : 'zoom-out-fixed'}
+        scale="s"
       />
     </div>
   );
@@ -1617,7 +1586,7 @@ function ShowUpstreamWatershed({
   selectionActive = false,
   upstreamLayer,
   upstreamLoading,
-}: ShowUpstreamWatershedProps) {
+}: Readonly<ShowUpstreamWatershedProps>) {
   const [hover, setHover] = useState(false);
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
@@ -1645,14 +1614,10 @@ function ShowUpstreamWatershed({
   else if (upstreamVisible) title = 'Hide Upstream Watershed';
   else if (selectionActive) title = 'Cancel Watershed Selection';
 
-  let iconClass = 'esri-icon esri-icon-overview-arrow-top-left';
-  if (upstreamVisible) iconClass = 'esri-icon-collapse';
-  if (upstreamLoading) iconClass = 'esri-icon-loading-indicator esri-rotating';
-
   return (
     <div
       title={title}
-      style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
+      css={divStyle(upstreamWidgetDisabled, hover)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
       onMouseOver={() => setHover(true)}
@@ -1662,13 +1627,21 @@ function ShowUpstreamWatershed({
       role="button"
       tabIndex={0}
     >
-      <span
-        aria-hidden="true"
-        className={iconClass}
-        style={
-          !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
-        }
-      />
+      {upstreamLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <span
+          css={css`
+            display: flex;
+            ${!upstreamVisible && 'transform: rotate(-45deg);'}
+          `}
+        >
+          <CalciteIcon
+            icon={upstreamVisible ? 'chevrons-right' : 'arrow-bold-up'}
+            scale="s"
+          />
+        </span>
+      )}
     </div>
   );
 }
@@ -2906,7 +2879,7 @@ type DownloadWidgetProps = {
   view: __esri.MapView;
 };
 
-function DownloadWidget({ services, view }: DownloadWidgetProps) {
+function DownloadWidget({ services, view }: Readonly<DownloadWidgetProps>) {
   const layoutOptions: LayoutOptionType[] = [
     {
       value: 'a3-landscape',
