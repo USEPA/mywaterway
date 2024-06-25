@@ -123,6 +123,27 @@
     }
   ],
 
+  "echoLookups": {
+    "permitStatus": {
+      "none": "Any",
+      "EFF": "Effective",
+      "EXP": "Expired",
+      "ADC": "Administratively Continued",
+      "PND": "Pending",
+      "RET": "Retired",
+      "NON": "Not Needed",
+      "TRM": "Terminated"
+    },
+
+    "permitType": {
+      "none": "Any",
+      "NPD": "NPDES Individual Permit",
+      "NGP": "NPDES Master General Permit",
+      "GPC": "General Permit Covered Facility",
+      "UFT": "Unpermitted Facility"
+    }
+  },
+
   "historicalDefaults": [
     {
       "id": "fire",
