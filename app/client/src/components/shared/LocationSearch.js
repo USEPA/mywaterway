@@ -559,11 +559,13 @@ function LocationSearch({ route, label }: Props) {
 
   // Performs the search operation
   const formSubmit = useCallback(
-    ({ searchTerm, geometry, target = route }) => {
+    ({ searchTerm, geometry, target = null }) => {
       setSuggestionsVisible(false);
       setCursor(-1);
 
-      if (searchTerm) {
+      if (target) {
+        window.open(target, '_blank', 'noopener,noreferrer');
+      } else if (searchTerm) {
         const newSearchTerm = searchTerm.replace(/[\n\r\t/]/g, ' ');
 
         if (containsScriptTag(newSearchTerm)) {
@@ -587,26 +589,104 @@ function LocationSearch({ route, label }: Props) {
           setGeolocationError(false);
 
           // only navigate if search box contains text
-          navigate(encodeURI(target.replace('{urlSearch}', urlSearch)));
+          navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
         }
-      } else {
-        window.open(target, '_blank', 'noopener,noreferrer');
       }
     },
     [navigate, route],
   );
 
+  const openMonitoringReport = useCallback(
+    (result, callback) => {
+      // query WQP's station service to get the lat/long
+      const url = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
+      fetchCheck(url)
+        .then((res) => {
+          const feature = res.features[0];
+          if (!feature) {
+            setErrorMessage(webServiceErrorMessage);
+            return;
+          }
+          const {
+            properties: {
+              MonitoringLocationIdentifier,
+              OrganizationIdentifier,
+              ProviderName,
+            },
+          } = feature;
+
+          formSubmit({
+            target: `/monitoring-report/${ProviderName}/${OrganizationIdentifier}/${MonitoringLocationIdentifier}`,
+          });
+          if (callback) callback(result.text);
+        })
+        .catch((_err) => {
+          setErrorMessage(webServiceErrorMessage);
+        });
+    },
+    [formSubmit, services],
+  );
+
+  const openWaterbodyReport = useCallback(
+    (result, callback) => {
+      const item = waterbodySuggestions.current?.find(
+        (wb) => wb.assessmentUnitId === result.key,
+      );
+      if (!item) {
+        setErrorMessage(webServiceErrorMessage);
+        return;
+      }
+      const { assessmentUnitId, organizationId } = item;
+      formSubmit({
+        target: `waterbody-report/${organizationId}/${assessmentUnitId}`,
+      });
+
+      if (callback) callback(result.text);
+    },
+    [formSubmit],
+  );
+
+  // prevent next useEffect from running more than once per enter key press
+  const [lock, setLock] = useState(false);
+  useEffect(() => {
+    if (!enterPress) setLock(false);
+  }, [enterPress]);
+
   // Handle enter key press (search input)
   useEffect(() => {
-    if (!enterPress || cursor < -1 || cursor > resultsCombined.length) return;
+    if (!enterPress || cursor < -1 || lock || cursor > resultsCombined.length)
+      return;
+
+    setLock(true);
 
     if (cursor === -1 || resultsCombined.length === 0) {
       formSubmit({ searchTerm: inputText });
+    } else if (resultsCombined[cursor].source.name === 'Waterbodies') {
+      openWaterbodyReport(resultsCombined[cursor], (text) => {
+        setInputText(text);
+        setSuggestionsVisible(false);
+        setCursor(-1);
+      });
+    } else if (resultsCombined[cursor].source.name === 'Monitoring Locations') {
+      openMonitoringReport(resultsCombined[cursor], (text) => {
+        setInputText(text);
+        setSuggestionsVisible(false);
+        setCursor(-1);
+      });
     } else if (resultsCombined[cursor].text) {
       setInputText(resultsCombined[cursor].text);
       formSubmit({ searchTerm: resultsCombined[cursor].text });
     }
-  }, [cursor, enterPress, formSubmit, inputText, resultsCombined]);
+  }, [
+    cursor,
+    enterPress,
+    formSubmit,
+    inputText,
+    lock,
+    openMonitoringReport,
+    openWaterbodyReport,
+    resultsCombined,
+  ]);
 
   // Splits the provided text by the searchString in a case insensitive way.
   function getHighlightParts(text, searchString) {
@@ -671,41 +751,9 @@ function LocationSearch({ route, label }: Props) {
                 const huc = result.text.split('(')[1].replace(')', '');
                 formSubmit({ searchTerm: huc });
               } else if (source.source.name === 'Monitoring Locations') {
-                // query WQP's station service to get the lat/long
-                const url = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
-                fetchCheck(url)
-                  .then((res) => {
-                    const feature = res.features[0];
-                    if (!feature) {
-                      setErrorMessage(webServiceErrorMessage);
-                      return;
-                    }
-                    const {
-                      properties: {
-                        MonitoringLocationIdentifier,
-                        OrganizationIdentifier,
-                        ProviderName,
-                      },
-                    } = feature;
-                    formSubmit({
-                      target: `/monitoring-report/${ProviderName}/${OrganizationIdentifier}/${MonitoringLocationIdentifier}`,
-                    });
-                  })
-                  .catch((_err) => {
-                    setErrorMessage(webServiceErrorMessage);
-                  });
+                openMonitoringReport(result);
               } else if (source.source.name === 'Waterbodies') {
-                const item = waterbodySuggestions.current?.find(
-                  (wb) => wb.assessmentUnitId === result.key,
-                );
-                if (!item) {
-                  setErrorMessage(webServiceErrorMessage);
-                  return;
-                }
-                const { assessmentUnitId, organizationId } = item;
-                formSubmit({
-                  target: `waterbody-report/${organizationId}/${assessmentUnitId}`,
-                });
+                openWaterbodyReport(result);
               } else {
                 // query to get the feature and search based on the centroid
                 const params = result.source.layer.createQuery();
