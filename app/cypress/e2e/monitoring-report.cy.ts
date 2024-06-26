@@ -1,14 +1,5 @@
 import { getMedian } from '../../client/src/utils/utils';
 
-// This is a workaround for making the tests more reliable when running
-// cypress in headless mode, particularly for running code coverage.
-Cypress.on('uncaught:exception', (_err, _runnable) => {
-  // returning false here prevents Cypress from
-  // failing the test
-  debugger;
-  return false;
-});
-
 const provider = 'STORET';
 const orgId = 'IL_EPA_WQX';
 const siteId = 'IL_EPA_WQX-C-19';

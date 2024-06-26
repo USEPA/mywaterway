@@ -19,7 +19,7 @@ describe('Homepage links', () => {
   });
 
   it(`"Data" button links to the data page`, () => {
-    cy.findByText('Data').click();
+    cy.findByRole('button', { name: 'Data' }).click();
     cy.url().should('include', '/data');
   });
 

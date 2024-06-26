@@ -18,9 +18,11 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a GRTS project
     cy.findByText('Protect').click();
     cy.findByText('Watershed Health and Protection').click();
-    cy.get('.hmw-accordion').filter(':visible').then((elms) => {
-      cy.wrap(elms[3]).click();
-    });
+    cy.get('.hmw-accordion')
+      .filter(':visible')
+      .then((elms) => {
+        cy.wrap(elms[3]).click();
+      });
     cy.findAllByText('Cypress Creek WPP Imp - Years 1-3');
 
     // navigate to Protect tab of Community page
@@ -53,9 +55,11 @@ describe('Protect Tab', () => {
     cy.findByText('Protect').click();
     cy.findByText('You can help keep your water clean.', { exact: false });
     cy.findByText('Watershed Health and Protection').click();
-    cy.get('.hmw-accordion').filter(':visible').then((elms) => {
-      cy.wrap(elms[3]).click();
-    });
+    cy.get('.hmw-accordion')
+      .filter(':visible')
+      .then((elms) => {
+        cy.wrap(elms[3]).click();
+      });
     cy.findByText('There are no EPA funded protection projects in the', {
       exact: false,
     });
@@ -97,9 +101,11 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
-    cy.get('.hmw-accordion').filter(':visible').then((elms) => {
-      cy.wrap(elms[1]).click();
-    });
+    cy.get('.hmw-accordion')
+      .filter(':visible')
+      .then((elms) => {
+        cy.wrap(elms[1]).click();
+      });
     cy.findByText(
       'was created by Congress in 1968 to preserve certain rivers with outstanding',
       {
@@ -123,9 +129,11 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
-    cy.get('.hmw-accordion').filter(':visible').then((elms) => {
-      cy.wrap(elms[2]).click();
-    });
+    cy.get('.hmw-accordion')
+      .filter(':visible')
+      .then((elms) => {
+        cy.wrap(elms[2]).click();
+      });
     cy.findByText(
       'The Protected Areas Database (PAD-US) is America’s official national inventory of U.S.',
       {

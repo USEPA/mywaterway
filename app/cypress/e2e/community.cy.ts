@@ -1,12 +1,3 @@
-// This is a workaround for making the tests more reliable when running
-// cypress in headless mode, particularly for running code coverage.
-Cypress.on('uncaught:exception', (_err, _runnable) => {
-  // returning false here prevents Cypress from
-  // failing the test
-  debugger;
-  return false;
-});
-
 describe('Community page search', () => {
   beforeEach(() => {
     cy.visit('/community');
@@ -106,12 +97,14 @@ describe('Community page map legend', () => {
     // workaround for this test failing while running cypress in headless mode.
     cy.wait(2000);
 
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).click();
-    cy.findAllByRole('switch', { name: 'All Mapped Water (NHD)' }).click({
-      force: true,
+    cy.findByTitle('Open Basemaps and Layers').click();
+    cy.get('.hmw-map-layers').within(() => {
+      cy.findByText('All Mapped Water (NHD)').click({
+        force: true,
+      });
     });
-    cy.findByRole('button', { name: 'Close Basemaps and Layers' }).click();
-    cy.findByRole('button', { name: 'Open Legend' }).click();
+    cy.findByTitle('Close Basemaps and Layers').click();
+    cy.findByTitle('Open Legend').click();
     cy.findAllByText('All Mapped Water (NHD)').should('be.visible');
   });
 });

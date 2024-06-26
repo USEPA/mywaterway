@@ -1,12 +1,3 @@
-// This is a workaround for making the tests more reliable when running
-// cypress in headless mode, particularly for running code coverage.
-Cypress.on('uncaught:exception', (_err, _runnable) => {
-  // returning false here prevents Cypress from
-  // failing the test
-  debugger;
-  return false;
-});
-
 describe('Community Visual Regression Testing', () => {
   const mapId = '#hmw-map-container';
 
@@ -68,6 +59,8 @@ describe('Community Visual Regression Testing', () => {
   it('Verify shading of huc boundaries is turned off when wsio layer is on', () => {
     cy.visit('/community/dc/protect');
 
+    cy.findByText('Watershed Health and Protection');
+
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'exist',
     );
@@ -85,12 +78,12 @@ describe('Community Visual Regression Testing', () => {
     });
 
     // jostle the map view to workaround WSIO service performance issues
-    cy.findByRole('button', { name: 'Zoom out' }).click().click();
-    cy.findByRole('button', { name: 'Home' }).click();
+    cy.findByTitle('Zoom out').click({ force: true }).click({ force: true });
+    cy.findByTitle('Default map view').click({ force: true });
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(5000);
+    cy.wait(8000);
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-wsio-no-shading');
 
@@ -150,10 +143,10 @@ describe('Community Visual Regression Testing', () => {
       .click();
 
     cy.findByRole('button', { name: 'Surrounding Features' })
-      .get('span.esri-icon-loading-indicator', { timeout: 120000 })
+      .findAllByTestId('hmw-loading-spinner', { timeout: 120000 })
       .should('exist');
     cy.findByRole('button', { name: 'Surrounding Features' })
-      .get('span.esri-icon-loading-indicator', { timeout: 120000 })
+      .findAllByTestId('hmw-loading-spinner', { timeout: 120000 })
       .should('not.exist');
 
     // delay to draw features after data loaded

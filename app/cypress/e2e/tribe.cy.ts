@@ -154,41 +154,28 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
       .should('exist');
   });
 
-  it('Clicking Map and List buttons show correct content', () => {
+  it.only('Clicking Map and List buttons show correct content', () => {
     // verify map is visible and the list view is hidden
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should(
-      'be.visible',
-    );
+    cy.findByTitle('Open Basemaps and Layers').should('be.visible');
     cy.findByText('Alaska Lake').should('not.exist');
 
     // click "List" tab
     cy.findByRole('button', { name: 'List' }).click();
 
     // verify the map is hidden and the list view is visible
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should(
-      'not.exist',
-    );
+    cy.findByTitle('Open Basemaps and Layers').should('not.exist');
     cy.findAllByText('Alaska Lake').should('be.visible');
 
     // click "Map" tab
     cy.findByRole('button', { name: 'Map' }).click();
 
     // verify map is visible and the list view is hidden
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should(
-      'be.visible',
-    );
+    cy.findByTitle('Open Basemaps and Layers').should('be.visible');
     cy.findByText('Alaska Lake').should('not.exist');
   });
 });
 
 describe('Tribe page Water Overview', () => {
-  Cypress.on('uncaught:exception', (_err, _runnable) => {
-    // returning false here prevents Cypress from
-    // failing the test
-    debugger;
-    return false;
-  });
-
   beforeEach(() => {
     cy.visit('/tribe/REDLAKE');
   });
