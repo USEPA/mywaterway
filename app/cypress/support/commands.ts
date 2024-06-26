@@ -37,6 +37,7 @@ declare global {
        * Custom command to select DOM element by data-cy attribute.
        * @example cy.dataCy('greeting')
        */
+      isInsideViewport(): Chainable<Element>;
       matchSnapshot(name?: string, options?: Options): Chainable<Element>;
       mockGeolocation(
         shouldFail: boolean,
@@ -83,6 +84,21 @@ Cypress.Commands.overwrite(
     });
   },
 );
+
+/**
+ * Checks if the element is inside the viewport.
+ *
+ * @param subject - The react-dropzone element to upload the file with
+ */
+Cypress.Commands.add('isInsideViewport', { prevSubject: true }, (subject) => {
+  const rect = subject[0].getBoundingClientRect();
+  return cy.window().then((window) => {
+    expect(rect.top).to.be.within(0, window.innerHeight);
+    expect(rect.right).to.be.within(0, window.innerWidth);
+    expect(rect.bottom).to.be.within(0, window.innerHeight);
+    expect(rect.left).to.be.within(0, window.innerWidth);
+  });
+});
 
 /**
  * This enables mocking the geolocation api. The default coordinates are
