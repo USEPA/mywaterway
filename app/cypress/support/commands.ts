@@ -49,6 +49,42 @@ declare global {
 }
 
 /**
+ * This overrides the cy.visit command and injects css specifically for Cypress.
+ * The main reason for this is to hide the creat react app error overlay.
+ *
+ * @param originalFn - The original visit function
+ * @param url - The url to visit
+ * @param options (optional) - Options for visit
+ */
+Cypress.Commands.overwrite(
+  'visit',
+  (
+    originalFn: (
+      url: string,
+      options?: Partial<Cypress.VisitOptions>,
+    ) => Cypress.Chainable<Cypress.AUTWindow>,
+    url: string,
+    options,
+  ) => {
+    originalFn(url, options);
+
+    // wait until we are at the provided url
+    cy.location().should((loc) => {
+      expect(loc.pathname).to.eq(url);
+    });
+
+    // inject css styles
+    cy.get('#cypress-override-styles').then((style) => {
+      style.html(`
+        #webpack-dev-server-client-overlay {
+          display: none;
+        }
+      `);
+    });
+  },
+);
+
+/**
  * This enables mocking the geolocation api. The default coordinates are
  * for Washington DC.
  *
