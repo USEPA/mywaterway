@@ -154,7 +154,7 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
       .should('exist');
   });
 
-  it.only('Clicking Map and List buttons show correct content', () => {
+  it('Clicking Map and List buttons show correct content', () => {
     // verify map is visible and the list view is hidden
     cy.findByTitle('Open Basemaps and Layers').should('be.visible');
     cy.findByText('Alaska Lake').should('not.exist');
