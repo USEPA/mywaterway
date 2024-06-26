@@ -179,7 +179,7 @@ Cypress.Commands.add(
     prevSubject: 'element',
   },
   (subject, name: string, options: Options) => {
-    cy.wrap(subject).matchImageSnapshot(`${Cypress.browser.family}-${name}`, {
+    cy.wrap(subject).matchImageSnapshot(name, {
       comparisonMethod: 'ssim',
       failureThresholdType: 'percent',
       failureThreshold: 0.01,
