@@ -1,0 +1,38 @@
+[
+  {
+    "value": "drinkingwater_use",
+    "label": "Drinking Water",
+    "term": "Drinking Water Use",
+    "category": "Drinking Water"
+  },
+  {
+    "value": "ecological_use",
+    "label": "Aquatic Life",
+    "term": "Aquatic Life",
+    "category": "Ecological Life"
+  },
+  {
+    "value": "fishconsumption_use",
+    "label": "Fish and Shellfish Consumption",
+    "term": "Fish and Shellfish Consumption",
+    "category": "Fish and Shellfish Consumption"
+  },
+  {
+    "value": "recreation_use",
+    "label": "Swimming and Boating",
+    "term": "Swimming and Boating",
+    "category": "Recreation"
+  },
+  {
+    "value": "cultural_use",
+    "label": "Cultural",
+    "term": "Cultural Use",
+    "category": "Cultural"
+  },
+  {
+    "value": "other_use",
+    "label": "Other",
+    "term": "Other Use",
+    "category": "Other"
+  }
+]

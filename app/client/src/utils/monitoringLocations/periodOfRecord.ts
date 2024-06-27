@@ -1,7 +1,6 @@
 import { fetchParseCsv } from 'utils/fetchUtils';
 // types
-import type { CharacteristicGroupMappings } from 'config/characteristicGroupMappings';
-import type { AnnualStationData } from 'types';
+import type { AnnualStationData, CharacteristicGroupMappings } from 'types';
 
 export type MonitoringPeriodOfRecordData = {
   minYear: number;

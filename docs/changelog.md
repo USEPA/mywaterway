@@ -1,5 +1,51 @@
 # Change Log
 
+## 2.10.0 (July 2024)
+
+### Added
+
+- Added the Extreme Weather tab.
+
+- Added GRTS success stories to the Restore tab of the community page.
+
+- Added the ability to search for monitoring locations and waterbodies (these results open to their respective reports in a new tab).
+
+### Changed
+
+- Updated One EPA Template footer links.
+
+- Updated the links for monitoring locations to automatically open to the advanced tab of the WQP page.
+
+- Updated the sitemap to have examples for dynamic pages (i.e., waterbody report, monitoring report, etc.).
+
+- Updated the waterbody report page to list all cycles for the waterbody (including links to that specific cycle).
+
+- Moved more config files to S3 bucket.
+
+- Fixed issue of waterbody report page not always loading. Switched to `summarize=N` for calls to attains actions service.
+
+- Fixed issue with GA4 not logging correctly.
+
+- Fixed issue of layer list not always loading in full screen view.
+
+- Fixed issue of the legend for the land cover layer being scrunched.
+
+- Fixed issue of highcharts tooltip overflowing container.
+
+- Fixed issue of infinite loading spinners when searching for a bad location.
+
+- Fixed issue of error message disappearing immediately when searching for a bad location.
+
+- Fixed issue of USGS sensors no longer showing in list views.
+
+### Chores
+
+- Updated dependencies.
+
+- Updated ArcGIS JS API.
+
+- Created a github action for building production.
+
 ## 2.9.0 (February 2024)
 
 ### Changed

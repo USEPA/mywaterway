@@ -17,6 +17,8 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -74,6 +76,8 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
   const [layers, setLayers] = useState(null);
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const getSharedLayers = useSharedLayers();
@@ -99,13 +103,15 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       setLayer('actionsWaterbodies', localActionsLayer);
     }
 
-    setLayers([
-      ...getSharedLayers(),
-      localActionsLayer,
-      surroundingMonitoringLocationsLayer,
-    ]);
-    updateVisibleLayers({
-      actionsWaterbodies: true,
+    getSharedLayers().then((sharedLayers) => {
+      setLayers([
+        ...sharedLayers,
+        localActionsLayer,
+        surroundingMonitoringLocationsLayer,
+      ]);
+      updateVisibleLayers({
+        actionsWaterbodies: true,
+      });
     });
     setLayersInitialized(true);
   }, [
@@ -238,8 +244,6 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 feature,
                 extraContent: unitIds[auId](reportingCycle, true),
                 navigate,
-                services,
-                stateNationalUses,
               });
             } else if (includePhoto) {
               const photoLink = await getPhotoLink(
@@ -260,8 +264,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 feature,
                 extraContent,
                 navigate,
-                services,
-                stateNationalUses,
+                lookupFiles: { attainsImpairmentFields, attainsUseFields, services, stateNationalUses },
               });
             } else {
               // when no content is provided just display the normal community
@@ -269,8 +272,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
               content = getPopupContent({
                 feature,
                 navigate,
-                services,
-                stateNationalUses,
+                lookupFiles: { attainsImpairmentFields, attainsUseFields, services, stateNationalUses },
               });
             }
 
@@ -337,6 +339,8 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
   }, [
     actionsWaterbodies,
+    attainsImpairmentFields,
+    attainsUseFields,
     fetchStatus,
     getPhotoLink,
     navigate,
