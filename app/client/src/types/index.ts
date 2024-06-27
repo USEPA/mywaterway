@@ -261,6 +261,10 @@ export type ExtremeWeatherConfigState = {
   status: 'fetching' | 'failure' | 'success';
   data: {
     currentWeatherDefaults: ExtremeWeatherRow[];
+    echoLookups: {
+      permitStatus: { [key: string]: string };
+      permitType: { [key: string]: string };
+    };
     historicalDefaults: ExtremeWeatherRow[];
     historicalRangeDefaults: ExtremeWeatherRow[];
     potentiallyVulnerableDefaults: ExtremeWeatherRow[];

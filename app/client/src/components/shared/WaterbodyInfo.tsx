@@ -1066,32 +1066,41 @@ function WaterbodyInfo({
   );
 
   // jsx
-  const sewerOverflowsContent = (
-    <ListContent
-      rows={[
-        {
-          label: 'Permit Status',
-          value: attributes.permit_status_code,
-        },
-        {
-          label: 'Permit Type',
-          value: attributes.permit_type_code,
-        },
-        {
-          label: 'Latitude/Longitude',
-          value: `${toFixedFloat(
-            parseFloat(attributes.facility_lat),
-            5,
-          )}, ${toFixedFloat(parseFloat(attributes.facility_lon), 5)}`,
-        },
-        {
-          label: 'NPDES ID',
-          value: attributes.npdes_id,
-        },
-      ]}
-      styles={listContentStyles}
-    />
-  );
+  const sewerOverflowsContent = () => {
+    const echoLookups = lookupFiles?.extremeWeatherConfig?.data?.echoLookups;
+    if (!echoLookups) return null;
+
+    const { permit_status_code, permit_type_code } = attributes;
+    return (
+      <ListContent
+        rows={[
+          {
+            label: 'Permit Status',
+            value:
+              echoLookups.permitStatus?.[permit_status_code] ??
+              permit_status_code,
+          },
+          {
+            label: 'Permit Type',
+            value:
+              echoLookups.permitType?.[permit_type_code] ?? permit_type_code,
+          },
+          {
+            label: 'Latitude/Longitude',
+            value: `${toFixedFloat(
+              parseFloat(attributes.facility_lat),
+              5,
+            )}, ${toFixedFloat(parseFloat(attributes.facility_lon), 5)}`,
+          },
+          {
+            label: 'NPDES ID',
+            value: attributes.npdes_id,
+          },
+        ]}
+        styles={listContentStyles}
+      />
+    );
+  };
 
   // jsx
   const storageTankContent = (
@@ -1401,7 +1410,7 @@ function WaterbodyInfo({
   if (type === 'Protected Areas') content = protectedAreaContent;
   if (type === 'Demographic Indicators') content = ejscreenContent;
   if (type === 'Pollutant Storage Tank') content = storageTankContent;
-  if (type === 'Combined Sewer Overflow') content = sewerOverflowsContent;
+  if (type === 'Combined Sewer Overflow') content = sewerOverflowsContent();
   if (type === 'Wells') content = wellsContent;
   if (type === 'Dams') content = damsContent();
   if (type === 'Congressional District') {
