@@ -47,7 +47,8 @@ describe('Community page search', () => {
   });
 
   it('Clicking the “Use My Location” button, with geolocation enabled, properly geolocates user and routes to the community overview page for the user’s location', () => {
-    const address = 'Scott Cir NW, Washington, District of Columbia, 20036';
+    const address =
+      'Massachusetts Ave NW, Washington, District of Columbia, 20036';
     cy.mockGeolocation(false, 38.9072, -77.0369);
     cy.findByText('Use My Location').click();
     cy.url().should('include', `/community/${encodeURI(address)}/overview`);

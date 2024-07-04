@@ -104,16 +104,14 @@ describe('Community Visual Regression Testing', () => {
 
     cy.wait(10000);
 
-    cy.findByText('ANATF - Anacostia River Tidal Fresh').click();
+    cy.findByText('FORT CHAPLIN RUN').click();
 
     cy.findByText('View on Map').click();
 
     cy.get(mapId).within(($el) => {
-      cy.findByText(
-        'ANATF - Anacostia River Tidal Fresh (State Waterbody ID: MD-ANATF)',
-      );
+      cy.findByText('FORT CHAPLIN RUN (District Waterbody ID: DCTFC01R_00)');
 
-      cy.findByText('Maryland (MDE_EASP)');
+      cy.findByText('District of Columbia (DOEE)');
     });
     cy.get(mapId).matchSnapshot('verify-view-on-map-button-waterbody-popup');
   });
@@ -129,23 +127,23 @@ describe('Community Visual Regression Testing', () => {
     // delay to allow features to load
     cy.wait(10000);
 
-    cy.findByRole('button', { name: 'Surrounding Features' }).click();
-    cy.findByRole('list', { name: 'Surrounding Features:' })
+    cy.findByTitle('Open Surrounding Features').click({ force: true });
+    cy.findByLabelText('Surrounding Features:')
       .findByRole('switch', { name: 'USGS Sensors' })
       .click();
 
-    cy.findByRole('list', { name: 'Surrounding Features:' })
+    cy.findByLabelText('Surrounding Features:')
       .findByRole('switch', { name: 'Dischargers' })
       .click();
 
-    cy.findByRole('list', { name: 'Surrounding Features:' })
+    cy.findByLabelText('Surrounding Features:')
       .findByRole('switch', { name: 'Past Water Conditions' })
       .click();
 
-    cy.findByRole('button', { name: 'Surrounding Features' })
+    cy.findByTitle('Close Surrounding Features')
       .findAllByTestId('hmw-loading-spinner', { timeout: 120000 })
       .should('exist');
-    cy.findByRole('button', { name: 'Surrounding Features' })
+    cy.findByTitle('Close Surrounding Features')
       .findAllByTestId('hmw-loading-spinner', { timeout: 120000 })
       .should('not.exist');
 

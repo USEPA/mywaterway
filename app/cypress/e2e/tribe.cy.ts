@@ -163,7 +163,7 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
     cy.findByRole('button', { name: 'List' }).click();
 
     // verify the map is hidden and the list view is visible
-    cy.findByTitle('Open Basemaps and Layers').should('not.exist');
+    cy.findByTitle('Open Basemaps and Layers').should('not.be.visible');
     cy.findAllByText('Alaska Lake').should('be.visible');
 
     // click "Map" tab

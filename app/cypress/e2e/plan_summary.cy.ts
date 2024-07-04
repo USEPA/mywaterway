@@ -50,7 +50,7 @@ describe('Plan Summary (Actions) page', () => {
   it('The "View Waterbody Report" link should navigate to a waterbody report page', () => {
     const orgId = '21AWIC';
     const actionId = '40958';
-    const reportingCycle = '2020';
+    const reportingCycle = '2022';
 
     cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
