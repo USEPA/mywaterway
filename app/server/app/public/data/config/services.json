@@ -1,7 +1,7 @@
 {
   "expertQuery": {
     "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
-    "attains": "https://api.epa.gov/expertquery-dev/api/attains",
+    "attains": "https://api.epa.gov/expertquery/api/attains",
     "valuesLimit": 100
   },
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
