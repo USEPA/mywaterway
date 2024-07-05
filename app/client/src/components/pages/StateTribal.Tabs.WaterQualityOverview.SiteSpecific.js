@@ -16,11 +16,10 @@ import { DisclaimerModal } from 'components/shared/Modal';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useAttainsImpairmentFieldsContext } from 'contexts/LookupFiles';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
 import { formatNumber } from 'utils/utils';
-// data
-import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
 import { fonts, colors } from 'styles/index';
 import { h3Styles } from 'styles/stateTribal';
@@ -113,6 +112,7 @@ function SiteSpecific({
   useSelected,
   fishingAdvisoryData,
 }: Props) {
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
   const { currentReportingCycle } = useContext(StateTribalTabsContext);
 
   let waterTypeUnits = null;
@@ -221,12 +221,12 @@ function SiteSpecific({
         const units = waterTypeUnits ? waterTypeUnits.toLowerCase() : '';
 
         // match the param with an item in the attainsToHmwMapping file
-        const match = impairmentFields.filter((field) => {
+        const match = attainsImpairmentFields.data.filter((field) => {
           return field.parameterGroup === param;
         })?.[0];
 
         const sentence = !match ? null : match.sentence ? (
-          <>{match.sentence}</>
+          <span dangerouslySetInnerHTML={{ __html: match.sentence }} />
         ) : (
           <>
             contain <GlossaryTerm term={match.term}>{match.label}</GlossaryTerm>

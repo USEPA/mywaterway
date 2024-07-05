@@ -158,7 +158,7 @@ export default function Modal({
   onClose = () => {},
   onConfirm = () => {},
   triggerElm,
-}: Props) {
+}: Readonly<Props>) {
   const [dialogShown, setDialogShown] = useState(false);
 
   const close = () => {
@@ -240,7 +240,7 @@ export function DisclaimerModal({
   children,
   infoIcon = false,
   ...props
-}: DisclaimerProps) {
+}: Readonly<DisclaimerProps>) {
   return (
     <Modal
       closeTitle="Close disclaimer"

@@ -122,8 +122,13 @@ function Community() {
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const { setSearchText, setLastSearchText, errorMessage, resetData } =
-    useContext(LocationSearchContext);
+  const {
+    errorMessage,
+    resetData,
+    setErrorMessage,
+    setLastSearchText,
+    setSearchText,
+  } = useContext(LocationSearchContext);
 
   const { updateVisibleLayers } = useLayers();
 
@@ -131,10 +136,17 @@ function Community() {
     return function cleanup() {
       fetchedDataDispatch({ type: 'reset' });
       resetData();
+      setErrorMessage('');
       setSearchText('');
       setLastSearchText('');
     };
-  }, [fetchedDataDispatch, resetData, setLastSearchText, setSearchText]);
+  }, [
+    fetchedDataDispatch,
+    resetData,
+    setErrorMessage,
+    setLastSearchText,
+    setSearchText,
+  ]);
 
   // Carry over surrounding features layer visibility between tabs.
   // A ref is used to prevent state updates when surrounding layers are toggled.

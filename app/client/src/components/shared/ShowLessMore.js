@@ -25,7 +25,7 @@ function ShowLessMore({ text, charLimit = 0 }: Props) {
 
   if (typeof text === 'string') {
     if (!text) return <></>;
-    if (text.length < charLimit) return <>text</>;
+    if (text.length < charLimit) return <>{text}</>;
 
     return (
       <>

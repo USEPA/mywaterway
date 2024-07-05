@@ -48,4 +48,16 @@
         <loc>https://mywaterway.epa.gov/educators</loc>
         <changefreq>weekly</changefreq>
     </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/monitoring-report/STORET/KIOWA_WQX/KIOWA_WQX-JMC</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/plan-summary/TDECWR/TN03150101_2020_ecoli</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/waterbody-report/TDECWR/TN03150101012_0100/2024</loc>
+        <changefreq>weekly</changefreq>
+    </url>
 </urlset>
