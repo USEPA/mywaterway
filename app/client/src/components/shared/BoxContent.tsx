@@ -59,6 +59,7 @@ const listContentStyles = css`
   padding-bottom: 1rem;
 
   .row-cell {
+    overflow-wrap: anywhere;
     padding: 0.75rem;
     &:nth-of-type(even) {
       padding-right: 0.75rem;

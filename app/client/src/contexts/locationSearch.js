@@ -2,8 +2,6 @@ import Color from '@arcgis/core/Color';
 import Extent from '@arcgis/core/geometry/Extent';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import React, { Component, createContext } from 'react';
-// config
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // types
 import type { ReactNode } from 'react';
 import type {
@@ -17,7 +15,7 @@ import type {
   WatershedAttributes,
 } from 'types';
 
-export const initialMonitoringGroups = () => {
+export const initialMonitoringGroups = (characteristicGroupMappings) => {
   return characteristicGroupMappings.reduce((groups, next) => {
     groups[next.label] = {
       label: next.label,
@@ -69,6 +67,7 @@ type State = {
   address: string,
   assessmentUnitId: string,
   grts: Object,
+  grtsStories: Object,
   attainsPlans: Object,
   drinkingWater: Object,
   cipSummary: { status: Status, data: Huc12SummaryData },
@@ -132,9 +131,10 @@ export class LocationSearchProvider extends Component<Props, State> {
     wildScenicRiversData: { status: 'fetching', data: [] },
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
-    grts: { status: 'fetching', data: [] },
+    grts: { status: 'fetching', data: {} },
+    grtsStories: { status: 'fetching', data: {} },
     attainsPlans: { status: 'fetching', data: {} },
-    drinkingWater: { status: 'fetching', data: [] },
+    drinkingWater: { status: 'fetching', data: {} },
     cipSummary: { status: 'fetching', data: {} },
     nonprofits: { status: 'fetching', data: [] },
     mapView: null,
@@ -142,7 +142,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
     basemap: 'gray-vector',
-    hucBoundaries: '',
+    hucBoundaries: null,
     atHucBoundaries: false,
     countyBoundaries: '',
     waterbodyData: null,
@@ -163,7 +163,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     // monitoring panel
     monitoringPeriodOfRecordStatus: 'idle',
-    monitoringGroups: initialMonitoringGroups(),
+    monitoringGroups: {},
     monitoringFeatureUpdates: null,
     monitoringYearsRange: [0, 0],
     selectedMonitoringYearsRange: [0, 0],
@@ -300,6 +300,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setGrts: (grts) => {
       this.setState({ grts });
     },
+    setGrtsStories: (grtsStories) => {
+      this.setState({ grtsStories });
+    },
     setAttainsPlans: (attainsPlans) => {
       this.setState({ attainsPlans });
     },
@@ -385,7 +388,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
-        errorMessage: '',
         watershed: initialWatershed(),
         pointsData: null,
         linesData: null,
@@ -394,18 +396,19 @@ export class LocationSearchProvider extends Component<Props, State> {
         waterbodyCountMismatch: null,
         countyBoundaries: '',
         atHucBoundaries: false,
-        hucBoundaries: '',
+        hucBoundaries: null,
         dischargerPermitComponents: null,
         monitoringPeriodOfRecordStatus: 'idle',
-        monitoringGroups: initialMonitoringGroups(),
+        monitoringGroups: {},
         monitoringFeatureUpdates: null,
         monitoringYearsRange: [0, 0],
         selectedMonitoringYearsRange: [0, 0],
         nonprofits: { status: 'fetching', data: [] },
-        grts: { status: 'fetching', data: [] },
+        grts: { status: 'fetching', data: {} },
+        grtsStories: { status: 'fetching', data: {} },
         attainsPlans: { status: 'fetching', data: {} },
         cipSummary: { status: 'fetching', data: {} },
-        drinkingWater: { status: 'fetching', data: [] },
+        drinkingWater: { status: 'fetching', data: {} },
       });
 
       // remove map content
@@ -429,10 +432,11 @@ export class LocationSearchProvider extends Component<Props, State> {
         waterbodyCountMismatch: null,
         countyBoundaries: '',
         nonprofits: { status: 'success', data: [] },
-        grts: { status: 'success', data: [] },
+        grts: { status: 'success', data: {} },
+        grtsStories: { status: 'success', data: {} },
         attainsPlans: { status: 'success', data: {} },
         cipSummary: { status: 'success', data: {} },
-        drinkingWater: { status: 'success', data: [] },
+        drinkingWater: { status: 'success', data: {} },
       });
 
       // remove map content

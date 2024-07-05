@@ -83,6 +83,7 @@ export const iconStyles = css`
 export const fonts = {
   primary: `'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial', sans-serif`,
   secondary: `'Roboto Slab', serif`,
+  tertiary: `'Merriweather Web', Georgia, Cambria, 'Times New Roman'`,
 };
 
 export const groupHeadingStyles: CSSObjectWithLabel = {
@@ -109,6 +110,11 @@ export const noMapDataWarningStyles = css`
     font-size: 0.95rem;
     margin-right: 5px;
   }
+`;
+
+export const paragraphStyles = css`
+  display: block;
+  padding-top: 1.5em;
 `;
 
 export const reactSelectStyles = {
@@ -198,6 +204,8 @@ export const toggleTableStyles = css`
   th {
     :last-of-type {
       text-align: right;
+      overflow-wrap: unset;
+      word-break: unset;
     }
   }
 

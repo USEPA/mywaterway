@@ -1,0 +1,14 @@
+default:
+  tags:
+  - devsecops-instance
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+    rules:
+      - if: $CI_COMMIT_REF_NAME == "master" && ($CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request")
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+    rules:
+      - if: $CI_COMMIT_REF_NAME == "master" && ($CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request")
+  - template: Security/Secret-Detection.gitlab-ci.yml
+    rules:
+      - if: $CI_COMMIT_REF_NAME == "master" && ($CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request")
