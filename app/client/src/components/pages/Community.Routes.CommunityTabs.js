@@ -10,10 +10,7 @@ import Switch from 'components/shared/Switch';
 import { PinIcon } from 'components/shared/Icons';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
-import {
-  initialMonitoringGroups,
-  LocationSearchContext,
-} from 'contexts/locationSearch';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -344,7 +341,6 @@ function CommunityTabs() {
     watershed,
     huc12,
     setDischargerPermitComponents,
-    setMonitoringGroups,
     setShowAllPolluted,
     setParameterToggleObject,
     setPollutionParameters,
@@ -430,9 +426,6 @@ function CommunityTabs() {
   const resetTabSpecificData = () => {
     // overview panel
     setDischargerPermitComponents(null);
-
-    // monitoring panel
-    setMonitoringGroups(initialMonitoringGroups());
 
     // identified issues panel
     setShowAllPolluted(true);

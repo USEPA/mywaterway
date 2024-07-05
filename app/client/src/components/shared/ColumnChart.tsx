@@ -203,7 +203,8 @@ function ColumnChart({
                 },
                 title: {
                   style: {
-                    fontSize: baseFontSize,
+                    fontFamily: fonts.tertiary,
+                    fontSize: smallFontSize,
                   },
                 },
               },
@@ -215,7 +216,8 @@ function ColumnChart({
                 },
                 title: {
                   style: {
-                    fontSize: mediumFontSize,
+                    fontFamily: fonts.tertiary,
+                    fontSize: smallFontSize,
                   },
                 },
               },

@@ -6,6 +6,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -23,6 +24,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
+import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
 import { containsScriptTag, indicesOf, isClick, isHuc12 } from 'utils/utils';
 import { splitSuggestedSearch } from 'utils/mapFunctions';
@@ -165,126 +167,210 @@ function LocationSearch({ route, label }: Props) {
   const clearButton = useRef(null);
   const clearEnterPress = useKeyPress('Enter', clearButton);
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
+  const [searchWidget, setSearchWidget] = useState(null);
 
-  const placeholder = 'Search by address, zip code, or place...';
-  const [allSources] = useState([
-    {
-      type: 'default',
-      name: 'All',
-      placeholder,
-    },
-    {
-      type: 'ArcGIS',
-      name: 'Address, zip code, and place search',
-      placeholder,
-      sources: [
-        {
-          url: services.data.locatorUrl,
-          countryCode: 'USA',
-          searchFields: ['Loc_name'],
-          suggestionTemplate: '{Loc_name}',
-          exactMatch: false,
-          outFields: [
-            'Loc_name',
-            'City',
-            'Place_addr',
-            'Region',
-            'RegionAbbr',
-            'Country',
-            'Addr_type',
-          ],
-          placeholder,
-          name: 'ArcGIS',
-        },
-      ],
-    },
-    {
-      type: 'group',
-      name: 'EPA Tribal Areas',
-      placeholder: 'Search EPA tribal areas...',
-      sources: [
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/1`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - Alaska Native Villages',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/2`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - American Indian Reservations',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/3`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - American Indian Off-Reservation Trust Lands',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/4`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - American Indian Oklahoma Statistical Areas',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/5`,
-            listMode: 'hide',
-          }),
-          searchFields: ['TRIBE_NAME'],
-          suggestionTemplate: '{TRIBE_NAME}',
-          exactMatch: false,
-          outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'Virginia Federally Recognized Tribes',
-        },
-      ],
-    },
-    {
-      type: 'layer',
-      name: 'Watershed',
-      placeholder: 'Search watersheds...',
-      sources: [
-        {
-          layer: new FeatureLayer({
-            url: services.data.wbdUnconstrained,
-            listMode: 'hide',
-          }),
-          searchFields: ['name', 'huc12'],
-          suggestionTemplate: '{name} ({huc12})',
-          exactMatch: false,
-          outFields: ['name', 'huc12'],
-          placeholder: placeholder,
-          name: 'Watersheds',
-        },
-      ],
-    },
-  ]);
+  // Store the waterbody suggestions to avoid a second fetch.
+  const waterbodySuggestions = useRef(null);
+
+  const allPlaceholder = 'Search by address, zip code, or place...';
+  const allSources = useMemo(
+    () => [
+      {
+        type: 'default',
+        name: 'All',
+        placeholder: allPlaceholder,
+      },
+      {
+        type: 'ArcGIS',
+        name: 'Address, zip code, and place search',
+        placeholder: allPlaceholder,
+        sources: [
+          {
+            url: services.data.locatorUrl,
+            countryCode: 'USA',
+            searchFields: ['Loc_name'],
+            suggestionTemplate: '{Loc_name}',
+            exactMatch: false,
+            outFields: [
+              'Loc_name',
+              'City',
+              'Place_addr',
+              'Region',
+              'RegionAbbr',
+              'Country',
+              'Addr_type',
+            ],
+            name: 'ArcGIS',
+          },
+        ],
+      },
+      {
+        type: 'group',
+        name: 'EPA Tribal Areas',
+        placeholder: 'Search EPA tribal areas...',
+        sources: [
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/1`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            name: 'EPA Tribal Areas - Alaska Native Villages',
+          },
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/2`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            name: 'EPA Tribal Areas - American Indian Reservations',
+          },
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/3`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            name: 'EPA Tribal Areas - American Indian Off-Reservation Trust Lands',
+          },
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/4`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            name: 'EPA Tribal Areas - American Indian Oklahoma Statistical Areas',
+          },
+          {
+            layer: new FeatureLayer({
+              url: `${services.data.tribal}/5`,
+              listMode: 'hide',
+            }),
+            searchFields: ['TRIBE_NAME'],
+            suggestionTemplate: '{TRIBE_NAME}',
+            exactMatch: false,
+            outFields: ['TRIBE_NAME'],
+            name: 'Virginia Federally Recognized Tribes',
+          },
+        ],
+      },
+      {
+        type: 'layer',
+        name: 'Watershed',
+        placeholder: 'Search watersheds...',
+        sources: [
+          {
+            layer: new FeatureLayer({
+              url: services.data.wbdUnconstrained,
+              listMode: 'hide',
+            }),
+            searchFields: ['name', 'huc12'],
+            suggestionTemplate: '{name} ({huc12})',
+            exactMatch: false,
+            outFields: ['name', 'huc12'],
+            name: 'Watersheds',
+          },
+        ],
+      },
+      {
+        type: 'webservice',
+        name: 'Monitoring Location',
+        menuHeaderExtra:
+          '(Below items open into the Monitoring Report page in a new browser tab)',
+        placeholder: 'Search monitoring locations...',
+        sources: [
+          {
+            name: 'Monitoring Locations',
+            getSuggestions: ({ maxSuggestions, suggestTerm }) => {
+              return fetchCheck(
+                `${services.data.waterQualityPortal.domainValues}/monitoringlocation?text=${suggestTerm}&mimeType=json&pagesize=${maxSuggestions}`,
+              )
+                .then((res) => {
+                  const sourceIndex = searchWidget?.sources.findIndex(
+                    (source) => source.name === 'Monitoring Locations',
+                  );
+                  if (!Number.isFinite(sourceIndex)) {
+                    console.error('Source "Monitoring Locations" not found');
+                    return [];
+                  }
+
+                  return res.codes.map(({ desc, value }) => ({
+                    key: value,
+                    text: `${desc ?? value} (${value})`,
+                    sourceIndex,
+                  }));
+                })
+                .catch((_err) => {
+                  setErrorMessage(webServiceErrorMessage);
+                });
+            },
+          },
+        ],
+      },
+      {
+        type: 'webservice',
+        name: 'Waterbody',
+        menuHeaderExtra:
+          '(Below items open into the Waterbody Report page in a new browser tab)',
+        placeholder: 'Search waterbodies...',
+        sources: [
+          {
+            name: 'Waterbodies',
+            getSuggestions: ({ maxSuggestions, suggestTerm }) => {
+              return fetchPost(
+                `${services.data.expertQuery.attains}/assessmentUnits/values/assessmentUnitId`,
+                {
+                  additionalColumns: ['assessmentUnitName', 'organizationId'],
+                  direction: 'asc',
+                  limit: maxSuggestions,
+                  text: suggestTerm,
+                },
+                {
+                  'Content-Type': 'application/json',
+                  'X-Api-Key': services.data.expertQuery.apiKey,
+                },
+              )
+                .then((res) => {
+                  const sourceIndex = searchWidget?.sources.findIndex(
+                    (source) => source.name === 'Waterbodies',
+                  );
+                  if (!Number.isFinite(sourceIndex)) {
+                    console.error('Source "Waterbodies" not found');
+                    return [];
+                  }
+
+                  waterbodySuggestions.current = res;
+
+                  return res.map(
+                    ({ assessmentUnitId, assessmentUnitName }) => ({
+                      key: assessmentUnitId,
+                      text: `${assessmentUnitName} (${assessmentUnitId})`,
+                      sourceIndex,
+                    }),
+                  );
+                })
+                .catch((_err) => {
+                  setErrorMessage(webServiceErrorMessage);
+                });
+            },
+          },
+        ],
+      },
+    ],
+    [searchWidget, services],
+  );
 
   // geolocating state for updating the 'Use My Location' button
   const [geolocating, setGeolocating] = useState(false);
@@ -301,7 +387,6 @@ function LocationSearch({ route, label }: Props) {
   const [errorMessage, setErrorMessage] = useState('');
 
   // Initialize the esri search widget
-  const [searchWidget, setSearchWidget] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   useEffect(() => {
     if (searchWidget) return;
@@ -313,7 +398,7 @@ function LocationSearch({ route, label }: Props) {
     });
 
     const search = new Search({
-      allPlaceholder: placeholder,
+      allPlaceholder,
       includeDefaultSources: false,
       locationEnabled: false,
       label: 'Search',
@@ -474,50 +559,134 @@ function LocationSearch({ route, label }: Props) {
 
   // Performs the search operation
   const formSubmit = useCallback(
-    (newSearchTerm, geometry = null) => {
+    ({ searchTerm, geometry, target = null }) => {
       setSuggestionsVisible(false);
       setCursor(-1);
 
-      newSearchTerm = newSearchTerm.replace(/[\n\r\t/]/g, ' ');
+      if (target) {
+        window.open(target, '_blank', 'noopener,noreferrer');
+      } else if (searchTerm) {
+        const newSearchTerm = searchTerm.replace(/[\n\r\t/]/g, ' ');
 
-      if (containsScriptTag(newSearchTerm)) {
-        setErrorMessage(invalidSearchError);
-        return;
-      }
+        if (containsScriptTag(newSearchTerm)) {
+          setErrorMessage(invalidSearchError);
+          return;
+        }
 
-      // get urlSearch parameter value
-      let urlSearch = null;
-      if (geometry) {
-        urlSearch = `${newSearchTerm.trim()}|${geometry.longitude}, ${
-          geometry.latitude
-        }`;
-      } else if (newSearchTerm) {
-        urlSearch = newSearchTerm.trim();
-      }
+        // get urlSearch parameter value
+        let urlSearch = null;
+        if (geometry) {
+          urlSearch = `${newSearchTerm.trim()}|${geometry.longitude}, ${
+            geometry.latitude
+          }`;
+        } else if (newSearchTerm) {
+          urlSearch = newSearchTerm.trim();
+        }
 
-      // navigate if the urlSearch value is available
-      if (urlSearch) {
-        setErrorMessage('');
-        setGeolocationError(false);
+        // navigate if the urlSearch value is available
+        if (urlSearch) {
+          setErrorMessage('');
+          setGeolocationError(false);
 
-        // only navigate if search box contains text
-        navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
+          // only navigate if search box contains text
+          navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
+        }
       }
     },
     [navigate, route],
   );
 
+  const openMonitoringReport = useCallback(
+    (result, callback) => {
+      // query WQP's station service to get the lat/long
+      const url = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
+      fetchCheck(url)
+        .then((res) => {
+          const feature = res.features[0];
+          if (!feature) {
+            setErrorMessage(webServiceErrorMessage);
+            return;
+          }
+          const {
+            properties: {
+              MonitoringLocationIdentifier,
+              OrganizationIdentifier,
+              ProviderName,
+            },
+          } = feature;
+
+          formSubmit({
+            target: `/monitoring-report/${ProviderName}/${OrganizationIdentifier}/${MonitoringLocationIdentifier}`,
+          });
+          if (callback) callback(result.text);
+        })
+        .catch((_err) => {
+          setErrorMessage(webServiceErrorMessage);
+        });
+    },
+    [formSubmit, services],
+  );
+
+  const openWaterbodyReport = useCallback(
+    (result, callback) => {
+      const item = waterbodySuggestions.current?.find(
+        (wb) => wb.assessmentUnitId === result.key,
+      );
+      if (!item) {
+        setErrorMessage(webServiceErrorMessage);
+        return;
+      }
+      const { assessmentUnitId, organizationId } = item;
+      formSubmit({
+        target: `waterbody-report/${organizationId}/${assessmentUnitId}`,
+      });
+
+      if (callback) callback(result.text);
+    },
+    [formSubmit],
+  );
+
+  // prevent next useEffect from running more than once per enter key press
+  const [lock, setLock] = useState(false);
+  useEffect(() => {
+    if (!enterPress) setLock(false);
+  }, [enterPress]);
+
   // Handle enter key press (search input)
   useEffect(() => {
-    if (!enterPress || cursor < -1 || cursor > resultsCombined.length) return;
+    if (!enterPress || cursor < -1 || lock || cursor > resultsCombined.length)
+      return;
+
+    setLock(true);
 
     if (cursor === -1 || resultsCombined.length === 0) {
-      formSubmit(inputText);
+      formSubmit({ searchTerm: inputText });
+    } else if (resultsCombined[cursor].source.name === 'Waterbodies') {
+      openWaterbodyReport(resultsCombined[cursor], (text) => {
+        setInputText(text);
+        setSuggestionsVisible(false);
+        setCursor(-1);
+      });
+    } else if (resultsCombined[cursor].source.name === 'Monitoring Locations') {
+      openMonitoringReport(resultsCombined[cursor], (text) => {
+        setInputText(text);
+        setSuggestionsVisible(false);
+        setCursor(-1);
+      });
     } else if (resultsCombined[cursor].text) {
       setInputText(resultsCombined[cursor].text);
-      formSubmit(resultsCombined[cursor].text);
+      formSubmit({ searchTerm: resultsCombined[cursor].text });
     }
-  }, [cursor, enterPress, formSubmit, inputText, resultsCombined]);
+  }, [
+    cursor,
+    enterPress,
+    formSubmit,
+    inputText,
+    lock,
+    openMonitoringReport,
+    openWaterbodyReport,
+    resultsCombined,
+  ]);
 
   // Splits the provided text by the searchString in a case insensitive way.
   function getHighlightParts(text, searchString) {
@@ -576,11 +745,15 @@ function LocationSearch({ route, label }: Props) {
               if (source.source.name === 'ArcGIS') {
                 // use esri geocoder
                 searchWidget.search(result.text);
-                formSubmit(result.text);
+                formSubmit({ searchTerm: result.text });
               } else if (source.source.name === 'Watersheds') {
                 // extract the huc from "Watershed (huc)" and search on the huc
                 const huc = result.text.split('(')[1].replace(')', '');
-                formSubmit(huc);
+                formSubmit({ searchTerm: huc });
+              } else if (source.source.name === 'Monitoring Locations') {
+                openMonitoringReport(result);
+              } else if (source.source.name === 'Waterbodies') {
+                openWaterbodyReport(result);
               } else {
                 // query to get the feature and search based on the centroid
                 const params = result.source.layer.createQuery();
@@ -594,7 +767,7 @@ function LocationSearch({ route, label }: Props) {
                       const center =
                         res.features[0].geometry.centroid ??
                         res.features[0].geometry;
-                      formSubmit(result.text, center);
+                      formSubmit({ searchTerm: result.text, geometry: center });
                       searchWidget.search(result.text);
                     }
                   })
@@ -768,7 +941,7 @@ function LocationSearch({ route, label }: Props) {
         css={formStyles}
         onSubmit={(ev) => {
           ev.preventDefault();
-          formSubmit(inputText);
+          formSubmit({ searchTerm: inputText });
         }}
       >
         <div css={searchBoxStyles}>
@@ -861,7 +1034,7 @@ function LocationSearch({ route, label }: Props) {
                       role="menuitem"
                       className={`esri-search__source esri-menu__list-item ${secondClass}`}
                       tabIndex="-1"
-                      key={`source-key-${sourceIndex}`}
+                      key={`source-key-${source.name}`}
                       onClick={handleSourceSelect}
                       onKeyDown={handleSourceSelect}
                     >
@@ -886,7 +1059,7 @@ function LocationSearch({ route, label }: Props) {
                   aria-autocomplete="list"
                   aria-haspopup="true"
                   data-node-ref="_inputNode"
-                  title={placeholder}
+                  title={selectedSource.placeholder}
                   value={
                     inputText === searchTerm &&
                     isHuc12(inputText) &&
@@ -924,7 +1097,7 @@ function LocationSearch({ route, label }: Props) {
                   role="menu"
                   data-node-ref="_suggestionListNode"
                 >
-                  {filteredSuggestions.map((source, suggestIndex) => {
+                  {filteredSuggestions.map((source) => {
                     function findGroupName() {
                       if (
                         source.source.name === 'ArcGIS World Geocoding Service'
@@ -938,7 +1111,16 @@ function LocationSearch({ route, label }: Props) {
 
                         item.sources.forEach((nestedItem) => {
                           if (nestedItem.name === source.source.name) {
-                            newTitle = item.name;
+                            newTitle = (
+                              <>
+                                <div>{item.name}</div>
+                                {item.menuHeaderExtra && (
+                                  <div>
+                                    <small>{item.menuHeaderExtra}</small>
+                                  </div>
+                                )}
+                              </>
+                            );
                           }
                         });
                       });
@@ -951,7 +1133,7 @@ function LocationSearch({ route, label }: Props) {
                     const title = findGroupName();
                     return (
                       <LayerSuggestions
-                        key={`layer-suggestions-key-${suggestIndex}`}
+                        key={`layer-suggestions-key-${source.source.name}`}
                         title={title}
                         source={source}
                         startIndex={layerEndIndex - (source.results.length - 1)}

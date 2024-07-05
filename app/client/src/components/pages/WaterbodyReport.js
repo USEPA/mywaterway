@@ -36,17 +36,15 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
-import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
+import {
+  getPollutantsFromAction,
+  mapRestorationPlanToGlossary,
+} from 'utils/mapFunctions';
 import { titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { colors } from 'styles/index';
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
-
-function filterActions(actions, orgId) {
-  // filter out any actions with org ids that don't match the one provided
-  return actions.filter((item) => item.organizationIdentifier === orgId);
-}
 
 const containerStyles = css`
   ${splitLayoutContainerStyles};
@@ -683,17 +681,47 @@ function WaterbodyReport() {
     );
   }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled, services]);
 
-  // Get the reporting cycle from the map
-  const [mapReportingCycle, setMapReportingCycle] = useState('');
+  // get all reporting cycles for the waterbody
+  const [allReportingCycles, setAllReportingCycles] = useState({
+    status: 'fetching',
+    data: [],
+  });
   useEffect(() => {
-    if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
-      setMapReportingCycle(
-        mapLayer.layer.graphics.items[0].attributes.reportingcycle,
-      );
-    } else {
-      setMapReportingCycle('');
+    if (services.status !== 'success') return;
+
+    // recursive function to page through all reporting cycles
+    async function fetchCycles(acc = []) {
+      try {
+        const res = await fetchPost(
+          `${services.data.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
+          {
+            direction: 'asc',
+            filters: { assessmentUnitId: auId },
+            limit: services.data.expertQuery.valuesLimit,
+            ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
+          },
+          {
+            'Content-Type': 'application/json',
+            'X-Api-Key': services.data.expertQuery.apiKey,
+          },
+        );
+        const newValues = res.map((item) => item.reportingCycle);
+        if (newValues.length === services.data.expertQuery.valuesLimit) {
+          fetchCycles(acc.concat(newValues));
+        } else {
+          setAllReportingCycles({
+            status: 'success',
+            data: acc.concat(newValues),
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        setAllReportingCycles({ status: 'failure', data: [] });
+      }
     }
-  }, [mapLayer]);
+
+    fetchCycles();
+  }, [auId, services]);
 
   const [waterbodyActions, setWaterbodyActions] = useState({
     status: 'fetching',
@@ -703,43 +731,23 @@ function WaterbodyReport() {
   // fetch waterbody actions from attains 'actions' web service, using the
   // 'organizationId' and 'assessmentUnitIdentifier' query string parameters
   useEffect(() => {
-    const url =
-      services.data.attains.serviceUrl +
-      `actions?organizationIdentifier=${orgId}` +
-      `&assessmentUnitIdentifier=${auId}` +
-      `&summarize=Y`;
+    if (services.status !== 'success') return;
 
-    fetchCheck(url).then(
-      (res) => {
-        // filter out any actions with org ids that don't match the one provided
-        const filteredActions = filterActions(res.items, orgId);
-        if (filteredActions.length < 1) {
+    const parameters = `organizationIdentifier=${orgId}&assessmentUnitIdentifier=${auId}`;
+
+    getPollutantsFromAction(services.data, parameters)
+      .then((res) => {
+        if (res.length === 0) {
           setWaterbodyActions({ status: 'pending', data: [] });
           return;
         }
 
-        const actions = filteredActions[0].actions.map((action) => {
-          // get water with matching assessment unit identifier
-          const pollutants = action.parameters.map((p) =>
-            titleCaseWithExceptions(p.parameterName),
-          );
-
-          return {
-            id: action.actionIdentifier,
-            name: action.actionName,
-            pollutants,
-            type: action.actionTypeCode,
-            date: action.completionDate,
-          };
-        });
-
-        setWaterbodyActions({ status: 'pending', data: actions });
-      },
-      (err) => {
+        setWaterbodyActions({ status: 'pending', data: res });
+      })
+      .catch((ex) => {
+        console.error(ex);
         setWaterbodyActions({ status: 'failure', data: [] });
-        console.error(err);
-      },
-    );
+      });
   }, [auId, orgId, services]);
 
   // call attains 'actions' web service again, this time using the
@@ -751,86 +759,62 @@ function WaterbodyReport() {
   useEffect(() => {
     if (actionsFetchedAgain) return;
     if (allParameterActionIds.status === 'fetching') return;
-    if (waterbodyActions.status === 'pending') {
-      // action ids from the initial attains 'actions' web service call
-      const initialIds = waterbodyActions.data.map((a) => a.id);
+    if (services.status !== 'success') return;
+    if (waterbodyActions.status !== 'pending') return;
 
-      // additional action ids from the parameters returned in the attains
-      // 'assessments' web service, that weren't returned in the initial
-      // attains 'actions' web service call
-      const additionalIds = allParameterActionIds.data.filter((id) => {
-        return initialIds.indexOf(id) === -1;
-      });
+    // action ids from the initial attains 'actions' web service call
+    const initialIds = waterbodyActions.data.map((a) => a.id);
 
-      // if there are no additional ids, use the data from initial attains
-      // 'actions' web service call
-      if (additionalIds.length === 0) {
-        setWaterbodyActions((actions) => ({
-          status: 'success',
-          data: actions.data,
-        }));
-        return;
-      }
+    // additional action ids from the parameters returned in the attains
+    // 'assessments' web service, that weren't returned in the initial
+    // attains 'actions' web service call
+    const additionalIds = allParameterActionIds.data.filter((id) => {
+      return initialIds.indexOf(id) === -1;
+    });
 
-      const url =
-        services.data.attains.serviceUrl +
-        `actions?organizationIdentifier=${orgId}` +
-        `&actionIdentifier=${additionalIds.join(',')}` +
-        `&summarize=Y`;
+    // if there are no additional ids, use the data from initial attains
+    // 'actions' web service call
+    if (additionalIds.length === 0) {
+      setWaterbodyActions((actions) => ({
+        status: 'success',
+        data: actions.data,
+      }));
+      return;
+    }
 
-      setActionsFetchedAgain(true);
+    const parameters = `organizationIdentifier=${orgId}&actionIdentifier=${additionalIds.join(',')}`;
 
-      fetchCheck(url)
-        .then((res) => {
-          if (res.items.length < 1) {
-            // if there are no new items (there should be), at least use the
-            // data from the initial attains 'actions' web service call
-            setWaterbodyActions((actions) => ({
-              status: 'success',
-              data: actions.data,
-            }));
-            return;
-          }
+    setActionsFetchedAgain(true);
 
-          // filter out any actions with org ids that don't match the one provided
-          const filteredActions = filterActions(res.items, orgId);
-
-          // build up additionalActions from each action in each item in the response
-          const additionalActions = [];
-
-          filteredActions.forEach((item) => {
-            item.actions.forEach((action) => {
-              const pollutants = action.parameters.map((p) => {
-                return titleCaseWithExceptions(p.parameterName);
-              });
-
-              additionalActions.push({
-                id: action.actionIdentifier,
-                name: action.actionName,
-                pollutants,
-                type: action.actionTypeCode,
-                date: action.completionDate,
-              });
-            });
-          });
-
-          // append additional actions to the data from the initial attains
-          // 'actions' web service call
-          setWaterbodyActions((actions) => ({
-            status: 'success',
-            data: actions.data.concat(...additionalActions),
-          }));
-        })
-        .catch((err) => {
-          console.error(err);
-          // if the request failed, at least use the data from the initial
-          // attains 'actions' web service call
+    getPollutantsFromAction(services.data, parameters)
+      .then((additionalActions) => {
+        if (additionalActions.length === 0) {
+          // if there are no new items (there should be), at least use the
+          // data from the initial attains 'actions' web service call
           setWaterbodyActions((actions) => ({
             status: 'success',
             data: actions.data,
           }));
-        });
-    }
+          return;
+        }
+
+        // append additional actions to the data from the initial attains
+        // 'actions' web service call
+        setWaterbodyActions((actions) => ({
+          status: 'success',
+          data: actions.data.concat(...additionalActions),
+        }));
+      })
+      .catch((ex) => {
+        console.error(ex);
+
+        // if the request failed, at least use the data from the initial
+        // attains 'actions' web service call
+        setWaterbodyActions((actions) => ({
+          status: 'success',
+          data: actions.data,
+        }));
+      });
   }, [
     actionsFetchedAgain,
     allParameterActionIds,
@@ -859,6 +843,10 @@ function WaterbodyReport() {
     waterbodyStatus,
     waterbodyTypes,
   ]);
+
+  const otherReportingCycles = allReportingCycles.data.filter(
+    (year) => year !== parseInt(reportingCycleFetch.year),
+  );
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
@@ -959,6 +947,43 @@ function WaterbodyReport() {
       </div>
 
       <div css={inlineBoxSectionStyles}>
+        <h4>Other Years Reported:</h4>
+        {(allReportingCycles.status === 'fetching' ||
+          reportingCycleFetch.status === 'fetching') && <LoadingSpinner />}
+        {(allReportingCycles.status === 'failure' ||
+          reportingCycleFetch.status === 'failure') && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{waterbodyReportError('Assessment')}</p>
+          </div>
+        )}
+        {allReportingCycles.status === 'success' &&
+          reportingCycleFetch.status === 'success' && (
+            <p>
+              &nbsp;{' '}
+              {otherReportingCycles.length > 0 ? (
+                <>
+                  {otherReportingCycles
+                    .map((year) => (
+                      <a
+                        href={`/waterbody-report/${orgId}/${auId}/${year}`}
+                        key={year}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {year}
+                      </a>
+                    ))
+                    .reduce((prev, curr) => [prev, ', ', curr])}{' '}
+                  <small>(opens new browser tab)</small>
+                </>
+              ) : (
+                'None'
+              )}
+            </p>
+          )}
+      </div>
+
+      <div css={inlineBoxSectionStyles}>
         <h4>Organization Name (ID):&nbsp;</h4>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
@@ -1055,34 +1080,39 @@ function WaterbodyReport() {
     );
   }
 
+  const latestReportingCycle =
+    allReportingCycles.data[allReportingCycles.data.length - 1];
+
   return (
     <Page>
       <NavBar title="Waterbody Report" />
 
       <div css={containerStyles} data-content="container">
-        {mapReportingCycle > reportingCycle && (
-          <div css={infoBoxContainerStyles}>
-            <div css={infoBoxStyles}>
-              There is more recent data available for this waterbody. Please use
-              the following link to view the latest information:
-              <br />
-              <a
-                href={`/waterbody-report/${orgId}/${auId}/${mapReportingCycle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i
-                  css={iconStyles}
-                  className="fas fa-file-alt"
-                  aria-hidden="true"
-                />
-                View Waterbody Report for {mapReportingCycle}
-              </a>
-              &nbsp;&nbsp;
-              <small css={disclaimerStyles}>(opens new browser tab)</small>
+        {reportingCycleFetch.status === 'success' &&
+          allReportingCycles.status === 'success' &&
+          latestReportingCycle > reportingCycleFetch.year && (
+            <div css={infoBoxContainerStyles}>
+              <div css={infoBoxStyles}>
+                There is more recent data available for this waterbody. Please
+                use the following link to view the latest information:
+                <br />
+                <a
+                  href={`/waterbody-report/${orgId}/${auId}/${latestReportingCycle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-file-alt"
+                    aria-hidden="true"
+                  />
+                  View Waterbody Report for {latestReportingCycle}
+                </a>
+                &nbsp;&nbsp;
+                <small css={disclaimerStyles}>(opens new browser tab)</small>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         <WindowSize>
           {({ width, height }) => {
             return (

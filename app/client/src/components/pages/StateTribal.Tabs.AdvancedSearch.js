@@ -24,6 +24,8 @@ import {
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
   useReportStatusMappingContext,
   useServicesContext,
 } from 'contexts/LookupFiles';
@@ -36,8 +38,6 @@ import {
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
 } from 'utils/hooks';
-// data
-import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 // styles
 import { reactSelectStyles } from 'styles/index';
 // errors
@@ -248,6 +248,8 @@ const screenLabelWithPaddingStyles = css`
 
 function AdvancedSearch() {
   const { getSignal } = useAbort();
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
 
   const {
@@ -306,7 +308,7 @@ function AdvancedSearch() {
     });
 
     // get the public friendly versions of the parameterGroups
-    let parameterGroupOptions = impairmentFields.filter((field) =>
+    let parameterGroupOptions = attainsImpairmentFields.data.filter((field) =>
       uniqueParameterGroups.includes(field.parameterGroup.toUpperCase()),
     );
 
@@ -316,7 +318,7 @@ function AdvancedSearch() {
     });
 
     setParameterGroupOptions(parameterGroupOptions);
-  }, [currentSummary]);
+  }, [attainsImpairmentFields, currentSummary]);
 
   // Get the maxRecordCount of the watersheds layer
   const [watershedMrcError, setWatershedMrcError] = useState(false);
@@ -840,7 +842,7 @@ function AdvancedSearch() {
             aria-label="Use Groups"
             isMulti
             isSearchable={false}
-            options={useFields}
+            options={attainsUseFields.data}
             value={useFilter}
             onChange={updateUseFilter}
             styles={reactSelectStyles}

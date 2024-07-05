@@ -27,6 +27,8 @@ import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -79,6 +81,8 @@ function StateMap({
   const fetchedDataDispatch = useFetchedDataDispatch();
   const navigate = useNavigate();
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -114,6 +118,8 @@ function StateMap({
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
+    if (attainsImpairmentFields.status !== 'success') return;
+    if (attainsUseFields.status !== 'success') return;
 
     const popupTemplate = {
       outFields: ['*'],
@@ -122,8 +128,12 @@ function StateMap({
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          services,
-          stateNationalUses,
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            services,
+            stateNationalUses,
+          },
         }),
     };
 
@@ -146,10 +156,6 @@ function StateMap({
       renderer: pointsRenderer,
       popupTemplate,
     });
-    setLayer('waterbodyPoints', waterbodyPoints);
-    setResetHandler('waterbodyPoints', () => {
-      setLayer('waterbodyPoints', null);
-    });
 
     const linesRenderer = {
       type: 'unique-value',
@@ -168,10 +174,6 @@ function StateMap({
       outFields: ['*'],
       renderer: linesRenderer,
       popupTemplate,
-    });
-    setLayer('waterbodyLines', waterbodyLines);
-    setResetHandler('waterbodyLines', () => {
-      setLayer('waterbodyLines', null);
     });
 
     const areasRenderer = {
@@ -192,10 +194,6 @@ function StateMap({
       renderer: areasRenderer,
       popupTemplate,
     });
-    setLayer('waterbodyAreas', waterbodyAreas);
-    setResetHandler('waterbodyAreas', () => {
-      setLayer('waterbodyAreas', null);
-    });
 
     // Make the waterbody layer into a single layer
     const waterbodyLayer = new GroupLayer({
@@ -206,25 +204,41 @@ function StateMap({
       legendEnabled: false,
     });
     waterbodyLayer.addMany([waterbodyAreas, waterbodyLines, waterbodyPoints]);
-    setLayer('waterbodyLayer', waterbodyLayer);
-    setResetHandler('waterbodyLayer', () => {
-      waterbodyLayer?.layers.removeAll();
-      setLayer('waterbodyLayer', null);
+
+    getSharedLayers().then((sharedLayers) => {
+      setLayer('waterbodyPoints', waterbodyPoints);
+      setResetHandler('waterbodyPoints', () => {
+        setLayer('waterbodyPoints', null);
+      });
+      setLayer('waterbodyLines', waterbodyLines);
+      setResetHandler('waterbodyLines', () => {
+        setLayer('waterbodyLines', null);
+      });
+      setLayer('waterbodyAreas', waterbodyAreas);
+      setResetHandler('waterbodyAreas', () => {
+        setLayer('waterbodyAreas', null);
+      });
+      setLayer('waterbodyLayer', waterbodyLayer);
+      setResetHandler('waterbodyLayer', () => {
+        waterbodyLayer?.layers.removeAll();
+        setLayer('waterbodyLayer', null);
+      });
+
+      setLayers([
+        ...sharedLayers,
+        surroundingCyanLayer,
+        surroundingDischargersLayer,
+        surroundingMonitoringLocationsLayer,
+        surroundingUsgsStreamgagesLayer,
+        waterbodyLayer,
+      ]);
+
+      updateVisibleLayers({ waterbodyLayer: true });
     });
-
-    setLayers([
-      ...getSharedLayers(),
-      surroundingCyanLayer,
-      surroundingDischargersLayer,
-      surroundingMonitoringLocationsLayer,
-      surroundingUsgsStreamgagesLayer,
-      waterbodyLayer,
-    ]);
-
-    updateVisibleLayers({ waterbodyLayer: true });
-
     setLayersInitialized(true);
   }, [
+    attainsImpairmentFields,
+    attainsUseFields,
     getSharedLayers,
     setLayer,
     setResetHandler,

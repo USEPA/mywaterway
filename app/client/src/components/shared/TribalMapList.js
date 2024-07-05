@@ -48,6 +48,9 @@ import {
 } from 'contexts/locationSearch';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import {
+  useAttainsImpairmentFieldsContext,
+  useAttainsUseFieldsContext,
+  useCharacteristicGroupMappingsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -108,7 +111,6 @@ const containerStyles = css`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
-  z-index: 1;
 `;
 
 const inputStyles = (smallScreen: boolean) => css`
@@ -482,7 +484,7 @@ function TribalMapList({
         css={css`
           ${containerStyles};
           height: ${mapListHeight}px;
-          width: '100%';
+          width: 100%;
           display: ${displayMode === 'map' && mapShown ? 'block' : 'none'};
         `}
       >
@@ -597,6 +599,8 @@ function TribalMap({
   const { surroundingDischargersLayer } = useDischargersLayers();
   const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
 
+  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const attainsUseFields = useAttainsUseFieldsContext();
   const navigate = useNavigate();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
@@ -626,8 +630,12 @@ function TribalMap({
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          services,
-          stateNationalUses,
+          lookupFiles: {
+            attainsImpairmentFields,
+            attainsUseFields,
+            services,
+            stateNationalUses,
+          }
         }),
     };
 
@@ -650,7 +658,6 @@ function TribalMap({
       renderer: pointsRenderer,
       popupTemplate,
     });
-    setLayer('waterbodyPoints', waterbodyPoints);
 
     const linesRenderer = {
       type: 'unique-value',
@@ -670,7 +677,6 @@ function TribalMap({
       renderer: linesRenderer,
       popupTemplate,
     });
-    setLayer('waterbodyLines', waterbodyLines);
 
     const areasRenderer = {
       type: 'unique-value',
@@ -690,7 +696,6 @@ function TribalMap({
       renderer: areasRenderer,
       popupTemplate,
     });
-    setLayer('waterbodyAreas', waterbodyAreas);
 
     // Make the waterbody layer into a single layer
     const waterbodyLayer = new GroupLayer({
@@ -701,11 +706,6 @@ function TribalMap({
       legendEnabled: false,
     });
     waterbodyLayer.addMany([waterbodyAreas, waterbodyLines, waterbodyPoints]);
-    setLayer('waterbodyLayer', waterbodyLayer);
-    setResetHandler('waterbodyLayer', () => {
-      waterbodyLayer.layers.removeAll();
-      setLayer('waterbodyLayer', null);
-    });
 
     const selectedTribeLayer = new GraphicsLayer({
       id: 'selectedTribeLayer',
@@ -714,7 +714,6 @@ function TribalMap({
       visible: 'true',
       legendEnabled: false,
     });
-    setSelectedTribeLayer(selectedTribeLayer);
 
     const upstreamLayer = new GraphicsLayer({
       id: 'upstreamLayer',
@@ -722,32 +721,42 @@ function TribalMap({
       listMode: 'hide',
       visible: false,
     });
-    setLayer('upstreamLayer', upstreamLayer);
 
     // add the shared layers to the map
-    const sharedLayers = getSharedLayers();
-
-    setLayers([
-      ...sharedLayers,
-      upstreamLayer,
-      selectedTribeLayer,
-      surroundingCyanLayer,
-      surroundingDischargersLayer,
-      surroundingUsgsStreamgagesLayer,
-      monitoringLocationsLayer,
-      surroundingMonitoringLocationsLayer,
-      waterbodyLayer,
-    ]);
-
-    updateVisibleLayers({
-      selectedTribeLayer: true,
-      waterbodyLayer: true,
-      monitoringLocationsLayer: true,
+    getSharedLayers().then((sharedLayers) => {
+      setLayers([
+        ...sharedLayers,
+        upstreamLayer,
+        selectedTribeLayer,
+        surroundingCyanLayer,
+        surroundingDischargersLayer,
+        surroundingUsgsStreamgagesLayer,
+        monitoringLocationsLayer,
+        surroundingMonitoringLocationsLayer,
+        waterbodyLayer,
+      ]);
+      setLayer('waterbodyPoints', waterbodyPoints);
+      setLayer('waterbodyLines', waterbodyLines);
+      setLayer('waterbodyAreas', waterbodyAreas);
+      setLayer('waterbodyLayer', waterbodyLayer);
+      setResetHandler('waterbodyLayer', () => {
+        waterbodyLayer.layers.removeAll();
+        setLayer('waterbodyLayer', null);
+      });
+      setSelectedTribeLayer(selectedTribeLayer);
+      setLayer('upstreamLayer', upstreamLayer);
+  
+      updateVisibleLayers({
+        selectedTribeLayer: true,
+        waterbodyLayer: true,
+        monitoringLocationsLayer: true,
+      });
     });
-
     setLayersInitialized(true);
   }, [
     activeState,
+    attainsImpairmentFields,
+    attainsUseFields,
     getSharedLayers,
     layersInitialized,
     monitoringLocationsLayer,
@@ -928,6 +937,7 @@ function MonitoringTab({
   selectedCharacteristics,
   setSelectedCharacteristics,
 }: MonitoringTabProps) {
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const services = useServicesContext();
 
   const { monitoringLocations } = useMonitoringLocations();
@@ -1074,9 +1084,9 @@ function MonitoringTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
-                type="Past Water Conditions"
                 feature={feature}
-                services={services}
+                lookupFiles={{ characteristicGroupMappings, services}}
+                type="Past Water Conditions"
               />
               <ViewOnMapButton feature={feature} />
             </div>
