@@ -12,7 +12,6 @@ import {
 } from 'components/shared/AccordionMapHighlight';
 import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import { tabsStyles } from 'components/shared/ContentTabs';
-import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip } from 'components/shared/HelpTooltip';
@@ -30,6 +29,7 @@ import {
 } from 'components/shared/MapLegend';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
+import Slider from 'components/shared/Slider';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
@@ -37,8 +37,15 @@ import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
-import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  initialMonitoringGroups,
+  LocationSearchContext,
+} from 'contexts/locationSearch';
+import {
+  useCharacteristicGroupMappingsContext,
+  useCyanMetadataContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import {
   useCyanWaterbodies,
@@ -47,8 +54,6 @@ import {
   useWaterbodyOnMap,
 } from 'utils/hooks';
 import { countOrNotAvailable } from 'utils/utils';
-// data
-import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
 import {
   cyanError,
@@ -162,7 +167,7 @@ const totalRowStyles = css`
 */
 
 // Dynamically filter the displayed locations
-function filterStation(station, timeframe) {
+function filterStation(station, timeframe, characteristicGroupMappings) {
   if (!timeframe) return station;
   const stationRecords = station.dataByYear;
   const result = {
@@ -217,7 +222,7 @@ function filterStation(station, timeframe) {
   return result;
 }
 
-function filterLocations(groups, timeframe) {
+function filterLocations(groups, timeframe, characteristicGroupMappings) {
   let toggledLocations = [];
   let allLocations = [];
 
@@ -226,8 +231,12 @@ function filterLocations(groups, timeframe) {
       .filter((groupLabel) => groupLabel !== 'All')
       .filter((groupLabel) => groups[groupLabel].toggled === true);
 
-    groups['All'].stations.forEach((station) => {
-      const curStation = filterStation(station, timeframe);
+    groups['All']?.stations.forEach((station) => {
+      const curStation = filterStation(
+        station,
+        timeframe,
+        characteristicGroupMappings,
+      );
       const hasToggledData = toggledGroups.some((group) => {
         return curStation.totalsByLabel[group] > 0;
       });
@@ -240,12 +249,14 @@ function filterLocations(groups, timeframe) {
 }
 
 function Monitoring() {
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const {
     monitoringLocationsLayer,
     updateVisibleLayers,
     usgsStreamgagesLayer,
     visibleLayers,
   } = useLayers();
+  const { setMonitoringGroups } = useContext(LocationSearchContext);
 
   const { cyanWaterbodies, monitoringLocations, usgsStreamgages } =
     useFetchedDataState();
@@ -268,6 +279,16 @@ function Monitoring() {
     setMonitoringDisplayed(visibleLayers.monitoringLocationsLayer);
     setCyanDisplayed(visibleLayers.cyanLayer);
   }, [visibleLayers]);
+
+  useEffect(() => {
+    if (characteristicGroupMappings.status !== 'success') return;
+
+    return function cleanup() {
+      setMonitoringGroups(
+        initialMonitoringGroups(characteristicGroupMappings.data),
+      );
+    };
+  }, [characteristicGroupMappings, setMonitoringGroups]);
 
   const handleCurrentWaterConditionsToggle = useCallback(
     (checked) => {
@@ -419,6 +440,7 @@ function CurrentConditionsTab({
   // draw the waterbody on the map
   useWaterbodyOnMap();
 
+  const cyanMetadata = useCyanMetadataContext();
   const services = useServicesContext();
 
   const { mapView, watershed } = useContext(LocationSearchContext);
@@ -658,9 +680,9 @@ function CurrentConditionsTab({
                     >
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
-                          type="USGS Sensors"
                           feature={feature}
-                          services={services}
+                          lookupFiles={{ services }}
+                          type="USGS Sensors"
                         />
 
                         <ViewOnMapButton feature={feature} />
@@ -691,8 +713,8 @@ function CurrentConditionsTab({
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
                           feature={feature}
+                          lookupFiles={{ cyanMetadata, services }}
                           mapView={mapView}
-                          services={services}
                           type="Blue-Green Algae"
                         />
                         <ViewOnMapButton feature={feature} fieldName="FID" />
@@ -712,6 +734,7 @@ function CurrentConditionsTab({
 }
 
 function PastConditionsTab({ setMonitoringDisplayed }) {
+  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
   const services = useServicesContext();
 
   const {
@@ -840,9 +863,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   // All stations in the current time range
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
+    if (characteristicGroupMappings.status !== 'success') return;
+
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
       annualRecordsReady ? selectedMonitoringYearsRange : null,
+      characteristicGroupMappings.data,
     );
 
     // Add filtered data that's relevent to map popups
@@ -854,6 +880,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     setDisplayedLocations(toggledLocations);
   }, [
     annualRecordsReady,
+    characteristicGroupMappings,
     monitoringGroups,
     selectedMonitoringYearsRange,
     updateFeatures,
@@ -891,7 +918,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     `${charGroupFilters}`;
 
   const portalUrl =
-    `${services.data.waterQualityPortal.userInterface}#huc=${huc12}` +
+    `${services.data.waterQualityPortal.userInterface}#advanced=true&huc=${huc12}` +
     `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
@@ -924,7 +951,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     },
   );
 
-  const totalLocationsCount = monitoringGroups['All'].stations.length;
+  const totalLocationsCount = monitoringGroups['All']?.stations.length;
   const displayedLocationsCount =
     filteredMonitoringLocations.length.toLocaleString();
 
@@ -1008,9 +1035,9 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         >
           <div css={accordionContentStyles}>
             <WaterbodyInfo
-              type="Past Water Conditions"
               feature={feature}
-              services={services}
+              lookupFiles={{ characteristicGroupMappings, services }}
+              type="Past Water Conditions"
             />
             <ViewOnMapButton feature={feature} />
           </div>
@@ -1019,6 +1046,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     },
     [
       accordionItemToggleHandlers,
+      characteristicGroupMappings,
       expandedRows,
       filteredMonitoringLocations,
       services,
@@ -1031,7 +1059,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   );
   let definitionExpression = '';
   if (locationIds.length === 0) definitionExpression = '1=0';
-  else if (locationIds.length !== monitoringGroups['All'].stations.length) {
+  else if (locationIds.length !== monitoringGroups['All']?.stations.length) {
     definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
   }
   if (
@@ -1126,14 +1154,17 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 <LoadingSpinner />
               )}
               {monitoringPeriodOfRecordStatus === 'success' && (
-                <DateSlider
+                <Slider
                   max={monitoringYearsRange[1]}
                   min={monitoringYearsRange[0]}
                   disabled={
                     !monitoringYearsRange[0] || !monitoringYearsRange[1]
                   }
                   onChange={handleDateSliderChange}
-                  range={selectedMonitoringYearsRange}
+                  range={[
+                    selectedMonitoringYearsRange[0],
+                    selectedMonitoringYearsRange[1],
+                  ]}
                   headerElm={
                     <p css={subheadingStyles}>
                       <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />

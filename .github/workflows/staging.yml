@@ -25,8 +25,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v2
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           base: staging
@@ -73,16 +73,16 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Set up node and npm
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       # Run front-end processes (install, lint, test, bundle)
       - name: Cache node modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/client/.npm
           key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
@@ -119,7 +119,7 @@ jobs:
           cf set-env $APP_NAME "TZ" "America/New_York" > /dev/null
 
       - name: Configure Public AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.CF_S3_PUB_ACCESS_KEY }}
           aws-secret-access-key: ${{ env.CF_S3_PUB_SECRET_KEY }}
@@ -145,7 +145,7 @@ jobs:
         working-directory: app
 
       - name: Store artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: hmwv2
           path: app/hmwv2.tar.gz
@@ -161,7 +161,7 @@ jobs:
           cf set-env $APP_NAME_ATTAINS "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
 
       - name: Configure Public AWS Credentials for ATTAINS version
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.CF_ATTAINS_S3_PUB_ACCESS_KEY }}
           aws-secret-access-key: ${{ env.CF_ATTAINS_S3_PUB_SECRET_KEY }}

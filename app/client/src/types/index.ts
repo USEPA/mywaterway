@@ -56,9 +56,109 @@ export type AssessmentUseAttainmentState =
   | { status: 'failure'; data: null }
   | { status: 'success'; data: AssessmentUseAttainmentByGroup };
 
+export type AttainsAction = {
+  actionIdentifier: string;
+  actionName: string;
+  actionStatusCode: string;
+  actionTypeCode: string;
+  agencyCode: string;
+  completionDate: string;
+  organizationId: string;
+  associatedWaters: {
+    specificWaters: {
+      assessmentUnitIdentifier: string;
+      associatedPollutants: {
+        pollutantName: string;
+        pollutantSourceTypeCode: string;
+        explicitMarginofSafetyText: string | null;
+        implicitMarginofSafetyText: string | null;
+        permits: {
+          NPDESIdentifier: string;
+          otherIdentifier: string | null;
+          details: {
+            wasteLoadAllocationNumeric: number;
+            wasteLoadAllocationUnitsText: string;
+            seasonStartText: string | null;
+            seasonEndText: string | null;
+          }[];
+        }[];
+        TMDLEndPointText: string;
+      }[];
+      parameters: {
+        parameterName: string;
+        associatedPollutants: {
+          pollutantName: string;
+        }[];
+      }[];
+    }[];
+  };
+  documents: {
+    agencyCode: string;
+    documentTypes: {
+      documentTypeCode: string;
+    }[];
+    documentFileType: string;
+    documentFileName: string;
+    documentName: string;
+    documentDescription: string | null;
+    documentComments: string;
+    documentURL: string;
+  }[];
+  TMDLReportDetails: {
+    TMDLOtherIdentifier: string | null;
+    TMDLDate: string;
+    indianCountryIndicator: 'Y' | 'N';
+  };
+};
+
+export type AttainsActionsData = {
+  items: {
+    organizationIdentifier: string;
+    organizationName: string;
+    organizationTypeText: string;
+    actions: AttainsAction[];
+  }[];
+  count: number;
+};
+
+export type AttainsImpairmentField = {
+  label: string;
+  parameterGroup: string;
+  sentence: string | null;
+  term: string;
+  value: string;
+};
+
+export type AttainsImpairmentFieldState =
+  | { status: 'fetching'; data: null }
+  | { status: 'failure'; data: null }
+  | { status: 'success'; data: AttainsImpairmentField[] };
+
+export type AttainsUseField = {
+  category: string;
+  label: string;
+  term: string;
+  value: string;
+};
+
+export type AttainsUseFieldState =
+  | { status: 'fetching'; data: null }
+  | { status: 'failure'; data: null }
+  | { status: 'success'; data: AttainsUseField[] };
+
 export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
 }
+
+export type CharacteristicGroupMappings = {
+  label: string;
+  groupNames: string[];
+}[];
+
+export type CharacteristicGroupMappingsState = {
+  status: 'fetching' | 'failure' | 'success';
+  data: CharacteristicGroupMappings;
+};
 
 export type ClickedHucState =
   | { status: 'fetching' | 'no-data' | 'none' | 'failure'; data: null }
@@ -75,6 +175,11 @@ export interface CountyAttributes {
   STATE_NAME: string;
 }
 
+export type CyanMetadataState = {
+  status: 'fetching' | 'failure' | 'success';
+  data: number[];
+};
+
 export interface CyanWaterbodyAttributes {
   AREASQKM: number;
   FID: number;
@@ -84,6 +189,24 @@ export interface CyanWaterbodyAttributes {
   monitoringType: 'Blue-Green Algae';
   oid: number;
   orgName: 'Cyanobacteria Assessment Network (CyAN)';
+}
+
+export interface DamsAttributes {
+  CITY: string | null;
+  CONDITION_ASSESSMENT: string | null;
+  CONDITION_ASSESS_DATE: string;
+  CORE_TYPES: string;
+  DAM_HEIGHT: string;
+  DAM_LENGTH: string | null;
+  FOUNDATIONS: string;
+  HAZARD_POTENTIAL: string;
+  NAME: string;
+  NIDID: string | null;
+  OWNER_TYPES: string;
+  PRIMARY_DAM_TYPE: string;
+  PURPOSES: string;
+  STATE: string;
+  YEAR_COMPLETED: string;
 }
 
 export interface DischargerAttributes {
@@ -113,6 +236,40 @@ export interface DischargerPermitComponents {
 export interface EjScreenAttributes {
   T_OVR64PCT: string;
 }
+
+export type ExtremeWeatherQuery = {
+  serviceItemId?: string;
+  query: __esri.Query | __esri.QueryProperties;
+};
+
+export type ExtremeWeatherRow = {
+  checked?: boolean;
+  disabled?: boolean;
+  id: string;
+  indent?: string;
+  infoText?: InfoText | string;
+  label: string;
+  layerId?: string;
+  layerProperties?: any;
+  queries?: ExtremeWeatherQuery[];
+  status?: FetchStatus;
+  subHeading?: boolean;
+  text?: string;
+};
+
+export type ExtremeWeatherConfigState = {
+  status: 'fetching' | 'failure' | 'success';
+  data: {
+    currentWeatherDefaults: ExtremeWeatherRow[];
+    echoLookups: {
+      permitStatus: { [key: string]: string };
+      permitType: { [key: string]: string };
+    };
+    historicalDefaults: ExtremeWeatherRow[];
+    historicalRangeDefaults: ExtremeWeatherRow[];
+    potentiallyVulnerableDefaults: ExtremeWeatherRow[];
+  };
+};
 
 export interface Feature {
   graphic: __esri.Graphic;
@@ -214,13 +371,10 @@ export interface Huc12SummaryData {
   }[];
 }
 
-export type ImpairmentFields = {
-  value: string;
-  parameterGroup: string;
-  label: string;
-  term: string;
-  sentence: JSX.Element | null;
-}[];
+export type InfoText = {
+  text: string;
+  [key: string]: string;
+};
 
 export type LookupFile = {
   status: 'fetching' | 'success' | 'failure';
@@ -347,24 +501,43 @@ export type PopupAttributes =
   | ChangeLocationAttributes
   | CongressionalDistrictAttributes
   | CountyAttributes
+  | CyanWaterbodyAttributes
+  | DamsAttributes
   | DischargerAttributes
   | EjScreenAttributes
   | MonitoringLocationAttributes
   | NonProfitAttributes
   | ProtectedAreaAttributes
+  | SewerOverflowAttributes
+  | StorageTankAttributes
   | TribeAttributes
   | UpstreamWatershedAttributes
   | UsgsStreamgageAttributes
   | VillageAttributes
   | WaterbodyAttributes
   | WatershedAttributes
+  | WellAttributes
   | WildScenicRiverAttributes
-  | WsioHealthIndexAttributes
-  | CyanWaterbodyAttributes;
+  | WsioHealthIndexAttributes;
+
+export type PopupLookupFiles = {
+  attainsImpairmentFields?: AttainsImpairmentFieldState;
+  attainsUseFields?: AttainsUseFieldState;
+  characteristicGroupMappings?: CharacteristicGroupMappingsState;
+  cyanMetadata?: CyanMetadataState;
+  extremeWeatherConfig?: ExtremeWeatherConfigState;
+  services: ServicesState;
+  stateNationalUses?: LookupFile;
+};
 
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
   Loc_Nm: string;
+}
+
+export interface RndDraggableState {
+  x: number;
+  y: number;
 }
 
 export interface ServicesData {
@@ -399,6 +572,20 @@ export type ServicesState =
   | { status: 'failure'; data: string }
   | { status: 'success'; data: ServicesData };
 
+export type SewerOverflowAttributes = {
+  facility_name: string;
+  npdes_id: string;
+  dmr_tracking: string;
+};
+
+export type StorageTankAttributes = {
+  Closed_USTs: number;
+  Facility_ID: string;
+  Name: string;
+  Open_USTs: number;
+  TOS_USTs: number;
+};
+
 export interface StreamgageMeasurement {
   parameterCategory: string;
   parameterOrder: number;
@@ -429,6 +616,15 @@ export interface TribeAttributes {
 export interface UpstreamWatershedAttributes {
   xwalk_huc12: string;
 }
+
+export type UsgsStaParameter = {
+  staParameterCode: string;
+  staDescription: string;
+  hmwCategory: 'exclude' | 'primary' | 'secondary';
+  hmwOrder: number | null;
+  hmwName: string;
+  hmwUnits: string;
+};
 
 export interface UsgsStreamgageAttributes {
   monitoringType: 'USGS Sensors';
@@ -590,6 +786,11 @@ export interface WatershedAttributes {
   huc12: string;
   name: string;
 }
+
+export type WellAttributes = {
+  Wells_2020: number;
+  Wells_Density_2020: number;
+};
 
 export type WidgetLayer =
   | {

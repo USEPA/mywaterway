@@ -40,7 +40,7 @@ const accessors = {
   yAccessor: (d: Observation) => d.measurement,
 };
 
-export function Sparkline({ data }: { data: Observation[] }) {
+export function Sparkline({ data }: Readonly<{ data: Observation[] }>) {
   const color = '#ffc107';
   const values = data.map((d) => d.measurement);
   return (

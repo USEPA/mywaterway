@@ -7,16 +7,15 @@
     <meta name="MobileOptimized" content="width" />
     <meta name="HandheldFriendly" content="true" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>How's My Waterway? | US EPA</title>
+    <title>How&#x27;s My Waterway? | US EPA</title>
 
-    <link rel="canonical" href="" />
-    <link rel="shortlink" href="" />
-    <!--googleoff: snippet-->
+    <link rel="canonical" href="https://mywaterway.epa.gov" />
+    <link rel="shortlink" href="https://mywaterway.epa.gov" />
     <meta
       name="keywords"
       content="Clean Water Act (CWA), Safe Drinking Water Act (SDWA), pollution, impaired waterbodies"
     />
-    <meta name="DC.title" content="How's My Waterway?" />
+    <meta name="DC.title" content="How&#x27;s My Waterway?" />
     <meta property="DC.Subject.epachannel" content="Learn the Issues" />
     <meta property="DC.type" content="Overviews and Factsheets" />
     <meta property="DC.date.created" content="2021-12-06" />
@@ -24,12 +23,12 @@
     <meta property="DC.date.reviewed" content="" />
     <meta name="DC.creator" content="US EPA" />
     <meta property="DC.language" content="en" />
-    <meta property="WebArea" content="HMW" />
+    <meta property="WebArea" content="How&#x27;s My Waterway?" />
     <meta property="ContentType" content="Basic page" />
     <meta property="og:site_name" content="US EPA" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="" />
-    <meta property="og:title" content="How's My Waterway? | US EPA" />
+    <meta property="og:url" content="https://mywaterway.epa.gov" />
+    <meta property="og:title" content="How&#x27;s My Waterway? | US EPA" />
     <meta
       property="og:image"
       content="%PUBLIC_URL%/epa-template-files/images/epa-standard-og.jpg"
@@ -75,7 +74,7 @@
     />
     <link
       rel="manifest"
-      href="%PUBLIC_URL%/site.webmanifest"
+      href="%PUBLIC_URL%/manifest.json"
       crossorigin="use-credentials"
     />
     <link
@@ -146,13 +145,59 @@
       as="font"
       crossorigin="anonymous"
     />
-
-    <!--googleoff: all-->
     <link
       rel="stylesheet"
       media="all"
       href="%PUBLIC_URL%/epa-template-files/css/epa.css"
     />
+    <!-- Style fixes for the EPA template -->
+    <style>
+      [tabindex='-1']:focus {
+        outline: none !important;
+      }
+
+      .menu--main .menu__link {
+        font-family: 'Merriweather Web', Georgia, Cambria, 'Times New Roman',
+          Times, serif;
+        font-size: 0.91rem;
+      }
+
+      .menu--main .menu__link,
+      .menu--main .menu__link:visited {
+        color: #fff;
+      }
+
+      .menu--main .menu__link:hover:visited {
+        color: #005ea2;
+      }
+
+      .site-logo__svg {
+        fill: #fff;
+      }
+
+      .usa-nav.is-visible .menu--main .menu__link {
+        font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica',
+          'Roboto', 'Arial', sans-serif;
+        font-size: 1.06rem;
+      }
+    </style>
+    <!-- End style fixes for the EPA template -->
+
+    <!-- Google Tag Manager -->
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, 'script', 'dataLayer', 'GTM-L8ZB');
+    </script>
+    <!-- End Google Tag Manager -->
+
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap"
@@ -263,18 +308,6 @@
         float: unset;
       }
 
-      .menu--main .menu__link {
-        font-family: 'Merriweather Web', Georgia, Cambria, 'Times New Roman',
-          Times, serif;
-        font-size: 0.91rem;
-      }
-
-      .usa-nav.is-visible .menu--main .menu__link {
-        font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica',
-          'Roboto', 'Arial', sans-serif;
-        font-size: 1.06rem;
-      }
-
       .unsupportedMessageContainer {
         position: -webkit-sticky; /* Safari */
         position: sticky;
@@ -314,6 +347,7 @@
         color: #1a4480 !important;
       }
 
+      .highcharts-container *,
       .visx-tooltip {
         transition-property: opacity;
       }
@@ -535,22 +569,6 @@
 
       unsupportedBrowserMessage();
     </script>
-
-    <!-- Google Tag Manager -->
-    <script>
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != 'dataLayer' ? '&l=' + l : '';
-        j.async = true;
-        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, 'script', 'dataLayer', 'GTM-L8ZB');
-    </script>
-    <!-- End Google Tag Manager -->
-
     <!-- Google Analytics -->
     <script>
       // Prevent scroll restoration. This is used to avoid issues with browsers
@@ -594,10 +612,18 @@
         },
       ];
 
-      // Configure analytics destinations for non-production environments.
-      // Production will use the analytics injected by the EPA template.
+      // Configure analytics destinations.
       let trackingId;
-      if (window.location.hostname === 'mywaterway-stage.app.cloud.gov') {
+      if (
+        window.location.hostname === 'mywaterway.epa.gov' ||
+        window.location.hostname === 'mywaterway-prod.app.cloud.gov'
+      ) {
+        //EPA (Production)
+        trackingId = 'G-2SEC4V3SK9';
+        configureGoogleAnalytics(trackingId);
+      } else if (
+        window.location.hostname === 'mywaterway-stage.app.cloud.gov'
+      ) {
         // Stage
         trackingId = 'G-8ZG01NLPFL';
         configureGoogleAnalytics(trackingId);
@@ -747,13 +773,9 @@
       ></iframe
     ></noscript>
     <!-- End Google Tag Manager -->
-    <div
-      class="skiplinks"
-      role="navigation"
-      aria-labelledby="skip-to-main--6557d8b0d2e00"
-    >
+    <div class="skiplinks" role="navigation" aria-labelledby="skip-to-main">
       <a
-        id="skip-to-main--6557d8b0d2e00"
+        id="skip-to-main"
         href="#main-content"
         class="skiplinks__link visually-hidden focusable"
         >Skip to main content</a
@@ -808,8 +830,10 @@
                 <p>
                   <strong>Official websites use .gov</strong>
                   <br />
-                  A <strong>.gov</strong> website belongs to an official
-                  government organization in the United States.
+                  A
+                  <strong>.gov</strong>
+                  website belongs to an official government organization in the
+                  United States.
                 </p>
               </div>
             </div>
@@ -823,7 +847,9 @@
                 <p>
                   <strong>Secure .gov websites use HTTPS</strong>
                   <br />
-                  A <strong>lock</strong> (<span class="icon-lock"
+                  A
+                  <strong>lock</strong>
+                  (<span class="icon-lock"
                     ><svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="52"
@@ -840,9 +866,10 @@
                         fill-rule="evenodd"
                         d="M26 0c10.493 0 19 8.507 19 19v9h3a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V32a4 4 0 0 1 4-4h3v-9C7 8.507 15.507 0 26 0zm0 8c-5.979 0-10.843 4.77-10.996 10.712L15 19v9h22v-9c0-6.075-4.925-11-11-11z"
                       ></path></svg></span
-                  >) or <strong>https://</strong> means you’ve safely connected
-                  to the .gov website. Share sensitive information only on
-                  official, secure websites.
+                  >) or
+                  <strong>https://</strong>
+                  means you’ve safely connected to the .gov website. Share
+                  sensitive information only on official, secure websites.
                 </p>
               </div>
             </div>
@@ -1199,9 +1226,12 @@
 
             <ul class="menu menu--footer">
               <li class="menu__item">
-                <a href="https://www.epa.gov/accessibility" class="menu__link"
-                  >Accessibility</a
+                <a
+                  class="menu__link"
+                  href="https://www.epa.gov/accessibility/epa-accessibility-statement"
                 >
+                  Accessibility Statement
+                </a>
               </li>
 
               <li class="menu__item">
@@ -1220,7 +1250,7 @@
                 <a
                   href="https://www.epa.gov/home/wwwepagov-snapshots"
                   class="menu__link"
-                  >EPA www Web Snapshots</a
+                  >EPA www Web Snapshot</a
                 >
               </li>
 
@@ -1232,9 +1262,17 @@
 
               <li class="menu__item">
                 <a
-                  href="https://www.epa.gov/ocr/whistleblower-protections-epa-and-how-they-relate-non-disclosure-agreements-signed-epa-employees"
+                  href="https://www.epa.gov/ocr/whistleblower-protections-epa-and-how-they-relate-non-disclosure-agreements-signed-epa"
                   class="menu__link"
                   >No FEAR Act Data</a
+                >
+              </li>
+
+              <li class="menu__item">
+                <a
+                  href="https://www.epa.gov/web-policies-and-procedures/plain-writing"
+                  class="menu__link"
+                  >Plain Writing</a
                 >
               </li>
 
@@ -1258,13 +1296,11 @@
 
             <ul class="menu menu--footer">
               <li class="menu__item">
-                <a href="https://www.data.gov/" class="menu__link">Data.gov</a>
+                <a class="menu__link" href="https://www.epa.gov/data">Data</a>
               </li>
 
               <li class="menu__item">
-                <a
-                  href="https://www.epa.gov/office-inspector-general/about-epas-office-inspector-general"
-                  class="menu__link"
+                <a href="https://www.epaoig.gov" class="menu__link"
                   >Inspector General</a
                 >
               </li>
@@ -1278,12 +1314,6 @@
               <li class="menu__item">
                 <a href="https://www.epa.gov/newsroom" class="menu__link"
                   >Newsroom</a
-                >
-              </li>
-
-              <li class="menu__item">
-                <a href="https://www.epa.gov/data" class="menu__link"
-                  >Open Government</a
                 >
               </li>
 
@@ -1459,7 +1489,7 @@
     <script src="%PUBLIC_URL%/epa-template-files/js/once.min.js"></script>
     <script src="%PUBLIC_URL%/epa-template-files/js/common.min.js"></script>
     <script src="%PUBLIC_URL%/epa-template-files/js/scripts.min.js"></script>
-    <!-- EPA template script overrides-->
+    <!-- EPA template script mobile drawer fix -->
     <script>
       const searchButton = document.querySelector(
         "[aria-controls='header-search-drawer']",
@@ -1477,19 +1507,33 @@
         });
       }
     </script>
-    <!-- End EPA template script overrides-->
-
+    <!-- End EPA template script mobile drawer fix -->
     <style>
-      .menu--main .menu__link,
-      .menu--main .menu__link:visited {
-        color: #fff;
+      .l-header {
+        position: static;
       }
-      .menu--main .menu__link:hover:visited {
-        color: #005ea2;
+
+      .external-link__tag {
+        font-size: 0.75rem;
+        padding: 0 0.5em;
       }
-      .site-logo__svg {
-        fill: #fff;
+
+      @media (min-width: 64em) {
+        nav.usa-nav--epa {
+          float: none;
+        }
       }
     </style>
+
+    <script>
+      (function () {
+        var sz = document.createElement('script');
+        sz.type = 'text/javascript';
+        sz.async = true;
+        sz.src = '//siteimproveanalytics.com/js/siteanalyze_38950.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(sz, s);
+      })();
+    </script>
   </body>
 </html>

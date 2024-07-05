@@ -1,6 +1,6 @@
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
-import type { FetchStatus } from 'types';
+import type { FetchStatus, InfoText } from 'types';
 
 // utility function to split up an array into chunks of a designated length
 export function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
@@ -60,15 +60,22 @@ export function countOrNotAvailable(
   return (countOrData?.length ?? 0).toLocaleString();
 }
 
-export function formatNumber(number: number, digits: number = 0) {
+export function formatNumber(
+  number: number,
+  digits: number = 0,
+  removeTrailingZeros: boolean = false,
+) {
   if (!number) return '0';
 
   if (number !== 0 && Math.abs(number) < 1) return '< 1';
 
-  return number.toLocaleString([], {
+  const value = number.toLocaleString([], {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
+
+  if (removeTrailingZeros) return parseFloat(value).toLocaleString();
+  return value;
 }
 
 export function isAbort(error: unknown) {
@@ -130,6 +137,14 @@ export function getExtensionFromPath(primary: string, backup: string = '') {
 
   if (!extension) return 'UNKNOWN';
   return extension;
+}
+
+export function sentenceJoin(values: string[]) {
+  // remove duplicates
+  values = [...new Set(values)];
+
+  if (values.length <= 1) return values.join('');
+  return `${values.slice(0, -1).join(', ')} and ${values.slice(-1)}`;
 }
 
 export function titleCase(string: string) {
@@ -509,4 +524,23 @@ export function escapeForLucene(value: string) {
   ];
   const r = new RegExp('(\\' + a.join('|\\') + ')', 'g');
   return value.replace(r, '\\$1');
+}
+
+/**
+ * Replaces parameters in text attribute with corresponding attributes.
+ *
+ * @param config Configuration to do parameterized string on.
+ * @returns A string with necessary replacements.
+ */
+export function parameterizedString(config: InfoText | string) {
+  if (typeof config === 'string') return config;
+
+  let text = config.text;
+  Object.keys(config)
+    .filter((c) => c !== 'text')
+    .forEach((key) => {
+      const keyFull = `{${key}}`;
+      text = text.replaceAll(keyFull, config[key]);
+    });
+  return text;
 }

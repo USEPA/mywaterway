@@ -219,13 +219,6 @@ function AccordionList({
   );
 }
 
-// defaultProp set here just to satisfy flow, even though props are passed as a default function params
-AccordionList.defaultProps = {
-  expandDisabled: false,
-  sortOptions: [],
-  onSortChange: () => {},
-};
-
 const accordionItemContainerStyles = css`
   border-top: 1px solid #d8dfe2;
 `;

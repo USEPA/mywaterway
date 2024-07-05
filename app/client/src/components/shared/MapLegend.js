@@ -294,6 +294,8 @@ export const waterwayIcon = ({ color, stroke = 'black' }) => {
 };
 
 function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
+  const currentTab = window.location.pathname.split('/').pop();
+
   // jsx
   const waterbodyLegend = (
     <>
@@ -456,14 +458,20 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     <li className="hmw-legend__item">
       <div css={legendItemStyles}>
         <div className="hmw-legend__symbol" css={imageContainerStyles}>
-          {squareIcon({
-            color: '#CBCBCB',
-            strokeWidth: 3,
-            stroke: '#ffff00',
-          })}
+          {currentTab === 'extreme-weather'
+            ? squareIcon({
+                color: 'transparent',
+                strokeWidth: 3,
+                stroke: '#000000',
+              })
+            : squareIcon({
+                color: '#CBCBCB',
+                strokeWidth: 3,
+                stroke: '#ffff00',
+              })}
         </div>
         <span className="hmw-legend__info" css={labelStyles}>
-          Providers
+          {currentTab === 'extreme-weather' ? 'Selected County' : 'Providers'}
         </span>
       </div>
     </li>
