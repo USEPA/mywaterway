@@ -1,5 +1,11 @@
 {
+  "expertQuery": {
+    "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
+    "attains": "https://api.epa.gov/expertquery/api/attains",
+    "valuesLimit": 100
+  },
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+  "esriWebMapBase": "https://www.arcgis.com/sharing/rest/content/items",
   "wbd": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6",
   "wbdUnconstrained": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19",
   "counties": "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties/FeatureServer/0",
@@ -20,6 +26,7 @@
   },
   "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/HMW%20Glossary/terms/full",
   "waterQualityPortal": {
+    "domainValues": "https://www.waterqualitydata.us/Codes",
     "userInterface": "https://www.waterqualitydata.us/",
     "stationSearch": "https://www.waterqualitydata.us/data/Station/search?",
     "resultSearch": "https://www.waterqualitydata.us/data/Result/search?",
@@ -40,7 +47,8 @@
   },
   "grts": {
     "getGRTSHUC12": "https://ordspub.epa.gov/ords/grts_rest/grts_rest_apex/grts_rest_apex/GetProjectsByHUC12/",
-    "getSSByState": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetSSByState/"
+    "getSSByState": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/ss/GetSSByState/",
+    "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
     "serviceUrlDev": "http://54.209.48.156/attains-public/api/",
@@ -69,7 +77,51 @@
     "portalId": "d957997ccee7408287a963600a77f61f",
     "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/USA_Wildfires_v1/FeatureServer/"
   },
+  "cmraScreeningData": "https://services3.arcgis.com/0Fs3HcaFfvzXvm7w/ArcGIS/rest/services/CMRA_Screening_Data/FeatureServer/0",
+  "droughtRealtime": {
+    "portalId": "7d4cc55ecaef4ceb82c8d05b13e0d049",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/US_Drought_Intensity_v1/FeatureServer/3"
+  },
+  "inlandFloodingRealtime": {
+    "portalId": "caffd8e5be444cfb84de0fcdd25b5214",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NDFD_Precipitation_v1/FeatureServer/2"
+  },
+  "coastalFloodingRealtime": {
+    "portalId": "82d09c4566f34e9e96420ec92172d8e4",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NWS_Watches_Warnings_v1/FeatureServer/6"
+  },
+  "extremeHeatRealtime": {
+    "portalId": "0a5fe1d4de9d4a7783708e2d5c2115b2",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NDFD_DailyTemperature_v1/FeatureServer/1"
+  },
+  "extremeColdRealtime": {
+    "portalId": "385a1e5f039d4371ae999c740d6c9d13",
+    "url": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NDFD_DailyTemperature_v1/FeatureServer/0"
+  },
+  "watchesWarnings": "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NWS_Watches_Warnings_v1/FeatureServer/6",
+  "seaLevelRise": {
+    "early": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/CMRA_SLR_Inundation_RCP85_Early_2030/ImageServer",
+    "mid": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/CMRA_SLR_Inundation_RCP85_Mid_2050/ImageServer",
+    "late": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/CMRA_SLR_Inundation_RCP85_Late_2090/ImageServer",
+    "levees": "https://tiledimageservices3.arcgis.com/0Fs3HcaFfvzXvm7w/arcgis/rest/services/LA_TX_Leveed_Areas/ImageServer"
+  },
+  "undergroundStorageTanks": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/UST_Finder_Feature_Layer_2/FeatureServer/0",
+  "combinedSewerOverflows": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Combined_Sewer_Overflows/FeatureServer/0",
+  "dams": {
+    "portalId": "a4c195b7a6b74f278ff43e5d60c6915d",
+    "url": "https://services2.arcgis.com/FiaPA4ga0iQKduv3/ArcGIS/rest/services/NID_v1/FeatureServer/0"
+  },
+  "wells": "https://geodata.epa.gov/arcgis/rest/services/ORD/PrivateDomesticWells2020/MapServer/6",
+  "disadvantagedCommunities": {
+    "portalId": "f95344889cab44bd84207052f44cb940",
+    "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/usa_november_2022/FeatureServer"
+  },
   "googleAnalyticsMapping": [
+    {
+      "urlLookup": "expertQuery.attains",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "expert query - attains"
+    },
     {
       "urlLookup": "attains.serviceUrl",
       "wildcardUrl": "{urlLookup}actions*",
@@ -175,6 +227,12 @@
       "wildcardUrl": "{urlLookup}*",
       "name": "echodata - echo metadata"
     },
+    {
+      "urlLookup": "waterQualityPortal.domainValues",
+      "wildcardUrl": "{urlLookup}/*?mimeType=json",
+      "name": "wqp - domain values"
+    },
+
     {
       "urlLookup": "waterQualityPortal.monitoringLocation",
       "wildcardUrl": "{urlLookup}search?mimeType=geojson&zip=no&huc=*",
@@ -404,6 +462,91 @@
       "urlLookup": "wildfires.url",
       "wildcardUrl": "{urlLookup}*",
       "name": "Wildfires"
+    },
+    {
+      "urlLookup": "cmraScreeningData",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "CMRA screening data"
+    },
+    {
+      "urlLookup": "droughtRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Drought Realtime"
+    },
+    {
+      "urlLookup": "inlandFloodingRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Inland Flooding Realtime"
+    },
+    {
+      "urlLookup": "coastalFloodingRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Coastal Flooding Realtime"
+    },
+    {
+      "urlLookup": "extremeHeatRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Extreme Heat Realtime"
+    },
+    {
+      "urlLookup": "extremeColdRealtime.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Extreme Cold Realtime"
+    },
+    {
+      "urlLookup": "watchesWarnings",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Weather Watches, Warnings, and Advisories"
+    },
+    {
+      "urlLookup": "esriWebMapBase",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Get WebMap Definition"
+    },
+    {
+      "urlLookup": "seaLevelRise.early",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Sea Level Rise Early Century"
+    },
+    {
+      "urlLookup": "seaLevelRise.mid",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Sea Level Rise Mid Century"
+    },
+    {
+      "urlLookup": "seaLevelRise.late",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Sea Level Rise Late Century"
+    },
+    {
+      "urlLookup": "seaLevelRise.levees",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Sea Level Rise Levee Protected Areas"
+    },
+    {
+      "urlLookup": "undergroundStorageTanks",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Underground Storage Tanks"
+    },
+    {
+      "urlLookup": "combinedSewerOverflows",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Combined Sewer Overflows"
+    },
+    {
+      "urlLookup": "dams.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Dams"
+    },
+    {
+      "urlLookup": "wells",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Wells"
+    },
+    {
+      "urlLookup": "disadvantagedCommunities.url",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Disadvantaged Communities"
     }
   ]
 }
