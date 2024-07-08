@@ -638,7 +638,7 @@ function LocationSearch({ route, label }: Props) {
       }
       const { assessmentUnitId, organizationId } = item;
       formSubmit({
-        target: `waterbody-report/${organizationId}/${assessmentUnitId}`,
+        target: `/waterbody-report/${organizationId}/${assessmentUnitId}`,
       });
 
       if (callback) callback(result.text);
