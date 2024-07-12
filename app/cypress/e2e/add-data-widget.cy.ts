@@ -1,18 +1,9 @@
-// Ignore uncaught exceptions for the add-save-data-widget. The latest version of
-// Esri throws AbortErrors in the console sometimes for layers added via the add
-// data widget. These errors don't have any effect to the end user.
-Cypress.on('uncaught:exception', (err, runnable) => {
-  // returning false here prevents Cypress from
-  // failing the test
-  return false;
-});
-
 describe('Add & Save Data Widget', () => {
   const adwId = '#add-save-data-widget';
   const dropzoneId = 'hmw-dropzone';
 
-  function openWidget(path = '/community') {
-    cy.visit(path);
+  function openWidget(path = '/community/dc') {
+    cy.visit(path, { timeout: 20000 });
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
@@ -22,9 +13,9 @@ describe('Add & Save Data Widget', () => {
     // this a work around to an issue where doing
     // "cy.findByTitle('Add & Save Data Widget').click()" does not work for esri
     // widget buttons
-    cy.get('div[title="Open Add & Save Data Widget"]').then((button) =>
-      button.click(),
-    );
+    cy.get('div[title="Open Add & Save Data Widget"]').then((button) => {
+      button.click();
+    });
 
     cy.get(adwId).should('be.visible');
   }
@@ -37,7 +28,9 @@ describe('Add & Save Data Widget', () => {
     const disclaimerText =
       'EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.';
 
-    cy.findByText('Disclaimer').click();
+    cy.get(adwId).within(() => {
+      cy.findByText('Disclaimer').click();
+    });
 
     // verify the disclaimer text is visible
     cy.findByText(disclaimerText).should('be.visible');
@@ -334,14 +327,14 @@ describe('Add & Save Data Widget', () => {
   it('Test that save panel switches align with currently visible layers', () => {
     openWidget('/community/dc/overview');
 
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).click();
-    cy.findByRole('list', { name: 'Layer List' }).within(() => {
+    cy.findByTitle('Open Basemaps and Layers').click({ force: true });
+    cy.get('.hmw-map-layers').within(() => {
       // toggle on a layer
-      cy.findByRole('switch', { name: 'Congressional Districts' }).click({
+      cy.findByText('Congressional Districts').click({
         force: true,
       });
       // toggle off a layer
-      cy.findByRole('switch', { name: 'Boundaries' }).click({ force: true });
+      cy.findByText('Boundaries').click({ force: true });
     });
 
     cy.get(adwId).within(() => {

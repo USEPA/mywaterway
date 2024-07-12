@@ -37,6 +37,7 @@ declare global {
        * Custom command to select DOM element by data-cy attribute.
        * @example cy.dataCy('greeting')
        */
+      isInsideViewport(): Chainable<Element>;
       matchSnapshot(name?: string, options?: Options): Chainable<Element>;
       mockGeolocation(
         shouldFail: boolean,
@@ -47,6 +48,57 @@ declare global {
     }
   }
 }
+
+/**
+ * This overrides the cy.visit command and injects css specifically for Cypress.
+ * The main reason for this is to hide the creat react app error overlay.
+ *
+ * @param originalFn - The original visit function
+ * @param url - The url to visit
+ * @param options (optional) - Options for visit
+ */
+Cypress.Commands.overwrite(
+  'visit',
+  (
+    originalFn: (
+      url: string,
+      options?: Partial<Cypress.VisitOptions>,
+    ) => Cypress.Chainable<Cypress.AUTWindow>,
+    url: string,
+    options,
+  ) => {
+    originalFn(url, options);
+
+    // wait until we are at the provided url
+    cy.location().should((loc) => {
+      expect(loc.pathname).to.eq(url);
+    });
+
+    // inject css styles
+    cy.get('#cypress-override-styles').then((style) => {
+      style.html(`
+        #webpack-dev-server-client-overlay {
+          display: none;
+        }
+      `);
+    });
+  },
+);
+
+/**
+ * Checks if the element is inside the viewport.
+ *
+ * @param subject - The react-dropzone element to upload the file with
+ */
+Cypress.Commands.add('isInsideViewport', { prevSubject: true }, (subject) => {
+  const rect = subject[0].getBoundingClientRect();
+  return cy.window().then((window) => {
+    expect(rect.top).to.be.within(0, window.innerHeight);
+    expect(rect.right).to.be.within(0, window.innerWidth);
+    expect(rect.bottom).to.be.within(0, window.innerHeight);
+    expect(rect.left).to.be.within(0, window.innerWidth);
+  });
+});
 
 /**
  * This enables mocking the geolocation api. The default coordinates are
@@ -127,7 +179,7 @@ Cypress.Commands.add(
     prevSubject: 'element',
   },
   (subject, name: string, options: Options) => {
-    cy.wrap(subject).matchImageSnapshot(`${Cypress.browser.family}-${name}`, {
+    cy.wrap(subject).matchImageSnapshot(name, {
       comparisonMethod: 'ssim',
       failureThresholdType: 'percent',
       failureThreshold: 0.01,
