@@ -51,7 +51,7 @@
     "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
-    "serviceUrlDev": "http://54.209.48.156/attains-public/api/",
+    "serviceUrlDev": "https://attains-demo.epa-ow-cloud.com/attains-public/api/",
     "serviceUrl": "https://attains.epa.gov/attains-public/api/"
   },
   "fishingInformationService": {
