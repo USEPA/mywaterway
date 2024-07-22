@@ -51,7 +51,7 @@
     "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
-    "serviceUrlDev": "http://54.209.48.156/attains-public/api/",
+    "serviceUrlDev": "https://attains-demo.epa-ow-cloud.com/attains-public/api/",
     "serviceUrl": "https://attains.epa.gov/attains-public/api/"
   },
   "fishingInformationService": {
@@ -198,6 +198,11 @@
       "name": "grts - state water stories"
     },
     {
+      "urlLookup": "grts.getSSByHUC12",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "grts - huc12 water stories"
+    },
+    {
       "urlLookup": "dwmaps.getGPRASummary",
       "wildcardUrl": "{urlLookup}*",
       "name": "sdwis - GPRA summary"
@@ -229,10 +234,9 @@
     },
     {
       "urlLookup": "waterQualityPortal.domainValues",
-      "wildcardUrl": "{urlLookup}/*?mimeType=json",
+      "wildcardUrl": "{urlLookup}/*",
       "name": "wqp - domain values"
     },
-
     {
       "urlLookup": "waterQualityPortal.monitoringLocation",
       "wildcardUrl": "{urlLookup}search?mimeType=geojson&zip=no&huc=*",
@@ -240,7 +244,7 @@
     },
     {
       "urlLookup": "waterQualityPortal.monitoringLocation",
-      "wildcardUrl": "{urlLookup}search?mimeType=geojson&zip=no&siteid=*",
+      "wildcardUrl": "{urlLookup}search?mimeType=geojson&zip=no&*siteid=*",
       "name": "wqp - monitoring location site specific data"
     },
     {
@@ -280,6 +284,66 @@
     },
     {
       "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/dataPage.json",
+      "name": "s3 lookup - data page"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/educators.json",
+      "name": "s3 lookup - educators page"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/attains/impairmentFields.json",
+      "name": "s3 lookup - attains impairment fields"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/attains/parameters.json",
+      "name": "s3 lookup - attains parameters"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/attains/useFields.json",
+      "name": "s3 lookup - attains use fields"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/cache/glossary.json",
+      "name": "s3 lookup - glossary"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/community/characteristicGroupMappings.json",
+      "name": "s3 lookup - community characteristic group mappings"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/community/usgs-sta-parameters.json",
+      "name": "s3 lookup - community usgs sta parameters"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/community/cyan-metadata.json",
+      "name": "s3 lookup - community cyan metadata"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/community/extreme-weather.json",
+      "name": "s3 lookup - community extreme weather"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/config/layerProps.json",
+      "name": "s3 lookup - config layer props"
+    },
+    {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/config/services.json",
+      "name": "s3 lookup - config services"
+    },
+    {
+      "urlLookup": "origin",
       "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/national/NARS.json",
       "name": "s3 lookup - national NARS"
     },
@@ -314,6 +378,11 @@
       "name": "s3 lookup - state waterTypeOptions"
     },
     {
+      "urlLookup": "origin",
+      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/tribe/tribeMapping.json",
+      "name": "s3 lookup - tribe mapping"
+    },
+    {
       "urlLookup": "waterbodyService.summary",
       "wildcardUrl": "{urlLookup}?f=json",
       "name": "Attains_Assessment - get map server summary table max record count"
@@ -337,6 +406,11 @@
       "urlLookup": "waterbodyService.summary",
       "wildcardUrl": "{urlLookup}*",
       "name": "Attains_Assessment - map server (summary table)"
+    },
+    {
+      "urlLookup": "waterbodyService.controlTable",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Attains_Assessment - map server (control table)"
     },
     {
       "urlLookup": "wbd",

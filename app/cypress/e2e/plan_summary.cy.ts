@@ -1,11 +1,3 @@
-// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error. 
-// We can safely ignore this. https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
-Cypress.on('uncaught:exception', (err, runnable) => {
-  // returning false here prevents Cypress from
-  // failing the test
-  return false;
-});
-
 describe('Plan Summary (Actions) page', () => {
   it('small screen displays "Show Map" button and button functions', () => {
     const mapId = 'hmw-actions-map';
@@ -58,7 +50,7 @@ describe('Plan Summary (Actions) page', () => {
   it('The "View Waterbody Report" link should navigate to a waterbody report page', () => {
     const orgId = '21AWIC';
     const actionId = '40958';
-    const reportingCycle = '2020';
+    const reportingCycle = '2022';
 
     cy.visit(`/plan-summary/${orgId}/${actionId}`);
 

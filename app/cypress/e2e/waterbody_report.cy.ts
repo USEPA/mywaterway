@@ -1,11 +1,4 @@
 describe('Waterbody Report page', () => {
-  Cypress.on("uncaught:exception", (_err, _runnable) => {
-    // returning false here prevents Cypress from
-    // failing the test
-    debugger;
-    return false;
-  });
-  
   it('small screen displays "Show Map" button and button functions', () => {
     const mapId = 'hmw-actions-map';
     const showMap = 'Show Map';

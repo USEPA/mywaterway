@@ -34,8 +34,8 @@ describe('Alert message tests', () => {
         backgroundColor: '#f8d7da',
         message: 'Waterbody Report message.',
       },
-    }
-    if(altResponseBody) responseBody = altResponseBody;
+    };
+    if (altResponseBody) responseBody = altResponseBody;
 
     console.log(
       `${origin}/proxy?url=${origin}/data/notifications/messages.json`,
@@ -69,7 +69,7 @@ describe('Alert message tests', () => {
 
   it('Verify notifications on the community page', () => {
     setupInterceptors();
-    
+
     cy.visit('/community/dc');
 
     cy.wait(urlInterceptPath);
@@ -87,7 +87,7 @@ describe('Alert message tests', () => {
 
   it('Verify notifications on the state page', () => {
     setupInterceptors();
-    
+
     cy.visit('/state/AL');
 
     cy.wait(urlInterceptPath);
@@ -103,7 +103,7 @@ describe('Alert message tests', () => {
 
   it('Verify notifications on the plan summary page', () => {
     setupInterceptors();
-    
+
     cy.visit('/plan-summary/21AWIC/40958');
 
     cy.wait(urlInterceptPath);
@@ -119,7 +119,7 @@ describe('Alert message tests', () => {
 
   it('Verify notifications on the waterbody report page', () => {
     setupInterceptors();
-    
+
     cy.visit('/waterbody-report/21AWIC/AL03150110-0202-200');
 
     cy.wait(urlInterceptPath);
@@ -142,7 +142,7 @@ describe('Alert message tests', () => {
           '<p>There will be <a href="https://www.epa.gov" target="_blank">scheduled maintenance</a> on the <strong>ATTAINS</strong> services on Thursday, July 16th starting at 8am and ending at 11am.</p>',
       },
     });
-    
+
     cy.visit('/');
 
     cy.wait(urlInterceptPath);
@@ -163,7 +163,7 @@ describe('Alert message tests', () => {
           '<p>There will be <a href="https://www.epa.gov" target="_blank">scheduled maintenance</a> on the <strong>ATTAINS</strong> services on Thursday, July 16th starting at 8am and ending at 11am.</p>',
       },
     });
-    
+
     cy.visit('/');
 
     cy.wait(urlInterceptPath);
