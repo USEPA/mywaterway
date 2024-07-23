@@ -35,13 +35,9 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  useCharacteristicGroupMappingsContext,
-  useCyanMetadataContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
 // utilities
 import {
   useCyanWaterbodies,
@@ -415,9 +411,7 @@ function MonitoringAndSensorsTab({
   const { cyanLayer, monitoringLocationsLayer, usgsStreamgagesLayer } =
     useLayers();
 
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
-  const cyanMetadata = useCyanMetadataContext();
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const [expandedRows, setExpandedRows] = useState([]);
 
@@ -597,8 +591,8 @@ function MonitoringAndSensorsTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
+                configFiles={configFiles.data}
                 feature={feature}
-                lookupFiles={{ cyanMetadata, services }}
                 mapView={mapView}
                 type="Blue-Green Algae"
               />
@@ -660,8 +654,8 @@ function MonitoringAndSensorsTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
+                configFiles={configFiles.data}
                 feature={feature}
-                lookupFiles={{ characteristicGroupMappings, services }}
                 type={monitoringType}
               />
               <ViewOnMapButton feature={feature} />
@@ -672,12 +666,10 @@ function MonitoringAndSensorsTab({
     },
     [
       accordionItemToggleHandlers,
-      characteristicGroupMappings,
-      cyanMetadata,
+      configFiles,
       expandedRows,
       filteredMonitoringAndSensors,
       mapView,
-      services,
     ],
   );
 

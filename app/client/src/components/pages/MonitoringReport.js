@@ -41,9 +41,9 @@ import {
 // config
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchParseCsv, fetchPost } from 'utils/fetchUtils';
@@ -923,7 +923,7 @@ function updateSelected(charcs, groups) {
 }
 
 function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   // charcs => characteristics
   const [charcs, setCharcs] = useState({});
@@ -978,14 +978,13 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
 
   const { monitoringPeriodOfRecordStatus } = useContext(LocationSearchContext);
   useEffect(() => {
-    if (services.status !== 'success') return;
     if (monitoringPeriodOfRecordStatus !== 'success') {
       setStatus(monitoringPeriodOfRecordStatus);
       return;
     }
     setStatus('pending');
     const url =
-      `${services.data.waterQualityPortal.resultSearch}` +
+      `${configFiles.data.services.waterQualityPortal.resultSearch}` +
       `&mimeType=csv&zip=no&dataProfile=resultPhysChem` +
       `&providers=${encodeURIComponent(
         provider,
@@ -1000,10 +999,10 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
       });
   }, [
     characteristicsByGroup,
+    configFiles,
     monitoringPeriodOfRecordStatus,
     orgId,
     provider,
-    services,
     siteId,
     structureRecords,
   ]);
@@ -1864,7 +1863,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   );
   const [expanded, setExpanded] = useState(false);
 
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const [downloadError, setDownloadError] = useState(null);
 
@@ -1883,17 +1882,15 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   if (range && range[1] !== maxYear)
     queryData.startDateHi = `12-31-${range[1]}`;
 
-  let portalUrl =
-    services.status === 'success' &&
-    Object.entries(queryData).reduce((query, [key, value]) => {
-      let queryPartial = '';
-      if (Array.isArray(value))
-        value.forEach(
-          (item) => (queryPartial += `&${key}=${encodeURIComponent(item)}`),
-        );
-      else queryPartial += `&${key}=${encodeURIComponent(value)}`;
-      return query + queryPartial;
-    }, `${services.data.waterQualityPortal.userInterface}#advanced=true&dataProfile=resultPhysChem`);
+  let portalUrl = Object.entries(queryData).reduce((query, [key, value]) => {
+    let queryPartial = '';
+    if (Array.isArray(value))
+      value.forEach(
+        (item) => (queryPartial += `&${key}=${encodeURIComponent(item)}`),
+      );
+    else queryPartial += `&${key}=${encodeURIComponent(value)}`;
+    return query + queryPartial;
+  }, `${configFiles.data.services.waterQualityPortal.userInterface}#advanced=true&dataProfile=resultPhysChem`);
 
   if (checkboxes.all === Checkbox.indeterminate) {
     const selectedGroups = Object.values(checkboxes.groups)
@@ -2034,65 +2031,63 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
             </AccordionList>
           </div>
         </div>
-        {services.status === 'success' && (
-          <div id="download-links" css={downloadLinksStyles}>
-            <div>
-              <p>
-                <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
-                  <i
-                    css={iconStyles}
-                    className="fas fa-filter"
-                    aria-hidden="true"
-                  />
-                  Advanced Filtering
-                </a>
-                &nbsp;&nbsp;
-                <small css={modifiedDisclaimerStyles}>
-                  (opens new browser tab)
-                </small>
-              </p>
-              <p>
-                <a
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  href="https://www.waterqualitydata.us/portal_userguide/"
-                >
-                  <i
-                    css={iconStyles}
-                    className="fas fa-book-open"
-                    aria-hidden="true"
-                  />
-                  Water Quality Portal User Guide
-                </a>
-                &nbsp;&nbsp;
-                <small css={modifiedDisclaimerStyles}>
-                  (opens new browser tab)
-                </small>
-              </p>
-            </div>
-            <div>
-              <span>Download Selected Data</span>
-              <span>
-                &nbsp;&nbsp;
-                <FileLink
-                  data={queryData}
-                  disabled={checkboxes.all === Checkbox.unchecked}
-                  fileType="excel"
-                  setError={setDownloadError}
-                  url={services.data.waterQualityPortal.resultSearch}
+        <div id="download-links" css={downloadLinksStyles}>
+          <div>
+            <p>
+              <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-filter"
+                  aria-hidden="true"
                 />
-                &nbsp;&nbsp;
-                <FileLink
-                  data={queryData}
-                  disabled={checkboxes.all === Checkbox.unchecked}
-                  fileType="csv"
-                  setError={setDownloadError}
-                  url={services.data.waterQualityPortal.resultSearch}
+                Advanced Filtering
+              </a>
+              &nbsp;&nbsp;
+              <small css={modifiedDisclaimerStyles}>
+                (opens new browser tab)
+              </small>
+            </p>
+            <p>
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                href="https://www.waterqualitydata.us/portal_userguide/"
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-book-open"
+                  aria-hidden="true"
                 />
-              </span>
-            </div>
+                Water Quality Portal User Guide
+              </a>
+              &nbsp;&nbsp;
+              <small css={modifiedDisclaimerStyles}>
+                (opens new browser tab)
+              </small>
+            </p>
           </div>
-        )}
+          <div>
+            <span>Download Selected Data</span>
+            <span>
+              &nbsp;&nbsp;
+              <FileLink
+                data={queryData}
+                disabled={checkboxes.all === Checkbox.unchecked}
+                fileType="excel"
+                setError={setDownloadError}
+                url={configFiles.data.services.waterQualityPortal.resultSearch}
+              />
+              &nbsp;&nbsp;
+              <FileLink
+                data={queryData}
+                disabled={checkboxes.all === Checkbox.unchecked}
+                fileType="csv"
+                setError={setDownloadError}
+                url={configFiles.data.services.waterQualityPortal.resultSearch}
+              />
+            </span>
+          </div>
+        </div>
         {downloadError && (
           <p css={messageBoxStyles(errorBoxStyles)}>
             {monitoringDownloadError}

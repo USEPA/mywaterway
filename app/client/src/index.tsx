@@ -10,9 +10,8 @@ import AppRoutes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
 import { AddSaveDataWidgetProvider } from 'contexts/AddSaveDataWidget';
-import { GlossaryProvider } from 'contexts/Glossary';
+import { ConfigFilesProvider } from 'contexts/ConfigFiles';
 import { LocationSearchProvider } from 'contexts/locationSearch';
-import { LookupFilesProvider } from 'contexts/LookupFiles';
 import { FetchedDataProvider } from 'contexts/FetchedData';
 import { SurroundingsProvider } from 'contexts/Surroundings';
 // errors
@@ -40,22 +39,20 @@ const globalStyles = css`
 function Root() {
   return (
     <BrowserRouter>
-      <LookupFilesProvider>
+      <ConfigFilesProvider>
         <FetchedDataProvider>
           <LocationSearchProvider>
-            <GlossaryProvider>
-              <SurroundingsProvider>
-                <AddSaveDataWidgetProvider>
-                  <Global styles={globalStyles} />
-                  <ErrorBoundary message={defaultErrorBoundaryMessage}>
-                    <AppRoutes />
-                  </ErrorBoundary>
-                </AddSaveDataWidgetProvider>
-              </SurroundingsProvider>
-            </GlossaryProvider>
+            <SurroundingsProvider>
+              <AddSaveDataWidgetProvider>
+                <Global styles={globalStyles} />
+                <ErrorBoundary message={defaultErrorBoundaryMessage}>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </AddSaveDataWidgetProvider>
+            </SurroundingsProvider>
           </LocationSearchProvider>
         </FetchedDataProvider>
-      </LookupFilesProvider>
+      </ConfigFilesProvider>
     </BrowserRouter>
   );
 }

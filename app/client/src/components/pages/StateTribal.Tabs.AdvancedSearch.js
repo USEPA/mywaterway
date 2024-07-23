@@ -16,19 +16,14 @@ import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useMapHighlightState,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
-import {
-  useAttainsImpairmentFieldsContext,
-  useAttainsUseFieldsContext,
-  useReportStatusMappingContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
 import { getWaterbodyCondition } from 'utils/mapFunctions';
@@ -41,11 +36,7 @@ import {
 // styles
 import { reactSelectStyles } from 'styles/index';
 // errors
-import {
-  stateGeneralError,
-  status303dError,
-  status303dShortError,
-} from 'config/errorMessages';
+import { stateGeneralError, status303dShortError } from 'config/errorMessages';
 
 const defaultDisplayOption = {
   label: 'Overall Waterbody Condition',
@@ -220,10 +211,6 @@ const mapFooterStyles = css`
   background-color: whitesmoke;
 `;
 
-const mapFooterMessageStyles = css`
-  margin-bottom: 5px;
-`;
-
 const mapFooterStatusStyles = css`
   display: flex;
   align-items: center;
@@ -248,9 +235,7 @@ const screenLabelWithPaddingStyles = css`
 
 function AdvancedSearch() {
   const { getSignal } = useAbort();
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const {
     organizationData,
@@ -308,8 +293,9 @@ function AdvancedSearch() {
     });
 
     // get the public friendly versions of the parameterGroups
-    let parameterGroupOptions = attainsImpairmentFields.data.filter((field) =>
-      uniqueParameterGroups.includes(field.parameterGroup.toUpperCase()),
+    let parameterGroupOptions = configFiles.data.impairmentFields.filter(
+      (field) =>
+        uniqueParameterGroups.includes(field.parameterGroup.toUpperCase()),
     );
 
     // sort the options
@@ -318,14 +304,14 @@ function AdvancedSearch() {
     });
 
     setParameterGroupOptions(parameterGroupOptions);
-  }, [attainsImpairmentFields, currentSummary]);
+  }, [configFiles, currentSummary]);
 
   // Get the maxRecordCount of the watersheds layer
   const [watershedMrcError, setWatershedMrcError] = useState(false);
   useEffect(() => {
     if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
-    retrieveMaxRecordCount(services.data.wbd, getSignal())
+    retrieveMaxRecordCount(configFiles.data.services.wbd, getSignal())
       .then((maxRecordCount) => {
         setWatershedsLayerMaxRecordCount(maxRecordCount);
       })
@@ -337,11 +323,11 @@ function AdvancedSearch() {
         setWatershedMrcError(true);
       });
   }, [
+    configFiles,
     getSignal,
     watershedsLayerMaxRecordCount,
     setWatershedsLayerMaxRecordCount,
     watershedMrcError,
-    services,
   ]);
 
   // get a list of watersheds and build the esri where clause
@@ -363,7 +349,7 @@ function AdvancedSearch() {
     };
 
     retrieveFeatures({
-      url: services.data.wbd,
+      url: configFiles.data.services.wbd,
       queryParams,
       maxRecordCount: watershedsLayerMaxRecordCount,
     })
@@ -386,14 +372,17 @@ function AdvancedSearch() {
         setServiceError(true);
         setWatersheds([]);
       });
-  }, [activeState, getSignal, watershedsLayerMaxRecordCount, services]);
+  }, [activeState, configFiles, getSignal, watershedsLayerMaxRecordCount]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
   const [summaryMrcError, setSummaryMrcError] = useState(false);
   useEffect(() => {
     if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
-    retrieveMaxRecordCount(services.data.waterbodyService.summary, getSignal())
+    retrieveMaxRecordCount(
+      configFiles.data.services.waterbodyService.summary,
+      getSignal(),
+    )
       .then((maxRecordCount) => {
         setSummaryLayerMaxRecordCount(maxRecordCount);
       })
@@ -405,11 +394,11 @@ function AdvancedSearch() {
         setSummaryMrcError(true);
       });
   }, [
+    configFiles,
     getSignal,
     summaryLayerMaxRecordCount,
     setSummaryLayerMaxRecordCount,
     summaryMrcError,
-    services,
   ]);
 
   const [currentFilter, setCurrentFilter] = useState(null);
@@ -442,7 +431,7 @@ function AdvancedSearch() {
       };
 
       retrieveFeatures({
-        url: services.data.waterbodyService.summary,
+        url: configFiles.data.services.waterbodyService.summary,
         queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
@@ -490,7 +479,7 @@ function AdvancedSearch() {
       };
 
       retrieveFeatures({
-        url: services.data.waterbodyService.summary,
+        url: configFiles.data.services.waterbodyService.summary,
         queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
@@ -504,13 +493,13 @@ function AdvancedSearch() {
         });
     }
   }, [
-    getSignal,
-    setWaterbodyData,
+    configFiles,
     currentFilter,
-    summaryLayerMaxRecordCount,
+    getSignal,
     setCurrentReportingCycle,
-    services,
+    setWaterbodyData,
     stateAndOrganization,
+    summaryLayerMaxRecordCount,
   ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = useState([]);
@@ -564,7 +553,7 @@ function AdvancedSearch() {
     if (!nextFilter || serviceError) return;
 
     // query to get just the ids since there is a maxRecordCount
-    const url = services.data.waterbodyService.summary;
+    const url = configFiles.data.services.waterbodyService.summary;
     const queryParams = {
       returnGeometry: false,
       where: nextFilter,
@@ -582,7 +571,7 @@ function AdvancedSearch() {
         setNextFilter('');
         setServiceError(true);
       });
-  }, [serviceError, nextFilter, services]);
+  }, [configFiles, nextFilter, serviceError]);
 
   const [
     newDisplayOptions,
@@ -643,7 +632,7 @@ function AdvancedSearch() {
           // run a fetch to get the assessments in the huc
           requests.push(
             fetchCheck(
-              `${services.data.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
+              `${configFiles.data.services.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
             ),
           );
         }
@@ -842,7 +831,7 @@ function AdvancedSearch() {
             aria-label="Use Groups"
             isMulti
             isSearchable={false}
-            options={attainsUseFields.data}
+            options={configFiles.data.attainsUseFields}
             value={useFilter}
             onChange={updateUseFilter}
             styles={reactSelectStyles}
@@ -1118,7 +1107,6 @@ function AdvancedSearch() {
     setMapShownInitialized(true);
   }, [mapShownInitialized, width]);
 
-  const reportStatusMapping = useReportStatusMappingContext();
   const mapContent = (
     <StateMap
       windowHeight={height}
@@ -1128,9 +1116,6 @@ function AdvancedSearch() {
       numberOfRecords={numberOfRecords}
     >
       <div css={mapFooterStyles}>
-        {reportStatusMapping.status === 'failure' && (
-          <div css={mapFooterMessageStyles}>{status303dError}</div>
-        )}
         <div css={mapFooterStatusStyles}>
           <strong>
             <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
@@ -1143,21 +1128,13 @@ function AdvancedSearch() {
           {organizationData.status === 'failure' && <>{status303dShortError}</>}
           {organizationData.status === 'success' && (
             <>
-              {reportStatusMapping.status === 'fetching' && <LoadingSpinner />}
-              {reportStatusMapping.status === 'failure' && (
-                <>{organizationData.data.reportStatusCode}</>
-              )}
-              {reportStatusMapping.status === 'success' && (
-                <>
-                  {reportStatusMapping.data.hasOwnProperty(
-                    organizationData.data.reportStatusCode,
-                  )
-                    ? reportStatusMapping.data[
-                        organizationData.data.reportStatusCode
-                      ]
-                    : organizationData.data.reportStatusCode}
-                </>
-              )}
+              {configFiles.data.reportStatusMapping.hasOwnProperty(
+                organizationData.data.reportStatusCode,
+              )
+                ? configFiles.data.reportStatusMapping[
+                    organizationData.data.reportStatusCode
+                  ]
+                : organizationData.data.reportStatusCode}
             </>
           )}
           / {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}

@@ -5,12 +5,9 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  useServicesContext,
-  useUsgsStaParametersContext,
-} from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
@@ -81,8 +78,9 @@ export function useStreamgages() {
 function useUpdateData() {
   // Build the data update function
   const { huc12, mapView } = useContext(LocationSearchContext);
-  const usgsStaParameters = useUsgsStaParametersContext();
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
+  const services = configFiles.data.services;
+  const usgsStaParameters = configFiles.data.usgsStaParameters;
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
@@ -100,21 +98,18 @@ function useUpdateData() {
       return;
     }
 
-    if (services.status !== 'success') return;
-    if (usgsStaParameters.status !== 'success') return;
-
     const hucDvFilter = `huc=${huc12.substring(0, 8)}`;
     const hucThingsFilter = `$filter=properties/locationHUCTwelveDigitCode eq '${huc12}'`;
 
     fetchAndTransformData(
       [
-        fetchDailyAverages(hucDvFilter, services.data, controller.signal),
-        fetchPrecipitation(hucDvFilter, services.data, controller.signal),
-        fetchStreamgages(hucThingsFilter, services.data, controller.signal),
+        fetchDailyAverages(hucDvFilter, services, controller.signal),
+        fetchPrecipitation(hucDvFilter, services, controller.signal),
+        fetchStreamgages(hucThingsFilter, services, controller.signal),
       ],
       fetchedDataDispatch,
       localFetchedDataKey,
-      usgsStaParameters.data,
+      usgsStaParameters,
     ).then((data) => {
       setHucData(data);
     });
@@ -129,9 +124,6 @@ function useUpdateData() {
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
-      if (services.status !== 'success') return;
-      if (usgsStaParameters.status !== 'success') return;
-
       const newExtentDvFilter = await getExtentDvFilter(mapView);
       const newExtentThingsFilter = await getExtentThingsFilter(mapView);
 
@@ -149,25 +141,13 @@ function useUpdateData() {
 
       await fetchAndTransformData(
         [
-          fetchDailyAverages(
-            extentDvFilter.current,
-            services.data,
-            abortSignal,
-          ),
-          fetchPrecipitation(
-            extentDvFilter.current,
-            services.data,
-            abortSignal,
-          ),
-          fetchStreamgages(
-            extentThingsFilter.current,
-            services.data,
-            abortSignal,
-          ),
+          fetchDailyAverages(extentDvFilter.current, services, abortSignal),
+          fetchPrecipitation(extentDvFilter.current, services, abortSignal),
+          fetchStreamgages(extentThingsFilter.current, services, abortSignal),
         ],
         fetchedDataDispatch,
         surroundingFetchedDataKey,
-        usgsStaParameters.data,
+        usgsStaParameters,
         hucData, // Filter out HUC data
       );
     },

@@ -25,12 +25,10 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import Slider from 'components/shared/Slider';
 import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
-// config
-import { tabErrorBoundaryMessage } from 'config/errorMessages';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersState, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useExtremeWeatherContext } from 'contexts/LookupFiles';
 // utils
 import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
 import {
@@ -48,7 +46,6 @@ import {
 } from 'utils/utils';
 // styles
 import { linkButtonStyles } from 'components/shared/LinkButton';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
   colors,
   iconButtonStyles,
@@ -70,8 +67,8 @@ const timeframeOptions = getTickList(true).map((t) => ({
 }));
 
 function ExtremeWeather() {
+  const configFiles = useConfigFilesState();
   const { dischargers, dischargersStatus } = useDischargers();
-  const extremeWeatherConfig = useExtremeWeatherContext();
   const waterbodies = useWaterbodyFeatures();
   const {
     cipSummary,
@@ -123,8 +120,6 @@ function ExtremeWeather() {
 
   // initializes state for switch tables
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
-
     function initialize(
       setter: Dispatch<SetStateAction<SwitchTableConfig>>,
       items: ExtremeWeatherRow[],
@@ -137,18 +132,21 @@ function ExtremeWeather() {
 
     initialize(
       setCurrentWeather,
-      extremeWeatherConfig.data.currentWeatherDefaults,
+      configFiles.data.extremeWeather.currentWeatherDefaults,
     );
     initialize(
       setHistoricalRiskRange,
-      extremeWeatherConfig.data.historicalRangeDefaults,
+      configFiles.data.extremeWeather.historicalRangeDefaults,
     );
-    initialize(setHistoricalRisk, extremeWeatherConfig.data.historicalDefaults);
+    initialize(
+      setHistoricalRisk,
+      configFiles.data.extremeWeather.historicalDefaults,
+    );
     initialize(
       setPotentiallyVulnerable,
-      extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      configFiles.data.extremeWeather.potentiallyVulnerableDefaults,
     );
-  }, [extremeWeatherConfig]);
+  }, [configFiles]);
 
   // removes fill from huc/county boundaries
   useEffect(() => {
@@ -184,7 +182,7 @@ function ExtremeWeather() {
   // used for when the user toggles layers in full screen mode and then
   // exits full screen.
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success' || !mapView) return;
+    if (!mapView) return;
 
     function handleSetting(
       config: SwitchTableConfig,
@@ -221,7 +219,7 @@ function ExtremeWeather() {
         return layer.title.includes(search);
       }),
     );
-  }, [extremeWeatherConfig, mapView, visibleLayers]);
+  }, [mapView, visibleLayers]);
 
   const [countyOptions, setCountyOptions] = useState<
     { label: string; value: string }[]
@@ -280,8 +278,6 @@ function ExtremeWeather() {
 
   // update waterbodies
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
-
     const status = cipSummary.status;
 
     if (status === 'fetching') {
@@ -314,12 +310,10 @@ function ExtremeWeather() {
           summary['Not Assessed'],
       );
     });
-  }, [cipSummary, extremeWeatherConfig, waterbodies, waterbodyLayer]);
+  }, [cipSummary, waterbodies, waterbodyLayer]);
 
   // update dischargers
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
-
     const id = 'dischargers';
     if (dischargersStatus === 'pending') {
       setTableConfigSingle(setPotentiallyVulnerable, dischargersStatus, id);
@@ -332,11 +326,10 @@ function ExtremeWeather() {
       id,
       dischargers,
     );
-  }, [dischargers, dischargersStatus, extremeWeatherConfig]);
+  }, [dischargers, dischargersStatus]);
 
   // update drinking water
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected) return;
 
     const status = drinkingWater.status;
@@ -365,11 +358,10 @@ function ExtremeWeather() {
       updateRow(config, status, 'groundWaterSources', groundWater);
       updateRow(config, status, 'surfaceWaterSources', surfaceWater);
     });
-  }, [countySelected, drinkingWater, extremeWeatherConfig]);
+  }, [countySelected, drinkingWater]);
 
   // update tribal
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !tribalLayer) return;
 
     const id = 'tribes';
@@ -377,7 +369,7 @@ function ExtremeWeather() {
       id,
       layer: tribalLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      config: configFiles.data.extremeWeather.potentiallyVulnerableDefaults,
       setter: setPotentiallyVulnerable,
       responseParser: (responses) => {
         let numTribes = 0;
@@ -390,7 +382,7 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, tribalLayer]);
+  }, [configFiles, hucGeometry, tribalLayer]);
 
   // turns on layers for layers with weather warnings/alerts
   const [defaultVisibilityInitialized, setDefaultVisibilityInitialized] =
@@ -420,7 +412,6 @@ function ExtremeWeather() {
 
   // update wildfires
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !wildfiresLayer) return;
 
     const id = 'fire';
@@ -428,7 +419,7 @@ function ExtremeWeather() {
       id,
       layer: wildfiresLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      config: configFiles.data.extremeWeather.currentWeatherDefaults,
       setter: setCurrentWeather,
       responseParser: (responses) => {
         let numFires = responses[0].features.length;
@@ -456,7 +447,7 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, wildfiresLayer]);
+  }, [configFiles, hucGeometry, wildfiresLayer]);
 
   // update historical/future (cmra screening)
   const [range, setRange] = useState([
@@ -464,13 +455,12 @@ function ExtremeWeather() {
     tickList[tickList.length - 1].value,
   ]);
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!cmraScreeningLayer || !countySelected) return;
 
     queryLayers({
       id: 'fire',
       layer: cmraScreeningLayer,
-      config: extremeWeatherConfig.data.historicalRangeDefaults,
+      config: configFiles.data.extremeWeather.historicalRangeDefaults,
       setter: setHistoricalRiskRange,
       outIds: [
         'fire',
@@ -513,17 +503,16 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [cmraScreeningLayer, countySelected, extremeWeatherConfig, range]);
+  }, [cmraScreeningLayer, configFiles, countySelected, range]);
 
   // update historical/future (cmra screening) with map
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!cmraScreeningLayer || !countySelected) return;
 
     queryLayers({
       id: 'fire',
       layer: cmraScreeningLayer,
-      config: extremeWeatherConfig.data.historicalDefaults,
+      config: configFiles.data.extremeWeather.historicalDefaults,
       setter: setHistoricalRisk,
       outIds: [
         'fire',
@@ -564,12 +553,7 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [
-    cmraScreeningLayer,
-    countySelected,
-    extremeWeatherConfig,
-    timeframeSelection,
-  ]);
+  }, [cmraScreeningLayer, configFiles, countySelected, timeframeSelection]);
 
   // update historical/future coastal flooding
   useEffect(() => {
@@ -594,7 +578,6 @@ function ExtremeWeather() {
 
   // update drought
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !droughtRealtimeLayer) return;
 
     const id = 'drought';
@@ -602,7 +585,7 @@ function ExtremeWeather() {
       id,
       layer: droughtRealtimeLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      config: configFiles.data.extremeWeather.currentWeatherDefaults,
       setter: setCurrentWeather,
       responseParser: (responses) => {
         const dmEnum: { [key: string]: string } = {
@@ -628,11 +611,10 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, droughtRealtimeLayer]);
+  }, [configFiles, droughtRealtimeLayer, hucGeometry]);
 
   // update inland flooding
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !inlandFloodingRealtimeLayer) return;
 
     const id = 'inlandFlooding';
@@ -640,7 +622,7 @@ function ExtremeWeather() {
       id,
       layer: inlandFloodingRealtimeLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      config: configFiles.data.extremeWeather.currentWeatherDefaults,
       setter: setCurrentWeather,
       responseParser: (responses) => {
         const watchRes = responses[0];
@@ -663,11 +645,10 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, inlandFloodingRealtimeLayer]);
+  }, [configFiles, hucGeometry, inlandFloodingRealtimeLayer]);
 
   // update costal flooding
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !coastalFloodingRealtimeLayer) return;
 
     const id = 'coastalFlooding';
@@ -675,7 +656,7 @@ function ExtremeWeather() {
       id,
       layer: coastalFloodingRealtimeLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      config: configFiles.data.extremeWeather.currentWeatherDefaults,
       setter: setCurrentWeather,
       responseParser: (responses) => {
         let statuses: string[] = [];
@@ -693,11 +674,10 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [coastalFloodingRealtimeLayer, extremeWeatherConfig, hucGeometry]);
+  }, [coastalFloodingRealtimeLayer, configFiles, hucGeometry]);
 
   // update extreme cold
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !extremeColdRealtimeLayer) return;
 
     const id = 'extremeCold';
@@ -705,7 +685,7 @@ function ExtremeWeather() {
       id,
       layer: extremeColdRealtimeLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      config: configFiles.data.extremeWeather.currentWeatherDefaults,
       setter: setCurrentWeather,
       responseParser: (responses) => {
         const watchRes = responses[0];
@@ -736,11 +716,10 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, extremeColdRealtimeLayer]);
+  }, [configFiles, extremeColdRealtimeLayer, hucGeometry]);
 
   // update extreme heat
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !extremeHeatRealtimeLayer) return;
 
     const id = 'extremeHeat';
@@ -748,7 +727,7 @@ function ExtremeWeather() {
       id,
       layer: extremeHeatRealtimeLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.currentWeatherDefaults,
+      config: configFiles.data.extremeWeather.currentWeatherDefaults,
       setter: setCurrentWeather,
       responseParser: (responses) => {
         const watchRes = responses[0];
@@ -781,11 +760,10 @@ function ExtremeWeather() {
     });
 
     setTableConfigSingle(setCurrentWeather, 'pending', id);
-  }, [extremeWeatherConfig, hucGeometry, extremeHeatRealtimeLayer]);
+  }, [configFiles, extremeHeatRealtimeLayer, hucGeometry]);
 
   // update storage tanks
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !storageTanksLayer) return;
 
     const id = 'pollutantStorageTanks';
@@ -793,7 +771,7 @@ function ExtremeWeather() {
       id,
       layer: storageTanksLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      config: configFiles.data.extremeWeather.potentiallyVulnerableDefaults,
       setter: setPotentiallyVulnerable,
       responseParser: (responses) => {
         return [
@@ -804,11 +782,10 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, storageTanksLayer]);
+  }, [configFiles, hucGeometry, storageTanksLayer]);
 
   // update combined sewer overflows
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !sewerOverflowsLayer) return;
 
     const id = 'combinedSewerOverflows';
@@ -816,7 +793,7 @@ function ExtremeWeather() {
       id,
       layer: sewerOverflowsLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      config: configFiles.data.extremeWeather.potentiallyVulnerableDefaults,
       setter: setPotentiallyVulnerable,
       responseParser: (responses) => {
         return [
@@ -827,11 +804,10 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, sewerOverflowsLayer]);
+  }, [configFiles, hucGeometry, sewerOverflowsLayer]);
 
   // update dams count
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!hucGeometry || !damsLayer) return;
 
     const id = 'dams';
@@ -839,7 +815,7 @@ function ExtremeWeather() {
       id,
       layer: damsLayer,
       geometry: hucGeometry,
-      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      config: configFiles.data.extremeWeather.potentiallyVulnerableDefaults,
       setter: setPotentiallyVulnerable,
       responseParser: (responses) => {
         return [
@@ -850,18 +826,17 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [extremeWeatherConfig, hucGeometry, damsLayer]);
+  }, [configFiles, damsLayer, hucGeometry]);
 
   // update wells count
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected || !wellsLayer) return;
 
     const id = 'wells';
     queryLayers({
       id,
       layer: wellsLayer,
-      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      config: configFiles.data.extremeWeather.potentiallyVulnerableDefaults,
       setter: setPotentiallyVulnerable,
       whereReplacer: (where: string) => {
         return where.replace('{HMW_COUNTY_FIPS}', countySelected.value);
@@ -880,18 +855,17 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [countySelected, extremeWeatherConfig, wellsLayer]);
+  }, [configFiles, countySelected, wellsLayer]);
 
   // update disadvantaged communities
   useEffect(() => {
-    if (extremeWeatherConfig.status !== 'success') return;
     if (!countySelected || !disadvantagedCommunitiesLayer) return;
 
     const id = 'disadvantagedCommunities';
     queryLayers({
       id,
       layer: disadvantagedCommunitiesLayer,
-      config: extremeWeatherConfig.data.potentiallyVulnerableDefaults,
+      config: configFiles.data.extremeWeather.potentiallyVulnerableDefaults,
       setter: setPotentiallyVulnerable,
       whereReplacer: (where: string) => {
         return where.replace('{HMW_COUNTY_FIPS}', countySelected.value);
@@ -916,17 +890,7 @@ function ExtremeWeather() {
         ];
       },
     });
-  }, [countySelected, disadvantagedCommunitiesLayer, extremeWeatherConfig]);
-
-  if (extremeWeatherConfig.status === 'fetching') return <LoadingSpinner />;
-  if (extremeWeatherConfig.status === 'failure')
-    return (
-      <div css={containerStyles}>
-        <div css={modifiedErrorBoxStyles}>
-          <p>{tabErrorBoundaryMessage('Extreme Weather')}</p>
-        </div>
-      </div>
-    );
+  }, [configFiles, countySelected, disadvantagedCommunitiesLayer]);
 
   return (
     <div css={containerStyles}>
@@ -2116,12 +2080,6 @@ const countySectionOuterStyles = css`
 
 const countySelectStyles = css`
   margin-bottom: 1rem;
-`;
-
-const modifiedErrorBoxStyles = css`
-  ${errorBoxStyles};
-  margin-bottom: 1em;
-  text-align: center;
 `;
 
 const modifiedIconButtonStyles = css`

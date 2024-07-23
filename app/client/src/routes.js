@@ -1,6 +1,7 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
+import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { css } from '@emotion/react';
 // components
@@ -30,15 +31,11 @@ import AlertMessage from 'components/shared/AlertMessage';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import {
-  useAttainsImpairmentFieldsContext,
-  useAttainsUseFieldsContext,
-  useCharacteristicGroupMappingsContext,
-  useCyanMetadataContext,
-  useExtremeWeatherContext,
-  useServicesContext,
-  useStateNationalUsesContext,
-} from 'contexts/LookupFiles';
+  useConfigFilesDispatch,
+  useConfigFilesState,
+} from 'contexts/ConfigFiles';
 // helpers
+import { fetchCheck } from 'utils/fetchUtils';
 import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 // errors
 import { servicesLookupServiceError } from 'config/errorMessages';
@@ -49,38 +46,70 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+/** Custom hook to fetch static content */
+function useConfigFilesContent() {
+  const contentDispatch = useConfigFilesDispatch();
+
+  useEffect(() => {
+    const loc = window.location;
+    const origin =
+      loc.hostname === 'localhost'
+        ? `${loc.protocol}//${loc.hostname}:9091`
+        : loc.origin;
+
+    const controller = new AbortController();
+    contentDispatch({ type: 'FETCH_CONFIG_REQUEST' });
+    fetchCheck(`${origin}/api/configFiles`, controller.signal)
+      .then((res) => {
+        // setup google analytics map
+        const googleAnalyticsMapping = [];
+        res.services.googleAnalyticsMapping.forEach((item) => {
+          // get base url
+          let urlLookup = origin;
+          if (item.urlLookup !== 'origin') {
+            urlLookup = res.services;
+            const pathParts = item.urlLookup.split('.');
+            pathParts.forEach((part) => {
+              urlLookup = urlLookup[part];
+            });
+          }
+
+          let wildcardUrl = item.wildcardUrl;
+          wildcardUrl = wildcardUrl.replace(/\{urlLookup\}/g, urlLookup);
+
+          googleAnalyticsMapping.push({
+            wildcardUrl,
+            name: item.name,
+          });
+        });
+
+        window.googleAnalyticsMapping = googleAnalyticsMapping;
+
+        contentDispatch({
+          type: 'FETCH_CONFIG_SUCCESS',
+          payload: res,
+        });
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
+        contentDispatch({ type: 'FETCH_CONFIG_FAILURE' });
+      });
+
+    return function cleanup() {
+      controller.abort();
+    };
+  }, [contentDispatch]);
+}
+
 function AppRoutes() {
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
-  const cyanMetadata = useCyanMetadataContext();
-  const extemeWeatherConfig = useExtremeWeatherContext();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
+  const configFiles = useConfigFilesState();
+  useConfigFilesContent();
 
-  if (
-    attainsImpairmentFields.status === 'fetching' ||
-    attainsUseFields.status === 'fetching' ||
-    characteristicGroupMappings.status === 'fetching' ||
-    cyanMetadata.status === 'fetching' ||
-    extemeWeatherConfig.status === 'fetching' ||
-    services.status === 'fetching' ||
-    stateNationalUses.status === 'fetching'
-  ) {
+  if (['idle', 'pending'].includes(configFiles.status))
     return <LoadingSpinner />;
-  }
 
-  if (
-    attainsImpairmentFields.status === 'failure' ||
-    attainsUseFields.status === 'failure' ||
-    characteristicGroupMappings.status === 'failure' ||
-    cyanMetadata.status === 'failure' ||
-    extemeWeatherConfig.status === 'failure' ||
-    services.status === 'failure' ||
-    stateNationalUses.status === 'failure'
-  ) {
+  if (configFiles.status === 'failure')
     return <div css={modifiedErrorBoxStyles}>{servicesLookupServiceError}</div>;
-  }
 
   // if the pathname is not on a community page or is the community home page
   // with no location, reset the canonical link and remove the JSON LD script

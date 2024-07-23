@@ -9,9 +9,9 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
@@ -70,7 +70,7 @@ export function useCyanWaterbodiesLayers() {
 function useUpdateData() {
   // Build the data update function
   const { hucBoundaries, mapView } = useContext(LocationSearchContext);
-  const services = useServicesContext();
+  const services = useConfigFilesState().data.services;
   const fetchedDataDispatch = useFetchedDataDispatch();
 
   const [hucData, setHucData] = useState<CyanWaterbodyAttributes[] | null>([]);
@@ -87,11 +87,9 @@ function useUpdateData() {
       return;
     }
 
-    if (services.status !== 'success') return;
-
     const fetchPromise = fetchCyanWaterbodies(
       hucBoundaries.geometry,
-      services.data,
+      services,
       controller.signal,
     );
 
@@ -110,8 +108,6 @@ function useUpdateData() {
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
-      if (services.status !== 'success') return;
-
       if (!mapView) return;
 
       // Same extent, no update necessary
@@ -121,7 +117,7 @@ function useUpdateData() {
       await fetchAndTransformData(
         fetchCyanWaterbodies(
           Polygon.fromExtent(mapView.extent),
-          services.data,
+          services,
           abortSignal,
         ),
         fetchedDataDispatch,

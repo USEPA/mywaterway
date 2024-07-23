@@ -42,10 +42,10 @@ import {
 import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LocationSearchContext, Status } from 'contexts/locationSearch';
 import { useFullscreenState } from 'contexts/Fullscreen';
 import { useLayers } from 'contexts/Layers';
-import { useServicesContext } from 'contexts/LookupFiles';
 import { useSurroundingsState } from 'contexts/Surroundings';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -74,7 +74,7 @@ import type {
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
   RndDraggableState,
-  ServicesState,
+  ServicesData,
   WatershedAttributes,
 } from 'types';
 // styles
@@ -420,7 +420,7 @@ function MapWidgets({
     visibleLayers,
   } = useLayers();
 
-  const services = useServicesContext();
+  const services = useConfigFilesState().data.services;
 
   const { getTemplate } = useDynamicPopup();
 
@@ -797,11 +797,11 @@ function MapWidgets({
     setAdditionalLegendInitialized(true);
 
     const requests = [];
-    let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
+    let url = `${services.protectedAreasDatabase}/legend?f=json`;
     requests.push(fetchCheck(url, getSignal()));
-    url = `${services.data.ejscreen}legend?f=json`;
+    url = `${services.ejscreen}legend?f=json`;
     requests.push(fetchCheck(url, getSignal()));
-    url = `${services.data.mappedWater}/legend?f=json`;
+    url = `${services.mappedWater}/legend?f=json`;
     requests.push(fetchCheck(url, getSignal()));
 
     Promise.all(requests)
@@ -1016,7 +1016,7 @@ function MapWidgets({
 
   // create the download widget
   useEffect(() => {
-    if (!view || services.status !== 'success') return;
+    if (!view) return;
 
     const container = document.createElement('div');
     createRoot(container).render(
@@ -1412,7 +1412,7 @@ function retrieveUpstreamWatershed(
   getUpstreamWidgetDisabled: () => boolean,
   getWatershed: () => WatershedAttributes,
   lastHuc12: string,
-  services: ServicesState,
+  services: ServicesData,
   setErrorMessage: Dispatch<SetStateAction<string>>,
   setLastHuc12: Dispatch<SetStateAction<string>>,
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>,
@@ -1480,9 +1480,7 @@ function retrieveUpstreamWatershed(
   setUpstreamLoading(true);
   setUpstreamWatershedResponse({ status: 'fetching', data: null });
 
-  if (services.status !== 'success') return;
-  const url = services.data.upstreamWatershed;
-
+  const url = services.upstreamWatershed;
   const queryParams = {
     returnGeometry: true,
     where: filter,
@@ -1658,7 +1656,7 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   upstreamLayer: __esri.GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;
   getWatershed: () => WatershedAttributes;
-  services: ServicesState;
+  services: ServicesData;
   setErrorMessage: Dispatch<SetStateAction<string>>;
   setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>;
   setUpstreamLayerErrored: (isErrored: boolean) => void;
@@ -1828,7 +1826,6 @@ function ShowSelectedUpstreamWatershed({
       setSelectionActive(false);
 
       if (!view) return;
-      if (services.status !== 'success') return;
 
       // Get the point location of the user's click
       const point = new Point({
@@ -1847,7 +1844,7 @@ function ShowSelectedUpstreamWatershed({
 
       // Get the huc12 associated with the map point
       return query
-        .executeQueryJSON(services.data.wbd, queryParams)
+        .executeQueryJSON(services.wbd, queryParams)
         .then((boundaries) => {
           if (boundaries.features.length === 0) {
             setErrorMessage(
@@ -2066,12 +2063,10 @@ export async function generateAndDownloadPdf({
   copyright: string;
   northArrowVisible: boolean;
   scale: number;
-  services: ServicesState;
+  services: ServicesData;
   view: __esri.MapView;
   includeLegend: boolean;
 }) {
-  if (services.status !== 'success') return;
-
   const {
     layoutMultilineText,
     PageSizes,
@@ -2735,7 +2730,7 @@ export async function generateAndDownloadPdf({
   });
 
   const printVm = new PrintVM({
-    printServiceUrl: services.data.printService,
+    printServiceUrl: services.printService,
     view,
   });
 
@@ -2875,7 +2870,7 @@ type LayoutOptionType =
     };
 
 type DownloadWidgetProps = {
-  services: ServicesState;
+  services: ServicesData;
   view: __esri.MapView;
 };
 
@@ -3069,7 +3064,7 @@ function DownloadWidget({ services, view }: Readonly<DownloadWidgetProps>) {
         css={downloadButtonStyles}
         disabled={status === 'fetching'}
         onClick={async () => {
-          if (!view || services.status !== 'success') return;
+          if (!view) return;
 
           if (!title) {
             setStatus('failure');

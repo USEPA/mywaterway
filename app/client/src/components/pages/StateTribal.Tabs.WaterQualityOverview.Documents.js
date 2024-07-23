@@ -7,36 +7,26 @@ import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
 // contexts
-import { useDocumentOrderContext } from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
-import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { h3Styles } from 'styles/stateTribal';
 // errors
-import {
-  stateDocumentError,
-  stateDocumentSortingError,
-  stateSurveyError,
-} from 'config/errorMessages';
+import { stateDocumentError, stateSurveyError } from 'config/errorMessages';
 
 // Sorts the documents differently depending on the status provided.
 // If the status is success, the documents will be sorted using the ordering in the
 //  document order lookup file and then alphabetically on the document name column.
 // If the status is failure, the documents will be sorted alphabetically on the
 //  document types column and then and then alphabetically on the document name column.
-function sortDocuments(documents, status) {
+function sortDocuments(documents) {
   return documents.sort((a, b) => {
     // sort document type order numerically if the documentOrder lookup was successful
-    if (status === 'success' && a.order !== b.order) {
+    if (a.order !== b.order) {
       return a.order - b.order;
     }
-
-    // sort document type alphabetically if the documentOrder lookup failed
-    if (status === 'failure' && a.documentTypeLabel !== b.documentTypeLabel) {
-      return a.documentTypeLabel.localeCompare(b.documentTypeLabel);
-    }
-
     // then by document name
     else return a.documentName.localeCompare(b.documentName);
   });
@@ -60,11 +50,6 @@ const containerStyles = css`
     ${h3Styles}
     margin-bottom: 0px;
   }
-`;
-
-const modifiedInfoBoxStyles = css`
-  ${infoBoxStyles}
-  margin-bottom: 0.5em;
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -98,7 +83,7 @@ function Documents({
   surveyDocuments,
   surveyServiceError,
 }: Props) {
-  const documentOrder = useDocumentOrderContext();
+  const configFiles = useConfigFilesState();
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];
@@ -129,40 +114,26 @@ function Documents({
 
   // rank survey documents
   let surveyDocumentsRanked = [];
-  if (documentOrder.status !== 'fetching') {
-    const rankings =
-      documentOrder.status === 'success'
-        ? documentOrder.data.surveysOrdering
-        : {};
-    surveyDocumentsRanked = getDocumentTypeOrder(surveyDocuments, rankings);
-  }
+  surveyDocumentsRanked = getDocumentTypeOrder(
+    surveyDocuments,
+    configFiles.data.documentOrder.surveysOrdering,
+  );
 
   // rank assessment documents
   let assessmentDocumentsRanked = [];
   if (
-    documentOrder.status !== 'fetching' &&
     organizationData.status === 'success' &&
     organizationData.data?.documents
   ) {
-    const rankings =
-      documentOrder.status === 'success'
-        ? documentOrder.data.integratedReportOrdering
-        : {};
     assessmentDocumentsRanked = getDocumentTypeOrder(
       organizationData.data.documents,
-      rankings,
+      configFiles.data.documentOrder.integratedReportOrdering,
     );
   }
 
-  const assessmentDocumentsSorted = sortDocuments(
-    assessmentDocumentsRanked,
-    documentOrder.status,
-  );
+  const assessmentDocumentsSorted = sortDocuments(assessmentDocumentsRanked);
 
-  const surveyDocumentsSorted = sortDocuments(
-    surveyDocumentsRanked,
-    documentOrder.status,
-  );
+  const surveyDocumentsSorted = sortDocuments(surveyDocumentsRanked);
 
   if (activeState.value === '') return null;
 
@@ -173,8 +144,7 @@ function Documents({
     <div css={containerStyles}>
       <h3>Documents Related to {docType}</h3>
 
-      {(organizationData.status === 'fetching' ||
-        documentOrder.status === 'fetching') && <LoadingSpinner />}
+      {organizationData.status === 'fetching' && <LoadingSpinner />}
       {organizationData.status === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
           <p>{stateDocumentError(activeState.label, docType.toLowerCase())}</p>
@@ -182,9 +152,6 @@ function Documents({
       )}
       {organizationData.status === 'success' && (
         <>
-          {documentOrder.status === 'failure' && (
-            <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
-          )}
           <DocumentsTable
             activeState={activeState}
             documents={assessmentDocumentsSorted}
@@ -197,7 +164,7 @@ function Documents({
         <>
           <h3>Documents Related to Statewide Statistical Surveys</h3>
 
-          {surveyLoading || documentOrder.status === 'fetching' ? (
+          {surveyLoading ? (
             <LoadingSpinner />
           ) : surveyServiceError ? (
             <div css={modifiedErrorBoxStyles}>
@@ -205,11 +172,6 @@ function Documents({
             </div>
           ) : (
             <>
-              {documentOrder.status === 'failure' && (
-                <div css={modifiedInfoBoxStyles}>
-                  {stateDocumentSortingError}
-                </div>
-              )}
               <DocumentsTable
                 activeState={activeState}
                 documents={surveyDocumentsSorted}
