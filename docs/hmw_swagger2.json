@@ -1,91 +1,80 @@
 {
-    "swagger": "2.0"
-   ,"info": {
-       "title": "US EPA How's My Waterway"
-      ,"contact": {
-          "name": "US EPA Office of Water"
-      }
-      ,"license": {
-          "name": "Creative Commons Zero Public Domain Dedication"
-         ,"url": "https://edg.epa.gov/EPA_Data_License.html"
-      }
-      ,"version": "0.0.1"
-   }
-   ,"host": "mywaterway-stage.app.cloud.gov"
-   ,"basePath": "/"
-   ,"schemes": [
-      "https"
-   ]
-   ,"consumes": [
-      "application/json"
-   ]
-   ,"produces": [
-      "application/json"
-   ]
-   ,"securityDefinitions": {
-      "basicAuth": {
-         "type": "basic"
-      }
-   }
-   ,"security": [
-      {
-         "basicAuth": []
-      }
-   ]
-   ,"parameters": {
-       "url": {
-          "name": "url"
-         ,"in": "query"
-         ,"type": "string"
-         ,"required": true
-         ,"default": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer?f=json"
-      }
-   }
-   ,"paths": {
-       "/proxy": {
-          "get": {
-             "parameters": [
-                {
-                   "$ref": "#/parameters/url"
-               }
-            ]
-            ,"tags": [
-                "How's My Waterway"
-            ]
-            ,"responses": {
-                "200": {
-                   "description": "Placeholder."
-                  ,"schema": {
-                      "$ref": "#/definitions/generic"
-                  }
-               }
+  "swagger": "2.0",
+  "info": {
+    "title": "US EPA How's My Waterway",
+    "contact": {
+      "name": "US EPA Office of Water"
+    },
+    "license": {
+      "name": "Creative Commons Zero Public Domain Dedication",
+      "url": "https://edg.epa.gov/EPA_Data_License.html"
+    },
+    "version": "0.0.1"
+  },
+  "host": "mywaterway-stage.app.cloud.gov",
+  "basePath": "/",
+  "schemes": ["https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "securityDefinitions": {
+    "basicAuth": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "basicAuth": []
+    }
+  ],
+  "paths": {
+    "/api/configFiles": {
+      "get": {
+        "tags": ["How's My Waterway"],
+        "responses": {
+          "200": {
+            "description": "Placeholder.",
+            "schema": {
+              "$ref": "#/definitions/generic"
             }
-         }
+          }
+        }
       }
-      ,"/health": {
-          "get": {
-             "tags": [
-               "How's My Waterway"
-            ]
-            ,"responses": {
-               "200": {
-                   "description": "Placeholder."
-                  ,"schema": {
-                      "$ref": "#/definitions/generic"
-                  }
-               }
+    },
+    "/api/supportedBrowsers": {
+      "get": {
+        "tags": ["How's My Waterway"],
+        "responses": {
+          "200": {
+            "description": "Placeholder.",
+            "schema": {
+              "$ref": "#/definitions/generic"
             }
-         }
+          }
+        }
       }
-   }
-   ,"definitions": {
-       "generic": {
-          "type": "object"
-         ,"properties": {
-             "Results": {
-                "type": "string"
+    },
+    "/health": {
+      "get": {
+        "tags": ["How's My Waterway"],
+        "responses": {
+          "200": {
+            "description": "Placeholder.",
+            "schema": {
+              "$ref": "#/definitions/generic"
             }
-         }
+          }
+        }
       }
-   }
+    }
+  },
+  "definitions": {
+    "generic": {
+      "type": "object",
+      "properties": {
+        "Results": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }
