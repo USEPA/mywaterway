@@ -15,7 +15,6 @@ import EducatorsContent from 'components/shared/EducatorsContent';
 import GlossaryPanel, { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
-// import { useGlossaryState } from 'contexts/Glossary';
 // utilities
 import {
   getEnvironmentString,
@@ -192,8 +191,6 @@ function Page({ children }: Props) {
   const services = useConfigFilesState().data.services;
   const navigate = useNavigate();
 
-  // const { initialized, glossaryStatus } = useGlossaryState();
-
   // handles hiding of the data page when the user clicks the browser's back button
   const [dataDisplayed, setDataDisplayed] = useState(false);
   const [aboutDisplayed, setAboutDisplayed] = useState(false);
@@ -357,10 +354,7 @@ function Page({ children }: Props) {
       <div css={topLinksStyles}>
         <ul>
           <li>
-            <button
-              className="js-glossary-toggle"
-              // data-disabled={!initialized || glossaryStatus === 'fetching'}
-            >
+            <button className="js-glossary-toggle">
               <i className="fas fa-book" aria-hidden="true" />
               Glossary
             </button>

@@ -151,13 +151,11 @@ function Documents({
         </div>
       )}
       {organizationData.status === 'success' && (
-        <>
-          <DocumentsTable
-            activeState={activeState}
-            documents={assessmentDocumentsSorted}
-            type={docType.toLowerCase()}
-          />
-        </>
+        <DocumentsTable
+          activeState={activeState}
+          documents={assessmentDocumentsSorted}
+          type={docType.toLowerCase()}
+        />
       )}
 
       {activeState.source !== 'Tribe' && (
@@ -171,14 +169,12 @@ function Documents({
               <p>{stateSurveyError(activeState.label)}</p>
             </div>
           ) : (
-            <>
-              <DocumentsTable
-                activeState={activeState}
-                documents={surveyDocumentsSorted}
-                hideInfoMessage={assessmentDocumentsSorted.length > 0}
-                type="statewide statistical survey"
-              />
-            </>
+            <DocumentsTable
+              activeState={activeState}
+              documents={surveyDocumentsSorted}
+              hideInfoMessage={assessmentDocumentsSorted.length > 0}
+              type="statewide statistical survey"
+            />
           )}
         </>
       )}
