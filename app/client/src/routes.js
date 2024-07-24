@@ -31,6 +31,7 @@ import AlertMessage from 'components/shared/AlertMessage';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import {
+  ConfigFiles,
   useConfigFilesDispatch,
   useConfigFilesState,
 } from 'contexts/ConfigFiles';
@@ -45,6 +46,31 @@ const modifiedErrorBoxStyles = css`
   margin: 1rem;
   text-align: center;
 `;
+
+function loadGaMapping(configFiles: ConfigFiles) {
+  const googleAnalyticsMapping =
+    configFiles.services.googleAnalyticsMapping.map((item) => {
+      // get base url
+      let urlLookup = origin;
+      if (item.urlLookup !== 'origin') {
+        urlLookup = configFiles.services;
+        const pathParts = item.urlLookup.split('.');
+        pathParts.forEach((part) => {
+          urlLookup = urlLookup[part];
+        });
+      }
+
+      let wildcardUrl = item.wildcardUrl;
+      wildcardUrl = wildcardUrl.replace(/\{urlLookup\}/g, urlLookup);
+
+      return {
+        wildcardUrl,
+        name: item.name,
+      };
+    });
+
+  window.googleAnalyticsMapping = googleAnalyticsMapping;
+}
 
 /** Custom hook to fetch static content */
 function useConfigFilesContent() {
@@ -61,29 +87,7 @@ function useConfigFilesContent() {
     contentDispatch({ type: 'FETCH_CONFIG_REQUEST' });
     fetchCheck(`${origin}/api/configFiles`, controller.signal)
       .then((res) => {
-        // setup google analytics map
-        const googleAnalyticsMapping = [];
-        res.services.googleAnalyticsMapping.forEach((item) => {
-          // get base url
-          let urlLookup = origin;
-          if (item.urlLookup !== 'origin') {
-            urlLookup = res.services;
-            const pathParts = item.urlLookup.split('.');
-            pathParts.forEach((part) => {
-              urlLookup = urlLookup[part];
-            });
-          }
-
-          let wildcardUrl = item.wildcardUrl;
-          wildcardUrl = wildcardUrl.replace(/\{urlLookup\}/g, urlLookup);
-
-          googleAnalyticsMapping.push({
-            wildcardUrl,
-            name: item.name,
-          });
-        });
-
-        window.googleAnalyticsMapping = googleAnalyticsMapping;
+        loadGaMapping(res);
 
         contentDispatch({
           type: 'FETCH_CONFIG_SUCCESS',
