@@ -26,7 +26,15 @@ function reducer(
 ): FetchedDataState {
   switch (action.type) {
     case 'reset': {
-      return initialState;
+      const newState: any = {};
+      keysToNotReset.forEach((key) => {
+        const keyType = key as keyof FetchedData;
+        newState[keyType] = state[keyType];
+      });
+      return {
+        ...initialState,
+        ...newState,
+      };
     }
     case 'idle':
     case 'pending':
@@ -153,6 +161,8 @@ const dataKeys = [
   'surroundingDischargers',
   'surroundingUsgsStreamgages',
 ];
+
+const keysToNotReset = ['organizations'];
 
 const initialState = dataKeys.reduce((state, key) => {
   return {

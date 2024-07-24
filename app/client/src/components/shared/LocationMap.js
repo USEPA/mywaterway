@@ -34,6 +34,7 @@ import {
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import {
   useFetchedDataDispatch,
   useOrganizationsData,
@@ -73,7 +74,6 @@ import {
 } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
-import { useConfigFilesState } from 'contexts/ConfigFiles';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
