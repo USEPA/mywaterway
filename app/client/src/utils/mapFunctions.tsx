@@ -12,6 +12,8 @@ import Popup from '@arcgis/core/widgets/Popup';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
+// contexts
+import { ConfigFiles } from 'contexts/ConfigFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -29,7 +31,6 @@ import type {
   Feature,
   ParentLayer,
   PopupAttributes,
-  PopupLookupFiles,
   ServicesData,
   SuperLayer,
   TribeAttributes,
@@ -551,7 +552,7 @@ function isVillage(
 export function plotIssues(
   features: __esri.Graphic[],
   layer: any,
-  lookupFiles: PopupLookupFiles,
+  configFiles: ConfigFiles,
   navigate: NavigateFunction,
 ) {
   if (!features || !layer) return;
@@ -578,8 +579,8 @@ export function plotIssues(
           title: getPopupTitle(waterbody.attributes),
           content: (feature: Feature) =>
             getPopupContent({
+              configFiles,
               feature: feature.graphic,
-              lookupFiles,
               navigate,
             }),
         },
@@ -592,8 +593,8 @@ export const openPopup = (
   view: __esri.MapView,
   feature: __esri.Graphic,
   fields: __esri.Field[],
-  lookupFiles: PopupLookupFiles,
   navigate: NavigateFunction,
+  configFiles?: ConfigFiles,
 ) => {
   const fieldName = feature.attributes?.fieldName;
 
@@ -606,10 +607,10 @@ export const openPopup = (
       title: getPopupTitle(feature.attributes),
       content: (feature: Feature) =>
         getPopupContent({
+          configFiles,
           feature: feature.graphic,
           fields,
           fieldName,
-          lookupFiles,
           navigate,
         }),
     });
@@ -780,7 +781,7 @@ export function getPopupContent({
   getClickedHuc,
   mapView,
   resetData,
-  lookupFiles,
+  configFiles,
   fields,
   navigate,
 }: {
@@ -790,7 +791,7 @@ export function getPopupContent({
   getClickedHuc?: Promise<ClickedHucState> | null;
   mapView?: __esri.MapView;
   resetData?: () => void;
-  lookupFiles?: PopupLookupFiles;
+  configFiles?: ConfigFiles;
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
 }) {
@@ -916,7 +917,7 @@ export function getPopupContent({
       getClickedHuc={getClickedHuc}
       mapView={mapView}
       resetData={resetData}
-      lookupFiles={lookupFiles}
+      configFiles={configFiles}
       fields={fields}
       navigate={navigate}
     />

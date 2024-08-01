@@ -30,9 +30,9 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
@@ -235,7 +235,7 @@ const conditions = {
 function WaterbodyReport() {
   const { orgId, auId, reportingCycle } = useParams();
 
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const [noWaterbodies, setNoWaterbodies] = useState(false);
 
@@ -260,7 +260,7 @@ function WaterbodyReport() {
   // fetch waterbody name, location, types from attains 'assessmentUnits' web service
   useEffect(() => {
     const url =
-      services.data.attains.serviceUrl +
+      configFiles.data.services.attains.serviceUrl +
       `assessmentUnits?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}`;
 
@@ -305,7 +305,7 @@ function WaterbodyReport() {
         }));
 
         // build the post reqest
-        const wqpUrl = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson`;
+        const wqpUrl = `${configFiles.data.services.waterQualityPortal.stationSearch}mimeType=geojson`;
         const headers = { 'content-type': 'application/json' };
         const data = {
           siteid: stations.map((s) => {
@@ -333,7 +333,7 @@ function WaterbodyReport() {
                 : '';
 
               const url = match
-                ? `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+                ? `${configFiles.data.services.waterQualityPortal.monitoringLocationDetails}` +
                   `${match.properties['ProviderName']}/` +
                   `${match.properties['OrganizationIdentifier']}/` +
                   `${match.properties['MonitoringLocationIdentifier']}/`
@@ -356,7 +356,7 @@ function WaterbodyReport() {
         setWaterbodyLocation({ status: 'failure', text: '' });
       },
     );
-  }, [auId, orgId, services]);
+  }, [auId, configFiles, orgId]);
 
   const [reportingCycleFetch, setReportingCycleFetch] = useState({
     status: 'fetching',
@@ -409,7 +409,7 @@ function WaterbodyReport() {
     setAssessmentsCalled(true);
 
     const url =
-      services.data.attains.serviceUrl +
+      configFiles.data.services.attains.serviceUrl +
       `assessments?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}` +
       (reportingCycleParam ? `&reportingCycle=${reportingCycleParam}` : '');
@@ -679,7 +679,7 @@ function WaterbodyReport() {
         });
       },
     );
-  }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled, services]);
+  }, [auId, configFiles, orgId, reportingCycle, mapLayer, assessmentsCalled]);
 
   // get all reporting cycles for the waterbody
   const [allReportingCycles, setAllReportingCycles] = useState({
@@ -687,26 +687,26 @@ function WaterbodyReport() {
     data: [],
   });
   useEffect(() => {
-    if (services.status !== 'success') return;
-
     // recursive function to page through all reporting cycles
     async function fetchCycles(acc = []) {
       try {
         const res = await fetchPost(
-          `${services.data.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
+          `${configFiles.data.services.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
           {
             direction: 'asc',
             filters: { assessmentUnitId: auId },
-            limit: services.data.expertQuery.valuesLimit,
+            limit: configFiles.data.services.expertQuery.valuesLimit,
             ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
           },
           {
             'Content-Type': 'application/json',
-            'X-Api-Key': services.data.expertQuery.apiKey,
+            'X-Api-Key': configFiles.data.services.expertQuery.apiKey,
           },
         );
         const newValues = res.map((item) => item.reportingCycle);
-        if (newValues.length === services.data.expertQuery.valuesLimit) {
+        if (
+          newValues.length === configFiles.data.services.expertQuery.valuesLimit
+        ) {
           fetchCycles(acc.concat(newValues));
         } else {
           setAllReportingCycles({
@@ -721,7 +721,7 @@ function WaterbodyReport() {
     }
 
     fetchCycles();
-  }, [auId, services]);
+  }, [auId, configFiles]);
 
   const [waterbodyActions, setWaterbodyActions] = useState({
     status: 'fetching',
@@ -731,11 +731,9 @@ function WaterbodyReport() {
   // fetch waterbody actions from attains 'actions' web service, using the
   // 'organizationId' and 'assessmentUnitIdentifier' query string parameters
   useEffect(() => {
-    if (services.status !== 'success') return;
-
     const parameters = `organizationIdentifier=${orgId}&assessmentUnitIdentifier=${auId}`;
 
-    getPollutantsFromAction(services.data, parameters)
+    getPollutantsFromAction(configFiles.data.services, parameters)
       .then((res) => {
         if (res.length === 0) {
           setWaterbodyActions({ status: 'pending', data: [] });
@@ -748,7 +746,7 @@ function WaterbodyReport() {
         console.error(ex);
         setWaterbodyActions({ status: 'failure', data: [] });
       });
-  }, [auId, orgId, services]);
+  }, [auId, configFiles, orgId]);
 
   // call attains 'actions' web service again, this time using the
   // 'actionIdentifier' query string parameter – once for each action
@@ -759,7 +757,6 @@ function WaterbodyReport() {
   useEffect(() => {
     if (actionsFetchedAgain) return;
     if (allParameterActionIds.status === 'fetching') return;
-    if (services.status !== 'success') return;
     if (waterbodyActions.status !== 'pending') return;
 
     // action ids from the initial attains 'actions' web service call
@@ -786,7 +783,7 @@ function WaterbodyReport() {
 
     setActionsFetchedAgain(true);
 
-    getPollutantsFromAction(services.data, parameters)
+    getPollutantsFromAction(configFiles.data.services, parameters)
       .then((additionalActions) => {
         if (additionalActions.length === 0) {
           // if there are no new items (there should be), at least use the
@@ -818,9 +815,9 @@ function WaterbodyReport() {
   }, [
     actionsFetchedAgain,
     allParameterActionIds,
+    configFiles,
     orgId,
     waterbodyActions,
-    services,
   ]);
 
   // Builds the unitIds dictionary that is used for determining what

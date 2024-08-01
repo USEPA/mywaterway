@@ -28,12 +28,8 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { colors, reactSelectStyles } from 'styles/index';
 import { h2Styles, h3Styles, h4Styles } from 'styles/stateTribal';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
-import {
-  useServicesContext,
-  useStateNationalUsesContext,
-  useWaterTypeOptionsContext,
-} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { isAbort, normalizeString, titleCase } from 'utils/utils';
@@ -50,7 +46,7 @@ import {
 
 function relabelWaterType(oldLabel, waterTypeOptions) {
   let newLabel = 'Other Types';
-  Object.entries(waterTypeOptions.data).forEach((waterTypeOption) => {
+  Object.entries(waterTypeOptions).forEach((waterTypeOption) => {
     const [waterType, aliases] = waterTypeOption;
     if (aliases.includes(oldLabel)) newLabel = waterType;
   });
@@ -259,9 +255,7 @@ const noDataMessageStyles = css`
 
 function WaterQualityOverview() {
   const { getSignal } = useAbort();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
-  const waterTypeOptions = useWaterTypeOptionsContext();
+  const configFiles = useConfigFilesState();
   const {
     activeState,
     currentReportingCycle,
@@ -311,7 +305,7 @@ function WaterQualityOverview() {
     (orgID, year) => {
       // use the excludeAsssessments flag to improve performance, since we only
       // need the documents and reportStatusCode
-      const url = `${services.data.attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
+      const url = `${configFiles.data.services.attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
       fetchCheck(url, getSignal())
         .then((res) => {
           const orgData = res.items[0];
@@ -323,13 +317,13 @@ function WaterQualityOverview() {
           setOrganizationData({ status: 'failure', data: {} });
         });
     },
-    [getSignal, services, setOrganizationData],
+    [configFiles, getSignal, setOrganizationData],
   );
 
   // Get the state intro text
   const fetchIntroText = useCallback(
     (orgID) => {
-      const url = `${services.data.attains.serviceUrl}metrics?organizationId=${orgID}`;
+      const url = `${configFiles.data.services.attains.serviceUrl}metrics?organizationId=${orgID}`;
       fetchCheck(url, getSignal())
         .then((res) => {
           // check for missing data
@@ -347,7 +341,7 @@ function WaterQualityOverview() {
           setIntroText({ status: 'failure', data: {} });
         });
     },
-    [getSignal, setIntroText, services],
+    [configFiles, getSignal, setIntroText],
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
@@ -381,7 +375,7 @@ function WaterQualityOverview() {
       : '';
 
     const url =
-      `${services.data.attains.serviceUrl}usesStateSummary` +
+      `${configFiles.data.services.attains.serviceUrl}usesStateSummary` +
       `?organizationId=${stateAndOrganization.organizationId}` +
       reportingCycleParam;
 
@@ -453,10 +447,10 @@ function WaterQualityOverview() {
     setUsesStateSummaryCalled(true);
   }, [
     activeState,
+    configFiles,
     currentReportingCycle,
     fetchAssessments,
     getSignal,
-    services,
     setCurrentReportingCycle,
     setCurrentSummary,
     setUsesStateSummaryServiceError,
@@ -469,11 +463,13 @@ function WaterQualityOverview() {
     (stateCode) => {
       setFishingAdvisoryData({ status: 'fetching', data: [] });
 
+      const { queryStringFirstPart, queryStringSecondPart, serviceUrl } =
+        configFiles.data.services.fishingInformationService;
       const url =
-        services.data.fishingInformationService.serviceUrl +
-        services.data.fishingInformationService.queryStringFirstPart +
+        serviceUrl +
+        queryStringFirstPart +
         `'${stateCode}'` +
-        services.data.fishingInformationService.queryStringSecondPart;
+        queryStringSecondPart;
 
       fetchCheck(url, getSignal())
         .then((res) => {
@@ -501,13 +497,13 @@ function WaterQualityOverview() {
           setFishingAdvisoryData({ status: 'failure', data: [] });
         });
     },
-    [getSignal, setFishingAdvisoryData, services],
+    [configFiles, getSignal, setFishingAdvisoryData],
   );
 
   // Get the survey data and survey documents
   const fetchSurveyData = useCallback(
     (orgID) => {
-      const url = `${services.data.attains.serviceUrl}surveys?organizationId=${orgID}`;
+      const url = `${configFiles.data.services.attains.serviceUrl}surveys?organizationId=${orgID}`;
       fetchCheck(url, getSignal())
         .then((res) => {
           setSurveyLoading(false);
@@ -533,7 +529,7 @@ function WaterQualityOverview() {
           setSurveyLoading(false);
         });
     },
-    [getSignal, services],
+    [configFiles, getSignal],
   );
 
   // get state organization ID for summary service
@@ -550,7 +546,7 @@ function WaterQualityOverview() {
         return;
       }
 
-      const url = `${services.data.attains.serviceUrl}states/${stateID}/organizations`;
+      const url = `${configFiles.data.services.attains.serviceUrl}states/${stateID}/organizations`;
       fetchCheck(url, getSignal())
         .then((res) => {
           let orgID;
@@ -588,10 +584,10 @@ function WaterQualityOverview() {
         });
     },
     [
+      configFiles,
       fetchIntroText,
       fetchSurveyData,
       getSignal,
-      services,
       setStateAndOrganization,
       activeState,
     ],
@@ -633,10 +629,11 @@ function WaterQualityOverview() {
       setStories({
         status: 'fetching',
         data: [],
-        nextUrl: `${services.data.grts.getSSByState}${activeState.value}`,
+        nextUrl: `${configFiles.data.services.grts.getSSByState}${activeState.value}`,
       });
     }
   }, [
+    configFiles,
     currentState,
     activeState,
     setCurrentReportingCycle,
@@ -645,7 +642,6 @@ function WaterQualityOverview() {
     setOrganizationData,
     fetchStateOrgId,
     fetchFishingAdvisoryData,
-    services,
   ]);
 
   // fetch the stories from the provided url. This also saves the next stories
@@ -679,10 +675,10 @@ function WaterQualityOverview() {
 
   // Gets a list of uses that pertain to the current topic
   const topicUses = {};
-  if (activeState.value !== '' && stateNationalUses.status === 'success') {
+  if (activeState.value !== '') {
     const category = formatTopic(currentTopic);
     //get the list of possible uses
-    stateNationalUses.data.forEach((item) => {
+    configFiles.data.stateNationalUses.forEach((item) => {
       if (
         item.category === category &&
         ((activeState.source === 'State' && item.state === activeState.value) ||
@@ -697,66 +693,69 @@ function WaterQualityOverview() {
 
   // Handles user year changes and gets data associated with the selected year.
   let waterTypes = null;
-  if (waterTypeOptions.status === 'success') {
-    const yearData =
-      yearSelected &&
-      currentStateData.reportingCycles &&
-      currentStateData.reportingCycles.length > 0 &&
-      currentStateData.reportingCycles.find(
-        (x) => x['reportingCycle'] === yearSelected,
-      );
+  const yearData =
+    yearSelected &&
+    currentStateData.reportingCycles &&
+    currentStateData.reportingCycles.length > 0 &&
+    currentStateData.reportingCycles.find(
+      (x) => x['reportingCycle'] === yearSelected,
+    );
 
-    if (yearData) {
-      // Build a list of water types that includes the simple water type attribute.
-      waterTypes = [];
-      yearData['waterTypes'].forEach((waterType) => {
-        // Get the simple water type name (i.e. one of the types in the dropdown)
-        // from the detailed water type
-        let simpleWaterType = 'Other Types'; // if it's not found use "Other Types"
-        Object.entries(waterTypeOptions.data).forEach((option) => {
-          const [key, value] = option;
-          if (value.includes(waterType.waterTypeCode)) simpleWaterType = key;
-        });
-
-        waterTypes.push({
-          ...waterType,
-          simpleWaterType: simpleWaterType,
-        });
+  if (yearData) {
+    // Build a list of water types that includes the simple water type attribute.
+    waterTypes = [];
+    yearData['waterTypes'].forEach((waterType) => {
+      // Get the simple water type name (i.e. one of the types in the dropdown)
+      // from the detailed water type
+      let simpleWaterType = 'Other Types'; // if it's not found use "Other Types"
+      Object.entries(configFiles.data.waterTypeOptions).forEach((option) => {
+        const [key, value] = option;
+        if (value.includes(waterType.waterTypeCode)) simpleWaterType = key;
       });
-    }
+
+      waterTypes.push({
+        ...waterType,
+        simpleWaterType: simpleWaterType,
+      });
+    });
   }
 
   // Gets a unique list of water types that have data that is relevant to
   // the current topic
-  const displayWaterTypes =
-    waterTypes && waterTypeOptions.status === 'success'
-      ? [
-          // get a list of unique water type codes
-          ...new Set(
-            waterTypes
-              .filter((item) => {
-                // add the item if it has a use relevant to
-                // the selected tab
-                let hasUse = false;
-                item.useAttainments.forEach((use) => {
-                  if (
-                    topicUses.hasOwnProperty(normalizeString(use.useName)) &&
-                    hasUseValues(use)
-                  ) {
-                    hasUse = true;
-                  }
-                });
+  const displayWaterTypes = waterTypes
+    ? [
+        // get a list of unique water type codes
+        ...new Set(
+          waterTypes
+            .filter((item) => {
+              // add the item if it has a use relevant to
+              // the selected tab
+              let hasUse = false;
+              item.useAttainments.forEach((use) => {
+                if (
+                  topicUses.hasOwnProperty(normalizeString(use.useName)) &&
+                  hasUseValues(use)
+                ) {
+                  hasUse = true;
+                }
+              });
 
-                if (hasUse) {
-                  return relabelWaterType(item.waterTypeCode, waterTypeOptions);
-                } else return null;
-              })
-              .map((item) =>
-                relabelWaterType(item.waterTypeCode, waterTypeOptions),
+              if (hasUse) {
+                return relabelWaterType(
+                  item.waterTypeCode,
+                  configFiles.data.waterTypeOptions,
+                );
+              } else return null;
+            })
+            .map((item) =>
+              relabelWaterType(
+                item.waterTypeCode,
+                configFiles.data.waterTypeOptions,
               ),
-          ),
-        ].sort((a, b) => a.localeCompare(b))
-      : [];
+            ),
+        ),
+      ].sort((a, b) => a.localeCompare(b))
+    : [];
 
   // Handles user and auto water type selection
   let waterType = '';
@@ -820,13 +819,14 @@ function WaterQualityOverview() {
     useSelected &&
     surveyData &&
     waterType &&
-    topicUses.hasOwnProperty(normalizeString(useSelected)) &&
-    waterTypeOptions.status === 'success'
+    topicUses.hasOwnProperty(normalizeString(useSelected))
   ) {
     // build a list of subpopulation codes
     surveyData.surveyWaterGroups
       .filter((x) =>
-        waterTypeOptions.data[waterType].includes(x['waterTypeGroupCode']),
+        configFiles.data.waterTypeOptions[waterType].includes(
+          x['waterTypeGroupCode'],
+        ),
       )
       .forEach((waterGroup) => {
         // ensure the waterGroup has a use that matches the selected use
@@ -903,11 +903,7 @@ function WaterQualityOverview() {
   // unfortunately  need to manage the activeTabIndex (an implementation detail)
   const [activeTabIndex, setActiveTabIndex] = useState(initialTabIndex);
 
-  if (
-    serviceError ||
-    waterTypeOptions.status === 'failure' ||
-    stateNationalUses.status === 'failure'
-  ) {
+  if (serviceError) {
     return (
       <div css={errorBoxStyles}>
         <p>{stateGeneralError(activeState.source)}</p>
@@ -923,11 +919,7 @@ function WaterQualityOverview() {
     );
   }
 
-  if (
-    loading ||
-    currentState !== activeState.value ||
-    waterTypeOptions.status === 'fetching'
-  ) {
+  if (loading || currentState !== activeState.value) {
     return <LoadingSpinner />;
   }
 
@@ -1088,7 +1080,7 @@ function WaterQualityOverview() {
                   <p css={drinkingWaterTextStyles}>
                     <a
                       href={
-                        `${services.data.sfdw}f?p=108:103:::` +
+                        `${configFiles.data.services.sfdw}f?p=108:103:::` +
                         `NO:APP,RP:P0_PRIMACY_AGENCY:${activeState.value}`
                       }
                       target="_blank"

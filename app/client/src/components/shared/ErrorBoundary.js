@@ -6,7 +6,7 @@ import { Component } from 'react';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { LookupFilesContext } from 'contexts/LookupFiles';
+import { StateContext } from 'contexts/ConfigFiles';
 // utilities
 import { createMarkup } from 'utils/utils';
 // types
@@ -46,7 +46,7 @@ class ErrorBoundary extends Component<Props, State> {
     hasError: false,
   };
 
-  static contextType = LookupFilesContext;
+  static contextType = StateContext;
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true };
@@ -63,9 +63,9 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   render() {
-    const notifications = this.context.notifications;
+    const notifications = this.context.data.notifications;
     const page = window.location.pathname.split('/')[1];
-    const data = notifications.status === 'success' ? notifications.data : {};
+    const data = notifications;
 
     if (this.state.hasError) {
       return (

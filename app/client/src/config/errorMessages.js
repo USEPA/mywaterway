@@ -44,10 +44,6 @@ export const noDataAvailableError =
 // invalid search
 export const invalidSearchError = 'Invalid search. Please try a new search.';
 
-// Glossary component fails to load
-export const glossaryError =
-  'The glossary is temporarily unavailable, please try again later.';
-
 // services.arcgis.com - County Service - County (providers)
 export const countyError =
   'The county drinking water provider information is temporarily unavailable, please try again later.';
@@ -75,11 +71,6 @@ export const restorationPlanError =
 // watersgeo.epa.gov - HUC12 Boundary Service
 export const watersgeoError =
   'There was an error retrieving local watershed information, please try again later.';
-
-// this is intended to be used if we're showing partial map information if any of the map servers fail but some succeed (lines, areas, points)
-// for now, if any of the 3 map servers (lines, areas, points) fail then we display the huc12SummaryError above
-export const mapServerError =
-  'There was an error retrieving some waterbody information on the map. Please try again later for a complete view.';
 
 // usgs.gov - for protect tab
 export const protectedAreasDatabaseError =
@@ -132,9 +123,6 @@ export const usesStateSummaryServiceInvalidResponse = (source, name) =>
 export const stateDocumentError = (stateName, type) =>
   `${stateName} ${type} documents are temporarily unavailable, please try again later.`;
 
-export const stateDocumentSortingError =
-  'There was an issue sorting the below documents. Because of this, the documents have been sorted alphabetically on document type.';
-
 // this message is displayed in the State Survey Use section when the Survey service is down
 export const stateSurveySectionError = (source) =>
   `${source} survey information is temporarily unavailable, please try again later.`;
@@ -161,9 +149,6 @@ export const stateNoDataError = (stateName) =>
 
 export const stateNoGisDataError = (stateName) =>
   `No map data available${stateName && ' for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
-
-export const status303dError =
-  'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
 
 export const status303dShortError = 'Error getting 303(d) List Status';
 
@@ -266,16 +251,6 @@ export const defaultErrorBoundaryMessage = (
   </p>
 );
 
-export const dataContentError = (
-  <>
-    Information about data used in <em>How's My Waterway</em> is temporarily
-    unavailable, please try again later.
-  </>
-);
-
 // message displayed when the Esri map fails to load due to incompatible browsers and devices
 export const esriMapLoadingFailure = `The How's My Waterway Map is unavailable. Your web browser is
 incompatible or outdated.`;
-
-export const educatorContentError =
-  'Educator materials are temporarily unavailable, please try again later.';

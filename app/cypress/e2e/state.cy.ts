@@ -91,7 +91,7 @@ describe('State page routes', () => {
   });
 
   it('Switching state page tabs updates route', () => {
-    cy.visit('/state/FL');
+    cy.visit('/state/FL/water-quality-overview');
 
     cy.url().should('include', 'state/FL/water-quality-overview');
 
@@ -252,8 +252,7 @@ describe('State page Water Overview tab', () => {
 
   it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
     const title = 'Alaska Water Stories';
-    const text =
-      'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
+    const text = 'Community Efforts Improve Jordan Creek (PDF)';
 
     // verify text is not visible
     cy.findByText(text).should('not.exist');

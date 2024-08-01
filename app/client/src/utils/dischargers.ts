@@ -5,9 +5,9 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
@@ -73,7 +73,7 @@ export function useDischargers() {
 function useUpdateData() {
   // Build the data update function
   const { huc12, mapView } = useContext(LocationSearchContext);
-  const services = useServicesContext();
+  const services = useConfigFilesState().data.services;
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
@@ -91,11 +91,9 @@ function useUpdateData() {
       return;
     }
 
-    if (services.status !== 'success') return;
-
     const fetchPromise = fetchPermittedDischargers(
       `p_wbd=${huc12}`,
-      services.data,
+      services,
       controller.signal,
     );
 
@@ -117,8 +115,6 @@ function useUpdateData() {
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
-      if (services.status !== 'success') return;
-
       const newExtentFilter = await getExtentFilter(mapView);
 
       // Could not create filter
@@ -129,11 +125,7 @@ function useUpdateData() {
       extentFilter.current = newExtentFilter;
 
       await fetchAndTransformData(
-        fetchPermittedDischargers(
-          extentFilter.current,
-          services.data,
-          abortSignal,
-        ),
+        fetchPermittedDischargers(extentFilter.current, services, abortSignal),
         fetchedDataDispatch,
         surroundingFetchedDataKey,
         hucData, // Filter out HUC data

@@ -21,11 +21,11 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // config
 import { tabs } from 'config/communityConfig';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import { useServicesContext } from 'contexts/LookupFiles';
 import { useSurroundingsDispatch } from 'contexts/Surroundings';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
@@ -187,7 +187,7 @@ const subTitleStyles = css`
 `;
 
 function Protect() {
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   // draw the waterbody on the map
   useWaterbodyOnMap('hasprotectionplan', 'overallstatus');
@@ -1062,7 +1062,7 @@ function Protect() {
                                     fieldName={protectedAreasIdKey}
                                     customQuery={(viewClick) => {
                                       // query for the item
-                                      const url = `${services.data.protectedAreasDatabase}0`;
+                                      const url = `${configFiles.data.services.protectedAreasDatabase}0`;
                                       const queryParams = {
                                         where: `${protectedAreasIdKey} = ${attributes[protectedAreasIdKey]}`,
                                         returnGeometry: true,

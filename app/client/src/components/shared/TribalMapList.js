@@ -42,18 +42,12 @@ import WaterbodyList from 'components/shared/WaterbodyList';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import {
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
 import { LayersProvider, useLayers } from 'contexts/Layers';
-import {
-  useAttainsImpairmentFieldsContext,
-  useAttainsUseFieldsContext,
-  useCharacteristicGroupMappingsContext,
-  useServicesContext,
-  useStateNationalUsesContext,
-} from 'contexts/LookupFiles';
 import {
   useMapHighlightState,
   MapHighlightProvider,
@@ -599,11 +593,8 @@ function TribalMap({
   const { surroundingDischargersLayer } = useDischargersLayers();
   const { surroundingCyanLayer } = useCyanWaterbodiesLayers();
 
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
+  const configFiles = useConfigFilesState();
   const navigate = useNavigate();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
   useWaterbodyHighlight();
 
   const getSharedLayers = useSharedLayers({
@@ -628,14 +619,9 @@ function TribalMap({
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
         getPopupContent({
+          configFiles: configFiles.data,
           feature: feature.graphic,
           navigate,
-          lookupFiles: {
-            attainsImpairmentFields,
-            attainsUseFields,
-            services,
-            stateNationalUses,
-          }
         }),
     };
 
@@ -652,7 +638,7 @@ function TribalMap({
       uniqueValueInfos: createUniqueValueInfos('point'),
     };
     const waterbodyPoints = new FeatureLayer({
-      url: services.data.waterbodyService.points,
+      url: configFiles.data.services.waterbodyService.points,
       definitionExpression: `organizationid = '${activeState.attainsId}'`,
       outFields: ['*'],
       renderer: pointsRenderer,
@@ -671,7 +657,7 @@ function TribalMap({
       uniqueValueInfos: createUniqueValueInfos('polyline'),
     };
     const waterbodyLines = new FeatureLayer({
-      url: services.data.waterbodyService.lines,
+      url: configFiles.data.services.waterbodyService.lines,
       definitionExpression: `organizationid = '${activeState.attainsId}'`,
       outFields: ['*'],
       renderer: linesRenderer,
@@ -690,7 +676,7 @@ function TribalMap({
       uniqueValueInfos: createUniqueValueInfos('polygon'),
     };
     const waterbodyAreas = new FeatureLayer({
-      url: services.data.waterbodyService.areas,
+      url: configFiles.data.services.waterbodyService.areas,
       definitionExpression: `organizationid = '${activeState.attainsId}'`,
       outFields: ['*'],
       renderer: areasRenderer,
@@ -755,16 +741,13 @@ function TribalMap({
     setLayersInitialized(true);
   }, [
     activeState,
-    attainsImpairmentFields,
-    attainsUseFields,
+    configFiles,
     getSharedLayers,
     layersInitialized,
     monitoringLocationsLayer,
     navigate,
-    services,
     setLayer,
     setResetHandler,
-    stateNationalUses,
     surroundingCyanLayer,
     surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,
@@ -937,8 +920,7 @@ function MonitoringTab({
   selectedCharacteristics,
   setSelectedCharacteristics,
 }: MonitoringTabProps) {
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const { monitoringLocations } = useMonitoringLocations();
   const { monitoringLocationsLayer } = useLayers();
@@ -1084,8 +1066,8 @@ function MonitoringTab({
           >
             <div css={accordionContentStyles}>
               <WaterbodyInfo
+                configFiles={configFiles.data}
                 feature={feature}
-                lookupFiles={{ characteristicGroupMappings, services}}
                 type="Past Water Conditions"
               />
               <ViewOnMapButton feature={feature} />

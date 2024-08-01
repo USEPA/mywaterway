@@ -22,16 +22,11 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import {
-  useAttainsImpairmentFieldsContext,
-  useAttainsUseFieldsContext,
-  useServicesContext,
-  useStateNationalUsesContext,
-} from 'contexts/LookupFiles';
 // helpers
 import {
   useCyanWaterbodiesLayers,
@@ -78,13 +73,9 @@ function StateMap({
   numberOfRecords,
   children,
 }: Props) {
+  const configFiles = useConfigFilesState();
   const fetchedDataDispatch = useFetchedDataDispatch();
   const navigate = useNavigate();
-
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
 
   const { selectedGraphic } = useMapHighlightState();
 
@@ -118,8 +109,6 @@ function StateMap({
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
-    if (attainsImpairmentFields.status !== 'success') return;
-    if (attainsUseFields.status !== 'success') return;
 
     const popupTemplate = {
       outFields: ['*'],
@@ -128,12 +117,7 @@ function StateMap({
         getPopupContent({
           feature: feature.graphic,
           navigate,
-          lookupFiles: {
-            attainsImpairmentFields,
-            attainsUseFields,
-            services,
-            stateNationalUses,
-          },
+          configFiles: configFiles.data,
         }),
     };
 
@@ -150,7 +134,7 @@ function StateMap({
       uniqueValueInfos: createUniqueValueInfos('point'),
     };
     const waterbodyPoints = new FeatureLayer({
-      url: services.data.waterbodyService.points,
+      url: configFiles.data.services.waterbodyService.points,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: pointsRenderer,
@@ -169,7 +153,7 @@ function StateMap({
       uniqueValueInfos: createUniqueValueInfos('polyline'),
     };
     const waterbodyLines = new FeatureLayer({
-      url: services.data.waterbodyService.lines,
+      url: configFiles.data.services.waterbodyService.lines,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: linesRenderer,
@@ -188,7 +172,7 @@ function StateMap({
       uniqueValueInfos: createUniqueValueInfos('polygon'),
     };
     const waterbodyAreas = new FeatureLayer({
-      url: services.data.waterbodyService.areas,
+      url: configFiles.data.services.waterbodyService.areas,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: areasRenderer,
@@ -237,14 +221,11 @@ function StateMap({
     });
     setLayersInitialized(true);
   }, [
-    attainsImpairmentFields,
-    attainsUseFields,
+    configFiles,
     getSharedLayers,
     setLayer,
     setResetHandler,
     layersInitialized,
-    services,
-    stateNationalUses,
     surroundingCyanLayer,
     surroundingDischargersLayer,
     surroundingMonitoringLocationsLayer,

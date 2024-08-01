@@ -14,8 +14,7 @@ import AboutContent from 'components/shared/AboutContent';
 import EducatorsContent from 'components/shared/EducatorsContent';
 import GlossaryPanel, { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
-import { useGlossaryState } from 'contexts/Glossary';
-import { useServicesContext } from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
 import {
   getEnvironmentString,
@@ -189,11 +188,8 @@ type Props = {
 };
 
 function Page({ children }: Props) {
+  const services = useConfigFilesState().data.services;
   const navigate = useNavigate();
-
-  const { initialized, glossaryStatus } = useGlossaryState();
-
-  const services = useServicesContext();
 
   // handles hiding of the data page when the user clicks the browser's back button
   const [dataDisplayed, setDataDisplayed] = useState(false);
@@ -232,15 +228,15 @@ function Page({ children }: Props) {
 
     // intercept esri calls to gispub
     const urls = [
-      services.data.locatorUrl,
-      services.data.mappedWater,
-      services.data.tribal,
-      services.data.waterbodyService.points,
-      services.data.waterbodyService.lines,
-      services.data.waterbodyService.areas,
-      services.data.waterbodyService.summary,
-      services.data.wbd,
-      services.data.wbdUnconstrained,
+      services.locatorUrl,
+      services.mappedWater,
+      services.tribal,
+      services.waterbodyService.points,
+      services.waterbodyService.lines,
+      services.waterbodyService.areas,
+      services.waterbodyService.summary,
+      services.wbd,
+      services.wbdUnconstrained,
     ];
     esriConfig.request.interceptors.push({
       urls,
@@ -267,8 +263,8 @@ function Page({ children }: Props) {
         // This intercepts the request and changes the query from 'LIKE (<text>%)'
         // to 'LIKE (%<text>%)'.
         const searchSettings = [
-          { url: services.data.tribal, column: 'TRIBE_NAME' },
-          { url: services.data.wbdUnconstrained, column: 'huc12' },
+          { url: services.tribal, column: 'TRIBE_NAME' },
+          { url: services.wbdUnconstrained, column: 'huc12' },
         ];
         searchSettings.forEach((search) => {
           const where = params.requestOptions.query?.where;
@@ -358,10 +354,7 @@ function Page({ children }: Props) {
       <div css={topLinksStyles}>
         <ul>
           <li>
-            <button
-              className="js-glossary-toggle"
-              data-disabled={!initialized || glossaryStatus === 'fetching'}
-            >
+            <button className="js-glossary-toggle">
               <i className="fas fa-book" aria-hidden="true" />
               Glossary
             </button>

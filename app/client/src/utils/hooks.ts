@@ -30,18 +30,10 @@ import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
 import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
-import {
-  useAttainsImpairmentFieldsContext,
-  useAttainsUseFieldsContext,
-  useCharacteristicGroupMappingsContext,
-  useCyanMetadataContext,
-  useExtremeWeatherContext,
-  useServicesContext,
-  useStateNationalUsesContext,
-} from 'contexts/LookupFiles';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
 import { fetchCheck } from 'utils/fetchUtils';
@@ -447,21 +439,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     wildScenicRiversLayer,
   } = useLayers();
 
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
-  const cyanMetadata = useCyanMetadataContext();
-  const extremeWeatherConfig = useExtremeWeatherContext();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
+  const configFiles = useConfigFilesState();
   const navigate = useNavigate();
 
   // Handles zooming to a selected graphic when "View on Map" is clicked.
   useEffect(() => {
     if (
+      configFiles.status !== 'success' ||
       !mapView ||
-      !selectedGraphic?.attributes?.zoom ||
-      services.status === 'fetching'
+      !selectedGraphic?.attributes?.zoom
     ) {
       return;
     }
@@ -489,30 +475,11 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         mapView,
         selectedGraphic,
         dynamicPopupFields,
-        {
-          attainsImpairmentFields,
-          attainsUseFields,
-          characteristicGroupMappings,
-          cyanMetadata,
-          extremeWeatherConfig,
-          services,
-          stateNationalUses,
-        },
         navigate,
+        configFiles.data,
       );
     });
-  }, [
-    attainsImpairmentFields,
-    attainsUseFields,
-    characteristicGroupMappings,
-    cyanMetadata,
-    extremeWeatherConfig,
-    mapView,
-    navigate,
-    selectedGraphic,
-    services,
-    stateNationalUses,
-  ]);
+  }, [configFiles, mapView, navigate, selectedGraphic]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);
@@ -803,14 +770,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 }
 
 function useDynamicPopup() {
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
-  const cyanMetadata = useCyanMetadataContext();
-  const extremeWeatherConfig = useExtremeWeatherContext();
+  const configFiles = useConfigFilesState();
   const navigate = useNavigate();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
   const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
   );
@@ -827,7 +788,7 @@ function useDynamicPopup() {
 
   const getClickedHuc = useCallback(
     (location: __esri.Point) => {
-      if (services.status !== 'success') return null;
+      if (!configFiles?.data) return null;
       return new Promise<ClickedHucState>((resolve, reject) => {
         //get the huc boundaries of where the user clicked
         const queryParams = {
@@ -836,7 +797,7 @@ function useDynamicPopup() {
           outFields: ['*'],
         };
         query
-          .executeQueryJSON(services.data.wbd, queryParams)
+          .executeQueryJSON(configFiles.data.services.wbd, queryParams)
           .then((boundaries) => {
             if (boundaries.features.length === 0) {
               resolve({
@@ -857,12 +818,14 @@ function useDynamicPopup() {
           });
       });
     },
-    [services],
+    [configFiles],
   );
 
   // Wrapper function for getting the content of the popup
   const getTemplate = useCallback(
     (graphic: Feature, checkHuc = true) => {
+      if (configFiles.status !== 'success') return;
+
       // get the currently selected huc boundaries, if applicable
       const hucBoundaries = getHucBoundaries();
       const mapView = getMapView();
@@ -877,54 +840,25 @@ function useDynamicPopup() {
         hucBoundaries?.geometry?.contains(location)
       ) {
         return getPopupContent({
+          configFiles: configFiles.data,
           feature: graphic.graphic,
           fields,
-          lookupFiles: {
-            attainsImpairmentFields,
-            attainsUseFields,
-            characteristicGroupMappings,
-            cyanMetadata,
-            extremeWeatherConfig,
-            services,
-            stateNationalUses,
-          },
           mapView,
           navigate,
         });
       }
 
       return getPopupContent({
+        configFiles: configFiles.data,
         feature: graphic.graphic,
         fields,
         getClickedHuc: checkHuc ? getClickedHuc(location) : null,
         mapView,
         resetData: reset,
-        lookupFiles: {
-          attainsImpairmentFields,
-          attainsUseFields,
-          characteristicGroupMappings,
-          cyanMetadata,
-          extremeWeatherConfig,
-          services,
-          stateNationalUses,
-        },
         navigate,
       });
     },
-    [
-      attainsImpairmentFields,
-      attainsUseFields,
-      characteristicGroupMappings,
-      cyanMetadata,
-      extremeWeatherConfig,
-      getClickedHuc,
-      getHucBoundaries,
-      getMapView,
-      navigate,
-      reset,
-      services,
-      stateNationalUses,
-    ],
+    [configFiles, getClickedHuc, getHucBoundaries, getMapView, navigate, reset],
   );
 
   // Wrapper function for getting the title of the popup
@@ -944,7 +878,7 @@ function useSharedLayers({
     };
   };
 } = {}) {
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
   const { setLayer, setResetHandler } = useLayers();
 
   const { getTitle, getTemplate } = useDynamicPopup();
@@ -1047,7 +981,7 @@ function useSharedLayers({
     // return the layer properties object
     const wsioHealthIndexLayer: __esri.FeatureLayer = new FeatureLayer({
       id: 'wsioHealthIndexLayer',
-      url: services.data.wsio,
+      url: configFiles.data.services.wsio,
       title: 'State Watershed Health Index',
       outFields: ['HUC12_TEXT', 'STATES_ALL', 'PHWA_HEALTH_NDX_ST'],
       renderer: wsioHealthIndexRenderer,
@@ -1099,7 +1033,7 @@ function useSharedLayers({
     const protectedAreasLayer = new MapImageLayer({
       id: 'protectedAreasLayer',
       title: 'Protected Areas',
-      url: services.data.protectedAreasDatabase,
+      url: configFiles.data.services.protectedAreasDatabase,
       legendEnabled: false,
       listMode: 'hide-children',
       sublayers: [
@@ -1144,7 +1078,7 @@ function useSharedLayers({
 
     const wildScenicRiversLayer = new FeatureLayer({
       id: 'wildScenicRiversLayer',
-      url: services.data.wildScenicRivers,
+      url: configFiles.data.services.wildScenicRivers,
       title: 'Wild and Scenic Rivers',
       outFields: ['*'],
       renderer: wildScenicRiversRenderer,
@@ -1180,7 +1114,7 @@ function useSharedLayers({
     const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
       id: 'tribalLayer-1',
-      url: `${services.data.tribal}/1`,
+      url: `${configFiles.data.services.tribal}/1`,
       title: 'Alaska Native Villages',
       outFields: alaskaNativeVillageOutFields,
       listMode: 'hide',
@@ -1199,7 +1133,7 @@ function useSharedLayers({
     const lower48TribalOutFields = ['TRIBE_NAME'];
     const otherTribes = new FeatureLayer({
       id: 'tribalLayer-5',
-      url: `${services.data.tribal}/5`,
+      url: `${configFiles.data.services.tribal}/5`,
       title: 'Virginia Federally Recognized Tribes',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1227,7 +1161,7 @@ function useSharedLayers({
     });
     const americanIndianReservations = new FeatureLayer({
       id: 'tribalLayer-2',
-      url: `${services.data.tribal}/2`,
+      url: `${configFiles.data.services.tribal}/2`,
       title: 'American Indian Reservations',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1244,7 +1178,7 @@ function useSharedLayers({
 
     const americanIndianOffReservations = new FeatureLayer({
       id: 'tribalLayer-3',
-      url: `${services.data.tribal}/3`,
+      url: `${configFiles.data.services.tribal}/3`,
       title: 'American Indian Off-Reservation Trust Lands',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1261,7 +1195,7 @@ function useSharedLayers({
 
     const oklahomaStatisticalAreas = new FeatureLayer({
       id: 'tribalLayer-4',
-      url: `${services.data.tribal}/4`,
+      url: `${configFiles.data.services.tribal}/4`,
       title: 'American Indian Oklahoma Statistical Areas',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1307,7 +1241,7 @@ function useSharedLayers({
 
     const congressionalLayer = new FeatureLayer({
       id: 'congressionalLayer',
-      url: services.data.congressional,
+      url: configFiles.data.services.congressional,
       title: 'Congressional Districts',
       listMode: 'hide-children',
       visible: false,
@@ -1339,7 +1273,7 @@ function useSharedLayers({
       // sublayers have minScale of 288896,
       // but this doesn't match the actual behavior
       minScale: 144448,
-      url: services.data.mappedWater,
+      url: configFiles.data.services.mappedWater,
       title: 'All Mapped Water (NHD)',
       sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
       legendEnabled: false,
@@ -1354,7 +1288,7 @@ function useSharedLayers({
     const countyLayerOutFields = ['CNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
     const countyLayer = new FeatureLayer({
       id: 'countyLayer',
-      url: services.data.counties,
+      url: configFiles.data.services.counties,
       title: 'County',
       listMode: 'show',
       visible: false,
@@ -1383,7 +1317,7 @@ function useSharedLayers({
   function getStateBoundariesLayer() {
     const stateBoundariesLayer = new MapImageLayer({
       id: 'stateBoundariesLayer',
-      url: services.data.stateBoundaries,
+      url: configFiles.data.services.stateBoundaries,
       title: 'State',
       sublayers: [{ id: 0 }],
       listMode: 'hide-children',
@@ -1397,7 +1331,7 @@ function useSharedLayers({
   function getWatershedsLayer() {
     const watershedsLayer = new FeatureLayer({
       id: 'watershedsLayer',
-      url: services.data.wbd,
+      url: configFiles.data.services.wbd,
       title: 'Watersheds',
       listMode: 'show',
       visible: false,
@@ -1426,7 +1360,7 @@ function useSharedLayers({
 
     const ejDemographicIndex = new FeatureLayer({
       id: '0',
-      url: `${services.data.ejscreen}0`,
+      url: `${configFiles.data.services.ejscreen}0`,
       title: 'Demographic Index',
       outFields: ejOutFields,
       visible: true,
@@ -1436,7 +1370,7 @@ function useSharedLayers({
 
     const ejUnderAge5 = new FeatureLayer({
       id: '1',
-      url: `${services.data.ejscreen}1`,
+      url: `${configFiles.data.services.ejscreen}1`,
       title: 'Individuals under age 5',
       outFields: ejOutFields,
       visible: false,
@@ -1446,7 +1380,7 @@ function useSharedLayers({
 
     const ejOverAge64 = new FeatureLayer({
       id: '2',
-      url: `${services.data.ejscreen}2`,
+      url: `${configFiles.data.services.ejscreen}2`,
       title: 'Individuals over age 64',
       outFields: ejOutFields,
       visible: false,
@@ -1456,7 +1390,7 @@ function useSharedLayers({
 
     const ejLowIncome = new FeatureLayer({
       id: '3',
-      url: `${services.data.ejscreen}3`,
+      url: `${configFiles.data.services.ejscreen}3`,
       title: 'Percent Low-Income',
       outFields: ejOutFields,
       visible: false,
@@ -1466,7 +1400,7 @@ function useSharedLayers({
 
     const ejLinguistIsolated = new FeatureLayer({
       id: '4',
-      url: `${services.data.ejscreen}4`,
+      url: `${configFiles.data.services.ejscreen}4`,
       title: 'Linguistic Isolation',
       outFields: ejOutFields,
       visible: false,
@@ -1476,7 +1410,7 @@ function useSharedLayers({
 
     const ejMinority = new FeatureLayer({
       id: '5',
-      url: `${services.data.ejscreen}5`,
+      url: `${configFiles.data.services.ejscreen}5`,
       title: 'Percent People of Color',
       outFields: ejOutFields,
       visible: false,
@@ -1486,7 +1420,7 @@ function useSharedLayers({
 
     const ejLessThanHS = new FeatureLayer({
       id: '6',
-      url: `${services.data.ejscreen}6`,
+      url: `${configFiles.data.services.ejscreen}6`,
       title: 'Less than High School Education',
       outFields: ejOutFields,
       visible: false,
@@ -1538,7 +1472,7 @@ function useSharedLayers({
     const waterbodyPoints = new FeatureLayer({
       id: 'allWaterbodyPoints',
       title: 'Surrounding Waterbodies Points',
-      url: services.data.waterbodyService.points,
+      url: configFiles.data.services.waterbodyService.points,
       outFields: ['*'],
       renderer: pointsRenderer,
       legendEnabled: false,
@@ -1560,7 +1494,7 @@ function useSharedLayers({
     const waterbodyLines = new FeatureLayer({
       id: 'allWaterbodyLines',
       title: 'Surrounding Waterbodies Lines',
-      url: services.data.waterbodyService.lines,
+      url: configFiles.data.services.waterbodyService.lines,
       outFields: ['*'],
       renderer: linesRenderer,
       legendEnabled: false,
@@ -1582,7 +1516,7 @@ function useSharedLayers({
     const waterbodyAreas = new FeatureLayer({
       id: 'allWaterbodyAreas',
       title: 'Surrounding Waterbodies Areas',
-      url: services.data.waterbodyService.areas,
+      url: configFiles.data.services.waterbodyService.areas,
       outFields: ['*'],
       renderer: areasRenderer,
       legendEnabled: false,
@@ -1617,7 +1551,7 @@ function useSharedLayers({
       listMode: 'hide-children',
       title: 'Land Cover',
       visible: false,
-      url: services.data.landCover,
+      url: configFiles.data.services.landCover,
     });
     setLayer('landCoverLayer', landCoverLayer);
     return landCoverLayer;
@@ -1639,7 +1573,7 @@ function useSharedLayers({
 
     const storageTanksLayer = new FeatureLayer({
       id: 'storageTanksLayer',
-      url: services.data.undergroundStorageTanks,
+      url: configFiles.data.services.undergroundStorageTanks,
       title: 'Pollutant Storage Tanks',
       listMode: 'hide-children',
       visible: false,
@@ -1678,7 +1612,7 @@ function useSharedLayers({
 
     const sewerOverflowsLayer = new FeatureLayer({
       id: 'sewerOverflowsLayer',
-      url: services.data.combinedSewerOverflows,
+      url: configFiles.data.services.combinedSewerOverflows,
       title: 'Combined Sewer Overflows',
       listMode: 'hide-children',
       visible: false,
@@ -1708,7 +1642,7 @@ function useSharedLayers({
   async function getDamsLayer() {
     const damsLayer = (await Layer.fromPortalItem({
       portalItem: new PortalItem({
-        id: services.data.dams.portalId,
+        id: configFiles.data.services.dams.portalId,
       }),
     })) as __esri.FeatureLayer;
     damsLayer.id = 'damsLayer';
@@ -1752,7 +1686,7 @@ function useSharedLayers({
   async function getWildfiresLayer() {
     const wildfiresLayer = (await Layer.fromPortalItem({
       portalItem: new PortalItem({
-        id: services.data.wildfires.portalId,
+        id: configFiles.data.services.wildfires.portalId,
       }),
     })) as __esri.GroupLayer;
     wildfiresLayer.id = 'wildfiresLayer';
@@ -1768,7 +1702,7 @@ function useSharedLayers({
 
     const wellsLayer = new FeatureLayer({
       id: 'wellsLayer',
-      url: services.data.wells,
+      url: configFiles.data.services.wells,
       title: 'Wells',
       listMode: 'hide-children',
       minScale: 0,
@@ -1830,7 +1764,7 @@ function useSharedLayers({
       title: 'CMRA Screening',
       legendEnabled: false,
       listMode: 'hide',
-      url: services.data.cmraScreeningData,
+      url: configFiles.data.services.cmraScreeningData,
       visible: false,
       outFields: [
         'GEOID',
@@ -1868,7 +1802,7 @@ function useSharedLayers({
   async function getDroughtRealtimeLayer() {
     const layer = (await Layer.fromPortalItem({
       portalItem: new PortalItem({
-        id: services.data.droughtRealtime.portalId,
+        id: configFiles.data.services.droughtRealtime.portalId,
       }),
     })) as __esri.FeatureLayer;
     layer.id = 'droughtRealtimeLayer';
@@ -1886,7 +1820,7 @@ function useSharedLayers({
       visible: false,
     });
     getSubLayerDefinitions(
-      services.data.inlandFloodingRealtime.portalId,
+      configFiles.data.services.inlandFloodingRealtime.portalId,
       layer,
     );
     setLayer('inlandFloodingRealtimeLayer', layer);
@@ -1900,7 +1834,7 @@ function useSharedLayers({
       visible: false,
     });
     getSubLayerDefinitions(
-      services.data.coastalFloodingRealtime.portalId,
+      configFiles.data.services.coastalFloodingRealtime.portalId,
       layer,
     );
     setLayer('coastalFloodingRealtimeLayer', layer);
@@ -1913,7 +1847,10 @@ function useSharedLayers({
       title: 'Extreme Heat Real-Time',
       visible: false,
     });
-    getSubLayerDefinitions(services.data.extremeHeatRealtime.portalId, layer);
+    getSubLayerDefinitions(
+      configFiles.data.services.extremeHeatRealtime.portalId,
+      layer,
+    );
     setLayer('extremeHeatRealtimeLayer', layer);
     return layer;
   }
@@ -1924,7 +1861,10 @@ function useSharedLayers({
       title: 'Extreme Cold Real-Time',
       visible: false,
     });
-    getSubLayerDefinitions(services.data.extremeColdRealtime.portalId, layer);
+    getSubLayerDefinitions(
+      configFiles.data.services.extremeColdRealtime.portalId,
+      layer,
+    );
     setLayer('extremeColdRealtimeLayer', layer);
     return layer;
   }
@@ -1956,7 +1896,7 @@ function useSharedLayers({
 
     const getSeaLevelLayer = (century: 'early' | 'mid' | 'late') => {
       return new ImageryTileLayer({
-        url: services.data.seaLevelRise[century],
+        url: configFiles.data.services.seaLevelRise[century],
         title: `Sea Level Rise ${century[0].toUpperCase() + century.slice(1)} Century`,
         blendMode: 'multiply',
         renderer,
@@ -1975,7 +1915,7 @@ function useSharedLayers({
     };
 
     const leveeLayer = new ImageryTileLayer({
-      url: services.data.seaLevelRise.levees,
+      url: configFiles.data.services.seaLevelRise.levees,
       title: 'Leveed Areas',
       blendMode: 'multiply',
       popupEnabled: true,
@@ -2035,14 +1975,14 @@ function useSharedLayers({
     try {
       // get webmap definition
       const webMapDef = await fetchCheck(
-        `${services.data.esriWebMapBase}/${portalId}/data?f=json`,
+        `${configFiles.data.services.esriWebMapBase}/${portalId}/data?f=json`,
       );
       for (const layer of webMapDef.operationalLayers) {
         const layerIndex = layer.url.split('/').pop();
 
         // get layer definition
         const webMapLayerRes = await fetchCheck(
-          `${services.data.esriWebMapBase}/${layer.itemId}/data?f=json`,
+          `${configFiles.data.services.esriWebMapBase}/${layer.itemId}/data?f=json`,
         );
         const webMapLayerDef = webMapLayerRes.layers.find(
           (l: any) => l.id === parseInt(layerIndex),
@@ -2100,7 +2040,7 @@ function useSharedLayers({
   async function getDisadvantagedCommunitiesLayer() {
     const disadvantagedCommunitiesLayer = (await Layer.fromPortalItem({
       portalItem: new PortalItem({
-        id: services.data.disadvantagedCommunities.portalId,
+        id: configFiles.data.services.disadvantagedCommunities.portalId,
       }),
     })) as __esri.FeatureLayer;
     disadvantagedCommunitiesLayer.id = 'disadvantagedCommunitiesLayer';

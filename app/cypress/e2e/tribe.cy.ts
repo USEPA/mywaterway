@@ -110,7 +110,7 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
     cy.findByTestId('hmw-ecological-tab-button').click();
 
     // wait for the all web services to finish (surveys is usually slow here)
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
     );
   });

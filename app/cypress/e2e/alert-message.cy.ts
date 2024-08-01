@@ -37,16 +37,11 @@ describe('Alert message tests', () => {
     };
     if (altResponseBody) responseBody = altResponseBody;
 
-    console.log(
-      `${origin}/proxy?url=${origin}/data/notifications/messages.json`,
-    );
-    cy.intercept(
-      `${origin}/proxy?url=${origin}/data/notifications/messages.json`,
-      {
-        statusCode: 200,
-        body: responseBody,
-      },
-    ).as('notifications-messages');
+    cy.intercept(`${origin}/api/configFiles`, (req) => {
+      req.continue((res) => {
+        res.body.notifications = responseBody;
+      });
+    }).as('notifications-messages');
   }
 
   const allPagesMessage =
@@ -70,7 +65,7 @@ describe('Alert message tests', () => {
   it('Verify notifications on the community page', () => {
     setupInterceptors();
 
-    cy.visit('/community/dc');
+    cy.visit('/community/dc/overview');
 
     cy.wait(urlInterceptPath);
 

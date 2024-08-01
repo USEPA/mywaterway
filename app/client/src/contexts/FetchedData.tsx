@@ -12,6 +12,8 @@ import type {
   MonitoringLocationAttributes,
   UsgsStreamgageAttributes,
 } from 'types';
+import { fetchCheck } from 'utils/fetchUtils';
+import { useConfigFilesState } from './ConfigFiles';
 
 const StateContext = createContext<FetchedDataState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
@@ -24,7 +26,15 @@ function reducer(
 ): FetchedDataState {
   switch (action.type) {
     case 'reset': {
-      return initialState;
+      const newState: any = {};
+      keysToNotReset.forEach((key) => {
+        const keyType = key as keyof FetchedData;
+        newState[keyType] = state[keyType];
+      });
+      return {
+        ...initialState,
+        ...newState,
+      };
     }
     case 'idle':
     case 'pending':
@@ -80,6 +90,45 @@ export function useFetchedDataDispatch() {
   return context;
 }
 
+// Custom hook for the services.json file.
+let organizationsInitialized = false; // global var for ensuring fetch only happens once
+export function useOrganizationsData() {
+  const configFiles = useConfigFilesState();
+  const { organizations } = useFetchedDataState();
+  const fetchedDataDispatch = useFetchedDataDispatch();
+
+  if (
+    !organizationsInitialized &&
+    ['idle', 'pending'].includes(organizations.status)
+  ) {
+    organizationsInitialized = true;
+
+    // fetch the lookup file
+    const outFields = ['organizationid', 'orgtype', 'reportingcycle', 'state'];
+    fetchCheck(
+      `${
+        configFiles.data.services.waterbodyService.controlTable
+      }/query?where=1%3D1&outFields=${outFields.join('%2C')}&f=json`,
+    )
+      .then((data) => {
+        fetchedDataDispatch({
+          type: 'success',
+          id: 'organizations',
+          payload: data.features.map((feat: __esri.Graphic) => feat.attributes),
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        fetchedDataDispatch({
+          type: 'failure',
+          id: 'organizations',
+        });
+      });
+  }
+
+  return organizations;
+}
+
 /*
 ## Utils
 */
@@ -103,14 +152,17 @@ function buildNewDataState(action: FetchedDataAction) {
 
 const dataKeys = [
   'cyanWaterbodies',
-  'monitoringLocations',
   'dischargers',
+  'monitoringLocations',
+  'organizations',
   'usgsStreamgages',
   'surroundingCyanWaterbodies',
   'surroundingMonitoringLocations',
   'surroundingDischargers',
   'surroundingUsgsStreamgages',
 ];
+
+const keysToNotReset = ['organizations'];
 
 const initialState = dataKeys.reduce((state, key) => {
   return {
@@ -138,8 +190,14 @@ export type FetchState<T> = EmptyFetchState | FetchSuccessState<T>;
 
 export type FetchedData = {
   cyanWaterbodies: CyanWaterbodyAttributes[];
-  monitoringLocations: MonitoringLocationAttributes[];
   dischargers: DischargerAttributes[];
+  monitoringLocations: MonitoringLocationAttributes[];
+  organizations: {
+    organizationid: string;
+    orgtype: string;
+    reportingcycle: number;
+    state: string;
+  }[];
   usgsStreamgages: UsgsStreamgageAttributes[];
   surroundingCyanWaterbodies: CyanWaterbodyAttributes[];
   surroundingMonitoringLocations: MonitoringLocationAttributes[];
