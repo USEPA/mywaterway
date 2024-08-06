@@ -517,6 +517,40 @@ const treeStyles = (level, styles) => {
 
 const MAX_NUM_CHARTS = 4;
 const MEASUREMENT_PRECISION = 5;
+const TZ_CODE_TO_OFFSET = {
+  EDT: -4,
+  EST: -5,
+  AKDT: -8,
+  AKS: -9,
+  AST: -4,
+  CDT: -5,
+  CST: -6,
+  ChST: 10,
+  HST: -10,
+  MDT: -6,
+  MST: -7,
+  PDT: -7,
+  PST: -8,
+  SST: -11,
+};
+
+const Checkbox = {
+  checked: 1,
+  indeterminate: 0.5,
+  unchecked: 0,
+};
+
+const initialCheckboxes = {
+  all: 0,
+  groups: {},
+  charcs: {},
+};
+
+const dateOptions = {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+};
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
@@ -535,7 +569,7 @@ function buildTooltip(unit) {
         : null;
     return (
       <div css={chartTooltipStyles}>
-        <p>{datum.x}:</p>
+        <p>{new Date(datum.x).toLocaleTimeString('en-US', dateOptions)}:</p>
         <p>
           <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
           {`${formatNumber(datum.y)} ${unit}`}
@@ -580,18 +614,6 @@ function checkboxReducer(state, action) {
       throw new Error('Invalid action type');
   }
 }
-
-const Checkbox = {
-  checked: 1,
-  indeterminate: 0.5,
-  unchecked: 0,
-};
-
-const dateOptions = {
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-};
 
 // Format number as a string with a specified precision.
 function formatNumber(num, precision = MEASUREMENT_PRECISION) {
@@ -644,19 +666,12 @@ function getCharcGroup(charcName, groupMappings) {
   return 'Not Assigned';
 }
 
-function getDate(record) {
-  let month = record.month.toString();
-  if (record.month < 10) month = '0' + month;
-  let day = record.day.toString();
-  if (record.day < 10) day = '0' + day;
-  return `${record.year}-${month}-${day}`;
-}
-
 function getFilteredCount(range, records, count) {
   if (range) {
     let filteredCount = 0;
     records.forEach((record) => {
-      if (record.year >= range[0] && record.year <= range[1]) {
+      const year = new Date(record.timestamp).getFullYear();
+      if (year >= range[0] && year <= range[1]) {
         filteredCount += 1;
       }
     });
@@ -692,12 +707,6 @@ function getTotalCount(charcs) {
   });
   return totalCount;
 }
-
-const initialCheckboxes = {
-  all: 0,
-  groups: {},
-  charcs: {},
-};
 
 function handleCheckbox(id, accessor, dispatch) {
   return () => {
@@ -794,7 +803,7 @@ function parseCharcs(charcs, range) {
 function pointDatum(msmt, colors, depths) {
   return {
     type: 'point',
-    x: msmt.date,
+    x: msmt.timestamp,
     y:
       msmt.measurement >= -Number.EPSILON && msmt.measurement <= Number.EPSILON
         ? Number.EPSILON
@@ -929,6 +938,23 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
   const [charcs, setCharcs] = useState({});
   const [status, setStatus] = useState('idle');
 
+  const getIsoDateTimeFromRecord = (record) => {
+    let timestamp = record.ActivityStartDate;
+    if (record['ActivityStartTime/Time']) {
+      timestamp += `T${record['ActivityStartTime/Time']}`;
+      if (record['ActivityStartTime/TimeZoneCode']) {
+        const offset =
+          TZ_CODE_TO_OFFSET[record['ActivityStartTime/TimeZoneCode']];
+        if (offset !== undefined) {
+          timestamp += `${offset < 0 ? '-' : '+'}${Math.abs(offset).toString().padStart(2, '0')}:00`;
+        } else {
+          timestamp += 'Z';
+        }
+      }
+    }
+    return timestamp;
+  };
+
   const structureRecords = useCallback(
     (records, charcsByGroup) => {
       if (!records) {
@@ -956,18 +982,15 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
         }
         const curCharc = recordsByCharc[record.CharacteristicName];
         curCharc.count += 1;
-        const recordDate = record.ActivityStartDate.split('-');
         curCharc.records.push({
           activityTypeCode: record.ActivityTypeCode,
-          day: parseInt(recordDate[2]),
           depth: record['ResultDepthHeightMeasure/MeasureValue'],
           depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
           fraction: record.ResultSampleFractionText || 'None',
           measurement: record.ResultMeasureValue,
           medium: record.ActivityMediaName || 'None',
-          month: parseInt(recordDate[1]),
+          timestamp: getIsoDateTimeFromRecord(record),
           unit: record['ResultMeasure/MeasureUnitCode'] || 'None',
-          year: parseInt(recordDate[0]),
         });
       });
       setCharcs(recordsByCharc);
@@ -1093,14 +1116,13 @@ function CharacteristicChartSection({
 
       newMeasurements.push({
         ...record,
-        date: getDate(record),
         measurement: parseFloat(record.measurement),
       });
     });
 
-    newMeasurements.sort((a, b) => a.day - b.day);
-    newMeasurements.sort((a, b) => a.month - b.month);
-    newMeasurements.sort((a, b) => a.year - b.year);
+    newMeasurements.sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+    );
 
     setFractions(buildOptions(fractionValues));
     setUnits(buildOptions(unitValues));
@@ -1132,24 +1154,25 @@ function CharacteristicChartSection({
       .sort((a, b) => a - b);
     const chartColors = generateHeatmap(sortedDepths);
 
-    let curDay = null;
-    let curDayData = [];
+    let curTime = null;
+    let curTimeData = [];
     newMsmts.forEach((msmt) => {
-      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
+      const year = new Date(msmt.timestamp).getFullYear();
+      if (year >= newDomain[0] && year <= newDomain[1]) {
         const datum = pointDatum(msmt, chartColors, sortedDepths);
         newPointData.push(datum);
-        if (datum.x !== curDay) {
-          // Construct the previous day's data point
-          curDayData.length && newLineData.push(lineDatum(curDayData));
-          curDay = datum.x;
-          curDayData = [datum];
+        if (datum.x !== curTime) {
+          // Construct the previous time's data point
+          curTimeData.length && newLineData.push(lineDatum(curTimeData));
+          curTime = datum.x;
+          curTimeData = [datum];
         } else {
           // Same day, store for processing
-          curDayData.push(datum);
+          curTimeData.push(datum);
         }
       }
     });
-    curDayData.length && newLineData.push(lineDatum(curDayData));
+    curTimeData.length && newLineData.push(lineDatum(curTimeData));
 
     setDepthColorRange(getArrayOuter(chartColors));
     setDepthValueRange(getArrayOuter(sortedDepths));
@@ -1164,8 +1187,10 @@ function CharacteristicChartSection({
   // Initialize the date slider parameters
   useEffect(() => {
     if (measurements.length) {
-      const yearLow = measurements[0].year;
-      const yearHigh = measurements[measurements.length - 1].year;
+      const yearLow = new Date(measurements[0].timestamp).getFullYear();
+      const yearHigh = new Date(
+        measurements[measurements.length - 1].timestamp,
+      ).getFullYear();
       setMinYear(yearLow);
       setMaxYear(yearHigh);
       setSelectedYears([yearLow, yearHigh]);
@@ -1622,6 +1647,11 @@ function ChartContainer({
   const resolvedScaleType =
     range[0] === range[range.length - 1] ? 'log' : scaleType;
 
+  const xTickFormat = (val) => {
+    const date = new Date(val);
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate()}`;
+  };
+
   const yTickFormat = (val, _index, values) => {
     // Avoid overcrowding on the y-axis when the log scale is used.
     // Shows only powers of 10 when a tick threshold is exceeded.
@@ -1659,6 +1689,7 @@ function ChartContainer({
         pointData={pointSeries}
         pointsVisible={pointsVisible}
         range={range}
+        xTickFormat={xTickFormat}
         xTitle="Date"
         yScale={resolvedScaleType}
         yTickFormat={yTickFormat}
@@ -1920,8 +1951,9 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
     Object.values(charcs).forEach((charc) => {
       const { records } = charc;
       records.forEach((record) => {
-        if (record.year < newMinYear) newMinYear = record.year;
-        if (record.year > newMaxYear) newMaxYear = record.year;
+        const year = new Date(record.timestamp).getFullYear();
+        if (year < newMinYear) newMinYear = year;
+        if (year > newMaxYear) newMaxYear = year;
       });
     });
     setMinYear(newMinYear);
@@ -2401,7 +2433,7 @@ function MonitoringReportContent() {
   );
 }
 
-export default function MonitoringReport() {
+export function MonitoringReport() {
   const { resetData } = useContext(LocationSearchContext);
   useEffect(() => {
     return function cleanup() {
@@ -2555,3 +2587,5 @@ function StatusContent({
       return idle;
   }
 }
+
+export default MonitoringReport;

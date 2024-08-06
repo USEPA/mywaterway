@@ -106,6 +106,7 @@ type VisxGraphProps = {
   pointData?: { [key: string]: Datum[] };
   pointsVisible?: boolean;
   range?: number[];
+  xTickFormat?: (val: number) => string;
   xTitle?: string;
   yScale?: 'log' | 'linear';
   yTickFormat?: (val: number) => string;
@@ -128,6 +129,7 @@ export function VisxGraph({
   pointData = {},
   pointsVisible = true,
   range,
+  xTickFormat = (val: number) => val.toLocaleString(),
   xTitle,
   yScale = 'linear',
   yTickFormat = (val: number) => val.toLocaleString(),
@@ -219,6 +221,7 @@ export function VisxGraph({
           numTicks={width ? Math.floor(width / 120) : 4}
           orientation="bottom"
           strokeWidth={2}
+          tickFormat={xTickFormat}
           tickLabelProps={{
             angle: 15,
             dx: -5,
