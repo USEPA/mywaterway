@@ -517,22 +517,6 @@ const treeStyles = (level, styles) => {
 
 const MAX_NUM_CHARTS = 4;
 const MEASUREMENT_PRECISION = 5;
-const TZ_CODE_TO_OFFSET = {
-  EDT: -4,
-  EST: -5,
-  AKDT: -8,
-  AKS: -9,
-  AST: -4,
-  CDT: -5,
-  CST: -6,
-  ChST: 10,
-  HST: -10,
-  MDT: -6,
-  MST: -7,
-  PDT: -7,
-  PST: -8,
-  SST: -11,
-};
 
 const Checkbox = {
   checked: 1,
@@ -569,7 +553,12 @@ function buildTooltip(unit) {
         : null;
     return (
       <div css={chartTooltipStyles}>
-        <p>{new Date(datum.x).toLocaleTimeString('en-US', dateOptions)}:</p>
+        <p>
+          {datum.x.includes('T') // If the x-axis is a date-time string rather than just a date
+            ? new Date(datum.x).toLocaleTimeString('en-US', dateOptions)
+            : new Date(datum.x).toLocaleDateString('en-US', dateOptions)}
+          :
+        </p>
         <p>
           <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
           {`${formatNumber(datum.y)} ${unit}`}
@@ -942,15 +931,6 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
     let timestamp = record.ActivityStartDate;
     if (record['ActivityStartTime/Time']) {
       timestamp += `T${record['ActivityStartTime/Time']}`;
-      if (record['ActivityStartTime/TimeZoneCode']) {
-        const offset =
-          TZ_CODE_TO_OFFSET[record['ActivityStartTime/TimeZoneCode']];
-        if (offset !== undefined) {
-          timestamp += `${offset < 0 ? '-' : '+'}${Math.abs(offset).toString().padStart(2, '0')}:00`;
-        } else {
-          timestamp += 'Z';
-        }
-      }
     }
     return timestamp;
   };
