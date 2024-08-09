@@ -554,7 +554,7 @@ function buildTooltip(unit) {
     return (
       <div css={chartTooltipStyles}>
         <p>
-          {datum.x.includes('T') // If the x-axis is a date-time string rather than just a date
+          {datum.timestampType === 'datetime'
             ? new Date(datum.x).toLocaleTimeString('en-US', dateOptions)
             : new Date(datum.x).toLocaleDateString('en-US', dateOptions)}
           :
@@ -723,6 +723,7 @@ function lineDatum(dayData) {
     y: getMean(dayData.map((d) => d.y)),
     depth: getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
     depthUnit: dayData.find((d) => d.depthUnit !== null)?.depthUnit,
+    timestampType: dayData[0].timestampType,
   };
 }
 
@@ -801,6 +802,7 @@ function pointDatum(msmt, colors, depths) {
     color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#4d4d4d',
     depth: msmt.depth,
     depthUnit: msmt.depthUnit,
+    timestampType: msmt.timestampType,
   };
 }
 
@@ -927,12 +929,12 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
   const [charcs, setCharcs] = useState({});
   const [status, setStatus] = useState('idle');
 
-  const getIsoDateTimeFromRecord = (record) => {
+  const extractEpochFromRecord = (record) => {
     let timestamp = record.ActivityStartDate;
     if (record['ActivityStartTime/Time']) {
       timestamp += `T${record['ActivityStartTime/Time']}`;
     }
-    return timestamp;
+    return new Date(timestamp).getTime();
   };
 
   const structureRecords = useCallback(
@@ -969,7 +971,8 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
           fraction: record.ResultSampleFractionText || 'None',
           measurement: record.ResultMeasureValue,
           medium: record.ActivityMediaName || 'None',
-          timestamp: getIsoDateTimeFromRecord(record),
+          timestamp: extractEpochFromRecord(record),
+          timestampType: record['ActivityStartTime/Time'] ? 'datetime' : 'date',
           unit: record['ResultMeasure/MeasureUnitCode'] || 'None',
         });
       });
@@ -1668,7 +1671,6 @@ function ChartContainer({
         pointColorAccessor={(datum) => datum.color}
         pointData={pointSeries}
         pointsVisible={pointsVisible}
-        range={range}
         xTickFormat={xTickFormat}
         xTitle="Date"
         yScale={resolvedScaleType}
