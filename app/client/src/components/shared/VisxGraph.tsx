@@ -63,9 +63,9 @@ const tickLabelStyles = {
 
 interface Datum {
   type: 'point' | 'line';
-  x: string;
+  x: number;
   y: number;
-  [meta: string]: string | number;
+  [meta: string]: unknown;
 }
 
 /*
@@ -92,8 +92,8 @@ const theme = buildChartTheme({
   tickLength: 8,
 });
 
-const xAccessor = (d: Datum) => d.x;
-const yAccessor = (d: Datum) => d.y;
+const xAccessor = (d: Datum) => d?.x;
+const yAccessor = (d: Datum) => d?.y;
 
 type VisxGraphProps = {
   buildTooltip?: (tooltipData?: TooltipData<Datum>) => ReactNode;
@@ -105,8 +105,7 @@ type VisxGraphProps = {
   pointColorAccessor?: (d: Datum, index: number) => string;
   pointData?: { [key: string]: Datum[] };
   pointsVisible?: boolean;
-  range?: number[];
-  xTickFormat?: (val: string | number) => string;
+  xTickFormat?: (val: number) => string;
   xTitle?: string;
   yScale?: 'log' | 'linear';
   yTickFormat?: (val: number) => string;
@@ -128,7 +127,6 @@ export function VisxGraph({
   pointColorAccessor,
   pointData = {},
   pointsVisible = true,
-  range,
   xTickFormat = (val: string | number) => val.toLocaleString(),
   xTitle,
   yScale = 'linear',
@@ -204,10 +202,14 @@ export function VisxGraph({
         height={height}
         margin={{ top: 20, bottom: 55, left: 100, right: 50 }}
         theme={theme}
-        xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
+        xScale={{
+          type: 'linear',
+          paddingInner: 1,
+          paddingOuter: 0.5,
+          zero: false,
+        }}
         yScale={{
           type: yScale,
-          domain: range,
         }}
       >
         <Axis
