@@ -6,23 +6,23 @@ import { createPortal } from 'react-dom';
 import { Root, createRoot } from 'react-dom/client';
 import { CalciteAction, CalciteIcon } from '@esri/calcite-components-react';
 // components
-import LoadingSpinner from 'components/shared/LoadingSpinner';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 // contexts
-import { useLayersState } from 'contexts/Layers';
+import { useLayersState } from '@/contexts/Layers';
 import {
   isSurroundingFeaturesLayerId,
   useSurroundingsState,
-} from 'contexts/Surroundings';
+} from '@/contexts/Surroundings';
 // utils
-import { isClick, isEmpty } from 'utils/utils';
+import { isClick, isEmpty } from '@/utils/utils';
 // styles
-import { fonts } from 'styles';
+import { fonts } from '@/styles';
 // types
-import type { LayersState } from 'contexts/Layers';
+import type { LayersState } from '@/contexts/Layers';
 import type {
   SurroundingFeaturesLayerId,
   SurroundingsState,
-} from 'contexts/Surroundings';
+} from '@/contexts/Surroundings';
 import type {
   KeyboardEvent,
   MouseEvent,

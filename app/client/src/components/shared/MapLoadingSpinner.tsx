@@ -2,7 +2,7 @@
 
 import { css } from '@emotion/react';
 // components
-import LoadingSpinner from 'components/shared/LoadingSpinner';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 const loadingContainerStyles = css`
   display: flex;

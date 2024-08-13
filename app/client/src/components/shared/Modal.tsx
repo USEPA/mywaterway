@@ -6,7 +6,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 // types
 import type { ReactNode } from 'react';
 // styles
-import { colors, iconButtonStyles } from 'styles/index';
+import { colors, iconButtonStyles } from '@/styles/index';
 
 const buttonContainerStyles = css`
   margin-top: 15px;

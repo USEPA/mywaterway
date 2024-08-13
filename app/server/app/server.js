@@ -11,8 +11,8 @@ const updateGlossary = require('./tasks/updateGlossary');
 const log = logger.logger;
 
 const app = express();
-const browserSyncPort = 9091;
-let port = process.env.PORT || 9090;
+const browserSyncPort = 3002;
+let port = process.env.PORT || 3001;
 
 app.use(
   helmet({
@@ -184,7 +184,7 @@ app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
 
 // for local testing of the production flow, use the same port as browersync to avoid
 // different port usage to confuse testers/developers
-if (port === 9090 && !isLocal) port = browserSyncPort;
+if (port === 3001 && !isLocal) port = browserSyncPort;
 
 app.listen(port, function () {
   if (isLocal) {

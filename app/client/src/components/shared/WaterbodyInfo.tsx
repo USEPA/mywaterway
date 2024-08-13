@@ -11,28 +11,28 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as symbolUtils from '@arcgis/core/symbols/support/symbolUtils';
 // components
-import { HelpTooltip } from 'components/shared/HelpTooltip';
-import { ListContent } from 'components/shared/BoxContent';
-import { Histogram, StackedColumnChart } from 'components/shared/ColumnChart';
-import LoadingSpinner from 'components/shared/LoadingSpinner';
-import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { HelpTooltip } from '@/components/shared/HelpTooltip';
+import { ListContent } from '@/components/shared/BoxContent';
+import { Histogram, StackedColumnChart } from '@/components/shared/ColumnChart';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import WaterbodyIcon from '@/components/shared/WaterbodyIcon';
+import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
 import {
   errorBoxStyles,
   infoBoxStyles,
   textBoxStyles,
-} from 'components/shared/MessageBoxes';
-import Modal from 'components/shared/Modal';
-import ShowLessMore from 'components/shared/ShowLessMore';
-import Slider from 'components/shared/Slider';
-import { Sparkline } from 'components/shared/Sparkline';
+} from '@/components/shared/MessageBoxes';
+import Modal from '@/components/shared/Modal';
+import ShowLessMore from '@/components/shared/ShowLessMore';
+import Slider from '@/components/shared/Slider';
+import { Sparkline } from '@/components/shared/Sparkline';
 import {
   createRelativeDailyTimestampRange,
   epochToMonthDay,
   getDayOfYear,
   yearDayStringToEpoch,
-} from 'utils/dateUtils';
-import { useAbort } from 'utils/hooks';
+} from '@/utils/dateUtils';
+import { useAbort } from '@/utils/hooks';
 import {
   getPollutantsFromAction,
   getWaterbodyCondition,
@@ -41,13 +41,13 @@ import {
   isMediaLayer,
   isUniqueValueRenderer,
   mapRestorationPlanToGlossary,
-} from 'utils/mapFunctions';
-import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
+} from '@/utils/mapFunctions';
+import { fetchCheck, fetchParseCsv, proxyFetch } from '@/utils/fetchUtils';
 import {
   addAnnualData,
   complexProps,
   structurePeriodOfRecordData,
-} from 'utils/monitoringLocations';
+} from '@/utils/monitoringLocations';
 import {
   convertAgencyCode,
   convertDomainCode,
@@ -58,11 +58,11 @@ import {
   titleCaseWithExceptions,
   toFixedFloat,
   titleCase,
-} from 'utils/utils';
+} from '@/utils/utils';
 // contexts
-import { ConfigFiles } from 'contexts/ConfigFiles';
+import { ConfigFiles } from '@/contexts/ConfigFiles';
 // errors
-import { cyanError, waterbodyReportError } from 'config/errorMessages';
+import { cyanError, waterbodyReportError } from '@/config/errorMessages';
 // styles
 import {
   colors,
@@ -72,10 +72,10 @@ import {
   iconStyles,
   modifiedTableStyles,
   tableStyles,
-} from 'styles/index';
+} from '@/styles/index';
 // types
 import type { SerializedStyles } from '@emotion/react';
-import type { ColumnSeries } from 'components/shared/ColumnChart';
+import type { ColumnSeries } from '@/components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
@@ -90,7 +90,7 @@ import type {
   MonitoringLocationAttributes,
   StreamgageMeasurement,
   UsgsStreamgageAttributes,
-} from 'types';
+} from '@/types';
 
 /*
 ## Helpers

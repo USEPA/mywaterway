@@ -3,23 +3,23 @@
 import { useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 // components
-import LoadingSpinner from 'components/shared/LoadingSpinner';
-import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import ViewOnMapButton from 'components/shared/ViewOnMapButton';
-import { AccordionList, AccordionItem } from 'components/shared/Accordion';
-import VirtualizedList from 'components/shared/VirtualizedList';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import WaterbodyIcon from '@/components/shared/WaterbodyIcon';
+import WaterbodyInfo from '@/components/shared/WaterbodyInfo';
+import ViewOnMapButton from '@/components/shared/ViewOnMapButton';
+import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
+import VirtualizedList from '@/components/shared/VirtualizedList';
 // utilities
 import {
   getTypeFromAttributes,
   getWaterbodyCondition,
   getOrganizationLabel,
-} from 'utils/mapFunctions';
+} from '@/utils/mapFunctions';
 // contexts
-import { useConfigFilesState } from 'contexts/ConfigFiles';
-import { useMapHighlightState } from 'contexts/MapHighlight';
+import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useMapHighlightState } from '@/contexts/MapHighlight';
 // styles
-import { noMapDataWarningStyles } from 'styles/index';
+import { noMapDataWarningStyles } from '@/styles/index';
 
 const textStyles = css`
   margin: 1em;

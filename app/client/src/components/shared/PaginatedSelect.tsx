@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import Select, { components } from 'react-select';
 import { Virtuoso } from 'react-virtuoso';
 // styles
-import { reactSelectStyles } from 'styles/index';
+import { reactSelectStyles } from '@/styles/index';
 // types
 import type {
   GroupBase,

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { css } from '@emotion/react';
 // components
-import LoadingSpinner from 'components/shared/LoadingSpinner';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 // types
 import type { ReactNode } from 'react';
 import type { SerializedStyles } from '@emotion/react';

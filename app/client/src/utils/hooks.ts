@@ -30,13 +30,13 @@ import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
 import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // contexts
-import { useConfigFilesState } from 'contexts/ConfigFiles';
-import { useLayers } from 'contexts/Layers';
-import { LocationSearchContext } from 'contexts/locationSearch';
-import { useMapHighlightState } from 'contexts/MapHighlight';
+import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useLayers } from '@/contexts/Layers';
+import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useMapHighlightState } from '@/contexts/MapHighlight';
 // utilities
 import { useAllWaterbodiesLayer } from './allWaterbodies';
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck } from '@/utils/fetchUtils';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -53,7 +53,7 @@ import {
   openPopup,
   shallowCompare,
   hideShowGraphicsFill,
-} from 'utils/mapFunctions';
+} from '@/utils/mapFunctions';
 // types
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
@@ -62,7 +62,7 @@ import type {
   Feature,
   WaterbodyCondition,
   WatershedAttributes,
-} from 'types';
+} from '@/types';
 
 let dynamicPopupFields: __esri.Field[] = [];
 

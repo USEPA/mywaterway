@@ -9,24 +9,24 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
-import { useConfigFilesState } from 'contexts/ConfigFiles';
-import { useFetchedDataDispatch } from 'contexts/FetchedData';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useFetchedDataDispatch } from '@/contexts/FetchedData';
+import { LocationSearchContext } from '@/contexts/locationSearch';
 // utils
-import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
+import { GetTemplateType, useDynamicPopup } from '@/utils/hooks';
 import {
   filterData,
   handleFetchError,
   updateFeatureLayer,
   useBoundariesToggleLayer,
   useLocalData,
-} from 'utils/boundariesToggleLayer';
-import { colors } from 'styles';
+} from '@/utils/boundariesToggleLayer';
+import { colors } from '@/styles';
 // types
-import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
+import type { FetchedDataAction, FetchState } from '@/contexts/FetchedData';
 import type { Dispatch } from 'react';
-import type { CyanWaterbodyAttributes, Feature, ServicesData } from 'types';
-import type { SublayerType } from 'utils/boundariesToggleLayer';
+import type { CyanWaterbodyAttributes, Feature, ServicesData } from '@/types';
+import type { SublayerType } from '@/utils/boundariesToggleLayer';
 
 /*
 ## Hooks

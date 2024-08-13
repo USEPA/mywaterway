@@ -6,7 +6,7 @@ import {
   CharacteristicGroupMappings,
   ExtremeWeatherConfig,
   ServicesData,
-} from 'types';
+} from '@/types';
 
 type Props = {
   children: ReactNode;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 // utils
-import { useOnScreen } from 'utils/hooks';
+import { useOnScreen } from '@/utils/hooks';
 import type { ReactNode } from 'react';
 
 type Props = {

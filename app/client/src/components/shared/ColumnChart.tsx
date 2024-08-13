@@ -4,7 +4,7 @@ import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
 import { useCallback, useMemo } from 'react';
 // styles
-import { fonts } from 'styles/index';
+import { fonts } from '@/styles/index';
 
 // add exporting features to highcharts
 highchartsExporting(Highcharts);

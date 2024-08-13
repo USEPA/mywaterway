@@ -1,6 +1,6 @@
 // types
 import type { KeyboardEvent, MouseEvent } from 'react';
-import type { FetchStatus, InfoText } from 'types';
+import type { FetchStatus, InfoText } from '@/types';
 
 // utility function to split up an array into chunks of a designated length
 export function chunkArray(array: any, chunkLength: number): Array<Array<any>> {

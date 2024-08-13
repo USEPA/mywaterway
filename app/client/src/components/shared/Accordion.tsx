@@ -4,7 +4,7 @@ import { Children, cloneElement, useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 import Select from 'react-select';
 // styles
-import { colors, reactSelectStyles } from 'styles/index';
+import { colors, reactSelectStyles } from '@/styles/index';
 // types
 import type { ReactElement, ReactNode } from 'react';
 

@@ -28,19 +28,16 @@
     "node": "20.x"
   },
   "main": "src/index.js",
+  "type": "module",
   "scripts": {
-    "start": "react-scripts -r @cypress/instrument-cra start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "flow": "flow"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "@cypress/instrument-cra": "1.4.0",
     "@esri/arcgis-rest-types": "3.7.0",
-    "@testing-library/jest-dom": "6.4.6",
-    "@testing-library/react": "16.0.0",
-    "@testing-library/user-event": "14.5.2",
     "@types/file-saver": "2.0.7",
     "@types/jest": "29.5.12",
     "@types/node": "20.14.5",
@@ -48,18 +45,26 @@
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "@types/react-ranger": "2.0.4",
+    "@types/react-table": "7.7.20",
     "@types/smoothscroll-polyfill": "0.3.4",
     "@types/uuid": "9.0.8",
+    "@typescript-eslint/eslint-plugin": "8.1.0",
+    "@typescript-eslint/parser": "8.1.0",
+    "@vitejs/plugin-react": "4.3.1",
     "ajv": "8.16.0",
-    "eslint-config-react-app": "7.0.1",
+    "eslint": "9.9.0",
+    "eslint-plugin-react-hooks": "4.6.2",
+    "eslint-plugin-react-refresh": "0.4.9",
     "husky": "9.0.11",
     "lint-staged": "15.2.7",
     "prettier": "3.3.2",
     "typescript": "5.4.5",
-    "web-vitals": "4.1.1"
+    "vite": "5.4.0",
+    "vite-tsconfig-paths": "5.0.1"
   },
   "dependencies": {
     "@arcgis/core": "4.29.10",
+    "@emotion/babel-plugin": "11.12.0",
     "@emotion/react": "11.11.4",
     "@emotion/styled": "11.11.5",
     "@esri/calcite-components-react": "2.9.0",
@@ -86,40 +91,14 @@
     "react-dropzone": "14.2.3",
     "react-rnd": "10.4.11",
     "react-router-dom": "6.23.1",
-    "react-scripts": "5.0.1",
     "react-select": "5.8.0",
     "react-spring": "9.7.3",
     "react-sticky-box": "2.0.5",
     "react-switch": "7.0.0",
     "react-table": "7.8.0",
     "react-virtuoso": "4.7.11",
+    "regenerator-runtime": "0.14.0",
     "smoothscroll-polyfill": "0.4.4",
     "uuid": "10.0.0"
-  },
-  "lint-staged": {
-    "src/**/*.{js,json,css,md}": "prettier --write",
-    "../cypress/**/*.js": "prettier --write"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ],
-    "env": {
-      "worker": true
-    }
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all",
-      "not ie > 0",
-      "not android < 5"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   }
 }

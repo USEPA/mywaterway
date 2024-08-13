@@ -1,5 +1,5 @@
 // styles
-import { colors } from 'styles/index';
+import { colors } from '@/styles/index';
 
 // --- components ---
 type Props = {

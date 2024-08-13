@@ -11,8 +11,8 @@ import type {
   FetchSuccessState,
   MonitoringLocationAttributes,
   UsgsStreamgageAttributes,
-} from 'types';
-import { fetchCheck } from 'utils/fetchUtils';
+} from '@/types';
+import { fetchCheck } from '@/utils/fetchUtils';
 import { useConfigFilesState } from './ConfigFiles';
 
 const StateContext = createContext<FetchedDataState | undefined>(undefined);

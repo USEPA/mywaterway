@@ -13,7 +13,7 @@ import {
   Tooltip,
   XYChart,
 } from '@visx/xychart';
-import { fonts } from 'styles';
+import { fonts } from '@/styles';
 // types
 import type { ReactNode } from 'react';
 import type { GlyphProps, TooltipData } from '@visx/xychart';

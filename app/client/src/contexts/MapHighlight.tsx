@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
-import type { ExtendedGraphic } from 'types';
+import type { ExtendedGraphic } from '@/types';
 
 type State = {
   highlightedGraphic: ExtendedGraphic | null;

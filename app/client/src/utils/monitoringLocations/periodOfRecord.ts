@@ -1,4 +1,4 @@
-import { fetchParseCsv } from 'utils/fetchUtils';
+import { fetchParseCsv } from '@/utils/fetchUtils';
 // types
 import type { AnnualStationData, CharacteristicGroupMappings } from 'types';
 
@@ -28,7 +28,7 @@ function getCharcLabel(
   charcGroup: string,
   labelMappings: CharacteristicGroupMappings,
 ) {
-  for (let mapping of labelMappings) {
+  for (const mapping of labelMappings) {
     if (mapping.groupNames.includes(charcGroup)) return mapping.label;
   }
   return 'Other';

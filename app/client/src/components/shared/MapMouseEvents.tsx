@@ -7,23 +7,23 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import Popup from '@arcgis/core/widgets/Popup';
 // contexts
-import { useConfigFilesState } from 'contexts/ConfigFiles';
-import { useFetchedDataDispatch } from 'contexts/FetchedData';
-import { useMapHighlightState } from 'contexts/MapHighlight';
-import { useLayers } from 'contexts/Layers';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useFetchedDataDispatch } from '@/contexts/FetchedData';
+import { useMapHighlightState } from '@/contexts/MapHighlight';
+import { useLayers } from '@/contexts/Layers';
+import { LocationSearchContext } from '@/contexts/locationSearch';
 // types
 import type {
   MonitoringFeatureUpdate,
   MonitoringFeatureUpdates,
   WatershedAttributes,
-} from 'types';
+} from '@/types';
 // utils
 import {
   getPopupContent,
   graphicComparison,
   isInScale,
-} from 'utils/mapFunctions';
+} from '@/utils/mapFunctions';
 
 // --- types ---
 interface ClickEvent {
