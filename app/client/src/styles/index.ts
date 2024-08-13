@@ -1,5 +1,5 @@
-import { css } from "@emotion/react";
-import { CSSObjectWithLabel } from "react-select";
+import { css } from '@emotion/react';
+import { CSSObjectWithLabel } from 'react-select';
 
 export const colors = {
   black: (alpha = 1) => `rgba(0, 0, 0, ${alpha})`, // #000
@@ -27,15 +27,15 @@ export const colors = {
   highlightedGreen: (alpha = 1) => `rgba(70, 227, 159, ${alpha})`, // #46e39f
   highlightedPurple: (alpha = 1) => `rgba(84, 188, 236, ${alpha})`, // #54bcec
 
-  gray3: "#333",
-  gray4: "#444",
-  gray6: "#666",
-  gray9: "#999",
-  gray45: "#454545",
-  grayc: "#ccc",
-  grayc9: "#c9c9c9",
-  grayd: "#ddd",
-  graye: "#eee",
+  gray3: '#333',
+  gray4: '#444',
+  gray6: '#666',
+  gray9: '#999',
+  gray45: '#454545',
+  grayc: '#ccc',
+  grayc9: '#c9c9c9',
+  grayd: '#ddd',
+  graye: '#eee',
 };
 
 export const disclaimerStyles = css`
@@ -88,13 +88,13 @@ export const fonts = {
 
 export const groupHeadingStyles: CSSObjectWithLabel = {
   margin: 0,
-  padding: "6px 12px",
-  color: "#fff",
-  backgroundColor: "#4c4c4c",
-  lineHeight: "16px",
-  fontSize: "16px",
-  fontWeight: "400",
-  textTransform: "none",
+  padding: '6px 12px',
+  color: '#fff',
+  backgroundColor: '#4c4c4c',
+  lineHeight: '16px',
+  fontSize: '16px',
+  fontWeight: '400',
+  textTransform: 'none',
 };
 
 export const noMapDataWarningStyles = css`
@@ -132,7 +132,7 @@ export const reactSelectStyles = {
   }),
   placeholder: (defaultStyles: CSSObjectWithLabel) => ({
     ...defaultStyles,
-    color: "#495057",
+    color: '#495057',
   }),
   singleValue: (defaultStyles: CSSObjectWithLabel) => ({
     ...defaultStyles,
