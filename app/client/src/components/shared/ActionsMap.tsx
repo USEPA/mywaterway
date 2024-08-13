@@ -8,38 +8,35 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import * as query from '@arcgis/core/rest/query';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
-import Map from '@/components/shared/Map';
-import MapLoadingSpinner from '@/components/shared/MapLoadingSpinner';
-import MapErrorBoundary from '@/components/shared/ErrorBoundary.MapErrorBoundary';
+import Map from 'components/shared/Map';
+import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
+import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from '@/components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // helpers
-import { fetchCheck } from '@/utils/fetchUtils';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   useSharedLayers,
   useMonitoringLocationsLayers,
   useWaterbodyHighlight,
-} from '@/utils/hooks';
-import { browserIsCompatibleWithArcGIS } from '@/utils/utils';
+} from 'utils/hooks';
+import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
   createWaterbodySymbol,
   getPopupTitle,
   getPopupContent,
   getWaterbodyCondition,
-} from '@/utils/mapFunctions';
+} from 'utils/mapFunctions';
 // errors
 import {
   actionMapError,
   actionMapNoData,
   esriMapLoadingFailure,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 const containerStyles = css`
   display: flex;

@@ -11,22 +11,19 @@ import { css } from '@emotion/react';
 import { Fragment, MouseEvent, useContext, useEffect, useState } from 'react';
 import Select from 'react-select';
 // components
-import { linkButtonStyles } from '@/components/shared/LinkButton';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import {
-  errorBoxStyles,
-  noteBoxStyles,
-} from '@/components/shared/MessageBoxes';
+import { linkButtonStyles } from 'components/shared/LinkButton';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { LocationSearchContext } from '@/contexts/locationSearch';
-import { useAddSaveDataWidgetState } from '@/contexts/AddSaveDataWidget';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // config
 import {
   unsupportedLayerMessage,
   urlAlreadyAddedMessage,
   urlLayerFailureMessage,
   urlLayerSuccessMessage,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 const MessageBoxStyles = `
   margin-bottom: 10px;

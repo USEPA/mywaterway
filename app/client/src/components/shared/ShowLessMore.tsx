@@ -3,7 +3,7 @@
 import { isValidElement, useState } from 'react';
 import { css } from '@emotion/react';
 // styles
-import { linkButtonStyles } from '@/components/shared/LinkButton';
+import { linkButtonStyles } from 'components/shared/LinkButton';
 // types
 import type { ReactNode } from 'react';
 

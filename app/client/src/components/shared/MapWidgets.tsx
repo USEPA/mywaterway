@@ -31,39 +31,39 @@ import { Root, createRoot } from 'react-dom/client';
 import { Rnd } from 'react-rnd';
 import Select from 'react-select';
 // components
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
-import AddSaveDataWidget from '@/components/shared/AddSaveDataWidget';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import MapLegend from '@/components/shared/MapLegend';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import AddSaveDataWidget from 'components/shared/AddSaveDataWidget';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import MapLegend from 'components/shared/MapLegend';
 import {
   errorBoxStyles,
   successBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import { useSurroundingsWidget } from '@/components/shared/SurroundingsWidget';
+} from 'components/shared/MessageBoxes';
+import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
 // contexts
-import { useAddSaveDataWidgetState } from '@/contexts/AddSaveDataWidget';
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { LocationSearchContext, Status } from '@/contexts/locationSearch';
-import { useFullscreenState } from '@/contexts/Fullscreen';
-import { useLayers } from '@/contexts/Layers';
-import { useSurroundingsState } from '@/contexts/Surroundings';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LocationSearchContext, Status } from 'contexts/locationSearch';
+import { useFullscreenState } from 'contexts/Fullscreen';
+import { useLayers } from 'contexts/Layers';
+import { useSurroundingsState } from 'contexts/Surroundings';
 // utilities
-import { fetchCheck } from '@/utils/fetchUtils';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   hasSublayers,
   isGroupLayer,
   isPolygon,
   shallowCompare,
-} from '@/utils/mapFunctions';
-import { isAbort, isClick } from '@/utils/utils';
+} from 'utils/mapFunctions';
+import { isAbort, isClick } from 'utils/utils';
 // helpers
-import { GetTemplateType, useAbort, useDynamicPopup } from '@/utils/hooks';
+import { GetTemplateType, useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
-import resizeIcon from '@/images/resize.png';
+import resizeIcon from 'images/resize.png';
 // types
 import type PrintTemplateType from '@arcgis/core/rest/support/PrintTemplate';
 import type PrintVMType from '@arcgis/core/widgets/Print/PrintViewModel';
-import type { LayersState } from '@/contexts/Layers';
+import type { LayersState } from 'contexts/Layers';
 import type {
   LayoutBounds,
   MultilineTextLayout,
@@ -76,9 +76,9 @@ import type {
   RndDraggableState,
   ServicesData,
   WatershedAttributes,
-} from '@/types';
+} from 'types';
 // styles
-import { fonts } from '@/styles';
+import { fonts } from 'styles';
 
 /*
 ## Styles

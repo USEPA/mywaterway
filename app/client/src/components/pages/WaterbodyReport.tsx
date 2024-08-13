@@ -1,52 +1,49 @@
 /** @jsxImportSource @emotion/react */
 
-import { css } from "@emotion/react";
-import { Fragment, useContext, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { WindowSize } from "@reach/window-size";
-import StickyBox from "react-sticky-box";
+import { css } from '@emotion/react';
+import { Fragment, useContext, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { WindowSize } from '@reach/window-size';
+import StickyBox from 'react-sticky-box';
 // components
-import Page from "@/components/shared/Page";
-import NavBar from "@/components/shared/NavBar";
-import LoadingSpinner from "@/components/shared/LoadingSpinner";
-import ReactTable from "@/components/shared/ReactTable";
-import WaterbodyIcon from "@/components/shared/WaterbodyIcon";
-import ActionsMap from "@/components/shared/ActionsMap";
-import { AccordionList, AccordionItem } from "@/components/shared/Accordion";
-import MapVisibilityButton from "@/components/shared/MapVisibilityButton";
-import { GlossaryTerm } from "@/components/shared/GlossaryPanel";
-import DynamicExitDisclaimer from "@/components/shared/DynamicExitDisclaimer";
+import Page from 'components/shared/Page';
+import NavBar from 'components/shared/NavBar';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import ReactTable from 'components/shared/ReactTable';
+import WaterbodyIcon from 'components/shared/WaterbodyIcon';
+import ActionsMap from 'components/shared/ActionsMap';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 // styled components
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from "@/components/shared/MessageBoxes";
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
   splitLayoutColumnStyles,
-} from "@/components/shared/SplitLayout";
+} from 'components/shared/SplitLayout';
 import {
   boxStyles,
   boxHeadingStyles,
   boxSectionStyles,
-} from "@/components/shared/Box";
+} from 'components/shared/Box';
 // contexts
-import { useConfigFilesState } from "@/contexts/ConfigFiles";
-import { LayersProvider } from "@/contexts/Layers";
-import { LocationSearchContext } from "@/contexts/locationSearch";
-import { MapHighlightProvider } from "@/contexts/MapHighlight";
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LayersProvider } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
-import { fetchCheck, fetchPost } from "@/utils/fetchUtils";
+import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import {
   getPollutantsFromAction,
   mapRestorationPlanToGlossary,
-} from "@/utils/mapFunctions";
-import { titleCaseWithExceptions } from "@/utils/utils";
+} from 'utils/mapFunctions';
+import { titleCaseWithExceptions } from 'utils/utils';
 // styles
-import { colors } from "@/styles/index";
+import { colors } from 'styles/index';
 // errors
-import { waterbodyReportError } from "@/config/errorMessages";
+import { waterbodyReportError } from 'config/errorMessages';
 
 const containerStyles = css`
   ${splitLayoutContainerStyles};
@@ -229,9 +226,9 @@ const disclaimerStyles = css`
 `;
 
 const conditions = {
-  impaired: "Impaired (Issues Identified)",
-  good: "Good",
-  unknown: "Condition Unknown",
+  impaired: 'Impaired (Issues Identified)',
+  good: 'Good',
+  unknown: 'Condition Unknown',
 };
 
 function WaterbodyReport() {
@@ -241,21 +238,21 @@ function WaterbodyReport() {
 
   const [noWaterbodies, setNoWaterbodies] = useState(false);
 
-  const [waterbodyName, setWaterbodyName] = useState("");
+  const [waterbodyName, setWaterbodyName] = useState('');
   const [waterbodyLocation, setWaterbodyLocation] = useState({
-    status: "fetching",
-    text: "",
+    status: 'fetching',
+    text: '',
   });
   const [waterbodyTypes, setWaterbodyTypes] = useState({
-    status: "fetching",
+    status: 'fetching',
     data: [],
   });
   const [monitoringLocations, setMonitoringLocations] = useState({
-    status: "fetching",
+    status: 'fetching',
     data: [],
   });
   const [mapLayer, setMapLayer] = useState({
-    status: "fetching",
+    status: 'fetching',
     layer: null,
   });
 
@@ -282,7 +279,7 @@ function WaterbodyReport() {
 
         setWaterbodyName(assessmentUnitName);
         setWaterbodyLocation({
-          status: "success",
+          status: 'success',
           text: locationDescriptionText,
         });
 
@@ -292,11 +289,11 @@ function WaterbodyReport() {
           units: type.unitsCode,
         }));
 
-        setWaterbodyTypes({ status: "success", data: types });
+        setWaterbodyTypes({ status: 'success', data: types });
 
         // return early if no monitoring stations were returned
         if (monitoringStations.length === 0) {
-          setMonitoringLocations({ status: "success", data: [] });
+          setMonitoringLocations({ status: 'success', data: [] });
           return;
         }
 
@@ -308,7 +305,7 @@ function WaterbodyReport() {
 
         // build the post reqest
         const wqpUrl = `${configFiles.data.services.waterQualityPortal.stationSearch}mimeType=geojson`;
-        const headers = { "content-type": "application/json" };
+        const headers = { 'content-type': 'application/json' };
         const data = {
           siteid: stations.map((s) => {
             return `${s.orgId.trim()}-${s.locId.trim()}`;
@@ -331,62 +328,62 @@ function WaterbodyReport() {
               })[0];
 
               const name = match
-                ? match.properties["MonitoringLocationName"]
-                : "";
+                ? match.properties['MonitoringLocationName']
+                : '';
 
               const url = match
                 ? `${configFiles.data.services.waterQualityPortal.monitoringLocationDetails}` +
-                  `${match.properties["ProviderName"]}/` +
-                  `${match.properties["OrganizationIdentifier"]}/` +
-                  `${match.properties["MonitoringLocationIdentifier"]}/`
-                : "";
+                  `${match.properties['ProviderName']}/` +
+                  `${match.properties['OrganizationIdentifier']}/` +
+                  `${match.properties['MonitoringLocationIdentifier']}/`
+                : '';
 
               return { orgId, locId, name, url };
             });
 
-            setMonitoringLocations({ status: "success", data: locations });
+            setMonitoringLocations({ status: 'success', data: locations });
           },
           (err) => {
-            setMonitoringLocations({ status: "failure", data: [] });
+            setMonitoringLocations({ status: 'failure', data: [] });
             console.error(err);
-          }
+          },
         );
       },
       (err) => {
         console.error(err);
-        setWaterbodyTypes({ status: "failure", data: [] });
-        setWaterbodyLocation({ status: "failure", text: "" });
-      }
+        setWaterbodyTypes({ status: 'failure', data: [] });
+        setWaterbodyLocation({ status: 'failure', text: '' });
+      },
     );
   }, [auId, configFiles, orgId]);
 
   const [reportingCycleFetch, setReportingCycleFetch] = useState({
-    status: "fetching",
-    year: "",
+    status: 'fetching',
+    year: '',
   });
   const [organizationName, setOrganizationName] = useState({
-    status: "fetching",
-    name: "",
+    status: 'fetching',
+    name: '',
   });
-  const [decisionRationale, setDecisionRationale] = useState("");
+  const [decisionRationale, setDecisionRationale] = useState('');
   const [waterbodyStatus, setWaterbodyStatus] = useState({
-    status: "fetching",
-    data: { condition: "", planForRestoration: "", listed303d: "" },
+    status: 'fetching',
+    data: { condition: '', planForRestoration: '', listed303d: '' },
   });
   const [waterbodyUses, setWaterbodyUses] = useState({
-    status: "fetching",
+    status: 'fetching',
     data: [],
   });
   const [waterbodySources, setWaterbodySources] = useState({
-    status: "fetching",
+    status: 'fetching',
     data: [],
   });
   const [allParameterActionIds, setAllParameterActionIds] = useState({
-    status: "fetching",
+    status: 'fetching',
     data: [],
   });
   const [documents, setDocuments] = useState({
-    status: "fetching",
+    status: 'fetching',
     data: [],
   });
 
@@ -395,13 +392,13 @@ function WaterbodyReport() {
   const [assessmentsCalled, setAssessmentsCalled] = useState(false);
   useEffect(() => {
     if (assessmentsCalled) return;
-    if (!reportingCycle && mapLayer.status === "fetching") return;
+    if (!reportingCycle && mapLayer.status === 'fetching') return;
 
-    let reportingCycleParam = "";
+    let reportingCycleParam = '';
     if (reportingCycle) {
       reportingCycleParam = reportingCycle;
     } else if (
-      mapLayer.status === "success" &&
+      mapLayer.status === 'success' &&
       mapLayer.layer.graphics.length > 0
     ) {
       reportingCycleParam =
@@ -414,43 +411,43 @@ function WaterbodyReport() {
       configFiles.data.services.attains.serviceUrl +
       `assessments?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}` +
-      (reportingCycleParam ? `&reportingCycle=${reportingCycleParam}` : "");
+      (reportingCycleParam ? `&reportingCycle=${reportingCycleParam}` : '');
 
     fetchCheck(url).then(
       (res) => {
         if (res.items.length === 0) {
           setWaterbodyStatus({
-            status: "no-data",
-            data: { condition: "", planForRestoration: "", listed303d: "" },
+            status: 'no-data',
+            data: { condition: '', planForRestoration: '', listed303d: '' },
           });
           setReportingCycleFetch({
-            status: "success",
-            year: "",
+            status: 'success',
+            year: '',
           });
           setWaterbodyUses({
-            status: "success",
+            status: 'success',
             data: [],
           });
           setOrganizationName({
-            status: "success",
-            name: "",
+            status: 'success',
+            name: '',
           });
           setAllParameterActionIds({
-            status: "success",
+            status: 'success',
             data: [],
           });
-          setWaterbodySources({ status: "success", data: [] });
-          setDocuments({ status: "success", data: [] });
+          setWaterbodySources({ status: 'success', data: [] });
+          setDocuments({ status: 'success', data: [] });
           return;
         }
 
         const firstItem = res.items[0];
         setReportingCycleFetch({
-          status: "success",
+          status: 'success',
           year: firstItem.reportingCycleText,
         });
         setOrganizationName({
-          status: "success",
+          status: 'success',
           name: firstItem.organizationName,
         });
 
@@ -476,61 +473,61 @@ function WaterbodyReport() {
         setDecisionRationale(rationaleText);
 
         const status = {
-          planForRestoration: ["4A", "4B", "5A"].indexOf(epaIRCategory) !== -1,
-          listed303d: ["5", "5A", "5M"].indexOf(epaIRCategory) !== -1,
+          planForRestoration: ['4A', '4B', '5A'].indexOf(epaIRCategory) !== -1,
+          listed303d: ['5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
         };
 
         const condition =
-          overallStatus === "Not Supporting" || overallStatus === "Cause"
+          overallStatus === 'Not Supporting' || overallStatus === 'Cause'
             ? conditions.impaired
-            : overallStatus === "Fully Supporting" ||
-                overallStatus === "Meeting Criteria"
+            : overallStatus === 'Fully Supporting' ||
+                overallStatus === 'Meeting Criteria'
               ? conditions.good
               : conditions.unknown; // catch all
 
         // Use the status above initially. When looping through the use attainments
         // this will be set to yes if any of the uses have a plan in place
-        let planForRestoration = status.planForRestoration ? "Yes" : "No";
+        let planForRestoration = status.planForRestoration ? 'Yes' : 'No';
 
-        const listed303d = status.listed303d ? "Yes" : "No";
+        const listed303d = status.listed303d ? 'Yes' : 'No';
 
         if (useAttainments.length === 0) {
           setAllParameterActionIds({
-            status: "success",
+            status: 'success',
             data: [],
           });
         }
 
         const uses = useAttainments.map((use) => {
           const status =
-            use.useAttainmentCode === "X"
+            use.useAttainmentCode === 'X'
               ? {
                   textColor: colors.white(),
                   bgColor: colors.steel(),
-                  text: "Not Assessed",
+                  text: 'Not Assessed',
                 }
-              : use.useAttainmentCode === "I"
+              : use.useAttainmentCode === 'I'
                 ? {
                     textColor: colors.white(),
                     bgColor: colors.purple(),
-                    text: "Insufficient Info",
+                    text: 'Insufficient Info',
                   }
-                : use.useAttainmentCode === "F"
+                : use.useAttainmentCode === 'F'
                   ? {
                       textColor: colors.white(),
                       bgColor: colors.green(),
-                      text: "Good",
+                      text: 'Good',
                     }
-                  : use.useAttainmentCode === "N"
+                  : use.useAttainmentCode === 'N'
                     ? {
                         textColor: colors.white(),
                         bgColor: colors.red(),
-                        text: "Impaired",
+                        text: 'Impaired',
                       }
                     : {
                         textColor: colors.white(),
                         bgColor: colors.purple(),
-                        text: "Unknown",
+                        text: 'Unknown',
                       };
 
           // build up categories by matching each parameter's associated use name
@@ -545,13 +542,13 @@ function WaterbodyReport() {
 
           // object for mapping attainment code with categories
           const attainmentCodeMapping = {
-            "Not meeting criteria": categories.pollutants,
-            "Meeting criteria": categories.assessedGood,
-            "Not enough information": categories.insufficentInfo,
-            "Not Applicable": categories.otherObserved,
+            'Not meeting criteria': categories.pollutants,
+            'Meeting criteria': categories.assessedGood,
+            'Not enough information': categories.insufficentInfo,
+            'Not Applicable': categories.otherObserved,
             Threatened: categories.ofConcern,
-            "Meeting threshold": categories.assessedGood,
-            "Not meeting threshold": categories.pollutants,
+            'Meeting threshold': categories.assessedGood,
+            'Not meeting threshold': categories.pollutants,
           };
 
           // allAssociatedActionIds will contain all parameters' associated action ids
@@ -560,7 +557,7 @@ function WaterbodyReport() {
           parameters.forEach((parameter) => {
             // add all associated action ids to the allAssociatedActionIds array
             const associatedActionIds = parameter.associatedActions.map(
-              (associatedAction) => associatedAction.associatedActionIdentifier
+              (associatedAction) => associatedAction.associatedActionIdentifier,
             );
             allAssociatedActionIds.push(...associatedActionIds);
 
@@ -572,21 +569,21 @@ function WaterbodyReport() {
                 const parameterStatusName = parameter.parameterStatusName;
                 // determine the category from parameter's attainment code
                 let category;
-                if (parameterStatusName === "Observed effect") {
+                if (parameterStatusName === 'Observed effect') {
                   // always put observed effect in with other observed
-                  category = attainmentCodeMapping["Not Applicable"];
+                  category = attainmentCodeMapping['Not Applicable'];
                 } else if (
-                  parameterStatusName === "Meeting Criteria" &&
-                  parameterAttainmentCode === "Not meeting criteria"
+                  parameterStatusName === 'Meeting Criteria' &&
+                  parameterAttainmentCode === 'Not meeting criteria'
                 ) {
                   // Meeting criteria should never be a pollutant
-                  category = attainmentCodeMapping["Meeting criteria"];
+                  category = attainmentCodeMapping['Meeting criteria'];
                 } else if (
-                  parameterStatusName === "Insufficient Information" &&
-                  parameterAttainmentCode === "Not meeting criteria"
+                  parameterStatusName === 'Insufficient Information' &&
+                  parameterAttainmentCode === 'Not meeting criteria'
                 ) {
                   // Insufficient information should never be a pollutant
-                  category = attainmentCodeMapping["Not enough information"];
+                  category = attainmentCodeMapping['Not enough information'];
                 } else {
                   // catch all - directly use the parameterAttainmentCode
                   category = attainmentCodeMapping[parameterAttainmentCode];
@@ -603,7 +600,7 @@ function WaterbodyReport() {
                     // a plan is 'in place' if a parameter has at least one associated action
                     const planInPlace = parameter.associatedActions.length > 0;
 
-                    if (planInPlace) planForRestoration = "Yes";
+                    if (planInPlace) planForRestoration = 'Yes';
 
                     category.push({
                       name: parameter.parameterName,
@@ -615,7 +612,7 @@ function WaterbodyReport() {
           });
 
           setAllParameterActionIds({
-            status: "success",
+            status: 'success',
             data: allAssociatedActionIds,
           });
 
@@ -623,16 +620,16 @@ function WaterbodyReport() {
         });
 
         setWaterbodyStatus({
-          status: "success",
+          status: 'success',
           data: { condition, planForRestoration, listed303d },
         });
 
-        setWaterbodyUses({ status: "success", data: uses });
+        setWaterbodyUses({ status: 'success', data: uses });
 
         const data = [];
         probableSources.forEach((source) => {
           const name = source.sourceName;
-          const status = source.sourceConfirmedIndicator === "N" ? "No" : "Yes";
+          const status = source.sourceConfirmedIndicator === 'N' ? 'No' : 'Yes';
           source.associatedCauseNames.forEach((cause) => {
             for (let parameter of parameters) {
               if (parameter.parameterName === cause.causeName) {
@@ -660,32 +657,32 @@ function WaterbodyReport() {
             return -1;
           });
 
-        setWaterbodySources({ status: "success", data: data });
+        setWaterbodySources({ status: 'success', data: data });
 
-        setDocuments({ status: "success", data: assessmentDocuments });
+        setDocuments({ status: 'success', data: assessmentDocuments });
       },
       (err) => {
         console.error(err);
         setAllParameterActionIds({
-          status: "failure",
+          status: 'failure',
           data: [],
         });
-        setReportingCycleFetch({ status: "failure", year: "" });
-        setWaterbodyStatus({ status: "failure", data: [] });
-        setWaterbodyUses({ status: "failure", data: [] });
-        setWaterbodySources({ status: "failure", data: [] });
-        setDocuments({ status: "failure", data: [] });
+        setReportingCycleFetch({ status: 'failure', year: '' });
+        setWaterbodyStatus({ status: 'failure', data: [] });
+        setWaterbodyUses({ status: 'failure', data: [] });
+        setWaterbodySources({ status: 'failure', data: [] });
+        setDocuments({ status: 'failure', data: [] });
         setOrganizationName({
-          status: "failure",
-          name: "",
+          status: 'failure',
+          name: '',
         });
-      }
+      },
     );
   }, [auId, configFiles, orgId, reportingCycle, mapLayer, assessmentsCalled]);
 
   // get all reporting cycles for the waterbody
   const [allReportingCycles, setAllReportingCycles] = useState({
-    status: "fetching",
+    status: 'fetching',
     data: [],
   });
   useEffect(() => {
@@ -695,15 +692,15 @@ function WaterbodyReport() {
         const res = await fetchPost(
           `${configFiles.data.services.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
           {
-            direction: "asc",
+            direction: 'asc',
             filters: { assessmentUnitId: auId },
             limit: configFiles.data.services.expertQuery.valuesLimit,
             ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
           },
           {
-            "Content-Type": "application/json",
-            "X-Api-Key": configFiles.data.services.expertQuery.apiKey,
-          }
+            'Content-Type': 'application/json',
+            'X-Api-Key': configFiles.data.services.expertQuery.apiKey,
+          },
         );
         const newValues = res.map((item) => item.reportingCycle);
         if (
@@ -712,13 +709,13 @@ function WaterbodyReport() {
           fetchCycles(acc.concat(newValues));
         } else {
           setAllReportingCycles({
-            status: "success",
+            status: 'success',
             data: acc.concat(newValues),
           });
         }
       } catch (err) {
         console.error(err);
-        setAllReportingCycles({ status: "failure", data: [] });
+        setAllReportingCycles({ status: 'failure', data: [] });
       }
     }
 
@@ -726,7 +723,7 @@ function WaterbodyReport() {
   }, [auId, configFiles]);
 
   const [waterbodyActions, setWaterbodyActions] = useState({
-    status: "fetching",
+    status: 'fetching',
     data: [],
   });
 
@@ -738,15 +735,15 @@ function WaterbodyReport() {
     getPollutantsFromAction(configFiles.data.services, parameters)
       .then((res) => {
         if (res.length === 0) {
-          setWaterbodyActions({ status: "pending", data: [] });
+          setWaterbodyActions({ status: 'pending', data: [] });
           return;
         }
 
-        setWaterbodyActions({ status: "pending", data: res });
+        setWaterbodyActions({ status: 'pending', data: res });
       })
       .catch((ex) => {
         console.error(ex);
-        setWaterbodyActions({ status: "failure", data: [] });
+        setWaterbodyActions({ status: 'failure', data: [] });
       });
   }, [auId, configFiles, orgId]);
 
@@ -758,8 +755,8 @@ function WaterbodyReport() {
 
   useEffect(() => {
     if (actionsFetchedAgain) return;
-    if (allParameterActionIds.status === "fetching") return;
-    if (waterbodyActions.status !== "pending") return;
+    if (allParameterActionIds.status === 'fetching') return;
+    if (waterbodyActions.status !== 'pending') return;
 
     // action ids from the initial attains 'actions' web service call
     const initialIds = waterbodyActions.data.map((a) => a.id);
@@ -775,13 +772,13 @@ function WaterbodyReport() {
     // 'actions' web service call
     if (additionalIds.length === 0) {
       setWaterbodyActions((actions) => ({
-        status: "success",
+        status: 'success',
         data: actions.data,
       }));
       return;
     }
 
-    const parameters = `organizationIdentifier=${orgId}&actionIdentifier=${additionalIds.join(",")}`;
+    const parameters = `organizationIdentifier=${orgId}&actionIdentifier=${additionalIds.join(',')}`;
 
     setActionsFetchedAgain(true);
 
@@ -791,7 +788,7 @@ function WaterbodyReport() {
           // if there are no new items (there should be), at least use the
           // data from the initial attains 'actions' web service call
           setWaterbodyActions((actions) => ({
-            status: "success",
+            status: 'success',
             data: actions.data,
           }));
           return;
@@ -800,7 +797,7 @@ function WaterbodyReport() {
         // append additional actions to the data from the initial attains
         // 'actions' web service call
         setWaterbodyActions((actions) => ({
-          status: "success",
+          status: 'success',
           data: actions.data.concat(...additionalActions),
         }));
       })
@@ -810,7 +807,7 @@ function WaterbodyReport() {
         // if the request failed, at least use the data from the initial
         // attains 'actions' web service call
         setWaterbodyActions((actions) => ({
-          status: "success",
+          status: 'success',
           data: actions.data,
         }));
       });
@@ -844,23 +841,23 @@ function WaterbodyReport() {
   ]);
 
   const otherReportingCycles = allReportingCycles.data.filter(
-    (year) => year !== parseInt(reportingCycleFetch.year)
+    (year) => year !== parseInt(reportingCycleFetch.year),
   );
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
       <h3 css={infoBoxHeadingStyles}>
-        {waterbodyStatus.status === "fetching" && <LoadingSpinner />}
+        {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
 
-        {waterbodyStatus.status === "success" && (
+        {waterbodyStatus.status === 'success' && (
           <span>
             <WaterbodyIcon
               condition={
                 waterbodyStatus.data.condition === conditions.good
-                  ? "good"
+                  ? 'good'
                   : waterbodyStatus.data.condition === conditions.impaired
-                    ? "polluted"
-                    : "unassessed"
+                    ? 'polluted'
+                    : 'unassessed'
               }
               selected={false}
             />
@@ -876,22 +873,22 @@ function WaterbodyReport() {
 
       <div css={inlineBoxSectionStyles}>
         <h4>Waterbody Condition:</h4>
-        {waterbodyStatus.status === "fetching" && <LoadingSpinner />}
-        {waterbodyStatus.status === "failure" && (
+        {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
+        {waterbodyStatus.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError("Assessment")}</p>
+            <p>{waterbodyReportError('Assessment')}</p>
           </div>
         )}
-        {waterbodyStatus.status === "success" && (
+        {waterbodyStatus.status === 'success' && (
           <p>
-            &nbsp;{" "}
+            &nbsp;{' '}
             <GlossaryTerm
               term={
                 waterbodyStatus.data.condition === conditions.good
-                  ? "Good Waters"
+                  ? 'Good Waters'
                   : waterbodyStatus.data.condition === conditions.impaired
-                    ? "Impaired Waters"
-                    : "Condition Unknown"
+                    ? 'Impaired Waters'
+                    : 'Condition Unknown'
               }
             >
               {waterbodyStatus.data.condition}
@@ -902,14 +899,14 @@ function WaterbodyReport() {
 
       <div css={inlineBoxSectionStyles}>
         <h4>Existing Plans for Restoration:</h4>
-        {waterbodyStatus.status === "fetching" && <LoadingSpinner />}
+        {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
 
-        {waterbodyStatus.status === "failure" && (
+        {waterbodyStatus.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError("Assessment")}</p>
+            <p>{waterbodyReportError('Assessment')}</p>
           </div>
         )}
-        {waterbodyStatus.status === "success" && (
+        {waterbodyStatus.status === 'success' && (
           <p>&nbsp; {waterbodyStatus.data.planForRestoration}</p>
         )}
       </div>
@@ -921,44 +918,44 @@ function WaterbodyReport() {
           </GlossaryTerm>
           :
         </h4>
-        {waterbodyStatus.status === "fetching" && <LoadingSpinner />}
-        {waterbodyStatus.status === "failure" && (
+        {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
+        {waterbodyStatus.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError("Assessment")}</p>
+            <p>{waterbodyReportError('Assessment')}</p>
           </div>
         )}
-        {waterbodyStatus.status === "success" && (
+        {waterbodyStatus.status === 'success' && (
           <p>&nbsp; {waterbodyStatus.data.listed303d}</p>
         )}
       </div>
 
       <div css={inlineBoxSectionStyles}>
         <h4>Year Reported:</h4>
-        {reportingCycleFetch.status === "fetching" && <LoadingSpinner />}
-        {reportingCycleFetch.status === "failure" && (
+        {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
+        {reportingCycleFetch.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError("Assessment")}</p>
+            <p>{waterbodyReportError('Assessment')}</p>
           </div>
         )}
-        {reportingCycleFetch.status === "success" && (
+        {reportingCycleFetch.status === 'success' && (
           <p>&nbsp; {reportingCycleFetch.year}</p>
         )}
       </div>
 
       <div css={inlineBoxSectionStyles}>
         <h4>Other Years Reported:</h4>
-        {(allReportingCycles.status === "fetching" ||
-          reportingCycleFetch.status === "fetching") && <LoadingSpinner />}
-        {(allReportingCycles.status === "failure" ||
-          reportingCycleFetch.status === "failure") && (
+        {(allReportingCycles.status === 'fetching' ||
+          reportingCycleFetch.status === 'fetching') && <LoadingSpinner />}
+        {(allReportingCycles.status === 'failure' ||
+          reportingCycleFetch.status === 'failure') && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError("Assessment")}</p>
+            <p>{waterbodyReportError('Assessment')}</p>
           </div>
         )}
-        {allReportingCycles.status === "success" &&
-          reportingCycleFetch.status === "success" && (
+        {allReportingCycles.status === 'success' &&
+          reportingCycleFetch.status === 'success' && (
             <p>
-              &nbsp;{" "}
+              &nbsp;{' '}
               {otherReportingCycles.length > 0 ? (
                 <>
                   {otherReportingCycles
@@ -972,11 +969,11 @@ function WaterbodyReport() {
                         {year}
                       </a>
                     ))
-                    .reduce((prev, curr) => [prev, ", ", curr])}{" "}
+                    .reduce((prev, curr) => [prev, ', ', curr])}{' '}
                   <small>(opens new browser tab)</small>
                 </>
               ) : (
-                "None"
+                'None'
               )}
             </p>
           )}
@@ -984,13 +981,13 @@ function WaterbodyReport() {
 
       <div css={inlineBoxSectionStyles}>
         <h4>Organization Name (ID):&nbsp;</h4>
-        {reportingCycleFetch.status === "fetching" && <LoadingSpinner />}
-        {reportingCycleFetch.status === "failure" && (
+        {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
+        {reportingCycleFetch.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError("Assessment")}</p>
+            <p>{waterbodyReportError('Assessment')}</p>
           </div>
         )}
-        {reportingCycleFetch.status === "success" && (
+        {reportingCycleFetch.status === 'success' && (
           <p>
             {organizationName.name} ({orgId})
           </p>
@@ -999,14 +996,14 @@ function WaterbodyReport() {
 
       <div css={boxSectionStyles}>
         <h4>What type of water is this?</h4>
-        {waterbodyTypes.status === "fetching" && <LoadingSpinner />}
-        {waterbodyTypes.status === "failure" && (
+        {waterbodyTypes.status === 'fetching' && <LoadingSpinner />}
+        {waterbodyTypes.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError("Assessment unit")}</p>
+            <p>{waterbodyReportError('Assessment unit')}</p>
           </div>
         )}
 
-        {waterbodyTypes.status === "success" && (
+        {waterbodyTypes.status === 'success' && (
           <>
             {waterbodyTypes.data.length === 0 && <p>Waterbody type unknown.</p>}
 
@@ -1015,7 +1012,7 @@ function WaterbodyReport() {
                 .sort((a, b) => a.code.localeCompare(b.code))
                 .map((type) => (
                   <p key={type.code}>
-                    {titleCaseWithExceptions(type.code)} ({type.size}{" "}
+                    {titleCaseWithExceptions(type.code)} ({type.size}{' '}
                     {type.units})
                   </p>
                 ))}
@@ -1025,15 +1022,15 @@ function WaterbodyReport() {
 
       <div css={boxSectionStyles}>
         <h4>Where is this water located?</h4>
-        {waterbodyLocation.status === "fetching" && <LoadingSpinner />}
+        {waterbodyLocation.status === 'fetching' && <LoadingSpinner />}
 
-        {waterbodyLocation.status === "failure" && (
+        {waterbodyLocation.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError("Assessment unit")}</p>
+            <p>{waterbodyReportError('Assessment unit')}</p>
           </div>
         )}
 
-        {waterbodyLocation.status === "success" && (
+        {waterbodyLocation.status === 'success' && (
           <p>{waterbodyLocation.text}</p>
         )}
       </div>
@@ -1048,8 +1045,8 @@ function WaterbodyReport() {
         <div css={containerStyles}>
           <div css={pageErrorBoxStyles}>
             <p>
-              No waterbodies available for the provided Organization ID:{" "}
-              <strong>{orgId}</strong> and Assessment Unit ID:{" "}
+              No waterbodies available for the provided Organization ID:{' '}
+              <strong>{orgId}</strong> and Assessment Unit ID:{' '}
               <strong>{auId}</strong>.
             </p>
           </div>
@@ -1058,7 +1055,7 @@ function WaterbodyReport() {
     );
   }
 
-  if (waterbodyStatus.status === "no-data") {
+  if (waterbodyStatus.status === 'no-data') {
     return (
       <Page>
         <NavBar title="Plan Summary" />
@@ -1066,12 +1063,12 @@ function WaterbodyReport() {
         <div css={containerStyles}>
           <div css={pageErrorBoxStyles}>
             <p>
-              Assessment{" "}
+              Assessment{' '}
               <strong>
                 {waterbodyName} ({auId})
-              </strong>{" "}
+              </strong>{' '}
               has no data available
-              {reportingCycle ? ` for ${reportingCycle}` : ""}.
+              {reportingCycle ? ` for ${reportingCycle}` : ''}.
             </p>
           </div>
         </div>
@@ -1087,8 +1084,8 @@ function WaterbodyReport() {
       <NavBar title="Waterbody Report" />
 
       <div css={containerStyles} data-content="container">
-        {reportingCycleFetch.status === "success" &&
-          allReportingCycles.status === "success" &&
+        {reportingCycleFetch.status === 'success' &&
+          allReportingCycles.status === 'success' &&
           latestReportingCycle > reportingCycleFetch.year && (
             <div css={infoBoxContainerStyles}>
               <div css={infoBoxStyles}>
@@ -1124,7 +1121,7 @@ function WaterbodyReport() {
                         {(mapShown) => (
                           <div
                             style={{
-                              display: mapShown ? "block" : "none",
+                              display: mapShown ? 'block' : 'none',
                               height: height - 40,
                             }}
                           >
@@ -1145,7 +1142,7 @@ function WaterbodyReport() {
                         id="waterbody-report-map"
                         style={{
                           height: height - infoHeight - 70,
-                          minHeight: "400px",
+                          minHeight: '400px',
                         }}
                       >
                         <ActionsMap
@@ -1171,23 +1168,23 @@ function WaterbodyReport() {
 
                   <div css={boxStyles}>
                     <h3 css={boxHeadingStyles}>
-                      Assessment Information{" "}
-                      {reportingCycleFetch.status === "success" && (
+                      Assessment Information{' '}
+                      {reportingCycleFetch.status === 'success' && (
                         <>from {reportingCycleFetch.year}</>
                       )}
                     </h3>
 
                     <div css={modifiedBoxSectionStyles}>
                       <h4>State or Tribal Nation specific designated uses:</h4>
-                      {waterbodyUses.status === "fetching" && (
+                      {waterbodyUses.status === 'fetching' && (
                         <LoadingSpinner />
                       )}
-                      {waterbodyUses.status === "failure" && (
+                      {waterbodyUses.status === 'failure' && (
                         <div css={modifiedErrorBoxStyles}>
-                          <p>{waterbodyReportError("Assessment")}</p>
+                          <p>{waterbodyReportError('Assessment')}</p>
                         </div>
                       )}
-                      {waterbodyUses.status === "success" && (
+                      {waterbodyUses.status === 'success' && (
                         <>
                           {waterbodyUses.data.length === 0 ? (
                             <p>
@@ -1220,7 +1217,7 @@ function WaterbodyReport() {
                                         <span
                                           css={waterbodyUseStatusStyles(
                                             use.status.textColor,
-                                            use.status.bgColor
+                                            use.status.bgColor,
                                           )}
                                         >
                                           {use.status.text}
@@ -1242,19 +1239,19 @@ function WaterbodyReport() {
                     <div css={boxSectionStyles}>
                       <h4>
                         Probable sources contributing to impairment
-                        {reportingCycleFetch.status === "success" &&
+                        {reportingCycleFetch.status === 'success' &&
                           ` from ${reportingCycleFetch.year}`}
                         :
                       </h4>
-                      {waterbodySources.status === "fetching" && (
+                      {waterbodySources.status === 'fetching' && (
                         <LoadingSpinner />
                       )}
-                      {waterbodySources.status === "failure" && (
+                      {waterbodySources.status === 'failure' && (
                         <div css={modifiedErrorBoxStyles}>
-                          <p>{waterbodyReportError("Assessment")}</p>
+                          <p>{waterbodyReportError('Assessment')}</p>
                         </div>
                       )}
-                      {waterbodySources.status === "success" && (
+                      {waterbodySources.status === 'success' && (
                         <>
                           {waterbodySources.data.length === 0 ? (
                             <div css={modifiedInfoBoxStyles}>
@@ -1274,21 +1271,21 @@ function WaterbodyReport() {
 
                                 return [
                                   {
-                                    Header: "Source",
-                                    accessor: "source",
+                                    Header: 'Source',
+                                    accessor: 'source',
                                     width: columnWidth,
                                     filterable: true,
                                   },
                                   {
-                                    id: "parameters",
-                                    Header: "Parameter",
-                                    accessor: "parameter",
+                                    id: 'parameters',
+                                    Header: 'Parameter',
+                                    accessor: 'parameter',
                                     width: columnWidth,
                                     filterable: true,
                                   },
                                   {
-                                    Header: "Confirmed",
-                                    accessor: "confirmed",
+                                    Header: 'Confirmed',
+                                    accessor: 'confirmed',
                                     width: halfColumnWidth,
                                     filterable: true,
                                   },
@@ -1305,13 +1302,13 @@ function WaterbodyReport() {
                     <h3 css={boxHeadingStyles}>Assessment Documents</h3>
 
                     <div css={boxSectionStyles}>
-                      {documents.status === "fetching" && <LoadingSpinner />}
-                      {documents.status === "failure" && (
+                      {documents.status === 'fetching' && <LoadingSpinner />}
+                      {documents.status === 'failure' && (
                         <div css={modifiedErrorBoxStyles}>
-                          <p>{waterbodyReportError("Assessment")}</p>
+                          <p>{waterbodyReportError('Assessment')}</p>
                         </div>
                       )}
-                      {documents.status === "success" && (
+                      {documents.status === 'success' && (
                         <>
                           {documents.data.length === 0 ? (
                             <div css={modifiedInfoBoxStyles}>
@@ -1368,16 +1365,16 @@ function WaterbodyReport() {
                         What plans are in place to protect or restore water
                         quality?
                       </h4>
-                      {(waterbodyActions.status === "fetching" ||
-                        waterbodyActions.status === "pending") && (
+                      {(waterbodyActions.status === 'fetching' ||
+                        waterbodyActions.status === 'pending') && (
                         <LoadingSpinner />
                       )}
-                      {waterbodyActions.status === "failure" && (
+                      {waterbodyActions.status === 'failure' && (
                         <div css={modifiedErrorBoxStyles}>
-                          <p>{waterbodyReportError("Plans")}</p>
+                          <p>{waterbodyReportError('Plans')}</p>
                         </div>
                       )}
-                      {waterbodyActions.status === "success" && (
+                      {waterbodyActions.status === 'success' && (
                         <>
                           {waterbodyActions.data.length === 0 ? (
                             <div css={modifiedInfoBoxStyles}>
@@ -1398,7 +1395,7 @@ function WaterbodyReport() {
                                 <tbody>
                                   {waterbodyActions.data
                                     .sort((a, b) =>
-                                      a.name.localeCompare(b.name)
+                                      a.name.localeCompare(b.name),
                                     )
                                     .map((action) => (
                                       <tr key={action.id}>
@@ -1409,7 +1406,7 @@ function WaterbodyReport() {
                                             rel="noopener noreferrer"
                                           >
                                             {titleCaseWithExceptions(
-                                              action.name
+                                              action.name,
                                             )}
                                           </a>
                                         </td>
@@ -1421,15 +1418,15 @@ function WaterbodyReport() {
                                             <>
                                               {action.pollutants
                                                 .sort((a, b) =>
-                                                  a.localeCompare(b)
+                                                  a.localeCompare(b),
                                                 )
-                                                .join(", ")}
+                                                .join(', ')}
                                             </>
                                           )}
                                         </td>
                                         <td>
                                           {mapRestorationPlanToGlossary(
-                                            action.type
+                                            action.type,
                                           )}
                                         </td>
                                         <td css={dateCellStyles}>
@@ -1456,17 +1453,17 @@ function WaterbodyReport() {
 
                         <div css={boxSectionStyles}>
                           <h4>Does this water have monitoring locations?</h4>
-                          {monitoringLocations.status === "fetching" && (
+                          {monitoringLocations.status === 'fetching' && (
                             <LoadingSpinner />
                           )}
-                          {monitoringLocations.status === "failure" && (
+                          {monitoringLocations.status === 'failure' && (
                             <div css={modifiedErrorBoxStyles}>
                               <p>
-                                {waterbodyReportError("Monitoring location")}
+                                {waterbodyReportError('Monitoring location')}
                               </p>
                             </div>
                           )}
-                          {monitoringLocations.status === "success" && (
+                          {monitoringLocations.status === 'success' && (
                             <ul css={locationsStyles}>
                               {monitoringLocations.data.map((location) => {
                                 const { orgId, locId, name, url } = location;
@@ -1519,10 +1516,10 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
 
   // create parameters object from all categories, excluding pollutants
   const parameters = {
-    "Assessed Good": categories.assessedGood,
-    "Insufficient Information": categories.insufficentInfo,
-    "Other Characteristics Observed": categories.otherObserved,
-    "Of Concern": categories.ofConcern,
+    'Assessed Good': categories.assessedGood,
+    'Insufficient Information': categories.insufficentInfo,
+    'Other Characteristics Observed': categories.otherObserved,
+    'Of Concern': categories.ofConcern,
   };
 
   const noParameterData =
@@ -1557,7 +1554,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
               .map((pollutant) => (
                 <tr key={pollutant.name}>
                   <td>{titleCaseWithExceptions(pollutant.name)}</td>
-                  <td>{pollutant.planInPlace ? "Yes" : "No"}</td>
+                  <td>{pollutant.planInPlace ? 'Yes' : 'No'}</td>
                 </tr>
               ))}
           </tbody>

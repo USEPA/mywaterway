@@ -2,10 +2,10 @@
 
 import { css } from '@emotion/react';
 // contexts
-import { useLayers } from '@/contexts/Layers';
-import { useMapHighlightState } from '@/contexts/MapHighlight';
+import { useLayers } from 'contexts/Layers';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
-import { noMapDataWarningStyles } from '@/styles/index';
+import { noMapDataWarningStyles } from 'styles/index';
 
 const buttonStyles = css`
   margin-bottom: 0;

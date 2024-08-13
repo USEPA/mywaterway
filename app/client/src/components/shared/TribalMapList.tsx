@@ -15,41 +15,38 @@ import Viewpoint from '@arcgis/core/Viewpoint';
 import {
   AccordionList,
   AccordionItem,
-} from '@/components/shared/AccordionMapHighlight';
-import CharacteristicsSelect from '@/components/shared/CharacteristicsSelect';
+} from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import {
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,
   keyMetricLabelStyles,
-} from '@/components/shared/KeyMetrics';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import Map from '@/components/shared/Map';
-import MapErrorBoundary from '@/components/shared/ErrorBoundary.MapErrorBoundary';
-import MapLoadingSpinner from '@/components/shared/MapLoadingSpinner';
-import MapVisibilityButton from '@/components/shared/MapVisibilityButton';
-import Switch from '@/components/shared/Switch';
-import ViewOnMapButton from '@/components/shared/ViewOnMapButton';
-import WaterbodyInfo from '@/components/shared/WaterbodyInfo';
-import WaterbodyList from '@/components/shared/WaterbodyList';
+} from 'components/shared/KeyMetrics';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import Map from 'components/shared/Map';
+import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
+import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
+import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import Switch from 'components/shared/Switch';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import WaterbodyList from 'components/shared/WaterbodyList';
 // styled components
-import { largeTabStyles } from '@/components/shared/ContentTabs.LargeTab.js';
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from '@/components/shared/MessageBoxes';
+import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import {
   LocationSearchContext,
   LocationSearchProvider,
-} from '@/contexts/locationSearch';
-import { LayersProvider, useLayers } from '@/contexts/Layers';
+} from 'contexts/locationSearch';
+import { LayersProvider, useLayers } from 'contexts/Layers';
 import {
   useMapHighlightState,
   MapHighlightProvider,
-} from '@/contexts/MapHighlight';
-import { StateTribalTabsContext } from '@/contexts/StateTribalTabs';
+} from 'contexts/MapHighlight';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import {
   useCyanWaterbodiesLayers,
@@ -59,17 +56,17 @@ import {
   useSharedLayers,
   useStreamgageLayers,
   useWaterbodyHighlight,
-} from '@/utils/hooks';
+} from 'utils/hooks';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
   getPopupTitle,
   getPopupContent,
-} from '@/utils/mapFunctions';
+} from 'utils/mapFunctions';
 import {
   browserIsCompatibleWithArcGIS,
   countOrNotAvailable,
-} from '@/utils/utils';
+} from 'utils/utils';
 // errors
 import {
   esriMapLoadingFailure,
@@ -77,9 +74,9 @@ import {
   tribalBoundaryErrorMessage,
   yearLastReportedShortError,
   zeroAssessedWaterbodies,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 // styles
-import { tabsStyles } from '@/components/shared/ContentTabs';
+import { tabsStyles } from 'components/shared/ContentTabs';
 // types
 import type { ReactNode } from 'react';
 

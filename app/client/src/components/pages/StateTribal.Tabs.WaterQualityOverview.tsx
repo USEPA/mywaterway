@@ -5,43 +5,43 @@ import { css } from '@emotion/react';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
 // components
-import { tabsStyles, tabPanelStyles } from '@/components/shared/ContentTabs';
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import DynamicExitDisclaimer from '@/components/shared/DynamicExitDisclaimer';
+import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import {
   AquaticLifeIcon,
   DrinkingWaterIcon,
   EatingFishIcon,
   OtherIcon,
   SwimmingIcon,
-} from '@/components/shared/Icons';
-import WaterSystemSummary from '@/components/shared/WaterSystemSummary';
-import SurveyResults from '@/components/pages/StateTribal.Tabs.WaterQualityOverview.SurveyResults';
-import SiteSpecific from '@/components/pages/StateTribal.Tabs.WaterQualityOverview.SiteSpecific';
-import Documents from '@/components/pages/StateTribal.Tabs.WaterQualityOverview.Documents';
-import Stories from '@/components/pages/StateTribal.Tabs.WaterQualityOverview.Stories';
+} from 'components/shared/Icons';
+import WaterSystemSummary from 'components/shared/WaterSystemSummary';
+import SurveyResults from 'components/pages/StateTribal.Tabs.WaterQualityOverview.SurveyResults';
+import SiteSpecific from 'components/pages/StateTribal.Tabs.WaterQualityOverview.SiteSpecific';
+import Documents from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Documents';
+import Stories from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Stories';
 // styled components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
-import { colors, reactSelectStyles } from '@/styles/index';
-import { h2Styles, h3Styles, h4Styles } from '@/styles/stateTribal';
+import { colors, reactSelectStyles } from 'styles/index';
+import { h2Styles, h3Styles, h4Styles } from 'styles/stateTribal';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { StateTribalTabsContext } from '@/contexts/StateTribalTabs';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
-import { fetchCheck } from '@/utils/fetchUtils';
-import { isAbort, normalizeString, titleCase } from '@/utils/utils';
-import { useAbort } from '@/utils/hooks';
+import { fetchCheck } from 'utils/fetchUtils';
+import { isAbort, normalizeString, titleCase } from 'utils/utils';
+import { useAbort } from 'utils/hooks';
 // images
-import drinkingWaterIcon from '@/images/drinking-water.png';
+import drinkingWaterIcon from 'images/drinking-water.png';
 // errors
 import {
   stateSurveySectionError,
   stateGeneralError,
   stateMetricsError,
   stateNoDataError,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 function relabelWaterType(oldLabel, waterTypeOptions) {
   let newLabel = 'Other Types';

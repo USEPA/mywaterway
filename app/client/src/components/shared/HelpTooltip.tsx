@@ -5,7 +5,7 @@ import { TooltipPopup, useTooltip } from '@reach/tooltip';
 import { css } from '@emotion/react';
 // styles
 import '@reach/tooltip/styles.css';
-import { colors, iconButtonStyles } from '@/styles';
+import { colors, iconButtonStyles } from 'styles';
 // types
 import type { Position } from '@reach/tooltip';
 import type { ReactElement, ReactNode, Ref } from 'react';

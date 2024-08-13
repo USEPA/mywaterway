@@ -3,15 +3,15 @@
 import { css } from '@emotion/react';
 import { Link } from 'react-router-dom';
 // components
-import Page from '@/components/shared/Page';
-import LocationSearch from '@/components/shared/LocationSearch';
+import Page from 'components/shared/Page';
+import LocationSearch from 'components/shared/LocationSearch';
 import {
   AquaticLifeIcon,
   DrinkingWaterIcon,
   EatingFishIcon,
   SwimmingIcon,
-} from '@/components/shared/Icons';
-import { DisclaimerModal } from '@/components/shared/Modal';
+} from 'components/shared/Icons';
+import { DisclaimerModal } from 'components/shared/Modal';
 // styled components
 import {
   topicButtonContainer,
@@ -19,9 +19,9 @@ import {
   topicButtonLinkStyles,
   threeButtonLinkStyles,
   fourButtonLinkStyles,
-} from '@/components/shared/ButtonLinks';
+} from 'components/shared/ButtonLinks';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   margin-bottom: 2.5em;

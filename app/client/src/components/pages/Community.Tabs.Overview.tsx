@@ -8,38 +8,35 @@ import { css } from '@emotion/react';
 import {
   AccordionList,
   AccordionItem,
-} from '@/components/shared/AccordionMapHighlight';
-import CharacteristicsSelect from '@/components/shared/CharacteristicsSelect';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+} from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   circleIcon,
   diamondIcon,
   squareIcon,
   waterwayIcon,
-} from '@/components/shared/MapLegend';
-import Switch from '@/components/shared/Switch';
-import WaterbodyList from '@/components/shared/WaterbodyList';
-import TabErrorBoundary from '@/components/shared/ErrorBoundary.TabErrorBoundary';
-import WaterbodyInfo from '@/components/shared/WaterbodyInfo';
-import ViewOnMapButton from '@/components/shared/ViewOnMapButton';
-import {
-  infoBoxStyles,
-  errorBoxStyles,
-} from '@/components/shared/MessageBoxes';
+} from 'components/shared/MapLegend';
+import Switch from 'components/shared/Switch';
+import WaterbodyList from 'components/shared/WaterbodyList';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import { infoBoxStyles, errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,
   keyMetricLabelStyles,
-} from '@/components/shared/KeyMetrics';
-import ShowLessMore from '@/components/shared/ShowLessMore';
-import { tabsStyles } from '@/components/shared/ContentTabs';
-import VirtualizedList from '@/components/shared/VirtualizedList';
+} from 'components/shared/KeyMetrics';
+import ShowLessMore from 'components/shared/ShowLessMore';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import {
   useCyanWaterbodies,
@@ -48,9 +45,9 @@ import {
   useStreamgages,
   useWaterbodyFeatures,
   useWaterbodyOnMap,
-} from '@/utils/hooks';
-import { getUniqueWaterbodies } from '@/utils/mapFunctions';
-import { countOrNotAvailable } from '@/utils/utils';
+} from 'utils/hooks';
+import { getUniqueWaterbodies } from 'utils/mapFunctions';
+import { countOrNotAvailable } from 'utils/utils';
 // errors
 import {
   cyanError,
@@ -58,9 +55,9 @@ import {
   streamgagesError,
   monitoringError,
   zeroAssessedWaterbodies,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 // styles
-import { colors, tabLegendStyles, toggleTableStyles } from '@/styles/index';
+import { colors, tabLegendStyles, toggleTableStyles } from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {

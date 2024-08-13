@@ -13,7 +13,7 @@ import type {
   MonitoringYearsRange,
   ParameterToggleObject,
   WatershedAttributes,
-} from '@/types';
+} from 'types';
 
 export const initialMonitoringGroups = (characteristicGroupMappings) => {
   return characteristicGroupMappings.reduce((groups, next) => {

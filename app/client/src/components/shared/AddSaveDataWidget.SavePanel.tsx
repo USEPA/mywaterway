@@ -8,23 +8,23 @@ import OAuthInfo from '@arcgis/core/identity/OAuthInfo';
 import Portal from '@arcgis/core/portal/Portal';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
-import { HelpTooltip } from '@/components/shared/HelpTooltip';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   errorBoxStyles,
   successBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import Switch from '@/components/shared/Switch';
+} from 'components/shared/MessageBoxes';
+import Switch from 'components/shared/Switch';
 // contexts
-import { useAddSaveDataWidgetState } from '@/contexts/AddSaveDataWidget';
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { LocationSearchContext, Status } from '@/contexts/locationSearch';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LocationSearchContext, Status } from 'contexts/locationSearch';
 // utils
-import { isServiceNameAvailable, publish } from '@/utils/arcGisRestUtils';
+import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
 import {
   getMappedParameter,
   hasDefinitionExpression,
-} from '@/utils/mapFunctions';
+} from 'utils/mapFunctions';
 // types
 import {
   DischargerPermitComponents,
@@ -34,8 +34,8 @@ import {
   MonitoringLocationGroups,
   MonitoringYearsRange,
   ParameterToggleObject,
-} from '@/types/index';
-import { LayerType, ServiceMetaDataType } from '@/types/arcGisOnline';
+} from 'types/index';
+import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
 
 type PublishType = {
   status:

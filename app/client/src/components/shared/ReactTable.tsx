@@ -11,7 +11,7 @@ import {
   useFilters,
 } from 'react-table';
 // components
-import { linkButtonStyles } from '@/components/shared/LinkButton';
+import { linkButtonStyles } from 'components/shared/LinkButton';
 
 const inputStyles = css`
   width: 100%;

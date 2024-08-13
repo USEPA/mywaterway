@@ -2,18 +2,18 @@
 
 import { css } from '@emotion/react';
 // components
-import DynamicExitDisclaimer from '@/components/shared/DynamicExitDisclaimer';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import ReactTable from '@/components/shared/ReactTable';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import ReactTable from 'components/shared/ReactTable';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
-import { getExtensionFromPath } from '@/utils/utils';
+import { getExtensionFromPath } from 'utils/utils';
 // styled components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
-import { h3Styles } from '@/styles/stateTribal';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { h3Styles } from 'styles/stateTribal';
 // errors
-import { stateDocumentError, stateSurveyError } from '@/config/errorMessages';
+import { stateDocumentError, stateSurveyError } from 'config/errorMessages';
 
 // Sorts the documents differently depending on the status provided.
 // If the status is success, the documents will be sorted using the ordering in the

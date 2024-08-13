@@ -18,9 +18,9 @@ import * as query from '@arcgis/core/rest/query';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
-import Map from '@/components/shared/Map';
-import MapLoadingSpinner from '@/components/shared/MapLoadingSpinner';
-import mapPin from '@/images/pin.png';
+import Map from 'components/shared/Map';
+import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
+import mapPin from 'images/pin.png';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -30,23 +30,23 @@ import {
   getUniqueWaterbodies,
   splitSuggestedSearch,
   getCountySymbol,
-} from '@/utils/mapFunctions';
-import MapErrorBoundary from '@/components/shared/ErrorBoundary.MapErrorBoundary';
+} from 'utils/mapFunctions';
+import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import {
   useFetchedDataDispatch,
   useOrganizationsData,
-} from '@/contexts/FetchedData';
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+} from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // errors
 import {
   geocodeError,
   noDataAvailableError,
   watersgeoError,
   esriMapLoadingFailure,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 // helpers
 import {
   useAbort,
@@ -59,8 +59,8 @@ import {
   useDischargersLayers,
   useMonitoringLocationsLayers,
   useStreamgageLayers,
-} from '@/utils/hooks';
-import { fetchCheck } from '@/utils/fetchUtils';
+} from 'utils/hooks';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   chunkArrayCharLength,
   isAbort,
@@ -70,9 +70,9 @@ import {
   browserIsCompatibleWithArcGIS,
   resetCanonicalLink,
   removeJsonLD,
-} from '@/utils/utils';
+} from 'utils/utils';
 // styled components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {

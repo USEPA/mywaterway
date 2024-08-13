@@ -5,9 +5,9 @@ import type { Node } from 'react';
 import { css, Global } from '@emotion/react';
 import Glossary from 'glossary-panel';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
-import { colors, fonts } from '@/styles/index';
+import { colors, fonts } from 'styles/index';
 
 const termStyles = css`
   span[data-term] {

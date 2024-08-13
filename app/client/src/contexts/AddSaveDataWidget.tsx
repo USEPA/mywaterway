@@ -1,8 +1,8 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 // types
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
-import type { WidgetLayer } from '@/types';
-import type { LayersType } from '@/types/arcGisOnline';
+import type { WidgetLayer } from 'types';
+import type { LayersType } from 'types/arcGisOnline';
 
 type SearchResultsState =
   | { status: 'idle' | 'fetching' | 'failure'; data: null }

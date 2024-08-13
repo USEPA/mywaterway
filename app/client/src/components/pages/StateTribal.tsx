@@ -5,42 +5,42 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 // components
-import Page from '@/components/shared/Page';
-import TabLinks from '@/components/shared/TabLinks';
-import ShowLessMore from '@/components/shared/ShowLessMore';
-import { DisclaimerModal } from '@/components/shared/Modal';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import Page from 'components/shared/Page';
+import TabLinks from 'components/shared/TabLinks';
+import ShowLessMore from 'components/shared/ShowLessMore';
+import { DisclaimerModal } from 'components/shared/Modal';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
-import { introBoxStyles } from '@/components/shared/IntroBox';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { introBoxStyles } from 'components/shared/IntroBox';
 import {
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,
   keyMetricLabelStyles,
-} from '@/components/shared/KeyMetrics';
+} from 'components/shared/KeyMetrics';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { useOrganizationsData } from '@/contexts/FetchedData';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useOrganizationsData } from 'contexts/FetchedData';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   StateTribalTabsContext,
   StateTribalTabsProvider,
-} from '@/contexts/StateTribalTabs';
+} from 'contexts/StateTribalTabs';
 // utilities
-import { fetchCheck } from '@/utils/fetchUtils';
-import { useKeyPress } from '@/utils/hooks';
-import { isClick } from '@/utils/utils';
+import { fetchCheck } from 'utils/fetchUtils';
+import { useKeyPress } from 'utils/hooks';
+import { isClick } from 'utils/utils';
 // styles
-import { reactSelectStyles } from '@/styles/index';
-import { h2Styles } from '@/styles/stateTribal';
+import { reactSelectStyles } from 'styles/index';
+import { h2Styles } from 'styles/stateTribal';
 // errors
 import {
   stateListError,
   stateGeneralError,
   stateNoDataError,
   usesStateSummaryServiceInvalidResponse,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 const allSources = ['All', 'State', 'Tribe'];
 

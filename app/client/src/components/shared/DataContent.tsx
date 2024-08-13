@@ -3,12 +3,12 @@
 import { useEffect } from 'react';
 import { css } from '@emotion/react';
 // components
-import { linkButtonStyles } from '@/components/shared/LinkButton';
+import { linkButtonStyles } from 'components/shared/LinkButton';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
-import { infoBoxStyles, textBoxStyles } from '@/components/shared/MessageBoxes';
-import { fonts } from '@/styles/index';
+import { infoBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
+import { fonts } from 'styles/index';
 
 function scrollToItem(id: string) {
   const item = document.getElementById(id);

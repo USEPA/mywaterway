@@ -3,26 +3,23 @@
 import { css } from '@emotion/react';
 import { Link } from 'react-router-dom';
 // components
-import Page from '@/components/shared/Page';
-import NavBar from '@/components/shared/NavBar';
-import LocationSearch from '@/components/shared/LocationSearch';
-import { DisclaimerModal } from '@/components/shared/Modal';
+import Page from 'components/shared/Page';
+import NavBar from 'components/shared/NavBar';
+import LocationSearch from 'components/shared/LocationSearch';
+import { DisclaimerModal } from 'components/shared/Modal';
 import {
   AquaticLifeIcon,
   DrinkingWaterIcon,
   EatingFishIcon,
   SwimmingIcon,
-} from '@/components/shared/Icons';
+} from 'components/shared/Icons';
 // styled components
-import {
-  searchTitleStyles,
-  topicTitleStyles,
-} from '@/components/shared/Topics';
+import { searchTitleStyles, topicTitleStyles } from 'components/shared/Topics';
 import {
   topicButtonContainer,
   topicButtonLinkStyles,
   threeButtonLinkStyles,
-} from '@/components/shared/ButtonLinks';
+} from 'components/shared/ButtonLinks';
 
 const disclaimerStyles = css`
   bottom: 1.25rem;

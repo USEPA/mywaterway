@@ -7,22 +7,22 @@ import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
 // components
-import NavBar from '@/components/shared/NavBar';
-import DataContent from '@/components/shared/DataContent';
-import AboutContent from '@/components/shared/AboutContent';
-import EducatorsContent from '@/components/shared/EducatorsContent';
-import GlossaryPanel, { GlossaryTerm } from '@/components/shared/GlossaryPanel';
+import NavBar from 'components/shared/NavBar';
+import DataContent from 'components/shared/DataContent';
+import AboutContent from 'components/shared/AboutContent';
+import EducatorsContent from 'components/shared/EducatorsContent';
+import GlossaryPanel, { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
 import {
   getEnvironmentString,
   logCallToGoogleAnalytics,
-} from '@/utils/fetchUtils';
+} from 'utils/fetchUtils';
 // styles
-import { colors, fonts } from '@/styles/index';
+import { colors, fonts } from 'styles/index';
 // images
-import waterPhoto from '@/images/water.jpg';
+import waterPhoto from 'images/water.jpg';
 
 const topLinksStyles = css`
   position: relative;

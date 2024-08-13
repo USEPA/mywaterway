@@ -8,18 +8,15 @@ import Field from '@arcgis/core/layers/support/Field';
 import Graphic from '@arcgis/core/Graphic';
 import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 // components
-import { DisclaimerModal } from '@/components/shared/Modal';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import {
-  errorBoxStyles,
-  noteBoxStyles,
-} from '@/components/shared/MessageBoxes';
+import { DisclaimerModal } from 'components/shared/Modal';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useAddSaveDataWidgetState } from '@/contexts/AddSaveDataWidget';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
-import { fetchPostFile, fetchPostForm } from '@/utils/fetchUtils';
-import { getSimplePopupTemplate } from '@/utils/utils';
+import { fetchPostFile, fetchPostForm } from 'utils/fetchUtils';
+import { getSimplePopupTemplate } from 'utils/utils';
 // config
 import {
   fileReadErrorMessage,
@@ -28,7 +25,7 @@ import {
   noDataMessage,
   uploadSuccessMessage,
   webServiceErrorMessage,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 /**
  * Gets the number from the last parentheses. If the value

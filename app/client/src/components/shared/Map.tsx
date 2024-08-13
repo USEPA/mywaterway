@@ -3,19 +3,16 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
-import FullscreenContainer from '@/components/shared/FullscreenContainer';
-import MapWidgets from '@/components/shared/MapWidgets';
-import MapMouseEvents from '@/components/shared/MapMouseEvents';
+import FullscreenContainer from 'components/shared/FullscreenContainer';
+import MapWidgets from 'components/shared/MapWidgets';
+import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
-import { useAddSaveDataWidgetState } from '@/contexts/AddSaveDataWidget';
-import { useFullscreenState, FullscreenProvider } from '@/contexts/Fullscreen';
-import {
-  initialExtent,
-  LocationSearchContext,
-} from '@/contexts/locationSearch';
-import { useLayers } from '@/contexts/Layers';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
+import { initialExtent, LocationSearchContext } from 'contexts/locationSearch';
+import { useLayers } from 'contexts/Layers';
 // types
-import type { LayerId } from '@/contexts/Layers';
+import type { LayerId } from 'contexts/Layers';
 import type { ReactNode } from 'react';
 
 type Props = {

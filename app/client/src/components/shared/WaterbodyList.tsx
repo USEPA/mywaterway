@@ -3,31 +3,28 @@
 import { useContext } from 'react';
 import { css } from '@emotion/react';
 // components
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import WaterbodyIcon from '@/components/shared/WaterbodyIcon';
-import WaterbodyInfo from '@/components/shared/WaterbodyInfo';
-import {
-  infoBoxStyles,
-  errorBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import ViewOnMapButton from '@/components/shared/ViewOnMapButton';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import WaterbodyIcon from 'components/shared/WaterbodyIcon';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import { infoBoxStyles, errorBoxStyles } from 'components/shared/MessageBoxes';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import {
   AccordionList,
   AccordionItem,
-} from '@/components/shared/AccordionMapHighlight';
+} from 'components/shared/AccordionMapHighlight';
 // utilities
 import {
   getWaterbodyCondition,
   getUniqueWaterbodies,
   getOrganizationLabel,
-} from '@/utils/mapFunctions';
+} from 'utils/mapFunctions';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // errors
-import { huc12SummaryError } from '@/config/errorMessages';
+import { huc12SummaryError } from 'config/errorMessages';
 // styles
-import { noMapDataWarningStyles } from '@/styles/index';
+import { noMapDataWarningStyles } from 'styles/index';
 
 const paragraphStyles = css`
   margin-bottom: 0.5em;

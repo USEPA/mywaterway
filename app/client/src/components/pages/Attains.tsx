@@ -3,19 +3,19 @@
 import { css } from '@emotion/react';
 import { useEffect, useState } from 'react';
 // components
-import Page from '@/components/shared/Page';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import NavBar from '@/components/shared/NavBar';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import ReactTable from '@/components/shared/ReactTable';
+import Page from 'components/shared/Page';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import NavBar from 'components/shared/NavBar';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import ReactTable from 'components/shared/ReactTable';
 // styled components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
-import { fetchCheck } from '@/utils/fetchUtils';
+import { fetchCheck } from 'utils/fetchUtils';
 // errors
-import { attainsParameterServiceError } from '@/config/errorMessages';
+import { attainsParameterServiceError } from 'config/errorMessages';
 
 function compareContextName(objA, objB) {
   return objA['context'].localeCompare(objB['context']);

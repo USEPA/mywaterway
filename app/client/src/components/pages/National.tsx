@@ -3,27 +3,27 @@
 import { css } from '@emotion/react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import Page from '@/components/shared/Page';
-import TabLinks from '@/components/shared/TabLinks';
-import { tabsStyles } from '@/components/shared/ContentTabs';
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
-import WaterSystemSummary from '@/components/shared/WaterSystemSummary';
-import { DisclaimerModal } from '@/components/shared/Modal';
-import { introBoxStyles } from '@/components/shared/IntroBox';
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import Page from 'components/shared/Page';
+import TabLinks from 'components/shared/TabLinks';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import WaterSystemSummary from 'components/shared/WaterSystemSummary';
+import { DisclaimerModal } from 'components/shared/Modal';
+import { introBoxStyles } from 'components/shared/IntroBox';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
-import { colors, fonts } from '@/styles/index';
+import { colors, fonts } from 'styles/index';
 // images
-import nutrientPollutionPhoto from '@/images/national-nutrient-pollution.jpg';
-import riversPhoto from '@/images/learn-more-rivers.jpg';
-import lakesPhoto from '@/images/learn-more-lakes.jpg';
-import coastsPhoto from '@/images/learn-more-coasts.jpg';
-import wetlandsPhoto from '@/images/learn-more-wetlands.jpg';
-import drinkingWaterIcon from '@/images/drinking-water.png';
+import nutrientPollutionPhoto from 'images/national-nutrient-pollution.jpg';
+import riversPhoto from 'images/learn-more-rivers.jpg';
+import lakesPhoto from 'images/learn-more-lakes.jpg';
+import coastsPhoto from 'images/learn-more-coasts.jpg';
+import wetlandsPhoto from 'images/learn-more-wetlands.jpg';
+import drinkingWaterIcon from 'images/drinking-water.png';
 // errors
-import { narsError } from '@/config/errorMessages';
+import { narsError } from 'config/errorMessages';
 
 const containerStyles = css`
   margin: auto;

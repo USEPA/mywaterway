@@ -6,52 +6,49 @@ import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
 // components
-import Page from '@/components/shared/Page';
-import NavBar from '@/components/shared/NavBar';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import Page from 'components/shared/Page';
+import NavBar from 'components/shared/NavBar';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   AccordionList,
   AccordionItem,
-} from '@/components/shared/AccordionMapHighlight';
-import ShowLessMore from '@/components/shared/ShowLessMore';
-import ActionsMap from '@/components/shared/ActionsMap';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import ViewOnMapButton from '@/components/shared/ViewOnMapButton';
-import MapVisibilityButton from '@/components/shared/MapVisibilityButton';
-import VirtualizedList from '@/components/shared/VirtualizedList';
-import DynamicExitDisclaimer from '@/components/shared/DynamicExitDisclaimer';
+} from 'components/shared/AccordionMapHighlight';
+import ShowLessMore from 'components/shared/ShowLessMore';
+import ActionsMap from 'components/shared/ActionsMap';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import VirtualizedList from 'components/shared/VirtualizedList';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 // styled components
-import {
-  errorBoxStyles,
-  textBoxStyles,
-} from '@/components/shared/MessageBoxes';
+import { errorBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
   splitLayoutColumnStyles,
-} from '@/components/shared/SplitLayout';
+} from 'components/shared/SplitLayout';
 import {
   boxStyles,
   boxHeadingStyles,
   boxSectionStyles,
-} from '@/components/shared/Box';
+} from 'components/shared/Box';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { LayersProvider } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
-import { MapHighlightProvider } from '@/contexts/MapHighlight';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LayersProvider } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
-import { fetchCheck } from '@/utils/fetchUtils';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   getOrganizationLabel,
   getTypeFromAttributes,
   mapRestorationPlanToGlossary,
-} from '@/utils/mapFunctions';
-import { chunkArrayCharLength } from '@/utils/utils';
+} from 'utils/mapFunctions';
+import { chunkArrayCharLength } from 'utils/utils';
 // styles
-import { colors, noMapDataWarningStyles } from '@/styles/index';
+import { colors, noMapDataWarningStyles } from 'styles/index';
 // errors
-import { actionsError, noActionsAvailableCombo } from '@/config/errorMessages';
+import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
 
 const echoUrl = 'https://echo.epa.gov/detailed-facility-report?fid=';
 

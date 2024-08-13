@@ -3,11 +3,11 @@
 import { css } from '@emotion/react';
 import { Component } from 'react';
 // components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { StateContext } from '@/contexts/ConfigFiles';
+import { StateContext } from 'contexts/ConfigFiles';
 // utilities
-import { createMarkup } from '@/utils/utils';
+import { createMarkup } from 'utils/utils';
 // types
 import type { Node } from 'react';
 

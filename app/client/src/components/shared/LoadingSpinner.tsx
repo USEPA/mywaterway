@@ -2,7 +2,7 @@
 
 import { css, keyframes } from '@emotion/react';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 
 const rotate = keyframes`
   0% {

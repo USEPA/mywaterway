@@ -1,4 +1,4 @@
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 import { css } from '@emotion/react';
 
 const linkButtonStyles = css`

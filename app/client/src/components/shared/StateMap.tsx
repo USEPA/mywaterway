@@ -9,26 +9,23 @@ import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
-import Map from '@/components/shared/Map';
-import MapLoadingSpinner from '@/components/shared/MapLoadingSpinner';
+import Map from 'components/shared/Map';
+import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
-} from '@/utils/mapFunctions';
-import MapErrorBoundary from '@/components/shared/ErrorBoundary.MapErrorBoundary';
+} from 'utils/mapFunctions';
+import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from '@/components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { useFetchedDataDispatch } from '@/contexts/FetchedData';
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
-import { useMapHighlightState } from '@/contexts/MapHighlight';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 // helpers
 import {
   useCyanWaterbodiesLayers,
@@ -37,14 +34,14 @@ import {
   useSharedLayers,
   useStreamgageLayers,
   useWaterbodyHighlight,
-} from '@/utils/hooks';
-import { browserIsCompatibleWithArcGIS } from '@/utils/utils';
+} from 'utils/hooks';
+import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // errors
 import {
   esriMapLoadingFailure,
   huc12SummaryError,
   stateNoGisDataError,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 let selectedGraphicGlobal = null;
 

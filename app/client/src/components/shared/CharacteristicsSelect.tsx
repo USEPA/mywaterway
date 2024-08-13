@@ -3,14 +3,14 @@
 import { useContext, useMemo } from 'react';
 import { css } from '@emotion/react';
 // components
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import PaginatedSelect from '@/components/shared/PaginatedSelect';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import PaginatedSelect from 'components/shared/PaginatedSelect';
 // contexts
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
-import { useMonitoringLocations } from '@/utils/hooks';
+import { useMonitoringLocations } from 'utils/hooks';
 // styles
-import { groupHeadingStyles } from '@/styles/index';
+import { groupHeadingStyles } from 'styles/index';
 
 export default CharacteristicsSelect;
 export function CharacteristicsSelect({

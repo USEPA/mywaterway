@@ -7,26 +7,23 @@ import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
 // components
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
-import DynamicExitDisclaimer from '@/components/shared/DynamicExitDisclaimer';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { DisclaimerModal } from '@/components/shared/Modal';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { DisclaimerModal } from 'components/shared/Modal';
 // styled components
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from '@/components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { StateTribalTabsContext } from '@/contexts/StateTribalTabs';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
-import { formatNumber } from '@/utils/utils';
+import { formatNumber } from 'utils/utils';
 // styles
-import { fonts, colors } from '@/styles/index';
-import { h3Styles } from '@/styles/stateTribal';
+import { fonts, colors } from 'styles/index';
+import { h3Styles } from 'styles/stateTribal';
 // errors
-import { fishingAdvisoryError } from '@/config/errorMessages';
+import { fishingAdvisoryError } from 'config/errorMessages';
 
 // add exporting features to highcharts
 highchartsExporting(Highcharts);

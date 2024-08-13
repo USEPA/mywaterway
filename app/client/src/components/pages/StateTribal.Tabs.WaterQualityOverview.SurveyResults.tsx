@@ -9,21 +9,21 @@ import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
 import Select from 'react-select';
 // components
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 // styled components
-import { h3Styles } from '@/styles/stateTribal';
+import { h3Styles } from 'styles/stateTribal';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
 import {
   formatNumber,
   normalizeString,
   titleCase,
   titleCaseWithExceptions,
-} from '@/utils/utils';
+} from 'utils/utils';
 // styles
-import { fonts, colors, reactSelectStyles } from '@/styles/index';
+import { fonts, colors, reactSelectStyles } from 'styles/index';
 
 // add exporting features to highcharts
 highchartsExporting(Highcharts);

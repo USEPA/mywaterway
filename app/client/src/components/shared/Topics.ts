@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { fonts } from '@/styles';
+import { fonts } from 'styles';
 
 const searchTitleStyles = css`
   padding: 1rem;

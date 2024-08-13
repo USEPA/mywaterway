@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { fonts } from '@/styles';
+import { fonts } from 'styles';
 
 export const h2Styles = css`
   margin-top: 0.75rem;

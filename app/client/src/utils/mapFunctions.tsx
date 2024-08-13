@@ -9,18 +9,18 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Popup from '@arcgis/core/widgets/Popup';
 // components
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import { MapPopup } from '@/components/shared/WaterbodyInfo';
-import { colors } from '@/styles';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { MapPopup } from 'components/shared/WaterbodyInfo';
+import { colors } from 'styles';
 // contexts
-import { ConfigFiles } from '@/contexts/ConfigFiles';
+import { ConfigFiles } from 'contexts/ConfigFiles';
 // utilities
-import { fetchCheck } from '@/utils/fetchUtils';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   getSelectedCommunityTab,
   titleCase,
   titleCaseWithExceptions,
-} from '@/utils/utils';
+} from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
@@ -37,7 +37,7 @@ import type {
   VillageAttributes,
   WaterbodyAttributes,
   WaterbodyCondition,
-} from '@/types';
+} from 'types';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },

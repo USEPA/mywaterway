@@ -2,34 +2,34 @@
 
 import React, { Fragment, useContext } from 'react';
 // components
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import Overview from '@/components/pages/Community.Tabs.Overview';
-import DrinkingWater from '@/components/pages/Community.Tabs.DrinkingWater';
-import Swimming from '@/components/pages/Community.Tabs.Swimming';
-import EatingFish from '@/components/pages/Community.Tabs.EatingFish';
-import AquaticLife from '@/components/pages/Community.Tabs.AquaticLife';
-import Monitoring from '@/components/pages/Community.Tabs.Monitoring';
-import IdentifiedIssues from '@/components/pages/Community.Tabs.IdentifiedIssues';
-import Restore from '@/components/pages/Community.Tabs.Restore';
-import Protect from '@/components/pages/Community.Tabs.Protect';
-import ExtremeWeather from '@/components/pages/Community.Tabs.ExtremeWeather';
-import { DisclaimerModal } from '@/components/shared/Modal';
-import ShowLessMore from '@/components/shared/ShowLessMore';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import Overview from 'components/pages/Community.Tabs.Overview';
+import DrinkingWater from 'components/pages/Community.Tabs.DrinkingWater';
+import Swimming from 'components/pages/Community.Tabs.Swimming';
+import EatingFish from 'components/pages/Community.Tabs.EatingFish';
+import AquaticLife from 'components/pages/Community.Tabs.AquaticLife';
+import Monitoring from 'components/pages/Community.Tabs.Monitoring';
+import IdentifiedIssues from 'components/pages/Community.Tabs.IdentifiedIssues';
+import Restore from 'components/pages/Community.Tabs.Restore';
+import Protect from 'components/pages/Community.Tabs.Protect';
+import ExtremeWeather from 'components/pages/Community.Tabs.ExtremeWeather';
+import { DisclaimerModal } from 'components/shared/Modal';
+import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // styles
-import { paragraphStyles } from '@/styles';
+import { paragraphStyles } from 'styles';
 // images
-import overviewIcon from '@/images/overview.png';
-import drinkingWaterIcon from '@/images/drinking-water.png';
-import swimmingIcon from '@/images/swimming.png';
-import eatingfishIcon from '@/images/eating-fish.png';
-import aquaticLifeIcon from '@/images/aquatic-life.png';
-import monitoringIcon from '@/images/monitoring.png';
-import identifiedIssuesIcon from '@/images/identified-issues.png';
-import restoreIcon from '@/images/restore.png';
-import protectIcon from '@/images/protect.png';
-import extremeWeatherIcon from '@/images/extreme-weather.png';
+import overviewIcon from 'images/overview.png';
+import drinkingWaterIcon from 'images/drinking-water.png';
+import swimmingIcon from 'images/swimming.png';
+import eatingfishIcon from 'images/eating-fish.png';
+import aquaticLifeIcon from 'images/aquatic-life.png';
+import monitoringIcon from 'images/monitoring.png';
+import identifiedIssuesIcon from 'images/identified-issues.png';
+import restoreIcon from 'images/restore.png';
+import protectIcon from 'images/protect.png';
+import extremeWeatherIcon from 'images/extreme-weather.png';
 
 function OverviewUpper() {
   return (

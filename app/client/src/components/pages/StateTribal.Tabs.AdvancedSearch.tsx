@@ -6,39 +6,36 @@ import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import * as query from '@arcgis/core/rest/query';
 // components
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import Modal from '@/components/shared/Modal';
-import PaginatedSelect from '@/components/shared/PaginatedSelect';
-import StateMap from '@/components/shared/StateMap';
-import WaterbodyListVirtualized from '@/components/shared/WaterbodyListVirtualized';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import Modal from 'components/shared/Modal';
+import PaginatedSelect from 'components/shared/PaginatedSelect';
+import StateMap from 'components/shared/StateMap';
+import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized';
 // styled components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { LayersProvider } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LayersProvider } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useMapHighlightState,
   MapHighlightProvider,
-} from '@/contexts/MapHighlight';
-import { StateTribalTabsContext } from '@/contexts/StateTribalTabs';
+} from 'contexts/MapHighlight';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
-import { getEnvironmentString, fetchCheck } from '@/utils/fetchUtils';
-import { getWaterbodyCondition } from '@/utils/mapFunctions';
-import { chunkArray, isAbort } from '@/utils/utils';
+import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
+import { getWaterbodyCondition } from 'utils/mapFunctions';
+import { chunkArray, isAbort } from 'utils/utils';
 import {
   useAbort,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
-} from '@/utils/hooks';
+} from 'utils/hooks';
 // styles
-import { reactSelectStyles } from '@/styles/index';
+import { reactSelectStyles } from 'styles/index';
 // errors
-import {
-  stateGeneralError,
-  status303dShortError,
-} from '@/config/errorMessages';
+import { stateGeneralError, status303dShortError } from 'config/errorMessages';
 
 const defaultDisplayOption = {
   label: 'Overall Waterbody Condition',

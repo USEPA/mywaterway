@@ -8,56 +8,53 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import {
   AccordionList,
   AccordionItem,
-} from '@/components/shared/AccordionMapHighlight';
-import CharacteristicsSelect from '@/components/shared/CharacteristicsSelect';
-import { tabsStyles } from '@/components/shared/ContentTabs';
-import TabErrorBoundary from '@/components/shared/ErrorBoundary.TabErrorBoundary';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import { HelpTooltip } from '@/components/shared/HelpTooltip';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+} from 'components/shared/AccordionMapHighlight';
+import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,
   keyMetricLabelStyles,
-} from '@/components/shared/KeyMetrics';
+} from 'components/shared/KeyMetrics';
 import {
   circleIcon,
   squareIcon,
   waterwayIcon,
-} from '@/components/shared/MapLegend';
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import ShowLessMore from '@/components/shared/ShowLessMore';
-import Slider from '@/components/shared/Slider';
-import Switch from '@/components/shared/Switch';
-import ViewOnMapButton from '@/components/shared/ViewOnMapButton';
-import VirtualizedList from '@/components/shared/VirtualizedList';
-import WaterbodyInfo from '@/components/shared/WaterbodyInfo';
+} from 'components/shared/MapLegend';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import ShowLessMore from 'components/shared/ShowLessMore';
+import Slider from 'components/shared/Slider';
+import Switch from 'components/shared/Switch';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import VirtualizedList from 'components/shared/VirtualizedList';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { useFetchedDataState } from '@/contexts/FetchedData';
-import { useLayers } from '@/contexts/Layers';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useFetchedDataState } from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
 import {
   initialMonitoringGroups,
   LocationSearchContext,
-} from '@/contexts/locationSearch';
+} from 'contexts/locationSearch';
 // utilities
 import {
   useCyanWaterbodies,
   useMonitoringGroups,
   useStreamgages,
   useWaterbodyOnMap,
-} from '@/utils/hooks';
-import { countOrNotAvailable } from '@/utils/utils';
+} from 'utils/hooks';
+import { countOrNotAvailable } from 'utils/utils';
 // errors
 import {
   cyanError,
   monitoringError,
   streamgagesError,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 // styles
 import {
   colors,
@@ -65,7 +62,7 @@ import {
   iconStyles,
   tabLegendStyles,
   toggleTableStyles,
-} from '@/styles/index';
+} from 'styles/index';
 
 /*
  * Styles

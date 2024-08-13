@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 // contexts
-import { useMapHighlightState } from '@/contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 
 const buttonContainerStyles = css`
   text-align: right;

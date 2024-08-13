@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 // styles
-import { fonts } from '@/styles/index';
+import { fonts } from 'styles/index';
 
 const boxStyles = css`
   margin-bottom: 1.5em;

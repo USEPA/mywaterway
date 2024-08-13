@@ -3,10 +3,10 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import {
   AccordionList,
   AccordionItem as AccordionItemSimple,
-} from '@/components/shared/Accordion';
+} from 'components/shared/Accordion';
 // contexts
-import { LocationSearchContext } from '@/contexts/locationSearch';
-import { useMapHighlightState } from '@/contexts/MapHighlight';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 // types
 import type { ReactNode } from 'react';
 

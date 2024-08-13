@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 // styles
-import { fonts } from '@/styles/index';
+import { fonts } from 'styles/index';
 
 const introBoxStyles = css`
   padding: 1.5rem;

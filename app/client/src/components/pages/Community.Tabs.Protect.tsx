@@ -6,36 +6,30 @@ import { css } from '@emotion/react';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
-import { ListContent } from '@/components/shared/BoxContent';
-import { tabsStyles } from '@/components/shared/ContentTabs';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import TabErrorBoundary from '@/components/shared/ErrorBoundary.TabErrorBoundary';
-import Switch from '@/components/shared/Switch';
-import { GradientIcon } from '@/utils/mapFunctions';
-import ShowLessMore from '@/components/shared/ShowLessMore';
-import ViewOnMapButton from '@/components/shared/ViewOnMapButton';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
+import { ListContent } from 'components/shared/BoxContent';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import Switch from 'components/shared/Switch';
+import { GradientIcon } from 'utils/mapFunctions';
+import ShowLessMore from 'components/shared/ShowLessMore';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // config
-import { tabs } from '@/config/communityConfig';
+import { tabs } from 'config/communityConfig';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
-import { CommunityTabsContext } from '@/contexts/CommunityTabs';
-import { useMapHighlightState } from '@/contexts/MapHighlight';
-import { useSurroundingsDispatch } from '@/contexts/Surroundings';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useMapHighlightState } from 'contexts/MapHighlight';
+import { useSurroundingsDispatch } from 'contexts/Surroundings';
 // utilities
-import {
-  getUrlFromMarkup,
-  getTitleFromMarkup,
-} from '@/components/shared/Regex';
-import { useWaterbodyOnMap } from '@/utils/hooks';
-import { convertAgencyCode, convertDomainCode } from '@/utils/utils';
+import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
+import { useWaterbodyOnMap } from 'utils/hooks';
+import { convertAgencyCode, convertDomainCode } from 'utils/utils';
 // errors
 import {
   protectNonpointSourceError,
@@ -43,7 +37,7 @@ import {
   restorationPlanError,
   wildScenicRiversError,
   wsioHealthIndexError,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 const protectedAreasIdKey = 'OBJECTID';
 

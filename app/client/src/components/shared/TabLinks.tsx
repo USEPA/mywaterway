@@ -4,7 +4,7 @@ import type { Node } from 'react';
 import { css } from '@emotion/react';
 import { Link, matchPath } from 'react-router-dom';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   padding-top: 0.5em;

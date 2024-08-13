@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 
 const topicButtonContainer = css`
   display: flex;

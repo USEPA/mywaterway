@@ -4,18 +4,18 @@ import { Fragment, useContext, useState } from 'react';
 import { css } from '@emotion/react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import { tabsStyles } from '@/components/shared/ContentTabs';
-import { DisclaimerModal } from '@/components/shared/Modal';
-import { linkButtonStyles } from '@/components/shared/LinkButton';
-import FilePanel from '@/components/shared/AddSaveDataWidget.FilePanel';
-import SavePanel from '@/components/shared/AddSaveDataWidget.SavePanel';
-import SearchPanel from '@/components/shared/AddSaveDataWidget.SearchPanel';
-import URLPanel from '@/components/shared/AddSaveDataWidget.URLPanel';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import { DisclaimerModal } from 'components/shared/Modal';
+import { linkButtonStyles } from 'components/shared/LinkButton';
+import FilePanel from 'components/shared/AddSaveDataWidget.FilePanel';
+import SavePanel from 'components/shared/AddSaveDataWidget.SavePanel';
+import SearchPanel from 'components/shared/AddSaveDataWidget.SearchPanel';
+import URLPanel from 'components/shared/AddSaveDataWidget.URLPanel';
 // contexts
-import { useAddSaveDataWidgetState } from '@/contexts/AddSaveDataWidget';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // styles
-import { fonts } from '@/styles';
+import { fonts } from 'styles';
 
 // --- styles (AddData) ---
 const containerStyles = css`

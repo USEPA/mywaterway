@@ -17,63 +17,55 @@ import {
 import { useParams } from 'react-router-dom';
 import Select from 'react-select';
 // components
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
-import { BoxContent, FlexRow } from '@/components/shared/BoxContent';
-import MapErrorBoundary from '@/components/shared/ErrorBoundary.MapErrorBoundary';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import { HelpTooltip, Tooltip } from '@/components/shared/HelpTooltip';
-import { DisclaimerModal } from '@/components/shared/Modal';
-import { GradientLegend, VisxGraph } from '@/components/shared/VisxGraph';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import Map from '@/components/shared/Map';
-import MapLoadingSpinner from '@/components/shared/MapLoadingSpinner';
-import MapVisibilityButton from '@/components/shared/MapVisibilityButton';
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import NavBar from '@/components/shared/NavBar';
-import Page from '@/components/shared/Page';
-import ReactTable, {
-  generateFilterInput,
-} from '@/components/shared/ReactTable';
-import Slider from '@/components/shared/Slider';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import { BoxContent, FlexRow } from 'components/shared/BoxContent';
+import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
+import { DisclaimerModal } from 'components/shared/Modal';
+import { GradientLegend, VisxGraph } from 'components/shared/VisxGraph';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import Map from 'components/shared/Map';
+import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
+import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import NavBar from 'components/shared/NavBar';
+import Page from 'components/shared/Page';
+import ReactTable, { generateFilterInput } from 'components/shared/ReactTable';
+import Slider from 'components/shared/Slider';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
   splitLayoutColumnStyles,
-} from '@/components/shared/SplitLayout';
+} from 'components/shared/SplitLayout';
 // config
-import {
-  monitoringDownloadError,
-  monitoringError,
-} from '@/config/errorMessages';
+import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { LayersProvider, useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
-import { MapHighlightProvider } from '@/contexts/MapHighlight';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LayersProvider, useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
-import { fetchParseCsv, fetchPost } from '@/utils/fetchUtils';
+import { fetchParseCsv, fetchPost } from 'utils/fetchUtils';
 import {
   useAbort,
   useMonitoringLocations,
   useMonitoringLocationsLayers,
   useSharedLayers,
-} from '@/utils/hooks';
-import { getMedian, isAbort, toFixedFloat } from '@/utils/utils';
+} from 'utils/hooks';
+import { getMedian, isAbort, toFixedFloat } from 'utils/utils';
 // styles
 import {
   boxStyles,
   boxHeadingStyles,
   boxSectionStyles,
-} from '@/components/shared/Box';
+} from 'components/shared/Box';
 import {
   colors,
   disclaimerStyles,
   iconButtonStyles,
   reactSelectStyles,
-} from '@/styles';
+} from 'styles';
 
 /*
 ## Styles

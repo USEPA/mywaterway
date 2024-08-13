@@ -3,20 +3,20 @@
 import { useEffect } from 'react';
 import { css } from '@emotion/react';
 // contexts
-import { useLayers } from '@/contexts/Layers';
+import { useLayers } from 'contexts/Layers';
 // styles
-import { fonts } from '@/styles/index';
+import { fonts } from 'styles/index';
 // images
-import overviewIcon from '@/images/overview.png';
-import drinkingWaterIcon from '@/images/drinking-water.png';
-import swimmingIcon from '@/images/swimming.png';
-import eatingFishIcon from '@/images/eating-fish.png';
-import aquaticLifeIcon from '@/images/aquatic-life.png';
-import monitoringIcon from '@/images/monitoring.png';
-import identifiedIssuesIcon from '@/images/identified-issues.png';
-import restoreIcon from '@/images/restore.png';
-import protectIcon from '@/images/protect.png';
-import extremeWeatherIcon from '@/images/extreme-weather.png';
+import overviewIcon from 'images/overview.png';
+import drinkingWaterIcon from 'images/drinking-water.png';
+import swimmingIcon from 'images/swimming.png';
+import eatingFishIcon from 'images/eating-fish.png';
+import aquaticLifeIcon from 'images/aquatic-life.png';
+import monitoringIcon from 'images/monitoring.png';
+import identifiedIssuesIcon from 'images/identified-issues.png';
+import restoreIcon from 'images/restore.png';
+import protectIcon from 'images/protect.png';
+import extremeWeatherIcon from 'images/extreme-weather.png';
 
 const containerStyles = css`
   padding: 1.25em;

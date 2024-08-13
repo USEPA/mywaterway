@@ -3,11 +3,11 @@
 import { css } from '@emotion/react';
 import { useLocation } from 'react-router-dom';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
-import { createMarkup } from '@/utils/utils';
+import { createMarkup } from 'utils/utils';
 
 const bannerStyles = (color, backgroundColor) => {
   return css`

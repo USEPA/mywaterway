@@ -12,7 +12,7 @@ import { css } from '@emotion/react';
 import MuiSlider from '@mui/material/Slider';
 import { styled } from '@mui/material/styles';
 // components
-import { textBoxStyles } from '@/components/shared/MessageBoxes';
+import { textBoxStyles } from 'components/shared/MessageBoxes';
 
 function getTicks(valuesArray: number[], maxTicks: number) {
   if (valuesArray.length <= maxTicks)

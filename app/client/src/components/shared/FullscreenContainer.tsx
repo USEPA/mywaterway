@@ -3,7 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { WindowSize } from '@reach/window-size';
 // contexts
-import { useFullscreenState } from '@/contexts/Fullscreen';
+import { useFullscreenState } from 'contexts/Fullscreen';
 // types
 import type { ReactNode } from 'react';
 

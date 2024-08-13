@@ -15,20 +15,20 @@ import { BrowserRouter } from 'react-router-dom';
 import 'regenerator-runtime';
 // components
 import AppRoutes from './routes';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
-import { AddSaveDataWidgetProvider } from '@/contexts/AddSaveDataWidget';
-import { ConfigFilesProvider } from '@/contexts/ConfigFiles';
-import { LocationSearchProvider } from '@/contexts/locationSearch';
-import { FetchedDataProvider } from '@/contexts/FetchedData';
-import { SurroundingsProvider } from '@/contexts/Surroundings';
+import { AddSaveDataWidgetProvider } from 'contexts/AddSaveDataWidget';
+import { ConfigFilesProvider } from 'contexts/ConfigFiles';
+import { LocationSearchProvider } from 'contexts/locationSearch';
+import { FetchedDataProvider } from 'contexts/FetchedData';
+import { SurroundingsProvider } from 'contexts/Surroundings';
 // errors
-import { defaultErrorBoundaryMessage } from '@/config/errorMessages';
+import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 // styles
-import { fonts } from '@/styles';
+import { fonts } from 'styles';
 import '@arcgis/core/assets/esri/themes/light/main.css';
 import '@esri/calcite-components/dist/components/calcite-icon';
-import '@/styles/mapStyles.css';
+import 'styles/mapStyles.css';
 
 smoothscroll.polyfill();
 

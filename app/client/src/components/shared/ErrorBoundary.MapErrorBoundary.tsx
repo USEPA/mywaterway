@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import ErrorBoundary from './ErrorBoundary.js';
 // errors
-import { mapErrorBoundaryMessage } from '@/config/errorMessages.js';
+import { mapErrorBoundaryMessage } from 'config/errorMessages.js';
 
 // --- components ---
 type Props = {

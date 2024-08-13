@@ -4,40 +4,40 @@ import { useContext, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
 // components
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
-import { ListContent } from '@/components/shared/BoxContent';
-import { tabsStyles } from '@/components/shared/ContentTabs';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import { ListContent } from 'components/shared/BoxContent';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import {
   errorBoxStyles,
   infoBoxStyles,
   textBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import TabErrorBoundary from '@/components/shared/ErrorBoundary.TabErrorBoundary';
+} from 'components/shared/MessageBoxes';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import {
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,
   keyMetricLabelStyles,
-} from '@/components/shared/KeyMetrics';
-import ShowLessMore from '@/components/shared/ShowLessMore';
+} from 'components/shared/KeyMetrics';
+import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
-import { getUrlFromMarkup } from '@/components/shared/Regex';
-import { useWaterbodyOnMap } from '@/utils/hooks';
-import { mapRestorationPlanToGlossary } from '@/utils/mapFunctions';
-import { countOrNotAvailable, getExtensionFromPath } from '@/utils/utils';
+import { getUrlFromMarkup } from 'components/shared/Regex';
+import { useWaterbodyOnMap } from 'utils/hooks';
+import { mapRestorationPlanToGlossary } from 'utils/mapFunctions';
+import { countOrNotAvailable, getExtensionFromPath } from 'utils/utils';
 // styles
-import { fonts, iconStyles, modifiedTableStyles } from '@/styles';
+import { fonts, iconStyles, modifiedTableStyles } from 'styles';
 // errors
 import {
   restoreNonpointSourceError,
   restoreStoriesError,
   restorationPlanError,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 const accordionContentStyles = css`
   padding: 0 0.875em 0.875em;

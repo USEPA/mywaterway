@@ -5,27 +5,27 @@ import { Outlet } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 // components
-import Page from '@/components/shared/Page';
-import TabLinks from '@/components/shared/TabLinks';
-import LocationSearch from '@/components/shared/LocationSearch';
-import LocationMap from '@/components/shared/LocationMap';
-import MapVisibilityButton from '@/components/shared/MapVisibilityButton';
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import Page from 'components/shared/Page';
+import TabLinks from 'components/shared/TabLinks';
+import LocationSearch from 'components/shared/LocationSearch';
+import LocationMap from 'components/shared/LocationMap';
+import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useFetchedDataDispatch } from '@/contexts/FetchedData';
-import { LayersProvider, useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { LayersProvider, useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   CommunityTabsContext,
   CommunityTabsProvider,
-} from '@/contexts/CommunityTabs';
-import { EsriMapProvider } from '@/contexts/EsriMap';
-import { MapHighlightProvider } from '@/contexts/MapHighlight';
-import { useSurroundingsState } from '@/contexts/Surroundings';
+} from 'contexts/CommunityTabs';
+import { EsriMapProvider } from 'contexts/EsriMap';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
+import { useSurroundingsState } from 'contexts/Surroundings';
 // config
-import { tabs } from '@/config/communityConfig.jsx';
+import { tabs } from 'config/communityConfig.jsx';
 // styles
-import { colors, fonts } from '@/styles/index';
+import { colors, fonts } from 'styles/index';
 
 const columnsStyles = css`
   display: flex;

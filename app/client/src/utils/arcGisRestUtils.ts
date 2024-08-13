@@ -2,13 +2,13 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import { v4 as uuid } from 'uuid';
 // components
-import mapPin from '@/images/pin.png';
+import mapPin from 'images/pin.png';
 // utils
 import {
   fetchPostFile,
   fetchPostForm,
   getEnvironmentString,
-} from '@/utils/fetchUtils';
+} from 'utils/fetchUtils';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -16,8 +16,8 @@ import {
   isFeatureLayer,
   isGraphicsLayer,
   isGroupLayer,
-} from '@/utils/mapFunctions';
-import { escapeForLucene } from '@/utils/utils';
+} from 'utils/mapFunctions';
+import { escapeForLucene } from 'utils/utils';
 // types
 import {
   ILayerDefinition,
@@ -33,7 +33,7 @@ import {
   IServiceNameAvailableExtended,
   LayerType,
   ServiceMetaDataType,
-} from '@/types/arcGisOnline';
+} from 'types/arcGisOnline';
 
 declare global {
   interface Window {

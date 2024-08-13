@@ -7,24 +7,24 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 import {
   useFetchedDataDispatch,
   useFetchedDataState,
-} from '@/contexts/FetchedData';
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+} from 'contexts/FetchedData';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useSurroundingsDispatch,
   useSurroundingsState,
-} from '@/contexts/Surroundings';
+} from 'contexts/Surroundings';
 // utils
-import { useAbort } from '@/utils/hooks';
-import { isAbort, isClick, toFixedFloat } from '@/utils/utils';
+import { useAbort } from 'utils/hooks';
+import { isAbort, isClick, toFixedFloat } from 'utils/utils';
 // types
 import type {
   EmptyFetchState,
   FetchedData,
   FetchedDataState,
-} from '@/contexts/FetchedData';
-import type { LayerId } from '@/contexts/Layers';
-import type { SurroundingFeaturesLayerId } from '@/contexts/Surroundings';
+} from 'contexts/FetchedData';
+import type { LayerId } from 'contexts/Layers';
+import type { SurroundingFeaturesLayerId } from 'contexts/Surroundings';
 
 /*
 ## Hooks

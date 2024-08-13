@@ -3,16 +3,16 @@
 import { css } from '@emotion/react';
 import { useState } from 'react';
 // components
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import ShowLessMore from '@/components/shared/ShowLessMore';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import ShowLessMore from 'components/shared/ShowLessMore';
 // utilities
-import { getExtensionFromPath } from '@/utils/utils';
+import { getExtensionFromPath } from 'utils/utils';
 // styled components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 // errors
-import { stateStoriesError } from '@/config/errorMessages';
+import { stateStoriesError } from 'config/errorMessages';
 
 const storyStyles = css`
   margin-bottom: 1.5rem;

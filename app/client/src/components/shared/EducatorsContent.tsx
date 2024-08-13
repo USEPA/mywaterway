@@ -3,10 +3,10 @@
 import { useEffect } from 'react';
 import { css } from '@emotion/react';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
-import { infoBoxStyles } from '@/components/shared/MessageBoxes';
-import { colors, fonts } from '@/styles/index';
+import { infoBoxStyles } from 'components/shared/MessageBoxes';
+import { colors, fonts } from 'styles/index';
 
 // NOTE: matching styles used in tabs in `AboutContent` component
 const containerStyles = css`

@@ -1,8 +1,8 @@
 import React from 'react';
 // components
-import Page from '@/components/shared/Page';
-import NavBar from '@/components/shared/NavBar';
-import AboutContent from '@/components/shared/AboutContent';
+import Page from 'components/shared/Page';
+import NavBar from 'components/shared/NavBar';
+import AboutContent from 'components/shared/AboutContent';
 
 function About() {
   return (

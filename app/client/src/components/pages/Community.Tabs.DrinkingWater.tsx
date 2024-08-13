@@ -4,33 +4,33 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
 // components
-import { ListContent } from '@/components/shared/BoxContent';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import TabErrorBoundary from '@/components/shared/ErrorBoundary.TabErrorBoundary';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { AccordionList, AccordionItem } from '@/components/shared/Accordion';
-import AssessmentSummary from '@/components/shared/AssessmentSummary';
-import WaterbodyList from '@/components/shared/WaterbodyList';
+import { ListContent } from 'components/shared/BoxContent';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import AssessmentSummary from 'components/shared/AssessmentSummary';
+import WaterbodyList from 'components/shared/WaterbodyList';
 import {
   errorBoxStyles,
   infoBoxStyles,
   noteBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import ShowLessMore from '@/components/shared/ShowLessMore';
-import Switch from '@/components/shared/Switch';
-import { tabsStyles } from '@/components/shared/ContentTabs';
+} from 'components/shared/MessageBoxes';
+import ShowLessMore from 'components/shared/ShowLessMore';
+import Switch from 'components/shared/Switch';
+import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
-import { CommunityTabsContext } from '@/contexts/CommunityTabs';
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
-import { useWaterbodyFeatures, useWaterbodyOnMap } from '@/utils/hooks';
-import { summarizeAssessments } from '@/utils/utils';
+import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { summarizeAssessments } from 'utils/utils';
 // errors
-import { countyError, withdrawerError } from '@/config/errorMessages';
+import { countyError, withdrawerError } from 'config/errorMessages';
 // styles
-import { toggleTableStyles } from '@/styles/index';
+import { toggleTableStyles } from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {

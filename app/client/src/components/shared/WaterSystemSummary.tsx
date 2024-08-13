@@ -9,17 +9,17 @@ import highchartsExporting from 'highcharts/modules/exporting';
 import { v4 as uuid } from 'uuid';
 import { WindowSize } from '@reach/window-size';
 // components
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // helpers
-import { fetchCheck } from '@/utils/fetchUtils';
-import { formatNumber, isAbort } from '@/utils/utils';
-import { useAbort } from '@/utils/hooks';
+import { fetchCheck } from 'utils/fetchUtils';
+import { formatNumber, isAbort } from 'utils/utils';
+import { useAbort } from 'utils/hooks';
 // errors
-import { grpaError } from '@/config/errorMessages';
+import { grpaError } from 'config/errorMessages';
 
 // add exporting features to highcharts
 highchartsExporting(Highcharts);

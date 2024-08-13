@@ -18,43 +18,43 @@ import Select, {
 } from 'react-select';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
-import { HelpTooltip } from '@/components/shared/HelpTooltip';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import Modal from '@/components/shared/Modal';
-import ShowLessMore from '@/components/shared/ShowLessMore';
-import Slider from '@/components/shared/Slider';
-import Switch from '@/components/shared/Switch';
-import TabErrorBoundary from '@/components/shared/ErrorBoundary.TabErrorBoundary';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import Modal from 'components/shared/Modal';
+import ShowLessMore from 'components/shared/ShowLessMore';
+import Slider from 'components/shared/Slider';
+import Switch from 'components/shared/Switch';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { LayersState, useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LayersState, useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
-import { useDischargers, useWaterbodyFeatures } from '@/utils/hooks';
+import { useDischargers, useWaterbodyFeatures } from 'utils/hooks';
 import {
   getCountySymbol,
   hideShowGraphicsFill,
   isFeatureLayer,
   isGroupLayer,
-} from '@/utils/mapFunctions';
+} from 'utils/mapFunctions';
 import {
   countOrNotAvailable,
   formatNumber,
   parameterizedString,
   sentenceJoin,
   summarizeAssessments,
-} from '@/utils/utils';
+} from 'utils/utils';
 // styles
-import { linkButtonStyles } from '@/components/shared/LinkButton';
+import { linkButtonStyles } from 'components/shared/LinkButton';
 import {
   colors,
   iconButtonStyles,
   paragraphStyles,
   reactSelectStyles,
   toggleTableStyles,
-} from '@/styles/index';
+} from 'styles/index';
 // types
-import { ExtremeWeatherQuery, ExtremeWeatherRow, FetchStatus } from '@/types';
+import { ExtremeWeatherQuery, ExtremeWeatherRow, FetchStatus } from 'types';
 
 const historicalTooltip =
   'The displayed statistics are generated from official U.S. climate projections for the greenhouse gas business as usual "Higher Emissions Scenario (RCP 8.5)".';

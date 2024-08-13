@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 
 // tab borders (via box shadows)
 const left = `inset 1px 0 0 ${colors.black(0.375)}`;

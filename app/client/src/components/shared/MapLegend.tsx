@@ -2,18 +2,18 @@
 
 import { css } from '@emotion/react';
 // components
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { PinIcon } from '@/components/shared/Icons';
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
-import WaterbodyIcon from '@/components/shared/WaterbodyIcon';
-import { GradientIcon, isInScale } from '@/utils/mapFunctions';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { PinIcon } from 'components/shared/Icons';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import WaterbodyIcon from 'components/shared/WaterbodyIcon';
+import { GradientIcon, isInScale } from 'utils/mapFunctions';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utils
-import { getSelectedCommunityTab } from '@/utils/utils';
+import { getSelectedCommunityTab } from 'utils/utils';
 // errors
-import { legendUnavailableError } from '@/config/errorMessages';
+import { legendUnavailableError } from 'config/errorMessages';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 
 const containerStyles = css`
   width: 240px;

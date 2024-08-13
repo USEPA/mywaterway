@@ -5,31 +5,31 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { useFetchedDataDispatch } from '@/contexts/FetchedData';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
-import { fetchCheck } from '@/utils/fetchUtils';
-import { GetTemplateType, useDynamicPopup } from '@/utils/hooks';
+import { fetchCheck } from 'utils/fetchUtils';
+import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
   getGeographicExtent,
   filterData,
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
-} from '@/utils/boundariesToggleLayer';
+} from 'utils/boundariesToggleLayer';
 // types
-import type { FetchedDataAction, FetchState } from '@/contexts/FetchedData';
+import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type {
   DischargerAttributes,
   Feature,
   PermittedDischargersData,
   ServicesData,
-} from '@/types';
-import type { SublayerType } from '@/utils/boundariesToggleLayer';
+} from 'types';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
-import { colors } from '@/styles';
+import { colors } from 'styles';
 
 /*
 ## Hooks

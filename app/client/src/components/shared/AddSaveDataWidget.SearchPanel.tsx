@@ -16,20 +16,20 @@ import PortalItem from '@arcgis/core/portal/PortalItem';
 import PortalQueryParams from '@arcgis/core/portal/PortalQueryParams';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { LocationSearchContext } from '@/contexts/locationSearch';
-import { useAddSaveDataWidgetState } from '@/contexts/AddSaveDataWidget';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 // config
-import { webServiceErrorMessage } from '@/config/errorMessages';
+import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
-import { colors, reactSelectStyles } from '@/styles/index';
+import { colors, reactSelectStyles } from 'styles/index';
 // types
-import type { WidgetLayer } from '@/types';
+import type { WidgetLayer } from 'types';
 // utilities
-import { isGroupLayer, isTileLayer } from '@/utils/mapFunctions';
-import { isClick } from '@/utils/utils';
+import { isGroupLayer, isTileLayer } from 'utils/mapFunctions';
+import { isClick } from 'utils/utils';
 
 const searchFlexBoxStyles = css`
   display: flex;

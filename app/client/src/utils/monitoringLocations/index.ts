@@ -5,18 +5,18 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import {
   useFetchedDataDispatch,
   useFetchedDataState,
-} from '@/contexts/FetchedData';
+} from 'contexts/FetchedData';
 import {
   initialMonitoringGroups,
   LocationSearchContext,
-} from '@/contexts/locationSearch';
+} from 'contexts/locationSearch';
 // utils
-import { fetchCheck } from '@/utils/fetchUtils';
-import { GetTemplateType, useDynamicPopup } from '@/utils/hooks';
+import { fetchCheck } from 'utils/fetchUtils';
+import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   getExtentBoundingBox,
@@ -24,11 +24,11 @@ import {
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
-} from '@/utils/boundariesToggleLayer';
-import { stringifyAttributes } from '@/utils/mapFunctions';
-import { parseAttributes } from '@/utils/utils';
+} from 'utils/boundariesToggleLayer';
+import { stringifyAttributes } from 'utils/mapFunctions';
+import { parseAttributes } from 'utils/utils';
 // types
-import type { FetchedDataAction, FetchState } from '@/contexts/FetchedData';
+import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type {
   CharacteristicGroupMappings,
@@ -38,11 +38,11 @@ import type {
   MonitoringLocationGroups,
   MonitoringLocationsData,
   ServicesData,
-} from '@/types';
+} from 'types';
 import type { MonitoringPeriodOfRecordData } from './periodOfRecord';
-import type { SublayerType } from '@/utils/boundariesToggleLayer';
+import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
-import { colors } from '@/styles';
+import { colors } from 'styles';
 
 /*
 ## Hooks

@@ -5,18 +5,18 @@ import { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import Switch from '@/components/shared/Switch';
-import { PinIcon } from '@/components/shared/Icons';
+import Switch from 'components/shared/Switch';
+import { PinIcon } from 'components/shared/Icons';
 // contexts
-import { CommunityTabsContext } from '@/contexts/CommunityTabs';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // config
-import { tabs } from '@/config/communityConfig';
+import { tabs } from 'config/communityConfig';
 // styles
-import { colors } from '@/styles/index';
+import { colors } from 'styles/index';
 import '@reach/tabs/styles.css';
 // utils
-import { formatNumber } from '@/utils/utils';
+import { formatNumber } from 'utils/utils';
 
 const lightBlue = '#f0f6f9';
 

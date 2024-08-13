@@ -4,11 +4,11 @@ import { useEffect } from 'react';
 import { css } from '@emotion/react';
 import { Tab, Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import { tabsStyles } from '@/components/shared/ContentTabs';
-import { largeTabStyles } from '@/components/shared/ContentTabs.LargeTab.js';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // styles
-import { fonts } from '@/styles/index';
+import { fonts } from 'styles/index';
 
 const containerStyles = css`
   padding: 1rem;

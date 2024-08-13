@@ -1,4 +1,4 @@
-import { fetchParseCsv } from '@/utils/fetchUtils';
+import { fetchParseCsv } from 'utils/fetchUtils';
 // types
 import type { AnnualStationData, CharacteristicGroupMappings } from 'types';
 

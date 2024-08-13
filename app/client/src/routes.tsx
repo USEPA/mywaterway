@@ -4,41 +4,41 @@ import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { css } from '@emotion/react';
 // components
-import Home from '@/components/pages/Home';
-import Attains from '@/components/pages/Attains';
-import Data from '@/components/pages/Data';
-import About from '@/components/pages/About';
-import Community from '@/components/pages/Community';
-import CommunityIntro from '@/components/pages/Community.Routes.CommunityIntro';
-import CommunityTabs from '@/components/pages/Community.Routes.CommunityTabs';
-import StateTribal from '@/components/pages/StateTribal';
-import StateTribalIntro from '@/components/pages/StateTribal.Routes.StateTribalIntro';
-import StateTribalTabs from '@/components/pages/StateTribal.Routes.StateTribalTabs';
-import National from '@/components/pages/National';
-import MonitoringReport from '@/components/pages/MonitoringReport';
-import DrinkingWater from '@/components/pages/DrinkingWater';
-import Swimming from '@/components/pages/Swimming';
-import EatingFish from '@/components/pages/EatingFish';
-import AquaticLife from '@/components/pages/AquaticLife';
-import Actions from '@/components/pages/Actions';
-import WaterbodyReport from '@/components/pages/WaterbodyReport';
-import Educators from '@/components/pages/Educators';
-import ErrorPage from '@/components/pages/404';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import AlertMessage from '@/components/shared/AlertMessage';
+import Home from 'components/pages/Home';
+import Attains from 'components/pages/Attains';
+import Data from 'components/pages/Data';
+import About from 'components/pages/About';
+import Community from 'components/pages/Community';
+import CommunityIntro from 'components/pages/Community.Routes.CommunityIntro';
+import CommunityTabs from 'components/pages/Community.Routes.CommunityTabs';
+import StateTribal from 'components/pages/StateTribal';
+import StateTribalIntro from 'components/pages/StateTribal.Routes.StateTribalIntro';
+import StateTribalTabs from 'components/pages/StateTribal.Routes.StateTribalTabs';
+import National from 'components/pages/National';
+import MonitoringReport from 'components/pages/MonitoringReport';
+import DrinkingWater from 'components/pages/DrinkingWater';
+import Swimming from 'components/pages/Swimming';
+import EatingFish from 'components/pages/EatingFish';
+import AquaticLife from 'components/pages/AquaticLife';
+import Actions from 'components/pages/Actions';
+import WaterbodyReport from 'components/pages/WaterbodyReport';
+import Educators from 'components/pages/Educators';
+import ErrorPage from 'components/pages/404';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import AlertMessage from 'components/shared/AlertMessage';
 // styled components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import {
   ConfigFiles,
   useConfigFilesDispatch,
   useConfigFilesState,
-} from '@/contexts/ConfigFiles';
+} from 'contexts/ConfigFiles';
 // helpers
-import { fetchCheck } from '@/utils/fetchUtils';
-import { resetCanonicalLink, removeJsonLD } from '@/utils/utils';
+import { fetchCheck } from 'utils/fetchUtils';
+import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 // errors
-import { servicesLookupServiceError } from '@/config/errorMessages';
+import { servicesLookupServiceError } from 'config/errorMessages';
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}

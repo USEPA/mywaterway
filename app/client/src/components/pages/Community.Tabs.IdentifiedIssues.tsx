@@ -6,48 +6,45 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { useNavigate } from 'react-router-dom';
 // components
-import { tabsStyles } from '@/components/shared/ContentTabs';
+import { tabsStyles } from 'components/shared/ContentTabs';
 import {
   AccordionList,
   AccordionItem,
-} from '@/components/shared/AccordionMapHighlight';
-import ViewOnMapButton from '@/components/shared/ViewOnMapButton';
-import WaterbodyInfo from '@/components/shared/WaterbodyInfo';
-import Switch from '@/components/shared/Switch';
-import { DisclaimerModal } from '@/components/shared/Modal';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-} from '@/components/shared/MessageBoxes';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
-import TabErrorBoundary from '@/components/shared/ErrorBoundary.TabErrorBoundary';
+} from 'components/shared/AccordionMapHighlight';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import Switch from 'components/shared/Switch';
+import { DisclaimerModal } from 'components/shared/Modal';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import {
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,
   keyMetricLabelStyles,
-} from '@/components/shared/KeyMetrics';
-import { diamondIcon } from '@/components/shared/MapLegend';
-import WaterbodyIcon from '@/components/shared/WaterbodyIcon';
+} from 'components/shared/KeyMetrics';
+import { diamondIcon } from 'components/shared/MapLegend';
+import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { CommunityTabsContext } from '@/contexts/CommunityTabs';
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
-import { countOrNotAvailable, formatNumber } from '@/utils/utils';
-import { getMappedParameter, plotIssues } from '@/utils/mapFunctions';
-import { useDischargers, useWaterbodyOnMap } from '@/utils/hooks';
+import { countOrNotAvailable, formatNumber } from 'utils/utils';
+import { getMappedParameter, plotIssues } from 'utils/mapFunctions';
+import { useDischargers, useWaterbodyOnMap } from 'utils/hooks';
 // errors
-import { echoError, huc12SummaryError } from '@/config/errorMessages';
+import { echoError, huc12SummaryError } from 'config/errorMessages';
 // styles
 import {
   tabLegendStyles,
   colors,
   fonts,
   toggleTableStyles,
-} from '@/styles/index';
+} from 'styles/index';
 
 const containerStyles = css`
   @media (min-width: 960px) {

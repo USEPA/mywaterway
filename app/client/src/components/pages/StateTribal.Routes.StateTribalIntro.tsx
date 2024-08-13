@@ -6,8 +6,8 @@ import {
   introBoxStyles,
   introHeadingStyles,
   introTextStyles,
-} from '@/components/shared/IntroBox';
-import { h2Styles } from '@/styles/stateTribal';
+} from 'components/shared/IntroBox';
+import { h2Styles } from 'styles/stateTribal';
 
 const headerStyles = css`
   display: flex;

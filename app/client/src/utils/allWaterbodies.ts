@@ -1,14 +1,14 @@
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import { useCallback, useContext, useEffect } from 'react';
 // contexts
-import { useLayers } from '@/contexts/Layers';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useLayers } from 'contexts/Layers';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useSurroundingsDispatch,
   useSurroundingsState,
-} from '@/contexts/Surroundings';
+} from 'contexts/Surroundings';
 // utils
-import { isClick } from '@/utils/utils';
+import { isClick } from 'utils/utils';
 
 export function useAllWaterbodiesLayer(minScale = 577791) {
   const { huc12, mapView } = useContext(LocationSearchContext);

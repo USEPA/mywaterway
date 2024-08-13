@@ -18,22 +18,22 @@ import Point from '@arcgis/core/geometry/Point';
 import Search from '@arcgis/core/widgets/Search';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useConfigFilesState } from '@/contexts/ConfigFiles';
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // helpers
-import { fetchCheck, fetchPost } from '@/utils/fetchUtils';
-import { useKeyPress } from '@/utils/hooks';
-import { containsScriptTag, indicesOf, isClick, isHuc12 } from '@/utils/utils';
-import { splitSuggestedSearch } from '@/utils/mapFunctions';
+import { fetchCheck, fetchPost } from 'utils/fetchUtils';
+import { useKeyPress } from 'utils/hooks';
+import { containsScriptTag, indicesOf, isClick, isHuc12 } from 'utils/utils';
+import { splitSuggestedSearch } from 'utils/mapFunctions';
 // styles
-import { colors, fonts } from '@/styles/index';
+import { colors, fonts } from 'styles/index';
 // errors
 import {
   invalidSearchError,
   webServiceErrorMessage,
-} from '@/config/errorMessages';
+} from 'config/errorMessages';
 
 // Finds the source of the suggestion
 function findSource(name, suggestions) {

@@ -3,17 +3,17 @@
 import { useContext } from 'react';
 import { css } from '@emotion/react';
 // components
-import AssessmentSummary from '@/components/shared/AssessmentSummary';
-import WaterbodyList from '@/components/shared/WaterbodyList';
-import TabErrorBoundary from '@/components/shared/ErrorBoundary.TabErrorBoundary';
-import { errorBoxStyles } from '@/components/shared/MessageBoxes';
+import AssessmentSummary from 'components/shared/AssessmentSummary';
+import WaterbodyList from 'components/shared/WaterbodyList';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
-import { useWaterbodyFeatures, useWaterbodyOnMap } from '@/utils/hooks';
-import { summarizeAssessments } from '@/utils/utils';
+import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { summarizeAssessments } from 'utils/utils';
 // errors
-import { huc12SummaryError } from '@/config/errorMessages';
+import { huc12SummaryError } from 'config/errorMessages';
 
 const containerStyles = css`
   @media (min-width: 960px) {

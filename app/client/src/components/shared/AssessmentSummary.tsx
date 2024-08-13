@@ -3,19 +3,19 @@
 import { useContext } from 'react';
 import { css } from '@emotion/react';
 // components
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { GlossaryTerm } from '@/components/shared/GlossaryPanel';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import {
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,
   keyMetricLabelStyles,
-} from '@/components/shared/KeyMetrics';
-import { infoBoxStyles } from '@/components/shared/MessageBoxes';
+} from 'components/shared/KeyMetrics';
+import { infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { LocationSearchContext } from '@/contexts/locationSearch';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
-import { summarizeAssessments } from '@/utils/utils';
+import { summarizeAssessments } from 'utils/utils';
 
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles};

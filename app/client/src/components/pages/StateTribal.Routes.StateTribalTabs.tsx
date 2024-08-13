@@ -5,16 +5,16 @@ import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useWindowSize } from '@reach/window-size';
 // components
-import { tabsStyles, tabPanelStyles } from '@/components/shared/ContentTabs';
-import WaterQualityOverview from '@/components/pages/StateTribal.Tabs.WaterQualityOverview';
-import AdvancedSearch from '@/components/pages/StateTribal.Tabs.AdvancedSearch';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import TribalMapList from '@/components/shared/TribalMapList';
+import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
+import WaterQualityOverview from 'components/pages/StateTribal.Tabs.WaterQualityOverview';
+import AdvancedSearch from 'components/pages/StateTribal.Tabs.AdvancedSearch';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import TribalMapList from 'components/shared/TribalMapList';
 // styled components
-import { largeTabStyles } from '@/components/shared/ContentTabs.LargeTab.js';
-import { h2Styles } from '@/styles/stateTribal';
+import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
+import { h2Styles } from 'styles/stateTribal';
 // contexts
-import { StateTribalTabsContext } from '@/contexts/StateTribalTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
