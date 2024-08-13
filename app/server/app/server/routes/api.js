@@ -148,4 +148,8 @@ module.exports = function (app) {
   });
 
   app.use('/api', router);
+
+  app.get('/api/*', (req, res) => {
+    res.status(404).json({ message: 'The api route does not exist.' });
+  });
 };
