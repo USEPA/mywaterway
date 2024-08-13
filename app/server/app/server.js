@@ -211,7 +211,7 @@ app.listen(port, function () {
 /* Note, the React app should be handling 404 at this point 
    but we're leaving the below 404 check in for now */
 app.use(function (req, res, next) {
-  res.sendFile(path.join(__dirname, 'public', '400.html'));
+  res.sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 app.use(function (err, req, res, next) {
