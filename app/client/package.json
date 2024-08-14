@@ -36,7 +36,6 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@cypress/instrument-cra": "1.4.0",
     "@esri/arcgis-rest-types": "3.7.0",
     "@types/file-saver": "2.0.7",
     "@types/jest": "29.5.12",
@@ -60,6 +59,7 @@
     "prettier": "3.3.2",
     "typescript": "5.4.5",
     "vite": "5.4.0",
+    "vite-plugin-istanbul": "^6.0.2",
     "vite-tsconfig-paths": "5.0.1"
   },
   "dependencies": {
