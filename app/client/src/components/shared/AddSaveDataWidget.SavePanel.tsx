@@ -287,7 +287,7 @@ function SavePanel({ visible }: Readonly<Props>) {
   useEffect(() => {
     if (oAuthInfo) return;
     const info = new OAuthInfo({
-      appId: import.meta.env.VITE_APP_ARCGIS_CLIENT_ID,
+      appId: import.meta.env.VITE_ARCGIS_CLIENT_ID,
       popup: true,
       flowType: 'authorization-code',
       popupCallbackUrl: `${window.location.origin}/oauth-callback.html`,

@@ -32,9 +32,9 @@ export function proxyFetch(
   timeout: number = defaultTimeout,
   responseType = 'json',
 ) {
-  const { VITE_APP_PROXY_URL } = import.meta.env;
+  const { VITE_PROXY_URL } = import.meta.env;
   // if environment variable is not set, default to use the current site origin
-  const proxyUrl = VITE_APP_PROXY_URL || `${window.location.origin}/proxy`;
+  const proxyUrl = VITE_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
   return fetchCheck(url, signal, timeout, responseType);
@@ -45,8 +45,8 @@ export function lookupFetch(
   signal: AbortSignal | null = null,
   timeout: number = defaultTimeout,
 ) {
-  const { VITE_APP_SERVER_URL } = import.meta.env;
-  const baseUrl = VITE_APP_SERVER_URL || window.location.origin;
+  const { VITE_SERVER_URL } = import.meta.env;
+  const baseUrl = VITE_SERVER_URL || window.location.origin;
   const url = `${baseUrl}/data/${path}`;
 
   return new Promise((resolve, reject) => {
