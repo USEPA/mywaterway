@@ -40,7 +40,7 @@
         }
       }
     },
-    "/api/supportedBrowsers": {
+    "/api/health": {
       "get": {
         "tags": ["How's My Waterway"],
         "responses": {
@@ -53,7 +53,7 @@
         }
       }
     },
-    "/health": {
+    "/api/supportedBrowsers": {
       "get": {
         "tags": ["How's My Waterway"],
         "responses": {
