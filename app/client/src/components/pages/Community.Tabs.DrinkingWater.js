@@ -312,7 +312,8 @@ function DrinkingWater() {
     // zooming, so it can be reset when switching away from the subtab
     if (
       drinkingWaterTabIndex === providersTabIndex &&
-      mapZoom !== currentExtent
+      JSON.stringify(mapZoom?.toJSON()) !==
+        JSON.stringify(currentExtent?.toJSON())
     ) {
       setMapZoom(currentExtent);
       mapView.goTo(countyGraphic);
