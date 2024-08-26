@@ -919,7 +919,7 @@ function ExtremeWeather() {
           </div>
 
           <strong>
-            The yellow outline on the map shows the county or municipality
+            The black outline on the map shows the county or municipality
             selected above.
           </strong>
         </div>
@@ -1707,7 +1707,7 @@ function getHistoricValueRange(
   // determine directionality
   const directionality =
     aggType === 'difference'
-      ? `${value < 0 ? 'decreased' : 'increased'} by `
+      ? `${value < 0 ? 'decreasing' : 'increasing'} by `
       : '';
 
   return `${directionality}${formatNumber(Math.abs(value), digits, true)}`;
