@@ -1,6 +1,6 @@
 describe('State page links', () => {
   beforeEach(() => {
-    cy.visit('/state/FL');
+    cy.visit('/state/FL/water-quality-overview');
   });
 
   it('Clicking the “Show more/Show less” link/button toggles between showing more/less text in the state intro paragraph', () => {

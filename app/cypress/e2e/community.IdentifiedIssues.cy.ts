@@ -52,7 +52,7 @@ describe('Identified Issues Tab', () => {
     cy.findByRole('tab', { name: /Permitted Dischargers/ }).click({
       force: true,
     });
-    cy.findByRole('switch', { name: /79 Permitted Dischargers/ }).should(
+    cy.findByRole('switch', { name: /80 Permitted Dischargers/ }).should(
       'have.attr',
       'aria-checked',
       'true',
