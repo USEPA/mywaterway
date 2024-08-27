@@ -19,13 +19,9 @@ function checkClientRouteExists(req, res, next) {
   ].reduce((acc, cur) => {
     return acc.concat([`${cur}`, `${cur}/`]);
   }, []);
+  clientRoutes.push('/');
 
-  let routeExists = req.path === '/';
-  clientRoutes.forEach((route) => {
-    if (route.includes(req.path)) routeExists = true;
-  });
-
-  if (!routeExists) {
+  if (!clientRoutes.includes(req.path)) {
     return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
   }
 
