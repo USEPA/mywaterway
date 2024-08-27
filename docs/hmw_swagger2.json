@@ -1,5 +1,5 @@
 {
-  "swagger": "2.0",
+  "openapi": "3.0.1",
   "info": {
     "title": "US EPA How's My Waterway",
     "contact": {
@@ -11,16 +11,11 @@
     },
     "version": "0.0.1"
   },
-  "host": "mywaterway-stage.app.cloud.gov",
-  "basePath": "/",
-  "schemes": ["https"],
-  "consumes": ["application/json"],
-  "produces": ["application/json"],
-  "securityDefinitions": {
-    "basicAuth": {
-      "type": "basic"
+  "servers": [
+    {
+      "url": "https://mywaterway-stage.app.cloud.gov/"
     }
-  },
+  ],
   "security": [
     {
       "basicAuth": []
@@ -33,8 +28,12 @@
         "responses": {
           "200": {
             "description": "Placeholder.",
-            "schema": {
-              "$ref": "#/definitions/generic"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/generic"
+                }
+              }
             }
           }
         }
@@ -46,8 +45,12 @@
         "responses": {
           "200": {
             "description": "Placeholder.",
-            "schema": {
-              "$ref": "#/definitions/generic"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/generic"
+                }
+              }
             }
           }
         }
@@ -59,22 +62,35 @@
         "responses": {
           "200": {
             "description": "Placeholder.",
-            "schema": {
-              "$ref": "#/definitions/generic"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/generic"
+                }
+              }
             }
           }
         }
       }
     }
   },
-  "definitions": {
-    "generic": {
-      "type": "object",
-      "properties": {
-        "Results": {
-          "type": "string"
+  "components": {
+    "schemas": {
+      "generic": {
+        "type": "object",
+        "properties": {
+          "Results": {
+            "type": "string"
+          }
         }
       }
+    },
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "http",
+        "scheme": "basic"
+      }
     }
-  }
+  },
+  "x-original-swagger-version": "2.0"
 }
