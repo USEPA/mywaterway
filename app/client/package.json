@@ -59,7 +59,7 @@
     "web-vitals": "4.2.3"
   },
   "dependencies": {
-    "@arcgis/core": "4.29.10",
+    "@arcgis/core": "4.30.9",
     "@emotion/react": "11.13.3",
     "@emotion/styled": "11.13.0",
     "@esri/calcite-components-react": "2.11.1",

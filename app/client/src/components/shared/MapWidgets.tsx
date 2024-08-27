@@ -661,7 +661,7 @@ function MapWidgets({
       content: legendNode,
       view,
       expanded: false,
-      expandIconClass: 'esri-icon-legend',
+      expandIcon: 'legend',
       expandTooltip: 'Open Legend',
       collapseTooltip: 'Close Legend',
       autoCollapse: true,
@@ -928,7 +928,7 @@ function MapWidgets({
       container.appendChild(layerlist.container);
 
     const expandWidget = new Expand({
-      expandIconClass: 'esri-icon-layers',
+      expandIcon: 'layers',
       expandTooltip: 'Open Basemaps and Layers',
       collapseTooltip: 'Close Basemaps and Layers',
       view: view,
@@ -1024,7 +1024,7 @@ function MapWidgets({
     );
 
     const downloadWidget = new Expand({
-      expandIconClass: 'esri-icon-printer',
+      expandIcon: 'print',
       expandTooltip: 'Open Printable Map Widget',
       collapseTooltip: 'Close Printable Map Widget',
       view,

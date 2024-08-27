@@ -1721,7 +1721,6 @@ function useSharedLayers({
           new ColorVariable({
             valueExpression: '$feature.Wells_Density_2020',
             valueExpressionTitle: '2020 Well Density (Wells / Sq. Km.)',
-            legendOptions: {},
             stops: [
               {
                 color: [242, 240, 247, 255],
