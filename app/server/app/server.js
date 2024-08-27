@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const cron = require('node-cron');
 const favicon = require('serve-favicon');
 const basicAuth = require('express-basic-auth');
-// const { checkClientRouteExists } = require('./middleware');
+const { checkClientRouteExists } = require('./middleware');
 const { getEnvironment } = require('./server/utilities/environment');
 const logger = require('./server/utilities/logger');
 const { getS3Config } = require('./server/utilities/s3');
@@ -177,7 +177,7 @@ require('./server/routes')(app);
 app.use(express.static(__dirname + '/public'));
 
 // Ensure that requested client route exists (otherwise send 404).
-// app.use(checkClientRouteExists);
+app.use(checkClientRouteExists);
 
 // setup client routes (built React app)
 app.get('*', function (req, res) {
