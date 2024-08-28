@@ -257,6 +257,47 @@ function WaterbodyReport() {
     layer: null,
   });
 
+  function handleError() {
+    setAllParameterActionIds({
+      status: 'failure',
+      data: [],
+    });
+    setReportingCycleFetch({ status: 'failure', year: '' });
+    setWaterbodyStatus({ status: 'failure', data: [] });
+    setWaterbodyUses({ status: 'failure', data: [] });
+    setWaterbodySources({ status: 'failure', data: [] });
+    setDocuments({ status: 'failure', data: [] });
+    setOrganizationName({
+      status: 'failure',
+      name: '',
+    });
+  }
+
+  function handleNoAssessments() {
+    setWaterbodyStatus({
+      status: 'no-data',
+      data: { condition: '', planForRestoration: '', listed303d: '' },
+    });
+    setReportingCycleFetch({
+      status: 'success',
+      year: '',
+    });
+    setWaterbodyUses({
+      status: 'success',
+      data: [],
+    });
+    setOrganizationName({
+      status: 'success',
+      name: '',
+    });
+    setAllParameterActionIds({
+      status: 'success',
+      data: [],
+    });
+    setWaterbodySources({ status: 'success', data: [] });
+    setDocuments({ status: 'success', data: [] });
+  }
+
   // fetch waterbody name, location, types from attains 'assessmentUnits' web service
   useEffect(() => {
     const url =
@@ -358,6 +399,49 @@ function WaterbodyReport() {
     );
   }, [auId, configFiles, orgId]);
 
+  // get all reporting cycles for the waterbody
+  const [allReportingCycles, setAllReportingCycles] = useState({
+    status: 'fetching',
+    data: [],
+  });
+  useEffect(() => {
+    // recursive function to page through all reporting cycles
+    async function fetchCycles(acc = []) {
+      try {
+        const res = await fetchPost(
+          `${configFiles.data.services.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
+          {
+            direction: 'asc',
+            filters: { assessmentUnitId: auId },
+            limit: configFiles.data.services.expertQuery.valuesLimit,
+            ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
+          },
+          {
+            'Content-Type': 'application/json',
+            'X-Api-Key': configFiles.data.services.expertQuery.apiKey,
+          },
+        );
+        const newValues = res.map((item) => item.reportingCycle);
+        if (
+          newValues.length === configFiles.data.services.expertQuery.valuesLimit
+        ) {
+          fetchCycles(acc.concat(newValues));
+        } else {
+          setAllReportingCycles({
+            status: 'success',
+            data: acc.concat(newValues),
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        setAllReportingCycles({ status: 'failure', data: [] });
+        handleError();
+      }
+    }
+
+    fetchCycles();
+  }, [auId, configFiles]);
+
   const [reportingCycleFetch, setReportingCycleFetch] = useState({
     status: 'fetching',
     year: '',
@@ -394,6 +478,7 @@ function WaterbodyReport() {
   useEffect(() => {
     if (assessmentsCalled) return;
     if (!reportingCycle && mapLayer.status === 'fetching') return;
+    if (allReportingCycles.status !== 'success') return;
 
     let reportingCycleParam = '';
     if (reportingCycle) {
@@ -404,6 +489,12 @@ function WaterbodyReport() {
     ) {
       reportingCycleParam =
         mapLayer.layer.graphics.items[0].attributes.reportingcycle;
+    } else if (allReportingCycles.data.length > 0) {
+      reportingCycleParam =
+        allReportingCycles.data[allReportingCycles.data.length - 1];
+    } else {
+      handleNoAssessments();
+      return;
     }
 
     setAssessmentsCalled(true);
@@ -417,32 +508,16 @@ function WaterbodyReport() {
     fetchCheck(url).then(
       (res) => {
         if (res.items.length === 0) {
-          setWaterbodyStatus({
-            status: 'no-data',
-            data: { condition: '', planForRestoration: '', listed303d: '' },
-          });
-          setReportingCycleFetch({
-            status: 'success',
-            year: '',
-          });
-          setWaterbodyUses({
-            status: 'success',
-            data: [],
-          });
-          setOrganizationName({
-            status: 'success',
-            name: '',
-          });
-          setAllParameterActionIds({
-            status: 'success',
-            data: [],
-          });
-          setWaterbodySources({ status: 'success', data: [] });
-          setDocuments({ status: 'success', data: [] });
+          handleNoAssessments();
           return;
         }
 
         const firstItem = res.items[0];
+        if (firstItem.assessments.length === 0) {
+          handleNoAssessments();
+          return;
+        }
+
         setReportingCycleFetch({
           status: 'success',
           year: firstItem.reportingCycleText,
@@ -664,64 +739,18 @@ function WaterbodyReport() {
       },
       (err) => {
         console.error(err);
-        setAllParameterActionIds({
-          status: 'failure',
-          data: [],
-        });
-        setReportingCycleFetch({ status: 'failure', year: '' });
-        setWaterbodyStatus({ status: 'failure', data: [] });
-        setWaterbodyUses({ status: 'failure', data: [] });
-        setWaterbodySources({ status: 'failure', data: [] });
-        setDocuments({ status: 'failure', data: [] });
-        setOrganizationName({
-          status: 'failure',
-          name: '',
-        });
+        handleError();
       },
     );
-  }, [auId, configFiles, orgId, reportingCycle, mapLayer, assessmentsCalled]);
-
-  // get all reporting cycles for the waterbody
-  const [allReportingCycles, setAllReportingCycles] = useState({
-    status: 'fetching',
-    data: [],
-  });
-  useEffect(() => {
-    // recursive function to page through all reporting cycles
-    async function fetchCycles(acc = []) {
-      try {
-        const res = await fetchPost(
-          `${configFiles.data.services.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
-          {
-            direction: 'asc',
-            filters: { assessmentUnitId: auId },
-            limit: configFiles.data.services.expertQuery.valuesLimit,
-            ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
-          },
-          {
-            'Content-Type': 'application/json',
-            'X-Api-Key': configFiles.data.services.expertQuery.apiKey,
-          },
-        );
-        const newValues = res.map((item) => item.reportingCycle);
-        if (
-          newValues.length === configFiles.data.services.expertQuery.valuesLimit
-        ) {
-          fetchCycles(acc.concat(newValues));
-        } else {
-          setAllReportingCycles({
-            status: 'success',
-            data: acc.concat(newValues),
-          });
-        }
-      } catch (err) {
-        console.error(err);
-        setAllReportingCycles({ status: 'failure', data: [] });
-      }
-    }
-
-    fetchCycles();
-  }, [auId, configFiles]);
+  }, [
+    allReportingCycles,
+    auId,
+    configFiles,
+    orgId,
+    reportingCycle,
+    mapLayer,
+    assessmentsCalled,
+  ]);
 
   const [waterbodyActions, setWaterbodyActions] = useState({
     status: 'fetching',
