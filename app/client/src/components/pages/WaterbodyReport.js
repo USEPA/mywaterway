@@ -513,6 +513,11 @@ function WaterbodyReport() {
         }
 
         const firstItem = res.items[0];
+        if (firstItem.assessments.length === 0) {
+          handleNoAssessments();
+          return;
+        }
+
         setReportingCycleFetch({
           status: 'success',
           year: firstItem.reportingCycleText,
