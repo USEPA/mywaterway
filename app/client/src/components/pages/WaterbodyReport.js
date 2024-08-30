@@ -103,6 +103,11 @@ const modifiedInfoBoxStyles = css`
   text-align: center;
 `;
 
+const mapInfoBoxStyles = css`
+  ${modifiedInfoBoxStyles}
+  margin-bottom: 10px;
+`;
+
 const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
@@ -471,24 +476,28 @@ function WaterbodyReport() {
     status: 'fetching',
     data: [],
   });
+  const [reportingCycleGis, setReportingCycleGis] = useState('');
 
   // fetch reporting cycle, waterbody status, decision rational, uses,
   // and sources from attains 'assessments' web service
   const [assessmentsCalled, setAssessmentsCalled] = useState(false);
   useEffect(() => {
-    if (assessmentsCalled) return;
+    if (assessmentsCalled || mapLayer.status === 'fetching') return;
     if (!reportingCycle && mapLayer.status === 'fetching') return;
     if (allReportingCycles.status !== 'success') return;
+
+    let hasGisData =
+      mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0;
+    const gisCycle = hasGisData
+      ? mapLayer.layer.graphics.items[0].attributes.reportingcycle.toString()
+      : '';
+    setReportingCycleGis(gisCycle);
 
     let reportingCycleParam = '';
     if (reportingCycle) {
       reportingCycleParam = reportingCycle;
-    } else if (
-      mapLayer.status === 'success' &&
-      mapLayer.layer.graphics.length > 0
-    ) {
-      reportingCycleParam =
-        mapLayer.layer.graphics.items[0].attributes.reportingcycle;
+    } else if (hasGisData) {
+      reportingCycleParam = gisCycle;
     } else if (allReportingCycles.data.length > 0) {
       reportingCycleParam =
         allReportingCycles.data[allReportingCycles.data.length - 1];
@@ -1067,6 +1076,22 @@ function WaterbodyReport() {
     </div>
   );
 
+  const mapCycleDisclaimer = (
+    <Fragment>
+      {reportingCycleGis &&
+        reportingCycleFetch.status === 'success' &&
+        reportingCycleGis !== reportingCycleFetch.year && (
+          <div css={mapInfoBoxStyles}>
+            <p>
+              The map shows the location and extent of the Assessment Unit for
+              the {reportingCycleGis} reporting cycle. The Assessment Unit may
+              have changed over time.
+            </p>
+          </div>
+        )}
+    </Fragment>
+  );
+
   if (noWaterbodies) {
     return (
       <Page>
@@ -1149,25 +1174,29 @@ function WaterbodyReport() {
                       {infoBox}
                       <MapVisibilityButton>
                         {(mapShown) => (
-                          <div
-                            style={{
-                              display: mapShown ? 'block' : 'none',
-                              height: height - 40,
-                            }}
-                          >
-                            <ActionsMap
-                              layout="narrow"
-                              unitIds={unitIds}
-                              onLoad={setMapLayer}
-                              includePhoto
-                            />
-                          </div>
+                          <Fragment>
+                            {mapShown && mapCycleDisclaimer}
+                            <div
+                              style={{
+                                display: mapShown ? 'block' : 'none',
+                                height: height - 40,
+                              }}
+                            >
+                              <ActionsMap
+                                layout="narrow"
+                                unitIds={unitIds}
+                                onLoad={setMapLayer}
+                                includePhoto
+                              />
+                            </div>
+                          </Fragment>
                         )}
                       </MapVisibilityButton>
                     </>
                   ) : (
                     <StickyBox offsetTop={20} offsetBottom={20}>
                       {infoBox}
+                      {mapCycleDisclaimer}
                       <div
                         id="waterbody-report-map"
                         style={{
