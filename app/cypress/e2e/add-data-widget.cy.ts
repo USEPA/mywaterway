@@ -2,7 +2,7 @@ describe('Add & Save Data Widget', () => {
   const adwId = '#add-save-data-widget';
   const dropzoneId = 'hmw-dropzone';
 
-  function openWidget(path = '/community/dc') {
+  function openWidget(path = '/community/dc/overview') {
     cy.visit(path, { timeout: 20000 });
 
     // wait for the web services to finish
@@ -135,8 +135,6 @@ describe('Add & Save Data Widget', () => {
 
   it('Test URL feature', () => {
     const urlSuccess = 'The layer was successfully added to the map';
-
-    openWidget('/community/dc');
 
     cy.get(adwId).within(($adw) => {
       function runUrlTests(layer, layerTitle) {
@@ -325,8 +323,6 @@ describe('Add & Save Data Widget', () => {
   });
 
   it('Test that save panel switches align with currently visible layers', () => {
-    openWidget('/community/dc/overview');
-
     cy.findByTitle('Open Basemaps and Layers').click({ force: true });
     cy.get('.hmw-map-layers').within(() => {
       // toggle on a layer
@@ -352,8 +348,6 @@ describe('Add & Save Data Widget', () => {
   });
 
   it("Test that the save panel includes layers added from the widget's other tabs", () => {
-    openWidget('/community/dc');
-
     cy.get(adwId).within(() => {
       cy.findByRole('listitem', { name: 'USA Current Wildfires' }).within(
         () => {

@@ -348,7 +348,8 @@
       }
 
       .highcharts-container *,
-      .visx-tooltip {
+      .visx-tooltip,
+      calcite-popover {
         transition-property: opacity;
       }
 
@@ -508,8 +509,7 @@
           })();
 
           // fetch the supported browser list lookup file
-          const proxyUrl = `${origin}/proxy`;
-          const url = `${proxyUrl}?url=${origin}/data/config/supported-browsers.json`;
+          const url = `${origin}/api/supportedBrowsers`;
           fetch(url)
             .then((response) => {
               if (response.status === 200) {
@@ -598,7 +598,7 @@
         gtag('config', id, options);
       }
 
-      // get origin for mapping proxy calls
+      // get origin for mapping calls
       const loc = window.location;
       const origin =
         loc.hostname === 'localhost'
@@ -609,8 +609,8 @@
       // the services lookup file are logged.
       window.googleAnalyticsMapping = [
         {
-          wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`,
-          name: 's3 lookup - config services',
+          wildcardUrl: `${origin}/api/configFiles`,
+          name: 's3 lookup - config files',
         },
       ];
 

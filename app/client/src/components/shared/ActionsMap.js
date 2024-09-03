@@ -14,14 +14,9 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  useAttainsImpairmentFieldsContext,
-  useAttainsUseFieldsContext,
-  useServicesContext,
-  useStateNationalUsesContext,
-} from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -76,10 +71,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
   const [layers, setLayers] = useState(null);
 
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
+  const configFiles = useConfigFilesState();
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
@@ -131,9 +123,8 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const getPhotoLink = useCallback(
     async (orgId, auId) => {
       if (!auId || !orgId) return null;
-      if (services.status !== 'success') return null;
       const url =
-        services.data.attains.serviceUrl +
+        configFiles.data.services.attains.serviceUrl +
         `assessmentUnits?organizationId=${orgId}` +
         `&assessmentUnitIdentifier=${auId}`;
       const results = await fetchCheck(url);
@@ -155,7 +146,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       );
       return photo ? photo.documentURL : null;
     },
-    [services],
+    [configFiles],
   );
 
   // Plots the assessments. Also re-plots if the layout changes
@@ -168,9 +159,9 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       actionsWaterbodies.graphics.removeAll();
 
       // set up ESRI Queries for ATTAINS lines, area, and points web services
-      const linesUrl = services.data.waterbodyService.lines;
-      const areasUrl = services.data.waterbodyService.areas;
-      const pointsUrl = services.data.waterbodyService.points;
+      const linesUrl = configFiles.data.services.waterbodyService.lines;
+      const areasUrl = configFiles.data.services.waterbodyService.areas;
+      const pointsUrl = configFiles.data.services.waterbodyService.points;
 
       const auIds = Object.keys(unitIds).join("','");
       const queryParams = {
@@ -261,18 +252,18 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 </div>
               );
               content = getPopupContent({
+                configFiles: configFiles.data,
                 feature,
                 extraContent,
                 navigate,
-                lookupFiles: { attainsImpairmentFields, attainsUseFields, services, stateNationalUses },
               });
             } else {
               // when no content is provided just display the normal community
               // waterbody content
               content = getPopupContent({
+                configFiles: configFiles.data,
                 feature,
                 navigate,
-                lookupFiles: { attainsImpairmentFields, attainsUseFields, services, stateNationalUses },
               });
             }
 
@@ -339,15 +330,12 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
   }, [
     actionsWaterbodies,
-    attainsImpairmentFields,
-    attainsUseFields,
+    configFiles,
     fetchStatus,
     getPhotoLink,
     navigate,
     onLoad,
     includePhoto,
-    services,
-    stateNationalUses,
     unitIds,
   ]);
 
