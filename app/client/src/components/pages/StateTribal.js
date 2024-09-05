@@ -21,16 +21,13 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { useOrganizationsData } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   StateTribalTabsContext,
   StateTribalTabsProvider,
 } from 'contexts/StateTribalTabs';
-import {
-  useOrganizationsContext,
-  useServicesContext,
-  useTribeMappingContext,
-} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
@@ -140,11 +137,10 @@ const searchSourceButtonStyles = css`
 `;
 
 function StateTribal() {
+  const configFiles = useConfigFilesState();
   const location = useLocation();
   const navigate = useNavigate();
-  const organizations = useOrganizationsContext();
-  const services = useServicesContext();
-  const tribeMapping = useTribeMappingContext();
+  const organizations = useOrganizationsData();
 
   const {
     activeState,
@@ -168,27 +164,20 @@ function StateTribal() {
   // get tribes from the tribeMapping data
   const [tribes, setTribes] = useState({ status: 'fetching', data: [] });
   useEffect(() => {
-    if (
-      organizations.status === 'failure' ||
-      tribeMapping.status === 'failure'
-    ) {
+    if (organizations.status === 'failure') {
       setTribes({ status: 'failure', data: [] });
       return;
     }
-    if (
-      organizations.status !== 'success' ||
-      tribeMapping.status !== 'success'
-    ) {
+    if (organizations.status !== 'success') {
       return;
     }
 
     const tempTribes = [];
-    tribeMapping.data.forEach((tribe) => {
-      const tribeAttains = organizations.data.features.find(
+    configFiles.data.tribeMapping.forEach((tribe) => {
+      const tribeAttains = organizations.data.find(
         (item) =>
-          item.attributes.orgtype === 'Tribe' &&
-          item.attributes.organizationid.toUpperCase() ===
-            tribe.attainsId.toUpperCase(),
+          item.orgtype === 'Tribe' &&
+          item.organizationid.toUpperCase() === tribe.attainsId.toUpperCase(),
       );
       if (!tribeAttains) return;
 
@@ -201,7 +190,7 @@ function StateTribal() {
     });
 
     setTribes({ status: 'success', data: tempTribes });
-  }, [organizations, tribeMapping]);
+  }, [configFiles, organizations]);
 
   // query attains for the list of states
   const [states, setStates] = useState({ status: 'fetching', data: [] });
@@ -211,7 +200,7 @@ function StateTribal() {
 
     setStatesInitialized(true);
 
-    fetchCheck(`${services.data.attains.serviceUrl}states`)
+    fetchCheck(`${configFiles.data.services.attains.serviceUrl}states`)
       .then((res) => {
         setStates({
           status: 'success',
@@ -221,7 +210,7 @@ function StateTribal() {
         });
       })
       .catch((_err) => setStates({ status: 'failure', data: [] }));
-  }, [services, statesInitialized]);
+  }, [configFiles, statesInitialized]);
 
   // reset active state if on state intro page
   useEffect(() => {

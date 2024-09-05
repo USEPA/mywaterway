@@ -5,6 +5,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import {
   useFetchedDataDispatch,
   useFetchedDataState,
@@ -13,10 +14,6 @@ import {
   initialMonitoringGroups,
   LocationSearchContext,
 } from 'contexts/locationSearch';
-import {
-  useCharacteristicGroupMappingsContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
 // utils
 import { fetchCheck } from 'utils/fetchUtils';
 import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
@@ -96,7 +93,7 @@ export function useMonitoringLocations() {
 }
 
 export function useMonitoringGroups() {
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const configFiles = useConfigFilesState();
   const { monitoringGroups, setMonitoringGroups } = useContext(
     LocationSearchContext,
   );
@@ -104,15 +101,14 @@ export function useMonitoringGroups() {
 
   useEffect(() => {
     if (monitoringLocations.status !== 'success') return;
-    if (characteristicGroupMappings.status !== 'success') return;
 
     setMonitoringGroups(
       buildMonitoringGroups(
         monitoringLocations.data,
-        characteristicGroupMappings.data,
+        configFiles.data.characteristicGroupMappings,
       ),
     );
-  }, [characteristicGroupMappings, monitoringLocations, setMonitoringGroups]);
+  }, [configFiles, monitoringLocations, setMonitoringGroups]);
 
   return { monitoringGroups, setMonitoringGroups };
 }
@@ -120,13 +116,12 @@ export function useMonitoringGroups() {
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
 function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const configFiles = useConfigFilesState();
   const {
     setMonitoringPeriodOfRecordStatus,
     setMonitoringYearsRange,
     setSelectedMonitoringYearsRange,
   } = useContext(LocationSearchContext);
-  const services = useServicesContext();
 
   const [monitoringAnnualRecords, setMonitoringAnnualRecords] = useState<{
     status: FetchStatus;
@@ -150,9 +145,9 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
 
   // Craft the URL
   let url: string | null = null;
-  if (services.status === 'success' && filter) {
+  if (filter) {
     url =
-      `${services.data.waterQualityPortal.monitoringLocation}search?` +
+      `${configFiles.data.services.waterQualityPortal.monitoringLocation}search?` +
       `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&${filter}`;
   }
 
@@ -177,7 +172,10 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
       new URL('./periodOfRecord', import.meta.url),
     );
     // Tell the worker to start the task
-    recordsWorker.current.postMessage([url, characteristicGroupMappings.data]);
+    recordsWorker.current.postMessage([
+      url,
+      configFiles.data.characteristicGroupMappings,
+    ]);
     // Handle the worker's response
     recordsWorker.current.onmessage = (message) => {
       if (message.data && typeof message.data === 'string') {
@@ -187,7 +185,7 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
         setMonitoringAnnualRecords(parsedData);
       }
     };
-  }, [characteristicGroupMappings, enabled, url]);
+  }, [configFiles, enabled, url]);
 
   useEffect(() => {
     return function cleanup() {
@@ -202,9 +200,8 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
 // and returns a function for updating surrounding data.
 function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
   // Build the data update function
+  const configFiles = useConfigFilesState();
   const { mapView } = useContext(LocationSearchContext);
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
-  const services = useServicesContext();
 
   const fetchedDataDispatch = useFetchedDataDispatch();
 
@@ -224,13 +221,15 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
       return;
     }
 
-    if (services.status !== 'success') return;
-
     fetchAndTransformData(
-      fetchMonitoringLocations(localFilter, services.data, controller.signal),
+      fetchMonitoringLocations(
+        localFilter,
+        configFiles.data.services,
+        controller.signal,
+      ),
       fetchedDataDispatch,
       localFetchedDataKey,
-      characteristicGroupMappings.data,
+      configFiles.data.characteristicGroupMappings,
     ).then((data) => {
       setLocalData(data);
     });
@@ -238,7 +237,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
     return function cleanup() {
       controller.abort();
     };
-  }, [characteristicGroupMappings, fetchedDataDispatch, localFilter, services]);
+  }, [configFiles, fetchedDataDispatch, localFilter]);
 
   // Add annual characteristic data to the local data
   const annualData = useMonitoringPeriodOfRecord(
@@ -256,8 +255,6 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
-      if (services.status !== 'success') return;
-
       const newExtentFilter = await getExtentFilter(mapView);
 
       // Could not create filter
@@ -270,22 +267,16 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
       await fetchAndTransformData(
         fetchMonitoringLocations(
           extentFilter.current,
-          services.data,
+          configFiles.data.services,
           abortSignal,
         ),
         fetchedDataDispatch,
         surroundingFetchedDataKey,
-        characteristicGroupMappings.data,
+        configFiles.data.characteristicGroupMappings,
         localData, // Filter out HUC data
       );
     },
-    [
-      characteristicGroupMappings,
-      fetchedDataDispatch,
-      localData,
-      mapView,
-      services,
-    ],
+    [configFiles, fetchedDataDispatch, localData, mapView],
   );
 
   return updateSurroundingData;

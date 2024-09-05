@@ -18,12 +18,8 @@ import {
 import Switch from 'components/shared/Switch';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LocationSearchContext, Status } from 'contexts/locationSearch';
-import {
-  useAttainsImpairmentFieldsContext,
-  useLayerProps,
-  useServicesContext,
-} from 'contexts/LookupFiles';
 // utils
 import { isServiceNameAvailable, publish } from 'utils/arcGisRestUtils';
 import {
@@ -255,7 +251,7 @@ function SavePanel({ visible }: Readonly<Props>) {
     setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const configFiles = useConfigFilesState();
   const cipSummary = useContext(LocationSearchContext).cipSummary as {
     status: Status;
     data: Huc12SummaryData;
@@ -283,8 +279,6 @@ function SavePanel({ visible }: Readonly<Props>) {
   };
   const [oAuthInfo, setOAuthInfo] = useState<__esri.OAuthInfo | null>(null);
   const [userPortal, setUserPortal] = useState<__esri.Portal | null>(null);
-  const layerProps = useLayerProps();
-  const services = useServicesContext();
 
   const [saveLayerFilter, setSaveLayerFilter] = useState(
     layerFilterOptions[0].value,
@@ -470,11 +464,7 @@ function SavePanel({ visible }: Readonly<Props>) {
     status: 'idle',
   });
 
-  if (
-    !mapView ||
-    layerProps.status === 'fetching' ||
-    services.status === 'fetching'
-  ) {
+  if (!mapView) {
     return <LoadingSpinner />;
   }
 
@@ -510,9 +500,9 @@ function SavePanel({ visible }: Readonly<Props>) {
       const response = await publish({
         portal,
         mapView,
-        services,
+        services: configFiles.data.services,
         layers: layersToPublish,
-        layerProps,
+        layerProps: configFiles.data.layerProps,
         serviceMetaData,
       });
 
@@ -709,7 +699,7 @@ function SavePanel({ visible }: Readonly<Props>) {
         cipSummary.data.items[0].summaryByParameterImpairments.forEach(
           (param) => {
             const mappedParameter = getMappedParameter(
-              attainsImpairmentFields.data,
+              configFiles.data.impairmentFields,
               param['parameterGroupName'],
             );
             if (!mappedParameter) return;

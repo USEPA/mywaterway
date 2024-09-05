@@ -30,9 +30,9 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
@@ -101,6 +101,11 @@ const modifiedErrorBoxStyles = css`
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles}
   text-align: center;
+`;
+
+const mapInfoBoxStyles = css`
+  ${modifiedInfoBoxStyles}
+  margin-bottom: 10px;
 `;
 
 const infoBoxHeadingStyles = css`
@@ -235,7 +240,7 @@ const conditions = {
 function WaterbodyReport() {
   const { orgId, auId, reportingCycle } = useParams();
 
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const [noWaterbodies, setNoWaterbodies] = useState(false);
 
@@ -257,10 +262,51 @@ function WaterbodyReport() {
     layer: null,
   });
 
+  function handleError() {
+    setAllParameterActionIds({
+      status: 'failure',
+      data: [],
+    });
+    setReportingCycleFetch({ status: 'failure', year: '' });
+    setWaterbodyStatus({ status: 'failure', data: [] });
+    setWaterbodyUses({ status: 'failure', data: [] });
+    setWaterbodySources({ status: 'failure', data: [] });
+    setDocuments({ status: 'failure', data: [] });
+    setOrganizationName({
+      status: 'failure',
+      name: '',
+    });
+  }
+
+  function handleNoAssessments() {
+    setWaterbodyStatus({
+      status: 'no-data',
+      data: { condition: '', planForRestoration: '', listed303d: '' },
+    });
+    setReportingCycleFetch({
+      status: 'success',
+      year: '',
+    });
+    setWaterbodyUses({
+      status: 'success',
+      data: [],
+    });
+    setOrganizationName({
+      status: 'success',
+      name: '',
+    });
+    setAllParameterActionIds({
+      status: 'success',
+      data: [],
+    });
+    setWaterbodySources({ status: 'success', data: [] });
+    setDocuments({ status: 'success', data: [] });
+  }
+
   // fetch waterbody name, location, types from attains 'assessmentUnits' web service
   useEffect(() => {
     const url =
-      services.data.attains.serviceUrl +
+      configFiles.data.services.attains.serviceUrl +
       `assessmentUnits?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}`;
 
@@ -305,7 +351,7 @@ function WaterbodyReport() {
         }));
 
         // build the post reqest
-        const wqpUrl = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson`;
+        const wqpUrl = `${configFiles.data.services.waterQualityPortal.stationSearch}mimeType=geojson`;
         const headers = { 'content-type': 'application/json' };
         const data = {
           siteid: stations.map((s) => {
@@ -333,7 +379,7 @@ function WaterbodyReport() {
                 : '';
 
               const url = match
-                ? `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+                ? `${configFiles.data.services.waterQualityPortal.monitoringLocationDetails}` +
                   `${match.properties['ProviderName']}/` +
                   `${match.properties['OrganizationIdentifier']}/` +
                   `${match.properties['MonitoringLocationIdentifier']}/`
@@ -356,7 +402,50 @@ function WaterbodyReport() {
         setWaterbodyLocation({ status: 'failure', text: '' });
       },
     );
-  }, [auId, orgId, services]);
+  }, [auId, configFiles, orgId]);
+
+  // get all reporting cycles for the waterbody
+  const [allReportingCycles, setAllReportingCycles] = useState({
+    status: 'fetching',
+    data: [],
+  });
+  useEffect(() => {
+    // recursive function to page through all reporting cycles
+    async function fetchCycles(acc = []) {
+      try {
+        const res = await fetchPost(
+          `${configFiles.data.services.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
+          {
+            direction: 'asc',
+            filters: { assessmentUnitId: auId },
+            limit: configFiles.data.services.expertQuery.valuesLimit,
+            ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
+          },
+          {
+            'Content-Type': 'application/json',
+            'X-Api-Key': configFiles.data.services.expertQuery.apiKey,
+          },
+        );
+        const newValues = res.map((item) => item.reportingCycle);
+        if (
+          newValues.length === configFiles.data.services.expertQuery.valuesLimit
+        ) {
+          fetchCycles(acc.concat(newValues));
+        } else {
+          setAllReportingCycles({
+            status: 'success',
+            data: acc.concat(newValues),
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        setAllReportingCycles({ status: 'failure', data: [] });
+        handleError();
+      }
+    }
+
+    fetchCycles();
+  }, [auId, configFiles]);
 
   const [reportingCycleFetch, setReportingCycleFetch] = useState({
     status: 'fetching',
@@ -387,29 +476,40 @@ function WaterbodyReport() {
     status: 'fetching',
     data: [],
   });
+  const [reportingCycleGis, setReportingCycleGis] = useState('');
 
   // fetch reporting cycle, waterbody status, decision rational, uses,
   // and sources from attains 'assessments' web service
   const [assessmentsCalled, setAssessmentsCalled] = useState(false);
   useEffect(() => {
-    if (assessmentsCalled) return;
+    if (assessmentsCalled || mapLayer.status === 'fetching') return;
     if (!reportingCycle && mapLayer.status === 'fetching') return;
+    if (allReportingCycles.status !== 'success') return;
+
+    let hasGisData =
+      mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0;
+    const gisCycle = hasGisData
+      ? mapLayer.layer.graphics.items[0].attributes.reportingcycle.toString()
+      : '';
+    setReportingCycleGis(gisCycle);
 
     let reportingCycleParam = '';
     if (reportingCycle) {
       reportingCycleParam = reportingCycle;
-    } else if (
-      mapLayer.status === 'success' &&
-      mapLayer.layer.graphics.length > 0
-    ) {
+    } else if (hasGisData) {
+      reportingCycleParam = gisCycle;
+    } else if (allReportingCycles.data.length > 0) {
       reportingCycleParam =
-        mapLayer.layer.graphics.items[0].attributes.reportingcycle;
+        allReportingCycles.data[allReportingCycles.data.length - 1];
+    } else {
+      handleNoAssessments();
+      return;
     }
 
     setAssessmentsCalled(true);
 
     const url =
-      services.data.attains.serviceUrl +
+      configFiles.data.services.attains.serviceUrl +
       `assessments?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}` +
       (reportingCycleParam ? `&reportingCycle=${reportingCycleParam}` : '');
@@ -417,32 +517,16 @@ function WaterbodyReport() {
     fetchCheck(url).then(
       (res) => {
         if (res.items.length === 0) {
-          setWaterbodyStatus({
-            status: 'no-data',
-            data: { condition: '', planForRestoration: '', listed303d: '' },
-          });
-          setReportingCycleFetch({
-            status: 'success',
-            year: '',
-          });
-          setWaterbodyUses({
-            status: 'success',
-            data: [],
-          });
-          setOrganizationName({
-            status: 'success',
-            name: '',
-          });
-          setAllParameterActionIds({
-            status: 'success',
-            data: [],
-          });
-          setWaterbodySources({ status: 'success', data: [] });
-          setDocuments({ status: 'success', data: [] });
+          handleNoAssessments();
           return;
         }
 
         const firstItem = res.items[0];
+        if (firstItem.assessments.length === 0) {
+          handleNoAssessments();
+          return;
+        }
+
         setReportingCycleFetch({
           status: 'success',
           year: firstItem.reportingCycleText,
@@ -664,64 +748,18 @@ function WaterbodyReport() {
       },
       (err) => {
         console.error(err);
-        setAllParameterActionIds({
-          status: 'failure',
-          data: [],
-        });
-        setReportingCycleFetch({ status: 'failure', year: '' });
-        setWaterbodyStatus({ status: 'failure', data: [] });
-        setWaterbodyUses({ status: 'failure', data: [] });
-        setWaterbodySources({ status: 'failure', data: [] });
-        setDocuments({ status: 'failure', data: [] });
-        setOrganizationName({
-          status: 'failure',
-          name: '',
-        });
+        handleError();
       },
     );
-  }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled, services]);
-
-  // get all reporting cycles for the waterbody
-  const [allReportingCycles, setAllReportingCycles] = useState({
-    status: 'fetching',
-    data: [],
-  });
-  useEffect(() => {
-    if (services.status !== 'success') return;
-
-    // recursive function to page through all reporting cycles
-    async function fetchCycles(acc = []) {
-      try {
-        const res = await fetchPost(
-          `${services.data.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
-          {
-            direction: 'asc',
-            filters: { assessmentUnitId: auId },
-            limit: services.data.expertQuery.valuesLimit,
-            ...(acc.length > 0 && { comparand: acc[acc.length - 1] }),
-          },
-          {
-            'Content-Type': 'application/json',
-            'X-Api-Key': services.data.expertQuery.apiKey,
-          },
-        );
-        const newValues = res.map((item) => item.reportingCycle);
-        if (newValues.length === services.data.expertQuery.valuesLimit) {
-          fetchCycles(acc.concat(newValues));
-        } else {
-          setAllReportingCycles({
-            status: 'success',
-            data: acc.concat(newValues),
-          });
-        }
-      } catch (err) {
-        console.error(err);
-        setAllReportingCycles({ status: 'failure', data: [] });
-      }
-    }
-
-    fetchCycles();
-  }, [auId, services]);
+  }, [
+    allReportingCycles,
+    auId,
+    configFiles,
+    orgId,
+    reportingCycle,
+    mapLayer,
+    assessmentsCalled,
+  ]);
 
   const [waterbodyActions, setWaterbodyActions] = useState({
     status: 'fetching',
@@ -731,11 +769,9 @@ function WaterbodyReport() {
   // fetch waterbody actions from attains 'actions' web service, using the
   // 'organizationId' and 'assessmentUnitIdentifier' query string parameters
   useEffect(() => {
-    if (services.status !== 'success') return;
-
     const parameters = `organizationIdentifier=${orgId}&assessmentUnitIdentifier=${auId}`;
 
-    getPollutantsFromAction(services.data, parameters)
+    getPollutantsFromAction(configFiles.data.services, parameters)
       .then((res) => {
         if (res.length === 0) {
           setWaterbodyActions({ status: 'pending', data: [] });
@@ -748,7 +784,7 @@ function WaterbodyReport() {
         console.error(ex);
         setWaterbodyActions({ status: 'failure', data: [] });
       });
-  }, [auId, orgId, services]);
+  }, [auId, configFiles, orgId]);
 
   // call attains 'actions' web service again, this time using the
   // 'actionIdentifier' query string parameter – once for each action
@@ -759,7 +795,6 @@ function WaterbodyReport() {
   useEffect(() => {
     if (actionsFetchedAgain) return;
     if (allParameterActionIds.status === 'fetching') return;
-    if (services.status !== 'success') return;
     if (waterbodyActions.status !== 'pending') return;
 
     // action ids from the initial attains 'actions' web service call
@@ -786,7 +821,7 @@ function WaterbodyReport() {
 
     setActionsFetchedAgain(true);
 
-    getPollutantsFromAction(services.data, parameters)
+    getPollutantsFromAction(configFiles.data.services, parameters)
       .then((additionalActions) => {
         if (additionalActions.length === 0) {
           // if there are no new items (there should be), at least use the
@@ -818,9 +853,9 @@ function WaterbodyReport() {
   }, [
     actionsFetchedAgain,
     allParameterActionIds,
+    configFiles,
     orgId,
     waterbodyActions,
-    services,
   ]);
 
   // Builds the unitIds dictionary that is used for determining what
@@ -1041,6 +1076,22 @@ function WaterbodyReport() {
     </div>
   );
 
+  const mapCycleDisclaimer = (
+    <Fragment>
+      {reportingCycleGis &&
+        reportingCycleFetch.status === 'success' &&
+        reportingCycleGis !== reportingCycleFetch.year && (
+          <div css={mapInfoBoxStyles}>
+            <p>
+              The map shows the location and extent of the Assessment Unit for
+              the {reportingCycleGis} reporting cycle. The Assessment Unit may
+              have changed over time.
+            </p>
+          </div>
+        )}
+    </Fragment>
+  );
+
   if (noWaterbodies) {
     return (
       <Page>
@@ -1123,25 +1174,29 @@ function WaterbodyReport() {
                       {infoBox}
                       <MapVisibilityButton>
                         {(mapShown) => (
-                          <div
-                            style={{
-                              display: mapShown ? 'block' : 'none',
-                              height: height - 40,
-                            }}
-                          >
-                            <ActionsMap
-                              layout="narrow"
-                              unitIds={unitIds}
-                              onLoad={setMapLayer}
-                              includePhoto
-                            />
-                          </div>
+                          <Fragment>
+                            {mapShown && mapCycleDisclaimer}
+                            <div
+                              style={{
+                                display: mapShown ? 'block' : 'none',
+                                height: height - 40,
+                              }}
+                            >
+                              <ActionsMap
+                                layout="narrow"
+                                unitIds={unitIds}
+                                onLoad={setMapLayer}
+                                includePhoto
+                              />
+                            </div>
+                          </Fragment>
                         )}
                       </MapVisibilityButton>
                     </>
                   ) : (
                     <StickyBox offsetTop={20} offsetBottom={20}>
                       {infoBox}
+                      {mapCycleDisclaimer}
                       <div
                         id="waterbody-report-map"
                         style={{

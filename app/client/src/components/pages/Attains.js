@@ -12,10 +12,7 @@ import ReactTable from 'components/shared/ReactTable';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import {
-  useAttainsImpairmentFieldsContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 // errors
@@ -25,9 +22,9 @@ function compareContextName(objA, objB) {
   return objA['context'].localeCompare(objB['context']);
 }
 
-function getMatchingLabel(ATTAINSContext, attainsImpairmentFields) {
+function getMatchingLabel(ATTAINSContext, impairmentFields) {
   return (
-    attainsImpairmentFields.data.filter((field) => {
+    impairmentFields.filter((field) => {
       return field.parameterGroup === ATTAINSContext;
     })[0]?.label ?? ATTAINSContext
   );
@@ -67,8 +64,7 @@ const modifiedErrorBoxStyles = css`
 `;
 
 function Attains() {
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const [loading, setLoading] = useState(true);
   const [serviceError, setServiceError] = useState(false);
@@ -82,7 +78,8 @@ function Attains() {
     setAttainsDataInitialized(true);
 
     const url =
-      services.data.attains.serviceUrl + 'domains?domainName=ParameterName';
+      configFiles.data.services.attains.serviceUrl +
+      'domains?domainName=ParameterName';
 
     fetchCheck(url)
       .then((res) => {
@@ -94,7 +91,7 @@ function Attains() {
         setLoading(false);
         setServiceError(true);
       });
-  }, [services, attainsDataInitialized]);
+  }, [attainsDataInitialized, configFiles]);
 
   useEffect(() => {
     // array of arrays - each containing 3 values: the HMW mapping, the ATTAINS context, and the ATTAINS name
@@ -103,7 +100,10 @@ function Attains() {
     if (attainsData) {
       data = attainsData.map((obj) => {
         return {
-          hmwMapping: getMatchingLabel(obj.context, attainsImpairmentFields),
+          hmwMapping: getMatchingLabel(
+            obj.context,
+            configFiles.data.impairmentFields,
+          ),
           attainsParameterGroup: obj.context,
           attainsParameterName: obj.name,
         };
@@ -111,7 +111,7 @@ function Attains() {
     }
 
     setMatchedMappings(data);
-  }, [attainsData, attainsImpairmentFields]);
+  }, [attainsData, configFiles]);
 
   if (serviceError) {
     return (

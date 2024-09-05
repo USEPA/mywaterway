@@ -9,10 +9,19 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // styles
+import { infoBoxStyles } from 'components/shared/MessageBoxes';
 import { fonts } from 'styles/index';
 
 const containerStyles = css`
   padding: 1rem;
+`;
+
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
+  margin-top: 1rem;
+  h4 {
+    margin-bottom: 0.5em;
+  }
 `;
 
 const modifiedTabsStyles = css`
@@ -412,6 +421,18 @@ function AboutContent() {
             </TabPanel>
           </TabPanels>
         </Tabs>
+
+        <div css={modifiedInfoBoxStyles}>
+          For the latest changes in How's My Waterway, view our{' '}
+          <a
+            href="https://www.epa.gov/waterdata/hows-my-waterway-updates"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            update page
+          </a>
+          .
+        </div>
       </div>
     </div>
   );

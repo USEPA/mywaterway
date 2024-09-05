@@ -20,13 +20,8 @@ import {
   getOrganizationLabel,
 } from 'utils/mapFunctions';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  useAttainsImpairmentFieldsContext,
-  useAttainsUseFieldsContext,
-  useServicesContext,
-  useStateNationalUsesContext,
-} from 'contexts/LookupFiles';
 // errors
 import { huc12SummaryError } from 'config/errorMessages';
 // styles
@@ -82,11 +77,7 @@ type Props = {
 
 function WaterbodyList({ waterbodies, title, fieldName }: Props) {
   const { cipSummary } = useContext(LocationSearchContext);
-
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
+  const configFiles = useConfigFilesState();
 
   // if huc12summaryservice is down
   if (cipSummary.status === 'failure') {
@@ -170,14 +161,9 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
             >
               <div css={waterbodyItemStyles}>
                 <WaterbodyInfo
+                  configFiles={configFiles?.data}
                   feature={graphic}
                   fieldName={fieldName}
-                  lookupFiles={{
-                    attainsImpairmentFields,
-                    attainsUseFields,
-                    services,
-                    stateNationalUses,
-                  }}
                   type="Waterbody"
                 />
 
