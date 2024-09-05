@@ -34,17 +34,13 @@ import {
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // contexts
-import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
+import {
+  useFetchedDataDispatch,
+  useOrganizationsData,
+} from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import {
-  useAttainsImpairmentFieldsContext,
-  useAttainsParametersContext,
-  useAttainsUseFieldsContext,
-  useOrganizationsContext,
-  useServicesContext,
-  useStateNationalUsesContext,
-} from 'contexts/LookupFiles';
 // errors
 import {
   geocodeError,
@@ -102,13 +98,10 @@ type Props = {
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { getSignal } = useAbort();
 
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
-  const attainsParameters = useAttainsParametersContext();
-  const attainsUseFields = useAttainsUseFieldsContext();
+  const configFiles = useConfigFilesState();
   const fetchedDataDispatch = useFetchedDataDispatch();
-  const organizations = useOrganizationsContext();
-  const services = useServicesContext();
   const navigate = useNavigate();
+  const organizations = useOrganizationsData();
 
   const {
     searchText,
@@ -125,6 +118,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     orphanFeatures,
     setOrphanFeatures,
     hucBoundaries,
+    atHucBoundaries,
     areasData,
     linesData,
     pointsData,
@@ -183,8 +177,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useMonitoringLocationsLayers({ filter: huc12 ? `huc=${huc12}` : null });
   useStreamgageLayers();
 
-  const stateNationalUses = useStateNationalUsesContext();
-
   function matchStateCodeToAssessment(
     assessmentUnitIdentifier,
     allAssessmentUnits,
@@ -219,14 +211,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
 
       function getUseStatus(category, stateCode, useAttainments) {
-        if (stateNationalUses.status !== 'success') return null;
         if (!stateCode) return null;
 
         if (!useAttainments || useAttainments.length === 0) return null;
 
         const relatedUses = [];
         useAttainments.forEach((useAttainment) => {
-          const foundUse = stateNationalUses.data.find(
+          const foundUse = configFiles.data.stateNationalUses.find(
             (use) =>
               category === use.category &&
               stateCode === use.state &&
@@ -306,13 +297,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             tempObject[parameter] = checkParameterStatus(
               parameter,
               assessment.parameters,
-              attainsImpairmentFields.data,
+              configFiles.data.impairmentFields,
               attainsDomainsData,
             );
           });
           return tempObject;
         }
-        const parametersObject = createParametersObject(attainsParameters.data);
+        const parametersObject = createParametersObject(
+          configFiles.data.parameters,
+        );
 
         return {
           limited: true,
@@ -349,7 +342,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         };
       });
     },
-    [attainsImpairmentFields, attainsParameters, stateNationalUses],
+    [configFiles],
   );
 
   const handleOrphanedFeatures = useCallback(
@@ -398,10 +391,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         }
 
         // get organization
-        const organization = organizations.data.features.find(
-          (org) => org.attributes.organizationid === orgId,
+        const organization = organizations.data.find(
+          (org) => org.organizationid === orgId,
         );
-        const reportingCycle = organization?.attributes?.reportingcycle;
+        const reportingCycle = organization?.reportingcycle;
         if (!reportingCycle) return;
 
         // chunk the requests by character count
@@ -410,7 +403,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
         chunkedUnitIds.forEach((chunk) => {
           const url =
-            `${services.data.attains.serviceUrl}` +
+            `${configFiles.data.services.attains.serviceUrl}` +
             `assessments?organizationId=${orgId}&reportingCycle=${reportingCycle}&assessmentUnitIdentifier=${chunk}`;
 
           requests.push(fetchCheck(url));
@@ -449,7 +442,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setOrphanFeatures({ features: [], status: 'error' });
         });
     },
-    [createDetailedOrphanFeatures, organizations, services, setOrphanFeatures],
+    [
+      configFiles,
+      createDetailedOrphanFeatures,
+      organizations,
+      setOrphanFeatures,
+    ],
   );
 
   // Check if the Huc12Summary service contains any Assessment IDs that are not included in the GIS (points/lines/areas) results.
@@ -459,12 +457,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const [assessmentUnitCount, setAssessmentUnitCount] = useState(0);
   const [checkedForOrphans, setCheckedForOrphans] = useState(false);
   useEffect(() => {
-    if (
-      organizations.status === 'fetching' ||
-      stateNationalUses.status === 'fetching'
-    ) {
-      return;
-    }
+    if (organizations.status === 'pending') return;
 
     if (!checkedForOrphans && areasData && linesData && pointsData) {
       setCheckedForOrphans(true);
@@ -501,7 +494,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
         // fetch the ATTAINS Domains service Parameter Names so we can populate the Waterbody Parameters later on
         fetchCheck(
-          `${services.data.attains.serviceUrl}domains?domainName=ParameterName`,
+          `${configFiles.data.services.attains.serviceUrl}domains?domainName=ParameterName`,
         )
           .then((res) => {
             if (!res || res.length === 0) {
@@ -518,7 +511,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             const requests = [];
             chunkedUnitIds.forEach((chunk) => {
               const url =
-                `${services.data.attains.serviceUrl}` +
+                `${configFiles.data.services.attains.serviceUrl}` +
                 `assessmentUnits?assessmentUnitIdentifier=${chunk}`;
 
               requests.push(fetchCheck(url));
@@ -561,15 +554,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     assessmentUnitCount,
     assessmentUnitIDs,
     checkedForOrphans,
+    configFiles,
     getAllFeatures,
     handleOrphanedFeatures,
     huc12,
     linesData,
     organizations,
     pointsData,
-    services,
     setOrphanFeatures,
-    stateNationalUses,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
   ]);
@@ -648,11 +640,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
+    configFiles,
     getSharedLayers,
     setLayer,
     setResetHandler,
     layersInitialized,
-    services,
     setLayersInitialized,
     navigate,
     updateErroredLayers,
@@ -666,23 +658,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
         getPopupContent({
+          configFiles: configFiles.data,
           feature: feature.graphic,
           navigate,
-          lookupFiles: {
-            attainsImpairmentFields,
-            attainsUseFields,
-            services,
-            stateNationalUses,
-          },
         }),
     };
-  }, [
-    attainsImpairmentFields,
-    attainsUseFields,
-    navigate,
-    services,
-    stateNationalUses,
-  ]);
+  }, [configFiles, navigate]);
 
   const handleMapServiceError = useCallback(
     (err) => {
@@ -700,7 +681,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the lines data and builds the associated feature layer
   const retrieveLines = useCallback(
     (filter, boundaries) => {
-      const url = services.data.waterbodyService.lines;
+      const url = configFiles.data.services.waterbodyService.lines;
       const queryParams = {
         returnGeometry: true,
         where: filter,
@@ -762,10 +743,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
+      configFiles,
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
-      services,
       setLayer,
       setLinesData,
       setResetHandler,
@@ -776,7 +757,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the areas data and builds the associated feature layer
   const retrieveAreas = useCallback(
     (filter, boundaries) => {
-      const url = services.data.waterbodyService.areas;
+      const url = configFiles.data.services.waterbodyService.areas;
       const queryParams = {
         returnGeometry: true,
         where: filter,
@@ -838,10 +819,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
+      configFiles,
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
-      services,
       setAreasData,
       setLayer,
       setResetHandler,
@@ -852,7 +833,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the points data and builds the associated feature layer
   const retrievePoints = useCallback(
     (filter) => {
-      const url = services.data.waterbodyService.points;
+      const url = configFiles.data.services.waterbodyService.points;
       const queryParams = {
         returnGeometry: true,
         where: filter,
@@ -899,9 +880,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
+      configFiles,
       handleMapServiceError,
       popupTemplate,
-      services,
       setLayer,
       setPointsData,
       setResetHandler,
@@ -968,7 +949,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const [mapLoading, setMapLoading] = useState(true);
   const queryGrtsHuc12 = useCallback(
     (huc12Param) => {
-      fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12Param}`)
+      fetchCheck(`${configFiles.data.services.grts.getGRTSHUC12}${huc12Param}`)
         .then((res) => {
           setGrts({
             data: res,
@@ -983,12 +964,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [setGrts, services],
+    [configFiles, setGrts],
   );
 
   const queryGrtsHuc12Stories = useCallback(
     (huc12Param) => {
-      fetchCheck(`${services.data.grts.getSSByHUC12}?huc12=${huc12Param}`)
+      fetchCheck(
+        `${configFiles.data.services.grts.getSSByHUC12}?huc12=${huc12Param}`,
+      )
         .then((res) => {
           setGrtsStories({
             data: res,
@@ -1003,7 +986,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [services, setGrtsStories],
+    [configFiles, setGrtsStories],
   );
 
   // Runs a query to get the plans for the selected huc.
@@ -1012,7 +995,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     (huc12Param) => {
       // get the plans for the selected huc
       fetchCheck(
-        `${services.data.attains.serviceUrl}plans?huc=${huc12Param}&summarize=Y`,
+        `${configFiles.data.services.attains.serviceUrl}plans?huc=${huc12Param}&summarize=Y`,
         null,
         120000,
       )
@@ -1030,7 +1013,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [setAttainsPlans, services],
+    [configFiles, setAttainsPlans],
   );
 
   useEffect(() => {
@@ -1052,11 +1035,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .map((stateCode) => `'${stateCode.toUpperCase()}'`)
         .join();
 
+      const { queryStringFirstPart, queryStringSecondPart, serviceUrl } =
+        configFiles.data.services.fishingInformationService;
       const url =
-        services.data.fishingInformationService.serviceUrl +
-        services.data.fishingInformationService.queryStringFirstPart +
+        serviceUrl +
+        queryStringFirstPart +
         stateQueryString +
-        services.data.fishingInformationService.queryStringSecondPart;
+        queryStringSecondPart;
 
       fetchCheck(url)
         .then((res) => {
@@ -1077,13 +1062,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setFishingInfo({ status: 'failure', data: [] });
         });
     },
-    [setFishingInfo, services],
+    [configFiles, setFishingInfo],
   );
 
   const getWsioHealthIndexData = useCallback(
     (huc12Param) => {
       const url =
-        `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12Param}%27` +
+        `${configFiles.data.services.wsio}/query?where=HUC12_TEXT%3D%27${huc12Param}%27` +
         '&outFields=HUC12_TEXT%2CSTATES_ALL%2CPHWA_HEALTH_NDX_ST&returnGeometry=false&f=json';
 
       setWsioHealthIndexData({
@@ -1113,7 +1098,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setWsioHealthIndexData({ status: 'failure', data: [] });
         });
     },
-    [setWsioHealthIndexData, services],
+    [configFiles, setWsioHealthIndexData],
   );
 
   const getWildScenicRivers = useCallback(
@@ -1138,7 +1123,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         outFields: ['*'],
       };
       query
-        .executeQueryJSON(services.data.wildScenicRivers, queryParams)
+        .executeQueryJSON(
+          configFiles.data.services.wildScenicRivers,
+          queryParams,
+        )
         .then((res) => {
           setWildScenicRiversData({
             data: res.features,
@@ -1153,7 +1141,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [services, setWildScenicRiversData],
+    [configFiles, setWildScenicRiversData],
   );
 
   const getProtectedAreas = useCallback(
@@ -1176,7 +1164,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
       }
 
-      fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
+      fetchCheck(`${configFiles.data.services.protectedAreasDatabase}0?f=json`)
         .then((layerInfo) => {
           setProtectedAreasData({
             data: [],
@@ -1184,7 +1172,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             status: 'fetching',
           });
 
-          const url = `${services.data.protectedAreasDatabase}0`;
+          const url = `${configFiles.data.services.protectedAreasDatabase}0`;
           const queryParams = {
             geometry: boundaries.features[0].geometry,
             returnGeometry: false,
@@ -1212,7 +1200,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         })
         .catch(onError);
     },
-    [services, setProtectedAreasData, setDynamicPopupFields],
+    [configFiles, setProtectedAreasData, setDynamicPopupFields],
   );
 
   const handleMapServices = useCallback(
@@ -1280,6 +1268,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       boundariesLayer.graphics.removeAll();
       boundariesLayer.graphics.add(graphic);
       setHucBoundaries(graphic);
+      setAtHucBoundaries(false);
 
       // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
 
@@ -1303,7 +1292,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       if (statesData.status !== 'success') {
         setStatesData({ status: 'fetching', data: [] });
 
-        fetchCheck(`${services.data.attains.serviceUrl}states`)
+        fetchCheck(`${configFiles.data.services.attains.serviceUrl}states`)
           .then((res) => {
             setStatesData({ status: 'success', data: res.data });
           })
@@ -1314,7 +1303,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
 
       fetchCheck(
-        `${services.data.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
+        `${configFiles.data.services.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
         getSignal(),
       ).then(
         (res) => handleMapServices(res, boundaries),
@@ -1323,6 +1312,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [
       boundariesLayer,
+      configFiles,
       getFishingLinkData,
       getProtectedAreas,
       getSignal,
@@ -1332,7 +1322,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       getWildScenicRivers,
       handleMapServiceError,
       handleMapServices,
-      services,
+      setAtHucBoundaries,
       setHucBoundaries,
       setStatesData,
       setWatershed,
@@ -1451,7 +1441,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         const queryGeometry =
           hucRes.features.length > 0 ? hucRes.features[0].geometry : location;
 
-        const url = `${services.data.counties}/query`;
+        const url = `${configFiles.data.services.counties}/query`;
         const countiesQuery = {
           returnGeometry: true,
           geometry: queryGeometry.clone(),
@@ -1526,7 +1516,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       let point = coordinatesPart ?? getPointFromCoordinates(searchText);
 
       let getCandidates;
-      const url = services.data.locatorUrl;
+      const url = configFiles.data.services.locatorUrl;
       if (point === null) {
         // if the user searches for guam use guam's state code instead
         if (searchText.toLowerCase() === 'guam') searchText = 'GU';
@@ -1618,7 +1608,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               signal: getSignal(),
             };
             query
-              .executeQueryJSON(services.data.wbd, hucQuery)
+              .executeQueryJSON(configFiles.data.services.wbd, hucQuery)
               .then((hucRes) => {
                 renderMapAndZoomTo(
                   location.location.longitude,
@@ -1683,6 +1673,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
+      configFiles,
       getSignal,
       handleHUC12,
       searchIconLayer,
@@ -1691,7 +1682,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setDrinkingWater,
       setFIPS,
       handleNoDataAvailable,
-      services,
       providersLayer,
     ],
   );
@@ -1709,7 +1699,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           signal: getSignal(),
         };
         query
-          .executeQueryJSON(services.data.wbd, queryParams)
+          .executeQueryJSON(configFiles.data.services.wbd, queryParams)
           .then((response) => {
             if (response.features.length === 0) {
               // flag no data available for no response
@@ -1737,7 +1727,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         processGeocodeServerResults(searchText);
       }
     },
-    [getSignal, processGeocodeServerResults, handleNoDataAvailable, services],
+    [
+      configFiles,
+      getSignal,
+      processGeocodeServerResults,
+      handleNoDataAvailable,
+    ],
   );
 
   useEffect(() => {
@@ -1772,7 +1767,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [searchText, setHuc12]);
 
   useEffect(() => {
-    if (!mapView || !hucBoundaries) {
+    if (!mapView || !hucBoundaries || atHucBoundaries) {
       return;
     }
 
@@ -1795,14 +1790,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       });
     }
   }, [
+    atHucBoundaries,
     getTemplate,
     getTitle,
-    mapView,
-    hucBoundaries,
-    boundariesLayer,
-    setCurrentExtent,
-    setAtHucBoundaries,
     homeWidget,
+    hucBoundaries,
+    mapView,
+    setAtHucBoundaries,
+    setCurrentExtent,
   ]);
 
   const [location, setLocation] = useState(null);
@@ -1834,7 +1829,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const countyGraphics = providersLayer.graphics.clone().toArray();
       countyGraphics.forEach((graphic) => {
         const drinkingWaterUrl =
-          `${services.data.dwmaps.GetPWSWMHUC12FIPS}` +
+          `${configFiles.data.services.dwmaps.GetPWSWMHUC12FIPS}` +
           `${hucResponse.features[0].attributes.huc12}/` +
           `${graphic.attributes.STATE_FIPS}/` +
           `${graphic.attributes.CNTY_FIPS}`;
@@ -1864,13 +1859,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     }
   }, [
-    FIPS,
+    configFiles,
     countyBoundaries,
+    FIPS,
     hucResponse,
     location,
     providersLayer,
     setDrinkingWater,
-    services,
   ]);
 
   /* TODO - Add this code back in when EPA decides to bring back Nonprofits data

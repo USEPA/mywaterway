@@ -16,11 +16,7 @@ import {
   getOrganizationLabel,
 } from 'utils/mapFunctions';
 // contexts
-import {
-  useAttainsUseFieldsContext,
-  useServicesContext,
-  useStateNationalUsesContext,
-} from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
 import { noMapDataWarningStyles } from 'styles/index';
@@ -82,9 +78,7 @@ function WaterbodyListVirtualized({
   // Sort the waterbodies
   const [sortBy, setSortBy] = useState('assessmentunitname');
 
-  const attainsUseFields = useAttainsUseFieldsContext();
-  const services = useServicesContext();
-  const stateNationalUses = useStateNationalUsesContext();
+  const configFiles = useConfigFilesState();
   const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
@@ -213,15 +207,13 @@ function WaterbodyListVirtualized({
                 }}
               >
                 <div css={waterbodyContentStyles}>
-                  <WaterbodyInfo
-                    feature={graphic}
-                    lookupFiles={{
-                      attainsUseFields,
-                      services,
-                      stateNationalUses,
-                    }}
-                    type="Waterbody State Overview"
-                  />
+                  {configFiles.status === 'success' && (
+                    <WaterbodyInfo
+                      configFiles={configFiles.data}
+                      feature={graphic}
+                      type="Waterbody State Overview"
+                    />
+                  )}
                   <ViewOnMapButton
                     feature={graphic}
                     disabled={viewOnMapDisabled}

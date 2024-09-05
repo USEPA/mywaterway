@@ -22,9 +22,9 @@ import Switch from 'components/shared/Switch';
 import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import { summarizeAssessments } from 'utils/utils';
@@ -133,7 +133,7 @@ function createAccordionItem(
   isWithdrawer: boolean,
 ) {
   const url =
-    services.data.sfdw +
+    services.sfdw +
     'f?p=SDWIS_FED_REPORTS_PUBLIC:PWS_SEARCH:::::PWSID:' +
     item.pwsid;
   return (
@@ -218,7 +218,7 @@ function createAccordionItem(
 }
 
 function DrinkingWater() {
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
@@ -312,7 +312,8 @@ function DrinkingWater() {
     // zooming, so it can be reset when switching away from the subtab
     if (
       drinkingWaterTabIndex === providersTabIndex &&
-      mapZoom !== currentExtent
+      JSON.stringify(mapZoom?.toJSON()) !==
+        JSON.stringify(currentExtent?.toJSON())
     ) {
       setMapZoom(currentExtent);
       mapView.goTo(countyGraphic);
@@ -566,7 +567,7 @@ function DrinkingWater() {
                     Information about public water systems can be found online
                     at{' '}
                     <a
-                      href={`${services.data.sfdw}f?p=108:200::::::`}
+                      href={`${configFiles.data.services.sfdw}f?p=108:200::::::`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -698,7 +699,10 @@ function DrinkingWater() {
                               providersSortBy,
                               false,
                             ).map((item) =>
-                              createAccordionItem(services, item),
+                              createAccordionItem(
+                                configFiles.data.services,
+                                item,
+                              ),
                             )}
                           </AccordionList>
                         </>
@@ -919,7 +923,11 @@ function DrinkingWater() {
                               withdrawersSortBy,
                               true,
                             ).map((item) =>
-                              createAccordionItem(services, item, true),
+                              createAccordionItem(
+                                configFiles.data.services,
+                                item,
+                                true,
+                              ),
                             )}
                           </AccordionList>
                         </>

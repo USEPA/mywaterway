@@ -41,9 +41,9 @@ import {
 // config
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchParseCsv, fetchPost } from 'utils/fetchUtils';
@@ -518,6 +518,24 @@ const treeStyles = (level, styles) => {
 const MAX_NUM_CHARTS = 4;
 const MEASUREMENT_PRECISION = 5;
 
+const Checkbox = {
+  checked: 1,
+  indeterminate: 0.5,
+  unchecked: 0,
+};
+
+const initialCheckboxes = {
+  all: 0,
+  groups: {},
+  charcs: {},
+};
+
+const dateOptions = {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+};
+
 function buildOptions(values) {
   return Array.from(values).map((value) => {
     return { value: value, label: value };
@@ -535,7 +553,12 @@ function buildTooltip(unit) {
         : null;
     return (
       <div css={chartTooltipStyles}>
-        <p>{datum.x}:</p>
+        <p>
+          {datum.timestampType === 'datetime'
+            ? new Date(datum.x).toLocaleTimeString('en-US', dateOptions)
+            : new Date(datum.x).toLocaleDateString('en-US', dateOptions)}
+          :
+        </p>
         <p>
           <em>{datum.type === 'line' && 'Average '}Measurement</em>:{' '}
           {`${formatNumber(datum.y)} ${unit}`}
@@ -580,18 +603,6 @@ function checkboxReducer(state, action) {
       throw new Error('Invalid action type');
   }
 }
-
-const Checkbox = {
-  checked: 1,
-  indeterminate: 0.5,
-  unchecked: 0,
-};
-
-const dateOptions = {
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-};
 
 // Format number as a string with a specified precision.
 function formatNumber(num, precision = MEASUREMENT_PRECISION) {
@@ -644,19 +655,12 @@ function getCharcGroup(charcName, groupMappings) {
   return 'Not Assigned';
 }
 
-function getDate(record) {
-  let month = record.month.toString();
-  if (record.month < 10) month = '0' + month;
-  let day = record.day.toString();
-  if (record.day < 10) day = '0' + day;
-  return `${record.year}-${month}-${day}`;
-}
-
 function getFilteredCount(range, records, count) {
   if (range) {
     let filteredCount = 0;
     records.forEach((record) => {
-      if (record.year >= range[0] && record.year <= range[1]) {
+      const year = new Date(record.timestamp).getFullYear();
+      if (year >= range[0] && year <= range[1]) {
         filteredCount += 1;
       }
     });
@@ -693,12 +697,6 @@ function getTotalCount(charcs) {
   return totalCount;
 }
 
-const initialCheckboxes = {
-  all: 0,
-  groups: {},
-  charcs: {},
-};
-
 function handleCheckbox(id, accessor, dispatch) {
   return () => {
     dispatch({
@@ -725,6 +723,7 @@ function lineDatum(dayData) {
     y: getMean(dayData.map((d) => d.y)),
     depth: getMean(dayData.map((d) => d.depth).filter((d) => d !== null)),
     depthUnit: dayData.find((d) => d.depthUnit !== null)?.depthUnit,
+    timestampType: dayData[0].timestampType,
   };
 }
 
@@ -794,7 +793,7 @@ function parseCharcs(charcs, range) {
 function pointDatum(msmt, colors, depths) {
   return {
     type: 'point',
-    x: msmt.date,
+    x: msmt.timestamp,
     y:
       msmt.measurement >= -Number.EPSILON && msmt.measurement <= Number.EPSILON
         ? Number.EPSILON
@@ -803,6 +802,7 @@ function pointDatum(msmt, colors, depths) {
     color: msmt.depth !== null ? colors[depths.indexOf(msmt.depth)] : '#4d4d4d',
     depth: msmt.depth,
     depthUnit: msmt.depthUnit,
+    timestampType: msmt.timestampType,
   };
 }
 
@@ -923,11 +923,19 @@ function updateSelected(charcs, groups) {
 }
 
 function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   // charcs => characteristics
   const [charcs, setCharcs] = useState({});
   const [status, setStatus] = useState('idle');
+
+  const extractEpochFromRecord = (record) => {
+    let timestamp = record.ActivityStartDate;
+    if (record['ActivityStartTime/Time']) {
+      timestamp += `T${record['ActivityStartTime/Time']}`;
+    }
+    return new Date(timestamp).getTime();
+  };
 
   const structureRecords = useCallback(
     (records, charcsByGroup) => {
@@ -956,18 +964,16 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
         }
         const curCharc = recordsByCharc[record.CharacteristicName];
         curCharc.count += 1;
-        const recordDate = record.ActivityStartDate.split('-');
         curCharc.records.push({
           activityTypeCode: record.ActivityTypeCode,
-          day: parseInt(recordDate[2]),
           depth: record['ResultDepthHeightMeasure/MeasureValue'],
           depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
           fraction: record.ResultSampleFractionText || 'None',
           measurement: record.ResultMeasureValue,
           medium: record.ActivityMediaName || 'None',
-          month: parseInt(recordDate[1]),
+          timestamp: extractEpochFromRecord(record),
+          timestampType: record['ActivityStartTime/Time'] ? 'datetime' : 'date',
           unit: record['ResultMeasure/MeasureUnitCode'] || 'None',
-          year: parseInt(recordDate[0]),
         });
       });
       setCharcs(recordsByCharc);
@@ -978,14 +984,13 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
 
   const { monitoringPeriodOfRecordStatus } = useContext(LocationSearchContext);
   useEffect(() => {
-    if (services.status !== 'success') return;
     if (monitoringPeriodOfRecordStatus !== 'success') {
       setStatus(monitoringPeriodOfRecordStatus);
       return;
     }
     setStatus('pending');
     const url =
-      `${services.data.waterQualityPortal.resultSearch}` +
+      `${configFiles.data.services.waterQualityPortal.resultSearch}` +
       `&mimeType=csv&zip=no&dataProfile=resultPhysChem` +
       `&providers=${encodeURIComponent(
         provider,
@@ -1000,10 +1005,10 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
       });
   }, [
     characteristicsByGroup,
+    configFiles,
     monitoringPeriodOfRecordStatus,
     orgId,
     provider,
-    services,
     siteId,
     structureRecords,
   ]);
@@ -1094,14 +1099,13 @@ function CharacteristicChartSection({
 
       newMeasurements.push({
         ...record,
-        date: getDate(record),
         measurement: parseFloat(record.measurement),
       });
     });
 
-    newMeasurements.sort((a, b) => a.day - b.day);
-    newMeasurements.sort((a, b) => a.month - b.month);
-    newMeasurements.sort((a, b) => a.year - b.year);
+    newMeasurements.sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+    );
 
     setFractions(buildOptions(fractionValues));
     setUnits(buildOptions(unitValues));
@@ -1133,24 +1137,25 @@ function CharacteristicChartSection({
       .sort((a, b) => a - b);
     const chartColors = generateHeatmap(sortedDepths);
 
-    let curDay = null;
-    let curDayData = [];
+    let curTime = null;
+    let curTimeData = [];
     newMsmts.forEach((msmt) => {
-      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
+      const year = new Date(msmt.timestamp).getFullYear();
+      if (year >= newDomain[0] && year <= newDomain[1]) {
         const datum = pointDatum(msmt, chartColors, sortedDepths);
         newPointData.push(datum);
-        if (datum.x !== curDay) {
-          // Construct the previous day's data point
-          curDayData.length && newLineData.push(lineDatum(curDayData));
-          curDay = datum.x;
-          curDayData = [datum];
+        if (datum.x !== curTime) {
+          // Construct the previous time's data point
+          curTimeData.length && newLineData.push(lineDatum(curTimeData));
+          curTime = datum.x;
+          curTimeData = [datum];
         } else {
           // Same day, store for processing
-          curDayData.push(datum);
+          curTimeData.push(datum);
         }
       }
     });
-    curDayData.length && newLineData.push(lineDatum(curDayData));
+    curTimeData.length && newLineData.push(lineDatum(curTimeData));
 
     setDepthColorRange(getArrayOuter(chartColors));
     setDepthValueRange(getArrayOuter(sortedDepths));
@@ -1165,8 +1170,10 @@ function CharacteristicChartSection({
   // Initialize the date slider parameters
   useEffect(() => {
     if (measurements.length) {
-      const yearLow = measurements[0].year;
-      const yearHigh = measurements[measurements.length - 1].year;
+      const yearLow = new Date(measurements[0].timestamp).getFullYear();
+      const yearHigh = new Date(
+        measurements[measurements.length - 1].timestamp,
+      ).getFullYear();
       setMinYear(yearLow);
       setMaxYear(yearHigh);
       setSelectedYears([yearLow, yearHigh]);
@@ -1623,6 +1630,11 @@ function ChartContainer({
   const resolvedScaleType =
     range[0] === range[range.length - 1] ? 'log' : scaleType;
 
+  const xTickFormat = (val) => {
+    const date = new Date(val);
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate()}`;
+  };
+
   const yTickFormat = (val, _index, values) => {
     // Avoid overcrowding on the y-axis when the log scale is used.
     // Shows only powers of 10 when a tick threshold is exceeded.
@@ -1659,7 +1671,7 @@ function ChartContainer({
         pointColorAccessor={(datum) => datum.color}
         pointData={pointSeries}
         pointsVisible={pointsVisible}
-        range={range}
+        xTickFormat={xTickFormat}
         xTitle="Date"
         yScale={resolvedScaleType}
         yTickFormat={yTickFormat}
@@ -1864,7 +1876,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   );
   const [expanded, setExpanded] = useState(false);
 
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const [downloadError, setDownloadError] = useState(null);
 
@@ -1883,17 +1895,15 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   if (range && range[1] !== maxYear)
     queryData.startDateHi = `12-31-${range[1]}`;
 
-  let portalUrl =
-    services.status === 'success' &&
-    Object.entries(queryData).reduce((query, [key, value]) => {
-      let queryPartial = '';
-      if (Array.isArray(value))
-        value.forEach(
-          (item) => (queryPartial += `&${key}=${encodeURIComponent(item)}`),
-        );
-      else queryPartial += `&${key}=${encodeURIComponent(value)}`;
-      return query + queryPartial;
-    }, `${services.data.waterQualityPortal.userInterface}#advanced=true&dataProfile=resultPhysChem`);
+  let portalUrl = Object.entries(queryData).reduce((query, [key, value]) => {
+    let queryPartial = '';
+    if (Array.isArray(value))
+      value.forEach(
+        (item) => (queryPartial += `&${key}=${encodeURIComponent(item)}`),
+      );
+    else queryPartial += `&${key}=${encodeURIComponent(value)}`;
+    return query + queryPartial;
+  }, `${configFiles.data.services.waterQualityPortal.userInterface}#advanced=true&dataProfile=resultPhysChem`);
 
   if (checkboxes.all === Checkbox.indeterminate) {
     const selectedGroups = Object.values(checkboxes.groups)
@@ -1923,8 +1933,9 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
     Object.values(charcs).forEach((charc) => {
       const { records } = charc;
       records.forEach((record) => {
-        if (record.year < newMinYear) newMinYear = record.year;
-        if (record.year > newMaxYear) newMaxYear = record.year;
+        const year = new Date(record.timestamp).getFullYear();
+        if (year < newMinYear) newMinYear = year;
+        if (year > newMaxYear) newMaxYear = year;
       });
     });
     setMinYear(newMinYear);
@@ -2034,65 +2045,63 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
             </AccordionList>
           </div>
         </div>
-        {services.status === 'success' && (
-          <div id="download-links" css={downloadLinksStyles}>
-            <div>
-              <p>
-                <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
-                  <i
-                    css={iconStyles}
-                    className="fas fa-filter"
-                    aria-hidden="true"
-                  />
-                  Advanced Filtering
-                </a>
-                &nbsp;&nbsp;
-                <small css={modifiedDisclaimerStyles}>
-                  (opens new browser tab)
-                </small>
-              </p>
-              <p>
-                <a
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  href="https://www.waterqualitydata.us/portal_userguide/"
-                >
-                  <i
-                    css={iconStyles}
-                    className="fas fa-book-open"
-                    aria-hidden="true"
-                  />
-                  Water Quality Portal User Guide
-                </a>
-                &nbsp;&nbsp;
-                <small css={modifiedDisclaimerStyles}>
-                  (opens new browser tab)
-                </small>
-              </p>
-            </div>
-            <div>
-              <span>Download Selected Data</span>
-              <span>
-                &nbsp;&nbsp;
-                <FileLink
-                  data={queryData}
-                  disabled={checkboxes.all === Checkbox.unchecked}
-                  fileType="excel"
-                  setError={setDownloadError}
-                  url={services.data.waterQualityPortal.resultSearch}
+        <div id="download-links" css={downloadLinksStyles}>
+          <div>
+            <p>
+              <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-filter"
+                  aria-hidden="true"
                 />
-                &nbsp;&nbsp;
-                <FileLink
-                  data={queryData}
-                  disabled={checkboxes.all === Checkbox.unchecked}
-                  fileType="csv"
-                  setError={setDownloadError}
-                  url={services.data.waterQualityPortal.resultSearch}
+                Advanced Filtering
+              </a>
+              &nbsp;&nbsp;
+              <small css={modifiedDisclaimerStyles}>
+                (opens new browser tab)
+              </small>
+            </p>
+            <p>
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                href="https://www.waterqualitydata.us/portal_userguide/"
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-book-open"
+                  aria-hidden="true"
                 />
-              </span>
-            </div>
+                Water Quality Portal User Guide
+              </a>
+              &nbsp;&nbsp;
+              <small css={modifiedDisclaimerStyles}>
+                (opens new browser tab)
+              </small>
+            </p>
           </div>
-        )}
+          <div>
+            <span>Download Selected Data</span>
+            <span>
+              &nbsp;&nbsp;
+              <FileLink
+                data={queryData}
+                disabled={checkboxes.all === Checkbox.unchecked}
+                fileType="excel"
+                setError={setDownloadError}
+                url={configFiles.data.services.waterQualityPortal.resultSearch}
+              />
+              &nbsp;&nbsp;
+              <FileLink
+                data={queryData}
+                disabled={checkboxes.all === Checkbox.unchecked}
+                fileType="csv"
+                setError={setDownloadError}
+                url={configFiles.data.services.waterQualityPortal.resultSearch}
+              />
+            </span>
+          </div>
+        </div>
         {downloadError && (
           <p css={messageBoxStyles(errorBoxStyles)}>
             {monitoringDownloadError}
@@ -2406,7 +2415,7 @@ function MonitoringReportContent() {
   );
 }
 
-export default function MonitoringReport() {
+export function MonitoringReport() {
   const { resetData } = useContext(LocationSearchContext);
   useEffect(() => {
     return function cleanup() {
@@ -2560,3 +2569,5 @@ function StatusContent({
       return idle;
   }
 }
+
+export default MonitoringReport;

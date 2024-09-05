@@ -34,7 +34,6 @@ import {
   LayerType,
   ServiceMetaDataType,
 } from 'types/arcGisOnline';
-import { LookupFile } from 'types/index';
 
 declare global {
   interface Window {
@@ -289,7 +288,7 @@ function addSubLayer({
 }: {
   layer: __esri.FeatureLayer;
   layersParams: ILayerDefinition[];
-  layerProps: LookupFile;
+  layerProps: any;
   properties: any;
   overrideName?: string;
 }) {
@@ -317,7 +316,7 @@ function addSubLayer({
   });
 
   layersParams.push({
-    ...layerProps.data.defaultLayerProps,
+    ...layerProps.defaultLayerProps,
     ...properties,
     name: overrideName ?? layer.title,
     geometryType,
@@ -350,7 +349,7 @@ export async function createFeatureLayers(
   serviceUrl: string,
   layers: LayerType[],
   serviceMetaData: ServiceMetaDataType,
-  layerProps: LookupFile,
+  layerProps: any,
 ) {
   try {
     const layersParams: ILayerDefinition[] = [];
@@ -370,7 +369,7 @@ export async function createFeatureLayers(
       if (!layer.requiresFeatureService) continue;
 
       const properties =
-        layerProps.data.layerSpecificSettings[layer.layer.id]?.layerProps;
+        layerProps.layerSpecificSettings[layer.layer.id]?.layerProps;
 
       // handle layers added via file upload
       if (layer.widgetLayer?.type === 'file') {
@@ -396,7 +395,7 @@ export async function createFeatureLayers(
 
         layerIds.push(layer.layer.id);
         layersParams.push({
-          ...layerProps.data.defaultLayerProps,
+          ...layerProps.defaultLayerProps,
           ...properties,
           name: layer.layer.title,
           globalIdField: refFeatureLayer.globalIdField,
@@ -415,7 +414,7 @@ export async function createFeatureLayers(
 
         layerIds.push(layer.layer.id);
         layersParams.push({
-          ...layerProps.data.defaultLayerProps,
+          ...layerProps.defaultLayerProps,
           ...properties,
           name: layer.layer.title,
           objectIdField: objectIdField?.name,
@@ -527,7 +526,7 @@ export async function createFeatureLayers(
 
       // add the polygon representation
       let params = {
-        ...layerProps.data.defaultLayerProps,
+        ...layerProps.defaultLayerProps,
         ...properties,
         fields: properties.fields,
         name: layer.label,
@@ -547,8 +546,8 @@ export async function createFeatureLayers(
         layers: layersParams,
         tables: [
           {
-            ...layerProps.data.defaultTableProps,
-            fields: layerProps.data.defaultReferenceTableFields,
+            ...layerProps.defaultTableProps,
+            fields: layerProps.defaultReferenceTableFields,
             type: 'Table',
             name: `${serviceMetaData.label}-reference-layers`,
             description: `Links to reference layers for "${serviceMetaData.label}".`,
@@ -851,9 +850,9 @@ function getLayerUrl(services: any, layer: LayerType): string {
   if (layer.widgetLayer?.type === 'portal') url = layer.widgetLayer.url;
   if (layer.widgetLayer?.type === 'url') url = layer.widgetLayer.url;
   if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(layer.id))
-    url = services.data.waterbodyService.base;
-  if (layer.id === 'ejscreenLayer') url = services.data.ejscreen;
-  if (layer.id === 'tribalLayer') url = services.data.tribal;
+    url = services.waterbodyService.base;
+  if (layer.id === 'ejscreenLayer') url = services.ejscreen;
+  if (layer.id === 'tribalLayer') url = services.tribal;
 
   return url;
 }
@@ -887,7 +886,7 @@ export async function addWebMap({
   services: any;
   serviceMetaData: ServiceMetaDataType;
   layers: LayerType[];
-  layerProps?: LookupFile;
+  layerProps?: any;
   layersRes?: AddToDefinitionResponseType;
 }): Promise<AddItemResponseType> {
   const itemId = service?.id;
@@ -914,7 +913,7 @@ export async function addWebMap({
   layers.forEach((l) => {
     const layerType = getAgoLayerType(l) as string;
     const url = getLayerUrl(services, l);
-    const layerSettings = layerProps?.data.layerSpecificSettings[l.layer.id];
+    const layerSettings = layerProps?.layerSpecificSettings[l.layer.id];
     const popupTitle = layerSettings?.popupTitle || '';
 
     if (layerType === 'VectorTileLayer') {
@@ -1337,7 +1336,7 @@ export async function publish({
   mapView: __esri.MapView;
   services: any;
   layers: LayerType[];
-  layerProps: LookupFile;
+  layerProps: any;
   serviceMetaData: ServiceMetaDataType;
 }): Promise<{
   layersResult?: AddToDefinitionResponseType;

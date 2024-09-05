@@ -1,7 +1,7 @@
 describe('ATTAINS page', () => {
   it('Data page should link to ATTAINS page', () => {
     cy.visit('/');
-    cy.findByText('Data').click();
+    cy.findByRole('button', { name: 'Data' }).click();
     cy.findByText('About the Data').should('exist');
     cy.url().should('equal', `${window.location.origin}/data`);
 

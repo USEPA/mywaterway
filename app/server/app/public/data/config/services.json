@@ -1,7 +1,7 @@
 {
   "expertQuery": {
     "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
-    "attains": "https://api.epa.gov/expertquery-dev/api/attains",
+    "attains": "https://api.epa.gov/expertquery/api/attains",
     "valuesLimit": 100
   },
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
@@ -47,11 +47,11 @@
   },
   "grts": {
     "getGRTSHUC12": "https://ordspub.epa.gov/ords/grts_rest/grts_rest_apex/grts_rest_apex/GetProjectsByHUC12/",
-    "getSSByState": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetSSByState/",
+    "getSSByState": "https://ordspub.epa.gov/ords/grts_rest/grts_rest_apex/ss/GetSSByState/",
     "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
-    "serviceUrlDev": "http://54.209.48.156/attains-public/api/",
+    "serviceUrlDev": "https://attains-demo.epa-ow-cloud.com/attains-public/api/",
     "serviceUrl": "https://attains.epa.gov/attains-public/api/"
   },
   "fishingInformationService": {
@@ -198,6 +198,11 @@
       "name": "grts - state water stories"
     },
     {
+      "urlLookup": "grts.getSSByHUC12",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "grts - huc12 water stories"
+    },
+    {
       "urlLookup": "dwmaps.getGPRASummary",
       "wildcardUrl": "{urlLookup}*",
       "name": "sdwis - GPRA summary"
@@ -229,10 +234,9 @@
     },
     {
       "urlLookup": "waterQualityPortal.domainValues",
-      "wildcardUrl": "{urlLookup}/*?mimeType=json",
+      "wildcardUrl": "{urlLookup}/*",
       "name": "wqp - domain values"
     },
-
     {
       "urlLookup": "waterQualityPortal.monitoringLocation",
       "wildcardUrl": "{urlLookup}search?mimeType=geojson&zip=no&huc=*",
@@ -240,7 +244,7 @@
     },
     {
       "urlLookup": "waterQualityPortal.monitoringLocation",
-      "wildcardUrl": "{urlLookup}search?mimeType=geojson&zip=no&siteid=*",
+      "wildcardUrl": "{urlLookup}search?mimeType=geojson&zip=no&*siteid=*",
       "name": "wqp - monitoring location site specific data"
     },
     {
@@ -280,38 +284,8 @@
     },
     {
       "urlLookup": "origin",
-      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/national/NARS.json",
-      "name": "s3 lookup - national NARS"
-    },
-    {
-      "urlLookup": "origin",
-      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/notifications/messages.json",
-      "name": "s3 lookup - notification messages"
-    },
-    {
-      "urlLookup": "origin",
-      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/state/documentOrder.json",
-      "name": "s3 lookup - state documentOrder"
-    },
-    {
-      "urlLookup": "origin",
-      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/state/reportStatusMapping.json",
-      "name": "s3 lookup - state reportStatusMapping"
-    },
-    {
-      "urlLookup": "origin",
-      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/state/stateNationalUses.json",
-      "name": "s3 lookup - state stateNationalUses"
-    },
-    {
-      "urlLookup": "origin",
-      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/state/surveyMapping.json",
-      "name": "s3 lookup - state surveyMapping"
-    },
-    {
-      "urlLookup": "origin",
-      "wildcardUrl": "{urlLookup}/proxy?url={urlLookup}/data/state/waterTypeOptions.json",
-      "name": "s3 lookup - state waterTypeOptions"
+      "wildcardUrl": "{urlLookup}/api/configFiles",
+      "name": "s3 lookup - config files"
     },
     {
       "urlLookup": "waterbodyService.summary",
@@ -337,6 +311,11 @@
       "urlLookup": "waterbodyService.summary",
       "wildcardUrl": "{urlLookup}*",
       "name": "Attains_Assessment - map server (summary table)"
+    },
+    {
+      "urlLookup": "waterbodyService.controlTable",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Attains_Assessment - map server (control table)"
     },
     {
       "urlLookup": "wbd",

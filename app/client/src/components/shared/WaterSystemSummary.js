@@ -14,7 +14,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useServicesContext } from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import { formatNumber, isAbort } from 'utils/utils';
@@ -110,7 +110,7 @@ type Props = {
 };
 
 function WaterSystemSummary({ state }: Props) {
-  const services = useServicesContext();
+  const services = useConfigFilesState().data.services;
   const { getSignal } = useAbort();
 
   const [lastCountsCode, setLastCountsCode] = useState(null);
@@ -123,18 +123,14 @@ function WaterSystemSummary({ state }: Props) {
     },
   });
   useEffect(() => {
-    if (
-      !state.value ||
-      lastCountsCode === state.value ||
-      services.status !== 'success'
-    ) {
+    if (!state.value || lastCountsCode === state.value) {
       return;
     }
 
     setLastCountsCode(state.value);
 
     fetchCheck(
-      `${services.data.dwmaps.getGPRASystemCountsByType}${state.value}`,
+      `${services.dwmaps.getGPRASystemCountsByType}${state.value}`,
       getSignal(),
     )
       .then((res) => {
@@ -203,20 +199,13 @@ function WaterSystemSummary({ state }: Props) {
   });
 
   useEffect(() => {
-    if (
-      !state.value ||
-      lastSummaryCode === state.value ||
-      services.status !== 'success'
-    ) {
+    if (!state.value || lastSummaryCode === state.value) {
       return;
     }
 
     setLastSummaryCode(state.value);
 
-    fetchCheck(
-      `${services.data.dwmaps.getGPRASummary}${state.value}`,
-      getSignal(),
-    )
+    fetchCheck(`${services.dwmaps.getGPRASummary}${state.value}`, getSignal())
       .then((res) =>
         setGpraData({
           status: 'success',

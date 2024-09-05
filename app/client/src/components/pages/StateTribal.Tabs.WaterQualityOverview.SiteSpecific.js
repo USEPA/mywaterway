@@ -16,7 +16,7 @@ import { DisclaimerModal } from 'components/shared/Modal';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useAttainsImpairmentFieldsContext } from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
 import { formatNumber } from 'utils/utils';
@@ -112,7 +112,7 @@ function SiteSpecific({
   useSelected,
   fishingAdvisoryData,
 }: Props) {
-  const attainsImpairmentFields = useAttainsImpairmentFieldsContext();
+  const configFiles = useConfigFilesState();
   const { currentReportingCycle } = useContext(StateTribalTabsContext);
 
   let waterTypeUnits = null;
@@ -221,7 +221,7 @@ function SiteSpecific({
         const units = waterTypeUnits ? waterTypeUnits.toLowerCase() : '';
 
         // match the param with an item in the attainsToHmwMapping file
-        const match = attainsImpairmentFields.data.filter((field) => {
+        const match = configFiles.data.impairmentFields.filter((field) => {
           return field.parameterGroup === param;
         })?.[0];
 

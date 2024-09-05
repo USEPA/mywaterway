@@ -44,20 +44,11 @@ describe('Data page', () => {
 
   it('Test contents scrolling', () => {
     function scrollTest(item) {
-      const padding = -14;
-
       // press the item in table of contents
       cy.get(`button:contains("${item}")`).click();
 
       // verify the scroll worked
-      cy.get(`h3:contains("${item}")`)
-        .then((elm) => elm[0].offsetTop)
-        .then((offset) =>
-          cy
-            .window()
-            .its('scrollY')
-            .should('equal', offset + padding),
-        );
+      cy.get(`h3:contains("${item}")`).isInsideViewport();
     }
 
     // go to the data page
@@ -100,14 +91,7 @@ describe('Data page', () => {
           .then((elm) => elm.click())
           .then(() => {
             // verify the page scrolled to the nav bar
-            cy.get('#hmw-nav-bar')
-              .then((elm) => elm[0].offsetTop)
-              .then((offset) =>
-                cy
-                  .window()
-                  .its('scrollY')
-                  .should('equal', offset - 16),
-              );
+            cy.get('#hmw-nav-bar').isInsideViewport();
           });
       }
     });
