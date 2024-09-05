@@ -1,14 +1,6 @@
-// Ignore uncaught exceptions related to the ResizeObserver - loop limit exceeded error.
-// We can safely ignore this. https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
-Cypress.on('uncaught:exception', (err, runnable) => {
-  // returning false here prevents Cypress from
-  // failing the test
-  return false;
-});
-
 describe('State page links', () => {
   beforeEach(() => {
-    cy.visit('/state/FL');
+    cy.visit('/state/FL/water-quality-overview');
   });
 
   it('Clicking the “Show more/Show less” link/button toggles between showing more/less text in the state intro paragraph', () => {
@@ -99,7 +91,7 @@ describe('State page routes', () => {
   });
 
   it('Switching state page tabs updates route', () => {
-    cy.visit('/state/FL');
+    cy.visit('/state/FL/water-quality-overview');
 
     cy.url().should('include', 'state/FL/water-quality-overview');
 
@@ -173,11 +165,8 @@ describe('State page Water Quality Overview sub tabs', () => {
     // select a dropdown item that has the pie chart
     cy.get('#water-type-ecological').click();
     cy.findByText('Rivers and Streams').click();
-    cy.get('#water-use-ecological').click();
-    cy.findByText('Fish and Wildlife Propagation - Freshwater').click();
 
     // verify the pie chart is not there and the bar chart is
-
     cy.findByTestId('hmw-ecological-tab-panel')
       .contains(surveyResultsText)
       .should('exist');
@@ -201,8 +190,7 @@ describe('State page Water Overview tab', () => {
 
   it(`Clicking "Expand All/Collapse All" expands/collapses the state documents and state water stories menu`, () => {
     const documentsText = 'Documents Related to Integrated Report';
-    const waterText =
-      'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
+    const waterText = '2022 Final IR EPA Submittal Letter (PDF)';
 
     cy.findAllByText('Expand All').filter(':visible');
     cy.findByText(documentsText).should('not.exist');
@@ -264,8 +252,7 @@ describe('State page Water Overview tab', () => {
 
   it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
     const title = 'Alaska Water Stories';
-    const text =
-      'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
+    const text = 'Community Efforts Improve Jordan Creek (PDF)';
 
     // verify text is not visible
     cy.findByText(text).should('not.exist');
@@ -299,10 +286,10 @@ describe('State page Advanced Search tab', () => {
       'not.be.visible',
     );
 
-    cy.findByRole('button', { name: 'A-7 Backwater' }).should('exist');
+    cy.findByRole('button', { name: 'Alamo Lake' }).should('exist');
 
     cy.scrollTo('bottom', { duration: 3000 });
 
-    cy.findByRole('button', { name: 'A-7 Backwater' }).should('not.exist');
+    cy.findByRole('button', { name: 'Alamo Lake' }).should('not.exist');
   });
 });

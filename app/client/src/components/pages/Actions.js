@@ -34,9 +34,9 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersProvider } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -67,7 +67,7 @@ function getAssessmentUnitNames(services: any, orgId: string, action: Object) {
 
     chunkedUnitIds.forEach((chunk) => {
       const url =
-        `${services.data.attains.serviceUrl}` +
+        `${services.attains.serviceUrl}` +
         `assessmentUnits?organizationId=${orgId}` +
         `&assessmentUnitIdentifier=${chunk}`;
       const request = fetchCheck(url);
@@ -253,9 +253,8 @@ const strongBottomMarginStyles = css`
 `;
 
 function Actions() {
+  const configFiles = useConfigFilesState();
   const { orgId, actionId } = useParams();
-
-  const services = useServicesContext();
 
   const [loading, setLoading] = useState(true);
   const [noActions, setNoActions] = useState(false);
@@ -276,7 +275,7 @@ function Actions() {
   const [waters, setWaters] = useState([]);
   useEffect(() => {
     const url =
-      services.data.attains.serviceUrl +
+      configFiles.data.services.attains.serviceUrl +
       `actions?ActionIdentifier=${actionId}` +
       `&organizationIdentifier=${orgId}`;
 
@@ -298,7 +297,7 @@ function Actions() {
         if (res.items.length >= 1 && res.items[0].actions.length >= 1) {
           const action = res.items[0].actions[0];
 
-          getAssessmentUnitNames(services, orgId, action)
+          getAssessmentUnitNames(configFiles.data.services, orgId, action)
             .then((data) => {
               // process assessment unit data and get key action data
               const {
@@ -333,7 +332,7 @@ function Actions() {
         }
       })
       .catch(onError);
-  }, [actionId, orgId, services]);
+  }, [actionId, configFiles, orgId]);
 
   // Builds the unitIds dictionary that is used for determining what
   // waters to display on the screen and what the content will be.

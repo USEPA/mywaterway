@@ -3,14 +3,10 @@
 
 import { useEffect } from 'react';
 import { css } from '@emotion/react';
-// components
-import LoadingSpinner from 'components/shared/LoadingSpinner';
 // contexts
-import { useEducatorMaterialsContext } from 'contexts/LookupFiles';
-// config
-import { educatorContentError } from 'config/errorMessages';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
-import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import { infoBoxStyles } from 'components/shared/MessageBoxes';
 import { colors, fonts } from 'styles/index';
 
 // NOTE: matching styles used in tabs in `AboutContent` component
@@ -63,12 +59,6 @@ const containerStyles = css`
   }
 `;
 
-const modifiedErrorBoxStyles = css`
-  ${errorBoxStyles}
-  margin: 1rem;
-  text-align: center;
-`;
-
 const contentStyles = css`
   margin-top: 1rem;
 `;
@@ -110,17 +100,8 @@ function EducatorsContent() {
     };
   }, []);
 
-  const { data, status } = useEducatorMaterialsContext();
-
-  if (status === 'fetching') return <LoadingSpinner />;
-
-  if (status === 'failure') {
-    return (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{educatorContentError}</p>
-      </div>
-    );
-  }
+  const configFiles = useConfigFilesState();
+  const data = configFiles.data.educators;
 
   return (
     <div css={containerStyles} className="container">

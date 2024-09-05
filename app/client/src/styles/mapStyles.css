@@ -4,6 +4,19 @@
   background-color: white;
 }
 
+.esri-expand__content-container {
+  max-height: 540px;
+  overflow: auto;
+}
+
+.esri-view-height-xsmall .esri-expand__popover-content {
+  max-height: 240px;
+}
+
+.esri-view-height-small .esri-expand__popover-content {
+  max-height: 420px;
+}
+
 .hmw-map-layers,
 .esri-view .esri-basemap-gallery {
   min-width: 225px;

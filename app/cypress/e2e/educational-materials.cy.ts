@@ -4,12 +4,14 @@ describe('Educational Materials tab', () => {
 
     cy.findByRole('button', { name: 'Educators' }).click();
 
-    cy.findByRole('link', { name: `How’s My Waterway Middle School Lesson Plan` })
+    cy.findByRole('link', {
+      name: `How’s My Waterway Middle School Lesson Plan`,
+    })
       .should('be.visible')
       .should(
         'have.attr',
         'href',
-        'https://www.epa.gov/waterdata/hows-my-waterway-middle-school-lesson-plan'
+        'https://www.epa.gov/waterdata/hows-my-waterway-middle-school-lesson-plan',
       );
   });
 });

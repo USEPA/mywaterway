@@ -1,12 +1,3 @@
-// This is a workaround for making the tests more reliable when running
-// cypress in headless mode, particularly for running code coverage.
-Cypress.on('uncaught:exception', (_err, _runnable) => {
-  // returning false here prevents Cypress from
-  // failing the test
-  debugger;
-  return false;
-});
-
 describe('Community page search', () => {
   beforeEach(() => {
     cy.visit('/community');
@@ -56,7 +47,8 @@ describe('Community page search', () => {
   });
 
   it('Clicking the “Use My Location” button, with geolocation enabled, properly geolocates user and routes to the community overview page for the user’s location', () => {
-    const address = 'Scott Cir NW, Washington, District of Columbia, 20036';
+    const address =
+      'Massachusetts Ave NW, Washington, District of Columbia, 20036';
     cy.mockGeolocation(false, 38.9072, -77.0369);
     cy.findByText('Use My Location').click();
     cy.url().should('include', `/community/${encodeURI(address)}/overview`);
@@ -81,6 +73,12 @@ describe('Community page zero waterbodies message', () => {
       'Dallas, Texas',
     );
     cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     cy.findByText('There are no waterbodies assessed in the', {
       exact: false,
       timeout: 20000,
@@ -106,12 +104,14 @@ describe('Community page map legend', () => {
     // workaround for this test failing while running cypress in headless mode.
     cy.wait(2000);
 
-    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).click();
-    cy.findAllByRole('switch', { name: 'All Mapped Water (NHD)' }).click({
-      force: true,
+    cy.findByTitle('Open Basemaps and Layers').click();
+    cy.get('.hmw-map-layers').within(() => {
+      cy.findByText('All Mapped Water (NHD)').click({
+        force: true,
+      });
     });
-    cy.findByRole('button', { name: 'Close Basemaps and Layers' }).click();
-    cy.findByRole('button', { name: 'Open Legend' }).click();
+    cy.findByTitle('Close Basemaps and Layers').click();
+    cy.findByTitle('Open Legend').click();
     cy.findAllByText('All Mapped Water (NHD)').should('be.visible');
   });
 });

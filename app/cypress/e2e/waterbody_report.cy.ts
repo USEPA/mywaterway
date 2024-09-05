@@ -1,11 +1,4 @@
 describe('Waterbody Report page', () => {
-  Cypress.on("uncaught:exception", (_err, _runnable) => {
-    // returning false here prevents Cypress from
-    // failing the test
-    debugger;
-    return false;
-  });
-  
   it('small screen displays "Show Map" button and button functions', () => {
     const mapId = 'hmw-actions-map';
     const showMap = 'Show Map';
@@ -42,8 +35,8 @@ describe('Waterbody Report page', () => {
   });
 
   it('For waterbodies without GIS data, display the "No map data is available" message', () => {
-    const orgId = '21GAEPD';
-    const auId = 'GAR_A-33_5_00';
+    const orgId = 'AKDECWQ';
+    const auId = 'AK-10102-001_00';
 
     cy.visit(`/waterbody-report/${orgId}/${auId}`);
 
@@ -89,7 +82,7 @@ describe('Waterbody Report page', () => {
   });
 
   it('Test waterbody report with empty attains assessments array', () => {
-    cy.visit('/waterbody-report/DOEE/DC_02_DCANA00E_02');
+    cy.visit('/waterbody-report/AKDECWQ/AK-10102-001_00');
 
     // wait for the web services to finish (attains/plans is sometimes slow)
     // the timeout chosen is the same timeout used for the attains/plans fetch
@@ -97,7 +90,7 @@ describe('Waterbody Report page', () => {
       'not.exist',
     );
 
-    cy.findAllByText('DC_02_DCANA00E_02').should('be.visible');
+    cy.findAllByText('AK-10102-001_00').should('be.visible');
   });
 
   it('Verify the maps height does not go below 400 pixels', () => {

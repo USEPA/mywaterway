@@ -21,8 +21,8 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useKeyPress } from 'utils/hooks';
@@ -155,7 +155,7 @@ type Props = {
 function LocationSearch({ route, label }: Props) {
   const navigate = useNavigate();
 
-  const services = useServicesContext();
+  const services = useConfigFilesState().data.services;
   const searchBox = useRef(null);
   const downPress = useKeyPress('ArrowDown', searchBox);
   const upPress = useKeyPress('ArrowUp', searchBox);
@@ -186,7 +186,7 @@ function LocationSearch({ route, label }: Props) {
         placeholder: allPlaceholder,
         sources: [
           {
-            url: services.data.locatorUrl,
+            url: services.locatorUrl,
             countryCode: 'USA',
             searchFields: ['Loc_name'],
             suggestionTemplate: '{Loc_name}',
@@ -211,7 +211,7 @@ function LocationSearch({ route, label }: Props) {
         sources: [
           {
             layer: new FeatureLayer({
-              url: `${services.data.tribal}/1`,
+              url: `${services.tribal}/1`,
               listMode: 'hide',
             }),
             searchFields: ['TRIBE_NAME'],
@@ -222,7 +222,7 @@ function LocationSearch({ route, label }: Props) {
           },
           {
             layer: new FeatureLayer({
-              url: `${services.data.tribal}/2`,
+              url: `${services.tribal}/2`,
               listMode: 'hide',
             }),
             searchFields: ['TRIBE_NAME'],
@@ -233,7 +233,7 @@ function LocationSearch({ route, label }: Props) {
           },
           {
             layer: new FeatureLayer({
-              url: `${services.data.tribal}/3`,
+              url: `${services.tribal}/3`,
               listMode: 'hide',
             }),
             searchFields: ['TRIBE_NAME'],
@@ -244,7 +244,7 @@ function LocationSearch({ route, label }: Props) {
           },
           {
             layer: new FeatureLayer({
-              url: `${services.data.tribal}/4`,
+              url: `${services.tribal}/4`,
               listMode: 'hide',
             }),
             searchFields: ['TRIBE_NAME'],
@@ -255,7 +255,7 @@ function LocationSearch({ route, label }: Props) {
           },
           {
             layer: new FeatureLayer({
-              url: `${services.data.tribal}/5`,
+              url: `${services.tribal}/5`,
               listMode: 'hide',
             }),
             searchFields: ['TRIBE_NAME'],
@@ -273,7 +273,7 @@ function LocationSearch({ route, label }: Props) {
         sources: [
           {
             layer: new FeatureLayer({
-              url: services.data.wbdUnconstrained,
+              url: services.wbdUnconstrained,
               listMode: 'hide',
             }),
             searchFields: ['name', 'huc12'],
@@ -295,7 +295,7 @@ function LocationSearch({ route, label }: Props) {
             name: 'Monitoring Locations',
             getSuggestions: ({ maxSuggestions, suggestTerm }) => {
               return fetchCheck(
-                `${services.data.waterQualityPortal.domainValues}/monitoringlocation?text=${suggestTerm}&mimeType=json&pagesize=${maxSuggestions}`,
+                `${services.waterQualityPortal.domainValues}/monitoringlocation?text=${suggestTerm}&mimeType=json&pagesize=${maxSuggestions}`,
               )
                 .then((res) => {
                   const sourceIndex = searchWidget?.sources.findIndex(
@@ -330,7 +330,7 @@ function LocationSearch({ route, label }: Props) {
             name: 'Waterbodies',
             getSuggestions: ({ maxSuggestions, suggestTerm }) => {
               return fetchPost(
-                `${services.data.expertQuery.attains}/assessmentUnits/values/assessmentUnitId`,
+                `${services.expertQuery.attains}/assessmentUnits/values/assessmentUnitId`,
                 {
                   additionalColumns: ['assessmentUnitName', 'organizationId'],
                   direction: 'asc',
@@ -339,7 +339,7 @@ function LocationSearch({ route, label }: Props) {
                 },
                 {
                   'Content-Type': 'application/json',
-                  'X-Api-Key': services.data.expertQuery.apiKey,
+                  'X-Api-Key': services.expertQuery.apiKey,
                 },
               )
                 .then((res) => {
@@ -599,7 +599,7 @@ function LocationSearch({ route, label }: Props) {
   const openMonitoringReport = useCallback(
     (result, callback) => {
       // query WQP's station service to get the lat/long
-      const url = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
+      const url = `${services.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
       fetchCheck(url)
         .then((res) => {
           const feature = res.features[0];
@@ -638,7 +638,7 @@ function LocationSearch({ route, label }: Props) {
       }
       const { assessmentUnitId, organizationId } = item;
       formSubmit({
-        target: `waterbody-report/${organizationId}/${assessmentUnitId}`,
+        target: `/waterbody-report/${organizationId}/${assessmentUnitId}`,
       });
 
       if (callback) callback(result.text);
@@ -1199,7 +1199,7 @@ function LocationSearch({ route, label }: Props) {
                   navigator.geolocation.getCurrentPosition(
                     // success function called when geolocation succeeds
                     (position) => {
-                      const url = services.data.locatorUrl;
+                      const url = services.locatorUrl;
                       const params = {
                         location: new Point({
                           x: position.coords.longitude,

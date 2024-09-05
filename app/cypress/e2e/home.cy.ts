@@ -19,7 +19,7 @@ describe('Homepage links', () => {
   });
 
   it(`"Data" button links to the data page`, () => {
-    cy.findByText('Data').click();
+    cy.findByRole('button', { name: 'Data' }).click();
     cy.url().should('include', '/data');
   });
 
@@ -87,12 +87,12 @@ describe('Homepage disclaimer and glossary', () => {
   });
 
   it(`Glossary button toggles slide content`, () => {
-    cy.findAllByText('Glossary').filter('[data-disabled="false"]').click();
+    cy.findAllByText('Glossary').filter(':visible').click();
     cy.findByPlaceholderText('Search for a term...').should('be.visible');
   });
 
   it(`Glossary close button closes slide content`, () => {
-    cy.findAllByText('Glossary').filter('[data-disabled="false"]').click();
+    cy.findAllByText('Glossary').filter(':visible').click();
     cy.findByRole('button', { name: 'Close glossary' }).click();
     cy.findByPlaceholderText('Search for a term...').should('not.be.visible');
   });
