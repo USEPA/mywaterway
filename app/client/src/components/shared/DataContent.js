@@ -5,17 +5,10 @@ import { useEffect } from 'react';
 import { css } from '@emotion/react';
 // components
 import { linkButtonStyles } from 'components/shared/LinkButton';
-import LoadingSpinner from 'components/shared/LoadingSpinner';
-// config
-import { dataContentError } from 'config/errorMessages';
 // contexts
-import { useDataSourcesContext } from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
-import {
-  errorBoxStyles,
-  infoBoxStyles,
-  textBoxStyles,
-} from 'components/shared/MessageBoxes';
+import { infoBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
 import { fonts } from 'styles/index';
 
 function scrollToItem(id: string) {
@@ -85,12 +78,6 @@ const modifiedLinkButtonStyles = css`
   text-align: left;
 `;
 
-const pageErrorBoxStyles = css`
-  ${errorBoxStyles};
-  margin: 1rem;
-  text-align: center;
-`;
-
 const titleStyles = css`
   display: inline;
   line-height: 1.125;
@@ -153,17 +140,8 @@ function DataContent() {
     };
   }, []);
 
-  const { data, status } = useDataSourcesContext();
-
-  if (status === 'fetching') return <LoadingSpinner />;
-
-  if (status === 'failure') {
-    return (
-      <div css={pageErrorBoxStyles}>
-        <p>{dataContentError}</p>
-      </div>
-    );
-  }
+  const configFiles = useConfigFilesState();
+  const data = configFiles.data.dataPage;
 
   return (
     <div css={containerStyles} className="container">

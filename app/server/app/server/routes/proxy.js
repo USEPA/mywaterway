@@ -9,6 +9,9 @@ const log = logger.logger;
 module.exports = function (app) {
   const router = express.Router();
 
+  // only expose proxy in local environment
+  if (!app.enabled('isLocal')) return;
+
   router.get('/', function (req, res, next) {
     let authoriztedURL = false;
     let parsedUrl;

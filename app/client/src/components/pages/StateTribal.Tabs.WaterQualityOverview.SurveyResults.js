@@ -13,13 +13,9 @@ import Select from 'react-select';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 // styled components
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { h3Styles } from 'styles/stateTribal';
 // contexts
-import {
-  useSurveyMappingContext,
-  useWaterTypeOptionsContext,
-} from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
 import {
   formatNumber,
@@ -29,8 +25,6 @@ import {
 } from 'utils/utils';
 // styles
 import { fonts, colors, reactSelectStyles } from 'styles/index';
-// errors
-import { stateSurveySectionError } from 'config/errorMessages';
 
 // add exporting features to highcharts
 highchartsExporting(Highcharts);
@@ -111,8 +105,7 @@ function SurveyResults({
   organizationId,
   useSelected,
 }: Props) {
-  const surveyMapping = useSurveyMappingContext();
-  const waterTypeOptions = useWaterTypeOptionsContext();
+  const configFiles = useConfigFilesState();
 
   const [userSelectedSubPop, setUserSelectedSubPop] = useState('');
 
@@ -175,27 +168,23 @@ function SurveyResults({
   let surveyUseSelected = '';
   let allCategoryCodes = {};
   let allStressorNames = [];
-  if (
-    surveyData?.surveyWaterGroups &&
-    waterType &&
-    waterTypeOptions.status === 'success' &&
-    surveyMapping.status === 'success'
-  ) {
+  if (surveyData?.surveyWaterGroups && waterType) {
     // build arrays of summary and stressors
     let stressorItems = [];
     let locConfidenceLevel = '';
     surveyData.surveyWaterGroups
       .filter((x) => {
         return (
-          waterTypeOptions.data[waterType].includes(x['waterTypeGroupCode']) &&
-          selectedSubPop === x['subPopulationCode']
+          configFiles.data.waterTypeOptions[waterType].includes(
+            x['waterTypeGroupCode'],
+          ) && selectedSubPop === x['subPopulationCode']
         );
       })
       .forEach((waterGroup) => {
         // get the categoryCodeMapping and stressorMapping for the current selections
         let categoryMapping = null;
         let stressorMapping = null;
-        for (const mapping of surveyMapping.data) {
+        for (const mapping of configFiles.data.surveyMapping) {
           let useSelectedUpper = normalizeString(useSelected);
           let topicUseSelected = topicUses[useSelectedUpper];
           surveyUseSelected =
@@ -213,10 +202,12 @@ function SurveyResults({
             mapOrgId &&
             mapSubPop &&
             mapSurveyUse &&
-            waterTypeOptions.data[waterType] &&
+            configFiles.data.waterTypeOptions[waterType] &&
             normalizeString(mapOrgId) === normalizeString(organizationId) &&
             normalizeString(mapSubPop) === normalizeString(selectedSubPop) &&
-            waterTypeOptions.data[waterType].includes(mapWaterGroup) &&
+            configFiles.data.waterTypeOptions[waterType].includes(
+              mapWaterGroup,
+            ) &&
             (normalizeString(mapSurveyUse) === normalizeString(useSelected) ||
               (topicUseSelected?.surveyuseCode &&
                 normalizeString(mapSurveyUse) ===
@@ -390,18 +381,7 @@ function SurveyResults({
     ? `${populationDistance} ${selectedSurveyGroup.surveyWaterGroupCommentText}`
     : '';
 
-  if (
-    surveyMapping.status === 'failure' ||
-    waterTypeOptions.status === 'failure'
-  ) {
-    return (
-      <div css={errorBoxStyles}>
-        <p>{stateSurveySectionError(activeState.source)}</p>
-      </div>
-    );
-  }
-
-  if (loading || surveyMapping.status === 'fetching') return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner />;
 
   // Generate a random number for making a unique connection between the
   // population dropdown and label

@@ -35,17 +35,13 @@ import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
 import {
   initialMonitoringGroups,
   LocationSearchContext,
 } from 'contexts/locationSearch';
-import {
-  useCharacteristicGroupMappingsContext,
-  useCyanMetadataContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
 // utilities
 import {
   useCyanWaterbodies,
@@ -249,7 +245,7 @@ function filterLocations(groups, timeframe, characteristicGroupMappings) {
 }
 
 function Monitoring() {
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
+  const configFiles = useConfigFilesState();
   const {
     monitoringLocationsLayer,
     updateVisibleLayers,
@@ -281,14 +277,12 @@ function Monitoring() {
   }, [visibleLayers]);
 
   useEffect(() => {
-    if (characteristicGroupMappings.status !== 'success') return;
-
     return function cleanup() {
       setMonitoringGroups(
-        initialMonitoringGroups(characteristicGroupMappings.data),
+        initialMonitoringGroups(configFiles.data.characteristicGroupMappings),
       );
     };
-  }, [characteristicGroupMappings, setMonitoringGroups]);
+  }, [configFiles, setMonitoringGroups]);
 
   const handleCurrentWaterConditionsToggle = useCallback(
     (checked) => {
@@ -440,8 +434,7 @@ function CurrentConditionsTab({
   // draw the waterbody on the map
   useWaterbodyOnMap();
 
-  const cyanMetadata = useCyanMetadataContext();
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const { mapView, watershed } = useContext(LocationSearchContext);
 
@@ -680,8 +673,8 @@ function CurrentConditionsTab({
                     >
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
+                          configFiles={configFiles.data}
                           feature={feature}
-                          lookupFiles={{ services }}
                           type="USGS Sensors"
                         />
 
@@ -712,8 +705,8 @@ function CurrentConditionsTab({
                     >
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
+                          configFiles={configFiles.data}
                           feature={feature}
-                          lookupFiles={{ cyanMetadata, services }}
                           mapView={mapView}
                           type="Blue-Green Algae"
                         />
@@ -734,8 +727,7 @@ function CurrentConditionsTab({
 }
 
 function PastConditionsTab({ setMonitoringDisplayed }) {
-  const characteristicGroupMappings = useCharacteristicGroupMappingsContext();
-  const services = useServicesContext();
+  const configFiles = useConfigFilesState();
 
   const {
     huc12,
@@ -863,12 +855,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   // All stations in the current time range
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
-    if (characteristicGroupMappings.status !== 'success') return;
+    if (!configFiles) return;
 
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
       annualRecordsReady ? selectedMonitoringYearsRange : null,
-      characteristicGroupMappings.data,
+      configFiles.data.characteristicGroupMappings,
     );
 
     // Add filtered data that's relevent to map popups
@@ -880,7 +872,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     setDisplayedLocations(toggledLocations);
   }, [
     annualRecordsReady,
-    characteristicGroupMappings,
+    configFiles,
     monitoringGroups,
     selectedMonitoringYearsRange,
     updateFeatures,
@@ -913,12 +905,12 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   }, [buildFilter, displayedLocations, monitoringGroups]);
 
   const downloadUrl =
-    `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
+    `${configFiles.data.services.waterQualityPortal.resultSearch}zip=no&huc=` +
     `${huc12}` +
     `${charGroupFilters}`;
 
   const portalUrl =
-    `${services.data.waterQualityPortal.userInterface}#advanced=true&huc=${huc12}` +
+    `${configFiles.data.services.waterQualityPortal.userInterface}#advanced=true&huc=${huc12}` +
     `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
@@ -1035,8 +1027,8 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         >
           <div css={accordionContentStyles}>
             <WaterbodyInfo
+              configFiles={configFiles.data}
               feature={feature}
-              lookupFiles={{ characteristicGroupMappings, services }}
               type="Past Water Conditions"
             />
             <ViewOnMapButton feature={feature} />
@@ -1046,10 +1038,9 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     },
     [
       accordionItemToggleHandlers,
-      characteristicGroupMappings,
+      configFiles,
       expandedRows,
       filteredMonitoringLocations,
-      services,
     ],
   );
 

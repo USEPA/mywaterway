@@ -7,11 +7,11 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import Popup from '@arcgis/core/widgets/Popup';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 // types
 import type {
   MonitoringFeatureUpdate,
@@ -146,7 +146,7 @@ async function queryPadUsFeatures(
     return [];
 
   // check if protected areas layer was clicked on
-  const url = `${services.data.protectedAreasDatabase}0`;
+  const url = `${services.protectedAreasDatabase}0`;
   const queryPadUs = {
     returnGeometry: false,
     geometry: location,
@@ -209,7 +209,7 @@ function MapMouseEvents({ view }: Props) {
   const navigate = useNavigate();
   const fetchedDataDispatch = useFetchedDataDispatch();
 
-  const services = useServicesContext();
+  const services = useConfigFilesState().data.services;
   const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
 
   const { getHucBoundaries, monitoringFeatureUpdates, resetData } = useContext(
@@ -323,7 +323,7 @@ function MapMouseEvents({ view }: Props) {
                   outFields: ['*'],
                 };
                 query
-                  .executeQueryJSON(services.data.wbd, queryParams)
+                  .executeQueryJSON(services.wbd, queryParams)
                   .then((boundaries) => {
                     if (boundaries.features.length === 0) return;
 
@@ -347,7 +347,7 @@ function MapMouseEvents({ view }: Props) {
   // Sets up the map mouse events when the component initializes
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
-    if (initialized || services.status === 'fetching') return;
+    if (initialized) return;
 
     // These global scoped variables are used to prevent flickering that is caused
     // by the hitTest async events occurring out of order. The global scoped variables

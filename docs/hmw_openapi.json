@@ -1,0 +1,96 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "US EPA How's My Waterway",
+    "contact": {
+      "name": "US EPA Office of Water"
+    },
+    "license": {
+      "name": "Creative Commons Zero Public Domain Dedication",
+      "url": "https://edg.epa.gov/EPA_Data_License.html"
+    },
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://mywaterway-stage.app.cloud.gov/"
+    }
+  ],
+  "security": [
+    {
+      "basicAuth": []
+    }
+  ],
+  "paths": {
+    "/api/configFiles": {
+      "get": {
+        "tags": ["How's My Waterway"],
+        "responses": {
+          "200": {
+            "description": "Placeholder.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/generic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": ["How's My Waterway"],
+        "responses": {
+          "200": {
+            "description": "Placeholder.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/generic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/supportedBrowsers": {
+      "get": {
+        "tags": ["How's My Waterway"],
+        "responses": {
+          "200": {
+            "description": "Placeholder.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/generic"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "generic": {
+        "type": "object",
+        "properties": {
+          "Results": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
+  },
+  "x-original-swagger-version": "2.0"
+}

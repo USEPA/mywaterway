@@ -1,26 +1,15 @@
 // @flow
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import type { Node } from 'react';
 import { css, Global } from '@emotion/react';
-// components
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useGlossaryState } from 'contexts/Glossary';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
 import { colors, fonts } from 'styles/index';
-// errors
-import { glossaryError } from 'config/errorMessages';
-// helpers
-import { isAbort } from 'utils/utils';
 
 const Glossary = require('glossary-panel');
-
-function termsInDOM() {
-  const items = document.getElementsByClassName('glossary__item');
-  return items && items.length > 0;
-}
 
 const termStyles = css`
   span[data-term] {
@@ -187,47 +176,15 @@ const listStyles = css`
 
 // --- components ---
 function GlossaryPanel({ path }) {
-  const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
-    useGlossaryState();
-
-  const [terms, setTerms] = useState([]);
-  // Initialize the glossary panel.
-  const initializeTerms = useCallback(() => {
-    if (!window.hasOwnProperty('fetchGlossaryTerms')) return;
-
-    // Do not initialize glossary if terms on the dom
-    if (termsInDOM()) return;
-
-    // initialize the glossary
-    window.fetchGlossaryTerms
-      .then((terms) => {
-        setGlossaryStatus(terms.status);
-        setTerms(terms.data);
-      })
-      .catch((err) => {
-        if (isAbort(err)) return;
-        setGlossaryStatus('failure');
-        setTerms([]);
-        console.error(err);
-      })
-      .finally(() => setInitialized(true));
-  }, [setGlossaryStatus, setInitialized]);
+  const configFiles = useConfigFilesState();
 
   useEffect(() => {
-    if (glossaryStatus !== 'success') return;
-
     try {
-      new Glossary(terms);
+      new Glossary(configFiles.data.glossary);
     } catch (err) {
       console.error(err);
     }
-  }, [glossaryStatus, initialized, setGlossaryStatus, setInitialized, terms]);
-
-  // Reset initialized flag to re-initialize the Glossary
-  useEffect(() => {
-    // set the initialized flag to false if there are no glossary terms on the DOM
-    if (!termsInDOM()) initializeTerms();
-  }, [path, initializeTerms]);
+  }, [configFiles]);
 
   return (
     <>
@@ -253,21 +210,13 @@ function GlossaryPanel({ path }) {
         </header>
 
         <div css={containerStyles}>
-          {glossaryStatus === 'failure' && (
-            <div css={errorBoxStyles}>
-              <p>{glossaryError}</p>
-            </div>
-          )}
-
-          {glossaryStatus === 'success' && (
-            <input
-              css={inputStyles}
-              className="js-glossary-search form-control"
-              type="search"
-              placeholder="Search for a term..."
-              aria-label="Search for a glossary term..."
-            />
-          )}
+          <input
+            css={inputStyles}
+            className="js-glossary-search form-control"
+            type="search"
+            placeholder="Search for a term..."
+            aria-label="Search for a glossary term..."
+          />
 
           <ul
             aria-labelledby="glossary-title"
@@ -292,38 +241,18 @@ type Props = {
 };
 
 function GlossaryTerm({ term, className, id, style, children }: Props) {
-  const [status, setStatus] = useState('idle');
-
-  if (window.hasOwnProperty('fetchGlossaryTerms') && status === 'idle') {
-    setStatus('fetching');
-    window.fetchGlossaryTerms
-      .then((terms) => setStatus(terms.status))
-      .catch((err) => {
-        if (isAbort(err)) return;
-        setStatus('failure');
-        console.error(err);
-      });
-  }
-
   return (
     <span
       id={id}
       data-term={term}
-      data-disabled={status !== 'success'}
       title="Click to define"
       tabIndex="0"
       className={className}
       style={style}
     >
       <i
-        css={[
-          iconStyles,
-          { fontSize: status === 'fetching' ? '75%' : '87.5%' },
-        ]}
-        className={
-          status === 'fetching' ? 'fas fa-spinner fa-pulse' : 'fas fa-book'
-        }
-        status={status}
+        css={[iconStyles, { fontSize: '87.5%' }]}
+        className={'fas fa-book'}
         aria-hidden="true"
       />
       {children}

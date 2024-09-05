@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const cron = require('node-cron');
 const favicon = require('serve-favicon');
 const basicAuth = require('express-basic-auth');
+const { checkClientRouteExists } = require('./middleware');
 const { getEnvironment } = require('./server/utilities/environment');
 const logger = require('./server/utilities/logger');
 const { getS3Config } = require('./server/utilities/s3');
@@ -169,11 +170,14 @@ if (isLocal || process.env.CF_INSTANCE_INDEX === '0') {
 /****************************************************************
  Setup server and routes
 ****************************************************************/
+// setup server routes
+require('./server/routes')(app);
+
 // serve static assets normally
 app.use(express.static(__dirname + '/public'));
 
-// setup server routes
-require('./server/routes')(app);
+// Ensure that requested client route exists (otherwise send 404).
+app.use(checkClientRouteExists);
 
 // setup client routes (built React app)
 app.get('*', function (req, res) {
@@ -211,9 +215,9 @@ app.listen(port, function () {
 /* Note, the React app should be handling 404 at this point 
    but we're leaving the below 404 check in for now */
 app.use(function (req, res, next) {
-  res.sendFile(path.join(__dirname, 'public', '400.html'));
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 app.use(function (err, req, res, next) {
-  res.sendFile(path.join(__dirname, 'public', '500.html'));
+  res.status(404).sendFile(path.join(__dirname, 'public', '500.html'));
 });

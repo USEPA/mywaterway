@@ -10,11 +10,10 @@ import { tabsStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
 import { DisclaimerModal } from 'components/shared/Modal';
-import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { introBoxStyles } from 'components/shared/IntroBox';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useNarsContext } from 'contexts/LookupFiles';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
 import { colors, fonts } from 'styles/index';
 // images
@@ -257,21 +256,10 @@ const iconStyles = css`
 `;
 
 function NationalWaterQualityPanel() {
-  const { status, data } = useNarsContext();
+  const configFiles = useConfigFilesState();
+  const data = configFiles.data.NARS;
 
-  if (status === 'fetching') {
-    return <LoadingSpinner />;
-  }
-
-  if (status === 'failure') {
-    return (
-      <div css={errorBoxStyles}>
-        <p>{narsError}</p>
-      </div>
-    );
-  }
-
-  if (status === 'success' && Object.keys(data).length === 0) {
+  if (Object.keys(data).length === 0) {
     return (
       <div css={errorBoxStyles}>
         <p>{narsError}</p>
