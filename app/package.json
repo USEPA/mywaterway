@@ -36,7 +36,7 @@
     "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
     "coverage": "npx rimraf .nyc_output/out.json && npx rimraf coverage && concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron\"",
     "coverage_spec_ex": "npx rimraf .nyc_output/out.json && concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron --spec 'cypress/e2e/state.cy.ts'\"",
-    "full_coverage": "cd server && npm run test && cd .. && npm run coverage",
+    "full_coverage": "cd server && npm run test && cd .. && npm run coverage && node combine_coverage_reports.js",
     "glossary": "cd server && npm run glossary"
   },
   "devDependencies": {
