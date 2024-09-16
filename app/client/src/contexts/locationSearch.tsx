@@ -49,7 +49,7 @@ const initialWatershed: WatershedAttributes = () => ({
   name: '',
 });
 
-export const LocationSearchContext = createContext();
+export const LocationSearchContext = createContext<State>();
 
 type Props = {
   children: ReactNode;
@@ -109,6 +109,8 @@ type State = {
   parameterToggleObject: ParameterToggleObject;
   pollutionParameters: Object | null;
   effluentToggleObject: EffluentToggleObject | null;
+
+  resetData: (useDefaultZoom: boolean) => void;
 };
 
 export class LocationSearchProvider extends Component<Props, State> {

@@ -153,7 +153,7 @@ const tabsOverlayStyles = css`
   }
 `;
 
-const tabsStyles = (infoToggleChecked) => css`
+const tabsStyles = (infoToggleChecked: boolean) => css`
   & ::-webkit-scrollbar {
     height: 12px;
   }
@@ -358,7 +358,11 @@ function CommunityTabs() {
   // and conditionally set active tab index
   useEffect(() => {
     const tabIndex = tabs
-      .map((tab) => encodeURI(tab.route.replace('{urlSearch}', urlSearch)))
+      .map((tab) =>
+        encodeURI(
+          urlSearch ? tab.route.replace('{urlSearch}', urlSearch) : tab.route,
+        ),
+      )
       .indexOf(window.location.pathname);
 
     if (tabIndex === -1) {

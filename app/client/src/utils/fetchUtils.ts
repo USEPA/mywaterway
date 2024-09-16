@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { escapeRegex, isAbort } from 'utils/utils';
+import { escapeRegex, isAbort } from './utils';
 
 const defaultTimeout = 60000;
 
