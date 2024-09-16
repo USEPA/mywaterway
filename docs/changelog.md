@@ -1,5 +1,35 @@
 # Change Log
 
+## 2.11.0 (September 2024)
+
+### Added
+
+- Added link to the How's My Waterway update page, on the about page.
+
+### Changed
+
+- Switched to a single endpoint for getting lookup files and config files from the S3 bucket.
+
+- Removed the proxy endpoint from non local environments.
+
+- Increased the time granularity of the charts on the Monitoring Report page.
+
+- Minor text updates on the community extreme weather tab.
+
+- Updated the charts on the Monitoring Report page so the points are displayed according to their date/time on the x-axis. Before all points were equidistant regardless of the date/time.
+
+- Updated the api to return a 404 with a json response for non-existent routes.
+
+- Fixed issue of searching for a waterbody from the community page not correctly linking to the waterbody report page.
+
+- Fixed issue of map shifting back and forth when loading the drinking water tab on the community page.
+
+### Chores
+
+- Updated dependencies.
+
+- Updated ArcGIS JS API.
+
 ## 2.10.0 (July 2024)
 
 ### Added

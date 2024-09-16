@@ -83,7 +83,7 @@ describe('Alert message tests', () => {
   it('Verify notifications on the state page', () => {
     setupInterceptors();
 
-    cy.visit('/state/AL');
+    cy.visit('/state/AL/water-quality-overview');
 
     cy.wait(urlInterceptPath);
 

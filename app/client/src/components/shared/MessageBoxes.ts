@@ -31,7 +31,7 @@ const infoBoxStyles = css`
   ${boxStyles};
   border-color: #bee5eb;
   color: #0c5460;
-  background-color: #d1ecf1;
+  background-color: #e6f5f5;
 `;
 
 const successBoxStyles = css`

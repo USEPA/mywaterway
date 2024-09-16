@@ -73,6 +73,12 @@ describe('Community page zero waterbodies message', () => {
       'Dallas, Texas',
     );
     cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     cy.findByText('There are no waterbodies assessed in the', {
       exact: false,
       timeout: 20000,

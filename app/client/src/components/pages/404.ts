@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 // --- components ---
 function PageNotFound() {
-  // redirect to the server side 400.html page
+  // redirect to the server side 404.html page
   useEffect(() => {
     const location = window.location;
 

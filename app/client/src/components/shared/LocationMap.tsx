@@ -117,6 +117,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     orphanFeatures,
     setOrphanFeatures,
     hucBoundaries,
+    atHucBoundaries,
     areasData,
     linesData,
     pointsData,
@@ -1266,6 +1267,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       boundariesLayer.graphics.removeAll();
       boundariesLayer.graphics.add(graphic);
       setHucBoundaries(graphic);
+      setAtHucBoundaries(false);
 
       // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
 
@@ -1319,6 +1321,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       getWildScenicRivers,
       handleMapServiceError,
       handleMapServices,
+      setAtHucBoundaries,
       setHucBoundaries,
       setStatesData,
       setWatershed,
@@ -1763,7 +1766,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [searchText, setHuc12]);
 
   useEffect(() => {
-    if (!mapView || !hucBoundaries) {
+    if (!mapView || !hucBoundaries || atHucBoundaries) {
       return;
     }
 
@@ -1786,14 +1789,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       });
     }
   }, [
+    atHucBoundaries,
     getTemplate,
     getTitle,
-    mapView,
-    hucBoundaries,
-    boundariesLayer,
-    setCurrentExtent,
-    setAtHucBoundaries,
     homeWidget,
+    hucBoundaries,
+    mapView,
+    setAtHucBoundaries,
+    setCurrentExtent,
   ]);
 
   const [location, setLocation] = useState(null);

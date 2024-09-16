@@ -86,6 +86,10 @@ module.exports = function (app) {
       });
   }
 
+  router.get('/health', function (req, res, next) {
+    res.json({ status: 'UP' });
+  });
+
   // --- get static content from S3
   router.get('/configFiles', (req, res) => {
     // NOTE: static content files found in `app/server/app/public/data` directory
@@ -145,6 +149,13 @@ module.exports = function (app) {
   router.get('/supportedBrowsers', (req, res) => {
     // NOTE: static content files found in `app/server/app/public/data` directory
     getFiles(req, res, ['data/config/supported-browsers.json']);
+  });
+
+  router.get('/*', (req, res) => {
+    res.status(404).json({ message: 'The api route does not exist.' });
+  });
+  router.post('/*', (req, res) => {
+    res.status(404).json({ message: 'The api route does not exist.' });
   });
 
   app.use('/api', router);
