@@ -15,7 +15,7 @@ const app = express();
 
 /* istanbul ignore next */
 if (global.__coverage__) {
-  require('@cypress/code-coverage/middleware/express')(app)
+  require('@cypress/code-coverage/middleware/express')(app);
 }
 
 app.use(
@@ -73,7 +73,7 @@ if (process.env.GLOSSARY_AUTH) {
     'Glossary/Terminology Services authorization variable NOT set, exiting system.';
   log.error(msg);
   //process.exit();
-  throw new Error("Missing Configuration")
+  throw new Error('Missing Configuration');
 }
 
 /****************************************************************
@@ -103,7 +103,7 @@ if (isDevelopment || isStaging) {
   } else {
     let msg = 'HMW_BASIC_USER_NAME variable NOT set, exiting system.';
     log.error(msg);
-    throw new Error("Missing Configuration")
+    throw new Error('Missing Configuration');
   }
 
   if (process.env.HMW_BASIC_USER_PWD) {
@@ -111,7 +111,7 @@ if (isDevelopment || isStaging) {
   } else {
     let msg = 'HMW_BASIC_USER_PWD variable NOT set, exiting system.';
     log.error(msg);
-    throw new Error("Missing Configuration")
+    throw new Error('Missing Configuration');
   }
 
   let users = {};

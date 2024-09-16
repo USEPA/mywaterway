@@ -5,7 +5,7 @@ const browserSyncPort = 9091;
 let port = process.env.PORT || 9090;
 const { isLocal } = require('./server/utilities/environment');
 
-let app; 
+let app;
 try {
   app = require('./app');
 } catch (err) {
