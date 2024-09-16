@@ -102,7 +102,14 @@ describe('Community Visual Regression Testing', () => {
   it('Verify "View on Map" button works', () => {
     cy.visit('/community/dc/overview');
 
-    cy.wait(10000);
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'exist',
+    );
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
 
     cy.findByText('FORT CHAPLIN RUN').click();
 

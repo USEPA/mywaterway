@@ -33,6 +33,9 @@ describe('Protect Tab', () => {
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'exist',
+    );
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
     );
 
