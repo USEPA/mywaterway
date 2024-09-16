@@ -830,7 +830,7 @@ function AdvancedSearch() {
             aria-label="Use Groups"
             isMulti
             isSearchable={false}
-            options={configFiles.data.attainsUseFields}
+            options={configFiles.data.useFields}
             value={useFilter}
             onChange={updateUseFilter}
             styles={reactSelectStyles}
