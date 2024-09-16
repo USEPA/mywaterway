@@ -19,6 +19,7 @@ coverage/
 **/__diff_output__
 app/cypress/screenshots/
 app/cypress/videos/
+app/combined_coverage_reports
 
 
 # misc

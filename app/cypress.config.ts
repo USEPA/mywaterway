@@ -4,12 +4,15 @@ import { addMatchImageSnapshotPlugin } from 'cypress-image-snapshot/plugin';
 export default defineConfig({
   chromeWebSecurity: false,
   defaultCommandTimeout: 8000,
-  retries: 1,
+  retries: 3,
   video: true,
   viewportHeight: 720,
   viewportWidth: 1280,
   env: {
     failOnSnapshotDiff: false,
+    codeCoverage: {
+      url: 'http://localhost:9091/__coverage__',
+    },
   },
   e2e: {
     // We've imported your old cypress plugins here.
