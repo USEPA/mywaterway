@@ -34,8 +34,8 @@
     "dev": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
     "setup": "echo \"Installing project dependencies...\" && npm ci --legacy-peer-deps && echo \"Installing client dependencies...\" && cd client && npm ci --legacy-peer-deps && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
     "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
-    "coverage": "npx rimraf .nyc_output/out.json && npx rimraf coverage && concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron\"",
-    "coverage_spec_ex": "npx rimraf .nyc_output/out.json && concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron --spec 'cypress/e2e/state.cy.ts'\"",
+    "coverage": "npx rimraf .nyc_output/out.json && npx rimraf coverage && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron\"",
+    "coverage_spec_ex": "npx rimraf .nyc_output/out.json && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron --spec 'cypress/e2e/state.cy.ts'\"",
     "full_coverage": "cd server && npm run test && cd .. && npm run coverage && node combine_coverage_reports.js",
     "glossary": "cd server && npm run glossary"
   },
