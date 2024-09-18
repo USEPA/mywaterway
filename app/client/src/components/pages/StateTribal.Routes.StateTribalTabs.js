@@ -126,8 +126,12 @@ function StateTribalTabs() {
           <strong>{activeState.label}</strong> at a Glance
         </h2>
         <div>{mapContent}</div>
-        <hr />
-        <WaterQualityOverview />
+        {activeState.attainsId && (
+          <>
+            <hr />
+            <WaterQualityOverview />
+          </>
+        )}
       </div>
     );
   }

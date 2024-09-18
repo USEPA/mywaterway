@@ -13,6 +13,7 @@ type Props = {
 };
 
 export type ConfigFiles = {
+  attainsTribeMapping: any;
   characteristicGroupMappings: CharacteristicGroupMappings;
   cyanMetadata: number[];
   dataPage: any;
@@ -34,10 +35,10 @@ export type ConfigFiles = {
   services: ServicesData;
   stateNationalUses: any;
   surveyMapping: any;
-  tribeMapping: any;
   useFields: AttainsUseField[];
   usgsStaParameters: any;
   waterTypeOptions: any;
+  wqxTribeMapping: any;
 };
 
 type State =

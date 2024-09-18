@@ -12,6 +12,7 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import Basemap from '@arcgis/core/Basemap';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -202,7 +203,6 @@ function TribalMapList({
   const [filter, setFilter] = useState('');
   useEffect(() => {
     if (
-      !activeState?.attainsId ||
       !waterbodyPoints ||
       !waterbodyLines ||
       !waterbodyAreas
@@ -210,12 +210,10 @@ function TribalMapList({
       return;
 
     // change the where clause of the feature layers
-    const filter = `organizationid = '${activeState.attainsId}'`;
-    if (filter) {
-      waterbodyPoints.definitionExpression = filter;
-      waterbodyLines.definitionExpression = filter;
-      waterbodyAreas.definitionExpression = filter;
-    }
+    const filter = activeState?.attainsId ? `organizationid = '${activeState.attainsId}'` : '1=0';
+    waterbodyPoints.definitionExpression = filter;
+    waterbodyLines.definitionExpression = filter;
+    waterbodyAreas.definitionExpression = filter;
 
     setFilter(filter);
     setTribalBoundaryError(false);
@@ -487,21 +485,23 @@ function TribalMapList({
           filter={filter}
           setTribalBoundaryError={setTribalBoundaryError}
         >
-          <div css={mapFooterStyles}>
-            <div css={mapFooterStatusStyles}>
-              <strong>Year Last Reported:</strong>
-              &nbsp;&nbsp;
-              {currentReportingCycle.status === 'fetching' && (
-                <LoadingSpinner />
-              )}
-              {currentReportingCycle.status === 'failure' && (
-                <>{yearLastReportedShortError}</>
-              )}
-              {currentReportingCycle.status === 'success' && (
-                <>{currentReportingCycle.reportingCycle}</>
-              )}
+          {activeState.attainsId && (
+            <div css={mapFooterStyles}>
+              <div css={mapFooterStatusStyles}>
+                <strong>Year Last Reported:</strong>
+                &nbsp;&nbsp;
+                {currentReportingCycle.status === 'fetching' && (
+                  <LoadingSpinner />
+                )}
+                {currentReportingCycle.status === 'failure' && (
+                  <>{yearLastReportedShortError}</>
+                )}
+                {currentReportingCycle.status === 'success' && (
+                  <>{currentReportingCycle.reportingCycle}</>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </TribalMap>
       </div>
 
@@ -610,7 +610,7 @@ function TribalMap({
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [selectedTribeLayer, setSelectedTribeLayer] = useState(null);
   useEffect(() => {
-    if (!activeState?.attainsId || !getSharedLayers || layersInitialized) {
+    if (!activeState || !getSharedLayers || layersInitialized) {
       return;
     }
 
@@ -624,6 +624,8 @@ function TribalMap({
           navigate,
         }),
     };
+
+    const { attainsId } = activeState;
 
     // Build the feature layers that will make up the waterbody layer
     const pointsRenderer = {
@@ -639,7 +641,7 @@ function TribalMap({
     };
     const waterbodyPoints = new FeatureLayer({
       url: configFiles.data.services.waterbodyService.points,
-      definitionExpression: `organizationid = '${activeState.attainsId}'`,
+      definitionExpression: attainsId ? `organizationid = '${attainsId}'` : '1=0',
       outFields: ['*'],
       renderer: pointsRenderer,
       popupTemplate,
@@ -658,7 +660,7 @@ function TribalMap({
     };
     const waterbodyLines = new FeatureLayer({
       url: configFiles.data.services.waterbodyService.lines,
-      definitionExpression: `organizationid = '${activeState.attainsId}'`,
+      definitionExpression: attainsId ? `organizationid = '${attainsId}'` : '1=0',
       outFields: ['*'],
       renderer: linesRenderer,
       popupTemplate,
@@ -677,7 +679,7 @@ function TribalMap({
     };
     const waterbodyAreas = new FeatureLayer({
       url: configFiles.data.services.waterbodyService.areas,
-      definitionExpression: `organizationid = '${activeState.attainsId}'`,
+      definitionExpression: attainsId ? `organizationid = '${attainsId}'` : '1=0',
       outFields: ['*'],
       renderer: areasRenderer,
       popupTemplate,
@@ -756,6 +758,7 @@ function TribalMap({
   ]);
 
   // get gis data for selected tribe
+  const [selectedTribeGraphicsReady, setSelectedTribeGraphicsReady] = useState(false);
   useEffect(() => {
     // get the tribalLayer from the mapView
     const tribalLayer = mapView?.map?.findLayerById('tribalLayer');
@@ -809,12 +812,17 @@ function TribalMap({
           });
         });
 
-        selectedTribeLayer.graphics.addMany(graphics);
+        selectedTribeLayer.addMany(graphics);
+        reactiveUtils
+          .whenOnce(() => !mapView.updating)
+          .then(() => {
+            setSelectedTribeGraphicsReady(true);
+        });
       })
       .catch((error) => {
         console.error(error);
         setTribalBoundaryError(true);
-      });
+      })
   }, [activeState, mapView, selectedTribeLayer, setTribalBoundaryError]);
 
   // zoom to graphics on the map, and update the home widget's extent
@@ -823,68 +831,64 @@ function TribalMap({
     if (
       !mapLoading ||
       !filter ||
-      !mapView ||
-      !waterbodyPoints ||
-      !waterbodyLines ||
-      !waterbodyAreas ||
       !selectedTribeLayer ||
-      !homeWidget
+      !selectedTribeGraphicsReady ||
+      !mapView ||
+      !homeWidget ||
+      !waterbodyAreas ||
+      !waterbodyLines ||
+      !waterbodyPoints
     ) {
       return;
     }
 
-    // zoom and set the home widget viewpoint
-    let fullExtent = null;
-    // get the points layer extent
-    waterbodyPoints.queryExtent().then((pointsExtent) => {
-      // set the extent if 1 or more features
-      if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
+    async function queryExtent() {
+      let fullExtent = null;
 
-      // get the lines layer extent
-      waterbodyLines.queryExtent().then((linesExtent) => {
-        // set the extent or union the extent if 1 or more features
-        if (linesExtent.count > 0) {
-          if (fullExtent) fullExtent.union(linesExtent.extent);
-          else fullExtent = linesExtent.extent;
+      // Get the waterbody layers' extents.
+      (await Promise.all([waterbodyPoints, waterbodyLines, waterbodyAreas].map(
+        (layer) => layer.queryExtent(),
+      ))).forEach((extent) => {
+        if (extent.count) {
+          if (fullExtent) fullExtent.union(extent.extent);
+          else fullExtent = extent.extent;
         }
-
-        // get the areas layer extent
-        waterbodyAreas.queryExtent().then((areasExtent) => {
-          // set the extent or union the extent if 1 or more features
-          if (areasExtent.count > 0) {
-            if (fullExtent) fullExtent.union(areasExtent.extent);
-            else fullExtent = areasExtent.extent;
-          }
-
-          // get the extent of the selected tribes layer graphics
-          selectedTribeLayer.graphics.forEach((graphic) => {
-            if (fullExtent) fullExtent.union(graphic.geometry.extent);
-            else fullExtent = graphic.geometry.extent;
-          });
-
-          // if there is an extent then zoom to it and set the home widget
-          if (fullExtent) {
-            mapView.when(() => {
-              mapView.goTo(fullExtent).then(() => {
-                setMapLoading(false);
-                // only set the home widget if the user selects a different state
-                homeWidget.viewpoint = new Viewpoint({
-                  targetGeometry: mapView.extent,
-                });
-              });
-            });
-
-          } else {
-            setMapLoading(false);
-          }
-        });
       });
+
+      // Get the extent of the selected tribes layer graphics.
+      selectedTribeLayer.graphics.forEach((graphic) => {
+        if (fullExtent) fullExtent.union(graphic.geometry.extent);
+        else fullExtent = graphic.geometry.extent;
+      });
+
+      return fullExtent;
+    }
+
+    // zoom and set the home widget viewpoint
+    queryExtent().then((fullExtent) => {
+      // if there is an extent then zoom to it and set the home widget
+      if (fullExtent) {
+        mapView.when(() => {
+          mapView.goTo(fullExtent).then(() => {
+            setMapLoading(false);
+            // only set the home widget if the user selects a different state
+            homeWidget.viewpoint = new Viewpoint({
+              targetGeometry: mapView.extent,
+            });
+          });
+        });
+
+      } else {
+        setMapLoading(false);
+      }
     });
   }, [
+    activeState,
     filter,
     homeWidget,
     mapLoading,
     mapView,
+    selectedTribeGraphicsReady,
     selectedTribeLayer,
     waterbodyAreas,
     waterbodyLayer,
@@ -892,11 +896,12 @@ function TribalMap({
     waterbodyPoints,
   ]);
 
-  // reset the loading status when the filter changes
-  const [prevFilter, setPrevFilter] = useState(filter);
-  if (filter !== prevFilter) {
-    setPrevFilter(filter);
+  // reset the loading status when the selected tribe changes
+  const [prevActiveState, setPrevActiveState] = useState(activeState);
+  if (prevActiveState.value !== activeState.value) {
+    setPrevActiveState(activeState);
     setMapLoading(true);
+    setSelectedTribeGraphicsReady(false);
   }
 
   return (

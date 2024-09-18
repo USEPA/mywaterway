@@ -112,7 +112,7 @@ function Map({
           </>
         )}
       </div>
-      <div ref={footerRef}>{children}</div>
+      {children && <div ref={footerRef}>{children}</div>}
     </div>
   );
 }

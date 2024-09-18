@@ -116,7 +116,8 @@ module.exports = function (app) {
         'data/state/stateNationalUses.json',
         'data/state/surveyMapping.json',
         'data/state/waterTypeOptions.json',
-        'data/tribe/tribeMapping.json',
+        'data/tribe/attainsTribeMapping.json',
+        'data/tribe/wqxTribeMapping.json',
       ],
       (data) => {
         return {
@@ -139,7 +140,8 @@ module.exports = function (app) {
           stateNationalUses: data[16],
           surveyMapping: data[17],
           waterTypeOptions: data[18],
-          tribeMapping: data[19],
+          attainsTribeMapping: data[19],
+          wqxTribeMapping: data[20],
         };
       },
     );
