@@ -18,7 +18,6 @@ import {
   useAllFeaturesLayers,
   useLocalData,
 } from 'utils/boundariesToggleLayer';
-// config
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';

@@ -11,7 +11,7 @@ export default defineConfig({
   env: {
     failOnSnapshotDiff: false,
     codeCoverage: {
-      url: 'http://localhost:9091/__coverage__',
+      url: 'http://localhost:3002/__coverage__',
     },
   },
   e2e: {
