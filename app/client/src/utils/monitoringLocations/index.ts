@@ -174,6 +174,7 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
     if (recordsWorker.current) recordsWorker.current.terminate();
     recordsWorker.current = new Worker(
       new URL('./periodOfRecord', import.meta.url),
+      { type: 'module' },
     );
     // Tell the worker to start the task
     recordsWorker.current.postMessage([
