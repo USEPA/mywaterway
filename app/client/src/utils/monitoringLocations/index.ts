@@ -29,7 +29,7 @@ import { stringifyAttributes } from 'utils/mapFunctions';
 import { parseAttributes } from 'utils/utils';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
-import type { Dispatch } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type {
   CharacteristicGroupMappings,
   Feature,
@@ -94,9 +94,13 @@ export function useMonitoringLocations() {
 
 export function useMonitoringGroups() {
   const configFiles = useConfigFilesState();
-  const { monitoringGroups, setMonitoringGroups } = useContext(
-    LocationSearchContext,
-  );
+  const {
+    monitoringGroups,
+    setMonitoringGroups,
+  }: {
+    monitoringGroups: MonitoringLocationGroups;
+    setMonitoringGroups: Dispatch<SetStateAction<MonitoringLocationGroups>>;
+  } = useContext(LocationSearchContext);
   const { monitoringLocations } = useFetchedDataState();
 
   useEffect(() => {

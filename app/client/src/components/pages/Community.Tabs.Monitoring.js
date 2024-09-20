@@ -14,7 +14,6 @@ import CharacteristicsSelect from 'components/shared/CharacteristicsSelect';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   keyMetricsStyles,
@@ -28,8 +27,8 @@ import {
   waterwayIcon,
 } from 'components/shared/MapLegend';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import PastWaterConditionsFilters from 'components/shared/PastWaterConditionsFilters';
 import ShowLessMore from 'components/shared/ShowLessMore';
-import Slider from 'components/shared/Slider';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
@@ -57,13 +56,7 @@ import {
   streamgagesError,
 } from 'config/errorMessages';
 // styles
-import {
-  colors,
-  disclaimerStyles,
-  iconStyles,
-  tabLegendStyles,
-  toggleTableStyles,
-} from 'styles/index';
+import { colors, tabLegendStyles, toggleTableStyles } from 'styles/index';
 
 /*
  * Styles
@@ -82,26 +75,10 @@ const containerStyles = css`
   }
 `;
 
-const modifiedDisclaimerStyles = css`
-  ${disclaimerStyles};
-  padding-bottom: 0;
-`;
-
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   margin-bottom: 1em;
   text-align: center;
-`;
-
-const modifiedToggleTableStyles = css`
-  ${toggleTableStyles}
-  th, td {
-    text-align: right;
-    width: 33%;
-    &:first-of-type {
-      text-align: left;
-    }
-  }
 `;
 
 const showLessMoreStyles = css`
@@ -109,36 +86,10 @@ const showLessMoreStyles = css`
   padding-top: 1.5em;
 `;
 
-const sliderContainerStyles = css`
-  margin: 1em 0;
-`;
-
-const subheadingStyles = css`
-  font-weight: bold;
-  padding-bottom: 0;
-  text-align: center;
-`;
-
 const switchContainerStyles = css`
   margin-bottom: 0;
   & > div {
     margin-top: 0.5em;
-  }
-`;
-
-const tableFooterStyles = css`
-  border-bottom: 1px solid #dee2e6;
-  background-color: #f0f6f9;
-
-  td {
-    border-top: none;
-    font-weight: bold;
-    width: 50%;
-  }
-
-  span {
-    display: inline-block;
-    margin-bottom: 0.25em;
   }
 `;
 
@@ -152,97 +103,9 @@ const toggleStyles = css`
   }
 `;
 
-const totalRowStyles = css`
-  border-top: 2px solid #dee2e6;
-  font-weight: bold;
-  background-color: #f0f6f9;
-`;
-
 /*
 ## Helpers
 */
-
-// Dynamically filter the displayed locations
-function filterStation(station, timeframe, characteristicGroupMappings) {
-  if (!timeframe) return station;
-  const stationRecords = station.dataByYear;
-  const result = {
-    ...station,
-    characteristicsByGroup: {},
-    totalMeasurements: 0,
-    totalsByCharacteristic: {},
-    totalsByGroup: {},
-    totalsByLabel: {},
-    timeframe: [...timeframe],
-  };
-  // Include the label in the object even if zero
-  characteristicGroupMappings.forEach((mapping) => {
-    result.totalsByLabel[mapping.label] = 0;
-  });
-  for (const year in stationRecords) {
-    if (parseInt(year) < timeframe[0]) continue;
-    if (parseInt(year) > timeframe[1]) break;
-    result.totalMeasurements += stationRecords[year].totalMeasurements;
-    // Tally characteristic group counts
-    const resultGroups = result.totalsByGroup;
-    Object.entries(stationRecords[year].totalsByGroup).forEach(
-      ([group, count]) => {
-        if (count <= 0) return;
-        if (group in resultGroups) resultGroups[group] += count;
-        else resultGroups[group] = count;
-      },
-    );
-    // Tally characteristic label counts
-    Object.entries(stationRecords[year].totalsByLabel).forEach(
-      ([label, count]) => (result.totalsByLabel[label] += count),
-    );
-    // Tally characteristic counts
-    const resultCharcs = result.totalsByCharacteristic;
-    Object.entries(stationRecords[year].totalsByCharacteristic).forEach(
-      ([charc, count]) => {
-        if (count <= 0) return;
-        if (charc in resultCharcs) resultCharcs[charc] += count;
-        else resultCharcs[charc] = count;
-      },
-    );
-    // Get timeframe characteristics by group
-    Object.entries(stationRecords[year].characteristicsByGroup).forEach(
-      ([group, charcList]) => {
-        result.characteristicsByGroup[group] = Array.from(
-          new Set(charcList.concat(result.characteristicsByGroup[group] ?? [])),
-        );
-      },
-    );
-  }
-
-  return result;
-}
-
-function filterLocations(groups, timeframe, characteristicGroupMappings) {
-  let toggledLocations = [];
-  let allLocations = [];
-
-  if (groups) {
-    const toggledGroups = Object.keys(groups)
-      .filter((groupLabel) => groupLabel !== 'All')
-      .filter((groupLabel) => groups[groupLabel].toggled === true);
-
-    groups['All']?.stations.forEach((station) => {
-      const curStation = filterStation(
-        station,
-        timeframe,
-        characteristicGroupMappings,
-      );
-      const hasToggledData = toggledGroups.some((group) => {
-        return curStation.totalsByLabel[group] > 0;
-      });
-      if (hasToggledData) toggledLocations.push(curStation);
-      allLocations.push(curStation);
-    });
-  }
-
-  return { toggledLocations, allLocations };
-}
 
 function Monitoring() {
   const configFiles = useConfigFilesState();
@@ -732,201 +595,30 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const {
     huc12,
     monitoringPeriodOfRecordStatus,
-    monitoringYearsRange,
     selectedMonitoringYearsRange,
-    setMonitoringFeatureUpdates,
-    setSelectedMonitoringYearsRange,
     watershed,
   } = useContext(LocationSearchContext);
   const annualRecordsReady = monitoringPeriodOfRecordStatus === 'success';
 
   const { monitoringLocationsLayer } = useLayers();
   const { monitoringLocations } = useFetchedDataState();
-  const { monitoringGroups, setMonitoringGroups } = useMonitoringGroups();
+  const { monitoringGroups } = useMonitoringGroups();
 
-  const updateFeatures = useCallback(
-    (locations) => {
-      const stationUpdates = {};
-      locations.forEach((location) => {
-        stationUpdates[location.uniqueId] = {
-          characteristicsByGroup: JSON.stringify(
-            location.characteristicsByGroup,
-          ),
-          totalMeasurements: location.totalMeasurements,
-          totalsByCharacteristic: JSON.stringify(
-            location.totalsByCharacteristic,
-          ),
-          totalsByGroup: JSON.stringify(location.totalsByGroup),
-          timeframe: JSON.stringify(location.timeframe),
-        };
-      });
-      setMonitoringFeatureUpdates(stationUpdates);
-    },
-    [setMonitoringFeatureUpdates],
-  );
-
-  useEffect(() => {
-    return function cleanup() {
-      setMonitoringFeatureUpdates(null);
-    };
-  }, [setMonitoringFeatureUpdates]);
-
-  const [allToggled, setAllToggled] = useState(true);
-  const toggleAll = useCallback(() => {
-    const updatedGroups = { ...monitoringGroups };
-    for (const label in updatedGroups) {
-      updatedGroups[label].toggled = !allToggled;
-    }
-    setMonitoringDisplayed(!allToggled);
-    setAllToggled((prev) => !prev);
-    setMonitoringGroups(updatedGroups);
-  }, [
-    allToggled,
-    monitoringGroups,
-    setMonitoringDisplayed,
-    setMonitoringGroups,
-  ]);
-
-  const groupToggleHandler = useCallback(
-    (groupLabel) => {
-      return function toggleGroup(_ev) {
-        const updatedGroups = { ...monitoringGroups };
-        updatedGroups[groupLabel].toggled = !updatedGroups[groupLabel].toggled;
-        setMonitoringGroups(updatedGroups);
-
-        let allOthersToggled = true;
-        for (let key in updatedGroups) {
-          if (!updatedGroups[key].toggled) allOthersToggled = false;
-        }
-        setAllToggled(allOthersToggled);
-
-        // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
-        const someToggled = Object.keys(updatedGroups)
-          .filter((label) => label !== 'All')
-          .some((key) => updatedGroups[key].toggled);
-        setMonitoringDisplayed(someToggled);
-      };
-    },
-    [monitoringGroups, setMonitoringDisplayed, setMonitoringGroups],
-  );
-
-  const groupToggleHandlers = useMemo(() => {
-    const toggles = {};
-    Object.values(monitoringGroups)
-      .filter((group) => group.label !== 'All')
-      .forEach((group) => {
-        toggles[group.label] = groupToggleHandler(group.label);
-      });
-    return toggles;
-  }, [monitoringGroups, groupToggleHandler]);
-
-  const [charGroupFilters, setCharGroupFilters] = useState('');
-  // create the filter string for download links based on active toggles
-  const buildFilter = useCallback(
-    (groups) => {
-      let filter = '';
-
-      const selectedNames = Object.keys(groups).filter((label) => {
-        return label !== 'All' && groups[label].toggled;
-      });
-
-      const groupsCount = Object.values(groups).filter(
-        (group) => group.label !== 'All',
-      ).length;
-
-      if (selectedNames.length !== groupsCount) {
-        for (const name of selectedNames) {
-          filter +=
-            '&characteristicType=' +
-            groups[name].characteristicGroups.join('&characteristicType=');
-        }
-      }
-
-      if (annualRecordsReady) {
-        filter += `&startDateLo=01-01-${selectedMonitoringYearsRange[0]}&startDateHi=12-31-${selectedMonitoringYearsRange[1]}`;
-      }
-
-      setCharGroupFilters(filter);
-    },
-    [setCharGroupFilters, annualRecordsReady, selectedMonitoringYearsRange],
-  );
-
-  const [displayedLocations, setDisplayedLocations] = useState([]);
-  // All stations in the current time range
-  const [currentLocations, setCurrentLocations] = useState([]);
-  useEffect(() => {
-    if (!configFiles) return;
-
-    const { toggledLocations, allLocations } = filterLocations(
-      monitoringGroups,
-      annualRecordsReady ? selectedMonitoringYearsRange : null,
-      configFiles.data.characteristicGroupMappings,
-    );
-
-    // Add filtered data that's relevent to map popups
-    if (annualRecordsReady) {
-      updateFeatures(toggledLocations);
-    }
-
-    setCurrentLocations(allLocations);
-    setDisplayedLocations(toggledLocations);
-  }, [
-    annualRecordsReady,
-    configFiles,
-    monitoringGroups,
-    selectedMonitoringYearsRange,
-    updateFeatures,
-  ]);
-
-  const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
-  const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
-    useState(0);
-
-  // Updates total counts after displayed locations are filtered
-  useEffect(() => {
-    let newTotalLocations = 0;
-    let newTotalMeasurements = 0;
-
-    // update the watershed total measurements and samples counts
-    displayedLocations.forEach((station) => {
-      newTotalLocations++;
-      Object.keys(monitoringGroups)
-        .filter((group) => group !== 'All')
-        .forEach((group) => {
-          if (monitoringGroups[group].toggled) {
-            newTotalMeasurements += station.totalsByLabel[group];
-          }
-        });
-    });
-
-    setTotalDisplayedLocations(newTotalLocations);
-    setTotalDisplayedMeasurements(newTotalMeasurements);
-    buildFilter(monitoringGroups);
-  }, [buildFilter, displayedLocations, monitoringGroups]);
-
-  const downloadUrl =
-    `${configFiles.data.services.waterQualityPortal.resultSearch}zip=no&huc=` +
-    `${huc12}` +
-    `${charGroupFilters}`;
-
-  const portalUrl =
-    `${configFiles.data.services.waterQualityPortal.userInterface}#advanced=true&huc=${huc12}` +
-    `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
-    `&providers=NWIS&providers=STEWARDS&providers=STORET`;
-
+  const [
+    locationsFilteredByCharcGroupAndTime,
+    setLocationsFilteredByCharcGroupAndTime,
+  ] = useState([]);
   const [sortBy, setSortBy] = useState('locationName');
 
   const sortedMonitoringLocations = useMemo(() => {
-    return displayedLocations
-      ? displayedLocations.sort((a, b) => {
-          if (sortBy === 'totalMeasurements') {
-            return b.totalMeasurements - a.totalMeasurements;
-          }
+    return locationsFilteredByCharcGroupAndTime.sort((a, b) => {
+      if (sortBy === 'totalMeasurements') {
+        return b.totalMeasurements - a.totalMeasurements;
+      }
 
-          return a[sortBy].localeCompare(b[sortBy]);
-        })
-      : [];
-  }, [displayedLocations, sortBy]);
+      return a[sortBy].localeCompare(b[sortBy]);
+    });
+  }, [locationsFilteredByCharcGroupAndTime, sortBy]);
 
   const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
 
@@ -946,13 +638,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const totalLocationsCount = monitoringGroups['All']?.stations.length;
   const displayedLocationsCount =
     filteredMonitoringLocations.length.toLocaleString();
-
-  const handleDateSliderChange = useCallback(
-    (newRange) => {
-      setSelectedMonitoringYearsRange(newRange);
-    },
-    [setSelectedMonitoringYearsRange],
-  );
 
   const handleSortChange = useCallback(({ value }) => setSortBy(value), []);
 
@@ -1073,7 +758,6 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const [prevHuc12, setPrevHuc12] = useState(huc12);
   if (huc12 !== prevHuc12) {
     setPrevHuc12(huc12);
-    setAllToggled(true);
     setSelectedCharacteristics([]);
   }
 
@@ -1132,181 +816,15 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
               </span>
             </div>
 
-            <div css={sliderContainerStyles}>
-              {monitoringPeriodOfRecordStatus === 'failure' && (
-                <div css={modifiedErrorBoxStyles}>
-                  <p>
-                    Annual Past Water Conditions data is temporarily
-                    unavailable, please try again later.
-                  </p>
-                </div>
-              )}
-              {monitoringPeriodOfRecordStatus === 'pending' && (
-                <LoadingSpinner />
-              )}
-              {monitoringPeriodOfRecordStatus === 'success' && (
-                <Slider
-                  max={monitoringYearsRange[1]}
-                  min={monitoringYearsRange[0]}
-                  disabled={
-                    !monitoringYearsRange[0] || !monitoringYearsRange[1]
-                  }
-                  onChange={handleDateSliderChange}
-                  range={[
-                    selectedMonitoringYearsRange[0],
-                    selectedMonitoringYearsRange[1],
-                  ]}
-                  headerElm={
-                    <p css={subheadingStyles}>
-                      <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-                      &nbsp;&nbsp; Date range for the <em>{watershed.name}</em>{' '}
-                      watershed{' '}
-                    </p>
-                  }
-                />
-              )}
-            </div>
-
-            <table
-              css={modifiedToggleTableStyles}
-              aria-label="Monitoring Location Summary"
-              className="table"
-            >
-              <thead>
-                <tr>
-                  <th>
-                    <label css={toggleStyles}>
-                      <Switch checked={allToggled} onChange={toggleAll} />
-                      <span>All Monitoring Locations</span>
-                    </label>
-                  </th>
-                  <th colSpan="2">Location Count</th>
-                  <th>Measurement Count</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {Object.values(monitoringGroups)
-                  .filter(
-                    (group) =>
-                      group.label !== 'All' && group.stations.length > 0,
-                  )
-                  .map((group) => {
-                    // get the number of measurements for this group type
-                    let measurementCount = 0;
-                    let locationCount = 0;
-                    currentLocations.forEach((station) => {
-                      if (station.totalsByLabel[group.label] > 0) {
-                        measurementCount += station.totalsByLabel[group.label];
-                        locationCount++;
-                      }
-                    });
-
-                    return (
-                      <tr key={group.label}>
-                        <td>
-                          <label css={toggleStyles}>
-                            <Switch
-                              checked={group.toggled}
-                              onChange={groupToggleHandlers?.[group.label]}
-                            />
-                            <span>{group.label}</span>
-                          </label>
-                        </td>
-                        <td colSpan="2">{locationCount.toLocaleString()}</td>
-                        <td>{measurementCount.toLocaleString()}</td>
-                      </tr>
-                    );
-                  })
-                  .sort((a, b) => {
-                    // sort the switches with Other at the end
-                    if (a.key === 'Other') return 1;
-                    if (b.key === 'Other') return -1;
-                    return a.key > b.key ? 1 : -1;
-                  })}
-
-                <tr css={totalRowStyles}>
-                  <td>
-                    <div css={toggleStyles}>
-                      <div style={{ width: '38px' }} />
-                      <span>Totals</span>
-                    </div>
-                  </td>
-                  <td colSpan="2">
-                    {Number(totalDisplayedLocations).toLocaleString()}
-                  </td>
-                  <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
-                </tr>
-              </tbody>
-
-              <tfoot css={tableFooterStyles}>
-                <tr>
-                  <td colSpan="2">
-                    <a
-                      href={portalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-cy="portal"
-                      style={{ fontWeight: 'normal' }}
-                    >
-                      <i
-                        css={iconStyles}
-                        className="fas fa-filter"
-                        aria-hidden="true"
-                      />
-                      Advanced Filtering
-                    </a>
-                    &nbsp;&nbsp;
-                    <small css={modifiedDisclaimerStyles}>
-                      (opens new browser tab)
-                    </small>
-                  </td>
-
-                  <td colSpan="2">
-                    <span>Download All Selected Data</span>
-                    <span>
-                      &nbsp;&nbsp;
-                      {displayedLocationsCount > 0 ? (
-                        <a href={`${downloadUrl}&mimeType=xlsx`}>
-                          <HelpTooltip
-                            label="Download XLSX"
-                            description="Download selected data as an XLSX file."
-                          >
-                            <i
-                              className="fas fa-file-excel"
-                              aria-hidden="true"
-                            />
-                          </HelpTooltip>
-                        </a>
-                      ) : (
-                        <i
-                          className="fas fa-file-excel"
-                          aria-hidden="true"
-                          style={{ color: '#ccc' }}
-                        />
-                      )}
-                      &nbsp;&nbsp;
-                      {displayedLocationsCount > 0 ? (
-                        <a href={`${downloadUrl}&mimeType=csv`}>
-                          <HelpTooltip
-                            label="Download CSV"
-                            description="Download selected data as a CSV file."
-                          >
-                            <i className="fas fa-file-csv" aria-hidden="true" />
-                          </HelpTooltip>
-                        </a>
-                      ) : (
-                        <i
-                          className="fas fa-file-csv"
-                          aria-hidden="true"
-                          style={{ color: '#ccc' }}
-                        />
-                      )}
-                    </span>
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+            <PastWaterConditionsFilters
+              key={huc12}
+              filteredLocations={locationsFilteredByCharcGroupAndTime}
+              huc12={huc12}
+              locationName={watershed.name}
+              locationType="watershed"
+              setFilteredLocations={setLocationsFilteredByCharcGroupAndTime}
+              setMonitoringDisplayed={setMonitoringDisplayed}
+            />
 
             <AccordionList
               title={
