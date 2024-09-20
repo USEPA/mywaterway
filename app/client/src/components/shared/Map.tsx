@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
 import FullscreenContainer from 'components/shared/FullscreenContainer';
@@ -83,9 +83,22 @@ function Map({
 
   // Calculate the height of the div holding the footer content.
   const [footerHeight, setFooterHeight] = useState(0);
-  const footerRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node) return;
-    setFooterHeight(node.getBoundingClientRect().height);
+
+  const footerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!footerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const footer = entries.pop();
+      if (footer) setFooterHeight(footer.contentRect.height);
+    });
+
+    resizeObserver.observe(footerRef.current);
+
+    return function cleaup() {
+      resizeObserver.disconnect();
+    };
   }, []);
 
   return (
@@ -112,7 +125,7 @@ function Map({
           </>
         )}
       </div>
-      {children && <div ref={footerRef}>{children}</div>}
+      <div ref={footerRef}>{children}</div>
     </div>
   );
 }

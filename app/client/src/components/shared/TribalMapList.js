@@ -877,7 +877,6 @@ function TribalMap({
             });
           });
         });
-
       } else {
         setMapLoading(false);
       }
