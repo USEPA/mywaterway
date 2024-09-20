@@ -35,6 +35,7 @@ import Map from 'components/shared/Map';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import PastWaterConditionsFilters from 'components/shared/PastWaterConditionsFilters';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
@@ -321,6 +322,33 @@ function TribalMapList({
 
   const [selectedTab, setSelectedTab] = useState(0);
 
+  const [monitoringLocationsFilteredByCharcGroupAndTime, setMonitoringLocationsFilteredByCharcGroupAndTime] = useState([]);
+
+  // Filter the displayed locations by selected characteristics
+  const filteredMonitoringLocations = monitoringLocationsFilteredByCharcGroupAndTime.filter((location) => {
+    if (!selectedCharacteristics.length) return true;
+    for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
+      if (selectedCharacteristics.includes(characteristic)) return true;
+    }
+    return false;
+  });
+
+  // Update the filters on the layer
+  const locationIds = filteredMonitoringLocations.map(
+    (location) => location.uniqueId,
+  );
+  let definitionExpression = '';
+  if (locationIds.length === 0) definitionExpression = '1=0';
+  else if (locationIds.length !== monitoringLocations.length) {
+    definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
+  }
+  if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
+
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
@@ -538,6 +566,7 @@ function TribalMapList({
               <TabPanel>
                 <MonitoringTab
                   activeState={activeState}
+                  monitoringLocations={filteredMonitoringLocations}
                   selectedCharacteristics={selectedCharacteristics}
                   setSelectedCharacteristics={setSelectedCharacteristics}
                 />
@@ -546,6 +575,16 @@ function TribalMapList({
           </Tabs>
         </div>
       )}
+
+      <PastWaterConditionsFilters
+        key={activeState.epaId}
+        filteredLocations={monitoringLocationsFilteredByCharcGroupAndTime}
+        locationName={activeState.name}
+        locationType="tribe"
+        setFilteredLocations={setMonitoringLocationsFilteredByCharcGroupAndTime}
+        setMonitoringDisplayed={setMonitoringLocationsDisplayed}
+        wqxIds={activeState.wqxIds}
+      />
     </div>
   );
 }
@@ -915,34 +954,24 @@ function TribalMap({
 
 type MonitoringTabProps = {
   activeState: Object,
+  monitoringLocations: Object[],
   selectedCharacteristics: string[],
   setSelectedCharacteristics: (selected: string[]) => void,
 };
 
 function MonitoringTab({
   activeState,
+  monitoringLocations,
   selectedCharacteristics,
   setSelectedCharacteristics,
 }: MonitoringTabProps) {
   const configFiles = useConfigFilesState();
 
-  const { monitoringLocations } = useMonitoringLocations();
-  const { monitoringLocationsLayer } = useLayers();
-
   // sort the monitoring locations
   const [monitoringLocationsSortedBy, setMonitoringLocationsSortedBy] =
     useState('locationName');
 
-  // Filter the displayed locations by selected characteristics
-  const filteredMonitoringLocations = monitoringLocations.filter((location) => {
-    if (!selectedCharacteristics.length) return true;
-    for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
-      if (selectedCharacteristics.includes(characteristic)) return true;
-    }
-    return false;
-  });
-
-  const sortedMonitoringAndSensors = [...filteredMonitoringLocations].sort(
+  const sortedMonitoringAndSensors = [...monitoringLocations].sort(
     (a, b) => {
       if (monitoringLocationsSortedBy === 'totalMeasurements') {
         return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
@@ -957,22 +986,6 @@ function MonitoringTab({
       );
     },
   );
-
-  // Update the filters on the layer
-  const locationIds = filteredMonitoringLocations.map(
-    (location) => location.uniqueId,
-  );
-  let definitionExpression = '';
-  if (locationIds.length === 0) definitionExpression = '1=0';
-  else if (locationIds.length !== monitoringLocations.length) {
-    definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
-  }
-  if (
-    monitoringLocationsLayer &&
-    definitionExpression !== monitoringLocationsLayer.definitionExpression
-  ) {
-    monitoringLocationsLayer.definitionExpression = definitionExpression;
-  }
 
   const [expandedRows, setExpandedRows] = useState([]);
 
