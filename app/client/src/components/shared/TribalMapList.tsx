@@ -194,7 +194,8 @@ function TribalMapList({ activeState, windowHeight }: Props) {
   // set the filter on each waterbody layer
   const [filter, setFilter] = useState('');
   useEffect(() => {
-    if (!waterbodyPoints || !waterbodyLines || !waterbodyAreas) return;
+    if (!activeState || !waterbodyPoints || !waterbodyLines || !waterbodyAreas)
+      return;
 
     // change the where clause of the feature layers
     const filter = activeState?.attainsId
@@ -213,6 +214,7 @@ function TribalMapList({ activeState, windowHeight }: Props) {
   const [waterbodies, setWaterbodies] = useState({ status: 'idle', data: [] });
   useEffect(() => {
     if (
+      !activeState ||
       !filter ||
       !mapView ||
       !waterbodyPoints ||
@@ -220,6 +222,10 @@ function TribalMapList({ activeState, windowHeight }: Props) {
       !waterbodyAreas
     ) {
       return;
+    }
+
+    if (!activeState.attainsId) {
+      setWaterbodies({ status: 'success', data: [] });
     }
 
     function handelQueryError(error) {
@@ -258,7 +264,14 @@ function TribalMapList({ activeState, windowHeight }: Props) {
           .catch(handelQueryError);
       })
       .catch(handelQueryError);
-  }, [waterbodyPoints, waterbodyLines, waterbodyAreas, mapView, filter]);
+  }, [
+    activeState,
+    waterbodyPoints,
+    waterbodyLines,
+    waterbodyAreas,
+    mapView,
+    filter,
+  ]);
 
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
