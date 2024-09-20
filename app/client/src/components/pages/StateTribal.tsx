@@ -188,7 +188,7 @@ function StateTribal() {
 
     const tribeMapping = Object.values(
       [
-        ...configFiles.data.attainsTribeMapping,
+        ...configFiles.data.attainsTribeMapping, // Keep the ATTAINS mapping first, it has priority
         ...configFiles.data.wqxTribeMapping,
       ].reduce((acc, cur) => {
         if (!acc.hasOwnProperty(cur.epaId)) {
