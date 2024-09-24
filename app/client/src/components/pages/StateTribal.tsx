@@ -147,9 +147,24 @@ function StateTribal() {
     introText,
     setActiveState,
     setErrorType,
+    setIntroText,
     setUsesStateSummaryServiceError,
     usesStateSummaryServiceError,
   } = useContext(StateTribalTabsContext);
+
+  // Set `introText` to empty if the `activeState` is set and there is no `attainsId`.
+  useEffect(() => {
+    if (activeState.value && !activeState.attainsId) {
+      setIntroText({
+        status: 'success',
+        data: {
+          organizationMetrics: [],
+          organizationURLs: [],
+          description: '',
+        },
+      });
+    }
+  }, [activeState, setIntroText]);
 
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
@@ -171,18 +186,43 @@ function StateTribal() {
       return;
     }
 
+    const tribeMapping = Object.values(
+      [
+        ...configFiles.data.attainsTribeMapping, // Keep the ATTAINS mapping first, it has priority
+        ...configFiles.data.wqxTribeMapping,
+      ].reduce((acc, cur) => {
+        if (!acc.hasOwnProperty(cur.epaId)) {
+          acc[cur.epaId] = cur;
+        } else {
+          acc[cur.epaId] = {
+            ...acc[cur.epaId],
+            wqxIds: [...acc[cur.epaId].wqxIds, ...cur.wqxIds],
+          };
+        }
+        return acc;
+      }, {}),
+    )
+      .map((tribe) => ({
+        ...tribe,
+        wqxIds: Array.from(new Set(tribe.wqxIds)),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
     const tempTribes = [];
-    configFiles.data.tribeMapping.forEach((tribe) => {
-      const tribeAttains = organizations.data.find(
-        (item) =>
-          item.orgtype === 'Tribe' &&
-          item.organizationid.toUpperCase() === tribe.attainsId.toUpperCase(),
-      );
-      if (!tribeAttains) return;
+    tribeMapping.forEach((tribe) => {
+      const { attainsId } = tribe;
+      const tribeAttains = attainsId
+        ? organizations.data.find(
+            (item) =>
+              item.orgtype === 'Tribe' &&
+              item.organizationid.toUpperCase() === attainsId.toUpperCase(),
+          )
+        : null;
 
       tempTribes.push({
         ...tribe,
-        value: tribe.attainsId,
+        attainsId: tribeAttains ? attainsId : null,
+        value: tribe.attainsId ?? tribe.wqxIds[0],
         label: tribe.name,
         source: 'Tribe',
       });

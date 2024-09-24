@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Penobscot Nation",
+    "attainsId": null,
+    "wqxIds": ["PENOBSCOTINDIANNATIONDNR"],
+    "biaTribeCode": "018",
+    "epaId": 100000199,
+    "state": "ME",
+    "stateList": ["ME"],
+    "epaRegion": 1
+  },
+  {
+    "name": "Big Valley Band of Pomo Indians of the Big Valley Rancheria, California",
+    "attainsId": null,
+    "wqxIds": ["CA_BVR"],
+    "biaTribeCode": "507",
+    "epaId": 100000019,
+    "state": "CA",
+    "stateList": ["CA"],
+    "epaRegion": 9
+  },
+  {
+    "name": "Kalispel Indian Community of the Kalispel Reservation",
+    "attainsId": null,
+    "wqxIds": ["KNRD_WQX"],
+    "biaTribeCode": "103",
+    "epaId": 100000119,
+    "state": "WA",
+    "stateList": ["WA"],
+    "epaRegion": 10
+  }
+]
