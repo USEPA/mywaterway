@@ -44,7 +44,7 @@ import {
   getTypeFromAttributes,
   mapRestorationPlanToGlossary,
 } from 'utils/mapFunctions';
-import { chunkArrayCharLength } from 'utils/utils';
+import { chunkArrayCharLength, getExtensionFromPath } from 'utils/utils';
 // styles
 import { colors, noMapDataWarningStyles } from 'styles/index';
 // errors
@@ -634,20 +634,28 @@ function Actions() {
                         )}
 
                         {documents.length > 0 &&
-                          documents.map((document) => (
-                            <li key={document.documentName}>
-                              <a
-                                href={document.documentURL}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                {document.documentName}
-                              </a>
-                              <DynamicExitDisclaimer
-                                url={document.documentURL}
-                              />
-                            </li>
-                          ))}
+                          documents.map((document) => {
+                            const extension = getExtensionFromPath(
+                              document.documentFileName,
+                              document.documentURL,
+                            );
+
+                            return (
+                              <li key={document.documentName}>
+                                <a
+                                  href={document.documentURL}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  data-hmw-extension={extension}
+                                >
+                                  {document.documentName}
+                                </a>
+                                <DynamicExitDisclaimer
+                                  url={document.documentURL}
+                                />
+                              </li>
+                            );
+                          })}
                       </ul>
                     </div>
                   </div>

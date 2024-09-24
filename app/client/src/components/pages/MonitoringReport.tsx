@@ -2131,6 +2131,13 @@ function FileLink({ disabled, fileType, data, setError, url }) {
       );
       const file = window.URL.createObjectURL(blob);
       window.location.assign(file);
+
+      //Log to Google Analytics
+      window.logToGa('link_click', {
+        event_action: 'ow-hmw2-wqp - result search post',
+        event_category: 'Download',
+        event_label: fileTypeUrl,
+      });
     } catch (err) {
       setError(err);
       console.error(err);

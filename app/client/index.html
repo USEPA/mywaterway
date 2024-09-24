@@ -704,11 +704,9 @@
         }
 
         //Link clicks
-        if (
-          event.target.tagName.toLowerCase() === 'a' &&
-          event.target.target === '_blank'
-        ) {
-          const href = event.target.href;
+        const closestA = event.target.closest('a');
+        if (closestA) {
+          const href = closestA.href;
 
           // combine the web service and map service mappings
           const mapping = window.googleAnalyticsMapping;
@@ -718,15 +716,42 @@
               name = item.name;
             }
           });
-          const action = 'ow-hmw2-' + (name || event.target.text.trim());
+          const action = 'ow-hmw2-' + (name || closestA.text.trim());
 
-          const extension = href.split('.').pop;
-          const category =
-            window.location.hostname === event.target.hostname
-              ? //Part of the HMW application
-                extension === '.pdf' || extension === '.zip'
-                ? 'Download'
-                : 'Internal'
+          const downloadExtensions = [
+            'csv',
+            'doc',
+            'docx',
+            'jpeg',
+            'jpg',
+            'json',
+            'pdf',
+            'png',
+            'svg',
+            'tsv',
+            'xls',
+            'xlsx',
+            'zip',
+          ];
+          const paramDownloadExtensions = [
+            ...downloadExtensions.map((ext) => `mimeType=${ext}`),
+            ...downloadExtensions.map((ext) => `f=${ext}`),
+          ];
+          const extension = href.split('.').pop();
+          const attrExtension = closestA
+            .getAttribute('data-hmw-extension')
+            ?.replaceAll('(', '')
+            ?.replaceAll(')', '')
+            ?.toLowerCase();
+
+          const isDownload =
+            downloadExtensions.includes(extension) ||
+            downloadExtensions.includes(attrExtension) ||
+            paramDownloadExtensions.some((ext) => href.includes(ext));
+          const category = isDownload
+            ? 'Download'
+            : window.location.hostname === event.target.hostname
+              ? 'Internal' //Part of the HMW application
               : 'External'; //External EPA Hyperlink
 
           //Log to Google Analytics

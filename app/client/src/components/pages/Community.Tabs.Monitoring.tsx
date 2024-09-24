@@ -910,7 +910,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
 
   const portalUrl =
     `${configFiles.data.services.waterQualityPortal.userInterface}#advanced=true&huc=${huc12}` +
-    `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
+    `${charGroupFilters}&dataProfile=resultPhysChem` +
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
   const [sortBy, setSortBy] = useState('locationName');

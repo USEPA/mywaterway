@@ -2848,7 +2848,7 @@ function MonitoringLocationsContent({
   const portalUrl = configFiles
     ? `${configFiles.services.waterQualityPortal.userInterface}#` +
       `siteid=${siteId}${charGroupFilters}` +
-      `&advanced=true&mimeType=xlsx&dataProfile=resultPhysChem` +
+      `&advanced=true&dataProfile=resultPhysChem` +
       `&providers=NWIS&providers=STEWARDS&providers=STORET`
     : null;
 
