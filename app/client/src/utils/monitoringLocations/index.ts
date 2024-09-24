@@ -114,6 +114,14 @@ export function useMonitoringGroups() {
     );
   }, [configFiles, monitoringLocations, setMonitoringGroups]);
 
+  useEffect(() => {
+    return function cleanup() {
+      setMonitoringGroups(
+        initialMonitoringGroups(configFiles.data.characteristicGroupMappings),
+      );
+    };
+  }, [configFiles, setMonitoringGroups]);
+
   return { monitoringGroups, setMonitoringGroups };
 }
 

@@ -201,10 +201,12 @@ function StateTribal() {
         }
         return acc;
       }, {}),
-    ).map((tribe) => ({
-      ...tribe,
-      wqxIds: Array.from(new Set(tribe.wqxIds)),
-    }));
+    )
+      .map((tribe) => ({
+        ...tribe,
+        wqxIds: Array.from(new Set(tribe.wqxIds)),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
 
     const tempTribes = [];
     tribeMapping.forEach((tribe) => {

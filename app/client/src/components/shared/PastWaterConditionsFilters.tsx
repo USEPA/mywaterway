@@ -95,9 +95,8 @@ const totalRowStyles = css`
 /*
 ## Helpers
 */
-
-// Dynamically filter the displayed locations
-function filterStation(
+// Dynamically filter the location measurements by the selected year range.
+function filterLocationMeasurementsByTimeframe(
   station: MonitoringLocationAttributes,
   timeframe: MonitoringYearsRange | null,
   characteristicGroupMappings: CharacteristicGroupMappings,
@@ -156,30 +155,16 @@ function filterStation(
   return result;
 }
 
-function filterLocations(
+function filterLocationsByCharcGroups(
+  locations: MonitoringLocationAttributes[],
   groups: MonitoringLocationGroups,
-  timeframe: MonitoringYearsRange | null,
-  characteristicGroupMappings: CharacteristicGroupMappings,
 ) {
-  const filteredLocations: MonitoringLocationAttributes[] = [];
-
   const toggledGroups = Object.keys(groups)
     .filter((groupLabel) => groupLabel !== 'All')
     .filter((groupLabel) => groups[groupLabel].toggled === true);
-
-  groups['All']?.stations.forEach((station) => {
-    const curStation = filterStation(
-      station,
-      timeframe,
-      characteristicGroupMappings,
-    );
-    const hasToggledData = toggledGroups.some((group) => {
-      return curStation.totalsByLabel[group] > 0;
-    });
-    if (hasToggledData) filteredLocations.push(curStation);
+  return locations.filter((station) => {
+    return toggledGroups.some((group) => station.totalsByLabel[group] > 0);
   });
-
-  return filteredLocations;
 }
 
 /*
@@ -316,13 +301,26 @@ export function PastWaterConditionsFilters({
   );
 
   // All stations in the current time range.
+  const [locationsFilteredByTime, setLocationsFilteredByTime] = useState<
+    MonitoringLocationAttributes[]
+  >([]);
   useEffect(() => {
     if (!configFiles) return;
 
-    const newFilteredLocations = filterLocations(
+    const newLocationsFilteredByTime = (
+      monitoringGroups['All']?.stations ?? []
+    ).map((station) =>
+      filterLocationMeasurementsByTimeframe(
+        station,
+        annualRecordsReady ? selectedMonitoringYearsRange : null,
+        configFiles.data.characteristicGroupMappings,
+      ),
+    );
+    setLocationsFilteredByTime(newLocationsFilteredByTime);
+
+    const newFilteredLocations = filterLocationsByCharcGroups(
+      newLocationsFilteredByTime,
       monitoringGroups,
-      annualRecordsReady ? selectedMonitoringYearsRange : null,
-      configFiles.data.characteristicGroupMappings,
     );
 
     // Add filtered data that's relevent to map popups.
@@ -374,8 +372,6 @@ export function PastWaterConditionsFilters({
     },
     [setSelectedMonitoringYearsRange],
   );
-
-  const allLocations = monitoringGroups['All']?.stations ?? [];
 
   return (
     <>
@@ -443,7 +439,7 @@ export function PastWaterConditionsFilters({
               // get the number of measurements for this group type
               let measurementCount = 0;
               let locationCount = 0;
-              allLocations.forEach((station) => {
+              locationsFilteredByTime.forEach((station) => {
                 if (station.totalsByLabel[group.label] > 0) {
                   measurementCount += station.totalsByLabel[group.label];
                   locationCount++;

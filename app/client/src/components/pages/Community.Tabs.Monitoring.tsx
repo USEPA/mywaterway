@@ -36,10 +36,7 @@ import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { useLayers } from 'contexts/Layers';
-import {
-  initialMonitoringGroups,
-  LocationSearchContext,
-} from 'contexts/locationSearch';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import {
   useCyanWaterbodies,
@@ -107,15 +104,12 @@ const toggleStyles = css`
 */
 
 function Monitoring() {
-  const configFiles = useConfigFilesState();
   const {
     monitoringLocationsLayer,
     updateVisibleLayers,
     usgsStreamgagesLayer,
     visibleLayers,
   } = useLayers();
-  const { setMonitoringGroups } = useContext(LocationSearchContext);
-
   const { cyanWaterbodies, monitoringLocations, usgsStreamgages } =
     useFetchedDataState();
 
@@ -137,14 +131,6 @@ function Monitoring() {
     setMonitoringDisplayed(visibleLayers.monitoringLocationsLayer);
     setCyanDisplayed(visibleLayers.cyanLayer);
   }, [visibleLayers]);
-
-  useEffect(() => {
-    return function cleanup() {
-      setMonitoringGroups(
-        initialMonitoringGroups(configFiles.data.characteristicGroupMappings),
-      );
-    };
-  }, [configFiles, setMonitoringGroups]);
 
   const handleCurrentWaterConditionsToggle = useCallback(
     (checked) => {
