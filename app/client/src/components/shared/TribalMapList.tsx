@@ -6,6 +6,7 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import Basemap from '@arcgis/core/Basemap';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -28,6 +29,7 @@ import Map from 'components/shared/Map';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import PastWaterConditionsFilters from 'components/shared/PastWaterConditionsFilters';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
@@ -192,21 +194,16 @@ function TribalMapList({ activeState, windowHeight }: Props) {
   // set the filter on each waterbody layer
   const [filter, setFilter] = useState('');
   useEffect(() => {
-    if (
-      !activeState?.attainsId ||
-      !waterbodyPoints ||
-      !waterbodyLines ||
-      !waterbodyAreas
-    )
+    if (!activeState || !waterbodyPoints || !waterbodyLines || !waterbodyAreas)
       return;
 
     // change the where clause of the feature layers
-    const filter = `organizationid = '${activeState.attainsId}'`;
-    if (filter) {
-      waterbodyPoints.definitionExpression = filter;
-      waterbodyLines.definitionExpression = filter;
-      waterbodyAreas.definitionExpression = filter;
-    }
+    const filter = activeState?.attainsId
+      ? `organizationid = '${activeState.attainsId}'`
+      : '1=0';
+    waterbodyPoints.definitionExpression = filter;
+    waterbodyLines.definitionExpression = filter;
+    waterbodyAreas.definitionExpression = filter;
 
     setFilter(filter);
     setTribalBoundaryError(false);
@@ -217,6 +214,7 @@ function TribalMapList({ activeState, windowHeight }: Props) {
   const [waterbodies, setWaterbodies] = useState({ status: 'idle', data: [] });
   useEffect(() => {
     if (
+      !activeState ||
       !filter ||
       !mapView ||
       !waterbodyPoints ||
@@ -224,6 +222,10 @@ function TribalMapList({ activeState, windowHeight }: Props) {
       !waterbodyAreas
     ) {
       return;
+    }
+
+    if (!activeState.attainsId) {
+      setWaterbodies({ status: 'success', data: [] });
     }
 
     function handelQueryError(error) {
@@ -262,7 +264,14 @@ function TribalMapList({ activeState, windowHeight }: Props) {
           .catch(handelQueryError);
       })
       .catch(handelQueryError);
-  }, [waterbodyPoints, waterbodyLines, waterbodyAreas, mapView, filter]);
+  }, [
+    activeState,
+    waterbodyPoints,
+    waterbodyLines,
+    waterbodyAreas,
+    mapView,
+    filter,
+  ]);
 
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
@@ -313,6 +322,37 @@ function TribalMapList({ activeState, windowHeight }: Props) {
   }
 
   const [selectedTab, setSelectedTab] = useState(0);
+
+  const [
+    monitoringLocationsFilteredByCharcGroupAndTime,
+    setMonitoringLocationsFilteredByCharcGroupAndTime,
+  ] = useState([]);
+
+  // Filter the displayed locations by selected characteristics
+  const filteredMonitoringLocations =
+    monitoringLocationsFilteredByCharcGroupAndTime.filter((location) => {
+      if (!selectedCharacteristics.length) return true;
+      for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
+        if (selectedCharacteristics.includes(characteristic)) return true;
+      }
+      return false;
+    });
+
+  // Update the filters on the layer
+  const locationIds = filteredMonitoringLocations.map(
+    (location) => location.uniqueId,
+  );
+  let definitionExpression = '';
+  if (locationIds.length === 0) definitionExpression = '1=0';
+  else if (locationIds.length !== monitoringLocations.length) {
+    definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
+  }
+  if (
+    monitoringLocationsLayer &&
+    definitionExpression !== monitoringLocationsLayer.definitionExpression
+  ) {
+    monitoringLocationsLayer.definitionExpression = definitionExpression;
+  }
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   if (!browserIsCompatibleWithArcGIS()) {
@@ -475,21 +515,23 @@ function TribalMapList({ activeState, windowHeight }: Props) {
           filter={filter}
           setTribalBoundaryError={setTribalBoundaryError}
         >
-          <div css={mapFooterStyles}>
-            <div css={mapFooterStatusStyles}>
-              <strong>Year Last Reported:</strong>
-              &nbsp;&nbsp;
-              {currentReportingCycle.status === 'fetching' && (
-                <LoadingSpinner />
-              )}
-              {currentReportingCycle.status === 'failure' && (
-                <>{yearLastReportedShortError}</>
-              )}
-              {currentReportingCycle.status === 'success' && (
-                <>{currentReportingCycle.reportingCycle}</>
-              )}
+          {activeState.attainsId && (
+            <div css={mapFooterStyles}>
+              <div css={mapFooterStatusStyles}>
+                <strong>Year Last Reported:</strong>
+                &nbsp;&nbsp;
+                {currentReportingCycle.status === 'fetching' && (
+                  <LoadingSpinner />
+                )}
+                {currentReportingCycle.status === 'failure' && (
+                  <>{yearLastReportedShortError}</>
+                )}
+                {currentReportingCycle.status === 'success' && (
+                  <>{currentReportingCycle.reportingCycle}</>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </TribalMap>
       </div>
 
@@ -526,6 +568,7 @@ function TribalMapList({ activeState, windowHeight }: Props) {
               <TabPanel>
                 <MonitoringTab
                   activeState={activeState}
+                  monitoringLocations={filteredMonitoringLocations}
                   selectedCharacteristics={selectedCharacteristics}
                   setSelectedCharacteristics={setSelectedCharacteristics}
                 />
@@ -534,6 +577,16 @@ function TribalMapList({ activeState, windowHeight }: Props) {
           </Tabs>
         </div>
       )}
+
+      <PastWaterConditionsFilters
+        key={activeState.epaId}
+        filteredLocations={monitoringLocationsFilteredByCharcGroupAndTime}
+        locationName={activeState.name}
+        locationType="tribe"
+        setFilteredLocations={setMonitoringLocationsFilteredByCharcGroupAndTime}
+        setMonitoringDisplayed={setMonitoringLocationsDisplayed}
+        wqxIds={activeState.wqxIds}
+      />
     </div>
   );
 }
@@ -598,7 +651,7 @@ function TribalMap({
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [selectedTribeLayer, setSelectedTribeLayer] = useState(null);
   useEffect(() => {
-    if (!activeState?.attainsId || !getSharedLayers || layersInitialized) {
+    if (!activeState || !getSharedLayers || layersInitialized) {
       return;
     }
 
@@ -612,6 +665,8 @@ function TribalMap({
           navigate,
         }),
     };
+
+    const { attainsId } = activeState;
 
     // Build the feature layers that will make up the waterbody layer
     const pointsRenderer = {
@@ -627,7 +682,9 @@ function TribalMap({
     };
     const waterbodyPoints = new FeatureLayer({
       url: configFiles.data.services.waterbodyService.points,
-      definitionExpression: `organizationid = '${activeState.attainsId}'`,
+      definitionExpression: attainsId
+        ? `organizationid = '${attainsId}'`
+        : '1=0',
       outFields: ['*'],
       renderer: pointsRenderer,
       popupTemplate,
@@ -646,7 +703,9 @@ function TribalMap({
     };
     const waterbodyLines = new FeatureLayer({
       url: configFiles.data.services.waterbodyService.lines,
-      definitionExpression: `organizationid = '${activeState.attainsId}'`,
+      definitionExpression: attainsId
+        ? `organizationid = '${attainsId}'`
+        : '1=0',
       outFields: ['*'],
       renderer: linesRenderer,
       popupTemplate,
@@ -665,7 +724,9 @@ function TribalMap({
     };
     const waterbodyAreas = new FeatureLayer({
       url: configFiles.data.services.waterbodyService.areas,
-      definitionExpression: `organizationid = '${activeState.attainsId}'`,
+      definitionExpression: attainsId
+        ? `organizationid = '${attainsId}'`
+        : '1=0',
       outFields: ['*'],
       renderer: areasRenderer,
       popupTemplate,
@@ -744,6 +805,8 @@ function TribalMap({
   ]);
 
   // get gis data for selected tribe
+  const [selectedTribeGraphicsReady, setSelectedTribeGraphicsReady] =
+    useState(false);
   useEffect(() => {
     // get the tribalLayer from the mapView
     const tribalLayer = mapView?.map?.findLayerById('tribalLayer');
@@ -797,7 +860,12 @@ function TribalMap({
           });
         });
 
-        selectedTribeLayer.graphics.addMany(graphics);
+        selectedTribeLayer.addMany(graphics);
+        reactiveUtils
+          .whenOnce(() => !mapView.updating)
+          .then(() => {
+            setSelectedTribeGraphicsReady(true);
+          });
       })
       .catch((error) => {
         console.error(error);
@@ -811,67 +879,67 @@ function TribalMap({
     if (
       !mapLoading ||
       !filter ||
-      !mapView ||
-      !waterbodyPoints ||
-      !waterbodyLines ||
-      !waterbodyAreas ||
       !selectedTribeLayer ||
-      !homeWidget
+      !selectedTribeGraphicsReady ||
+      !mapView ||
+      !homeWidget ||
+      !waterbodyAreas ||
+      !waterbodyLines ||
+      !waterbodyPoints
     ) {
       return;
     }
 
-    // zoom and set the home widget viewpoint
-    let fullExtent = null;
-    // get the points layer extent
-    waterbodyPoints.queryExtent().then((pointsExtent) => {
-      // set the extent if 1 or more features
-      if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
+    async function queryExtent() {
+      let fullExtent = null;
 
-      // get the lines layer extent
-      waterbodyLines.queryExtent().then((linesExtent) => {
-        // set the extent or union the extent if 1 or more features
-        if (linesExtent.count > 0) {
-          if (fullExtent) fullExtent.union(linesExtent.extent);
-          else fullExtent = linesExtent.extent;
+      // Get the waterbody layers' extents.
+      (
+        await Promise.all(
+          [waterbodyPoints, waterbodyLines, waterbodyAreas].map((layer) =>
+            layer.queryExtent(),
+          ),
+        )
+      ).forEach((extent) => {
+        if (extent.count) {
+          if (fullExtent) fullExtent.union(extent.extent);
+          else fullExtent = extent.extent;
         }
-
-        // get the areas layer extent
-        waterbodyAreas.queryExtent().then((areasExtent) => {
-          // set the extent or union the extent if 1 or more features
-          if (areasExtent.count > 0) {
-            if (fullExtent) fullExtent.union(areasExtent.extent);
-            else fullExtent = areasExtent.extent;
-          }
-
-          // get the extent of the selected tribes layer graphics
-          selectedTribeLayer.graphics.forEach((graphic) => {
-            if (fullExtent) fullExtent.union(graphic.geometry.extent);
-            else fullExtent = graphic.geometry.extent;
-          });
-
-          // if there is an extent then zoom to it and set the home widget
-          if (fullExtent) {
-            mapView.when(() => {
-              mapView.goTo(fullExtent).then(() => {
-                setMapLoading(false);
-                // only set the home widget if the user selects a different state
-                homeWidget.viewpoint = new Viewpoint({
-                  targetGeometry: mapView.extent,
-                });
-              });
-            });
-          } else {
-            setMapLoading(false);
-          }
-        });
       });
+
+      // Get the extent of the selected tribes layer graphics.
+      selectedTribeLayer.graphics.forEach((graphic) => {
+        if (fullExtent) fullExtent.union(graphic.geometry.extent);
+        else fullExtent = graphic.geometry.extent;
+      });
+
+      return fullExtent;
+    }
+
+    // zoom and set the home widget viewpoint
+    queryExtent().then((fullExtent) => {
+      // if there is an extent then zoom to it and set the home widget
+      if (fullExtent) {
+        mapView.when(() => {
+          mapView.goTo(fullExtent).then(() => {
+            setMapLoading(false);
+            // only set the home widget if the user selects a different state
+            homeWidget.viewpoint = new Viewpoint({
+              targetGeometry: mapView.extent,
+            });
+          });
+        });
+      } else {
+        setMapLoading(false);
+      }
     });
   }, [
+    activeState,
     filter,
     homeWidget,
     mapLoading,
     mapView,
+    selectedTribeGraphicsReady,
     selectedTribeLayer,
     waterbodyAreas,
     waterbodyLayer,
@@ -879,11 +947,12 @@ function TribalMap({
     waterbodyPoints,
   ]);
 
-  // reset the loading status when the filter changes
-  const [prevFilter, setPrevFilter] = useState(filter);
-  if (filter !== prevFilter) {
-    setPrevFilter(filter);
+  // reset the loading status when the selected tribe changes
+  const [prevActiveState, setPrevActiveState] = useState(activeState);
+  if (prevActiveState.value !== activeState.value) {
+    setPrevActiveState(activeState);
     setMapLoading(true);
+    setSelectedTribeGraphicsReady(false);
   }
 
   return (
@@ -896,64 +965,36 @@ function TribalMap({
 
 type MonitoringTabProps = {
   activeState: Object;
+  monitoringLocations: Object[];
   selectedCharacteristics: string[];
   setSelectedCharacteristics: (selected: string[]) => void;
 };
 
 function MonitoringTab({
   activeState,
+  monitoringLocations,
   selectedCharacteristics,
   setSelectedCharacteristics,
 }: MonitoringTabProps) {
   const configFiles = useConfigFilesState();
 
-  const { monitoringLocations } = useMonitoringLocations();
-  const { monitoringLocationsLayer } = useLayers();
-
   // sort the monitoring locations
   const [monitoringLocationsSortedBy, setMonitoringLocationsSortedBy] =
     useState('locationName');
 
-  // Filter the displayed locations by selected characteristics
-  const filteredMonitoringLocations = monitoringLocations.filter((location) => {
-    if (!selectedCharacteristics.length) return true;
-    for (let characteristic of Object.keys(location.totalsByCharacteristic)) {
-      if (selectedCharacteristics.includes(characteristic)) return true;
+  const sortedMonitoringAndSensors = [...monitoringLocations].sort((a, b) => {
+    if (monitoringLocationsSortedBy === 'totalMeasurements') {
+      return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
     }
-    return false;
+
+    if (monitoringLocationsSortedBy === 'siteId') {
+      return a.siteId.localeCompare(b.siteId);
+    }
+
+    return a[monitoringLocationsSortedBy].localeCompare(
+      b[monitoringLocationsSortedBy],
+    );
   });
-
-  const sortedMonitoringAndSensors = [...filteredMonitoringLocations].sort(
-    (a, b) => {
-      if (monitoringLocationsSortedBy === 'totalMeasurements') {
-        return (b.totalMeasurements || 0) - (a.totalMeasurements || 0);
-      }
-
-      if (monitoringLocationsSortedBy === 'siteId') {
-        return a.siteId.localeCompare(b.siteId);
-      }
-
-      return a[monitoringLocationsSortedBy].localeCompare(
-        b[monitoringLocationsSortedBy],
-      );
-    },
-  );
-
-  // Update the filters on the layer
-  const locationIds = filteredMonitoringLocations.map(
-    (location) => location.uniqueId,
-  );
-  let definitionExpression = '';
-  if (locationIds.length === 0) definitionExpression = '1=0';
-  else if (locationIds.length !== monitoringLocations.length) {
-    definitionExpression = `uniqueId IN ('${locationIds.join("','")}')`;
-  }
-  if (
-    monitoringLocationsLayer &&
-    definitionExpression !== monitoringLocationsLayer.definitionExpression
-  ) {
-    monitoringLocationsLayer.definitionExpression = definitionExpression;
-  }
 
   const [expandedRows, setExpandedRows] = useState([]);
 
