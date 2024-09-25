@@ -46,8 +46,6 @@ const allSources = ['All', 'State', 'Tribe'];
 
 const containerStyles = css`
   margin: auto;
-  margin-top: 15px;
-  margin-bottom: 15px;
   max-width: 1140px;
   padding: 1em;
 
