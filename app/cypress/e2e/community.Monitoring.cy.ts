@@ -37,7 +37,7 @@ describe('Monitoring Tab', () => {
     cy.findByLabelText('Metals').should('have.attr', 'aria-checked', 'false');
 
     // check that there are no items displayed in accordion
-    cy.findByTestId('monitoring-accordion-title').contains('0 of 99');
+    cy.findByTestId('monitoring-accordion-title').contains('0 of 100');
 
     // check that clicking the Toggle All switch again toggles all switches back on
     cy.findByLabelText('All Monitoring Locations').click({

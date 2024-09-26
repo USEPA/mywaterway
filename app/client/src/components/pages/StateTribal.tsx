@@ -46,14 +46,8 @@ const allSources = ['All', 'State', 'Tribe'];
 
 const containerStyles = css`
   margin: auto;
-  margin-top: 15px;
-  margin-bottom: 15px;
   max-width: 1140px;
-
-  @media (max-width: 400px) {
-    padding-left: 0.2em !important;
-    padding-right: 0.2em !important;
-  }
+  padding: 1em;
 
   .Select__single-value {
     line-height: 1.25;
