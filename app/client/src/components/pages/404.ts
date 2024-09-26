@@ -8,7 +8,7 @@ function PageNotFound() {
 
     let url = `${location.origin}/404.html`;
     if (location.hostname === 'localhost') {
-      url = `${location.protocol}//${location.hostname}:3001/404.html`;
+      url = `${location.protocol}//${location.hostname}:3002/404.html`;
     }
 
     // append the original url for tracking purposes
