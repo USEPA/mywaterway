@@ -10,7 +10,7 @@ module.exports = function (app) {
   const router = express.Router();
 
   // only expose proxy in local environment
-  if (!app.enabled('isLocal') || app.enabled('isTest')) return;
+  if (!app.enabled('isLocal') && !app.enabled('isTest')) return;
 
   router.get('/', function (req, res, next) {
     let authoriztedURL = false;
@@ -141,6 +141,13 @@ module.exports = function (app) {
       res.status(500).json({ message });
       return;
     }
+  });
+
+  router.get('/*', (req, res) => {
+    res.status(404).json({ message: 'The api route does not exist.' });
+  });
+  router.post('/*', (req, res) => {
+    res.status(404).json({ message: 'The api route does not exist.' });
   });
 
   app.use('/proxy', router);

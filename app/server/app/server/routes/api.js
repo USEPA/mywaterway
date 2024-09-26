@@ -56,7 +56,7 @@ module.exports = function (app) {
   function getFiles(req, res, filenames, dataMapper) {
     const metadataObj = logger.populateMetdataObjFromRequest(req);
 
-    const isLocal = app.enabled('isLocal');
+    const isLocal = app.enabled('isLocal') || app.enabled('isTest');
     const s3BucketUrl = app.get('s3_bucket_url');
 
     const promise =
