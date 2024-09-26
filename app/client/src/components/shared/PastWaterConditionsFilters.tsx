@@ -363,7 +363,7 @@ export function PastWaterConditionsFilters({
     `${configFiles.data.services.waterQualityPortal.userInterface}#advanced=true` +
     (huc12 ? `&huc=${huc12}` : '') +
     wqxIds.map((id) => `&organization=${id}`).join('') +
-    `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
+    `${charGroupFilters}&dataProfile=resultPhysChem` +
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
   const handleDateSliderChange = useCallback(

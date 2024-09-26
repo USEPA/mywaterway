@@ -77,7 +77,7 @@ function Stories({ stories }: Props) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {story.ss_title} ({getExtensionFromPath(story.web_link)})
+                    {story.ss_title} {getExtensionFromPath(story.web_link)}
                   </a>
                   <p>
                     <ShowLessMore

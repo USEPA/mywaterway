@@ -39,7 +39,7 @@ import {
   getPollutantsFromAction,
   mapRestorationPlanToGlossary,
 } from 'utils/mapFunctions';
-import { titleCaseWithExceptions } from 'utils/utils';
+import { getExtensionFromPath, titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { colors } from 'styles/index';
 // errors
@@ -1383,27 +1383,35 @@ function WaterbodyReport() {
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {documents.data.map((document) => (
-                                    <tr key={document.documentName}>
-                                      <td>
-                                        <a
-                                          href={document.documentURL}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          {document.documentName}
-                                        </a>
-                                        <DynamicExitDisclaimer
-                                          url={document.documentURL}
-                                        />
-                                      </td>
-                                      <td>
-                                        {document.documentTypes.length &&
-                                          document.documentTypes[0]
-                                            .documentTypeCode}
-                                      </td>
-                                    </tr>
-                                  ))}
+                                  {documents.data.map((document) => {
+                                    const extension = getExtensionFromPath(
+                                      document.documentFileName,
+                                      document.documentURL,
+                                    );
+
+                                    return (
+                                      <tr key={document.documentName}>
+                                        <td>
+                                          <a
+                                            href={document.documentURL}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            data-hmw-extension={extension}
+                                          >
+                                            {document.documentName}
+                                          </a>
+                                          <DynamicExitDisclaimer
+                                            url={document.documentURL}
+                                          />
+                                        </td>
+                                        <td>
+                                          {document.documentTypes.length &&
+                                            document.documentTypes[0]
+                                              .documentTypeCode}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
                                 </tbody>
                               </table>
                             </>

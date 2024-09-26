@@ -261,10 +261,16 @@ function DocumentsTable({
 }
 
 function DocumentLink({ filename, url, value }) {
+  const extension = getExtensionFromPath(filename, url);
   return (
     <>
-      <a href={url} target="_blank" rel="noopener noreferrer">
-        {value} ({getExtensionFromPath(filename, url)})
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-hmw-extension={extension}
+      >
+        {value} {extension}
       </a>
       <DynamicExitDisclaimer url={url} />
     </>

@@ -567,8 +567,8 @@ function Restore() {
                                     className="fas fa-file-alt"
                                     aria-hidden="true"
                                   />
-                                  Full Story (
-                                  {getExtensionFromPath(item.web_link)})
+                                  Full Story{' '}
+                                  {getExtensionFromPath(item.web_link)}
                                 </a>
                                 &nbsp;&nbsp;
                                 <small css={disclaimerStyles}>
