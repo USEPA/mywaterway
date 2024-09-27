@@ -45,6 +45,7 @@ declare global {
         longitude?: number,
       ): Chainable<Element>;
       upload(file: any, fileName: string, type?: string): Chainable<Element>;
+      waitForLoadFinish(): Chainable<Element>;
     }
   }
 }
@@ -187,3 +188,16 @@ Cypress.Commands.add(
     });
   },
 );
+
+/**
+ * Waits for loading spinners to show up and disappear.
+ */
+Cypress.Commands.add('waitForLoadFinish', () => {
+  // wait for the web services to finish
+  cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+    'exist',
+  );
+  cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+    'not.exist',
+  );
+});
