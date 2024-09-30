@@ -2,17 +2,7 @@ describe('Add & Save Data Widget', () => {
   const adwId = '#add-save-data-widget';
   const dropzoneId = 'hmw-dropzone';
 
-  function openWidget(path = '/community/dc/overview') {
-    cy.visit(path, { timeout: 20000 });
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'exist',
-    );
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
+  function openWidget() {
     // this a work around to an issue where doing
     // "cy.findByTitle('Add & Save Data Widget').click()" does not work for esri
     // widget buttons
@@ -25,6 +15,10 @@ describe('Add & Save Data Widget', () => {
 
   beforeEach(() => {
     cy.login();
+
+    cy.visit('/community/dc/overview', { timeout: 20000 });
+    cy.waitForLoadFinish();
+
     openWidget();
   });
 
@@ -32,16 +26,32 @@ describe('Add & Save Data Widget', () => {
     const disclaimerText =
       'EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.';
 
-    cy.get(adwId).within(() => {
-      cy.findByText('Disclaimer').click();
-    });
+    function runDisclaimerTests(useEscape = false) {
+      cy.get(adwId).within(() => {
+        cy.findByText('Disclaimer').click();
+      });
 
-    // verify the disclaimer text is visible
-    cy.findByText(disclaimerText).should('be.visible');
+      // verify the disclaimer text is visible
+      cy.findByText(disclaimerText).should('be.visible');
 
-    // close the disclaimr and verify it is no longer visible
-    cy.findByTitle('Close disclaimer').click();
-    cy.findByText(disclaimerText).should('not.exist');
+      // close the disclaimr and verify it is no longer visible
+      if (useEscape) cy.get('body').type('{esc}');
+      else cy.findByTitle('Close disclaimer').click();
+
+      cy.findByText(disclaimerText).should('not.exist');
+    }
+
+    runDisclaimerTests();
+
+    cy.findByTitle('Enter Fullscreen Map View');
+    cy.findByRole('button', { name: 'Enter Fullscreen Map View' }).click();
+    cy.findByTitle('Exit Fullscreen Map View');
+    openWidget();
+
+    runDisclaimerTests(true);
+
+    cy.get('body').type('{esc}');
+    cy.findByTitle('Exit Fullscreen Map View');
   });
 
   it('Test add data widget tab navigation', () => {
