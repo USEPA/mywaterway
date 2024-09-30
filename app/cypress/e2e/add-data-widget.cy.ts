@@ -24,6 +24,7 @@ describe('Add & Save Data Widget', () => {
   }
 
   beforeEach(() => {
+    cy.login();
     openWidget();
   });
 
@@ -351,6 +352,8 @@ describe('Add & Save Data Widget', () => {
   });
 
   it("Test that the save panel includes layers added from the widget's other tabs", () => {
+    const agoSaveName = 'CYPRESS-TEST-HMW';
+
     cy.get(adwId).within(() => {
       cy.findByRole('listitem', { name: 'USA Current Wildfires' }).within(
         () => {
@@ -384,6 +387,34 @@ describe('Add & Save Data Widget', () => {
       cy.findByRole('switch', { name: 'Toggle USA Current Wildfires' }).should(
         'not.exist',
       );
+
+      // Save to ArcGIS Online
+      cy.findByRole('textbox', { name: 'Name:' }).type(agoSaveName);
+      cy.findByRole('textbox', { name: 'Description:' }).type(
+        'This is a test description from a Cypress test.',
+      );
+      cy.findByRole('button', { name: 'Save to ArcGIS Online' }).click();
+      cy.waitForLoadFinish();
+      cy.findByText('Save succeeded.');
+
+      // Verify it was saved
+      cy.findByRole('tab', { name: 'Search' }).click();
+
+      // switch to "ArcGIS Online"
+      cy.findByText('Suggested Content').click();
+      cy.findByText('ArcGIS Online').click();
+
+      cy.findByPlaceholderText('Search...')
+        .clear()
+        .type(agoSaveName)
+        .type('{enter}');
+      cy.findByTitle(agoSaveName);
     });
+  });
+});
+
+describe('REMINDER: Manually delete ‘CYPRESS - TEST’ items from AGO', () => {
+  it('REMINDER: Manually delete ‘CYPRESS - TEST’ items from AGO', function () {
+    // Empty test that just serves as a reminder to clean up AGO after publishing tests
   });
 });

@@ -20,6 +20,7 @@ coverage/
 app/cypress/screenshots/
 app/cypress/videos/
 app/combined_coverage_reports
+cypress.env.json
 
 
 # misc

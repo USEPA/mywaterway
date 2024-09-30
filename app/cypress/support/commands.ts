@@ -38,6 +38,7 @@ declare global {
        * @example cy.dataCy('greeting')
        */
       isInsideViewport(): Chainable<Element>;
+      login(): Chainable<Element>;
       matchSnapshot(name?: string, options?: Options): Chainable<Element>;
       mockGeolocation(
         shouldFail: boolean,
@@ -199,5 +200,18 @@ Cypress.Commands.add('waitForLoadFinish', () => {
   );
   cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
     'not.exist',
+  );
+});
+
+/**
+ * Logs into ArcGIS Online. In order for this to work, you need to
+ * login to AGO on mywaterway-dev.app.cloud.gov by publishing
+ * something to your AGO account. Then copy the esriJSAPIOAuth
+ * from the session storage into the cypress.env.json file.
+ */
+Cypress.Commands.add('login', () => {
+  sessionStorage.setItem(
+    'esriJSAPIOAuth',
+    JSON.stringify({ '/': Cypress.env()['/'] }),
   );
 });
