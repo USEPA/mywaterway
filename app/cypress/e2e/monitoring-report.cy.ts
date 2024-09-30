@@ -80,6 +80,8 @@ describe('The Download Data section', () => {
   });
 
   it('Un-checks children when a parent checkbox is un-checked', () => {
+    cy.waitForLoadFinish();
+
     cy.findByRole('checkbox', { name: 'Not Assigned' }).click();
     cy.findByRole('button', { name: /Not Assigned/ }).click();
     cy.findByRole('checkbox', { name: 'Cyanide, available' }).should(
