@@ -42,4 +42,31 @@ describe('Test example', () => {
 
     expect(response.body).toEqual({ message: 'The api route does not exist.' });
   });
+
+  test('GET test checkClientRouteExists middleware', async () => {
+    const response = await supertest(app)
+      .get('/community/lake%20okeechobee/overview')
+      .expect(404);
+  });
+
+  test('GET test checkClientRouteExists middleware', async () => {
+    await supertest(app)
+      .get('/communityTest/lake%20okeechobee/overview')
+      .expect(404);
+  });
+
+  test('PUT should be unauthorized', async () => {
+    await supertest(app).put('/api/health').expect(401);
+  });
+
+  test('DELETE should be unauthorized', async () => {
+    await supertest(app).delete('/api/health').expect(401);
+  });
+
+  test('GET nonexistent rout', async () => {
+    await supertest(app)
+      .get('/bogusRoute')
+      .expect(404)
+      .expect('Content-type', 'text/html; charset=UTF-8');
+  });
 });

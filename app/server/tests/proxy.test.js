@@ -29,7 +29,7 @@ describe('Proxy tests', () => {
     expect(response.body).toEqual({ message: 'Invalid URL' });
   });
 
-  test('Get /proxy Invalid URL', async () => {
+  test('Get /proxy Proxy Request Error', async () => {
     const response = await supertest(app)
       .get(
         '/proxy?url=https://attains.epa.gov/attains-public/api/nonExistentRoute',
@@ -56,5 +56,13 @@ describe('Proxy tests', () => {
       .expect('Content-Type', /json/);
 
     expect(response.body).toEqual({ message: 'The api route does not exist.' });
+  });
+
+  test('GET test stream requests', async () => {
+    await supertest(app)
+      .get(
+        '/proxy?url=https://cyan.epa.gov/waterbody/image/?OBJECTID=6624886&year=2024&day=273',
+      )
+      .expect(200);
   });
 });

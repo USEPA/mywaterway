@@ -14,7 +14,7 @@ module.exports = function (app) {
 
   router.get('/', function (req, res, next) {
     let authoriztedURL = false;
-    let parsedUrl;
+    let parsedUrl = '';
     let metadataObj = logger.populateMetdataObjFromRequest(req);
     let lowerCaseUrl = '';
     let message = '';
@@ -26,11 +26,6 @@ module.exports = function (app) {
 
         const url = new URL(parsedUrl);
         authoriztedURL = config.urls.includes(url.host.toLowerCase());
-      } else {
-        message = 'Missing proxy request';
-        log.warn(logger.formatLogMsg(metadataObj, message));
-        res.status(403).json({ message });
-        return;
       }
 
       lowerCaseUrl = parsedUrl.toLowerCase();
@@ -55,18 +50,8 @@ module.exports = function (app) {
     try {
       let headers = {};
       let responseType;
-      if (lowerCaseUrl.includes('etss.epa.gov')) {
-        headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
-      } else if (lowerCaseUrl.includes('cyan.epa.gov/waterbody/image/')) {
+      if (lowerCaseUrl.includes('cyan.epa.gov/waterbody/image/')) {
         responseType = 'stream';
-      } else if (
-        !app.enabled('isLocal') &&
-        lowerCaseUrl.includes('://' + req.hostname.toLowerCase()) &&
-        lowerCaseUrl.includes('/data/')
-      ) {
-        //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
-        const jsonFileName = parsedUrl.split('/data/').pop();
-        parsedUrl = app.get('s3_bucket_url') + '/data/' + jsonFileName;
       }
 
       function deleteTSHeaders(response) {
