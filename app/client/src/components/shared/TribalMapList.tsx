@@ -365,34 +365,36 @@ function TribalMapList({ activeState, windowHeight }: Props) {
   return (
     <div>
       <div css={keyMetricsStyles} ref={layerTogglesRef}>
-        <div css={keyMetricStyles}>
-          {waterbodies.status === 'pending' && <LoadingSpinner />}
-          {(waterbodies.status === 'success' ||
-            waterbodies.status === 'failure') && (
-            <Fragment>
-              <span css={keyMetricNumberStyles}>
-                {countOrNotAvailable(waterbodies.data, waterbodies.status)}
-              </span>
-              <p css={keyMetricLabelStyles}>Waterbodies</p>
-              <div css={switchContainerStyles}>
-                <Switch
-                  checked={
-                    Boolean(waterbodies.data.length) && waterbodiesDisplayed
-                  }
-                  onChange={(_checked) => {
-                    if (!waterbodyLayer) return;
-                    setWaterbodiesDisplayed(!waterbodiesDisplayed);
-                    updateVisibleLayers({
-                      waterbodyLayer: !waterbodiesDisplayed,
-                    });
-                  }}
-                  disabled={!waterbodies.data.length}
-                  ariaLabel="Waterbodies"
-                />
-              </div>
-            </Fragment>
-          )}
-        </div>
+        {activeState.attainsId && (
+          <div css={keyMetricStyles}>
+            {waterbodies.status === 'pending' && <LoadingSpinner />}
+            {(waterbodies.status === 'success' ||
+              waterbodies.status === 'failure') && (
+              <Fragment>
+                <span css={keyMetricNumberStyles}>
+                  {countOrNotAvailable(waterbodies.data, waterbodies.status)}
+                </span>
+                <p css={keyMetricLabelStyles}>Waterbodies</p>
+                <div css={switchContainerStyles}>
+                  <Switch
+                    checked={
+                      Boolean(waterbodies.data.length) && waterbodiesDisplayed
+                    }
+                    onChange={(_checked) => {
+                      if (!waterbodyLayer) return;
+                      setWaterbodiesDisplayed(!waterbodiesDisplayed);
+                      updateVisibleLayers({
+                        waterbodyLayer: !waterbodiesDisplayed,
+                      });
+                    }}
+                    disabled={!waterbodies.data.length}
+                    ariaLabel="Waterbodies"
+                  />
+                </div>
+              </Fragment>
+            )}
+          </div>
+        )}
 
         <div css={keyMetricStyles}>
           {!monitoringLocationsLayer ||
@@ -539,32 +541,36 @@ function TribalMapList({ activeState, windowHeight }: Props) {
         <div css={modifiedTabStyles(mapListHeight)}>
           <Tabs onChange={setSelectedTab} defaultIndex={selectedTab}>
             <TabList>
-              <Tab css={largeTabStyles}>Waterbodies</Tab>
+              {activeState.attainsId && (
+                <Tab css={largeTabStyles}>Waterbodies</Tab>
+              )}
               <Tab css={largeTabStyles}>Water Monitoring Locations</Tab>
             </TabList>
             <TabPanels>
-              <TabPanel>
-                {waterbodies.status === 'pending' && <LoadingSpinner />}
-                {waterbodies.status === 'failure' && (
-                  <div css={errorBoxStyles}>{huc12SummaryError}</div>
-                )}
-                {waterbodies.status === 'success' && (
-                  <Fragment>
-                    {waterbodies.data.length > 0 ? (
-                      <WaterbodyList waterbodies={waterbodies.data} />
-                    ) : (
-                      <div css={infoBoxStyles}>
-                        <p>
-                          {zeroAssessedWaterbodies(
-                            activeState.name,
-                            'tribal area',
-                          )}
-                        </p>
-                      </div>
-                    )}
-                  </Fragment>
-                )}
-              </TabPanel>
+              {activeState.attainsId && (
+                <TabPanel>
+                  {waterbodies.status === 'pending' && <LoadingSpinner />}
+                  {waterbodies.status === 'failure' && (
+                    <div css={errorBoxStyles}>{huc12SummaryError}</div>
+                  )}
+                  {waterbodies.status === 'success' && (
+                    <Fragment>
+                      {waterbodies.data.length > 0 ? (
+                        <WaterbodyList waterbodies={waterbodies.data} />
+                      ) : (
+                        <div css={infoBoxStyles}>
+                          <p>
+                            {zeroAssessedWaterbodies(
+                              activeState.name,
+                              'tribal area',
+                            )}
+                          </p>
+                        </div>
+                      )}
+                    </Fragment>
+                  )}
+                </TabPanel>
+              )}
               <TabPanel>
                 <MonitoringTab
                   activeState={activeState}
