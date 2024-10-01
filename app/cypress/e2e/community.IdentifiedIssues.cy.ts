@@ -10,10 +10,7 @@ describe('Identified Issues Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('tab', { name: 'Identified Issues' }).click();
 
@@ -42,10 +39,7 @@ describe('Identified Issues Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('tab', { name: 'Identified Issues' }).click();
 
@@ -66,10 +60,7 @@ describe('Identified Issues Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
     cy.findByRole('tab', { name: 'Identified Issues' }).click();

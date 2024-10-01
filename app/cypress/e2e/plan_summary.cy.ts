@@ -39,10 +39,7 @@ describe('Plan Summary (Actions) page', () => {
 
     cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByText('No map data is available.');
   });
@@ -54,11 +51,7 @@ describe('Plan Summary (Actions) page', () => {
 
     cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
-    // wait for the web services to finish (attains/plans is sometimes slow)
-    // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // test the waterbody report link
     const linkText = 'View Waterbody Report';
@@ -79,11 +72,7 @@ describe('Plan Summary (Actions) page', () => {
 
     cy.visit('/plan-summary/CA_SWRCB/66264');
 
-    // wait for the web services to finish (attains/plans is sometimes slow)
-    // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish({ timeout: 20000 });
 
     // verify the map height is 400 pixels or greater
     cy.get('#plan-summary-map').invoke('outerHeight').should('be.gt', 399);

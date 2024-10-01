@@ -4,10 +4,7 @@ describe('About page', () => {
     cy.findByRole('textbox', { name: 'Search' }).type('San Antonio, TX');
     cy.findByRole('button', { name: 'Go' }).click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('button', { name: 'About' }).click();
     cy.findByText('How’s My Waterway Glossary').should('exist');

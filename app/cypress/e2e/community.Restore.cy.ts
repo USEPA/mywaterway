@@ -9,10 +9,7 @@ describe('Restore Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('tab', { name: 'Restore' }).click();
     cy.findByRole('button', {

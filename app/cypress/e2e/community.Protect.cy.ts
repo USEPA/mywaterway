@@ -10,10 +10,7 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a GRTS project
     cy.findByText('Protect').click();
@@ -31,13 +28,7 @@ describe('Protect Tab', () => {
       .type('040302020807');
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'exist',
-    );
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a ATTAINS project
     cy.findByText('Upper Fox Wolf TMDL as Protection Plan');
@@ -50,10 +41,7 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByText('Protect').click();
     cy.findByText('You can help keep your water clean.', { exact: false });
@@ -75,10 +63,7 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
@@ -96,10 +81,7 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
@@ -124,10 +106,7 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();

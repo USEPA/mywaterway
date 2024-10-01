@@ -77,10 +77,7 @@ describe('Add & Save Data Widget', () => {
     function runSearchTests(layer) {
       cy.findByPlaceholderText('Search...').clear().type(layer).type('{enter}');
 
-      // wait for the web services to finish
-      cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-        'not.exist',
-      );
+      cy.waitForLoadFinish();
 
       // verify the layer is in the results
       cy.findByText(layer);
@@ -253,9 +250,7 @@ describe('Add & Save Data Widget', () => {
         // select samples layer type, upload the contamination map file,
         // wait for it to finish and check for failure
         cy.findByTestId(dropzoneId).upload(file, inputFile, type);
-        cy.findAllByTestId('hmw-loading-spinner', { timeout: 180000 }).should(
-          'not.exist',
-        );
+        cy.waitForLoadFinish({ timeout: 180000 });
         cy.findByText('was successfully uploaded', {
           exact: false,
           timeout: 18000,
@@ -315,9 +310,7 @@ describe('Add & Save Data Widget', () => {
         // select samples layer type, upload the contamination map file,
         // wait for it to finish and check for failure
         cy.findByTestId(dropzoneId).upload(file, invalidFile);
-        cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-          'not.exist',
-        );
+        cy.waitForLoadFinish({ skipExists: true });
         cy.findByText('is an invalid file type. The accepted file types are', {
           exact: false,
         }).should('exist');
@@ -328,9 +321,7 @@ describe('Add & Save Data Widget', () => {
         // select samples layer type, upload the contamination map file,
         // wait for it to finish and check for failure
         cy.findByTestId(dropzoneId).upload(file, emptyFile);
-        cy.findAllByTestId('hmw-loading-spinner', { timeout: 180000 }).should(
-          'not.exist',
-        );
+        cy.waitForLoadFinish({ timeout: 180000 });
         cy.findByText('Unable to import this dataset.').should('exist');
       });
     });
@@ -419,6 +410,15 @@ describe('Add & Save Data Widget', () => {
         .type(agoSaveName)
         .type('{enter}');
       cy.findByTitle(agoSaveName);
+
+      cy.findByRole('listitem', { name: agoSaveName }).within(() => {
+        // Add a new layer
+        cy.findByRole('button', { name: 'Add' }).click();
+        // Wait for the layer to be added
+        cy.findByRole('button', { name: 'Remove', timeout: 120000 }).should(
+          'be.visible',
+        );
+      });
     });
   });
 });

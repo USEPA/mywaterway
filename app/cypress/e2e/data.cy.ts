@@ -6,10 +6,7 @@ describe('Data page', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the all web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('button', { name: 'Data' }).click();
     cy.findByText('About the Data').should('exist');

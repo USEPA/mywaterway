@@ -74,10 +74,7 @@ describe('Community page zero waterbodies message', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByText('There are no waterbodies assessed in the', {
       exact: false,
@@ -96,10 +93,7 @@ describe('Community page map legend', () => {
     cy.findByRole('textbox', { name: 'Search' }).type('San Antonio, TX');
     cy.findByRole('button', { name: 'Go' }).click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // workaround for this test failing while running cypress in headless mode.
     cy.wait(2000);
@@ -167,13 +161,7 @@ describe('Community page Show Additional Text', () => {
   it(`Clicking "Expand All/Collapse All" expands/collapses the waterbody list`, () => {
     const text = 'Year Last Reported:';
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'exist',
-    );
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findAllByRole('button', { name: /Expand All/i }).filter(':visible');
     cy.findByText(text).should('not.exist');

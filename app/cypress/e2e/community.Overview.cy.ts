@@ -8,10 +8,7 @@ describe('Overview Tab', () => {
     cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('tab', { name: 'Permitted Dischargers' }).click();
 

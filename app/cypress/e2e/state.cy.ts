@@ -50,10 +50,7 @@ describe('State page links', () => {
   it('Clicking the “EXIT” link opens a new tab with https://www.epa.gov/home/exit-epa', () => {
     const linkText = 'EXIT';
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByText('More Information for').click();
 
@@ -121,10 +118,7 @@ describe('State page Water Quality Overview sub tabs', () => {
     cy.findByText('Water Quality', { timeout: 20000 }).should('exist');
     cy.findByTestId('hmw-ecological-tab-button').click();
 
-    // wait for the all web services to finish (surveys is usually slow here)
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish({ timeout: 20000 });
   });
 
   it('Navigating to a sub-tab selection that has no data results in “Water Type” dropdown saying “No Available Water Types” and the “Use” dropdown saying “No Available Uses”', () => {
@@ -271,13 +265,7 @@ describe('State page Advanced Search tab', () => {
   it('Displays search results in a virtualized list', () => {
     cy.visit('/state/AZ/advanced-search');
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'exist',
-    );
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findAllByRole('button', { name: 'Search' }).last().click();
     cy.findByRole('button', { name: 'Continue' }).click();

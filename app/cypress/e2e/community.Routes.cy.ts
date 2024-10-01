@@ -12,11 +12,7 @@ describe('Community page links', () => {
     cy.findByText('Restore').click();
     cy.findByText('Restoration Plans').click();
 
-    // wait for the web services to finish (attains/plans is sometimes slow)
-    // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // test the plan summary link
     const linkText = 'Open Plan Summary';
@@ -74,10 +70,7 @@ describe('HTTP Intercepts', () => {
 
     cy.wait('@attains-lines', { timeout: 120000 });
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // Verify text explaining some waterbodies have no spatial data exists
     cy.findByText('Some waterbodies are not visible on the map.');

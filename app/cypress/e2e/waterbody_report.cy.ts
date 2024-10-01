@@ -62,11 +62,7 @@ describe('Waterbody Report page', () => {
 
     cy.visit(`/waterbody-report/${orgId}/${auId}`);
 
-    // wait for the web services to finish (attains/plans is sometimes slow)
-    // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // test the plan summary link
     const linkText =
@@ -84,11 +80,7 @@ describe('Waterbody Report page', () => {
   it('Test waterbody report with empty attains assessments array', () => {
     cy.visit('/waterbody-report/AKDECWQ/AK-10102-001_00');
 
-    // wait for the web services to finish (attains/plans is sometimes slow)
-    // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 60000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish({ timeout: 60000 });
 
     cy.findAllByText('AK-10102-001_00').should('be.visible');
   });
@@ -99,11 +91,7 @@ describe('Waterbody Report page', () => {
 
     cy.visit('/waterbody-report/DOEE/DCANA00E_02/2020');
 
-    // wait for the web services to finish (attains/plans is sometimes slow)
-    // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 60000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish({ timeout: 60000 });
 
     // verify the map height is 400 pixels or greater
     cy.get('#waterbody-report-map').invoke('outerHeight').should('be.gt', 399);
