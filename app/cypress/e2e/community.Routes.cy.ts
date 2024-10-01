@@ -48,6 +48,12 @@ describe('Community page routes', () => {
 
     cy.url().should('include', '404.html');
   });
+
+  it('Navigate to overview when community sub tab is not provided in url', () => {
+    cy.visit('/community/dc');
+
+    cy.url().should('equal', 'http://localhost:3000/community/dc/overview');
+  });
 });
 
 describe('HTTP Intercepts', () => {

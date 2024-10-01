@@ -35,7 +35,7 @@
     "setup": "echo \"Installing project dependencies...\" && npm ci --legacy-peer-deps && echo \"Installing client dependencies...\" && cd client && npm ci --legacy-peer-deps && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
     "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
     "client_coverage": "npx rimraf .nyc_output/out.json && npx rimraf coverage && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron\"",
-    "coverage_spec_ex": "npx rimraf .nyc_output/out.json && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron --spec 'cypress/e2e/add-data-widget.cy.ts'\" && echo REMINDER Manually delete CYPRESS-TEST",
+    "coverage_spec_ex": "npx rimraf .nyc_output/out.json && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron --spec 'cypress/e2e/community.Monitoring.cy.ts'\" && echo REMINDER Manually delete CYPRESS-TEST",
     "coverage": "cd server && npm run test && cd .. && npm run client_coverage && node combine_coverage_reports.js && echo REMINDER Manually delete CYPRESS-TEST",
     "glossary": "cd server && npm run glossary"
   },

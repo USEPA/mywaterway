@@ -259,6 +259,55 @@ describe('Monitoring Tab', () => {
       .filter(':visible')
       .should('be.visible');
   });
+
+  it('Verify USGS sensors and Cyan are checked by default', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '030901011204',
+    );
+    cy.findByText('Go').click();
+
+    cy.waitForLoadFinish();
+
+    cy.findByText('Water Monitoring').click();
+
+    // verify both current conditions switches are checked
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'true');
+    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'true');
+
+    // turn off both current conditions switches
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .click({ force: true });
+    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
+      .filter(':visible')
+      .click({
+        force: true,
+      });
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'false');
+    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'false');
+
+    // switch to past conditions and then back to current conditions
+    cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
+    cy.wait(500);
+    cy.findByRole('tab', { name: 'Current Water Conditions' }).click();
+
+    // verify both current conditions switches are checked
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'true');
+    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'true');
+  });
 });
 
 describe('CyAN date functions', () => {
