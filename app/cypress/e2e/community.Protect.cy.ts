@@ -14,6 +14,12 @@ describe('Protect Tab', () => {
 
     // check that the Protection Projects in the Protect tab contains a GRTS project
     cy.findByText('Protect').click();
+
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
     cy.findByText('Watershed Health and Protection').click();
     cy.get('.hmw-accordion')
       .filter(':visible')
@@ -21,6 +27,12 @@ describe('Protect Tab', () => {
         cy.wrap(elms[3]).click();
       });
     cy.findAllByText('Cypress Creek WPP Imp - Years 1-3');
+
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
 
     // navigate to Protect tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false })
@@ -68,10 +80,20 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
     cy.get('.hmw-accordion').filter(':visible').first().click();
     cy.findByText('Where might the healthier watersheds be located', {
       exact: false,
     });
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
   });
 
   it('Check the wild and scenic rivers section', () => {
@@ -86,6 +108,11 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
     cy.get('.hmw-accordion')
       .filter(':visible')
       .then((elms) => {
@@ -96,6 +123,11 @@ describe('Protect Tab', () => {
       {
         exact: false,
       },
+    );
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'true',
     );
   });
 
@@ -111,6 +143,11 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
     cy.get('.hmw-accordion')
       .filter(':visible')
       .then((elms) => {
@@ -121,6 +158,11 @@ describe('Protect Tab', () => {
       {
         exact: false,
       },
+    );
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'true',
     );
   });
 });

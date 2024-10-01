@@ -4,7 +4,7 @@ import { addMatchImageSnapshotPlugin } from 'cypress-image-snapshot/plugin';
 export default defineConfig({
   chromeWebSecurity: false,
   defaultCommandTimeout: 8000,
-  // retries: 3,
+  retries: 3,
   video: true,
   viewportHeight: 720,
   viewportWidth: 1280,

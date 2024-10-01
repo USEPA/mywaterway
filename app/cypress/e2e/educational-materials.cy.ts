@@ -13,5 +13,8 @@ describe('Educational Materials tab', () => {
         'href',
         'https://www.epa.gov/waterdata/hows-my-waterway-middle-school-lesson-plan',
       );
+
+    cy.findByRole('button', { name: 'Back' }).click();
+    cy.findByRole('button', { name: 'Educators' }).click();
   });
 });
