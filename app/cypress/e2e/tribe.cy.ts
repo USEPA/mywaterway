@@ -87,9 +87,7 @@ describe('Tribe page routes', () => {
     cy.url().should('equal', `${window.location.origin}/state-and-tribal`);
   });
 
-  // Skipping this one for now, cy.visit now checks if the url matches which breaks this test
-  // since we are expecting a redirect.
-  it.skip('Navigate to the tribe page with a <script> tag in the route', () => {
+  it('Navigate to the tribe page with a <script> tag in the route', () => {
     cy.visit('/tribe/%3Cscript%3Evar%20j%20=%201;%3Cscript%3E');
 
     cy.findByText(
@@ -128,6 +126,9 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
     cy.findByTestId('hmw-fishing-tab-button').click();
     cy.findByTestId('hmw-fishing-tab-panel').contains(noWaterTypes);
     cy.findByTestId('hmw-fishing-tab-panel').contains(noUses);
+
+    // go to cultural tab
+    cy.findByTestId('hmw-cultural-tab-button').click();
   });
 
   it('Navigating to a sub-tab selection shows correct charts', () => {

@@ -34,6 +34,25 @@ describe('Protect Tab', () => {
       'true',
     );
 
+    // toggle switch off and back on
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Protection Projects').click({ force: true });
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Protection Projects').click({ force: true });
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
     // navigate to Protect tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false })
       .clear()
@@ -94,6 +113,25 @@ describe('Protect Tab', () => {
       'aria-checked',
       'true',
     );
+
+    // toggle switch off and back on
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Watershed Health Scores').click({ force: true });
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Watershed Health Scores').click({ force: true });
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
   });
 
   it('Check the wild and scenic rivers section', () => {
@@ -124,6 +162,25 @@ describe('Protect Tab', () => {
         exact: false,
       },
     );
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
+    // toggle switch off and back on
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Wild and Scenic Rivers').click({ force: true });
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Wild and Scenic Rivers').click({ force: true });
     cy.findByLabelText('Wild and Scenic Rivers').should(
       'have.attr',
       'aria-checked',
@@ -164,5 +221,29 @@ describe('Protect Tab', () => {
       'aria-checked',
       'true',
     );
+
+    // toggle switch off and back on
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Protected Areas').click({ force: true });
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Protected Areas').click({ force: true });
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
+    cy.findByText('Protected Area Blue Hole').click();
+    cy.findAllByRole('button', { name: 'View on Map' })
+      .filter(':visible')
+      .click();
   });
 });

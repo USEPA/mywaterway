@@ -77,4 +77,20 @@ describe('Plan Summary (Actions) page', () => {
     // verify the map height is 400 pixels or greater
     cy.get('#plan-summary-map').invoke('outerHeight').should('be.gt', 399);
   });
+
+  it('Attains actions service failure', () => {
+    cy.intercept(
+      'https://attains.epa.gov/attains-public/api/actions?ActionIdentifier=40594&organizationIdentifier=DOEE',
+      {
+        statusCode: 500,
+        body: {},
+      },
+    ).as('attains-actions');
+
+    cy.visit('/plan-summary/DOEE/40594');
+
+    cy.findByText(
+      'Plan information is temporarily unavailable, please try again later.',
+    );
+  });
 });

@@ -7,4 +7,17 @@ describe('404 page', () => {
       'http://localhost:3002/404.html?src=http://localhost:3000/thisDoesNotExist',
     );
   });
+
+  it('Error when configFiles service is down', () => {
+    cy.intercept('http://localhost:3002/api/configFiles', {
+      statusCode: 500,
+      body: {},
+    }).as('hmw-configFiles');
+
+    cy.visit('/');
+
+    cy.findByText(
+      "How's My Waterway is temporarily unavailable, please try again later.",
+    );
+  });
 });

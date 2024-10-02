@@ -96,4 +96,124 @@ describe('Waterbody Report page', () => {
     // verify the map height is 400 pixels or greater
     cy.get('#waterbody-report-map').invoke('outerHeight').should('be.gt', 399);
   });
+
+  it('Test expert query service failure', () => {
+    cy.intercept(
+      'https://api.epa.gov/expertquery/api/attains/assessmentUnits/values/reportingCycle',
+      {
+        statusCode: 500,
+        body: {},
+      },
+    );
+
+    cy.visit('/waterbody-report/DOEE/DCANA00E_02/2020');
+
+    cy.findAllByText(
+      'Assessment information is temporarily unavailable, please try again later.',
+    );
+  });
+
+  it('Test assessments service failure', () => {
+    cy.intercept(
+      'https://attains.epa.gov/attains-public/api/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
+      {
+        statusCode: 500,
+        body: {},
+      },
+    );
+
+    cy.visit('/waterbody-report/DOEE/DCANA00E_02/2020');
+    cy.waitForLoadFinish();
+
+    cy.findAllByText(
+      'Assessment information is temporarily unavailable, please try again later.',
+    );
+  });
+
+  it('Test assessments no data version 1', () => {
+    cy.intercept(
+      'https://attains.epa.gov/attains-public/api/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
+      {
+        statusCode: 200,
+        body: {
+          count: 0,
+          items: [],
+        },
+      },
+    );
+
+    cy.visit('/waterbody-report/DOEE/DCANA00E_02/2020');
+    cy.waitForLoadFinish();
+
+    cy.findAllByText('has no data available for 2020.', { exact: false });
+  });
+
+  it('Test assessments no data version 2', () => {
+    cy.intercept(
+      'https://attains.epa.gov/attains-public/api/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
+      {
+        statusCode: 200,
+        body: {
+          count: 1,
+          items: [
+            {
+              assessments: [],
+            },
+          ],
+        },
+      },
+    );
+
+    cy.visit('/waterbody-report/DOEE/DCANA00E_02/2020');
+    cy.waitForLoadFinish();
+
+    cy.findAllByText('has no data available for 2020.', { exact: false });
+  });
+
+  it('Test assessments no data version 3', () => {
+    cy.intercept(
+      'https://attains.epa.gov/attains-public/api/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
+      {
+        statusCode: 200,
+        body: {
+          items: [
+            {
+              organizationIdentifier: 'DOEE',
+              organizationName: 'District of Columbia',
+              organizationTypeText: 'State',
+              reportingCycleText: '2020',
+              combinedCycles: [],
+              reportStatusCode: 'EPA Final Action',
+              assessments: [
+                {
+                  assessmentUnitIdentifier: 'DCANA00E_02',
+                  agencyCode: 'S',
+                  trophicStatusCode: null,
+                  useAttainments: [],
+                  parameters: [],
+                  probableSources: [],
+                  documents: [],
+                  rationaleText: null,
+                  epaIRCategory: '4A',
+                  overallStatus: 'Not Supporting',
+                  cycleLastAssessedText: '2018',
+                  yearLastMonitoredText: '',
+                },
+              ],
+              delistedWaters: [],
+            },
+          ],
+          count: 1,
+        },
+      },
+    );
+
+    cy.visit('/waterbody-report/DOEE/DCANA00E_02/2020');
+    cy.waitForLoadFinish();
+
+    cy.findByText('No evaluated uses provided for this waterbody.');
+    cy.findByText(
+      'No probable sources of impairment identified for this waterbody.',
+    );
+  });
 });

@@ -39,9 +39,7 @@ describe('Community page links', () => {
 });
 
 describe('Community page routes', () => {
-  // Skipping this one for now, cy.visit now checks if the url matches which breaks this test
-  // since we are expecting a redirect.
-  it.skip('Navigate to the community page with a <script> tag in the route', () => {
+  it('Navigate to the community page with a <script> tag in the route', () => {
     cy.visit('/community/%3Cscript%3Evar%20j%20=%201;%3C/script%3E/overview');
 
     cy.findByText('Sorry, but this web page does not exist.').should('exist');
@@ -53,6 +51,12 @@ describe('Community page routes', () => {
     cy.visit('/community/dc');
 
     cy.url().should('equal', 'http://localhost:3000/community/dc/overview');
+  });
+
+  it('Navigating to non-existent sub-tab reroutes to community home', () => {
+    cy.visit('/community/dc/nonExistentTab');
+
+    cy.url().should('equal', 'http://localhost:3000/community');
   });
 });
 

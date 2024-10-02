@@ -1,5 +1,5 @@
 describe('Data page', () => {
-  it('Back button works', () => {
+  it('Back button works and browser back button works', () => {
     cy.visit('/community');
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       'San Antonio, TX',
@@ -16,6 +16,15 @@ describe('Data page', () => {
     cy.findByText('Back').click();
     cy.findByTestId('overview-waterbodies-accordion-title').contains(
       'Overall condition of 8 waterbodies in the San Pedro Creek watershed.',
+    );
+
+    // test browser back button
+    cy.findByRole('button', { name: 'Data' }).click();
+    cy.url().should('equal', `${window.location.origin}/data`);
+    cy.go('back');
+    cy.url().should(
+      'equal',
+      `${window.location.origin}/community/San%20Antonio,%20TX/overview`,
     );
   });
 

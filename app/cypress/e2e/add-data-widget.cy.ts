@@ -398,6 +398,17 @@ describe('Add & Save Data Widget', () => {
       cy.waitForLoadFinish();
       cy.findByText('Save succeeded.');
 
+      // test name already used message
+      cy.findByRole('button', { name: 'Save to ArcGIS Online' }).click();
+      cy.findByText('Name already used in your account or organization.', {
+        exact: false,
+      });
+
+      // test name not provided message
+      cy.findByRole('textbox', { name: 'Name:' }).clear();
+      cy.findByRole('button', { name: 'Save to ArcGIS Online' }).click();
+      cy.findByText('Please provide a name and try again.');
+
       // Verify it was saved
       cy.findByRole('tab', { name: 'Search' }).click();
 
