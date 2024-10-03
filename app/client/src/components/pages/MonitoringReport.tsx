@@ -20,8 +20,9 @@ import Select from 'react-select';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { BoxContent, FlexRow } from 'components/shared/BoxContent';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
+import FileLinkButton from 'components/shared/FileLinkButton';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { DisclaimerModal } from 'components/shared/Modal';
 import { GradientLegend, VisxGraph } from 'components/shared/VisxGraph';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -46,7 +47,7 @@ import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
-import { fetchParseCsv, fetchPost } from 'utils/fetchUtils';
+import { fetchParseCsv } from 'utils/fetchUtils';
 import {
   useAbort,
   useMonitoringLocations,
@@ -246,18 +247,6 @@ const downloadLinksStyles = css`
         margin-top: 0.5em;
       }
     }
-  }
-`;
-
-const fileLinkStyles = css`
-  ${iconButtonStyles}
-  color: #0071bc;
-
-  svg {
-    display: inline-block;
-    height: auto;
-    margin: 0;
-    width: 12px;
   }
 `;
 
@@ -1878,7 +1867,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   const configFiles = useConfigFilesState();
 
-  const [downloadError, setDownloadError] = useState(null);
+  const [downloadError, setDownloadError] = useState(false);
 
   // fields common to the download and portal queries
   const queryData =
@@ -2084,17 +2073,23 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
             <span>Download Selected Data</span>
             <span>
               &nbsp;&nbsp;
-              <FileLink
+              <FileLinkButton
                 data={queryData}
                 disabled={checkboxes.all === Checkbox.unchecked}
+                eventDescription="result search post"
+                eventKey="wqp"
+                fileBaseName="wqp-results"
                 fileType="excel"
                 setError={setDownloadError}
                 url={configFiles.data.services.waterQualityPortal.resultSearch}
               />
               &nbsp;&nbsp;
-              <FileLink
+              <FileLinkButton
                 data={queryData}
                 disabled={checkboxes.all === Checkbox.unchecked}
+                eventDescription="result search post"
+                eventKey="wqp"
+                fileBaseName="wqp-results"
                 fileType="csv"
                 setError={setDownloadError}
                 url={configFiles.data.services.waterQualityPortal.resultSearch}
@@ -2109,69 +2104,6 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         )}
       </StatusContent>
     </div>
-  );
-}
-
-function FileLink({ disabled, fileType, data, setError, url }) {
-  const [fetching, setFetching] = useState(false);
-  const mimeTypes = { excel: 'xlsx', csv: 'csv' };
-  const fileTypeUrl = `${url}zip=no&mimeType=${mimeTypes[fileType]}`;
-  const triggerRef = useRef(null);
-
-  const fetchFile = async () => {
-    setFetching(true);
-    try {
-      setError(null);
-      const blob = await fetchPost(
-        fileTypeUrl,
-        data,
-        { 'Content-Type': 'application/json' },
-        60000,
-        'blob',
-      );
-      const file = window.URL.createObjectURL(blob);
-      window.location.assign(file);
-
-      //Log to Google Analytics
-      window.logToGa('link_click', {
-        event_action: 'ow-hmw2-wqp - result search post',
-        event_category: 'Download',
-        event_label: fileTypeUrl,
-      });
-    } catch (err) {
-      setError(err);
-      console.error(err);
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  if (disabled)
-    return (
-      <i
-        className={`fas fa-file-${fileType}`}
-        aria-hidden="true"
-        style={{ color: '#ccc' }}
-      />
-    );
-  else if (fetching)
-    return (
-      <span css={fileLinkStyles}>
-        <LoadingSpinner />
-      </span>
-    );
-
-  return (
-    <Tooltip label={`Download ${mimeTypes[fileType].toUpperCase()}`}>
-      <button css={fileLinkStyles} onClick={fetchFile} ref={triggerRef}>
-        <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
-        <span className="sr-only">
-          {`Download selected data as ${
-            fileType === 'excel' ? 'an' : 'a'
-          } ${mimeTypes[fileType].toUpperCase()} file.`}
-        </span>
-      </button>
-    </Tooltip>
   );
 }
 
