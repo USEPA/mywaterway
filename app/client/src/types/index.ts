@@ -546,6 +546,7 @@ export interface ServicesData {
   expertQuery: {
     apiKey: string;
     attains: string;
+    userInterface: string;
     valuesLimit: number;
   };
   extremeColdRealtime: {

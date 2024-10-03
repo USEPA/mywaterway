@@ -148,41 +148,45 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
       <AccordionList
         title={title}
         extraListHeaderContent={
-          <>
-            <div css={downloadSectionStyles}>
-              <b>Download All Waterbody Data</b>
-              {(['xlsx', 'csv'] as const).map((fileType) => (
-                <FileDownloadButton
-                  analyticsDescription="Assessment Units"
-                  analyticsKey="eq"
-                  data={{
-                    filters: {
-                      assessmentUnitId: sortedWaterbodies.map(
-                        (graphic) =>
-                          graphic.attributes.assessmentunitidentifier,
-                      ),
-                    },
-                    options: {
-                      format: fileType,
-                    },
-                    columns: configFiles.data.eqProfileColumns.assessmentUnits,
-                  }}
-                  disabled={sortedWaterbodies.length === 0}
-                  fileBaseName="waterbodies"
-                  fileType={fileType}
-                  headers={{ 'X-Api-Key': services.expertQuery.apiKey }}
-                  key={fileType}
-                  setError={setDownloadError}
-                  url={`${services.expertQuery.attains}/assessmentUnits`}
-                />
-              ))}
-            </div>
-            {downloadError && (
-              <div css={modifiedErrorBoxStyles}>
-                <p>{waterbodyDownloadError}</p>
+          // TODO: Show on other tabs.
+          window.location.pathname.includes('/overview') && (
+            <>
+              <div css={downloadSectionStyles}>
+                <b>Download All Waterbody Data</b>
+                {(['xlsx', 'csv'] as const).map((fileType) => (
+                  <FileDownloadButton
+                    analyticsDescription="Assessment Units"
+                    analyticsKey="eq"
+                    data={{
+                      filters: {
+                        assessmentUnitId: sortedWaterbodies.map(
+                          (graphic) =>
+                            graphic.attributes.assessmentunitidentifier,
+                        ),
+                      },
+                      options: {
+                        format: fileType,
+                      },
+                      columns:
+                        configFiles.data.eqProfileColumns.assessmentUnits,
+                    }}
+                    disabled={sortedWaterbodies.length === 0}
+                    fileBaseName="waterbodies"
+                    fileType={fileType}
+                    headers={{ 'X-Api-Key': services.expertQuery.apiKey }}
+                    key={fileType}
+                    setError={setDownloadError}
+                    url={`${services.expertQuery.attains}/assessmentUnits`}
+                  />
+                ))}
               </div>
-            )}
-          </>
+              {downloadError && (
+                <div css={modifiedErrorBoxStyles}>
+                  <p>{waterbodyDownloadError}</p>
+                </div>
+              )}
+            </>
+          )
         }
       >
         {sortedWaterbodies.map((graphic) => {

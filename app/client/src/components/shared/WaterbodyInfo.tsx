@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as symbolUtils from '@arcgis/core/symbols/support/symbolUtils';
 // components
+import FileDownloadButton from 'components/shared/FileDownloadButton';
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { ListContent } from 'components/shared/BoxContent';
 import { Histogram, StackedColumnChart } from 'components/shared/ColumnChart';
@@ -62,7 +63,11 @@ import {
 // contexts
 import { ConfigFiles } from 'contexts/ConfigFiles';
 // errors
-import { cyanError, waterbodyReportError } from 'config/errorMessages';
+import {
+  cyanError,
+  waterbodyDownloadError,
+  waterbodyReportError,
+} from 'config/errorMessages';
 // styles
 import {
   colors,
@@ -172,6 +177,29 @@ function labelValue(
 /*
 ## Styles
 */
+const filterAndDownloadStyles = css`
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 0.5em;
+  margin-top: 1.5em;
+  width: 100%;
+
+  .download-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .filter-cell {
+  }
+`;
+
+const downloadSectionStyles = css`
+  display: flex;
+  gap: 0.5em;
+`;
 
 const linkSectionStyles = css`
   p {
@@ -546,6 +574,8 @@ function WaterbodyInfo({
       });
   }, [configFiles, feature, setUseAttainments, type]);
 
+  const [downloadError, setDownloadError] = useState(false);
+
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
 
@@ -586,6 +616,11 @@ function WaterbodyInfo({
       }) || [];
 
     const reportingCycle = attributes?.reportingcycle;
+
+    const portalUrl =
+      `${configFiles?.services.expertQuery.userInterface}/attains/assessmentUnits` +
+      `?assessmentUnitId=${attributes.assessmentunitidentifier}`;
+
     return (
       <>
         {extraContent}
@@ -772,6 +807,73 @@ function WaterbodyInfo({
         {useBasedCondition.condition === 'polluted'
           ? waterbodyPollutionCategories('Identified Issues')
           : ''}
+
+        {window.location.pathname.includes('/overview') && configFiles && (
+          <>
+            <div css={filterAndDownloadStyles}>
+              <div className="filter-cell">
+                <a
+                  href={portalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-cy="portal"
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-filter"
+                    aria-hidden="true"
+                  />
+                  Advanced Filtering
+                </a>
+                &nbsp;&nbsp;
+                <small css={modifiedDisclaimerStyles}>
+                  (opens new browser tab)
+                </small>
+              </div>
+              <div className="download-cell">
+                <b>Download Waterbody Data</b>
+                <span>
+                  {(['xlsx', 'csv'] as const).map((fileType, i) => (
+                    <>
+                      {i !== 0 && <>&nbsp;&nbsp;</>}
+                      <FileDownloadButton
+                        analyticsDescription="Assessment Unit"
+                        analyticsKey="eq"
+                        data={{
+                          filters: {
+                            assessmentUnitId: [
+                              attributes.assessmentunitidentifier,
+                            ],
+                          },
+                          options: {
+                            format: fileType,
+                          },
+                          columns: configFiles.eqProfileColumns.assessmentUnits,
+                        }}
+                        fileBaseName={attributes.assessmentunitname.replace(
+                          ' ',
+                          '_',
+                        )}
+                        fileType={fileType}
+                        headers={{
+                          'X-Api-Key': configFiles.services.expertQuery.apiKey,
+                        }}
+                        key={fileType}
+                        setError={setDownloadError}
+                        url={`${configFiles.services.expertQuery.attains}/assessmentUnits`}
+                      />
+                    </>
+                  ))}
+                </span>
+              </div>
+            </div>
+            {downloadError && (
+              <div css={errorBoxStyles}>
+                <p>{waterbodyDownloadError}</p>
+              </div>
+            )}
+          </>
+        )}
 
         {waterbodyReportLink}
       </>
