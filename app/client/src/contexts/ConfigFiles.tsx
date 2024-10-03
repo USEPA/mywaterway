@@ -19,6 +19,7 @@ export type ConfigFiles = {
   dataPage: any;
   documentOrder: any;
   educators: any;
+  eqProfileColumns: Record<string, string[]>;
   extremeWeather: ExtremeWeatherConfig;
   glossary: {
     [term: string]: {

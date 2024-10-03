@@ -1,0 +1,24 @@
+{
+  "assessmentUnits": [
+    "objectId",
+    "region",
+    "state",
+    "organizationType",
+    "organizationId",
+    "organizationName",
+    "waterType",
+    "locationTypeCode",
+    "locationText",
+    "useClassName",
+    "assessmentUnitId",
+    "assessmentUnitName",
+    "assessmentUnitStatus",
+    "reportingCycle",
+    "cycleId",
+    "locationDescription",
+    "sizeSource",
+    "sourceScale",
+    "waterSize",
+    "waterSizeUnits"
+  ]
+}

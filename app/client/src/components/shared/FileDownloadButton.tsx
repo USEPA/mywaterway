@@ -30,19 +30,18 @@ const fileLinkStyles = css`
 ## Component
 */
 
-export function FileLinkButton({
-  disabled,
-  eventDescription,
-  eventKey,
+export function FileDownloadButton({
+  analyticsDescription,
+  analyticsKey,
+  disabled = false,
   fileBaseName,
   fileType,
-  data,
-  setError,
+  headers = {},
+  data = {},
+  setError = () => {},
   url,
 }: Props) {
   const [fetching, setFetching] = useState(false);
-  const mimeTypes = { excel: 'xlsx', csv: 'csv' };
-  const fileTypeUrl = `${url}zip=yes&mimeType=${mimeTypes[fileType]}`;
   const triggerRef = useRef(null);
 
   const fetchFile = async () => {
@@ -50,24 +49,24 @@ export function FileLinkButton({
     try {
       setError(false);
       const blob = await fetchPost<Blob>(
-        fileTypeUrl,
+        url,
         data,
-        { 'Content-Type': 'application/json' },
+        { ...headers, 'Content-Type': 'application/json' },
         60000,
         'blob',
       );
 
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
-      link.download = `${fileBaseName}.${mimeTypes[fileType]}`;
+      link.download = `${fileBaseName ?? 'download'}.${fileType}`;
       link.click();
       window.URL.revokeObjectURL(link.href);
 
       // Log to Google Analytics
       window.logToGa('link_click', {
-        event_action: `ow-hmw2-${eventKey}${eventDescription ? ' - ' + eventDescription : ''}`,
+        event_action: `ow-hmw2-${analyticsKey}${analyticsDescription ? ' - ' + analyticsDescription : ''}`,
         event_category: 'Download',
-        event_label: fileTypeUrl,
+        event_label: url,
       });
     } catch (err) {
       console.error(err);
@@ -80,7 +79,7 @@ export function FileLinkButton({
   if (disabled)
     return (
       <i
-        className={`fas fa-file-${fileType}`}
+        className={`fas fa-file-${fileType === 'xlsx' ? 'excel' : 'csv'}`}
         aria-hidden="true"
         style={{ color: '#ccc' }}
       />
@@ -94,15 +93,18 @@ export function FileLinkButton({
 
   return (
     <Tooltip
-      label={`Download ${mimeTypes[fileType].toUpperCase()}`}
+      label={`Download ${fileType.toUpperCase()}`}
       triggerRef={triggerRef}
     >
       <button css={fileLinkStyles} onClick={fetchFile} ref={triggerRef}>
-        <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
+        <i
+          className={`fas fa-file-${fileType === 'xlsx' ? 'excel' : 'csv'}`}
+          aria-hidden="true"
+        />
         <span className="sr-only">
           {`Download selected data as ${
-            fileType === 'excel' ? 'an' : 'a'
-          } ${mimeTypes[fileType].toUpperCase()} file.`}
+            fileType === 'xlsx' ? 'an' : 'a'
+          } ${fileType.toUpperCase()} file.`}
         </span>
       </button>
     </Tooltip>
@@ -123,14 +125,15 @@ declare global {
 }
 
 type Props = {
-  data: Record<string, unknown>;
-  disabled: boolean;
-  eventDescription?: string;
-  eventKey: string;
+  data?: Record<string, unknown>;
+  disabled?: boolean;
+  analyticsDescription?: string;
+  analyticsKey: string;
   fileBaseName?: string;
-  fileType: 'excel' | 'csv';
-  setError: (error: boolean) => void;
+  fileType: 'xlsx' | 'csv';
+  headers?: Record<string, string>;
+  setError?: (error: boolean) => void;
   url: string;
 };
 
-export default FileLinkButton;
+export default FileDownloadButton;

@@ -1,8 +1,9 @@
 /** @jsxImportSource @emotion/react */
 
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { css } from '@emotion/react';
 // components
+import FileDownloadButton from 'components/shared/FileDownloadButton';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
@@ -22,9 +23,20 @@ import {
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // errors
-import { huc12SummaryError } from 'config/errorMessages';
+import {
+  huc12SummaryError,
+  waterbodyDownloadError,
+} from 'config/errorMessages';
 // styles
 import { noMapDataWarningStyles } from 'styles/index';
+
+const downloadSectionStyles = css`
+  display: flex;
+  font-weight: bold;
+  gap: 0.5em;
+  justify-content: flex-end;
+  margin-bottom: 0.5em;
+`;
 
 const paragraphStyles = css`
   margin-bottom: 0.5em;
@@ -77,6 +89,8 @@ type Props = {
 function WaterbodyList({ waterbodies, title, fieldName }: Props) {
   const { cipSummary } = useContext(LocationSearchContext);
   const configFiles = useConfigFilesState();
+  const services = configFiles.data.services;
+  const [downloadError, setDownloadError] = useState(false);
 
   // if huc12summaryservice is down
   if (cipSummary.status === 'failure') {
@@ -103,6 +117,7 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
 
   // if no waterbodies found
   if (sortedWaterbodies.length <= 0) return null;
+  console.log(sortedWaterbodies.map((graphic) => graphic.attributes));
 
   return (
     <>
@@ -130,7 +145,46 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
         </span>
       </div>
 
-      <AccordionList title={title}>
+      <AccordionList
+        title={title}
+        extraListHeaderContent={
+          <>
+            <div css={downloadSectionStyles}>
+              <b>Download All Waterbody Data</b>
+              {(['xlsx', 'csv'] as const).map((fileType) => (
+                <FileDownloadButton
+                  analyticsDescription="Assessment Units"
+                  analyticsKey="eq"
+                  data={{
+                    filters: {
+                      assessmentUnitId: sortedWaterbodies.map(
+                        (graphic) =>
+                          graphic.attributes.assessmentunitidentifier,
+                      ),
+                    },
+                    options: {
+                      format: fileType,
+                    },
+                    columns: configFiles.data.eqProfileColumns.assessmentUnits,
+                  }}
+                  disabled={sortedWaterbodies.length === 0}
+                  fileBaseName="waterbodies"
+                  fileType={fileType}
+                  headers={{ 'X-Api-Key': services.expertQuery.apiKey }}
+                  key={fileType}
+                  setError={setDownloadError}
+                  url={`${services.expertQuery.attains}/assessmentUnits`}
+                />
+              ))}
+            </div>
+            {downloadError && (
+              <div css={modifiedErrorBoxStyles}>
+                <p>{waterbodyDownloadError}</p>
+              </div>
+            )}
+          </>
+        }
+      >
         {sortedWaterbodies.map((graphic) => {
           /* prettier-ignore */
           const condition = getWaterbodyCondition(graphic.attributes, fieldName).condition;

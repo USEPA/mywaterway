@@ -6,6 +6,7 @@ import Viewpoint from '@arcgis/core/Viewpoint';
 import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import {
+  Fragment,
   useCallback,
   useContext,
   useEffect,
@@ -20,7 +21,7 @@ import Select from 'react-select';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { BoxContent, FlexRow } from 'components/shared/BoxContent';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
-import FileLinkButton from 'components/shared/FileLinkButton';
+import FileDownloadButton from 'components/shared/FileDownloadButton';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { DisclaimerModal } from 'components/shared/Modal';
@@ -2072,28 +2073,21 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
           <div>
             <span>Download Selected Data</span>
             <span>
-              &nbsp;&nbsp;
-              <FileLinkButton
-                data={queryData}
-                disabled={checkboxes.all === Checkbox.unchecked}
-                eventDescription="result search post"
-                eventKey="wqp"
-                fileBaseName="wqp-results"
-                fileType="excel"
-                setError={setDownloadError}
-                url={configFiles.data.services.waterQualityPortal.resultSearch}
-              />
-              &nbsp;&nbsp;
-              <FileLinkButton
-                data={queryData}
-                disabled={checkboxes.all === Checkbox.unchecked}
-                eventDescription="result search post"
-                eventKey="wqp"
-                fileBaseName="wqp-results"
-                fileType="csv"
-                setError={setDownloadError}
-                url={configFiles.data.services.waterQualityPortal.resultSearch}
-              />
+              {(['xlsx', 'csv'] as const).map((fileType) => (
+                <Fragment key={fileType}>
+                  &nbsp;&nbsp;
+                  <FileDownloadButton
+                    analyticsDescription="result search post"
+                    analyticsKey="wqp"
+                    data={queryData}
+                    disabled={checkboxes.all === Checkbox.unchecked}
+                    fileBaseName="wqp-results"
+                    fileType={fileType}
+                    setError={setDownloadError}
+                    url={`${configFiles.data.services.waterQualityPortal.resultSearch}zip=yes&mimeType=${fileType}`}
+                  />
+                </Fragment>
+              ))}
             </span>
           </div>
         </div>
