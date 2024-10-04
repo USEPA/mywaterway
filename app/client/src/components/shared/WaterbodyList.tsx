@@ -117,7 +117,6 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
 
   // if no waterbodies found
   if (sortedWaterbodies.length <= 0) return null;
-  console.log(sortedWaterbodies.map((graphic) => graphic.attributes));
 
   return (
     <>

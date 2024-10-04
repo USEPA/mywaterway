@@ -7,7 +7,7 @@ import ImageElement from '@arcgis/core/layers/support/ImageElement';
 import Point from '@arcgis/core/geometry/Point';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import { css } from '@emotion/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as symbolUtils from '@arcgis/core/symbols/support/symbolUtils';
 // components
@@ -619,7 +619,7 @@ function WaterbodyInfo({
 
     const portalUrl =
       `${configFiles?.services.expertQuery.userInterface}/attains/assessmentUnits` +
-      `?assessmentUnitId=${attributes.assessmentunitidentifier}`;
+      `?assessmentUnitId=${attributes.assessmentunitidentifier}&reportingCycle=${reportingCycle}`;
 
     return (
       <>
@@ -834,7 +834,7 @@ function WaterbodyInfo({
                 <b>Download Waterbody Data</b>
                 <span>
                   {(['xlsx', 'csv'] as const).map((fileType, i) => (
-                    <>
+                    <Fragment key={fileType}>
                       {i !== 0 && <>&nbsp;&nbsp;</>}
                       <FileDownloadButton
                         analyticsDescription="Assessment Unit"
@@ -844,6 +844,7 @@ function WaterbodyInfo({
                             assessmentUnitId: [
                               attributes.assessmentunitidentifier,
                             ],
+                            reportingCycle: attributes.reportingcycle,
                           },
                           options: {
                             format: fileType,
@@ -858,11 +859,10 @@ function WaterbodyInfo({
                         headers={{
                           'X-Api-Key': configFiles.services.expertQuery.apiKey,
                         }}
-                        key={fileType}
                         setError={setDownloadError}
                         url={`${configFiles.services.expertQuery.attains}/assessmentUnits`}
                       />
-                    </>
+                    </Fragment>
                   ))}
                 </span>
               </div>
@@ -881,7 +881,7 @@ function WaterbodyInfo({
   };
 
   // jsx
-  const waterbodyStateContent = (
+  const waterbodyStateContent = () => (
     <>
       {labelValue(
         <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
@@ -1457,6 +1457,7 @@ function WaterbodyInfo({
   if (!attributes) return null;
 
   let content = null;
+  console.log('type', type);
   if (type === 'Waterbody' && configFiles) content = baseWaterbodyContent();
   if (type === 'Restoration Plans') content = projectContent();
   if (type === 'Protection Plans') content = projectContent();
@@ -1473,7 +1474,7 @@ function WaterbodyInfo({
   }
   if (type === 'Nonprofit') content = nonprofitContent;
   if (type === 'Waterbody State Overview' && configFiles)
-    content = waterbodyStateContent;
+    content = waterbodyStateContent();
   if (type === 'Action') content = actionContent;
   if (type === 'County') content = countyContent();
   if (type === 'Tribe') content = tribeContent;
