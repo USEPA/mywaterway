@@ -6,6 +6,7 @@ import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import Field from '@arcgis/core/layers/support/Field';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -16,6 +17,7 @@ import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import * as query from '@arcgis/core/rest/query';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
 import Map from 'components/shared/Map';
@@ -677,18 +679,47 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const { cropGeometryToHuc } = useGeometryUtils();
 
-  // Gets the lines data and builds the associated feature layer
-  const retrieveLines = useCallback(
-    (filter, boundaries) => {
-      const url = configFiles.data.services.waterbodyService.lines;
-      const queryParams = {
-        returnGeometry: true,
-        where: filter,
-        outFields: ['*'],
-      };
-      query
-        .executeQueryJSON(url, queryParams)
-        .then((res) => {
+  // Gets the attains gis data and builds the associated feature layer
+  const retrieveData = useCallback(
+    ({
+      boundaries,
+      filter,
+      geometryType,
+      setter,
+      url,
+    }: {
+      boundaries: any;
+      filter: string;
+      geometryType: 'point' | 'polyline' | 'polygon';
+      setter: Function;
+      url: string;
+    }) => {
+      async function queryData() {
+        let layerId: 'waterbodyPoints' | 'waterbodyLines' | 'waterbodyAreas' =
+          'waterbodyPoints';
+        let layerTitle = 'Waterbody Points';
+        if (geometryType === 'polyline') {
+          layerId = 'waterbodyLines';
+          layerTitle = 'Waterbody Lines';
+        }
+        if (geometryType === 'polygon') {
+          layerId = 'waterbodyAreas';
+          layerTitle = 'Waterbody Areas';
+        }
+
+        try {
+          // query for metadata
+          const metadata: any = await fetchCheck(`${url}?f=json`);
+
+          const spatialReference = new SpatialReference({ wkid: 102100 });
+          const queryParams = {
+            outFields: ['*'],
+            returnGeometry: true,
+            spatialReference,
+            where: filter,
+          };
+          const res = await query.executeQueryJSON(url, queryParams);
+
           // build a list of features that still has the original uncropped
           // geometry and set context
           let originalFeatures = [];
@@ -696,194 +727,59 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             item['originalGeometry'] = item.geometry;
             originalFeatures.push(item);
           });
-          setLinesData({ features: originalFeatures });
-          updateErroredLayers({ waterbodyLines: false });
+          setter(
+            geometryType === 'point' ? res : { features: originalFeatures },
+          );
+          updateErroredLayers({ [layerId]: false });
 
           // crop the waterbodies geometry to within the huc
-          cropGeometryToHuc(res.features, boundaries.features[0].geometry)
-            .then((features) => {
-              const linesRenderer = {
-                type: 'unique-value',
-                field: 'overallstatus',
-                fieldDelimiter: ', ',
-                defaultSymbol: createWaterbodySymbol({
-                  condition: 'unassessed',
-                  selected: false,
-                  geometryType: 'polyline',
-                }),
-                uniqueValueInfos: createUniqueValueInfos('polyline'),
-              };
-              const newLinesLayer = new FeatureLayer({
-                id: 'waterbodyLines',
-                title: 'Waterbody Lines',
-                geometryType: res.geometryType,
-                spatialReference: res.spatialReference,
-                fields: res.fields,
-                source: features,
-                outFields: ['*'],
-                renderer: linesRenderer,
-                popupTemplate,
-              });
-              setLayer('waterbodyLines', newLinesLayer);
-              setResetHandler('waterbodyLines', () => {
-                setLayer('waterbodyLines', null);
-              });
-            })
-            .catch((err) => {
-              handleMapServiceError(err);
-              updateErroredLayers({ waterbodyLines: true });
-              setLinesData({ features: [] });
-            });
-        })
-        .catch((err) => {
-          handleMapServiceError(err);
-          updateErroredLayers({ waterbodyLines: true });
-          setLinesData({ features: [] });
-        });
-    },
-    [
-      configFiles,
-      cropGeometryToHuc,
-      handleMapServiceError,
-      popupTemplate,
-      setLayer,
-      setLinesData,
-      setResetHandler,
-      updateErroredLayers,
-    ],
-  );
-
-  // Gets the areas data and builds the associated feature layer
-  const retrieveAreas = useCallback(
-    (filter, boundaries) => {
-      const url = configFiles.data.services.waterbodyService.areas;
-      const queryParams = {
-        returnGeometry: true,
-        where: filter,
-        outFields: ['*'],
-      };
-      query
-        .executeQueryJSON(url, queryParams)
-        .then((res) => {
-          // build a list of features that still has the original uncropped
-          // geometry and set context
-          let originalFeatures = [];
-          res.features.forEach((item) => {
-            item['originalGeometry'] = item.geometry;
-            originalFeatures.push(item);
-          });
-          setAreasData({ features: originalFeatures });
-          updateErroredLayers({ waterbodyAreas: false });
-
-          // crop the waterbodies geometry to within the huc
-          cropGeometryToHuc(res.features, boundaries.features[0].geometry)
-            .then((features) => {
-              const areasRenderer = {
-                type: 'unique-value',
-                field: 'overallstatus',
-                fieldDelimiter: ', ',
-                defaultSymbol: createWaterbodySymbol({
-                  condition: 'unassessed',
-                  selected: false,
-                  geometryType: 'polygon',
-                }),
-                uniqueValueInfos: createUniqueValueInfos('polygon'),
-              };
-              const newAreasLayer = new FeatureLayer({
-                id: 'waterbodyAreas',
-                title: 'Waterbody Areas',
-                geometryType: res.geometryType,
-                spatialReference: res.spatialReference,
-                fields: res.fields,
-                source: features,
-                outFields: ['*'],
-                renderer: areasRenderer,
-                popupTemplate,
-              });
-              setLayer('waterbodyAreas', newAreasLayer);
-              setResetHandler('waterbodyAreas', () => {
-                setLayer('waterbodyAreas', null);
-              });
-            })
-            .catch((err) => {
-              handleMapServiceError(err);
-              updateErroredLayers({ waterbodyAreas: true });
-              setAreasData({ features: [] });
-            });
-        })
-        .catch((err) => {
-          handleMapServiceError(err);
-          updateErroredLayers({ waterbodyAreas: true });
-          setAreasData({ features: [] });
-        });
-    },
-    [
-      configFiles,
-      cropGeometryToHuc,
-      handleMapServiceError,
-      popupTemplate,
-      setAreasData,
-      setLayer,
-      setResetHandler,
-      updateErroredLayers,
-    ],
-  );
-
-  // Gets the points data and builds the associated feature layer
-  const retrievePoints = useCallback(
-    (filter) => {
-      const url = configFiles.data.services.waterbodyService.points;
-      const queryParams = {
-        returnGeometry: true,
-        where: filter,
-        outFields: ['*'],
-      };
-      query
-        .executeQueryJSON(url, queryParams)
-        .then((res) => {
-          setPointsData(res);
-          updateErroredLayers({ waterbodyPoints: false });
-
-          const pointsRenderer = {
-            type: 'unique-value',
+          const features =
+            geometryType === 'point'
+              ? res.features
+              : await cropGeometryToHuc(
+                  res.features,
+                  boundaries.features[0].geometry,
+                );
+          const renderer = new UniqueValueRenderer({
             field: 'overallstatus',
             fieldDelimiter: ', ',
             defaultSymbol: createWaterbodySymbol({
               condition: 'unassessed',
               selected: false,
-              geometryType: 'point',
+              geometryType: geometryType,
             }),
-            uniqueValueInfos: createUniqueValueInfos('point'),
-          };
-
-          const newPointsLayer = new FeatureLayer({
-            id: 'waterbodyPoints',
-            title: 'Waterbody Points',
-            geometryType: res.geometryType,
-            spatialReference: res.spatialReference,
-            fields: res.fields,
-            source: res.features,
+            uniqueValueInfos: createUniqueValueInfos(geometryType),
+          });
+          const newLayer = new FeatureLayer({
+            id: layerId,
+            title: layerTitle,
+            geometryType: metadata.geometryType
+              .replace('esriGeometry', '')
+              .toLowerCase(),
+            spatialReference,
+            fields: metadata.fields.map((field: any) => Field.fromJSON(field)),
+            source: features,
             outFields: ['*'],
-            renderer: pointsRenderer,
+            renderer,
             popupTemplate,
           });
-          setLayer('waterbodyPoints', newPointsLayer);
-          setResetHandler('waterbodyPoints', () => {
-            setLayer('waterbodyPoints', null);
+          setLayer(layerId, newLayer);
+          setResetHandler(layerId, () => {
+            setLayer(layerId, null);
           });
-        })
-        .catch((err) => {
+        } catch (err) {
           handleMapServiceError(err);
-          updateErroredLayers({ waterbodyPoints: true });
-          setPointsData({ features: [] });
-        });
+          updateErroredLayers({ [layerId]: true });
+          setter({ features: [] });
+        }
+      }
+
+      queryData();
     },
     [
-      configFiles,
+      cropGeometryToHuc,
       handleMapServiceError,
-      popupTemplate,
       setLayer,
-      setPointsData,
       setResetHandler,
       updateErroredLayers,
     ],
@@ -1222,18 +1118,29 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const filter = `assessmentunitidentifier in (${createQueryString(ids)})`;
 
       setCheckedForOrphans(false);
-      retrieveLines(filter, boundaries);
-      retrievePoints(filter);
-      retrieveAreas(filter, boundaries);
+      retrieveData({
+        boundaries,
+        filter,
+        geometryType: 'polyline',
+        setter: setLinesData,
+        url: configFiles.data.services.waterbodyService.lines,
+      });
+      retrieveData({
+        boundaries,
+        filter,
+        geometryType: 'point',
+        setter: setPointsData,
+        url: configFiles.data.services.waterbodyService.points,
+      });
+      retrieveData({
+        boundaries,
+        filter,
+        geometryType: 'polygon',
+        setter: setAreasData,
+        url: configFiles.data.services.waterbodyService.areas,
+      });
     },
-    [
-      retrieveAreas,
-      retrieveLines,
-      retrievePoints,
-      setAssessmentUnitIDs,
-      setCipSummary,
-      updateErroredLayers,
-    ],
+    [retrieveData, setAssessmentUnitIDs, setCipSummary, updateErroredLayers],
   );
 
   const processBoundariesData = useCallback(
