@@ -129,6 +129,8 @@ export type AttainsImpairmentField = {
   value: string;
 };
 
+export type AttainsProfile = 'actions' | 'assessmentUnits' | 'tmdl';
+
 export type AttainsUseField = {
   category: string;
   label: string;

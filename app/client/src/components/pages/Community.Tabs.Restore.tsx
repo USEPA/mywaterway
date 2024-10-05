@@ -22,7 +22,10 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 import ShowLessMore from 'components/shared/ShowLessMore';
+import WaterbodiesDownload from 'components/shared/WaterbodiesDownload';
+import WaterbodyDownload from 'components/shared/WaterbodyDownload';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -59,6 +62,10 @@ const disclaimerStyles = css`
 
 const linkBoxStyles = css``;
 
+const waterbodyDownloadContainerStyles = css`
+  padding: 0 0.75rem;
+`;
+
 const storySummaryStyles = css`
   padding: 0 0.75em 0.75em;
 
@@ -79,6 +86,8 @@ function Restore() {
   const { attainsPlans, grts, grtsStories, watershed } = useContext(
     LocationSearchContext,
   );
+
+  const configFiles = useConfigFilesState();
 
   const { updateVisibleLayers } = useLayers();
 
@@ -385,6 +394,17 @@ function Restore() {
                             in the <em>{watershed.name}</em> watershed.
                           </>
                         }
+                        extraListHeaderContent={
+                          <WaterbodiesDownload
+                            fileBaseName={`Restoration_Plans-${watershed.huc12}`}
+                            filters={{
+                              actionId: sortedAttainsPlanData.map(
+                                (plan) => plan.actionIdentifier,
+                              ),
+                            }}
+                            profile="actions"
+                          />
+                        }
                       >
                         {sortedAttainsPlanData.map((item) => {
                           return (
@@ -395,50 +415,68 @@ function Restore() {
                               }
                               subTitle={<>ID: {item.actionIdentifier}</>}
                             >
-                              <ListContent
-                                rows={[
-                                  {
-                                    label: 'Plan Type',
-                                    value: mapRestorationPlanToGlossary(
-                                      item.actionTypeCode,
-                                      true,
-                                    ),
-                                  },
-                                  {
-                                    label: 'Status',
-                                    /* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */
-                                    value:
-                                      item.actionTypeCode !== 'TMDL' &&
-                                      item.actionStatusCode ===
-                                        'EPA Final Action'
-                                        ? 'Final'
-                                        : item.actionStatusCode,
-                                  },
-                                  {
-                                    label: 'Completion Date',
-                                    value: item.completionDate,
-                                  },
-                                  item.actionIdentifier
-                                    ? {
-                                        label: 'Plan Details',
-                                        value: (
-                                          <>
-                                            <a
-                                              href={`/plan-summary/${item.organizationId}/${item.actionIdentifier}`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                            >
-                                              Open Plan Summary
-                                            </a>
-                                            <small css={disclaimerStyles}>
-                                              (opens new browser tab)
-                                            </small>
-                                          </>
-                                        ),
+                              <>
+                                <ListContent
+                                  rows={[
+                                    {
+                                      label: 'Plan Type',
+                                      value: mapRestorationPlanToGlossary(
+                                        item.actionTypeCode,
+                                        true,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Status',
+                                      /* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */
+                                      value:
+                                        item.actionTypeCode !== 'TMDL' &&
+                                        item.actionStatusCode ===
+                                          'EPA Final Action'
+                                          ? 'Final'
+                                          : item.actionStatusCode,
+                                    },
+                                    {
+                                      label: 'Completion Date',
+                                      value: item.completionDate,
+                                    },
+                                    item.actionIdentifier
+                                      ? {
+                                          label: 'Plan Details',
+                                          value: (
+                                            <>
+                                              <a
+                                                href={`/plan-summary/${item.organizationId}/${item.actionIdentifier}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                              >
+                                                Open Plan Summary
+                                              </a>
+                                              <small css={disclaimerStyles}>
+                                                (opens new browser tab)
+                                              </small>
+                                            </>
+                                          ),
+                                        }
+                                      : null,
+                                  ]}
+                                />
+                                {configFiles.status === 'success' && (
+                                  <div css={waterbodyDownloadContainerStyles}>
+                                    <WaterbodyDownload
+                                      configFiles={configFiles.data}
+                                      fileBaseName={`Restoration_Plan-${item.actionIdentifier}`}
+                                      filters={{
+                                        actionId: item.actionIdentifier,
+                                      }}
+                                      profile={
+                                        item.actionTypeCode === 'TMDL'
+                                          ? 'tmdl'
+                                          : 'actions'
                                       }
-                                    : null,
-                                ]}
-                              />
+                                    />
+                                  </div>
+                                )}
+                              </>
                             </AccordionItem>
                           );
                         })}
