@@ -50,10 +50,7 @@ describe('Tribe page links', () => {
   it('Clicking the “EXIT” link opens a new tab with https://www.epa.gov/home/exit-epa', () => {
     const linkText = 'EXIT';
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByText('More Information for').click();
 
@@ -90,9 +87,7 @@ describe('Tribe page routes', () => {
     cy.url().should('equal', `${window.location.origin}/state-and-tribal`);
   });
 
-  // Skipping this one for now, cy.visit now checks if the url matches which breaks this test
-  // since we are expecting a redirect.
-  it.skip('Navigate to the tribe page with a <script> tag in the route', () => {
+  it('Navigate to the tribe page with a <script> tag in the route', () => {
     cy.visit('/tribe/%3Cscript%3Evar%20j%20=%201;%3Cscript%3E');
 
     cy.findByText(
@@ -111,10 +106,7 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
     cy.findByText('Water Quality', { timeout: 20000 }).should('exist');
     cy.findByTestId('hmw-ecological-tab-button').click();
 
-    // wait for the all web services to finish (surveys is usually slow here)
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
   });
 
   it('Navigating to a sub-tab selection that has no data results in “Water Type” dropdown saying “No Available Water Types” and the “Use” dropdown saying “No Available Uses”', () => {
@@ -134,6 +126,9 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
     cy.findByTestId('hmw-fishing-tab-button').click();
     cy.findByTestId('hmw-fishing-tab-panel').contains(noWaterTypes);
     cy.findByTestId('hmw-fishing-tab-panel').contains(noUses);
+
+    // go to cultural tab
+    cy.findByTestId('hmw-cultural-tab-button').click();
   });
 
   it('Navigating to a sub-tab selection shows correct charts', () => {

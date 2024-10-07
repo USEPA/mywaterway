@@ -4,13 +4,7 @@ describe('Community Visual Regression Testing', () => {
   it('Verify DC GIS data displays correctly', () => {
     cy.visit('/community/dc/overview');
 
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'exist',
-    );
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
@@ -22,13 +16,7 @@ describe('Community Visual Regression Testing', () => {
   it('Verify the switches on Identified Issues correctly update the GIS data', () => {
     cy.visit('/community/dc/identified-issues');
 
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'exist',
-    );
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
@@ -61,14 +49,7 @@ describe('Community Visual Regression Testing', () => {
 
     cy.findByText('Watershed Health and Protection');
 
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'exist',
-    );
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
 
@@ -102,14 +83,7 @@ describe('Community Visual Regression Testing', () => {
   it('Verify "View on Map" button works', () => {
     cy.visit('/community/dc/overview');
 
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'exist',
-    );
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByText('FORT CHAPLIN RUN').click();
 
@@ -126,10 +100,7 @@ describe('Community Visual Regression Testing', () => {
   it('Verify toggling on surrounding streamgages works', () => {
     cy.visit('/community/150503010906/overview');
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // delay to allow features to load
     cy.wait(10000);
@@ -147,12 +118,7 @@ describe('Community Visual Regression Testing', () => {
       .findByRole('switch', { name: 'Past Water Conditions' })
       .click();
 
-    cy.findByTitle('Close Surrounding Features')
-      .findAllByTestId('hmw-loading-spinner', { timeout: 120000 })
-      .should('exist');
-    cy.findByTitle('Close Surrounding Features')
-      .findAllByTestId('hmw-loading-spinner', { timeout: 120000 })
-      .should('not.exist');
+    cy.findByTitle('Close Surrounding Features').waitForLoadFinish();
 
     // delay to draw features after data loaded
     cy.wait(10000);
@@ -169,10 +135,7 @@ describe('State Visual Regression Testing', () => {
   it('Verify state waters assessed chart', () => {
     cy.visit('/state/AK/water-quality-overview');
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // wait for animations to settle and check the assessed chart
     cy.wait(10000);
@@ -195,10 +158,7 @@ describe('State Visual Regression Testing', () => {
   it('Verify state surveys chart', () => {
     cy.visit('/state/KS/water-quality-overview');
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // Select the "Rivers and Streams" water type
     cy.get(waterTypeId).within(($el) => {
