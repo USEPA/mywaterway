@@ -11,6 +11,8 @@ import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { waterbodyDownloadError } from 'config/errorMessages';
 // types
 import type { AttainsProfile } from 'types';
+// utils
+import { titleCase } from 'utils/utils';
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
@@ -28,10 +30,13 @@ const waterbodiesDownloadSectionStyles = css`
 const profileKeyToTitle: Record<AttainsProfile, string> = {
   actions: 'Actions',
   assessmentUnits: 'Assessment Units',
+  assessments: 'Assessments',
+  tmdl: 'TMDL',
 };
 
 export function WaterbodiesDownload({
   disabled = false,
+  descriptor = 'waterbody',
   fileBaseName,
   filters,
   profile,
@@ -45,10 +50,7 @@ export function WaterbodiesDownload({
   return (
     <>
       <div css={waterbodiesDownloadSectionStyles}>
-        <b>
-          Download All {profile === 'assessmentUnits' ? 'Waterbody' : 'Plan'}{' '}
-          Data
-        </b>
+        <b>Download All {titleCase(descriptor)} Data</b>
         {(['xlsx', 'csv'] as const).map((fileType) => (
           <FileDownloadButton
             analyticsDescription={profileKeyToTitle[profile]}
@@ -80,6 +82,7 @@ export function WaterbodiesDownload({
 }
 
 type Props = {
+  descriptor?: string;
   disabled?: boolean;
   fileBaseName: string;
   filters: Record<string, unknown | unknown[]>;

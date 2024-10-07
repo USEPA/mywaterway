@@ -12,6 +12,8 @@ import { disclaimerStyles, iconStyles } from 'styles';
 // types
 import type { ConfigFiles } from 'contexts/ConfigFiles';
 import type { AttainsProfile } from 'types';
+// utils
+import { titleCase } from 'utils/utils';
 
 const filterAndDownloadStyles = css`
   display: inline-grid;
@@ -42,11 +44,13 @@ const modifiedErrorBoxStyles = css`
 const profileKeyToTitle: Record<AttainsProfile, string> = {
   actions: 'Actions',
   assessmentUnits: 'Assessment Units',
+  assessments: 'Assessments',
   tmdl: 'TMDL',
 };
 
 export function WaterbodyDownload({
   configFiles,
+  descriptor = 'waterbody',
   fileBaseName,
   filters,
   profile,
@@ -81,9 +85,7 @@ export function WaterbodyDownload({
           <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
         </div>
         <div className="download-cell">
-          <b>
-            Download {profile === 'assessmentUnits' ? 'Waterbody' : 'Plan'} Data
-          </b>
+          <b>Download {titleCase(descriptor)} Data</b>
           <span>
             {(['xlsx', 'csv'] as const).map((fileType, i) => (
               <Fragment key={fileType}>
@@ -122,6 +124,7 @@ export function WaterbodyDownload({
 
 type Props = {
   configFiles: ConfigFiles;
+  descriptor?: string;
   fileBaseName: string;
   filters: Record<string, unknown | unknown[]>;
   profile: AttainsProfile;

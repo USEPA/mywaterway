@@ -396,6 +396,7 @@ function Restore() {
                         }
                         extraListHeaderContent={
                           <WaterbodiesDownload
+                            descriptor="plan"
                             fileBaseName={`Restoration_Plans-${watershed.huc12}`}
                             filters={{
                               actionId: sortedAttainsPlanData.map(
@@ -464,6 +465,7 @@ function Restore() {
                                   <div css={waterbodyDownloadContainerStyles}>
                                     <WaterbodyDownload
                                       configFiles={configFiles.data}
+                                      descriptor="plan"
                                       fileBaseName={`Restoration_Plan-${item.actionIdentifier}`}
                                       filters={{
                                         actionId: item.actionIdentifier,

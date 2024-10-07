@@ -129,7 +129,11 @@ export type AttainsImpairmentField = {
   value: string;
 };
 
-export type AttainsProfile = 'actions' | 'assessmentUnits' | 'tmdl';
+export type AttainsProfile =
+  | 'actions'
+  | 'assessmentUnits'
+  | 'assessments'
+  | 'tmdl';
 
 export type AttainsUseField = {
   category: string;
