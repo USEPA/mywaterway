@@ -91,7 +91,7 @@ export function fetchParseCsv(url: string, { worker = true } = {}) {
   });
 }
 
-export function fetchPost<T extends unknown>(
+export function fetchPost<T>(
   apiUrl: string,
   data: object,
   headers: object,

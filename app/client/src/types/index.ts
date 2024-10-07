@@ -498,6 +498,8 @@ export type PopupAttributes =
   | WildScenicRiverAttributes
   | WsioHealthIndexAttributes;
 
+export type Primitive = string | number | boolean;
+
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
   Loc_Nm: string;

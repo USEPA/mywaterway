@@ -40,7 +40,7 @@ export function FileDownloadButton({
   data = {},
   setError = () => {},
   url,
-}: Props) {
+}: Readonly<Props>) {
   const [fetching, setFetching] = useState(false);
   const triggerRef = useRef(null);
 

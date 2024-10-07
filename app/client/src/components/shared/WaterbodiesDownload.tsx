@@ -10,7 +10,7 @@ import { useConfigFilesState } from 'contexts/ConfigFiles';
 // errors
 import { waterbodyDownloadError } from 'config/errorMessages';
 // types
-import type { AttainsProfile } from 'types';
+import type { AttainsProfile, Primitive } from 'types';
 // utils
 import { titleCase } from 'utils/utils';
 
@@ -40,7 +40,7 @@ export function WaterbodiesDownload({
   fileBaseName,
   filters,
   profile,
-}: Props) {
+}: Readonly<Props>) {
   const configFiles = useConfigFilesState();
 
   const [downloadError, setDownloadError] = useState(false);
@@ -85,7 +85,7 @@ type Props = {
   descriptor?: string;
   disabled?: boolean;
   fileBaseName: string;
-  filters: Record<string, unknown | unknown[]>;
+  filters: Record<string, Primitive | Primitive[]>;
   profile: AttainsProfile;
 };
 

@@ -11,7 +11,7 @@ import { waterbodyDownloadError } from 'config/errorMessages';
 import { disclaimerStyles, iconStyles } from 'styles';
 // types
 import type { ConfigFiles } from 'contexts/ConfigFiles';
-import type { AttainsProfile } from 'types';
+import type { AttainsProfile, Primitive } from 'types';
 // utils
 import { titleCase } from 'utils/utils';
 
@@ -54,7 +54,7 @@ export function WaterbodyDownload({
   fileBaseName,
   filters,
   profile,
-}: Props) {
+}: Readonly<Props>) {
   const [downloadError, setDownloadError] = useState(false);
 
   const portalUrl =
@@ -126,7 +126,7 @@ type Props = {
   configFiles: ConfigFiles;
   descriptor?: string;
   fileBaseName: string;
-  filters: Record<string, unknown | unknown[]>;
+  filters: Record<string, Primitive | Primitive[]>;
   profile: AttainsProfile;
 };
 
