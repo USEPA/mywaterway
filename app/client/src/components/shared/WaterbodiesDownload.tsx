@@ -45,7 +45,10 @@ export function WaterbodiesDownload({
   return (
     <>
       <div css={waterbodiesDownloadSectionStyles}>
-        <b>Download All Waterbody Data</b>
+        <b>
+          Download All {profile === 'assessmentUnits' ? 'Waterbody' : 'Plan'}{' '}
+          Data
+        </b>
         {(['xlsx', 'csv'] as const).map((fileType) => (
           <FileDownloadButton
             analyticsDescription={profileKeyToTitle[profile]}
@@ -79,7 +82,7 @@ export function WaterbodiesDownload({
 type Props = {
   disabled?: boolean;
   fileBaseName: string;
-  filters: Record<string, unknown[]>;
+  filters: Record<string, unknown | unknown[]>;
   profile: AttainsProfile;
 };
 

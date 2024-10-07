@@ -81,7 +81,9 @@ export function WaterbodyDownload({
           <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
         </div>
         <div className="download-cell">
-          <b>Download Waterbody Data</b>
+          <b>
+            Download {profile === 'assessmentUnits' ? 'Waterbody' : 'Plan'} Data
+          </b>
           <span>
             {(['xlsx', 'csv'] as const).map((fileType, i) => (
               <Fragment key={fileType}>
@@ -121,7 +123,7 @@ export function WaterbodyDownload({
 type Props = {
   configFiles: ConfigFiles;
   fileBaseName: string;
-  filters: Record<string, unknown[]>;
+  filters: Record<string, unknown | unknown[]>;
   profile: AttainsProfile;
 };
 

@@ -20,6 +20,7 @@ import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
+import WaterbodyDownload from 'components/shared/WaterbodyDownload';
 // styled components
 import { errorBoxStyles, textBoxStyles } from 'components/shared/MessageBoxes';
 import {
@@ -197,6 +198,14 @@ const inlineBoxStyles = css`
 
   * {
     display: inline-block;
+  }
+`;
+
+const modifiedBoxSectionStyles = css`
+  ${boxSectionStyles}
+
+  hr {
+    margin-top: 0;
   }
 `;
 
@@ -526,6 +535,20 @@ function Actions() {
           {organizationName} ({orgId})
         </p>
       </div>
+
+      {configFiles.status === 'success' && (
+        <div css={modifiedBoxSectionStyles}>
+          <hr />
+          <WaterbodyDownload
+            configFiles={configFiles.data}
+            fileBaseName={`Restoration_Plan-${actionId}`}
+            filters={{
+              actionId,
+            }}
+            profile={actionTypeCode === 'TMDL' ? 'tmdl' : 'actions'}
+          />
+        </div>
+      )}
     </div>
   );
 
