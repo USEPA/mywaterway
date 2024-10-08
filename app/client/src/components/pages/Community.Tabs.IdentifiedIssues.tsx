@@ -794,6 +794,7 @@ function IdentifiedIssues() {
                                     cipSummary.data.items[0].assessmentUnits.map(
                                       (au) => au.assessmentUnitId,
                                     ),
+                                  overallStatus: 'Not Supporting',
                                   parameterGroup:
                                     configFiles.data.impairmentFields
                                       .filter(

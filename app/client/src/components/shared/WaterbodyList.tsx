@@ -134,7 +134,6 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
       <AccordionList
         title={title}
         extraListHeaderContent={
-          // TODO: Figure out what to show on other tabs.
           window.location.pathname.includes('/overview') && (
             <WaterbodiesDownload
               disabled={sortedWaterbodies.length === 0}

@@ -89,6 +89,7 @@ import type {
   FetchState,
   FetchStateWithDefault,
   MonitoringLocationAttributes,
+  Primitive,
   StreamgageMeasurement,
   UsgsStreamgageAttributes,
 } from 'types';
@@ -96,6 +97,7 @@ import type {
 /*
 ## Helpers
 */
+
 function bool(value: string) {
   // Return 'Yes' for truthy values and non-zero strings
   return value && parseInt(value, 10) ? 'Yes' : 'No';
@@ -592,6 +594,13 @@ function WaterbodyInfo({
 
     const reportingCycle = attributes?.reportingcycle;
 
+    const path = window.location.pathname;
+
+    const baseDownloadFilters: Record<string, Primitive | Primitive[]> = {
+      assessmentUnitId: [attributes.assessmentunitidentifier],
+      reportingCycle: attributes.reportingcycle,
+    };
+
     return (
       <>
         {extraContent}
@@ -779,18 +788,28 @@ function WaterbodyInfo({
           ? waterbodyPollutionCategories('Identified Issues')
           : ''}
 
-        {/* TODO: Figure out what to show on other tabs. */}
-        {window.location.pathname.includes('/overview') && configFiles && (
+        {configFiles && (
           <div css={waterbodyDownloadContainerStyles}>
-            <WaterbodyDownload
-              configFiles={configFiles}
-              fileBaseName={attributes.assessmentunitname.replace(/\s/g, '_')}
-              filters={{
-                assessmentUnitId: [attributes.assessmentunitidentifier],
-                reportingCycle: attributes.reportingcycle,
-              }}
-              profile="assessmentUnits"
-            />
+            {path.includes('/overview') && (
+              <WaterbodyDownload
+                configFiles={configFiles}
+                fileBaseName={`Waterbody-${attributes.assessmentunitname.replace(/\s/g, '_')}`}
+                filters={baseDownloadFilters}
+                profile="assessmentUnits"
+              />
+            )}
+            {path.includes('/identified-issues') && (
+              <WaterbodyDownload
+                configFiles={configFiles}
+                descriptor="impairment"
+                fileBaseName={`Identified_Issues-${attributes.assessmentunitname.replace(/\s/g, '_')}`}
+                filters={{
+                  ...baseDownloadFilters,
+                  overallStatus: 'Not Supporting',
+                }}
+                profile="assessments"
+              />
+            )}
           </div>
         )}
 
@@ -1362,6 +1381,17 @@ function WaterbodyInfo({
                         })}
                     </tbody>
                   </table>
+                  {configFiles && (
+                    <WaterbodyDownload
+                      configFiles={configFiles}
+                      descriptor="plan"
+                      fileBaseName={`Restoration_Plans-${attributes.assessmentunitidentifier}`}
+                      filters={{
+                        actionId: projects.map((p) => p.id),
+                      }}
+                      profile="actions"
+                    />
+                  )}
                 </>
               )}
             </>
