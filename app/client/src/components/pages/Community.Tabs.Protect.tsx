@@ -17,6 +17,7 @@ import { GradientIcon } from 'utils/mapFunctions';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import WaterbodyDownload from 'components/shared/WaterbodyDownload';
 // config
 import { tabs } from 'config/communityConfig';
 // contexts
@@ -145,6 +146,10 @@ const questionStyles = css`
   display: inline-block;
   padding-bottom: 1em;
   font-weight: bold;
+`;
+
+const waterbodyDownloadContainerStyles = css`
+  padding: 0 0.75rem;
 `;
 
 const watershedAccordionStyles = css`
@@ -1297,50 +1302,70 @@ function Protect() {
                                     )}
 
                                     {item.source === 'attains' && (
-                                      <ListContent
-                                        rows={[
-                                          {
-                                            label: 'Plan Type',
-                                            value: (
-                                              <GlossaryTerm term="Protection Approach">
-                                                Protection Approach
-                                              </GlossaryTerm>
-                                            ),
-                                          },
-                                          {
-                                            label: 'Status',
-                                            value:
-                                              item.status === 'EPA Final Action'
-                                                ? 'Final'
-                                                : item.status,
-                                          },
-                                          {
-                                            label: 'Completion Date',
-                                            value: item.completionDate,
-                                          },
-                                          item.id
-                                            ? {
-                                                label: 'Plan Details',
-                                                value: (
-                                                  <>
-                                                    <a
-                                                      href={`/plan-summary/${item.organizationId}/${item.id}`}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
-                                                    >
-                                                      Open Plan Summary
-                                                    </a>
-                                                    <small
-                                                      css={disclaimerStyles}
-                                                    >
-                                                      (opens new browser tab)
-                                                    </small>
-                                                  </>
-                                                ),
-                                              }
-                                            : null,
-                                        ]}
-                                      />
+                                      <>
+                                        <ListContent
+                                          rows={[
+                                            {
+                                              label: 'Plan Type',
+                                              value: (
+                                                <GlossaryTerm term="Protection Approach">
+                                                  Protection Approach
+                                                </GlossaryTerm>
+                                              ),
+                                            },
+                                            {
+                                              label: 'Status',
+                                              value:
+                                                item.status ===
+                                                'EPA Final Action'
+                                                  ? 'Final'
+                                                  : item.status,
+                                            },
+                                            {
+                                              label: 'Completion Date',
+                                              value: item.completionDate,
+                                            },
+                                            item.id
+                                              ? {
+                                                  label: 'Plan Details',
+                                                  value: (
+                                                    <>
+                                                      <a
+                                                        href={`/plan-summary/${item.organizationId}/${item.id}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                      >
+                                                        Open Plan Summary
+                                                      </a>
+                                                      <small
+                                                        css={disclaimerStyles}
+                                                      >
+                                                        (opens new browser tab)
+                                                      </small>
+                                                    </>
+                                                  ),
+                                                }
+                                              : null,
+                                          ]}
+                                        />
+                                        {configFiles.status === 'success' && (
+                                          <div
+                                            css={
+                                              waterbodyDownloadContainerStyles
+                                            }
+                                          >
+                                            <WaterbodyDownload
+                                              configFiles={configFiles.data}
+                                              descriptor="plan"
+                                              fileBaseName={`Protection_Project-${item.id}`}
+                                              filters={{
+                                                actionId: item.id,
+                                              }}
+                                              profile="actions"
+                                            />
+                                          </div>
+                                        )}
+                                      </>
                                     )}
                                   </FeatureItem>
                                 );

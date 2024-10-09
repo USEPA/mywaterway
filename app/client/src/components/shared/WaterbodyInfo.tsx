@@ -26,6 +26,7 @@ import Modal from 'components/shared/Modal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Slider from 'components/shared/Slider';
 import { Sparkline } from 'components/shared/Sparkline';
+import WaterbodyDownload from 'components/shared/WaterbodyDownload';
 import {
   createRelativeDailyTimestampRange,
   epochToMonthDay,
@@ -88,6 +89,7 @@ import type {
   FetchState,
   FetchStateWithDefault,
   MonitoringLocationAttributes,
+  Primitive,
   StreamgageMeasurement,
   UsgsStreamgageAttributes,
 } from 'types';
@@ -95,6 +97,7 @@ import type {
 /*
 ## Helpers
 */
+
 function bool(value: string) {
   // Return 'Yes' for truthy values and non-zero strings
   return value && parseInt(value, 10) ? 'Yes' : 'No';
@@ -384,6 +387,10 @@ const tableFooterStyles = css`
   }
 `;
 
+const waterbodyDownloadContainerStyles = css`
+  margin-top: 1.5em;
+`;
+
 /*
 ## Types
 */
@@ -586,6 +593,14 @@ function WaterbodyInfo({
       }) || [];
 
     const reportingCycle = attributes?.reportingcycle;
+
+    const path = window.location.pathname;
+
+    const baseDownloadFilters: Record<string, Primitive | Primitive[]> = {
+      assessmentUnitId: [attributes.assessmentunitidentifier],
+      reportingCycle: attributes.reportingcycle,
+    };
+
     return (
       <>
         {extraContent}
@@ -773,13 +788,38 @@ function WaterbodyInfo({
           ? waterbodyPollutionCategories('Identified Issues')
           : ''}
 
+        {configFiles && (
+          <div css={waterbodyDownloadContainerStyles}>
+            {path.includes('/overview') && (
+              <WaterbodyDownload
+                configFiles={configFiles}
+                fileBaseName={`Waterbody-${attributes.assessmentunitname.replace(/\s/g, '_')}`}
+                filters={baseDownloadFilters}
+                profile="assessmentUnits"
+              />
+            )}
+            {path.includes('/identified-issues') && (
+              <WaterbodyDownload
+                configFiles={configFiles}
+                descriptor="impairment"
+                fileBaseName={`Identified_Issues-${attributes.assessmentunitname.replace(/\s/g, '_')}`}
+                filters={{
+                  ...baseDownloadFilters,
+                  overallStatus: 'Not Supporting',
+                }}
+                profile="assessments"
+              />
+            )}
+          </div>
+        )}
+
         {waterbodyReportLink}
       </>
     );
   };
 
   // jsx
-  const waterbodyStateContent = (
+  const waterbodyStateContent = () => (
     <>
       {labelValue(
         <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
@@ -1341,6 +1381,17 @@ function WaterbodyInfo({
                         })}
                     </tbody>
                   </table>
+                  {configFiles && (
+                    <WaterbodyDownload
+                      configFiles={configFiles}
+                      descriptor="plan"
+                      fileBaseName={`Restoration_Plans-${attributes.assessmentunitidentifier}`}
+                      filters={{
+                        actionId: projects.map((p) => p.id),
+                      }}
+                      profile="actions"
+                    />
+                  )}
                 </>
               )}
             </>
@@ -1371,7 +1422,7 @@ function WaterbodyInfo({
   }
   if (type === 'Nonprofit') content = nonprofitContent;
   if (type === 'Waterbody State Overview' && configFiles)
-    content = waterbodyStateContent;
+    content = waterbodyStateContent();
   if (type === 'Action') content = actionContent;
   if (type === 'County') content = countyContent();
   if (type === 'Tribe') content = tribeContent;

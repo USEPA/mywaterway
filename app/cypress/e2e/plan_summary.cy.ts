@@ -93,4 +93,72 @@ describe('Plan Summary (Actions) page', () => {
       'Plan information is temporarily unavailable, please try again later.',
     );
   });
+
+  it('Displays links to download waterbody data', () => {
+    let orgIdA = '21AWIC';
+    let actionIdA = '40958';
+
+    cy.visit(`/plan-summary/${orgIdA}/${actionIdA}`);
+
+    // wait for the web services to finish (attains/plans is sometimes slow)
+    // the timeout chosen is the same timeout used for the attains/plans fetch
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // Check the request made to Expert Query when downloading CSV data for the plan.
+    cy.intercept('POST', 'https://api.epa.gov/expertquery/api/attains/tmdl').as(
+      'eq-tmdl-data',
+    );
+    cy.findByRole('button', {
+      name: /Download selected data as a CSV file/,
+    }).click();
+    cy.wait('@eq-tmdl-data', { timeout: 120000 }).then((interception) => {
+      expect(interception.request.body)
+        .to.have.property('options')
+        .to.have.property('format', 'csv');
+      expect(interception.request.body)
+        .to.have.property('filters')
+        .to.have.property('actionId', actionIdA);
+      expect(interception.request.body)
+        .to.have.property('columns')
+        .that.is.an('array');
+    });
+
+    // Verify the link to the EQ portal is visible and has the correct href.
+    cy.findByRole('link', { name: /Advanced Filtering/ })
+      .invoke('attr', 'href')
+      .then((href) => {
+        const regex = new RegExp(`\\/tmdl\\?actionId=${actionIdA}`);
+        expect(regex.test(href)).to.be.true;
+      });
+
+    const orgIdB = '21FL303D';
+    const actionIdB = 'FL68645_4B';
+
+    cy.visit(`/plan-summary/${orgIdB}/${actionIdB}`);
+
+    // wait for the web services to finish (attains/plans is sometimes slow)
+    // the timeout chosen is the same timeout used for the attains/plans fetch
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // Check the request made to Expert Query. This should be made to the Actions service.
+    cy.intercept(
+      'POST',
+      'https://api.epa.gov/expertquery/api/attains/actions',
+    ).as('eq-actions-data');
+    cy.findByRole('button', {
+      name: /Download selected data as an XLSX file/,
+    }).click();
+    cy.wait('@eq-actions-data', { timeout: 120000 }).then((interception) => {
+      expect(interception.request.body)
+        .to.have.property('options')
+        .to.have.property('format', 'xlsx');
+      expect(interception.request.body)
+        .to.have.property('filters')
+        .to.have.property('actionId', actionIdB);
+    });
+  });
 });

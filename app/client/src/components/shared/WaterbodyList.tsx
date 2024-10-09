@@ -12,6 +12,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import WaterbodiesDownload from 'components/shared/WaterbodiesDownload';
 // utilities
 import {
   getWaterbodyCondition,
@@ -130,7 +131,24 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
         </span>
       </div>
 
-      <AccordionList title={title}>
+      <AccordionList
+        ariaLabel="List of Waterbodies"
+        title={title}
+        extraListHeaderContent={
+          window.location.pathname.includes('/overview') && (
+            <WaterbodiesDownload
+              disabled={sortedWaterbodies.length === 0}
+              fileBaseName="Waterbodies"
+              filters={{
+                assessmentUnitId: sortedWaterbodies.map(
+                  (graphic) => graphic.attributes.assessmentunitidentifier,
+                ),
+              }}
+              profile="assessmentUnits"
+            />
+          )
+        }
+      >
         {sortedWaterbodies.map((graphic) => {
           /* prettier-ignore */
           const condition = getWaterbodyCondition(graphic.attributes, fieldName).condition;

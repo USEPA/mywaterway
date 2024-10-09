@@ -27,6 +27,7 @@ import {
 } from 'components/shared/KeyMetrics';
 import { diamondIcon } from 'components/shared/MapLegend';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
+import WaterbodiesDownload from 'components/shared/WaterbodiesDownload';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
@@ -779,6 +780,32 @@ function IdentifiedIssues() {
                                   )}
                                 </tbody>
                               </table>
+
+                              <WaterbodiesDownload
+                                descriptor="selected"
+                                disabled={
+                                  !Object.values(parameterToggleObject).some(
+                                    Boolean,
+                                  )
+                                }
+                                fileBaseName={`Identified_Issues-${watershed.huc12}`}
+                                filters={{
+                                  assessmentUnitId:
+                                    cipSummary.data.items[0].assessmentUnits.map(
+                                      (au) => au.assessmentUnitId,
+                                    ),
+                                  overallStatus: 'Not Supporting',
+                                  parameterGroup:
+                                    configFiles.data.impairmentFields
+                                      .filter(
+                                        (f) =>
+                                          parameterToggleObject[f.label] ===
+                                          true,
+                                      )
+                                      .map((f) => f.parameterGroup),
+                                }}
+                                profile="assessments"
+                              />
                             </>
                           )}
                       </>

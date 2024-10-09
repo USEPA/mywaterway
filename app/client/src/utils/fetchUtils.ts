@@ -53,13 +53,13 @@ export function fetchParseCsv(url: string, { worker = true } = {}) {
   });
 }
 
-export function fetchPost(
+export function fetchPost<T>(
   apiUrl: string,
   data: object,
   headers: object,
   timeout: number = defaultTimeout,
   responseType = 'json',
-) {
+): Promise<T> {
   const startTime = performance.now();
   return timeoutPromise(
     timeout,
