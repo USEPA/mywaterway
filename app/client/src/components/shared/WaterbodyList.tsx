@@ -132,6 +132,7 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
       </div>
 
       <AccordionList
+        ariaLabel="List of Waterbodies"
         title={title}
         extraListHeaderContent={
           window.location.pathname.includes('/overview') && (
