@@ -59,6 +59,8 @@ type WaterbodyOverallStatus =
 
 // Gets the type of symbol using the shape's attributes.
 export function getTypeFromAttributes(graphic: __esri.Graphic) {
+  if (graphic?.geometry?.type) return graphic.geometry.type;
+
   let type = 'point';
   if (graphic.attributes.Shape_Length && graphic.attributes.Shape_Area) {
     type = 'polygon';
@@ -99,7 +101,7 @@ export function splitSuggestedSearch(text: string) {
   const coordinatesPart = getPointFromCoordinates(tempCoords);
 
   // remove the coordinates part from initial array
-  const coordinatesString = coordinatesPart ? parts.pop() ?? '' : '';
+  const coordinatesString = coordinatesPart ? (parts.pop() ?? '') : '';
 
   // get the point from the coordinates part
   return {
@@ -1090,8 +1092,8 @@ export function isInScale(layer: __esri.Layer | ParentLayer, scale: number) {
   let inScale = true;
 
   // get the extreme min and max scales of the layer
-  let minScale = 'minScale' in layer ? layer.minScale ?? 0 : 0;
-  let maxScale = 'maxScale' in layer ? layer.maxScale ?? 0 : 0;
+  let minScale = 'minScale' in layer ? (layer.minScale ?? 0) : 0;
+  let maxScale = 'maxScale' in layer ? (layer.maxScale ?? 0) : 0;
 
   if ('sourceJSON' in layer) {
     minScale = layer.sourceJSON?.minScale ?? 0;
