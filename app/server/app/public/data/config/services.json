@@ -16,7 +16,7 @@
   "nonprofits": "https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/",
   "tribal": "https://geopub.epa.gov/arcgis/rest/services/EMEF/Tribal/MapServer",
   "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_116th_Congressional_Districts_all/FeatureServer",
-  "wsio": "https://gispub.epa.gov/arcgis/rest/services/r4/wsio/MapServer/0",
+  "wsio": "https://gispub.epa.gov/arcgis/rest/services/OW/RPS/MapServer/0",
   "waterbodyService": {
     "base": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer",
     "points": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/0",
