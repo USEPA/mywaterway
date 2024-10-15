@@ -960,7 +960,10 @@ function MonitoringAndSensorsTab({
               }
               extraListHeaderContent={
                 monitoringLocationsDisplayed && (
-                  <TogglePanel defaultOpen title="Filter By:">
+                  <TogglePanel
+                    defaultOpen
+                    title="Filter Past Water Conditions By:"
+                  >
                     <div css={selectColumnStyles}>
                       <CharacteristicsSelect
                         selected={selectedCharacteristicOptions}
