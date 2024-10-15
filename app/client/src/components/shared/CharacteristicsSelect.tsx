@@ -1,16 +1,12 @@
 /** @jsxImportSource @emotion/react */
 
 import { useContext, useMemo } from 'react';
-import { css } from '@emotion/react';
 // components
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import PaginatedSelect from 'components/shared/PaginatedSelect';
+import { CountSelect } from 'components/shared/CountSelect';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { useMonitoringLocations } from 'utils/hooks';
-// styles
-import { groupHeadingStyles } from 'styles/index';
 // types
 import type { Option } from 'types';
 
@@ -42,72 +38,25 @@ export function CharacteristicsSelect({
         );
       });
     });
-    return [
-      {
-        label: 'Group',
-        options: Object.entries(uniqueCharacteristics)
-          .map(([key, value]) => ({
-            label: key,
-            value: key,
-            count: value.size,
-          }))
-          .sort((a, b) => a.label.localeCompare(b.label)),
-      },
-    ];
+    return Object.entries(uniqueCharacteristics)
+      .map(([key, value]) => ({
+        label: key,
+        value: key,
+        count: value.size,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [monitoringPeriodOfRecordStatus, monitoringLocations]);
 
-  const displayedSelected = selected.map((option) => ({
-    label: option.label,
-    value: option.value,
-  }));
-
   return (
-    <div css={selectContainerStyles}>
-      <span css={selectLabelStyles}>
-        Filter by{' '}
-        <GlossaryTerm term="Characteristics">Characteristics</GlossaryTerm>:
-      </span>
-      <PaginatedSelect
-        aria-label="Filter by Characteristics"
-        formatGroupLabel={formatGroupLabel}
-        formatOptionLabel={formatOptionLabel}
-        isDisabled={monitoringPeriodOfRecordStatus === 'failure'}
-        isLoading={monitoringPeriodOfRecordStatus === 'pending'}
-        onChange={onChange}
-        options={allCharacteristicOptions}
-        placeholder="Select one or more characteristics..."
-        styles={{
-          groupHeading: (defaultStyles) => ({
-            ...defaultStyles,
-            ...groupHeadingStyles,
-            padding: 0,
-            color: '#000',
-            backgroundColor: '#fff',
-          }),
-          option: (defaultStyles) => ({ ...defaultStyles, padding: 0 }),
-        }}
-        value={displayedSelected}
-      />
-    </div>
-  );
-}
-
-function formatGroupLabel() {
-  return (
-    <div css={gridHeaderStyles}>
-      <div>Characteristic</div>
-      <div># of Locations with Characteristic</div>
-    </div>
-  );
-}
-
-function formatOptionLabel(option: Option) {
-  if (!option.count) return option.label;
-  return (
-    <div css={gridStyles}>
-      <div>{option.label}</div>
-      <div>{option.count}</div>
-    </div>
+    <CountSelect
+      countLabel="Locations with Characteristic"
+      glossaryTerm="Characteristics"
+      label="characteristic"
+      onChange={onChange}
+      options={allCharacteristicOptions}
+      selected={selected}
+      status={monitoringPeriodOfRecordStatus}
+    />
   );
 }
 
@@ -115,39 +64,5 @@ type CharacteristicsSelectProps = {
   selected: Readonly<Option[]>;
   onChange: (selected: Readonly<Option[]>) => void;
 };
-
-const gridStyles = css`
-  display: grid;
-  grid-template-columns: repeat(2, 75% 25%);
-
-  div {
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-  }
-
-  div:last-of-type {
-    text-align: right;
-    justify-content: flex-end;
-  }
-`;
-
-const gridHeaderStyles = css`
-  ${gridStyles}
-
-  border-bottom: 2px solid #dee2e6;
-  font-weight: bold;
-`;
-
-const selectContainerStyles = css`
-  width: 100%;
-`;
-
-const selectLabelStyles = css`
-  display: inline-block;
-  margin-bottom: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: bold;
-`;
 
 export default CharacteristicsSelect;
