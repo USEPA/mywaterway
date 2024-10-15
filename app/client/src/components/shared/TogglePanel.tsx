@@ -41,7 +41,11 @@ const controlStyles = css`
   }
 `;
 
-export function TogglePanel({ children, defaultOpen = false, title }: Props) {
+export function TogglePanel({
+  children,
+  defaultOpen = false,
+  title,
+}: Readonly<Props>) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
