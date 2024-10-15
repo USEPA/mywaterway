@@ -11,8 +11,9 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMonitoringLocations } from 'utils/hooks';
 // styles
 import { groupHeadingStyles } from 'styles/index';
+// types
+import type { Option } from 'types';
 
-export default CharacteristicsSelect;
 export function CharacteristicsSelect({
   selected,
   onChange,
@@ -55,9 +56,10 @@ export function CharacteristicsSelect({
     ];
   }, [monitoringPeriodOfRecordStatus, monitoringLocations]);
 
-  const selectedOptions = useMemo(() => {
-    return selected.map((s) => ({ label: s, value: s }));
-  }, [selected]);
+  const displayedSelected = selected.map((option) => ({
+    label: option.label,
+    value: option.value,
+  }));
 
   return (
     <div css={selectContainerStyles}>
@@ -71,7 +73,7 @@ export function CharacteristicsSelect({
         formatOptionLabel={formatOptionLabel}
         isDisabled={monitoringPeriodOfRecordStatus === 'failure'}
         isLoading={monitoringPeriodOfRecordStatus === 'pending'}
-        onChange={(options) => onChange(options.map((option) => option.value))}
+        onChange={onChange}
         options={allCharacteristicOptions}
         placeholder="Select one or more characteristics..."
         styles={{
@@ -84,7 +86,7 @@ export function CharacteristicsSelect({
           }),
           option: (defaultStyles) => ({ ...defaultStyles, padding: 0 }),
         }}
-        value={selectedOptions}
+        value={displayedSelected}
       />
     </div>
   );
@@ -99,7 +101,7 @@ function formatGroupLabel() {
   );
 }
 
-function formatOptionLabel(option: OptionType) {
+function formatOptionLabel(option: Option) {
   if (!option.count) return option.label;
   return (
     <div css={gridStyles}>
@@ -110,14 +112,8 @@ function formatOptionLabel(option: OptionType) {
 }
 
 type CharacteristicsSelectProps = {
-  selected: string[];
-  onChange: (selected: string[]) => void;
-};
-
-type OptionType = {
-  count?: number;
-  label: string;
-  value: string;
+  selected: Readonly<Option[]>;
+  onChange: (selected: Readonly<Option[]>) => void;
 };
 
 const gridStyles = css`
@@ -153,3 +149,5 @@ const selectLabelStyles = css`
   font-size: 0.875rem;
   font-weight: bold;
 `;
+
+export default CharacteristicsSelect;

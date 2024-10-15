@@ -81,6 +81,7 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 // types
 import type { ReactNode } from 'react';
+import type { Option } from 'types';
 
 const mapPadding = 20;
 
@@ -309,13 +310,17 @@ function TribalMapList({ activeState, windowHeight }: Props) {
     setListShown(true);
   }, [width]);
 
-  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
+  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
+    useState<Readonly<Option[]>>([]);
+  const selectedCharacteristics = selectedCharacteristicOptions.map(
+    (opt) => opt.value,
+  );
 
   // Reset data if the user switches locations
   const [prevState, setPrevState] = useState(activeState);
   if (activeState !== prevState) {
     setPrevState(activeState);
-    setSelectedCharacteristics([]);
+    setSelectedCharacteristicOptions([]);
     if (monitoringLocationsLayer) {
       monitoringLocationsLayer.definitionExpression = '';
     }
@@ -575,8 +580,10 @@ function TribalMapList({ activeState, windowHeight }: Props) {
                 <MonitoringTab
                   activeState={activeState}
                   monitoringLocations={filteredMonitoringLocations}
-                  selectedCharacteristics={selectedCharacteristics}
-                  setSelectedCharacteristics={setSelectedCharacteristics}
+                  selectedCharacteristicOptions={selectedCharacteristicOptions}
+                  setSelectedCharacteristicOptions={
+                    setSelectedCharacteristicOptions
+                  }
                 />
               </TabPanel>
             </TabPanels>
@@ -972,15 +979,15 @@ function TribalMap({
 type MonitoringTabProps = {
   activeState: Object;
   monitoringLocations: Object[];
-  selectedCharacteristics: string[];
-  setSelectedCharacteristics: (selected: string[]) => void;
+  selectedCharacteristicOptions: Readonly<Option[]>;
+  setSelectedCharacteristicOptions: (selected: Readonly<Option[]>) => void;
 };
 
 function MonitoringTab({
   activeState,
   monitoringLocations,
-  selectedCharacteristics,
-  setSelectedCharacteristics,
+  selectedCharacteristicOptions,
+  setSelectedCharacteristicOptions,
 }: MonitoringTabProps) {
   const configFiles = useConfigFilesState();
 
@@ -1010,17 +1017,17 @@ function MonitoringTab({
         <>
           <strong>{sortedMonitoringAndSensors.length}</strong> of{' '}
           <strong>{monitoringLocations.length}</strong> locations with{' '}
-          {selectedCharacteristics.length > 0
+          {selectedCharacteristicOptions.length > 0
             ? 'the selected characteristic'
             : 'data'}
-          {selectedCharacteristics.length > 1 && 's'} in the{' '}
+          {selectedCharacteristicOptions.length > 1 && 's'} in the{' '}
           <em>{activeState.label}</em> watershed.
         </>
       }
       extraListHeaderContent={
         <CharacteristicsSelect
-          selected={selectedCharacteristics}
-          onChange={setSelectedCharacteristics}
+          selected={selectedCharacteristicOptions}
+          onChange={setSelectedCharacteristicOptions}
         />
       }
       onSortChange={({ value }) => setMonitoringLocationsSortedBy(value)}

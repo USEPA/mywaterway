@@ -26,6 +26,7 @@ import {
   waterwayIcon,
 } from 'components/shared/MapLegend';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import OrganizationsSelect from 'components/shared/OrganizationsSelect';
 import PastWaterConditionsFilters from 'components/shared/PastWaterConditionsFilters';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
@@ -53,6 +54,8 @@ import {
 } from 'config/errorMessages';
 // styles
 import { colors, tabLegendStyles, toggleTableStyles } from 'styles/index';
+// types
+import type { MonitoringLocationAttributes, Option } from 'types';
 
 /*
  * Styles
@@ -75,6 +78,13 @@ const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   margin-bottom: 1em;
   text-align: center;
+`;
+
+const selectColumnStyles = css`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-bottom: 0.5em;
 `;
 
 const showLessMoreStyles = css`
@@ -592,7 +602,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const [
     locationsFilteredByCharcGroupAndTime,
     setLocationsFilteredByCharcGroupAndTime,
-  ] = useState([]);
+  ] = useState<MonitoringLocationAttributes[]>([]);
   const [sortBy, setSortBy] = useState('locationName');
 
   const sortedMonitoringLocations = useMemo(() => {
@@ -605,11 +615,21 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
     });
   }, [locationsFilteredByCharcGroupAndTime, sortBy]);
 
-  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
+  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
+    useState<Readonly<Option[]>>([]);
+  const selectedCharacteristics = selectedCharacteristicOptions.map(
+    (opt) => opt.value,
+  );
+
+  const [selectedOrganizationOptions, setSelectedOrganizationOptions] =
+    useState<Readonly<Option[]>>([]);
+  const selectedOrganizations = selectedOrganizationOptions.map(
+    (option) => option.value,
+  );
 
   // Filter the displayed locations by selected characteristics
-  const filteredMonitoringLocations = sortedMonitoringLocations.filter(
-    (location) => {
+  const filteredMonitoringLocations = sortedMonitoringLocations
+    .filter((location) => {
       if (!selectedCharacteristics.length) {
         return true;
       }
@@ -617,8 +637,14 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
         if (selectedCharacteristics.includes(characteristic)) return true;
       }
       return false;
-    },
-  );
+    })
+    .filter((location) => {
+      if (!selectedOrganizations.length) {
+        return true;
+      }
+      if (selectedOrganizations.includes(location.orgId)) return true;
+      return false;
+    });
 
   const totalLocationsCount = monitoringGroups['All']?.stations.length;
   const displayedLocationsCount =
@@ -743,7 +769,7 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
   const [prevHuc12, setPrevHuc12] = useState(huc12);
   if (huc12 !== prevHuc12) {
     setPrevHuc12(huc12);
-    setSelectedCharacteristics([]);
+    setSelectedCharacteristicOptions([]);
   }
 
   if (monitoringLocations.status === 'pending') return <LoadingSpinner />;
@@ -834,10 +860,16 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 </span>
               }
               extraListHeaderContent={
-                <CharacteristicsSelect
-                  selected={selectedCharacteristics}
-                  onChange={setSelectedCharacteristics}
-                />
+                <div css={selectColumnStyles}>
+                  <CharacteristicsSelect
+                    selected={selectedCharacteristicOptions}
+                    onChange={setSelectedCharacteristicOptions}
+                  />
+                  <OrganizationsSelect
+                    selected={selectedOrganizationOptions}
+                    onChange={setSelectedOrganizationOptions}
+                  />
+                </div>
               }
               onSortChange={handleSortChange}
               onExpandCollapse={handleExpandCollapse}
