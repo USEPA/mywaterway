@@ -30,6 +30,7 @@ import OrganizationsSelect from 'components/shared/OrganizationsSelect';
 import PastWaterConditionsFilters from 'components/shared/PastWaterConditionsFilters';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
+import TogglePanel from 'components/shared/TogglePanel';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
@@ -860,16 +861,18 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                 </span>
               }
               extraListHeaderContent={
-                <div css={selectColumnStyles}>
-                  <CharacteristicsSelect
-                    selected={selectedCharacteristicOptions}
-                    onChange={setSelectedCharacteristicOptions}
-                  />
-                  <OrganizationsSelect
-                    selected={selectedOrganizationOptions}
-                    onChange={setSelectedOrganizationOptions}
-                  />
-                </div>
+                <TogglePanel defaultOpen title="Filter By:">
+                  <div css={selectColumnStyles}>
+                    <CharacteristicsSelect
+                      selected={selectedCharacteristicOptions}
+                      onChange={setSelectedCharacteristicOptions}
+                    />
+                    <OrganizationsSelect
+                      selected={selectedOrganizationOptions}
+                      onChange={setSelectedOrganizationOptions}
+                    />
+                  </div>
+                </TogglePanel>
               }
               onSortChange={handleSortChange}
               onExpandCollapse={handleExpandCollapse}

@@ -33,6 +33,7 @@ import {
 } from 'components/shared/KeyMetrics';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import { tabsStyles } from 'components/shared/ContentTabs';
+import TogglePanel from 'components/shared/TogglePanel';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
@@ -959,16 +960,18 @@ function MonitoringAndSensorsTab({
               }
               extraListHeaderContent={
                 monitoringLocationsDisplayed && (
-                  <div css={selectColumnStyles}>
-                    <CharacteristicsSelect
-                      selected={selectedCharacteristicOptions}
-                      onChange={setSelectedCharacteristicOptions}
-                    />
-                    <OrganizationsSelect
-                      selected={selectedOrganizationOptions}
-                      onChange={setSelectedOrganizationOptions}
-                    />
-                  </div>
+                  <TogglePanel defaultOpen title="Filter By:">
+                    <div css={selectColumnStyles}>
+                      <CharacteristicsSelect
+                        selected={selectedCharacteristicOptions}
+                        onChange={setSelectedCharacteristicOptions}
+                      />
+                      <OrganizationsSelect
+                        selected={selectedOrganizationOptions}
+                        onChange={setSelectedOrganizationOptions}
+                      />
+                    </div>
+                  </TogglePanel>
                 )
               }
               onSortChange={handleSortChange}
