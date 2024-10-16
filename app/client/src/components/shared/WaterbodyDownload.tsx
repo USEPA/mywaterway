@@ -98,7 +98,7 @@ export function WaterbodyDownload({
                     options: {
                       format: fileType,
                     },
-                    columns: configFiles.eqProfileColumns.assessmentUnits,
+                    columns: configFiles.eqProfileColumns[profile],
                   }}
                   fileBaseName={fileBaseName}
                   fileType={fileType}
