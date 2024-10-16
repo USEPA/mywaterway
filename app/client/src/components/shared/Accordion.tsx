@@ -149,6 +149,12 @@ function AccordionList({
       {(includeSort || title || contentExpandCollapse || !expandDisabled) && (
         <div css={listHeaderStyles(includeSort || !!title)}>
           {title && !displayTitleInFlex && <p css={titleStyles}>{title}</p>}
+          {extraListHeaderContent && (
+            <>
+              <hr />
+              {extraListHeaderContent}
+            </>
+          )}
           <div css={columnsStyles}>
             <div
               css={accordionOptionsContainerStyles(
@@ -198,12 +204,6 @@ function AccordionList({
               )}
             </div>
           </div>
-          {extraListHeaderContent && (
-            <>
-              <hr />
-              {extraListHeaderContent}
-            </>
-          )}
         </div>
       )}
 

@@ -18,6 +18,7 @@ import {
   squareIcon,
   waterwayIcon,
 } from 'components/shared/MapLegend';
+import OrganizationsSelect from 'components/shared/OrganizationsSelect';
 import Switch from 'components/shared/Switch';
 import WaterbodyList from 'components/shared/WaterbodyList';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
@@ -32,6 +33,7 @@ import {
 } from 'components/shared/KeyMetrics';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import { tabsStyles } from 'components/shared/ContentTabs';
+import TogglePanel from 'components/shared/TogglePanel';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
@@ -58,6 +60,8 @@ import {
 } from 'config/errorMessages';
 // styles
 import { colors, tabLegendStyles, toggleTableStyles } from 'styles/index';
+// types
+import type { Option } from 'types';
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -91,6 +95,13 @@ const centeredTextStyles = css`
 
 const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
+`;
+
+const selectColumnStyles = css`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-bottom: 0.5em;
 `;
 
 const showLessMoreStyles = css`
@@ -460,7 +471,17 @@ function MonitoringAndSensorsTab({
     },
   );
 
-  const [selectedCharacteristics, setSelectedCharacteristics] = useState([]);
+  const [selectedCharacteristicOptions, setSelectedCharacteristicOptions] =
+    useState<Readonly<Option[]>>([]);
+  const selectedCharacteristics = selectedCharacteristicOptions.map(
+    (option) => option.value,
+  );
+
+  const [selectedOrganizationOptions, setSelectedOrganizationOptions] =
+    useState<Readonly<Option[]>>([]);
+  const selectedOrganizations = selectedOrganizationOptions.map(
+    (option) => option.value,
+  );
 
   const filteredMonitoringAndSensors = sortedMonitoringAndSensors
     .filter((item) => {
@@ -490,6 +511,16 @@ function MonitoringAndSensorsTab({
       for (let characteristic of Object.keys(item.totalsByCharacteristic)) {
         if (selectedCharacteristics.includes(characteristic)) return true;
       }
+      return false;
+    })
+    .filter((item) => {
+      if (
+        item.monitoringType !== 'Past Water Conditions' ||
+        !selectedOrganizations.length
+      ) {
+        return true;
+      }
+      if (selectedOrganizations.includes(item.orgId)) return true;
       return false;
     });
 
@@ -705,7 +736,7 @@ function MonitoringAndSensorsTab({
   const [prevHuc12, setPrevHuc12] = useState(huc12);
   if (huc12 !== prevHuc12) {
     setPrevHuc12(huc12);
-    setSelectedCharacteristics([]);
+    setSelectedCharacteristicOptions([]);
   }
   if (
     cyanWaterbodiesStatus === 'failure' &&
@@ -929,10 +960,21 @@ function MonitoringAndSensorsTab({
               }
               extraListHeaderContent={
                 monitoringLocationsDisplayed && (
-                  <CharacteristicsSelect
-                    selected={selectedCharacteristics}
-                    onChange={setSelectedCharacteristics}
-                  />
+                  <TogglePanel
+                    defaultOpen
+                    title="Filter Past Water Conditions By:"
+                  >
+                    <div css={selectColumnStyles}>
+                      <CharacteristicsSelect
+                        selected={selectedCharacteristicOptions}
+                        onChange={setSelectedCharacteristicOptions}
+                      />
+                      <OrganizationsSelect
+                        selected={selectedOrganizationOptions}
+                        onChange={setSelectedOrganizationOptions}
+                      />
+                    </div>
+                  </TogglePanel>
                 )
               }
               onSortChange={handleSortChange}

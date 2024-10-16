@@ -441,6 +441,12 @@ export interface NonProfitAttributes {
   type: 'nonprofit';
 }
 
+export type Option = {
+  count?: number;
+  label: string;
+  value: string;
+};
+
 export type ParameterToggleObject = { [key: string]: boolean };
 
 export type ParentLayer = __esri.GroupLayer | SuperLayer;
