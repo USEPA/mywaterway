@@ -51,7 +51,6 @@ import { useSurroundingsState } from 'contexts/Surroundings';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   hasSublayers,
-  isFeatureLayer,
   isGroupLayer,
   isPolygon,
   shallowCompare,
