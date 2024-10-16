@@ -51,6 +51,7 @@ import { useSurroundingsState } from 'contexts/Surroundings';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   hasSublayers,
+  isFeatureLayer,
   isGroupLayer,
   isPolygon,
   shallowCompare,
@@ -1812,9 +1813,10 @@ function ShowSelectedUpstreamWatershed({
   // Disable "selection mode" and/or restore the
   // initial visibility of the watersheds layer
   const cancelSelection = useCallback(() => {
-    if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+    if (watershedsLayer)
+      updateVisibleLayers({ watershedsLayer: watershedsVisible });
     setSelectionActive(false);
-  }, [watershedsLayer, watershedsVisible]);
+  }, [updateVisibleLayers, watershedsLayer, watershedsVisible]);
 
   // Get the selected watershed, search for
   // its upstream watershed, and draw it
@@ -1967,7 +1969,9 @@ function ShowSelectedUpstreamWatershed({
 
     if (watershedsLayer) {
       setWatershedsVisible(watershedsLayer.visible);
-      watershedsLayer.visible = true;
+      updateVisibleLayers({
+        watershedsLayer: true,
+      });
     }
 
     setSelectionActive(true);
@@ -1984,6 +1988,9 @@ function ShowSelectedUpstreamWatershed({
     if (!isClick(ev)) return;
 
     setInstructionsVisible(false);
+    updateVisibleLayers({
+      watershedsLayer: watershedsVisible,
+    });
   }
 
   return (
