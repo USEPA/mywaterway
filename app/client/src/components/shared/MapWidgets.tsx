@@ -2017,6 +2017,7 @@ function ShowSelectedUpstreamWatershed({
   function handleCloseClick(ev: React.KeyboardEvent | React.MouseEvent) {
     if (!isClick(ev)) return;
 
+    setSelectionActive(false);
     setInstructionsVisible(false);
     updateVisibleLayers({
       watershedsLayer: watershedsVisible,
