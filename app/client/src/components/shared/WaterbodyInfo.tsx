@@ -806,7 +806,7 @@ function WaterbodyInfo({
               descriptor={
                 path.includes('/identified-issues') ? 'impairment' : undefined
               }
-              fileBaseName={`${fileBaseNameBase}-${attributes.assessmentunitname.replace(/\s/g, '_')}`}
+              fileBaseName={`${fileBaseNameBase}-${attributes.assessmentunitidentifier}`}
               filters={downloadFilters}
               profile="assessments"
             />
