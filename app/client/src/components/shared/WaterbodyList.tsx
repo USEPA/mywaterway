@@ -144,7 +144,7 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
                   (graphic) => graphic.attributes.assessmentunitidentifier,
                 ),
               }}
-              profile="assessmentUnits"
+              profile="assessments"
             />
           )
         }
