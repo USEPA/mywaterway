@@ -846,7 +846,13 @@ function PastConditionsTab({ setMonitoringDisplayed }) {
                   monitoring sample locations
                   {selectedCharacteristics.length > 0 &&
                     ' with the selected characteristic'}
-                  {selectedCharacteristics.length > 1 && 's'} in the{' '}
+                  {selectedCharacteristics.length > 1 && 's'}
+                  {selectedOrganizations.length > 0 &&
+                    selectedCharacteristics.length > 0 &&
+                    ' and'}
+                  {selectedOrganizations.length > 0 &&
+                    ' in the selected organization'}
+                  {selectedOrganizations.length > 1 && 's'} in the{' '}
                   <em>{watershed.name}</em> watershed
                   {annualRecordsReady && (
                     <>
