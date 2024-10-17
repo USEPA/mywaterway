@@ -1,6 +1,6 @@
-describe('Community Visual Regression Testing', () => {
-  const mapId = '#hmw-map-container';
+const mapId = '#hmw-map-container';
 
+describe('Community Visual Regression Testing', () => {
   it('Verify DC GIS data displays correctly', () => {
     cy.visit('/community/dc/overview');
 
@@ -125,6 +125,28 @@ describe('Community Visual Regression Testing', () => {
 
     cy.get(mapId).matchSnapshot('tucson-surrounding-streamgages');
   });
+
+  it('Verify upstream watershed button', () => {
+    cy.visit('/community/dc/overview');
+
+    cy.waitForLoadFinish();
+
+    cy.findByRole('button', { name: 'View Upstream Watershed' }).click();
+
+    cy.waitForLoadFinish();
+
+    // this is needed as a workaround for the delay between the loading spinner
+    // disappearing and the waterbodies being drawn on the map
+    cy.wait(10000);
+
+    cy.get(mapId).matchSnapshot('verify-upstream-watershed');
+
+    cy.findByRole('button', { name: 'Hide Upstream Watershed' }).click();
+
+    cy.wait(2000);
+
+    cy.get(mapId).matchSnapshot('verify-dc-gis-display');
+  });
 });
 
 describe('State Visual Regression Testing', () => {
@@ -169,5 +191,40 @@ describe('State Visual Regression Testing', () => {
     // wait for animations to settle and check the assessed chart
     cy.wait(10000);
     cy.get(surveysChartId).matchSnapshot('verify-surveys-chart-display');
+  });
+});
+
+describe('Tribe Visual Regression Testing', () => {
+  it('Verify tribe upstream watershed button', () => {
+    cy.fixture('upstreamWatershed.json').then((file) => {
+      // force clicking on a specific watershed
+      cy.intercept(
+        'https://gispub.epa.gov/arcgis/rest/services/OW/CatchmentFabric/MapServer/2/query?*',
+        {
+          statusCode: 200,
+          body: file,
+        },
+      ).as('upstream-watershed-query');
+
+      cy.visit('/tribe/ABSHAWNEE');
+
+      cy.waitForLoadFinish();
+
+      cy.wait(10000);
+
+      cy.get(mapId).matchSnapshot('verify-tribe-gis');
+
+      cy.findByRole('button', { name: 'View Upstream Watershed' }).click();
+
+      cy.get(mapId).click();
+
+      cy.waitForLoadFinish();
+
+      cy.get(mapId).matchSnapshot('verify-tribe-upstream-watershed');
+
+      cy.findByRole('button', { name: 'Hide Upstream Watershed' }).click();
+      cy.wait(2000);
+      cy.get(mapId).matchSnapshot('verify-tribe-gis');
+    });
   });
 });

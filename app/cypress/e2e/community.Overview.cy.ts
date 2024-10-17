@@ -159,7 +159,7 @@ describe('Overview Tab', () => {
     // Check the request made to Expert Query when downloading CSV data for all waterbodies in the list.
     cy.intercept(
       'POST',
-      'https://api.epa.gov/expertquery/api/attains/assessmentUnits',
+      'https://api.epa.gov/expertquery/api/attains/assessments',
     ).as('eq-data');
     cy.findByRole('button', {
       name: /Download selected data as a CSV file/,

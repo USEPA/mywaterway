@@ -795,7 +795,7 @@ function WaterbodyInfo({
                 configFiles={configFiles}
                 fileBaseName={`Waterbody-${attributes.assessmentunitname.replace(/\s/g, '_')}`}
                 filters={baseDownloadFilters}
-                profile="assessmentUnits"
+                profile="assessments"
               />
             )}
             {path.includes('/identified-issues') && (
