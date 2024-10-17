@@ -76,7 +76,7 @@ type Props = {
 };
 
 function WaterbodyList({ waterbodies, title, fieldName }: Props) {
-  const { cipSummary } = useContext(LocationSearchContext);
+  const { cipSummary, watershed } = useContext(LocationSearchContext);
   const configFiles = useConfigFilesState();
 
   // if huc12summaryservice is down
@@ -101,6 +101,26 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
         objB.attributes.assessmentunitname,
       );
     });
+
+  let useGroup = null;
+  let fileBaseName = 'Waterbodies';
+  if (fieldName) {
+    const useField = configFiles.data.useFields.find(
+      (uf) => uf.value === fieldName,
+    );
+    if (useField) {
+      useGroup = useField.value.toUpperCase();
+      fileBaseName = useField.label.replace(/\s/g, '_');
+    }
+  }
+  if (watershed) fileBaseName += `-${watershed.huc12}`;
+
+  const downloadFilters = {
+    assessmentUnitId: sortedWaterbodies.map(
+      (graphic) => graphic.attributes.assessmentunitidentifier,
+    ),
+    ...(useGroup ? { useGroup } : {}),
+  };
 
   // if no waterbodies found
   if (sortedWaterbodies.length <= 0) return null;
@@ -135,18 +155,12 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
         ariaLabel="List of Waterbodies"
         title={title}
         extraListHeaderContent={
-          window.location.pathname.includes('/overview') && (
-            <WaterbodiesDownload
-              disabled={sortedWaterbodies.length === 0}
-              fileBaseName="Waterbodies"
-              filters={{
-                assessmentUnitId: sortedWaterbodies.map(
-                  (graphic) => graphic.attributes.assessmentunitidentifier,
-                ),
-              }}
-              profile="assessments"
-            />
-          )
+          <WaterbodiesDownload
+            disabled={sortedWaterbodies.length === 0}
+            fileBaseName={fileBaseName}
+            filters={downloadFilters}
+            profile="assessments"
+          />
         }
       >
         {sortedWaterbodies.map((graphic) => {
