@@ -1077,14 +1077,21 @@ function WaterbodyReport() {
       {configFiles.status === 'success' && (
         <div css={modifiedBoxSectionStyles}>
           <hr />
-          <WaterbodyDownload
-            configFiles={configFiles.data}
-            fileBaseName={`Waterbody-${auId}`}
-            filters={{
-              assessmentUnitId: auId!,
-            }}
-            profile={'assessments'}
-          />
+          {reportingCycleFetch.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : (
+            <WaterbodyDownload
+              configFiles={configFiles.data}
+              fileBaseName={`Waterbody-${auId}`}
+              filters={{
+                assessmentUnitId: auId!,
+                ...(reportingCycleFetch.status === 'success' && {
+                  reportingCycle: reportingCycleFetch.year,
+                }),
+              }}
+              profile={'assessments'}
+            />
+          )}
         </div>
       )}
     </div>
