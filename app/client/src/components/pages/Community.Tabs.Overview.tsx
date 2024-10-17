@@ -738,6 +738,15 @@ function MonitoringAndSensorsTab({
     setPrevHuc12(huc12);
     setSelectedCharacteristicOptions([]);
   }
+
+  const monitoringLocationsFilteredBy = [];
+  if (selectedCharacteristics.length) {
+    monitoringLocationsFilteredBy.push('characteristics');
+  }
+  if (selectedOrganizations.length) {
+    monitoringLocationsFilteredBy.push('organizations');
+  }
+
   if (
     cyanWaterbodiesStatus === 'failure' &&
     streamgagesStatus === 'failure' &&
@@ -947,12 +956,12 @@ function MonitoringAndSensorsTab({
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
                   <strong>{allMonitoringAndSensors.length}</strong> locations{' '}
                   with data in the <em>{watershed.name}</em> watershed.
-                  {selectedCharacteristics.length > 0 && (
+                  {monitoringLocationsFilteredBy.length > 0 && (
                     <>
                       <br />
                       <small>
-                        (Past Water Conditions filtered by one or more
-                        characteristics)
+                        (Past Water Conditions filtered by one or more{' '}
+                        {monitoringLocationsFilteredBy.join(' and ')})
                       </small>
                     </>
                   )}
