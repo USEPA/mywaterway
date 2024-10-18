@@ -1082,6 +1082,7 @@ function WaterbodyReport() {
           ) : (
             <WaterbodyDownload
               configFiles={configFiles.data}
+              descriptor={`Download Waterbody Data (${reportingCycleFetch.status === 'success' ? reportingCycleFetch.year : 'latest'})`}
               fileBaseName={`Waterbody-${auId}`}
               filters={{
                 assessmentUnitId: auId!,

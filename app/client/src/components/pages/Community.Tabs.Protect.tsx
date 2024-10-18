@@ -1356,7 +1356,7 @@ function Protect() {
                                           >
                                             <WaterbodyDownload
                                               configFiles={configFiles.data}
-                                              descriptor="plan"
+                                              descriptor="Download Plan Data"
                                               fileBaseName={`Protection_Project-${item.id}`}
                                               filters={{
                                                 actionId: item.id,

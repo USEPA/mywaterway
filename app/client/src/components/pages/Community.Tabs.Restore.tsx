@@ -465,7 +465,7 @@ function Restore() {
                                   <div css={waterbodyDownloadContainerStyles}>
                                     <WaterbodyDownload
                                       configFiles={configFiles.data}
-                                      descriptor="plan"
+                                      descriptor="Download Plan Data"
                                       fileBaseName={`Restoration_Plan-${item.actionIdentifier}`}
                                       filters={{
                                         actionId: item.actionIdentifier,

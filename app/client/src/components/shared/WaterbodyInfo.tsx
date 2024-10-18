@@ -1384,7 +1384,7 @@ function WaterbodyInfo({
                   {configFiles && (
                     <WaterbodyDownload
                       configFiles={configFiles}
-                      descriptor="plan"
+                      descriptor="Download Plan Data"
                       fileBaseName={`Restoration_Plans-${attributes.assessmentunitidentifier}`}
                       filters={{
                         actionId: projects.map((p) => p.id),
