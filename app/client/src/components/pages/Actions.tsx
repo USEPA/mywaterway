@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
+import { Fragment, useContext, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
@@ -481,10 +481,11 @@ function Actions() {
 
   // calculate height of div holding actions info
   const [infoHeight, setInfoHeight] = useState(0);
-  const measuredRef = useCallback((node) => {
-    if (!node) return;
-    setInfoHeight(node.getBoundingClientRect().height);
-  }, []);
+  const measuredRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!measuredRef?.current) return;
+    setInfoHeight(measuredRef.current.getBoundingClientRect().height);
+  }, [measuredRef.current]);
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
