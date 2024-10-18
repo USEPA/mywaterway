@@ -13,7 +13,6 @@ import { disclaimerStyles, iconStyles } from 'styles';
 import type { ConfigFiles } from 'contexts/ConfigFiles';
 import type { AttainsProfile, Primitive } from 'types';
 // utils
-import { titleCase } from 'utils/utils';
 
 const filterAndDownloadStyles = css`
   display: inline-grid;
@@ -50,7 +49,7 @@ const profileKeyToTitle: Record<AttainsProfile, string> = {
 
 export function WaterbodyDownload({
   configFiles,
-  descriptor = 'waterbody',
+  descriptor = 'Download Waterbody Data',
   fileBaseName,
   filters,
   profile,
@@ -85,7 +84,7 @@ export function WaterbodyDownload({
           <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
         </div>
         <div className="download-cell">
-          <b>Download {titleCase(descriptor)} Data</b>
+          <b>{descriptor}</b>
           <span>
             {(['xlsx', 'csv'] as const).map((fileType, i) => (
               <Fragment key={fileType}>

@@ -541,7 +541,7 @@ function Actions() {
           <hr />
           <WaterbodyDownload
             configFiles={configFiles.data}
-            descriptor="plan"
+            descriptor="Download Plan Data"
             fileBaseName={`Restoration_Plan-${actionId}`}
             filters={{
               actionId,

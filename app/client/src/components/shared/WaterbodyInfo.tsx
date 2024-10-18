@@ -596,10 +596,21 @@ function WaterbodyInfo({
 
     const path = window.location.pathname;
 
-    const baseDownloadFilters: Record<string, Primitive | Primitive[]> = {
+    const downloadFilters: Record<string, Primitive | Primitive[]> = {
       assessmentUnitId: [attributes.assessmentunitidentifier],
       reportingCycle: attributes.reportingcycle,
     };
+    let fileBaseNameBase = 'Waterbody';
+    if (path.includes('identified-issues')) {
+      fileBaseNameBase = 'Identified_Issues';
+      downloadFilters.overallStatus = 'Not Supporting';
+    } else if (field) {
+      const useField = configFiles?.useFields.find((uf) => uf.value === field);
+      if (useField) {
+        fileBaseNameBase = useField.label.replace(/\s/g, '_');
+        downloadFilters.useGroup = useField.value.toUpperCase();
+      }
+    }
 
     return (
       <>
@@ -790,26 +801,15 @@ function WaterbodyInfo({
 
         {configFiles && (
           <div css={waterbodyDownloadContainerStyles}>
-            {path.includes('/overview') && (
-              <WaterbodyDownload
-                configFiles={configFiles}
-                fileBaseName={`Waterbody-${attributes.assessmentunitname.replace(/\s/g, '_')}`}
-                filters={baseDownloadFilters}
-                profile="assessments"
-              />
-            )}
-            {path.includes('/identified-issues') && (
-              <WaterbodyDownload
-                configFiles={configFiles}
-                descriptor="impairment"
-                fileBaseName={`Identified_Issues-${attributes.assessmentunitname.replace(/\s/g, '_')}`}
-                filters={{
-                  ...baseDownloadFilters,
-                  overallStatus: 'Not Supporting',
-                }}
-                profile="assessments"
-              />
-            )}
+            <WaterbodyDownload
+              configFiles={configFiles}
+              descriptor={
+                path.includes('/identified-issues') ? 'impairment' : undefined
+              }
+              fileBaseName={`${fileBaseNameBase}-${attributes.assessmentunitidentifier}`}
+              filters={downloadFilters}
+              profile="assessments"
+            />
           </div>
         )}
 
@@ -1384,7 +1384,7 @@ function WaterbodyInfo({
                   {configFiles && (
                     <WaterbodyDownload
                       configFiles={configFiles}
-                      descriptor="plan"
+                      descriptor="Download Plan Data"
                       fileBaseName={`Restoration_Plans-${attributes.assessmentunitidentifier}`}
                       filters={{
                         actionId: projects.map((p) => p.id),
