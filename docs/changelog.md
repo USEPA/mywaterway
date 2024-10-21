@@ -1,6 +1,6 @@
 # Change Log
 
-## 2.11.1 (November 2024)
+## 2.12.0 (November 2024)
 
 ### Added
 
