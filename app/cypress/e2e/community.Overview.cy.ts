@@ -33,110 +33,71 @@ describe('Overview Tab', () => {
     );
     cy.findByText('Go').click();
 
+    function checkSwitch(label: string, value: string) {
+      cy.findAllByLabelText(label, { exact: false })
+        .filter(':visible')
+        .filter('input')
+        .should('have.attr', 'aria-checked', value);
+    }
+
+    function clickSwitch(label: string) {
+      cy.findAllByLabelText(label, { exact: false })
+        .filter(':visible')
+        .filter('input')
+        .click({ force: true });
+    }
+
     cy.waitForLoadFinish();
 
     // verify waterbodies switch is initially checked and uncheck it
-    cy.findAllByLabelText('Waterbodies', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
-    cy.findAllByLabelText('Waterbodies', { exact: false })
-      .filter(':visible')
-      .click({ force: true });
-    cy.findAllByLabelText('Waterbodies', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'false');
+    checkSwitch('Waterbodies', 'true');
+    clickSwitch('Waterbodies');
+    checkSwitch('Waterbodies', 'false');
 
     // verify other switches are off
-    cy.findAllByLabelText('Water Monitoring Locations', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'false');
-    cy.findAllByLabelText('Permitted Dischargers', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'false');
+    checkSwitch('Water Monitoring Locations', 'false');
+    checkSwitch('Permitted Dischargers', 'false');
 
     // switch to monitoring tab
     cy.findByRole('tab', { name: 'Water Monitoring Locations' }).click();
 
     // verify all water monitoring switches are checked
-    cy.findAllByLabelText('Water Monitoring Locations', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
-    cy.findAllByLabelText('USGS Sensors')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
-    cy.findAllByLabelText('Past Water Conditions')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
-    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
+    checkSwitch('Water Monitoring Locations', 'true');
+    checkSwitch('USGS Sensors', 'true');
+    checkSwitch('Past Water Conditions', 'true');
+    checkSwitch('Potential Harmful Algal Blooms (HABs)', 'true');
 
     // turn off all water monitoring switches
-    cy.findAllByLabelText('USGS Sensors')
-      .filter(':visible')
-      .click({ force: true });
-    cy.findAllByLabelText('Past Water Conditions').filter(':visible').click({
-      force: true,
-    });
-    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
-      .filter(':visible')
-      .click({
-        force: true,
-      });
-    cy.findAllByLabelText('USGS Sensors')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'false');
-    cy.findAllByLabelText('Past Water Conditions')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'false');
-    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'false');
-    cy.findAllByLabelText('Water Monitoring Locations', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'false');
+    clickSwitch('USGS Sensors');
+    clickSwitch('Past Water Conditions');
+    clickSwitch('Potential Harmful Algal Blooms (HABs)');
+    checkSwitch('USGS Sensors', 'false');
+    checkSwitch('Past Water Conditions', 'false');
+    checkSwitch('Potential Harmful Algal Blooms (HABs)', 'false');
+    checkSwitch('Water Monitoring Locations', 'false');
 
     // switch to permitted dischargers and verify switches are on
     cy.findByRole('tab', { name: 'Permitted Dischargers' }).click();
-    cy.findAllByLabelText('Permitted Dischargers', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
+    checkSwitch('Permitted Dischargers', 'true');
 
     // turn off permitted dischargers switch
-    cy.findAllByLabelText('Permitted Dischargers', { exact: false }).click({
-      force: true,
-      multiple: true,
-    });
-    cy.findAllByLabelText('Permitted Dischargers', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'false');
+    clickSwitch('Permitted Dischargers');
+    checkSwitch('Permitted Dischargers', 'false');
 
     // go back to waterbodies tab and verify switches are on
     cy.findByRole('tab', { name: 'Waterbodies' }).click();
-    cy.findAllByLabelText('Waterbodies', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
+    checkSwitch('Waterbodies', 'true');
 
     // switch back to monitoring tab and verify switches are on
     cy.findByRole('tab', { name: 'Water Monitoring Locations' }).click();
-    cy.findAllByLabelText('Water Monitoring Locations', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
-    cy.findAllByLabelText('USGS Sensors')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
-    cy.findAllByLabelText('Past Water Conditions')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
-    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
+    checkSwitch('Water Monitoring Locations', 'true');
+    checkSwitch('USGS Sensors', 'true');
+    checkSwitch('Past Water Conditions', 'true');
+    checkSwitch('Potential Harmful Algal Blooms (HABs)', 'true');
 
     // switch back to permitted dischargers and verify all switches are checked
     cy.findByRole('tab', { name: 'Permitted Dischargers' }).click();
-    cy.findAllByLabelText('Permitted Dischargers', { exact: false })
-      .filter(':visible')
-      .should('have.attr', 'aria-checked', 'true');
+    checkSwitch('Permitted Dischargers', 'true');
   });
 
   it('Displays links to download waterbody data', () => {
