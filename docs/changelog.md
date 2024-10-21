@@ -1,5 +1,43 @@
 # Change Log
 
+## 2.11.1 (November 2024)
+
+### Added
+
+- Added non-ATTAINS Tribal entities to the State & Tribal page.
+
+- Added an organization filter to the Past Water Conditions lists (Overview and Water Monitoring tabs).
+
+- Added ability to download ATTAINS data (assessments, actions, tmdl) directly from HMW.
+
+### Changed
+
+- Updated the WSIO service to use the latest version.
+
+- Updated the Data page to have a reference to Expert Query.
+
+- Removed references to expert query from the 404 and 500 html pages.
+
+- Removed zoom threshold limitation of the watersheds layer of the Upstream Watershed widget.
+
+- Fixed issue of refreshing or directly linking to a state or tribe page returning a page does not exist message.
+
+- Fixed issue of extra whitespace to the right of the layer list widget.
+
+- Fixed issue of graphics not always showing up on the plan summary page.
+
+- Fixed issue of not being able to print the waterbody report or plan summary pages by rolling back the ArcGIS JS API to the previous version.
+
+### Chores
+
+- Updated dependencies.
+
+- Updated Google Analytics logging to more accurately capture link and download link clicks.
+
+- Added server side testing.
+
+- Switched from create react app to Vite.
+
 ## 2.11.0 (September 2024)
 
 ### Added
