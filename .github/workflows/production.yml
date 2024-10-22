@@ -66,7 +66,7 @@ jobs:
         working-directory: app/client
 
       - name: Remove unnecessary server app files
-        run: rm -rf .env.example prettier.config.js nodemon.json app/config
+        run: rm -rf .env.example prettier.config.js nodemon.json app/config jest.config.js jest_setup.js tests
         working-directory: app/server
 
       - name: Copy production manifest file to server app

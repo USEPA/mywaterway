@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
+import { createHtmlPlugin } from 'vite-plugin-html';
 import istanbul from 'vite-plugin-istanbul';
 import react from '@vitejs/plugin-react';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
@@ -37,6 +38,17 @@ export default ({ mode }) => {
         jsxImportSource: '@emotion/react',
         babel: {
           plugins: ['@emotion/babel-plugin'],
+        },
+      }),
+      createHtmlPlugin({
+        minify: {
+          collapseWhitespace: true,
+          removeComments: true,
+          removeRedundantAttributes: true,
+          collapseBooleanAttributes: true,
+          removeEmptyAttributes: true,
+          minifyCSS: true,
+          minifyJS: true,
         },
       }),
       istanbul({
