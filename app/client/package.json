@@ -28,43 +28,48 @@
     "node": "20.x"
   },
   "main": "src/index.js",
+  "type": "module",
   "scripts": {
-    "start": "react-scripts -r @cypress/instrument-cra start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "flow": "flow"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "@cypress/instrument-cra": "1.4.0",
     "@esri/arcgis-rest-types": "3.7.0",
-    "@testing-library/jest-dom": "6.5.0",
-    "@testing-library/react": "16.0.0",
-    "@testing-library/user-event": "14.5.2",
     "@types/file-saver": "2.0.7",
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/node": "20.14.8",
-    "@types/papaparse": "5.3.14",
-    "@types/react": "18.3.4",
-    "@types/react-dom": "18.3.0",
+    "@types/papaparse": "5.3.15",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.1",
     "@types/react-ranger": "2.0.4",
+    "@types/react-table": "7.7.20",
     "@types/smoothscroll-polyfill": "0.3.4",
     "@types/uuid": "10.0.0",
+    "@typescript-eslint/eslint-plugin": "8.10.0",
+    "@typescript-eslint/parser": "8.10.0",
+    "@vitejs/plugin-react": "4.3.3",
     "ajv": "8.17.1",
-    "eslint-config-react-app": "7.0.1",
-    "husky": "9.1.5",
-    "lint-staged": "15.2.9",
+    "eslint": "9.13.0",
+    "eslint-plugin-react-hooks": "5.0.0",
+    "eslint-plugin-react-refresh": "0.4.13",
+    "husky": "9.1.6",
+    "lint-staged": "15.2.10",
     "prettier": "3.3.3",
-    "typescript": "5.5.4",
-    "web-vitals": "4.2.3"
+    "typescript": "5.6.3",
+    "vite": "5.4.9",
+    "vite-plugin-istanbul": "6.0.2",
+    "vite-tsconfig-paths": "5.0.1"
   },
   "dependencies": {
-    "@arcgis/core": "4.30.9",
+    "@arcgis/core": "4.29.10",
+    "@emotion/babel-plugin": "11.12.0",
     "@emotion/react": "11.13.3",
     "@emotion/styled": "11.13.0",
-    "@esri/calcite-components-react": "2.11.1",
-    "@mui/material": "6.0.0",
-    "@radix-ui/react-dialog": "1.1.1",
+    "@esri/calcite-components-react": "2.13.1",
+    "@mui/material": "6.1.4",
+    "@radix-ui/react-dialog": "1.1.2",
     "@reach/tabs": "0.18.0",
     "@reach/tooltip": "0.18.0",
     "@reach/window-size": "0.18.0",
@@ -75,7 +80,7 @@
     "@visx/xychart": "3.11.0",
     "file-saver": "2.0.5",
     "glossary-panel": "github:Eastern-Research-Group/glossary",
-    "highcharts": "11.4.7",
+    "highcharts": "11.4.8",
     "highcharts-react-official": "3.2.1",
     "html-to-image": "1.11.11",
     "papaparse": "5.4.1",
@@ -83,43 +88,17 @@
     "react": "18.3.1",
     "react-app-polyfill": "3.0.0",
     "react-dom": "18.3.1",
-    "react-dropzone": "14.2.3",
-    "react-rnd": "10.4.12",
-    "react-router-dom": "6.26.1",
-    "react-scripts": "5.0.1",
-    "react-select": "5.8.0",
+    "react-dropzone": "14.2.10",
+    "react-rnd": "10.4.13",
+    "react-router-dom": "6.27.0",
+    "react-select": "5.8.1",
     "react-spring": "9.7.4",
     "react-sticky-box": "2.0.5",
     "react-switch": "7.0.0",
     "react-table": "7.8.0",
-    "react-virtuoso": "4.10.1",
+    "react-virtuoso": "4.12.0",
+    "regenerator-runtime": "0.14.1",
     "smoothscroll-polyfill": "0.4.4",
     "uuid": "10.0.0"
-  },
-  "lint-staged": {
-    "src/**/*.{js,json,css,md}": "prettier --write",
-    "../cypress/**/*.js": "prettier --write"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ],
-    "env": {
-      "worker": true
-    }
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all",
-      "not ie > 0",
-      "not android < 5"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   }
 }

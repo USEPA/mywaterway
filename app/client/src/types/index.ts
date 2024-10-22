@@ -129,6 +129,12 @@ export type AttainsImpairmentField = {
   value: string;
 };
 
+export type AttainsProfile =
+  | 'actions'
+  | 'assessmentUnits'
+  | 'assessments'
+  | 'tmdl';
+
 export type AttainsUseField = {
   category: string;
   label: string;
@@ -435,6 +441,12 @@ export interface NonProfitAttributes {
   type: 'nonprofit';
 }
 
+export type Option = {
+  count?: number;
+  label: string;
+  value: string;
+};
+
 export type ParameterToggleObject = { [key: string]: boolean };
 
 export type ParentLayer = __esri.GroupLayer | SuperLayer;
@@ -492,6 +504,8 @@ export type PopupAttributes =
   | WildScenicRiverAttributes
   | WsioHealthIndexAttributes;
 
+export type Primitive = string | number | boolean;
+
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
   Loc_Nm: string;
@@ -546,6 +560,7 @@ export interface ServicesData {
   expertQuery: {
     apiKey: string;
     attains: string;
+    userInterface: string;
     valuesLimit: number;
   };
   extremeColdRealtime: {

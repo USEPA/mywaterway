@@ -28,28 +28,31 @@
     "node": "20.x"
   },
   "scripts": {
-    "client": "cd client && npm start",
+    "client": "cd client && npm run dev",
     "server": "cd server && npm start",
-    "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
+    "server_coverage": "cd server && npm run start_coverage",
+    "dev": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
     "setup": "echo \"Installing project dependencies...\" && npm ci --legacy-peer-deps && echo \"Installing client dependencies...\" && cd client && npm ci --legacy-peer-deps && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
     "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
-    "coverage": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"npx rimraf .nyc_output/out.json && cypress run --browser electron\"",
+    "client_coverage": "npx rimraf .nyc_output/out.json && npx rimraf coverage && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron\"",
+    "coverage_spec_ex": "npx rimraf .nyc_output/out.json && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron --spec 'cypress/e2e/educational-materials.cy.ts'\" && echo REMINDER Manually delete CYPRESS-TEST",
+    "coverage": "cd server && npm run test && cd .. && npm run client_coverage && node combine_coverage_reports.js && echo REMINDER Manually delete CYPRESS-TEST",
     "glossary": "cd server && npm run glossary"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "3.12.46",
+    "@cypress/code-coverage": "3.13.4",
     "@testing-library/cypress": "10.0.2",
     "@types/cypress-image-snapshot": "3.1.9",
     "@types/node": "20.14.8",
     "@types/testing-library__cypress": "5.0.13",
-    "concurrently": "8.2.2",
-    "cypress": "13.13.3",
+    "concurrently": "9.0.1",
+    "cypress": "13.15.0",
     "cypress-image-snapshot": "4.0.1",
-    "eslint-plugin-cypress": "3.5.0",
+    "eslint-plugin-cypress": "4.0.0",
     "istanbul-lib-coverage": "3.2.2",
-    "nyc": "17.0.0",
+    "nyc": "17.1.0",
     "prettier": "3.3.3",
-    "typescript": "5.5.4"
+    "typescript": "5.6.3"
   },
   "eslintConfig": {
     "extends": [
