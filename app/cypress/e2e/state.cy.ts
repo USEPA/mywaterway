@@ -444,7 +444,7 @@ describe('State page service failure tests', () => {
 
   it('Failure to get summary info', () => {
     cy.intercept(
-      'https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/4/query?f=json&returnIdsOnly=true&returnGeometry=false&spatialRel=esriSpatialRelIntersects&where=state%20%3D%20%27AL%27%20AND%20organizationid%20%3D%20%2721AWIC%27&onlocalhost=1&callId=1',
+      'https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/4/query?f=json&returnIdsOnly=true&returnGeometry=false&spatialRel=esriSpatialRelIntersects&where=state%20%3D%20%27AL%27%20AND%20organizationid%20%3D%20%2721AWIC%27*',
       {
         statusCode: 500,
         body: {},
