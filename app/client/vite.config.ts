@@ -3,6 +3,7 @@ import { createHtmlPlugin } from 'vite-plugin-html';
 import istanbul from 'vite-plugin-istanbul';
 import react from '@vitejs/plugin-react';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
+import { version } from './package.json';
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -15,14 +16,14 @@ export default ({ mode }) => {
       sourcemap: true,
       rollupOptions: {
         output: {
-          entryFileNames: 'static/js/[name]-[hash].js',
-          chunkFileNames: 'static/js/[name]-[hash].js',
+          entryFileNames: `static/js/[name]-[hash].${version}.js`,
+          chunkFileNames: `static/js/[name]-[hash].${version}.js`,
           assetFileNames: ({ name }) => {
             const css = /\.(css)$/.test(name ?? '');
             const font = /\.(woff|woff2|eot|ttf|otf)$/.test(name ?? '');
             const media = /\.(png|jpe?g|gif|svg|webp|webm|mp3)$/.test(name ?? ""); // prettier-ignore
             const type = css ? 'css/' : font ? 'fonts/' : media ? 'media/' : '';
-            return `static/${type}[name]-[hash][extname]`;
+            return `static/${type}[name]-[hash].${version}[extname]`;
           },
         },
       },
