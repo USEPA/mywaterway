@@ -24,7 +24,7 @@ const waterbodiesDownloadSectionStyles = css`
   font-weight: bold;
   gap: 0.5em;
   justify-content: flex-end;
-  margin-bottom: 0.5em;
+  margin: 0.5em 0;
 `;
 
 const profileKeyToTitle: Record<AttainsProfile, string> = {
