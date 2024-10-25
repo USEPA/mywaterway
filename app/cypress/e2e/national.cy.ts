@@ -88,6 +88,28 @@ describe('National Water Quality tab', () => {
       .should('have.attr', 'target', '_blank')
       .should('have.attr', 'rel', 'noopener noreferrer');
   });
+
+  it('Failure to load NARS data', () => {
+    // empty out the NARS data from the configFiles service and
+    // have configFiles return bare minimum for app to load
+    cy.intercept('http://localhost:3002/api/configFiles', {
+      statusCode: 200,
+      body: {
+        services: {
+          waterbodyService: {},
+          dwmaps: {},
+          googleAnalyticsMapping: [],
+        },
+        NARS: [],
+      },
+    }).as('hmw-configFiles');
+
+    cy.visit('/national');
+
+    cy.findByText(
+      'The National Aquatic Resource Surveys (NARS) data is currently unavailable, please try again later.',
+    );
+  });
 });
 
 describe('National Drinking Water tab', () => {
@@ -132,6 +154,42 @@ describe('National Drinking Water tab', () => {
       .click();
     cy.findByText(/Violations of maximum contaminant levels/).should(
       'be.visible',
+    );
+  });
+});
+
+describe('National Drinking Water tab service failures', () => {
+  it('GPRA GetGPRASystemCountsByType service failure', () => {
+    cy.intercept(
+      'https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/sfdw_rest/GetGPRASystemCountsByType/National',
+      {
+        statusCode: 500,
+        body: {},
+      },
+    );
+
+    cy.visit('/national');
+    cy.findByTestId('hmw-national-drinking-water-tab').click();
+
+    cy.findByText(
+      'The EPA Drinking Water Performance and Results information is temporarily unavailable, please try again later.',
+    );
+  });
+
+  it('GPRA GetGPRASummary service failure', () => {
+    cy.intercept(
+      'https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/sfdw_rest/GetGPRASummary/National',
+      {
+        statusCode: 500,
+        body: {},
+      },
+    );
+
+    cy.visit('/national');
+    cy.findByTestId('hmw-national-drinking-water-tab').click();
+
+    cy.findByText(
+      'The EPA Drinking Water Performance and Results information is temporarily unavailable, please try again later.',
     );
   });
 });

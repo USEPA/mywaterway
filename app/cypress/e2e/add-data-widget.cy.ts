@@ -2,14 +2,7 @@ describe('Add & Save Data Widget', () => {
   const adwId = '#add-save-data-widget';
   const dropzoneId = 'hmw-dropzone';
 
-  function openWidget(path = '/community/dc/overview') {
-    cy.visit(path, { timeout: 20000 });
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
+  function openWidget() {
     // this a work around to an issue where doing
     // "cy.findByTitle('Add & Save Data Widget').click()" does not work for esri
     // widget buttons
@@ -21,6 +14,11 @@ describe('Add & Save Data Widget', () => {
   }
 
   beforeEach(() => {
+    cy.login();
+
+    cy.visit('/community/dc/overview', { timeout: 20000 });
+    cy.waitForLoadFinish();
+
     openWidget();
   });
 
@@ -28,16 +26,32 @@ describe('Add & Save Data Widget', () => {
     const disclaimerText =
       'EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.';
 
-    cy.get(adwId).within(() => {
-      cy.findByText('Disclaimer').click();
-    });
+    function runDisclaimerTests(useEscape = false) {
+      cy.get(adwId).within(() => {
+        cy.findByText('Disclaimer').click();
+      });
 
-    // verify the disclaimer text is visible
-    cy.findByText(disclaimerText).should('be.visible');
+      // verify the disclaimer text is visible
+      cy.findByText(disclaimerText).should('be.visible');
 
-    // close the disclaimr and verify it is no longer visible
-    cy.findByTitle('Close disclaimer').click();
-    cy.findByText(disclaimerText).should('not.exist');
+      // close the disclaimr and verify it is no longer visible
+      if (useEscape) cy.get('body').type('{esc}');
+      else cy.findByTitle('Close disclaimer').click();
+
+      cy.findByText(disclaimerText).should('not.exist');
+    }
+
+    runDisclaimerTests();
+
+    cy.findByTitle('Enter Fullscreen Map View');
+    cy.findByRole('button', { name: 'Enter Fullscreen Map View' }).click();
+    cy.findByTitle('Exit Fullscreen Map View');
+    openWidget();
+
+    runDisclaimerTests(true);
+
+    cy.get('body').type('{esc}');
+    cy.findByTitle('Exit Fullscreen Map View');
   });
 
   it('Test add data widget tab navigation', () => {
@@ -63,10 +77,7 @@ describe('Add & Save Data Widget', () => {
     function runSearchTests(layer) {
       cy.findByPlaceholderText('Search...').clear().type(layer).type('{enter}');
 
-      // wait for the web services to finish
-      cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-        'not.exist',
-      );
+      cy.waitForLoadFinish();
 
       // verify the layer is in the results
       cy.findByText(layer);
@@ -239,9 +250,7 @@ describe('Add & Save Data Widget', () => {
         // select samples layer type, upload the contamination map file,
         // wait for it to finish and check for failure
         cy.findByTestId(dropzoneId).upload(file, inputFile, type);
-        cy.findAllByTestId('hmw-loading-spinner', { timeout: 180000 }).should(
-          'not.exist',
-        );
+        cy.waitForLoadFinish({ timeout: 180000 });
         cy.findByText('was successfully uploaded', {
           exact: false,
           timeout: 18000,
@@ -301,9 +310,7 @@ describe('Add & Save Data Widget', () => {
         // select samples layer type, upload the contamination map file,
         // wait for it to finish and check for failure
         cy.findByTestId(dropzoneId).upload(file, invalidFile);
-        cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-          'not.exist',
-        );
+        cy.waitForLoadFinish({ skipExists: true });
         cy.findByText('is an invalid file type. The accepted file types are', {
           exact: false,
         }).should('exist');
@@ -314,9 +321,7 @@ describe('Add & Save Data Widget', () => {
         // select samples layer type, upload the contamination map file,
         // wait for it to finish and check for failure
         cy.findByTestId(dropzoneId).upload(file, emptyFile);
-        cy.findAllByTestId('hmw-loading-spinner', { timeout: 180000 }).should(
-          'not.exist',
-        );
+        cy.waitForLoadFinish({ timeout: 180000 });
         cy.findByText('Unable to import this dataset.').should('exist');
       });
     });
@@ -348,6 +353,8 @@ describe('Add & Save Data Widget', () => {
   });
 
   it("Test that the save panel includes layers added from the widget's other tabs", () => {
+    const agoSaveName = 'CYPRESS-TEST-HMW';
+
     cy.get(adwId).within(() => {
       cy.findByRole('listitem', { name: 'USA Current Wildfires' }).within(
         () => {
@@ -381,6 +388,54 @@ describe('Add & Save Data Widget', () => {
       cy.findByRole('switch', { name: 'Toggle USA Current Wildfires' }).should(
         'not.exist',
       );
+
+      // Save to ArcGIS Online
+      cy.findByRole('textbox', { name: 'Name:' }).type(agoSaveName);
+      cy.findByRole('textbox', { name: 'Description:' }).type(
+        'This is a test description from a Cypress test.',
+      );
+      cy.findByRole('button', { name: 'Save to ArcGIS Online' }).click();
+      cy.waitForLoadFinish();
+      cy.findByText('Save succeeded.');
+
+      // test name already used message
+      cy.findByRole('button', { name: 'Save to ArcGIS Online' }).click();
+      cy.findByText('Name already used in your account or organization.', {
+        exact: false,
+      });
+
+      // test name not provided message
+      cy.findByRole('textbox', { name: 'Name:' }).clear();
+      cy.findByRole('button', { name: 'Save to ArcGIS Online' }).click();
+      cy.findByText('Please provide a name and try again.');
+
+      // Verify it was saved
+      cy.findByRole('tab', { name: 'Search' }).click();
+
+      // switch to "ArcGIS Online"
+      cy.findByText('Suggested Content').click();
+      cy.findByText('ArcGIS Online').click();
+
+      cy.findByPlaceholderText('Search...')
+        .clear()
+        .type(agoSaveName)
+        .type('{enter}');
+      cy.findByTitle(agoSaveName);
+
+      cy.findByRole('listitem', { name: agoSaveName }).within(() => {
+        // Add a new layer
+        cy.findByRole('button', { name: 'Add' }).click();
+        // Wait for the layer to be added
+        cy.findByRole('button', { name: 'Remove', timeout: 120000 }).should(
+          'be.visible',
+        );
+      });
     });
+  });
+});
+
+describe('REMINDER: Manually delete ‘CYPRESS - TEST’ items from AGO', () => {
+  it('REMINDER: Manually delete ‘CYPRESS - TEST’ items from AGO', function () {
+    // Empty test that just serves as a reminder to clean up AGO after publishing tests
   });
 });

@@ -9,7 +9,7 @@ on:
 
 # Set shared environment variables
 env:
-  APP_VERSION: 2.11.0
+  APP_VERSION: 2.12.0
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -20,7 +20,7 @@ jobs:
 
     # Set environment variables
     env:
-      REACT_APP_ARCGIS_CLIENT_ID: ${{ secrets.REACT_APP_ARCGIS_CLIENT_ID }}
+      VITE_ARCGIS_CLIENT_ID: ${{ secrets.VITE_ARCGIS_CLIENT_ID }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -58,7 +58,7 @@ jobs:
 
       - name: Build front-end files and move to server
         run: |
-          REACT_APP_ARCGIS_CLIENT_ID="$REACT_APP_ARCGIS_CLIENT_ID" \
+          VITE_ARCGIS_CLIENT_ID="$VITE_ARCGIS_CLIENT_ID" \
             npm run build
           cd build
           cp -r * ../../server/app/public
@@ -66,7 +66,7 @@ jobs:
         working-directory: app/client
 
       - name: Remove unnecessary server app files
-        run: rm -rf .env.example prettier.config.js nodemon.json app/config
+        run: rm -rf .env.example prettier.config.js nodemon.json app/config jest.config.js jest_setup.js tests
         working-directory: app/server
 
       - name: Copy production manifest file to server app

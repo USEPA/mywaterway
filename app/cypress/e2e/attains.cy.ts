@@ -13,10 +13,24 @@ describe('ATTAINS page', () => {
 
   it('ATTAINS page displays a table', () => {
     cy.visit('/attains');
-    // wait for the all web services to finish (surveys is usually slow here)
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish({ timeout: 20000 });
     cy.findByText("How's My Waterway Impairment Category").should('exist');
+  });
+
+  it('Domains service failure', () => {
+    cy.intercept(
+      'https://attains.epa.gov/attains-public/api/domains?domainName=ParameterName',
+      {
+        statusCode: 500,
+        body: [],
+      },
+    ).as('attains-domains');
+
+    cy.visit('/attains');
+    cy.waitForLoadFinish({ timeout: 20000 });
+
+    cy.findByText(
+      'Parameter information is temporarily unavailable, please try again later.',
+    );
   });
 });

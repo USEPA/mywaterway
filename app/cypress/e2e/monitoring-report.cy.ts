@@ -40,10 +40,7 @@ describe('The characteristic chart section', () => {
   });
 
   it('Should display an info message when a characteristic without results is selected', () => {
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByLabelText('Select Antimony').check({ force: true });
     cy.findByText(
@@ -80,6 +77,8 @@ describe('The Download Data section', () => {
   });
 
   it('Un-checks children when a parent checkbox is un-checked', () => {
+    cy.waitForLoadFinish();
+
     cy.findByRole('checkbox', { name: 'Not Assigned' }).click();
     cy.findByRole('button', { name: /Not Assigned/ }).click();
     cy.findByRole('checkbox', { name: 'Cyanide, available' }).should(
