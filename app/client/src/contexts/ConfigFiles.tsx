@@ -13,11 +13,13 @@ type Props = {
 };
 
 export type ConfigFiles = {
+  attainsTribeMapping: any;
   characteristicGroupMappings: CharacteristicGroupMappings;
   cyanMetadata: number[];
   dataPage: any;
   documentOrder: any;
   educators: any;
+  eqProfileColumns: Record<string, string[]>;
   extremeWeather: ExtremeWeatherConfig;
   glossary: {
     [term: string]: {
@@ -34,10 +36,10 @@ export type ConfigFiles = {
   services: ServicesData;
   stateNationalUses: any;
   surveyMapping: any;
-  tribeMapping: any;
   useFields: AttainsUseField[];
   usgsStaParameters: any;
   waterTypeOptions: any;
+  wqxTribeMapping: any;
 };
 
 type State =

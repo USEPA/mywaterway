@@ -16,6 +16,8 @@ function checkClientRouteExists(req, res, next) {
     'monitoring-report',
     'plan-summary',
     'waterbody-report',
+    'state',
+    'tribe',
   ];
 
   if (

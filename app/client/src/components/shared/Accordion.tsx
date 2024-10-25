@@ -12,15 +12,11 @@ const accordionListContainerStyles = css`
   border-bottom: 1px solid #d8dfe2;
 `;
 
-const accordionOptionsContainerStyles = (
-  includeTopMargin: boolean,
-  displayTitleInFlex: boolean,
-) => css`
+const accordionOptionsContainerStyles = (displayTitleInFlex: boolean) => css`
   display: flex;
   justify-content: flex-end;
   width: 100%;
   margin-bottom: 0;
-  ${includeTopMargin ? 'margin-top: 0.625rem;' : ''}
   ${displayTitleInFlex
     ? 'justify-content: space-between; align-items: center;'
     : ''}
@@ -81,6 +77,17 @@ const listHeaderStyles = (includePadding: boolean) => css`
   border-top: 1px solid #d8dfe2;
   border-bottom: 1px solid #d8dfe2;
   background-color: #f0f6f9;
+`;
+
+const listHeaderBottomStyles = (includePadding: boolean) => css`
+  ${listHeaderStyles(includePadding)}
+  ${columnsStyles}
+`;
+
+const listHeaderContainerStyles = css`
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 `;
 
 const titleStyles = css`
@@ -146,16 +153,24 @@ function AccordionList({
       className={`hmw-accordions ${className}`}
       role="list"
     >
-      {(includeSort || title || contentExpandCollapse || !expandDisabled) && (
-        <div css={listHeaderStyles(includeSort || !!title)}>
-          {title && !displayTitleInFlex && <p css={titleStyles}>{title}</p>}
-          <div css={columnsStyles}>
-            <div
-              css={accordionOptionsContainerStyles(
-                includeSort && !!title,
-                displayTitleInFlex,
-              )}
-            >
+      <div css={listHeaderContainerStyles}>
+        {((title && !displayTitleInFlex) || extraListHeaderContent) && (
+          <div css={listHeaderStyles(!!title && !displayTitleInFlex)}>
+            {extraListHeaderContent}
+            {title && !displayTitleInFlex && extraListHeaderContent && <hr />}
+            {title && !displayTitleInFlex && <p css={titleStyles}>{title}</p>}
+          </div>
+        )}
+        {(includeSort ||
+          (title && displayTitleInFlex) ||
+          contentExpandCollapse ||
+          !expandDisabled) && (
+          <div
+            css={listHeaderBottomStyles(
+              includeSort || (!!title && displayTitleInFlex),
+            )}
+          >
+            <div css={accordionOptionsContainerStyles(displayTitleInFlex)}>
               {title && displayTitleInFlex && <p css={titleStyles}>{title}</p>}
 
               {includeSort && (
@@ -198,14 +213,8 @@ function AccordionList({
               )}
             </div>
           </div>
-          {extraListHeaderContent && (
-            <>
-              <hr />
-              {extraListHeaderContent}
-            </>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {Children.map(children, (childElement) => {

@@ -16,10 +16,7 @@ describe('Monitoring Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByText('Water Monitoring').click();
     cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
@@ -37,7 +34,7 @@ describe('Monitoring Tab', () => {
     cy.findByLabelText('Metals').should('have.attr', 'aria-checked', 'false');
 
     // check that there are no items displayed in accordion
-    cy.findByTestId('monitoring-accordion-title').contains('0 of 99');
+    cy.findByTestId('monitoring-accordion-title').contains('0 of 100');
 
     // check that clicking the Toggle All switch again toggles all switches back on
     cy.findByLabelText('All Monitoring Locations').click({
@@ -58,10 +55,7 @@ describe('Monitoring Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // navigate to the Past Water Conditions sub-tab
     cy.findByRole('tab', { name: 'Water Monitoring' }).click();
@@ -95,10 +89,7 @@ describe('Monitoring Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // navigate to the Past Water Conditions sub-tab
     cy.findByRole('tab', { name: 'Water Monitoring' }).click();
@@ -130,18 +121,14 @@ describe('Monitoring Tab', () => {
 
     cy.findByText('Water Monitoring').click();
 
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // this triggers the virtualized list to load
     cy.scrollTo('bottom');
 
     cy.findAllByText('Lake Weohyakapka').click();
 
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findAllByText('Daily Blue-Green Algae Estimates for Lake Weohyakapka', {
       exact: false,
@@ -162,9 +149,7 @@ describe('Monitoring Tab', () => {
 
     cy.findByRole('tab', { name: 'Water Monitoring' }).click();
 
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
 
@@ -205,9 +190,7 @@ describe('Monitoring Tab', () => {
 
     cy.findByRole('tab', { name: 'Water Monitoring' }).click();
 
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
 
@@ -236,6 +219,94 @@ describe('Monitoring Tab', () => {
       .find('td')
       .eq(2)
       .should('not.have.text', '0');
+  });
+
+  it('Filter by characteristics', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
+    cy.findByText('Go').click();
+
+    cy.waitForLoadFinish();
+
+    cy.findByText('Water Monitoring').click();
+    cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
+
+    cy.findByRole('combobox', { name: 'Filter by Characteristics' }).click();
+    cy.findByText('.alpha.-Endosulfan').click();
+    cy.findByText('.alpha.-Endosulfan');
+
+    cy.findAllByText((_content, element) => {
+      return element.textContent.includes(
+        '20 of 289 water monitoring sample locations',
+      );
+    })
+      .filter(':visible')
+      .should('be.visible');
+  });
+
+  it('USGS sparkline chart', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
+    cy.findByText('Go').click();
+
+    cy.waitForLoadFinish();
+
+    cy.findByText('Water Monitoring').click();
+
+    cy.findByText('ANACOSTIA RIVER AT KENILWORTH AT WASHINGTON, DC').click();
+
+    cy.findAllByText('Water temperature')
+      .filter(':visible')
+      .should('be.visible');
+  });
+
+  it('Verify USGS sensors and Cyan are checked by default', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '030901011204',
+    );
+    cy.findByText('Go').click();
+
+    cy.waitForLoadFinish();
+
+    cy.findByText('Water Monitoring').click();
+
+    // verify both current conditions switches are checked
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'true');
+    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'true');
+
+    // turn off both current conditions switches
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .click({ force: true });
+    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
+      .filter(':visible')
+      .click({
+        force: true,
+      });
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'false');
+    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'false');
+
+    // switch to past conditions and then back to current conditions
+    cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
+    cy.wait(500);
+    cy.findByRole('tab', { name: 'Current Water Conditions' }).click();
+
+    // verify both current conditions switches are checked
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'true');
+    cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
+      .filter(':visible')
+      .should('have.attr', 'aria-checked', 'true');
   });
 });
 
