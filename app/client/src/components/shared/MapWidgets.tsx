@@ -1470,7 +1470,10 @@ function retrieveUpstreamWatershed(
   ) {
     view?.goTo(getUpstreamExtent());
     upstreamLayer.visible = true;
-    updateVisibleLayers({ upstreamLayer: true });
+    updateVisibleLayers({
+      upstreamLayer: true,
+      watershedsLayer: false,
+    });
     return;
   }
 
@@ -1545,7 +1548,10 @@ function retrieveUpstreamWatershed(
       setUpstreamExtent(currentViewpoint);
 
       upstreamLayer.visible = true;
-      updateVisibleLayers({ upstreamLayer: true });
+      updateVisibleLayers({
+        upstreamLayer: true,
+        watershedsLayer: false,
+      });
 
       // zoom out to full extent
       view?.goTo(upstreamExtent);
@@ -1786,20 +1792,23 @@ function ShowSelectedUpstreamWatershed({
   const [watershedsVisible, setWatershedsVisible] = useState(false);
 
   // Store the watersheds layer instance for later access
-  const [watershedsLayer, setWatershedsLayer] = useState<__esri.Layer | null>(
-    null,
-  );
+  const [watershedsLayer, setWatershedsLayer] =
+    useState<__esri.FeatureLayer | null>(null);
 
   useEffect(() => {
     if (!map) return;
 
-    const newWatershedsLayer = map.findLayerById('watershedsLayer');
+    const newWatershedsLayer = map.findLayerById(
+      'watershedsLayer',
+    ) as __esri.FeatureLayer | null;
     setWatershedsLayer(newWatershedsLayer);
     newWatershedsLayer && setWatershedsVisible(newWatershedsLayer.visible);
   }, [map]);
 
   const [selectionActive, setSelectionActive] = useState(false);
   const [instructionsVisible, setInstructionsVisible] = useState(false);
+  const [originalMinScale, setOriginalMinScale] = useState(0);
+  const [originalMaxScale, setOriginalMaxScale] = useState(0);
 
   // Show/hide instruction dialogue when watershed selection activity changes
   useEffect(() => {
@@ -1812,9 +1821,20 @@ function ShowSelectedUpstreamWatershed({
   // Disable "selection mode" and/or restore the
   // initial visibility of the watersheds layer
   const cancelSelection = useCallback(() => {
-    if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+    updateVisibleLayers({ watershedsLayer: watershedsVisible });
+    if (watershedsLayer) {
+      watershedsLayer.minScale = originalMinScale;
+      watershedsLayer.maxScale = originalMaxScale;
+    }
+
     setSelectionActive(false);
-  }, [watershedsLayer, watershedsVisible]);
+  }, [
+    originalMaxScale,
+    originalMinScale,
+    updateVisibleLayers,
+    watershedsLayer,
+    watershedsVisible,
+  ]);
 
   // Get the selected watershed, search for
   // its upstream watershed, and draw it
@@ -1952,6 +1972,11 @@ function ShowSelectedUpstreamWatershed({
     if (!upstreamLayer) return;
 
     if (upstreamLayer.visible) {
+      if (watershedsLayer) {
+        watershedsLayer.minScale = originalMinScale;
+        watershedsLayer.maxScale = originalMaxScale;
+      }
+
       const currentExtent = getCurrentExtent();
       currentExtent && view?.goTo(currentExtent);
 
@@ -1967,12 +1992,20 @@ function ShowSelectedUpstreamWatershed({
 
     if (watershedsLayer) {
       setWatershedsVisible(watershedsLayer.visible);
-      watershedsLayer.visible = true;
+      setOriginalMinScale(watershedsLayer.minScale);
+      setOriginalMaxScale(watershedsLayer.maxScale);
+      updateVisibleLayers({
+        watershedsLayer: true,
+      });
+      watershedsLayer.minScale = 0;
+      watershedsLayer.maxScale = 0;
     }
 
     setSelectionActive(true);
   }, [
     getCurrentExtent,
+    originalMaxScale,
+    originalMinScale,
     updateVisibleLayers,
     upstreamLayer,
     view,
@@ -1983,7 +2016,15 @@ function ShowSelectedUpstreamWatershed({
   function handleCloseClick(ev: React.KeyboardEvent | React.MouseEvent) {
     if (!isClick(ev)) return;
 
+    setSelectionActive(false);
     setInstructionsVisible(false);
+    updateVisibleLayers({
+      watershedsLayer: watershedsVisible,
+    });
+    if (watershedsLayer) {
+      watershedsLayer.minScale = originalMinScale;
+      watershedsLayer.maxScale = originalMaxScale;
+    }
   }
 
   return (

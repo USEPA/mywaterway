@@ -56,7 +56,7 @@ module.exports = function (app) {
   function getFiles(req, res, filenames, dataMapper) {
     const metadataObj = logger.populateMetdataObjFromRequest(req);
 
-    const isLocal = app.enabled('isLocal');
+    const isLocal = app.enabled('isLocal') || app.enabled('isTest');
     const s3BucketUrl = app.get('s3_bucket_url');
 
     const promise =
@@ -99,6 +99,7 @@ module.exports = function (app) {
       [
         'data/dataPage.json',
         'data/educators.json',
+        'data/attains/eqProfileColumns.json',
         'data/attains/impairmentFields.json',
         'data/attains/parameters.json',
         'data/attains/useFields.json',
@@ -116,30 +117,33 @@ module.exports = function (app) {
         'data/state/stateNationalUses.json',
         'data/state/surveyMapping.json',
         'data/state/waterTypeOptions.json',
-        'data/tribe/tribeMapping.json',
+        'data/tribe/attainsTribeMapping.json',
+        'data/tribe/wqxTribeMapping.json',
       ],
       (data) => {
         return {
           dataPage: data[0],
           educators: data[1],
-          impairmentFields: data[2],
-          parameters: data[3],
-          useFields: data[4],
-          glossary: data[5],
-          characteristicGroupMappings: data[6],
-          cyanMetadata: data[7],
-          extremeWeather: data[8],
-          usgsStaParameters: data[9],
-          layerProps: data[10],
-          services: data[11],
-          NARS: data[12],
-          notifications: data[13],
-          documentOrder: data[14],
-          reportStatusMapping: data[15],
-          stateNationalUses: data[16],
-          surveyMapping: data[17],
-          waterTypeOptions: data[18],
-          tribeMapping: data[19],
+          eqProfileColumns: data[2],
+          impairmentFields: data[3],
+          parameters: data[4],
+          useFields: data[5],
+          glossary: data[6],
+          characteristicGroupMappings: data[7],
+          cyanMetadata: data[8],
+          extremeWeather: data[9],
+          usgsStaParameters: data[10],
+          layerProps: data[11],
+          services: data[12],
+          NARS: data[13],
+          notifications: data[14],
+          documentOrder: data[15],
+          reportStatusMapping: data[16],
+          stateNationalUses: data[17],
+          surveyMapping: data[18],
+          waterTypeOptions: data[19],
+          attainsTribeMapping: data[20],
+          wqxTribeMapping: data[21],
         };
       },
     );

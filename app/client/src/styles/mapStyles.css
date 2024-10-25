@@ -4,7 +4,7 @@
   background-color: white;
 }
 
-.esri-expand__content-container {
+.esri-expand__content {
   max-height: 540px;
   overflow: auto;
 }
@@ -18,7 +18,7 @@
 }
 
 .hmw-map-layers,
-.esri-view .esri-basemap-gallery {
+.esri-view-root .esri-basemap-gallery {
   min-width: 225px;
   max-width: 225px;
 }

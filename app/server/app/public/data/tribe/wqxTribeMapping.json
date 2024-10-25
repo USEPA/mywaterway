@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Assiniboine and Sioux Tribes of the Fort Peck Indian Reservation, Montana",
+    "attainsId": null,
+    "wqxIds": ["FORTPECK"],
+    "biaTribeCode": "206",
+    "epaId": 100000010,
+    "state": "MT",
+    "stateList": ["MT"],
+    "epaRegion": 8
+  },
+  {
+    "name": "Blackfeet Tribe of the Blackfeet Indian Reservation of Montana",
+    "attainsId": null,
+    "wqxIds": ["BLCKFEET"],
+    "biaTribeCode": "201",
+    "epaId": 100000020,
+    "state": "MT",
+    "stateList": ["MT"],
+    "epaRegion": 8
+  },
+  {
+    "name": "Eastern Band of Cherokee Indians",
+    "attainsId": null,
+    "wqxIds": ["EBCI"],
+    "biaTribeCode": "001",
+    "epaId": 100000076,
+    "state": "NC",
+    "stateList": ["NC"],
+    "epaRegion": 4
+  },
+  {
+    "name": "Eastern Shawnee Tribe of Oklahoma",
+    "attainsId": null,
+    "wqxIds": ["ESTO"],
+    "biaTribeCode": "921",
+    "epaId": 100000077,
+    "state": "OK",
+    "stateList": ["OK", "MO"],
+    "epaRegion": 6
+  },
+  {
+    "name": "Fort Belknap Indian Community of the Fort Belknap Reservation of Montana",
+    "attainsId": null,
+    "wqxIds": ["FTBLKNAP"],
+    "biaTribeCode": "204",
+    "epaId": 100000086,
+    "state": "MT",
+    "stateList": ["MT"],
+    "epaRegion": 8
+  },
+  {
+    "name": "Lac du Flambeau Band of Lake Superior Chippewa Indians of the Lac du Flambeau Reservation of Wisconsin",
+    "attainsId": null,
+    "wqxIds": ["LDFWATER2007"],
+    "biaTribeCode": "432",
+    "epaId": 100000135,
+    "state": "WI",
+    "stateList": ["WI"],
+    "epaRegion": 5
+  },
+  {
+    "name": "Minnesota Chippewa Tribe, Minnesota (Grand Portage Band)",
+    "attainsId": null,
+    "wqxIds": ["GPORTAGE"],
+    "biaTribeCode": "406",
+    "epaId": 100000573,
+    "state": "MN",
+    "stateList": ["MN"],
+    "epaRegion": 5
+  },
+  {
+    "name": "Ottawa Tribe of Oklahoma",
+    "attainsId": null,
+    "wqxIds": ["OTTAWATRIBEOFOK"],
+    "biaTribeCode": "922",
+    "epaId": 100000186,
+    "state": "OK",
+    "stateList": ["OK"],
+    "epaRegion": 6
+  },
+  {
+    "name": "Pyramid Lake Paiute Tribe of the Pyramid Lake Reservation, Nevada",
+    "attainsId": null,
+    "wqxIds": ["PYRAMIDLAKE"],
+    "biaTribeCode": "651",
+    "epaId": 100000229,
+    "state": "NV",
+    "stateList": ["NV"],
+    "epaRegion": 9
+  },
+  {
+    "name": "Saginaw Chippewa Indian Tribe of Michigan",
+    "attainsId": null,
+    "wqxIds": ["SAGIN01"],
+    "biaTribeCode": "472",
+    "epaId": 100000249,
+    "state": "MI",
+    "stateList": ["MI"],
+    "epaRegion": 5
+  }
+]
