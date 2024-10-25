@@ -12,11 +12,7 @@ describe('Community page links', () => {
     cy.findByText('Restore').click();
     cy.findByText('Restoration Plans').click();
 
-    // wait for the web services to finish (attains/plans is sometimes slow)
-    // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // test the plan summary link
     const linkText = 'Open Plan Summary';
@@ -43,14 +39,24 @@ describe('Community page links', () => {
 });
 
 describe('Community page routes', () => {
-  // Skipping this one for now, cy.visit now checks if the url matches which breaks this test
-  // since we are expecting a redirect.
-  it.skip('Navigate to the community page with a <script> tag in the route', () => {
+  it('Navigate to the community page with a <script> tag in the route', () => {
     cy.visit('/community/%3Cscript%3Evar%20j%20=%201;%3C/script%3E/overview');
 
     cy.findByText('Sorry, but this web page does not exist.').should('exist');
 
     cy.url().should('include', '404.html');
+  });
+
+  it('Navigate to overview when community sub tab is not provided in url', () => {
+    cy.visit('/community/dc');
+
+    cy.url().should('equal', 'http://localhost:3000/community/dc/overview');
+  });
+
+  it('Navigating to non-existent sub-tab reroutes to community home', () => {
+    cy.visit('/community/dc/nonExistentTab');
+
+    cy.url().should('equal', 'http://localhost:3000/community');
   });
 });
 
@@ -61,7 +67,7 @@ describe('HTTP Intercepts', () => {
 
   it('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
     cy.intercept(
-      'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query?f=json&outFields=*',
+      'https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/1/query?f=json&outFields=*',
       {
         statusCode: 200,
         body: { features: [] },
@@ -74,10 +80,7 @@ describe('HTTP Intercepts', () => {
 
     cy.wait('@attains-lines', { timeout: 120000 });
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // Verify text explaining some waterbodies have no spatial data exists
     cy.findByText('Some waterbodies are not visible on the map.');

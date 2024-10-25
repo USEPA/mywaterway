@@ -3,7 +3,7 @@ describe('Alert message tests', () => {
     const location = window.location;
     const origin =
       location.hostname === 'localhost'
-        ? `${location.protocol}//${location.hostname}:9091`
+        ? `${location.protocol}//${location.hostname}:3002`
         : window.location.origin;
 
     let responseBody = {

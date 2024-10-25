@@ -10,13 +10,16 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a GRTS project
     cy.findByText('Protect').click();
+
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
     cy.findByText('Watershed Health and Protection').click();
     cy.get('.hmw-accordion')
       .filter(':visible')
@@ -25,16 +28,38 @@ describe('Protect Tab', () => {
       });
     cy.findAllByText('Cypress Creek WPP Imp - Years 1-3');
 
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
+    // toggle switch off and back on
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Protection Projects').click({ force: true });
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Protection Projects').click({ force: true });
+    cy.findByLabelText('Protection Projects').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
     // navigate to Protect tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false })
       .clear()
       .type('040302020807');
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a ATTAINS project
     cy.findByText('Upper Fox Wolf TMDL as Protection Plan');
@@ -47,10 +72,7 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByText('Protect').click();
     cy.findByText('You can help keep your water clean.', { exact: false });
@@ -72,18 +94,44 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
     cy.get('.hmw-accordion').filter(':visible').first().click();
     cy.findByText('Where might the healthier watersheds be located', {
       exact: false,
     });
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
+    // toggle switch off and back on
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Watershed Health Scores').click({ force: true });
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Watershed Health Scores').click({ force: true });
+    cy.findByLabelText('Watershed Health Scores').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
   });
 
   it('Check the wild and scenic rivers section', () => {
@@ -93,14 +141,16 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
     cy.get('.hmw-accordion')
       .filter(':visible')
       .then((elms) => {
@@ -112,6 +162,30 @@ describe('Protect Tab', () => {
         exact: false,
       },
     );
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
+    // toggle switch off and back on
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Wild and Scenic Rivers').click({ force: true });
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Wild and Scenic Rivers').click({ force: true });
+    cy.findByLabelText('Wild and Scenic Rivers').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
   });
 
   it('Check the protected areas section', () => {
@@ -121,14 +195,16 @@ describe('Protect Tab', () => {
     );
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
     cy.get('.hmw-accordion')
       .filter(':visible')
       .then((elms) => {
@@ -140,5 +216,34 @@ describe('Protect Tab', () => {
         exact: false,
       },
     );
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
+    // toggle switch off and back on
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Protected Areas').click({ force: true });
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Protected Areas').click({ force: true });
+    cy.findByLabelText('Protected Areas').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+
+    cy.findByText('Protected Area Blue Hole').click();
+    cy.findAllByRole('button', { name: 'View on Map' })
+      .filter(':visible')
+      .click();
   });
 });

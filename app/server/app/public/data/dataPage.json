@@ -9,7 +9,7 @@
       "linkHref": "https://www.epa.gov/waterdata/attains",
       "linkLabel": "ATTAINS Data/System",
       "shortName": "ATTAINS",
-      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term data-term='overall waterbody condition'>waterbody condition</span> list and map), Swimming, Eating Fish, Aquatic Life, Identified Issues ( <span data-glossary-term data-term='impairment'>impairments</span> ), Restore ( <span data-glossary-term data-term='restoration plan'>restoration plans</span>), Drinking Water (Which waters have been assessed for drinking water use?). It can also be found on the State & Tribal tab under the State or Tribal Water Quality Overview and the Advanced Search tabs.",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term data-term='overall waterbody condition'>waterbody condition</span> list and map), Swimming, Eating Fish, Aquatic Life, Identified Issues ( <span data-glossary-term data-term='impairment'>impairments</span> ), Restore ( <span data-glossary-term data-term='restoration plan'>restoration plans</span>), Protect (Protection Projects), Drinking Water (Which waters have been assessed for drinking water use?).It can also be found on the State & Tribal tab under the State or Tribal Water Quality Overview and the Advanced Search tabs.",
       "title": "Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)"
     },
     {
@@ -51,6 +51,16 @@
       "shortName": "ECHO",
       "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term data-term='dischargers'>permitted dischargers</span> ), Extreme Weather (Combined Sewer Overflows) and Identified Issues ( <span data-glossary-term data-term='significant violations'> dischargers with significant effluent violations</span> ).",
       "title": "Enforcement and Compliance History Online (ECHO)"
+    },
+    {
+      "description": "Expert Query provides a way to interact with public Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS) data, by allowing users to filter and download ATTAINS data either within an organization (state or tribe) or across multiple organizations.",
+      "extraContent": null,
+      "id": "eq",
+      "linkHref": "https://owapps.epa.gov/expertquery/attains",
+      "linkLabel": "EQ Data/System",
+      "shortName": "EQ",
+      "siteLocation": "Information from this database can be found on the Community page on the following tabs; Overview ( <span data-glossary-term data-term='overall waterbody condition'>waterbody condition</span> list and map), Swimming, Eating Fish, Aquatic Life, Identified Issues ( <span data-glossary-term data-term='impairment'>impairments</span> ), Restore ( <span data-glossary-term data-term='restoration plan'>restoration plans</span>), Protect (Protection Projects), Drinking Water (Which waters have been assessed for drinking water use?).",
+      "title": "Expert Query (EQ)"
     },
     {
       "description": "GRTS is the primary tool for management and oversight of the EPA’s <span data-glossary-term data-term='Nonpoint Source Pollution'>Nonpoint Source (NPS) Pollution</span> Control Program. Under Clean Water Act Section 319(h), EPA awards grants for implementation of state NPS management programs.",

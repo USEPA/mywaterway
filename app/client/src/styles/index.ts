@@ -2,30 +2,30 @@ import { css } from '@emotion/react';
 import { CSSObjectWithLabel } from 'react-select';
 
 export const colors = {
-  black: (alpha: number = 1) => `rgba(0, 0, 0, ${alpha})`, // #000
-  white: (alpha: number = 1) => `rgba(255, 255, 255, ${alpha})`, // #fff
-  slate: (alpha: number = 1) => `rgba(53, 61, 71, ${alpha})`, // #353d47
-  blue: (alpha: number = 1) => `rgba(0, 113, 187, ${alpha})`, // #0071bb
-  skyBlue: (alpha: number = 1) => `rgba(0, 123, 255, ${alpha})`, // #1a85ff
-  navyBlue: (alpha: number = 1) => `rgba(64, 97, 142, ${alpha})`, // #40618e
-  orange: (alpha: number = 1) => `rgba(255, 166, 0, ${alpha})`, // #ffa500
-  cyan: (alpha: number = 1) => `rgba(0, 255, 255, ${alpha})`, // #00ffff
-  teal: (alpha: number = 1) => `rgba(80, 210, 194, ${alpha})`, // #50d2c2
-  gold: (alpha: number = 1) => `rgba(252, 171, 83, ${alpha})`, // #fcab53
-  magenta: (alpha: number = 1) => `rgba(255, 51, 102, ${alpha})`, // #ff3366
-  red: (alpha: number = 1) => `rgba(203, 34, 62, ${alpha})`, // #cb223e
-  green: (alpha: number = 1) => `rgba(32, 128, 12, ${alpha})`, // #20800c
-  purple: (alpha: number = 1) => `rgba(92, 26, 158, ${alpha})`, // #5c1a9e
-  lightPurple: (alpha: number = 1) => `rgba(216, 119, 255, ${alpha})`, // #d877ff
-  steel: (alpha: number = 1) => `rgba(82, 101, 113, ${alpha})`, // #526571
-  darkCyan: (alpha: number = 1) => `rgba(0, 202, 202, ${alpha})`, // #00caca
-  yellow: (alpha: number = 1) => `rgba(255, 255, 0, ${alpha})`, // #ffff00
+  black: (alpha = 1) => `rgba(0, 0, 0, ${alpha})`, // #000
+  white: (alpha = 1) => `rgba(255, 255, 255, ${alpha})`, // #fff
+  slate: (alpha = 1) => `rgba(53, 61, 71, ${alpha})`, // #353d47
+  blue: (alpha = 1) => `rgba(0, 113, 187, ${alpha})`, // #0071bb
+  skyBlue: (alpha = 1) => `rgba(0, 123, 255, ${alpha})`, // #1a85ff
+  navyBlue: (alpha = 1) => `rgba(64, 97, 142, ${alpha})`, // #40618e
+  orange: (alpha = 1) => `rgba(255, 166, 0, ${alpha})`, // #ffa500
+  cyan: (alpha = 1) => `rgba(0, 255, 255, ${alpha})`, // #00ffff
+  teal: (alpha = 1) => `rgba(80, 210, 194, ${alpha})`, // #50d2c2
+  gold: (alpha = 1) => `rgba(252, 171, 83, ${alpha})`, // #fcab53
+  magenta: (alpha = 1) => `rgba(255, 51, 102, ${alpha})`, // #ff3366
+  red: (alpha = 1) => `rgba(203, 34, 62, ${alpha})`, // #cb223e
+  green: (alpha = 1) => `rgba(32, 128, 12, ${alpha})`, // #20800c
+  purple: (alpha = 1) => `rgba(92, 26, 158, ${alpha})`, // #5c1a9e
+  lightPurple: (alpha = 1) => `rgba(216, 119, 255, ${alpha})`, // #d877ff
+  steel: (alpha = 1) => `rgba(82, 101, 113, ${alpha})`, // #526571
+  darkCyan: (alpha = 1) => `rgba(0, 202, 202, ${alpha})`, // #00caca
+  yellow: (alpha = 1) => `rgba(255, 255, 0, ${alpha})`, // #ffff00
 
   // for hovers and selecting waterbodies
-  highlightedBlue: (alpha: number = 1) => `rgba(93, 153, 227, ${alpha})`, // #5d99e3
-  highlightedRed: (alpha: number = 1) => `rgba(124, 157, 173, ${alpha})`, //  #7c9dad
-  highlightedGreen: (alpha: number = 1) => `rgba(70, 227, 159, ${alpha})`, // #46e39f
-  highlightedPurple: (alpha: number = 1) => `rgba(84, 188, 236, ${alpha})`, // #54bcec
+  highlightedBlue: (alpha = 1) => `rgba(93, 153, 227, ${alpha})`, // #5d99e3
+  highlightedRed: (alpha = 1) => `rgba(124, 157, 173, ${alpha})`, //  #7c9dad
+  highlightedGreen: (alpha = 1) => `rgba(70, 227, 159, ${alpha})`, // #46e39f
+  highlightedPurple: (alpha = 1) => `rgba(84, 188, 236, ${alpha})`, // #54bcec
 
   gray3: '#333',
   gray4: '#444',

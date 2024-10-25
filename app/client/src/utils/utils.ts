@@ -135,8 +135,8 @@ export function getExtensionFromPath(primary: string, backup: string = '') {
   let extension = getExtension(primary);
   if (!extension) extension = getExtension(backup);
 
-  if (!extension) return 'UNKNOWN';
-  return extension;
+  if (!extension) return null;
+  return `(${extension})`;
 }
 
 export function sentenceJoin(values: string[]) {
