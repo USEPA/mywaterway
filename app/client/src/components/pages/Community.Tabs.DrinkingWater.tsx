@@ -642,7 +642,7 @@ function DrinkingWater() {
                         <div css={infoBoxStyles}>
                           <p css={centeredTextStyles}>
                             There are no public drinking water systems serving{' '}
-                            {county} county/municipality.
+                            {county}.
                           </p>
                         </div>
                       )}
@@ -685,7 +685,7 @@ function DrinkingWater() {
                                 There {providers.length === 1 ? 'is' : 'are'}{' '}
                                 <strong>{providers.length}</strong> public water{' '}
                                 {providers.length === 1 ? 'system' : 'systems'}{' '}
-                                serving <em>{county}</em> county.
+                                serving <em>{county}</em>.
                               </>
                             }
                             onSortChange={(sortBy) =>
