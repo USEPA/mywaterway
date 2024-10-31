@@ -946,7 +946,7 @@ function ExtremeWeather() {
                 <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
                 &nbsp;&nbsp; Date range for{' '}
                 {countySelected ? (
-                  <em>{countySelected?.label}</em>
+                  <em>{countySelected.label}</em>
                 ) : (
                   'the selected county'
                 )}
@@ -1306,6 +1306,15 @@ function ExtremeWeather() {
                             rel="noopener noreferrer"
                           >
                             Wildfires and Water Quality Research
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/watershedacademy/understanding-climate-change-impacts-water-resources-module"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Understanding Climate Change Impacts on Water Resources
                           </a>
                         </li>
                       </ul>
