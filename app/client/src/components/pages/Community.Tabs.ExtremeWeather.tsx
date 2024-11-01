@@ -944,8 +944,12 @@ function ExtremeWeather() {
             headerElm={
               <p css={subheadingStyles}>
                 <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
-                &nbsp;&nbsp; Date range for the <em>{countySelected?.label}</em>{' '}
-                county{' '}
+                &nbsp;&nbsp; Date range for{' '}
+                {countySelected ? (
+                  <em>{countySelected.label}</em>
+                ) : (
+                  'the selected county'
+                )}
               </p>
             }
           />
@@ -1168,7 +1172,7 @@ function ExtremeWeather() {
                 <>
                   <span css={paragraphStyles}>
                     Read more about how to adapt, mitigate, and build resiliency
-                    to extreme events and climate and climate:
+                    to extreme events and climate change:
                   </span>
                   <ul>
                     <li>
@@ -1302,6 +1306,15 @@ function ExtremeWeather() {
                             rel="noopener noreferrer"
                           >
                             Wildfires and Water Quality Research
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="https://www.epa.gov/watershedacademy/understanding-climate-change-impacts-water-resources-module"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Understanding Climate Change Impacts on Water Resources
                           </a>
                         </li>
                       </ul>
