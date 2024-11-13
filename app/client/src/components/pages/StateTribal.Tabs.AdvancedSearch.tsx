@@ -1133,7 +1133,7 @@ function AdvancedSearch() {
                 ? configFiles.data.reportStatusMapping[
                     organizationData.data.reportStatusCode
                   ]
-                : organizationData.data.reportStatusCode}
+                : organizationData.data.reportStatusCode}{' '}
             </>
           )}
           / {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
