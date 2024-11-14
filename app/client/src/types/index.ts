@@ -148,6 +148,7 @@ export interface ChangeLocationAttributes {
 
 export type CharacteristicGroupMappings = {
   label: string;
+  glossaryTerm?: string;
   groupNames: string[];
 }[];
 
