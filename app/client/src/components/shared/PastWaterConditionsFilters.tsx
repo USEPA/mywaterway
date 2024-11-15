@@ -3,6 +3,7 @@
 import { css } from '@emotion/react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Slider from 'components/shared/Slider';
@@ -445,17 +446,30 @@ export function PastWaterConditionsFilters({
                   locationCount++;
                 }
               });
+              const mapping = configFiles.data.characteristicGroupMappings.find(
+                (mapping) => mapping.label === group.label,
+              );
+              const groupLabelId = `${group.label.replaceAll(' ', '-')}-label`;
 
               return (
                 <tr key={group.label}>
                   <td>
-                    <label css={toggleStyles}>
+                    <div css={toggleStyles}>
                       <Switch
                         checked={group.toggled}
                         onChange={groupToggleHandlers?.[group.label]}
+                        ariaLabelledBy={groupLabelId}
                       />
-                      <span>{group.label}</span>
-                    </label>
+                      <span id={groupLabelId}>
+                        {mapping?.glossaryTerm ? (
+                          <GlossaryTerm term={mapping.glossaryTerm}>
+                            {group.label}
+                          </GlossaryTerm>
+                        ) : (
+                          group.label
+                        )}
+                      </span>
+                    </div>
                   </td>
                   <td colSpan={2}>{locationCount.toLocaleString()}</td>
                   <td>{measurementCount.toLocaleString()}</td>
