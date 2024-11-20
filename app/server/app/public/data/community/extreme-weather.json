@@ -752,7 +752,7 @@
       "id": "pollutantStorageTanks",
       "checked": false,
       "disabled": false,
-      "label": "Above and below ground pollutant storage tanks",
+      "label": "Below ground pollutant storage tanks",
       "layerId": "storageTanksLayer",
       "text": "",
       "queries": [
