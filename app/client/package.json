@@ -64,7 +64,7 @@
     "vite-tsconfig-paths": "5.1.3"
   },
   "dependencies": {
-    "@arcgis/core": "4.29.10",
+    "@arcgis/core": "4.31.5",
     "@emotion/babel-plugin": "11.13.5",
     "@emotion/react": "11.13.5",
     "@emotion/styled": "11.13.5",
@@ -97,7 +97,7 @@
     "react-sticky-box": "2.0.5",
     "react-switch": "7.0.0",
     "react-table": "7.8.0",
-    "react-virtuoso": "4.12.0",
+    "react-virtuoso": "4.12.1",
     "regenerator-runtime": "0.14.1",
     "smoothscroll-polyfill": "0.4.4",
     "uuid": "11.0.3"

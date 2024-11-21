@@ -4,9 +4,11 @@
   background-color: white;
 }
 
-.esri-expand__content {
-  max-height: 540px;
-  overflow: auto;
+@media screen {
+  .esri-expand__content-container {
+    max-height: 540px;
+    overflow: auto;
+  }
 }
 
 .esri-view-height-xsmall .esri-expand__popover-content {
@@ -26,6 +28,10 @@
 .esri-basemap-gallery {
   overflow: visible !important;
   max-height: 100% !important;
+}
+
+.esri-basemap-gallery:focus-within {
+  outline: none;
 }
 
 .esri-basemap-gallery__item-thumbnail {

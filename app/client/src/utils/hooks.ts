@@ -2197,7 +2197,6 @@ function useGeometryUtils() {
       // build geometry from the extent
       const extentGeometry = new Polygon({
         spatialReference: hucGeometry.spatialReference,
-        centroid: extent.center,
         rings: [
           [
             [extent.xmin, extent.ymin],
