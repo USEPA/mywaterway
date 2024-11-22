@@ -1030,22 +1030,15 @@ function useSharedLayers({
   }
 
   function getProtectedAreasLayer() {
-    const protectedAreasLayer = new MapImageLayer({
+    const protectedAreasLayer = new FeatureLayer({
       id: 'protectedAreasLayer',
       title: 'Protected Areas',
       url: configFiles.data.services.protectedAreasDatabase,
-      legendEnabled: false,
-      listMode: 'hide-children',
-      sublayers: [
-        {
-          id: 0,
-          popupTemplate: {
-            title: getTitle,
-            content: getTemplate,
-            outFields: ['*'],
-          },
-        },
-      ],
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['*'],
+      },
     });
 
     setLayer('protectedAreasLayer', protectedAreasLayer);

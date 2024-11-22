@@ -310,6 +310,7 @@ const featureLayerIds = [
   'dischargersLayer',
   'droughtRealtimeLayer',
   'monitoringLocationsLayer',
+  'protectedAreasLayer',
   'sewerOverflowsLayer',
   'storageTanksLayer',
   'surroundingDischargersLayer',
@@ -352,11 +353,7 @@ const groupLayerIds = [
   'wildfiresLayer',
 ] as const;
 
-const mapImageLayerIds = [
-  'mappedWaterLayer',
-  'protectedAreasLayer',
-  'stateBoundariesLayer',
-] as const;
+const mapImageLayerIds = ['mappedWaterLayer', 'stateBoundariesLayer'] as const;
 
 const wmsLayerIds = ['landCoverLayer'] as const;
 
