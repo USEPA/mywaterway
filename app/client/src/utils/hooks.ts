@@ -433,7 +433,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     nonprofitsLayer,
     waterbodyPoints, //part of waterbody group layer
     protectedAreasLayer,
-    protectedAreasHighlightLayer,
     upstreamLayer,
     usgsStreamgagesLayer,
     wildScenicRiversLayer,
@@ -523,10 +522,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       handles.remove(group);
       mapView.graphics.removeAll();
 
-      if (protectedAreasHighlightLayer) {
-        protectedAreasHighlightLayer.removeAll();
-      }
-
       // remove the currentHighlight and currentSelection if either exist
       if (currentHighlight || currentSelection) {
         currentHighlight = null;
@@ -593,9 +588,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // remove the highlights
     handles.remove(group);
     mapView.graphics.removeAll();
-    if (protectedAreasHighlightLayer) {
-      protectedAreasHighlightLayer.removeAll();
-    }
 
     // get organizationid and assessmentunitidentifier to figure out if the
     // selected waterbody changed.
@@ -752,7 +744,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     handles,
     wildScenicRiversLayer,
     protectedAreasLayer,
-    protectedAreasHighlightLayer,
     pointsData,
     linesData,
     areasData,
@@ -1044,21 +1035,6 @@ function useSharedLayers({
     setLayer('protectedAreasLayer', protectedAreasLayer);
 
     return protectedAreasLayer;
-  }
-
-  function getProtectedAreasHighlightLayer() {
-    const protectedAreasHighlightLayer = new GraphicsLayer({
-      id: 'protectedAreasHighlightLayer',
-      title: 'Protected Areas Highlight Layer',
-      listMode: 'hide',
-    });
-
-    setLayer('protectedAreasHighlightLayer', protectedAreasHighlightLayer);
-    setResetHandler('protectedAreasHighlightLayer', () => {
-      protectedAreasHighlightLayer.graphics.removeAll();
-    });
-
-    return protectedAreasHighlightLayer;
   }
 
   function getWildScenicRiversLayer() {
@@ -2050,8 +2026,6 @@ function useSharedLayers({
 
     const protectedAreasLayer = getProtectedAreasLayer();
 
-    const protectedAreasHighlightLayer = getProtectedAreasHighlightLayer();
-
     const wildScenicRiversLayer = getWildScenicRiversLayer();
 
     const tribalLayer = getTribalLayer();
@@ -2113,7 +2087,6 @@ function useSharedLayers({
       coastalFloodingRealtimeLayer,
       coastalFloodingLayer,
       protectedAreasLayer,
-      protectedAreasHighlightLayer,
       wildScenicRiversLayer,
       tribalLayer,
       congressionalLayer,

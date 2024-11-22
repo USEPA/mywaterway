@@ -227,7 +227,6 @@ const orderedLayers = [
   'wsioHealthIndexLayer',
   'wildfiresLayer',
   'wildScenicRiversLayer',
-  'protectedAreasHighlightLayer',
   'protectedAreasLayer',
   'disadvantagedCommunitiesLayer',
   'wellsLayer',

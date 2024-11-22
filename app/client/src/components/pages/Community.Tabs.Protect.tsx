@@ -214,7 +214,6 @@ function Protect() {
   const {
     allWaterbodiesLayer,
     monitoringLocationsLayer,
-    protectedAreasHighlightLayer,
     protectedAreasLayer,
     updateVisibleLayers,
     usgsStreamgagesLayer,
@@ -395,10 +394,6 @@ function Protect() {
   useEffect(() => {
     if (!mapView || !selectedFeature) return;
 
-    // add it to the highlight layer
-    protectedAreasHighlightLayer.removeAll();
-    protectedAreasHighlightLayer.add(selectedFeature);
-
     // set the highlight
     // update context with the new selected graphic
     selectedFeature.attributes['zoom'] = true;
@@ -407,12 +402,7 @@ function Protect() {
 
     // reset the selectedFeature
     setSelectedFeature(null);
-  }, [
-    mapView,
-    selectedFeature,
-    protectedAreasHighlightLayer,
-    setSelectedGraphic,
-  ]);
+  }, [mapView, selectedFeature, setSelectedGraphic]);
 
   // Initialize the visibility of several layers. This will be used
   // to reset their visibility when the user leaves this tab.
