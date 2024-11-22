@@ -25,7 +25,7 @@
     "Max Diebold <max.diebold@erg.com>"
   ],
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "main": "app/server.js",
   "scripts": {
@@ -35,7 +35,7 @@
     "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.675.0",
+    "@aws-sdk/client-s3": "3.697.0",
     "axios": "1.7.7",
     "dotenv": "16.4.5",
     "express": "4.21.1",
@@ -46,9 +46,9 @@
     "serve-favicon": "2.5.0"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "3.13.4",
+    "@cypress/code-coverage": "3.13.7",
     "browser-sync": "3.0.3",
-    "husky": "9.1.6",
+    "husky": "9.1.7",
     "jest": "29.7.0",
     "lint-staged": "15.2.10",
     "nodemon": "3.1.7",
