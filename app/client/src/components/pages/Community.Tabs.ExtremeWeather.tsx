@@ -1048,104 +1048,21 @@ function ExtremeWeather() {
           />
 
           <div>
-            <a
-              href="https://resilience.climate.gov/pages/data-sources"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Read more about how the data was processed
-            </a>{' '}
-            <strong>(see about "Climate Data Summaries" section).</strong>{' '}
+            <span
+              dangerouslySetInnerHTML={{
+                __html:
+                  configFiles.data.extremeWeather.content.dataResources.intro,
+              }}
+            />{' '}
             <ShowLessMore
               charLimit={0}
               text={
                 <ul>
-                  <li>
-                    Climate summaries for the contiguous 48 states were derived
-                    from data generated for the 4th National Climate Assessment.
-                    These data were accessed from the{' '}
-                    <a
-                      href="https://scenarios.globalchange.gov/loca-viewer/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Scenarios for the National Climate Assessment
-                    </a>{' '}
-                    website. The 30-year mean values for 4 time periods
-                    (historic, early-, mid-, and late-century) and two climate
-                    scenarios (RCP 4.5 and 8.5) were derived from the{' '}
-                    <a
-                      href="https://journals.ametsoc.org/view/journals/hydr/15/6/jhm-d-14-0082_1.xml"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Localized Constructed Analogs
-                    </a>{' '}
-                    (LOCA) downscaled climate model ensembles, processed by the
-                    Technical Support Unit at NOAA’s National Center for
-                    Environmental Information. The netCDF data from the website
-                    were summarized by county and census tract using the Zonal
-                    Statistics as Table utility in ArcGIS Pro. The results were
-                    joined into the corresponding geography polygons. A minimum,
-                    maximum, and mean value for each variable was calculated.
-                    This process was repeated for each time range and scenario.
-                    In order to display the full range of projections from
-                    individual climate models for each period, data originally
-                    obtained from{' '}
-                    <a
-                      href="https://waterdata.usgs.gov/blog/gdp-moving/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      USGS THREDDS
-                    </a>{' '}
-                    servers were accessed via the Regional Climate Center’s{' '}
-                    <a
-                      href="https://www.rcc-acis.org/docs_webservices.html"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Applied Climate Information System
-                    </a>{' '}
-                    (ACIS). This webservice facilitated processing of the raw
-                    data values to obtain the climate hazard metrics available
-                    in CMRA.
-                  </li>
-                  <li>
-                    As LOCA was only generated for the contiguous 48 states (and
-                    the District of Columbia), alternatives were used for Alaska
-                    and Hawaii. In Alaska, the{' '}
-                    <a
-                      href="https://link.springer.com/article/10.1023/B:CLIM.0000013685.99609.9e"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Bias Corrected Spatially Downscaled
-                    </a>{' '}
-                    (BCSD) method was used. Data were accessed from{' '}
-                    <a
-                      href="https://waterdata.usgs.gov/blog/gdp-moving/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      USGS THREDDS servers
-                    </a>
-                    . The same variables provided for LOCA were calculated from
-                    BCSD ensemble means. However, only RCP 8.5 was available.
-                    Minimum, maximum, and mean values for county and census
-                    tracts were calculated in the same way as above. For Hawaii,
-                    statistics for two summary geographies were accessed from
-                    the U.S. Climate Resilience Toolkit’s{' '}
-                    <a
-                      href="https://crt-climate-explorer.nemac.org/faq/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Climate Explorer
-                    </a>
-                    : Northern Islands (Honolulu County, Kauaʻi County) and
-                    Southern Islands (Maui County, Hawai'i County).
-                  </li>
+                  {configFiles.data.extremeWeather.content.dataResources.items.map(
+                    (item) => (
+                      <li dangerouslySetInnerHTML={{ __html: item }} />
+                    ),
+                  )}
                 </ul>
               }
             />
@@ -1163,230 +1080,65 @@ function ExtremeWeather() {
           />
 
           <div>
-            <strong>Read more about</strong> how waters, communities, and assets
-            are vulnerable to various extreme events, and how people are
-            learning to adapt and build resiliency.
+            <span
+              dangerouslySetInnerHTML={{
+                __html:
+                  configFiles.data.extremeWeather.content.vulnerabilityResources
+                    .intro,
+              }}
+            />{' '}
             <ShowLessMore
               charLimit={0}
               text={
                 <>
-                  <span css={paragraphStyles}>
-                    Read more about how to adapt, mitigate, and build resiliency
-                    to extreme events and climate change:
-                  </span>
-                  <ul>
-                    <li>
-                      <a
-                        href="https://www.epa.gov/climate-change-water-sector/office-water-climate-adaptation-implementation-plan"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Office of Water Climate Adaptation Implementation Plan
-                      </a>{' '}
-                      (see{' '}
-                      <em>
-                        Climate Vulnerabilities of Water Resources, Communities,
-                        and Office of Water Programs
-                      </em>{' '}
-                      section)
-                    </li>
-                    <li>
-                      <a
-                        href="https://www.epa.gov/climate-change-water-sector"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        EPA Climate and Water Sector
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="https://www.epa.gov/cwsrf/clean-water-state-revolving-fund-cwsrf-factsheets"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        EPA funding for resiliency
-                      </a>
-                      <ul>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/sites/default/files/2021-01/documents/funding_resilient_infrastructure_and_communities_with_the_cwsrf.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Funding Resilient Infrastructure and Communities
-                            with the Clean Water State Revolving Fund (PDF)
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/system/files/documents/2022-08/Funding Drought Resiliency Projects with the CWSRF.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Funding Drought Resiliency Projects with the CWSRF
-                            (PDF)
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/system/files/documents/2022-10/Funding Wildfire Resiliency%2C Mitigation%2C and Recovery Projects with the SRF.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Funding Wildfire Resiliency, Mitigation, and
-                            Recovery Projects with the Clean Water and Drinking
-                            Water State Revolving Fund Programs (PDF)
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/system/files/documents/2023-03/climate-resilience-and-mitigation-with-cwsrf-and-wifia.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Increasing Climate Resilience and Mitigation with
-                            the Clean Water State Revolving Fund (CWSRF) and
-                            Water Infrastructure Finance and Innovation Act
-                            (WIFIA) Program (PDF)
-                          </a>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      <a
-                        href="https://www.epa.gov/arc-x/climate-adaptation-and-drought"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Climate Adaptation and Drought
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="https://www.epa.gov/crwu"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Creating Resilient Water Utilities (CRWU)
-                      </a>
-                    </li>
-                  </ul>
-                  <span css={paragraphStyles}>
-                    Read more about how waters, infrastructure, and communities
-                    are potentially vulnerable to extreme events and climate
-                    change:
-                  </span>
-                  <ul>
-                    <li>
-                      Water quality and quantity
-                      <ul>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/arc-x/climate-impacts-water-quality#:~:text=Harmful%20Algal%20Blooms,-Develop%20models%20to&text=In%20many%20areas%2C%20increased%20water,due%20to%20extreme%20storm%20events"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Climate Impacts on Water Quality
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/climate-research/ecosystems-water-quality-climate-change-research#WaterQuality"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Water Quality & Climate Change Research
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/water-research/wildfires-and-water-quality-research"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Wildfires and Water Quality Research
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/watershedacademy/understanding-climate-change-impacts-water-resources-module"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Understanding Climate Change Impacts on Water Resources
-                          </a>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      Infrastructure
-                      <ul>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/natural-disasters/flooding#:~:text=During%20a%20flood%2C%20underground%20storage,surface%20water%2C%20and%20groundwater%20contamination"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Underground Storage Tanks and Flooding
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://cfpub.epa.gov/si/si_public_record_Report.cfm?dirEntryId=361015&Lab=CESER"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Climate Change and Vulnerabilities Associated with
-                            Aboveground Storage Tanks
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/eco-research/community-vulnerabilities-contaminant-releases-extreme-events"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Community Vulnerabilities to Contaminant Releases
-                            from Extreme Events
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/arc-x/climate-impacts-water-utilities"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Wastewater systems, drinking water systems, and
-                            Combined Sewage Overflows (CSO’s)
-                          </a>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      Communities
-                      <ul>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/climateimpacts/climate-equity#:~:text=Some%20communities%20experience%20disproportionate%20impacts,affected%20most%20by%20climate%20change"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Climate Equity
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.epa.gov/climateimpacts/climate-change-and-health-socially-vulnerable-people#water"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Water-Related Illnesses and Climate Change
-                          </a>
-                        </li>
-                      </ul>
-                    </li>
-                  </ul>
+                  {configFiles.data.extremeWeather.content.vulnerabilityResources.sections.map(
+                    (section) => (
+                      <Fragment key={section.description}>
+                        <span css={paragraphStyles}>
+                          {section.description}:
+                        </span>
+                        <ul>
+                          {section.items.map((item) => (
+                            <li key={item.label}>
+                              {item.link ? (
+                                <a
+                                  href={item.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {item.label}
+                                </a>
+                              ) : (
+                                item.label
+                              )}{' '}
+                              {item.extra ? (
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: item.extra,
+                                  }}
+                                />
+                              ) : null}
+                              {item.items && (
+                                <ul>
+                                  {item.items.map((subItem) => (
+                                    <li key={subItem.label}>
+                                      <a
+                                        href={subItem.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {subItem.label}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </Fragment>
+                    ),
+                  )}
                 </>
               }
             />
@@ -2073,6 +1825,12 @@ function updateRowField(
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
+  }
+`;
+
+const contentStyles = css`
+  .paragraph-styles {
+    ${paragraphStyles}
   }
 `;
 
