@@ -578,6 +578,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'cyanWaterbodies';
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
+    } else if (attributes.Loc_Nm) {
+      layer = protectedAreasLayer;
+      featureLayerType = 'protectedAreas';
     }
 
     if (!layer) return;
@@ -661,7 +664,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
       if (featureLayerType === 'waterbodyLayer') {
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
-      } else if (featureLayerType === 'wildScenicRivers') {
+      } else if (
+        ['protectedAreas', 'wildScenicRivers'].includes(featureLayerType)
+      ) {
         where = `OBJECTID = ${attributes.OBJECTID}`;
       } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;

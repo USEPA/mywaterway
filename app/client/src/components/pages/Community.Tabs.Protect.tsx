@@ -1054,39 +1054,6 @@ function Protect() {
                                     layers={[protectedAreasLayer]}
                                     feature={item}
                                     fieldName={protectedAreasIdKey}
-                                    customQuery={(viewClick) => {
-                                      // query for the item
-                                      const url = `${configFiles.data.services.protectedAreasDatabase}0`;
-                                      const queryParams = {
-                                        where: `${protectedAreasIdKey} = ${attributes[protectedAreasIdKey]}`,
-                                        returnGeometry: true,
-                                        outFields: ['*'],
-                                      };
-
-                                      query
-                                        .executeQueryJSON(url, queryParams)
-                                        .then((res) => {
-                                          if (res.features.length === 0) return;
-
-                                          // create the feature
-                                          const feature = res.features[0];
-                                          feature.symbol = new SimpleFillSymbol(
-                                            {
-                                              ...highlightOptions,
-                                              outline: null,
-                                            },
-                                          );
-
-                                          if (!mapView) {
-                                            viewClick(feature);
-                                          }
-
-                                          setSelectedFeature(feature);
-                                        })
-                                        .catch((err) => {
-                                          console.error(err);
-                                        });
-                                    }}
                                     onClick={() => {
                                       if (protectedAreasDisplayed) return;
 
