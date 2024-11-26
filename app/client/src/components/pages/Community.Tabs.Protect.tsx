@@ -10,6 +10,7 @@ import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import { AccordionItem as AccordionItemHighlight } from 'components/shared/AccordionMapHighlight';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import Switch from 'components/shared/Switch';
@@ -389,20 +390,6 @@ function Protect() {
     setWaterbodyLayerDisplayed(!waterbodyLayerDisplayed);
     updateVisibleLayers({ waterbodyLayer: !waterbodyLayerDisplayed });
   }
-
-  const [selectedFeature, setSelectedFeature] = useState(null);
-  useEffect(() => {
-    if (!mapView || !selectedFeature) return;
-
-    // set the highlight
-    // update context with the new selected graphic
-    selectedFeature.attributes['zoom'] = true;
-    selectedFeature.attributes['fieldName'] = protectedAreasIdKey;
-    setSelectedGraphic(selectedFeature);
-
-    // reset the selectedFeature
-    setSelectedFeature(null);
-  }, [mapView, selectedFeature, setSelectedGraphic]);
 
   // Initialize the visibility of several layers. This will be used
   // to reset their visibility when the user leaves this tab.
@@ -1003,8 +990,9 @@ function Protect() {
                             const attributes = item.attributes;
                             const fields = protectedAreasData.fields;
                             return (
-                              <AccordionItem
+                              <AccordionItemHighlight
                                 key={`protected-area-${attributes.OBJECTID}`}
+                                idKey={protectedAreasIdKey}
                                 feature={item}
                                 title={
                                   <strong>
@@ -1064,7 +1052,7 @@ function Protect() {
                                     }}
                                   />
                                 </div>
-                              </AccordionItem>
+                              </AccordionItemHighlight>
                             );
                           })}
                         </AccordionList>

@@ -537,8 +537,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // check if the graphic is the same as the currently highlighted graphic
     // remove the highlight if the graphic is different
-    let equal = graphicComparison(graphic, currentHighlight);
-    let selectionEqual = graphicComparison(selectedGraphic, currentSelection);
+    const equal = graphicComparison(graphic, currentHighlight);
+    const selectionEqual = graphicComparison(selectedGraphic, currentSelection);
     if (equal && selectionEqual) return;
 
     // set the currentSelection if it changed
