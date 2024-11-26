@@ -12,7 +12,7 @@ import type { SerializedStyles } from '@emotion/react';
 ## Styles
 */
 const contentStyles = css`
-  background-color: inherit;
+  background-color: none;
 `;
 
 const flexRowStyles = css`
