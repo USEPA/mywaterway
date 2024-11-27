@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { Node } from 'react';
+import type { ReactNode } from 'react';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
@@ -12,6 +12,7 @@ import DataContent from 'components/shared/DataContent';
 import AboutContent from 'components/shared/AboutContent';
 import EducatorsContent from 'components/shared/EducatorsContent';
 import GlossaryPanel, { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
@@ -183,7 +184,7 @@ const subtitleStyles = css`
 `;
 
 type Props = {
-  children: Node;
+  children: ReactNode;
 };
 
 function Page({ children }: Props) {
@@ -315,15 +316,16 @@ function Page({ children }: Props) {
   useEffect(() => {
     if (pollInitialized) return;
 
-    // poll for rendering glossary terms from html
+    // poll for rendering glossary terms and collapsible text from html
     function poll() {
       const glossarySpans = document.querySelectorAll(
         'span[data-glossary-term]',
       );
-      glossarySpans.forEach((span) => {
+      (glossarySpans as NodeListOf<HTMLSpanElement>).forEach((span) => {
         if (
           !span.dataset.hasOwnProperty('glossaryTerm') ||
-          !span.dataset.hasOwnProperty('term')
+          !span.dataset.hasOwnProperty('term') ||
+          !span.dataset.term
         )
           return;
 
@@ -333,8 +335,32 @@ function Page({ children }: Props) {
             {span.innerText}
           </GlossaryTerm>,
         );
-        span.parentNode.replaceChild(node, span);
+        span.parentNode?.replaceChild(node, span);
       });
+
+      const showLessMores = document.querySelectorAll('[data-show-less-more]');
+      (showLessMores as NodeListOf<HTMLSpanElement | HTMLDivElement>).forEach(
+        (el) => {
+          const node = document.createElement(el.localName);
+          const Container = el.localName;
+          createRoot(node).render(
+            <ShowLessMore
+              charLimit={parseInt(el.dataset.charLimit ?? '0')}
+              text={
+                el.innerText === el.innerHTML ? (
+                  el.innerText
+                ) : (
+                  <Container
+                    //@ts-ignore
+                    dangerouslySetInnerHTML={{ __html: el.innerHTML }}
+                  />
+                )
+              }
+            />,
+          );
+          el.parentNode?.replaceChild(node, el);
+        },
+      );
 
       setTimeout(() => {
         poll();

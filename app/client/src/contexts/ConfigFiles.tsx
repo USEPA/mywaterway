@@ -36,6 +36,9 @@ export type ConfigFiles = {
   services: ServicesData;
   stateNationalUses: any;
   surveyMapping: any;
+  upperContent: {
+    [key: string]: { body: string; disclaimer?: string };
+  };
   useFields: AttainsUseField[];
   usgsStaParameters: any;
   waterTypeOptions: any;

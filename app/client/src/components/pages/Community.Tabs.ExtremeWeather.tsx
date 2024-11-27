@@ -1059,8 +1059,8 @@ function ExtremeWeather() {
               text={
                 <ul>
                   {configFiles.data.extremeWeather.content.dataResources.items.map(
-                    (item) => (
-                      <li dangerouslySetInnerHTML={{ __html: item }} />
+                    (item, i) => (
+                      <li dangerouslySetInnerHTML={{ __html: item }} key={i} />
                     ),
                   )}
                 </ul>
