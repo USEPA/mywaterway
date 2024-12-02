@@ -33,12 +33,8 @@ import extremeWeatherIcon from 'images/extreme-weather.png';
 // types
 import type { MutableRefObject, RefCallback } from 'react';
 
-const showLessMoreContainerStyles = css`
-  margin-bottom: 1.5em;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+const disclaimerStyles = css`
+  margin-top: 1.5em;
 `;
 
 const upperContentStyles = css`
@@ -46,13 +42,22 @@ const upperContentStyles = css`
     display: block;
   }
 
+  p {
+    padding-bottom: 0;
+    margin-bottom: 1.5em;
+  }
+
+  [data-show-less-more] {
+    display: none;
+  }
+
   .paragraph-list {
     p {
-      padding-bottom: 0;
+      margin-bottom: 0;
     }
 
     ul {
-      padding-bottom: 1.5em;
+      margin-bottom: 1.5em;
     }
   }
 `;
@@ -97,7 +102,7 @@ function EatingFishUpper() {
 
   const stateLinksRoot = useRef<Root | null>(null);
 
-  const introRef = (node: HTMLDivElement | null) => {
+  const bodyRef = (node: HTMLDivElement | null) => {
     if (!node) return;
 
     const stateLinksSpan = node.querySelector('span#eating-fish-state-links');
@@ -109,14 +114,14 @@ function EatingFishUpper() {
     stateLinksRoot.current.render(stateLinks);
   };
 
-  return <UpperContent tabKey="eatingFish" introRef={introRef} />;
+  return <UpperContent tabKey="eatingFish" bodyRef={bodyRef} />;
 }
 
 function UpperContent({
-  introRef,
+  bodyRef,
   tabKey,
 }: {
-  introRef?:
+  bodyRef?:
     | RefCallback<HTMLDivElement>
     | MutableRefObject<HTMLDivElement | null>;
   tabKey: string;
@@ -124,31 +129,17 @@ function UpperContent({
   const {
     data: {
       upperContent: {
-        [tabKey]: { intro, disclaimer, more },
+        [tabKey]: { body, disclaimer },
       },
     },
   } = useConfigFilesState();
 
   return (
     <div css={upperContentStyles}>
-      <div dangerouslySetInnerHTML={{ __html: intro }} ref={introRef} />
-
-      {more && (
-        <div css={showLessMoreContainerStyles}>
-          <ShowLessMore
-            text={
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: more,
-                }}
-              />
-            }
-          />
-        </div>
-      )}
+      <div dangerouslySetInnerHTML={{ __html: body }} ref={bodyRef} />
 
       {disclaimer && (
-        <DisclaimerModal>
+        <DisclaimerModal css={disclaimerStyles}>
           <div
             dangerouslySetInnerHTML={{
               __html: disclaimer,

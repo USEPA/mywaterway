@@ -12,6 +12,7 @@ import DataContent from 'components/shared/DataContent';
 import AboutContent from 'components/shared/AboutContent';
 import EducatorsContent from 'components/shared/EducatorsContent';
 import GlossaryPanel, { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 // utilities
@@ -315,7 +316,7 @@ function Page({ children }: Props) {
   useEffect(() => {
     if (pollInitialized) return;
 
-    // poll for rendering glossary terms from html
+    // poll for rendering glossary terms and collapsible text from html
     function poll() {
       const glossarySpans = document.querySelectorAll(
         'span[data-glossary-term]',
@@ -336,6 +337,30 @@ function Page({ children }: Props) {
         );
         span.parentNode?.replaceChild(node, span);
       });
+
+      const showLessMores = document.querySelectorAll('[data-show-less-more]');
+      (showLessMores as NodeListOf<HTMLSpanElement | HTMLDivElement>).forEach(
+        (el) => {
+          const node = document.createElement(el.localName);
+          const Container = el.localName;
+          createRoot(node).render(
+            <ShowLessMore
+              charLimit={parseInt(el.dataset.charLimit ?? '0')}
+              text={
+                el.innerText === el.innerHTML ? (
+                  el.innerText
+                ) : (
+                  <Container
+                    //@ts-ignore
+                    dangerouslySetInnerHTML={{ __html: el.innerHTML }}
+                  />
+                )
+              }
+            />,
+          );
+          el.parentNode?.replaceChild(node, el);
+        },
+      );
 
       setTimeout(() => {
         poll();
