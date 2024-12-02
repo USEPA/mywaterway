@@ -15,7 +15,6 @@ import Restore from 'components/pages/Community.Tabs.Restore';
 import Protect from 'components/pages/Community.Tabs.Protect';
 import ExtremeWeather from 'components/pages/Community.Tabs.ExtremeWeather';
 import { DisclaimerModal } from 'components/shared/Modal';
-import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -33,13 +32,9 @@ import extremeWeatherIcon from 'images/extreme-weather.png';
 // types
 import type { MutableRefObject, RefCallback } from 'react';
 
-const disclaimerStyles = css`
-  margin-top: 1.5em;
-`;
-
 const upperContentStyles = css`
-  & > * {
-    display: block;
+  div:first-of-type {
+    margin-bottom: 1.5em;
   }
 
   p {
@@ -139,7 +134,7 @@ function UpperContent({
       <div dangerouslySetInnerHTML={{ __html: body }} ref={bodyRef} />
 
       {disclaimer && (
-        <DisclaimerModal css={disclaimerStyles}>
+        <DisclaimerModal>
           <div
             dangerouslySetInnerHTML={{
               __html: disclaimer,
