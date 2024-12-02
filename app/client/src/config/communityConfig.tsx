@@ -1,9 +1,9 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
-import React, { Fragment, useContext } from 'react';
+import { Fragment, useContext, useRef } from 'react';
+import { createRoot, Root } from 'react-dom/client';
 // components
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import Overview from 'components/pages/Community.Tabs.Overview';
 import DrinkingWater from 'components/pages/Community.Tabs.DrinkingWater';
 import Swimming from 'components/pages/Community.Tabs.Swimming';
@@ -19,8 +19,6 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LocationSearchContext } from 'contexts/locationSearch';
-// styles
-import { paragraphStyles } from 'styles';
 // images
 import overviewIcon from 'images/overview.png';
 import drinkingWaterIcon from 'images/drinking-water.png';
@@ -32,103 +30,122 @@ import identifiedIssuesIcon from 'images/identified-issues.png';
 import restoreIcon from 'images/restore.png';
 import protectIcon from 'images/protect.png';
 import extremeWeatherIcon from 'images/extreme-weather.png';
+// types
+import type { MutableRefObject, RefCallback } from 'react';
+
+const showLessMoreContainerStyles = css`
+  margin-bottom: 1.5em;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
 
 const upperContentStyles = css`
-  [data-show-less-more] {
-    display: none;
+  & > * {
+    display: block;
   }
 
-  .paragraph-styles {
-    ${paragraphStyles}
+  .paragraph-list {
+    p {
+      padding-bottom: 0;
+    }
+
+    ul {
+      padding-bottom: 1.5em;
+    }
   }
 `;
 
 function EatingFishUpper() {
-  const { watershed, fishingInfo, statesData } = useContext(
-    LocationSearchContext,
-  );
+  const { fishingInfo, statesData } = useContext(LocationSearchContext);
 
-  return (
-    <>
-      <p>
-        EPA, states, and tribes monitor and assess water quality to determine if
-        fish and shellfish are safe to eat.
-      </p>
+  const stateLinks =
+    fishingInfo.status === 'success' ? (
+      <>
+        {fishingInfo.data.map((state, index) => {
+          let seperator = ', ';
+          if (index === 0) seperator = '';
+          else if (index === fishingInfo.data.length - 1) seperator = ' and ';
 
-      <p>
-        Eating fish and shellfish caught in impaired waters can pose health
-        risks. For the <em>{watershed.name}</em> watershed, be sure to look for
-        posted fish advisories or consult your local or state environmental
-        health department for{' '}
-        {fishingInfo.status === 'success' ? (
-          <>
-            {fishingInfo.data.map((state, index) => {
-              let seperator = ', ';
-              if (index === 0) seperator = '';
-              else if (index === fishingInfo.data.length - 1)
-                seperator = ' and ';
+          const matchedState = statesData.data.find((s) => {
+            return s.code === state.stateCode;
+          });
 
-              const matchedState = statesData.data.find((s) => {
-                return s.code === state.stateCode;
-              });
+          return (
+            <Fragment key={state.stateCode}>
+              {seperator}
+              <a href={state.url} target="_blank" rel="noopener noreferrer">
+                {matchedState ? matchedState.name : state.stateCode}
+              </a>
+            </Fragment>
+          );
+        })}
+        .{' '}
+        <a
+          className="exit-disclaimer"
+          href="https://www.epa.gov/home/exit-epa"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          EXIT
+        </a>
+      </>
+    ) : (
+      <>your state.</>
+    );
 
-              return (
-                <Fragment key={state.stateCode}>
-                  {seperator}
-                  <a href={state.url} target="_blank" rel="noopener noreferrer">
-                    {matchedState ? matchedState.name : state.stateCode}
-                  </a>
-                </Fragment>
-              );
-            })}
-            .{' '}
-            <a
-              className="exit-disclaimer"
-              href="https://www.epa.gov/home/exit-epa"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              EXIT
-            </a>
-          </>
-        ) : (
-          <>your state.</>
-        )}
-        <ShowLessMore
-          charLimit={0}
-          text=" The information in How’s My Waterway about the safety of eating
-            fish caught recreationally should only be considered as general
-            reference. Please consult with your state for local or state-wide
-            fish advisories."
-        />
-      </p>
+  const stateLinksRoot = useRef<Root | null>(null);
 
-      <DisclaimerModal>
-        <p>
-          Users of this application should not rely on information relating to
-          environmental laws and regulations posted on this application.
-          Application users are solely responsible for ensuring that they are in
-          compliance with all relevant environmental laws and regulations. In
-          addition, EPA cannot attest to the accuracy of data provided by
-          organizations outside of the federal government.
-        </p>
-      </DisclaimerModal>
-    </>
-  );
+  const introRef = (node: HTMLDivElement | null) => {
+    if (!node) return;
+
+    const stateLinksSpan = node.querySelector('span#eating-fish-state-links');
+    if (!stateLinksSpan) return;
+
+    if (!stateLinksRoot.current) {
+      stateLinksRoot.current = createRoot(stateLinksSpan);
+    }
+    stateLinksRoot.current.render(stateLinks);
+  };
+
+  return <UpperContent tabKey="eatingFish" introRef={introRef} />;
 }
 
-function UpperContent({ tabKey }: { tabKey: string }) {
+function UpperContent({
+  introRef,
+  tabKey,
+}: {
+  introRef?:
+    | RefCallback<HTMLDivElement>
+    | MutableRefObject<HTMLDivElement | null>;
+  tabKey: string;
+}) {
   const {
     data: {
       upperContent: {
-        [tabKey]: { body, disclaimer },
+        [tabKey]: { intro, disclaimer, more },
       },
     },
   } = useConfigFilesState();
 
   return (
     <div css={upperContentStyles}>
-      <div dangerouslySetInnerHTML={{ __html: body }} />
+      <div dangerouslySetInnerHTML={{ __html: intro }} ref={introRef} />
+
+      {more && (
+        <div css={showLessMoreContainerStyles}>
+          <ShowLessMore
+            text={
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: more,
+                }}
+              />
+            }
+          />
+        </div>
+      )}
 
       {disclaimer && (
         <DisclaimerModal>

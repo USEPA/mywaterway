@@ -37,7 +37,7 @@ export type ConfigFiles = {
   stateNationalUses: any;
   surveyMapping: any;
   upperContent: {
-    [key: string]: { body: string; disclaimer?: string };
+    [key: string]: { intro: string; disclaimer?: string; more?: string };
   };
   useFields: AttainsUseField[];
   usgsStaParameters: any;
