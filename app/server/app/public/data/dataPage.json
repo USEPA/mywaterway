@@ -144,14 +144,14 @@
       "title": "Protected Areas"
     },
     {
-      "description": "The Recovery Potential Screening (RPS) indicator library is a free, publicly available data library of watershed indicators to assist resource managers and other users with evaluating, comparing, and prioritizing watersheds for a user-defined purpose.",
+      "description": "The Restoration and Protection Screening (RPS) indicator library is a free, publicly available data library of watershed indicators to assist resource managers and other users with evaluating, comparing, and prioritizing watersheds for a user-defined purpose.",
       "extraContent": null,
       "id": "rps",
       "linkHref": "https://www.epa.gov/rps",
       "linkLabel": "RPS Data/System",
       "shortName": "RPS",
       "siteLocation": "Information from this database can be found on the Community page on the Protect tab under Watershed Health and Protection, Watershed Health Scores.",
-      "title": "Recovery Potential Screening (RPS)"
+      "title": "Restoration and Protection Screening (RPS)"
     },
     {
       "description": "The Safe Drinking Water Information System (SDWIS) contains information on public water systems, including monitoring, enforcement, and violation data related to requirements established by the Safe Drinking Water Act (SDWA).",

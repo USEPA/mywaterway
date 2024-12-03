@@ -244,6 +244,27 @@ export type ExtremeWeatherRow = {
 };
 
 export type ExtremeWeatherConfig = {
+  content: {
+    dataResources: {
+      intro: string;
+      items: string[];
+    };
+    vulnerabilityResources: {
+      intro: string;
+      sections: Array<{
+        description: string;
+        items: Array<{
+          label: string;
+          link?: string;
+          extra?: string;
+          items?: Array<{
+            label: string;
+            link: string;
+          }>;
+        }>;
+      }>;
+    };
+  };
   currentWeatherDefaults: ExtremeWeatherRow[];
   echoLookups: {
     permitStatus: { [key: string]: string };
