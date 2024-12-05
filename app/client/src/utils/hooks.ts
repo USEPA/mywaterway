@@ -418,7 +418,8 @@ function useWaterbodyOnMap(
 // parameter is true, this will also attempt to highlight waterbodies on
 // other layers that have the same organization id and assessment unit id.
 function useWaterbodyHighlight(findOthers: boolean = true) {
-  const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
+  const { highlightedGraphic, selectedGraphic, viewOnMapClickCount } =
+    useMapHighlightState();
   const { mapView, huc12, highlightOptions, pointsData, linesData, areasData } =
     useContext(LocationSearchContext);
 
@@ -478,7 +479,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         configFiles.data,
       );
     });
-  }, [configFiles, mapView, navigate, selectedGraphic]);
+  }, [configFiles, mapView, navigate, selectedGraphic, viewOnMapClickCount]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);

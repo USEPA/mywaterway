@@ -37,7 +37,7 @@ function ViewOnMapButton({
 }: Props) {
   const { waterbodyPoints, waterbodyLines, waterbodyAreas } = useLayers();
 
-  const { setSelectedGraphic } = useMapHighlightState();
+  const { setSelectedGraphic, setViewOnMapClickCount } = useMapHighlightState();
 
   function viewClick(featureParam) {
     // update context with the new selected graphic
@@ -47,6 +47,7 @@ function ViewOnMapButton({
         ? 'Waterbody'
         : fieldName;
 
+    setViewOnMapClickCount((prevCount) => prevCount + 1);
     setSelectedGraphic(featureParam);
   }
 
