@@ -885,7 +885,7 @@
       "intro": "<strong>Read more about</strong> how waters, communities, and assets are vulnerable to various extreme events, and how people are learning to adapt and build resiliency.",
       "sections": [
         {
-          "description": "Read more about how to adapt, mitigate, and build resiliency to extreme events and climate change",
+          "description": "Read more about how to adapt, mitigate, and build resiliency to extreme events",
           "items": [
             {
               "label": "Office of Water Climate Adaptation Implementation Plan",
@@ -929,7 +929,7 @@
           ]
         },
         {
-          "description": "Read more about how waters, infrastructure, and communities are potentially vulnerable to extreme events and climate change",
+          "description": "Read more about how waters, infrastructure, and communities are potentially vulnerable to extreme events",
           "items": [
             {
               "label": "Water quality and quantity",
@@ -939,7 +939,7 @@
                   "link": "https://www.epa.gov/arc-x/climate-impacts-water-quality#:~:text=Harmful%20Algal%20Blooms,-Develop%20models%20to&text=In%20many%20areas%2C%20increased%20water,due%20to%20extreme%20storm%20events"
                 },
                 {
-                  "label": "Water Quality & Climate Change Research",
+                  "label": "Water Quality & Climate Research",
                   "link": "https://www.epa.gov/climate-research/ecosystems-water-quality-climate-change-research#WaterQuality"
                 },
                 {
@@ -947,7 +947,7 @@
                   "link": "https://www.epa.gov/water-research/wildfires-and-water-quality-research"
                 },
                 {
-                  "label": "Understanding Climate Change Impacts on Water Resources",
+                  "label": "Understanding Climate Impacts on Water Resources",
                   "link": "https://www.epa.gov/watershedacademy/understanding-climate-change-impacts-water-resources-module"
                 }
               ]
@@ -977,7 +977,7 @@
                   "link": "https://www.epa.gov/climateimpacts/climate-equity#:~:text=Some%20communities%20experience%20disproportionate%20impacts,affected%20most%20by%20climate%20change"
                 },
                 {
-                  "label": "Water-Related Illnesses and Climate Change",
+                  "label": "Water-Related Illnesses and Climate",
                   "link": "https://www.epa.gov/climateimpacts/climate-change-and-health-socially-vulnerable-people#water"
                 }
               ]
