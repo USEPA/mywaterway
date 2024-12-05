@@ -1260,7 +1260,7 @@ function useSharedLayers({
   }
 
   function getCountyLayer() {
-    const countyLayerOutFields = ['CNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
+    const countyLayerOutFields = ['COUNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
     const countyLayer = new FeatureLayer({
       id: 'countyLayer',
       url: configFiles.data.services.counties,

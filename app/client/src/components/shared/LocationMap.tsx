@@ -1363,7 +1363,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 feature.attributes
               ) {
                 const stateCode = feature.attributes.STATE_FIPS;
-                const countyCode = feature.attributes.FIPS.substring(2, 5);
+                const countyCode = feature.attributes.COUNTY_FIPS;
                 visible = true;
                 setFIPS({
                   stateCode: stateCode,
@@ -1731,7 +1731,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           `${configFiles.data.services.dwmaps.GetPWSWMHUC12FIPS}` +
           `${hucResponse.features[0].attributes.huc12}/` +
           `${graphic.attributes.STATE_FIPS}/` +
-          `${graphic.attributes.CNTY_FIPS}`;
+          `${graphic.attributes.COUNTY_FIPS}`;
 
         promises.push(fetchCheck(drinkingWaterUrl));
       });

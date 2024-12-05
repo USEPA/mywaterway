@@ -162,7 +162,7 @@ export interface CongressionalDistrictAttributes {
 }
 
 export interface CountyAttributes {
-  CNTY_FIPS: string;
+  COUNTY_FIPS: string;
   STATE_NAME: string;
 }
 
