@@ -135,7 +135,6 @@ export function useLayers() {
       mappedWaterLayer,
       monitoringLocationsLayer,
       nonprofitsLayer,
-      protectedAreasHighlightLayer,
       protectedAreasLayer,
       providersLayer,
       searchIconLayer,
@@ -172,7 +171,6 @@ export function useLayers() {
       coastalFloodingRealtimeLayer,
       coastalFloodingLayer,
       protectedAreasLayer,
-      protectedAreasHighlightLayer,
       wildfiresLayer,
       wildScenicRiversLayer,
       tribalLayer,
@@ -310,6 +308,7 @@ const featureLayerIds = [
   'dischargersLayer',
   'droughtRealtimeLayer',
   'monitoringLocationsLayer',
+  'protectedAreasLayer',
   'sewerOverflowsLayer',
   'storageTanksLayer',
   'surroundingDischargersLayer',
@@ -330,7 +329,6 @@ const graphicsLayerIds = [
   'boundariesLayer',
   'issuesLayer',
   'nonprofitsLayer',
-  'protectedAreasHighlightLayer',
   'providersLayer',
   'searchIconLayer',
   'selectedTribeLayer',
@@ -352,11 +350,7 @@ const groupLayerIds = [
   'wildfiresLayer',
 ] as const;
 
-const mapImageLayerIds = [
-  'mappedWaterLayer',
-  'protectedAreasLayer',
-  'stateBoundariesLayer',
-] as const;
+const mapImageLayerIds = ['mappedWaterLayer', 'stateBoundariesLayer'] as const;
 
 const wmsLayerIds = ['landCoverLayer'] as const;
 

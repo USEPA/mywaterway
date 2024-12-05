@@ -78,7 +78,7 @@ jobs:
       # Set up node and npm
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       # Run front-end processes (install, lint, test, bundle)
       - name: Cache node modules
@@ -104,7 +104,7 @@ jobs:
       # Run CloudFoundry/Cloud.gov deployment
       - name: Set up Cloud Foundry CLI
         run: |
-          curl -v -L -o cf-cli_amd64.deb 'https://packages.cloudfoundry.org/stable?release=debian64&version=v7&source=github'
+          curl -v -L -o cf-cli_amd64.deb 'https://packages.cloudfoundry.org/stable?release=debian64&version=8.8.3&source=github-rel'
           sudo dpkg -i cf-cli_amd64.deb
           cf -v
           cf api https://api.fr.cloud.gov

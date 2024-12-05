@@ -67,7 +67,7 @@ describe('HTTP Intercepts', () => {
 
   it('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
     cy.intercept(
-      'https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/1/query?f=json&outFields=*',
+      'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query?f=json&outFields=*',
       {
         statusCode: 200,
         body: { features: [] },

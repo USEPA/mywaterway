@@ -752,7 +752,7 @@
       "id": "pollutantStorageTanks",
       "checked": false,
       "disabled": false,
-      "label": "Above and below ground pollutant storage tanks",
+      "label": "Below ground pollutant storage tanks",
       "layerId": "storageTanksLayer",
       "text": "",
       "queries": [
@@ -871,5 +871,120 @@
       "disabled": false,
       "layerId": "landCoverLayer"
     }
-  ]
+  ],
+
+  "content": {
+    "dataResources": {
+      "intro": "<a href=\"https://resilience.climate.gov/pages/data-sources\" target=\"_blank\" rel=\"noopener noreferrer\">Read more about how the data was processed</a> <strong>(see about \"Climate Data Summaries\" section).</strong>",
+      "items": [
+        "Climate summaries for the contiguous 48 states were derived from data generated for the 4th National Climate Assessment. These data were accessed from the <a href=\"https://scenarios.globalchange.gov/loca-viewer/\"target=\"_blank\" rel=\"noopener noreferrer\">Scenarios for the National Climate Assessment</a> website. The 30-year mean values for 4 time periods (historic, early-, mid-, and late-century) and two climate scenarios (RCP 4.5 and 8.5) were derived from the <a href=\"https://journals.ametsoc.org/view/journals/hydr/15/6/jhm-d-14-0082_1.xml\" target=\"_blank\" rel=\"noopener noreferrer\">Localized Constructed Analogs</a> (LOCA) downscaled climate model ensembles, processed by the Technical Support Unit at NOAA’s National Center for Environmental Information. The netCDF data from the website were summarized by county and census tract using the Zonal Statistics as Table utility in ArcGIS Pro. The results were joined into the corresponding geography polygons. A minimum, maximum, and mean value for each variable was calculated. This process was repeated for each time range and scenario. In order to display the full range of projections from individual climate models for each period, data originally obtained from <a href=\"https://waterdata.usgs.gov/blog/gdp-moving/\" target=\"_blank\" rel=\"noopener noreferrer\">USGS THREDDS</a> servers were accessed via the Regional Climate Center’s <a href=\"https://www.rcc-acis.org/docs_webservices.html\" target=\"_blank\" rel=\"noopener noreferrer\">Applied Climate Information System </a> (ACIS). This webservice facilitated processing of the raw data values to obtain the climate hazard metrics available in CMRA.",
+        "As LOCA was only generated for the contiguous 48 states (and the District of Columbia), alternatives were used for Alaska and Hawaii. In Alaska, the <a href=\"https://link.springer.com/article/10.1023/B:CLIM.0000013685.99609.9e\" target=\"_blank\" rel=\"noopener noreferrer\">Bias Corrected Spatially Downscaled</a> (BCSD) method was used. Data were accessed from <a href=\"https://waterdata.usgs.gov/blog/gdp-moving/\" target=\"_blank\" rel=\"noopener noreferrer\">USGS THREDDS servers</a>. The same variables provided for LOCA were calculated from BCSD ensemble means. However, only RCP 8.5 was available. Minimum, maximum, and mean values for county and census tracts were calculated in the same way as above. For Hawaii, statistics for two summary geographies were accessed from the U.S. Climate Resilience Toolkit’s <a href=\"https://crt-climate-explorer.nemac.org/faq/\" target=\"_blank\" rel=\"noopener noreferrer\">Climate Explorer</a>: Northern Islands (Honolulu County, Kauaʻi County) and Southern Islands (Maui County, Hawai'i County)."
+      ]
+    },
+    "vulnerabilityResources": {
+      "intro": "<strong>Read more about</strong> how waters, communities, and assets are vulnerable to various extreme events, and how people are learning to adapt and build resiliency.",
+      "sections": [
+        {
+          "description": "Read more about how to adapt, mitigate, and build resiliency to extreme events and climate change",
+          "items": [
+            {
+              "label": "Office of Water Climate Adaptation Implementation Plan",
+              "link": "https://www.epa.gov/climate-change-water-sector/office-water-climate-adaptation-implementation-plan",
+              "extra": "(see <em>Climate Vulnerabilities of Water Resources, Communities, and Office of Water Programs</em> section)"
+            },
+            {
+              "label": "EPA Climate and Water Sector",
+              "link": "https://www.epa.gov/climate-change-water-sector"
+            },
+            {
+              "label": "EPA funding for resiliency",
+              "link": "https://www.epa.gov/cwsrf/clean-water-state-revolving-fund-cwsrf-factsheets",
+              "items": [
+                {
+                  "label": "Funding Resilient Infrastructure and Communities with the Clean Water State Revolving Fund (PDF)",
+                  "link": "https://www.epa.gov/sites/default/files/2021-01/documents/funding_resilient_infrastructure_and_communities_with_the_cwsrf.pdf"
+                },
+                {
+                  "label": "Funding Drought Resiliency Projects with the CWSRF (PDF)",
+                  "link": "https://www.epa.gov/system/files/documents/2022-08/Funding Drought Resiliency Projects with the CWSRF.pdf"
+                },
+                {
+                  "label": "Funding Wildfire Resiliency, Mitigation, and Recovery Projects with the Clean Water and Drinking Water State Revolving Fund Programs (PDF)",
+                  "link": "https://www.epa.gov/system/files/documents/2022-10/Funding Wildfire Resiliency, Mitigation, and Recovery Projects with the SRF.pdf"
+                },
+                {
+                  "label": "Increasing Climate Resilience and Mitigation with the Clean Water State Revolving Fund (CWSRF) and Water Infrastructure Finance and Innovation Act (WIFIA) Program (PDF)",
+                  "link": "https://www.epa.gov/system/files/documents/2023-03/climate-resilience-and-mitigation-with-cwsrf-and-wifia.pdf"
+                }
+              ]
+            },
+            {
+              "label": "Climate Adaptation and Drought",
+              "link": "https://www.epa.gov/arc-x/climate-adaptation-and-drought"
+            },
+            {
+              "label": "Creating Resilient Water Utilities (CRWU)",
+              "link": "https://www.epa.gov/crwu"
+            }
+          ]
+        },
+        {
+          "description": "Read more about how waters, infrastructure, and communities are potentially vulnerable to extreme events and climate change",
+          "items": [
+            {
+              "label": "Water quality and quantity",
+              "items": [
+                {
+                  "label": "Climate Impacts on Water Quality",
+                  "link": "https://www.epa.gov/arc-x/climate-impacts-water-quality#:~:text=Harmful%20Algal%20Blooms,-Develop%20models%20to&text=In%20many%20areas%2C%20increased%20water,due%20to%20extreme%20storm%20events"
+                },
+                {
+                  "label": "Water Quality & Climate Change Research",
+                  "link": "https://www.epa.gov/climate-research/ecosystems-water-quality-climate-change-research#WaterQuality"
+                },
+                {
+                  "label": "Wildfires and Water Quality Research",
+                  "link": "https://www.epa.gov/water-research/wildfires-and-water-quality-research"
+                },
+                {
+                  "label": "Understanding Climate Change Impacts on Water Resources",
+                  "link": "https://www.epa.gov/watershedacademy/understanding-climate-change-impacts-water-resources-module"
+                }
+              ]
+            },
+            {
+              "label": "Infrastructure",
+              "items": [
+                {
+                  "label": "Underground Storage Tanks and Flooding",
+                  "link": "https://www.epa.gov/natural-disasters/flooding#:~:text=During%20a%20flood%2C%20underground%20storage,surface%20water%2C%20and%20groundwater%20contamination"
+                },
+                {
+                  "label": "Community Vulnerabilities to Contaminant Releases from Extreme Events",
+                  "link": "https://www.epa.gov/eco-research/community-vulnerabilities-contaminant-releases-extreme-events"
+                },
+                {
+                  "label": "Wastewater systems, drinking water systems, and Combined Sewage Overflows (CSO's)",
+                  "link": "https://www.epa.gov/arc-x/climate-impacts-water-utilities"
+                }
+              ]
+            },
+            {
+              "label": "Communities",
+              "items": [
+                {
+                  "label": "Climate Equity",
+                  "link": "https://www.epa.gov/climateimpacts/climate-equity#:~:text=Some%20communities%20experience%20disproportionate%20impacts,affected%20most%20by%20climate%20change"
+                },
+                {
+                  "label": "Water-Related Illnesses and Climate Change",
+                  "link": "https://www.epa.gov/climateimpacts/climate-change-and-health-socially-vulnerable-people#water"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
 }

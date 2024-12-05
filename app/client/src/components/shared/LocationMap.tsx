@@ -1059,7 +1059,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
       }
 
-      fetchCheck(`${configFiles.data.services.protectedAreasDatabase}0?f=json`)
+      fetchCheck(`${configFiles.data.services.protectedAreasDatabase}?f=json`)
         .then((layerInfo) => {
           setProtectedAreasData({
             data: [],
@@ -1067,23 +1067,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             status: 'fetching',
           });
 
-          const url = `${configFiles.data.services.protectedAreasDatabase}0`;
+          const url = `${configFiles.data.services.protectedAreasDatabase}`;
           const queryParams = {
             geometry: boundaries.features[0].geometry,
-            returnGeometry: false,
+            returnGeometry: true,
             spatialReference: 102100,
             outFields: ['*'],
           };
           query
             .executeQueryJSON(url, queryParams)
             .then((res) => {
-              // build/set the filter
-              let filter = '';
-              res.features.forEach((feature) => {
-                if (filter) filter += ' Or ';
-                filter += `OBJECTID = ${feature.attributes.OBJECTID}`;
-              });
-
               setDynamicPopupFields(layerInfo.fields);
               setProtectedAreasData({
                 data: res.features,

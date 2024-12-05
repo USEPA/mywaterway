@@ -211,7 +211,7 @@ export const uploadSuccessMessage = (filename, layerName = '') => {
 
 // Legend //
 export const legendUnavailableError = (layerName) =>
-  `The legend for ${layerName} is temporarily unavailble, please try again later.`;
+  `The legend for ${layerName} is temporarily unavailable, please try again later.`;
 
 // Error Boundaries //
 export const servicesLookupServiceError =
