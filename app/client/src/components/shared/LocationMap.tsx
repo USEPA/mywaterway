@@ -589,7 +589,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     const boundariesLayer = new GraphicsLayer({
       id: 'boundariesLayer',
-      title: 'Boundaries',
+      title: 'Selected Watershed',
       listMode: 'show',
     });
     setLayer('boundariesLayer', boundariesLayer);
