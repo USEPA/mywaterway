@@ -141,7 +141,7 @@ describe('Add & Save Data Widget', () => {
     });
 
     // Run tests against "ArcGIS Online"
-    runSearchTests('USA Counties (Generalized)');
+    runSearchTests('Covid-19 kommunalt data');
   });
 
   it('Test URL feature', () => {
@@ -353,7 +353,7 @@ describe('Add & Save Data Widget', () => {
   });
 
   it("Test that the save panel includes layers added from the widget's other tabs", () => {
-    const agoSaveName = 'CYPRESS-TEST-HMW';
+    const agoSaveName = 'CYPRESS-TEST-HMW-C';
 
     cy.get(adwId).within(() => {
       cy.findByRole('listitem', { name: 'USA Current Wildfires' }).within(
