@@ -418,7 +418,8 @@ function useWaterbodyOnMap(
 // parameter is true, this will also attempt to highlight waterbodies on
 // other layers that have the same organization id and assessment unit id.
 function useWaterbodyHighlight(findOthers: boolean = true) {
-  const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
+  const { highlightedGraphic, selectedGraphic, viewOnMapClickCount } =
+    useMapHighlightState();
   const { mapView, huc12, highlightOptions, pointsData, linesData, areasData } =
     useContext(LocationSearchContext);
 
@@ -478,7 +479,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         configFiles.data,
       );
     });
-  }, [configFiles, mapView, navigate, selectedGraphic]);
+  }, [configFiles, mapView, navigate, selectedGraphic, viewOnMapClickCount]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);
@@ -1222,7 +1223,7 @@ function useSharedLayers({
       legendEnabled: false,
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
-          style: 'none',
+          color: [255, 255, 255, 0],
           outline: {
             style: 'solid',
             color: '#FF00C5',
@@ -1259,7 +1260,7 @@ function useSharedLayers({
   }
 
   function getCountyLayer() {
-    const countyLayerOutFields = ['CNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
+    const countyLayerOutFields = ['COUNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
     const countyLayer = new FeatureLayer({
       id: 'countyLayer',
       url: configFiles.data.services.counties,
@@ -1270,7 +1271,7 @@ function useSharedLayers({
       outFields: countyLayerOutFields,
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
-          style: 'none',
+          color: [255, 255, 255, 0],
           outline: {
             color: [251, 164, 93, 255],
             width: 0.75,

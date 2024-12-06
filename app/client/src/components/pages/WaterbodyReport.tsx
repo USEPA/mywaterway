@@ -44,7 +44,10 @@ import { getExtensionFromPath, titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { colors } from 'styles/index';
 // errors
-import { waterbodyReportError } from 'config/errorMessages';
+import {
+  status303dShortError,
+  waterbodyReportError,
+} from 'config/errorMessages';
 
 const containerStyles = css`
   ${splitLayoutContainerStyles};
@@ -268,6 +271,7 @@ function WaterbodyReport() {
       data: [],
     });
     setReportingCycleFetch({ status: 'failure', year: '' });
+    setReportStatusFetch({ status: 'failure', value: '' });
     setWaterbodyStatus({ status: 'failure', data: [] });
     setWaterbodyUses({ status: 'failure', data: [] });
     setWaterbodySources({ status: 'failure', data: [] });
@@ -283,9 +287,9 @@ function WaterbodyReport() {
       status: 'no-data',
       data: { condition: '', planForRestoration: '', listed303d: '' },
     });
-    setReportingCycleFetch({
+    setReportStatusFetch({
       status: 'success',
-      year: '',
+      value: '',
     });
     setWaterbodyUses({
       status: 'success',
@@ -451,6 +455,10 @@ function WaterbodyReport() {
     status: 'fetching',
     year: '',
   });
+  const [reportStatusFetch, setReportStatusFetch] = useState({
+    status: 'fetching',
+    value: '',
+  });
   const [organizationName, setOrganizationName] = useState({
     status: 'fetching',
     name: '',
@@ -527,6 +535,10 @@ function WaterbodyReport() {
           return;
         }
 
+        setReportStatusFetch({
+          status: 'success',
+          value: firstItem.reportStatusCode,
+        });
         setReportingCycleFetch({
           status: 'success',
           year: firstItem.reportingCycleText,
@@ -978,6 +990,31 @@ function WaterbodyReport() {
         )}
         {reportingCycleFetch.status === 'success' && (
           <p>&nbsp; {reportingCycleFetch.year}</p>
+        )}
+      </div>
+
+      <div css={inlineBoxSectionStyles}>
+        <strong>
+          <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+            303(d) List Status
+          </GlossaryTerm>
+          :
+        </strong>
+        &nbsp;&nbsp;
+        {reportStatusFetch.status === 'fetching' && <LoadingSpinner />}
+        {reportStatusFetch.status === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{status303dShortError}</p>
+          </div>
+        )}
+        {reportStatusFetch.status === 'success' && (
+          <p>
+            {configFiles.data.reportStatusMapping.hasOwnProperty(
+              reportStatusFetch.value,
+            )
+              ? configFiles.data.reportStatusMapping[reportStatusFetch.value]
+              : reportStatusFetch.value}{' '}
+          </p>
         )}
       </div>
 

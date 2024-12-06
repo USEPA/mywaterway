@@ -971,7 +971,7 @@ function AdvancedSearch() {
               css={buttonStyles}
               disabled={searchLoading}
               onClick={(_ev) => {
-                mapView?.popup?.close();
+                if (mapView?.popup?.close) mapView.popup.close();
                 executeFilter();
               }}
             >
