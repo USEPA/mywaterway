@@ -1223,7 +1223,7 @@ function useSharedLayers({
       legendEnabled: false,
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
-          style: 'none',
+          color: [255, 255, 255, 0],
           outline: {
             style: 'solid',
             color: '#FF00C5',
@@ -1271,7 +1271,7 @@ function useSharedLayers({
       outFields: countyLayerOutFields,
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
-          style: 'none',
+          color: [255, 255, 255, 0],
           outline: {
             color: [251, 164, 93, 255],
             width: 0.75,
