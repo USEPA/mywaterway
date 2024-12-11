@@ -971,7 +971,7 @@ function AdvancedSearch() {
               css={buttonStyles}
               disabled={searchLoading}
               onClick={(_ev) => {
-                mapView?.popup?.close();
+                if (mapView?.popup?.close) mapView.popup.close();
                 executeFilter();
               }}
             >
@@ -1133,7 +1133,7 @@ function AdvancedSearch() {
                 ? configFiles.data.reportStatusMapping[
                     organizationData.data.reportStatusCode
                   ]
-                : organizationData.data.reportStatusCode}
+                : organizationData.data.reportStatusCode}{' '}
             </>
           )}
           / {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}

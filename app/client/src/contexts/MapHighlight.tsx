@@ -7,6 +7,8 @@ type State = {
   selectedGraphic: ExtendedGraphic | null;
   setHighlightedGraphic: Dispatch<SetStateAction<ExtendedGraphic | null>>;
   setSelectedGraphic: Dispatch<SetStateAction<ExtendedGraphic | null>>;
+  viewOnMapClickCount: number;
+  setViewOnMapClickCount: Dispatch<SetStateAction<number>>;
 };
 
 const StateContext = createContext<State | undefined>(undefined);
@@ -19,14 +21,17 @@ export function MapHighlightProvider({ children }: Readonly<Props>) {
   const [selectedGraphic, setSelectedGraphic] = useState<__esri.Graphic | null>(
     null,
   );
+  const [viewOnMapClickCount, setViewOnMapClickCount] = useState(0);
   const state: State = useMemo(() => {
     return {
       highlightedGraphic,
       setHighlightedGraphic,
       selectedGraphic,
       setSelectedGraphic,
+      viewOnMapClickCount,
+      setViewOnMapClickCount,
     };
-  }, [highlightedGraphic, selectedGraphic]);
+  }, [highlightedGraphic, selectedGraphic, viewOnMapClickCount]);
 
   return (
     <StateContext.Provider value={state}>{children}</StateContext.Provider>

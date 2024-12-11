@@ -84,7 +84,7 @@ describe('Data page', () => {
     scrollTest(
       'Watershed Assessment, Tracking & Environmental Results System (WATERS)',
     );
-    scrollTest('Watershed Index Online (WSIO)');
+    scrollTest('Restoration and Protection Screening (RPS)');
     scrollTest('Wild and Scenic Rivers');
 
     // loop through and verify the "Top of Page" buttons all scroll to

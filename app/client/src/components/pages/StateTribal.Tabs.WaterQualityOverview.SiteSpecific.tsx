@@ -23,7 +23,10 @@ import { formatNumber } from 'utils/utils';
 import { fonts, colors } from 'styles/index';
 import { h3Styles } from 'styles/stateTribal';
 // errors
-import { fishingAdvisoryError } from 'config/errorMessages';
+import {
+  fishingAdvisoryError,
+  status303dShortError,
+} from 'config/errorMessages';
 
 // add exporting features to highcharts
 highchartsExporting(Highcharts);
@@ -112,7 +115,9 @@ function SiteSpecific({
   fishingAdvisoryData,
 }: Props) {
   const configFiles = useConfigFilesState();
-  const { currentReportingCycle } = useContext(StateTribalTabsContext);
+  const { currentReportingCycle, organizationData } = useContext(
+    StateTribalTabsContext,
+  );
 
   let waterTypeUnits = null;
   if (waterTypeData?.length) {
@@ -414,9 +419,31 @@ function SiteSpecific({
                 />
               </div>
               <p css={chartFooterStyles}>
-                <strong>Year Last Reported:</strong>
+                <strong>
+                  <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+                    303(d) List Status
+                  </GlossaryTerm>{' '}
+                  / Year Last Reported:
+                </strong>
+                &nbsp;&nbsp;
+                {organizationData.status === 'fetching' && <LoadingSpinner />}
+                {organizationData.status === 'failure' && (
+                  <>{status303dShortError}</>
+                )}
+                {organizationData.status === 'success' && (
+                  <>
+                    {configFiles.data.reportStatusMapping.hasOwnProperty(
+                      organizationData.data.reportStatusCode,
+                    )
+                      ? configFiles.data.reportStatusMapping[
+                          organizationData.data.reportStatusCode
+                        ]
+                      : organizationData.data.reportStatusCode}{' '}
+                  </>
+                )}
+                /{' '}
                 {currentReportingCycle.status === 'success' && (
-                  <>&nbsp;{currentReportingCycle.reportingCycle}</>
+                  <>{currentReportingCycle.reportingCycle}</>
                 )}
                 {currentReportingCycle.status === 'fetching' && (
                   <LoadingSpinner />

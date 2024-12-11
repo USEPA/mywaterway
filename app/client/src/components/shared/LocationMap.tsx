@@ -589,7 +589,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     const boundariesLayer = new GraphicsLayer({
       id: 'boundariesLayer',
-      title: 'Boundaries',
+      title: 'Selected Watershed',
       listMode: 'show',
     });
     setLayer('boundariesLayer', boundariesLayer);
@@ -1059,7 +1059,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
       }
 
-      fetchCheck(`${configFiles.data.services.protectedAreasDatabase}0?f=json`)
+      fetchCheck(`${configFiles.data.services.protectedAreasDatabase}?f=json`)
         .then((layerInfo) => {
           setProtectedAreasData({
             data: [],
@@ -1067,23 +1067,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             status: 'fetching',
           });
 
-          const url = `${configFiles.data.services.protectedAreasDatabase}0`;
+          const url = `${configFiles.data.services.protectedAreasDatabase}`;
           const queryParams = {
             geometry: boundaries.features[0].geometry,
-            returnGeometry: false,
+            returnGeometry: true,
             spatialReference: 102100,
             outFields: ['*'],
           };
           query
             .executeQueryJSON(url, queryParams)
             .then((res) => {
-              // build/set the filter
-              let filter = '';
-              res.features.forEach((feature) => {
-                if (filter) filter += ' Or ';
-                filter += `OBJECTID = ${feature.attributes.OBJECTID}`;
-              });
-
               setDynamicPopupFields(layerInfo.fields);
               setProtectedAreasData({
                 data: res.features,
@@ -1370,7 +1363,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 feature.attributes
               ) {
                 const stateCode = feature.attributes.STATE_FIPS;
-                const countyCode = feature.attributes.FIPS.substring(2, 5);
+                const countyCode = feature.attributes.COUNTY_FIPS;
                 visible = true;
                 setFIPS({
                   stateCode: stateCode,
@@ -1738,7 +1731,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           `${configFiles.data.services.dwmaps.GetPWSWMHUC12FIPS}` +
           `${hucResponse.features[0].attributes.huc12}/` +
           `${graphic.attributes.STATE_FIPS}/` +
-          `${graphic.attributes.CNTY_FIPS}`;
+          `${graphic.attributes.COUNTY_FIPS}`;
 
         promises.push(fetchCheck(drinkingWaterUrl));
       });

@@ -19,7 +19,7 @@
       "linkHref": "https://screeningtool.geoplatform.gov/en/methodology",
       "linkLabel": "CEJST Data/System",
       "shortName": "CEJST",
-      "siteLocation": "Information from CEJST can be found on the Community Page in the Extreme Weather tab at the \"Overburdened, Underserved, and Disadvantaged Communities\" row under \"Potentially Vulnerable, Infrastructure or Communities\".",
+      "siteLocation": "Information from CEJST can be found on the Community Page in the Extreme Weather tab at the \"Overburdened, Underserved, and Disadvantaged Communities\" row under \"Potentially Vulnerable Waters, Infrastructure or Communities\".",
       "title": "Climate and Economic Justice Screening Tool (CEJST)"
     },
     {
@@ -110,8 +110,18 @@
       "linkHref": "https://nid.sec.usace.army.mil/#/",
       "linkLabel": "NID Data/System",
       "shortName": "NID",
-      "siteLocation": "Information from NID can be found on the Community Page in the Extreme Weather tab at the Dams row under \"Potentially Vulnerable, Infrastructure or Communities\".",
+      "siteLocation": "Information from NID can be found on the Community Page in the Extreme Weather tab at the Dams row under \"Potentially Vulnerable Waters, Infrastructure or Communities\".",
       "title": "National Inventory of Dams (NID)"
+    },
+    {
+      "description": "The National Land Cover Database (NLCD) is a land cover monitoring database, providing generalized land cover (16 classes) and impervious cover (1% increments) for the U.S.",
+      "extraContent": null,
+      "id": "nlcd",
+      "linkHref": "https://www.mrlc.gov/viewer",
+      "linkLabel": "NLCD Data/System",
+      "shortName": "NLCD",
+      "siteLocation": "Information from NLCD can be found on the Community Page in the Extreme Weather tab at the Land Cover row under \"Potentially Vulnerable Waters, Infrastructure or Communities\".",
+      "title": "National Land Cover Database (NLCD)"
     },
     {
       "description": "The National Weather Service (NWS) data provides information about current watches, warnings and advisories within the United States.",
@@ -134,6 +144,16 @@
       "title": "Protected Areas"
     },
     {
+      "description": "The Restoration and Protection Screening (RPS) indicator library is a free, publicly available data library of watershed indicators to assist resource managers and other users with evaluating, comparing, and prioritizing watersheds for a user-defined purpose.",
+      "extraContent": null,
+      "id": "rps",
+      "linkHref": "https://www.epa.gov/rps",
+      "linkLabel": "RPS Data/System",
+      "shortName": "RPS",
+      "siteLocation": "Information from this database can be found on the Community page on the Protect tab under Watershed Health and Protection, Watershed Health Scores.",
+      "title": "Restoration and Protection Screening (RPS)"
+    },
+    {
       "description": "The Safe Drinking Water Information System (SDWIS) contains information on public water systems, including monitoring, enforcement, and violation data related to requirements established by the Safe Drinking Water Act (SDWA).",
       "extraContent": null,
       "id": "sdwis",
@@ -144,13 +164,23 @@
       "title": "Safe Drinking Water Information System (SDWIS)"
     },
     {
+      "description": "The EPA Office of Mission Support (OMS) provides six feature services depicting geographic information for federally recognized tribes. Their associated boundaries and locational information were developed by the U.S. Census Bureau (USCB) and the U.S. Bureau  of Land Management, with other field attributes enhanced by OMS to meet Agency needs and use cases.",
+      "extraContent": null,
+      "id": "tribal-areas",
+      "linkHref": "https://www.epa.gov/geospatial/guidance-using-tribal-boundaries-areas-and-names-resources",
+      "linkLabel": "Tribal Areas Data/System",
+      "shortName": "Tribal Areas",
+      "siteLocation": "Information from this service supports the display of Tribal boundaries on the maps of the Community and Tribal Pages. It can also be found on the Community Page in the Extreme Weather tab at the \"Tribes\" row under \"Potentially Vulnerable Waters, Infrastructure or Communities\".",
+      "title": "Tribal Areas"
+    },
+    {
       "description": "The Underground Storage Tanks (USTs) data provides information about, and locations of, leaking underground storage tanks, underground storage tank facilities, and underground storage tanks.",
       "extraContent": null,
       "id": "ust",
       "linkHref": "https://www.epa.gov/ust/ust-finder",
       "linkLabel": "UST Data/System",
       "shortName": "UST",
-      "siteLocation": "Information from UST can be found on the Community Page in the Extreme Weather tab at the \"Above and below ground pollutant storage tanks\" row under \"Potentially Vulnerable, Infrastructure or Communities\".",
+      "siteLocation": "Information from UST can be found on the Community Page in the Extreme Weather tab at the \"Below ground pollutant storage tanks\" row under \"Potentially Vulnerable Waters, Infrastructure or Communities\".",
       "title": "Underground Storage Tanks (USTs)"
     },
     {
@@ -181,7 +211,7 @@
       "linkHref": "https://cfpub.epa.gov/si/si_public_record_Report.cfm?dirEntryId=359961&Lab=CESER",
       "linkLabel": "Well Density Data/System",
       "shortName": "Well Density",
-      "siteLocation": "Information from Well Density can be found on the Community Page in the Extreme Weather tab at the Wells row under \"Potentially Vulnerable, Infrastructure or Communities\".",
+      "siteLocation": "Information from Well Density can be found on the Community Page in the Extreme Weather tab at the Wells row under \"Potentially Vulnerable Waters, Infrastructure or Communities\".",
       "title": "U.S. Private Domestic Wells 2020 (Well Density)"
     },
     {
@@ -203,16 +233,6 @@
       "shortName": "WATERS",
       "siteLocation": "Information from WATERS supports the display of Watershed boundaries on the map display.",
       "title": "Watershed Assessment, Tracking & Environmental Results System (WATERS)"
-    },
-    {
-      "description": "The Watershed Index Online (WSIO) is a free, publicly available data library of watershed indicators and a decision-support tool, developed by EPA, to assist resource managers, citizens, and other users with evaluating, comparing, and prioritizing watersheds for a user-defined purpose.",
-      "extraContent": null,
-      "id": "wsio",
-      "linkHref": "https://www.epa.gov/wsio",
-      "linkLabel": "WSIO Data/System",
-      "shortName": "WSIO",
-      "siteLocation": "Information from this database can be found on the Community page on the Protect tab under Watershed Health and Protection, Watershed Health Scores.",
-      "title": "Watershed Index Online (WSIO)"
     },
     {
       "description": "Data and GIS files on wild and scenic rivers can be found on the <a href='https://www.rivers.gov/mapping-gis.php' target='_blank' rel='noopener noreferrer'>National Wild and Scenic Rivers System</a> website.",

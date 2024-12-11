@@ -4,6 +4,10 @@
     "groupNames": []
   },
   {
+    "label": "Algal Toxins",
+    "groupNames": ["Cyanotoxins, Phytotoxins"]
+  },
+  {
     "label": "Nutrients",
     "groupNames": ["Nutrient"]
   },
