@@ -1,5 +1,39 @@
 # Change Log
 
+## 2.12.1 (December 2024)
+
+### Added
+
+- Added "Algal toxins" characteristic group filter to Past Water Conditions.
+
+- Added 303(d) List Status to the State Water Quality Overview and Waterbody Report pages.
+
+### Changed
+
+- Updated the extreme weather tab to pull text from a config file.
+
+- Updated the text in the top of community tabs to come from a config file.
+
+- Updated to the new PAD-US layer.
+
+- Updated WSIO entries to RPS for rebranding effort.
+
+- Updated County layer to use the latest authoritative version of the layer. 
+
+- Renamed the "Boundaries" layer to "Selected Watershed".
+
+- Removed extra "county" text from drinking water and extreme weather tabs.
+
+- Fixed issue of refreshing or directly linking to a state or tribe page returning a page does not exist message.
+
+- Fixed issue with the "View on Map" button not working when clicked more than once for the same feature.
+
+- Fixed issue with popups not working for the "County" and "Congressional Districts" layers.
+
+### Chores
+
+- Updated dependencies.
+
 ## 2.12.0 (October 2024)
 
 ### Added
