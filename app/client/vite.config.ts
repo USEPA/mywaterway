@@ -9,6 +9,23 @@ import { version } from './package.json';
 export default ({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
+  let productionOnlyPlugins = [];
+  if (mode === 'production') {
+    productionOnlyPlugins.push(
+      createHtmlPlugin({
+        minify: {
+          collapseWhitespace: true,
+          removeComments: true,
+          removeRedundantAttributes: true,
+          collapseBooleanAttributes: true,
+          removeEmptyAttributes: true,
+          minifyCSS: true,
+          minifyJS: true,
+        },
+      }),
+    );
+  }
+
   return defineConfig({
     base: '/',
     build: {
@@ -41,22 +58,12 @@ export default ({ mode }) => {
           plugins: ['@emotion/babel-plugin'],
         },
       }),
-      createHtmlPlugin({
-        minify: {
-          collapseWhitespace: true,
-          removeComments: true,
-          removeRedundantAttributes: true,
-          collapseBooleanAttributes: true,
-          removeEmptyAttributes: true,
-          minifyCSS: true,
-          minifyJS: true,
-        },
-      }),
       istanbul({
         cypress: true,
         requireEnv: false,
       }),
       viteTsconfigPaths(),
+      ...productionOnlyPlugins,
     ],
     server: {
       open: true,

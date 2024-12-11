@@ -701,8 +701,8 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
   }
 
   // county
-  else if ('CNTY_FIPS' in attributes) {
-    title = `${attributes.STATE_NAME} County ${attributes.CNTY_FIPS}`;
+  else if ('COUNTY_FIPS' in attributes) {
+    title = `${attributes.STATE_NAME} County ${attributes.COUNTY_FIPS}`;
   }
 
   // congressional district
@@ -844,7 +844,7 @@ export function getPopupContent({
     }
 
     // county
-    else if ('CNTY_FIPS' in attributes) {
+    else if ('COUNTY_FIPS' in attributes) {
       type = 'County';
     }
 
