@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Point from '@arcgis/core/geometry/Point';
-import Graphic from '@arcgis/core/Graphic.js';
 import * as query from '@arcgis/core/rest/query';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
@@ -19,11 +18,7 @@ import type {
   WatershedAttributes,
 } from 'types';
 // utils
-import {
-  getPopupContent,
-  graphicComparison,
-  isInScale,
-} from 'utils/mapFunctions';
+import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 
 // --- types ---
 interface ClickEvent {
@@ -132,39 +127,6 @@ function prioritizePopup(
   graphics?.sort((a, _b) => {
     if (a.layer.id === 'boundariesLayer') return 1;
     return -1;
-  });
-}
-
-// Query the PAD-US database for features at the clicked location.
-async function queryPadUsFeatures(
-  location: __esri.Point,
-  scale: number,
-  protectedAreasLayer: __esri.MapImageLayer | null,
-  services: any,
-) {
-  if (!protectedAreasLayer?.visible || !isInScale(protectedAreasLayer, scale))
-    return [];
-
-  // check if protected areas layer was clicked on
-  const url = `${services.protectedAreasDatabase}0`;
-  const queryPadUs = {
-    returnGeometry: false,
-    geometry: location,
-    outFields: ['*'],
-  };
-  const mapContainer = document.getElementById('hmw-map-container');
-  if (mapContainer) mapContainer.style.cursor = 'wait';
-  const padRes = await query.executeQueryJSON(url, queryPadUs).catch((err) => {
-    console.error(err);
-    return { features: [] };
-  });
-  if (mapContainer) mapContainer.style.cursor = 'default';
-  return padRes.features.map((feature) => {
-    return new Graphic({
-      attributes: feature.attributes,
-      layer: protectedAreasLayer,
-      popupTemplate: protectedAreasLayer.findSublayerById(0).popupTemplate,
-    });
   });
 }
 
@@ -277,61 +239,50 @@ function MapMouseEvents({ view }: Props) {
         .then((res: __esri.HitTestResult) => {
           // get and update the selected graphic
           const extraLayersToIgnore = ['selectedTribeLayer'];
-          queryPadUsFeatures(
-            location,
-            view.scale,
-            protectedAreasLayer,
-            services,
-          )
-            .then((padUsGraphics) => {
-              const graphics = [
-                ...padUsGraphics,
-                ...(getGraphicsFromResponse(res, extraLayersToIgnore) ?? []),
-              ];
-              const graphic = graphics.length ? graphics[0] : null;
+          const graphics =
+            getGraphicsFromResponse(res, extraLayersToIgnore) ?? [];
+          const graphic = graphics.length ? graphics[0] : null;
 
-              if (graphic?.attributes) {
-                updateGraphics(graphics, updates?.current);
-                prioritizePopup(graphics, onTribePage);
-                setSelectedGraphic(graphic);
-                view.popup = new Popup({
-                  features: graphics,
-                  location: point,
-                  visible: true,
-                  visibleElements: {
-                    collapseButton: false,
-                  },
-                });
-              } else {
-                setSelectedGraphic(null);
-                view.closePopup();
-              }
+          if (graphic?.attributes) {
+            updateGraphics(graphics, updates?.current);
+            prioritizePopup(graphics, onTribePage);
+            setSelectedGraphic(graphic);
+            view.popup = new Popup({
+              features: graphics,
+              location: point,
+              visible: true,
+              visibleElements: {
+                collapseButton: false,
+              },
+            });
+          } else {
+            setSelectedGraphic(null);
+            view.closePopup();
+          }
 
-              // get the currently selected huc boundaries, if applicable
-              const hucBoundaries = getHucBoundaries();
-              // only look for huc boundaries if no graphics were clicked and the
-              // user clicked outside of the selected huc boundaries
-              if (
-                !graphic &&
-                !onTribePage &&
-                !hucBoundaries?.geometry.contains(location)
-              ) {
-                //get the huc boundaries of where the user clicked
-                const queryParams = {
-                  returnGeometry: true,
-                  geometry: location,
-                  outFields: ['*'],
-                };
-                query
-                  .executeQueryJSON(services.wbd, queryParams)
-                  .then((boundaries) => {
-                    if (boundaries.features.length === 0) return;
+          // get the currently selected huc boundaries, if applicable
+          const hucBoundaries = getHucBoundaries();
+          // only look for huc boundaries if no graphics were clicked and the
+          // user clicked outside of the selected huc boundaries
+          if (
+            !graphic &&
+            !onTribePage &&
+            !hucBoundaries?.geometry.contains(location)
+          ) {
+            //get the huc boundaries of where the user clicked
+            const queryParams = {
+              returnGeometry: true,
+              geometry: location,
+              outFields: ['*'],
+            };
+            query
+              .executeQueryJSON(services.wbd, queryParams)
+              .then((boundaries) => {
+                if (boundaries.features.length === 0) return;
 
-                    openChangeLocationPopup(point, boundaries);
-                  });
-              }
-            })
-            .catch((err) => console.error(err));
+                openChangeLocationPopup(point, boundaries);
+              });
+          }
         })
         .catch((err) => console.error(err));
     },

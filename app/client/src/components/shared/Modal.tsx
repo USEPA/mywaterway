@@ -7,6 +7,8 @@ import * as Dialog from '@radix-ui/react-dialog';
 import type { ReactNode } from 'react';
 // styles
 import { colors, iconButtonStyles } from 'styles/index';
+// types
+import type { SerializedStyles } from '@emotion/react';
 
 const buttonContainerStyles = css`
   margin-top: 15px;
@@ -233,6 +235,7 @@ export default function Modal({
 
 type DisclaimerProps = {
   children: ReactNode;
+  css?: SerializedStyles;
   infoIcon?: boolean;
 };
 

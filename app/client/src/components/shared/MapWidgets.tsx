@@ -227,7 +227,6 @@ const orderedLayers = [
   'wsioHealthIndexLayer',
   'wildfiresLayer',
   'wildScenicRiversLayer',
-  'protectedAreasHighlightLayer',
   'protectedAreasLayer',
   'disadvantagedCommunitiesLayer',
   'wellsLayer',
@@ -797,9 +796,7 @@ function MapWidgets({
     setAdditionalLegendInitialized(true);
 
     const requests = [];
-    let url = `${services.protectedAreasDatabase}/legend?f=json`;
-    requests.push(fetchCheck(url, getSignal()));
-    url = `${services.ejscreen}legend?f=json`;
+    let url = `${services.ejscreen}legend?f=json`;
     requests.push(fetchCheck(url, getSignal()));
     url = `${services.mappedWater}/legend?f=json`;
     requests.push(fetchCheck(url, getSignal()));
@@ -809,9 +806,8 @@ function MapWidgets({
         additionalLegendInfoNonState = {
           status: 'success',
           data: {
-            protectedAreasLayer: responses[0],
-            ejscreen: responses[1],
-            mappedWaterLayer: responses[2],
+            ejscreen: responses[0],
+            mappedWaterLayer: responses[1],
           },
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);

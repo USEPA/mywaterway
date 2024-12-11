@@ -953,7 +953,7 @@ function WaterbodyInfo({
       <p>
         <strong>County:</strong>
         <br />
-        {attributes.CNTY_FIPS} - {attributes.NAME}
+        {attributes.COUNTY_FIPS} - {attributes.NAME}
       </p>
     );
   };

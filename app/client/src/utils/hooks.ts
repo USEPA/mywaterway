@@ -418,7 +418,8 @@ function useWaterbodyOnMap(
 // parameter is true, this will also attempt to highlight waterbodies on
 // other layers that have the same organization id and assessment unit id.
 function useWaterbodyHighlight(findOthers: boolean = true) {
-  const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
+  const { highlightedGraphic, selectedGraphic, viewOnMapClickCount } =
+    useMapHighlightState();
   const { mapView, huc12, highlightOptions, pointsData, linesData, areasData } =
     useContext(LocationSearchContext);
 
@@ -433,7 +434,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     nonprofitsLayer,
     waterbodyPoints, //part of waterbody group layer
     protectedAreasLayer,
-    protectedAreasHighlightLayer,
     upstreamLayer,
     usgsStreamgagesLayer,
     wildScenicRiversLayer,
@@ -479,7 +479,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         configFiles.data,
       );
     });
-  }, [configFiles, mapView, navigate, selectedGraphic]);
+  }, [configFiles, mapView, navigate, selectedGraphic, viewOnMapClickCount]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState<Handles | null>(null);
@@ -523,10 +523,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       handles.remove(group);
       mapView.graphics.removeAll();
 
-      if (protectedAreasHighlightLayer) {
-        protectedAreasHighlightLayer.removeAll();
-      }
-
       // remove the currentHighlight and currentSelection if either exist
       if (currentHighlight || currentSelection) {
         currentHighlight = null;
@@ -542,8 +538,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // check if the graphic is the same as the currently highlighted graphic
     // remove the highlight if the graphic is different
-    let equal = graphicComparison(graphic, currentHighlight);
-    let selectionEqual = graphicComparison(selectedGraphic, currentSelection);
+    const equal = graphicComparison(graphic, currentHighlight);
+    const selectionEqual = graphicComparison(selectedGraphic, currentSelection);
     if (equal && selectionEqual) return;
 
     // set the currentSelection if it changed
@@ -583,6 +579,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'cyanWaterbodies';
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
+    } else if (attributes.Loc_Nm) {
+      layer = protectedAreasLayer;
+      featureLayerType = 'protectedAreas';
     }
 
     if (!layer) return;
@@ -593,9 +592,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // remove the highlights
     handles.remove(group);
     mapView.graphics.removeAll();
-    if (protectedAreasHighlightLayer) {
-      protectedAreasHighlightLayer.removeAll();
-    }
 
     // get organizationid and assessmentunitidentifier to figure out if the
     // selected waterbody changed.
@@ -669,7 +665,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
       if (featureLayerType === 'waterbodyLayer') {
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
-      } else if (featureLayerType === 'wildScenicRivers') {
+      } else if (
+        ['protectedAreas', 'wildScenicRivers'].includes(featureLayerType)
+      ) {
         where = `OBJECTID = ${attributes.OBJECTID}`;
       } else if (featureLayerType === 'cyanWaterbodies') {
         where = `FID = ${attributes.FID}`;
@@ -752,7 +750,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     handles,
     wildScenicRiversLayer,
     protectedAreasLayer,
-    protectedAreasHighlightLayer,
     pointsData,
     linesData,
     areasData,
@@ -1030,42 +1027,20 @@ function useSharedLayers({
   }
 
   function getProtectedAreasLayer() {
-    const protectedAreasLayer = new MapImageLayer({
+    const protectedAreasLayer = new FeatureLayer({
       id: 'protectedAreasLayer',
       title: 'Protected Areas',
       url: configFiles.data.services.protectedAreasDatabase,
-      legendEnabled: false,
-      listMode: 'hide-children',
-      sublayers: [
-        {
-          id: 0,
-          popupTemplate: {
-            title: getTitle,
-            content: getTemplate,
-            outFields: ['*'],
-          },
-        },
-      ],
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['*'],
+      },
     });
 
     setLayer('protectedAreasLayer', protectedAreasLayer);
 
     return protectedAreasLayer;
-  }
-
-  function getProtectedAreasHighlightLayer() {
-    const protectedAreasHighlightLayer = new GraphicsLayer({
-      id: 'protectedAreasHighlightLayer',
-      title: 'Protected Areas Highlight Layer',
-      listMode: 'hide',
-    });
-
-    setLayer('protectedAreasHighlightLayer', protectedAreasHighlightLayer);
-    setResetHandler('protectedAreasHighlightLayer', () => {
-      protectedAreasHighlightLayer.graphics.removeAll();
-    });
-
-    return protectedAreasHighlightLayer;
   }
 
   function getWildScenicRiversLayer() {
@@ -1248,7 +1223,7 @@ function useSharedLayers({
       legendEnabled: false,
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
-          style: 'none',
+          color: [255, 255, 255, 0],
           outline: {
             style: 'solid',
             color: '#FF00C5',
@@ -1285,7 +1260,7 @@ function useSharedLayers({
   }
 
   function getCountyLayer() {
-    const countyLayerOutFields = ['CNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
+    const countyLayerOutFields = ['COUNTY_FIPS', 'FIPS', 'NAME', 'STATE_NAME'];
     const countyLayer = new FeatureLayer({
       id: 'countyLayer',
       url: configFiles.data.services.counties,
@@ -1296,7 +1271,7 @@ function useSharedLayers({
       outFields: countyLayerOutFields,
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
-          style: 'none',
+          color: [255, 255, 255, 0],
           outline: {
             color: [251, 164, 93, 255],
             width: 0.75,
@@ -2057,8 +2032,6 @@ function useSharedLayers({
 
     const protectedAreasLayer = getProtectedAreasLayer();
 
-    const protectedAreasHighlightLayer = getProtectedAreasHighlightLayer();
-
     const wildScenicRiversLayer = getWildScenicRiversLayer();
 
     const tribalLayer = getTribalLayer();
@@ -2120,7 +2093,6 @@ function useSharedLayers({
       coastalFloodingRealtimeLayer,
       coastalFloodingLayer,
       protectedAreasLayer,
-      protectedAreasHighlightLayer,
       wildScenicRiversLayer,
       tribalLayer,
       congressionalLayer,
@@ -2197,7 +2169,6 @@ function useGeometryUtils() {
       // build geometry from the extent
       const extentGeometry = new Polygon({
         spatialReference: hucGeometry.spatialReference,
-        centroid: extent.center,
         rings: [
           [
             [extent.xmin, extent.ymin],

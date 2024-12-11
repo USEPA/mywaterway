@@ -141,7 +141,7 @@ describe('Add & Save Data Widget', () => {
     });
 
     // Run tests against "ArcGIS Online"
-    runSearchTests('USA Counties (Generalized)');
+    runSearchTests('Covid-19 kommunalt data');
   });
 
   it('Test URL feature', () => {
@@ -335,7 +335,7 @@ describe('Add & Save Data Widget', () => {
         force: true,
       });
       // toggle off a layer
-      cy.findByText('Boundaries').click({ force: true });
+      cy.findByText('Selected Watershed').click({ force: true });
     });
 
     cy.get(adwId).within(() => {
@@ -344,7 +344,7 @@ describe('Add & Save Data Widget', () => {
       cy.findByRole('switch', {
         name: 'Toggle Congressional Districts',
       }).should('have.attr', 'aria-checked', 'true');
-      cy.findByRole('switch', { name: 'Toggle Boundaries' }).should(
+      cy.findByRole('switch', { name: 'Toggle Selected Watershed' }).should(
         'have.attr',
         'aria-checked',
         'false',

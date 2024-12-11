@@ -768,73 +768,6 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   };
 
   // jsx
-  const protectedAreasLegend = () => {
-    const layerName = 'Protected Areas';
-
-    if (additionalLegendInfo.status === 'fetching') {
-      return <LoadingSpinner />;
-    }
-
-    if (additionalLegendInfo.status === 'failure') {
-      return (
-        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
-      );
-    }
-
-    const padLegend =
-      additionalLegendInfo.data['protectedAreasLayer']?.layers?.[0]?.legend;
-
-    if (!padLegend) {
-      return (
-        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
-      );
-    }
-
-    return (
-      <li className="esri-legend__service">
-        <div
-          className="esri-widget__heading esri-legend__service-label"
-          css={layerLabelStyles}
-        >
-          {layerName}
-        </div>
-
-        <div className="esri-legend__layer">
-          <div className="esri-legend__layer-caption" css={subLayerLabelStyles}>
-            Protection Category:
-          </div>
-
-          <ul css={nestedUl}>
-            {padLegend.map((item) => {
-              return (
-                <li className="esri-legend__layer-row" key={item.label}>
-                  <div css={legendItemStyles}>
-                    <div
-                      className="esri-legend__symbol"
-                      css={smallImageContainerStyles}
-                    >
-                      <img
-                        src={`data:image/png;base64,${item.imageData}`}
-                        alt={item.label}
-                      />
-                    </div>
-                    <span
-                      className="esri-legend__layer-cell--info"
-                      css={labelStyles}
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </li>
-    );
-  };
-
-  // jsx
   const ejscreenLegend = () => {
     const layerName = 'Demographic Indicators';
 
@@ -1022,7 +955,6 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
   if (layer.id === 'upstreamLayer') return upstreamLegend;
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
-  if (layer.id === 'protectedAreasLayer') return protectedAreasLegend();
   if (layer.id === 'ejscreenLayer') return ejscreenLegend();
   if (layer.id === 'mappedWaterLayer') return mappedWaterLegend();
 
