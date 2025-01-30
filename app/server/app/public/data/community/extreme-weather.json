@@ -827,22 +827,6 @@
       "text": ""
     },
     {
-      "id": "disadvantagedCommunities",
-      "checked": false,
-      "disabled": false,
-      "layerId": "disadvantagedCommunitiesLayer",
-      "label": "Overburdened, Underserved, and Disadvantaged Communities",
-      "text": "",
-      "queries": [
-        {
-          "query": {
-            "outFields": ["SN_C", "SN_T"],
-            "where": "GEOID10 LIKE '{HMW_COUNTY_FIPS}%'"
-          }
-        }
-      ]
-    },
-    {
       "id": "wells",
       "checked": false,
       "disabled": false,
