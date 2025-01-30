@@ -13,16 +13,6 @@
       "title": "Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)"
     },
     {
-      "description": "The Climate and Economic Justice Screening Tool (CEJST) data highlights disadvantaged census tracts across all 50 states, the District of Columbia, and the U.S. territories. Communities are considered disadvantaged: <ul><li>If they are in census tracts that meet the thresholds for at least one of the tool’s categories of burden, or</li><li>If they are on land within the boundaries of Federally Recognized Tribes</li></ul>",
-      "extraContent": null,
-      "id": "cejst",
-      "linkHref": "https://screeningtool.geoplatform.gov",
-      "linkLabel": "CEJST Data/System",
-      "shortName": "CEJST",
-      "siteLocation": "Information from CEJST can be found on the Community Page in the Extreme Weather tab at the \"Overburdened, Underserved, and Disadvantaged Communities\" row under \"Potentially Vulnerable Waters, Infrastructure or Communities\".",
-      "title": "Climate and Economic Justice Screening Tool (CEJST)"
-    },
-    {
       "description": "The Climate Mapping Resilience and Adaptation (CMRA) data provides information to help understand past, current and future exposure to various climate hazards.",
       "extraContent": null,
       "id": "cmra",
