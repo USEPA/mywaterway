@@ -957,10 +957,6 @@
               "label": "Communities",
               "items": [
                 {
-                  "label": "Climate Equity",
-                  "link": "https://www.epa.gov/climateimpacts/climate-equity#:~:text=Some%20communities%20experience%20disproportionate%20impacts,affected%20most%20by%20climate%20change"
-                },
-                {
                   "label": "Water-Related Illnesses and Climate",
                   "link": "https://www.epa.gov/climateimpacts/climate-change-and-health-socially-vulnerable-people#water"
                 }
