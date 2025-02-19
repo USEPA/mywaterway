@@ -114,7 +114,7 @@
   },
   "wells": "https://geodata.epa.gov/arcgis/rest/services/ORD/PrivateDomesticWells2020/MapServer/6",
   "disadvantagedCommunities": {
-    "portalId": "f95344889cab44bd84207052f44cb940_TEMPORARILY_BREAK",
+    "portalId": "681de68de89b4d79a82e349f6205e173",
     "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/usa_november_2022/FeatureServer_TEMPORARILY_BREAK"
   },
   "googleAnalyticsMapping": [
