@@ -2412,8 +2412,9 @@ function SiteMap({ layout, siteStatus, widthRef }) {
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
-    getSharedLayers();
-    updateVisibleLayers({ monitoringLocationsLayer: true });
+    getSharedLayers().then(() => {
+      updateVisibleLayers({ monitoringLocationsLayer: true });
+    });
     setLayersInitialized(true);
   }, [getSharedLayers, layersInitialized, updateVisibleLayers]);
 

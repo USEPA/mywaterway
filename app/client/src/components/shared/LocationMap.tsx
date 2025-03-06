@@ -638,7 +638,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     );
 
     getSharedLayers();
-
     setLayersInitialized(true);
   }, [
     configFiles,

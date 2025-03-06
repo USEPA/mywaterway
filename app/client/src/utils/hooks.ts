@@ -2013,80 +2013,45 @@ function useSharedLayers({
 
   // Gets the settings for the WSIO Health Index layer.
   return async function getSharedLayers() {
-    const wsioHealthIndexLayer = getWsioLayer();
+    const sharedLayers = (
+      await Promise.all(
+        [
+          getWsioLayer,
+          getProtectedAreasLayer,
+          getWildScenicRiversLayer,
+          getTribalLayer,
+          getCongressionalLayer,
+          getMappedWaterLayer,
+          getCountyLayer,
+          getStateBoundariesLayer,
+          getWatershedsLayer,
+          getEjscreen,
+          getAllWaterbodiesLayer,
+          getLandCoverLayer,
+          getWildfiresLayer,
+          getCmraScreeningLayer,
+          getDroughtRealtimeLayer,
+          getInlandFloodingRealtimeLayer,
+          getCoastalFloodingRealtimeLayer,
+          getExtremeHeatRealtimeLayer,
+          getExtremeColdRealtimeLayer,
+          getCoastalFloodingLayer,
+          getStorageTanksLayer,
+          getSewerOverflowsLayer,
+          getDamsLayer,
+          getWellsLayer,
+        ].map(async (getLayerFn) => {
+          try {
+            return await getLayerFn();
+          } catch (err) {
+            console.error('Error getting shared layer:', err);
+            return null;
+          }
+        }),
+      )
+    ).filter((layer) => layer !== null);
 
-    const protectedAreasLayer = getProtectedAreasLayer();
-
-    const wildScenicRiversLayer = getWildScenicRiversLayer();
-
-    const tribalLayer = getTribalLayer();
-
-    const congressionalLayer = getCongressionalLayer();
-
-    const mappedWaterLayer = getMappedWaterLayer();
-
-    const countyLayer = getCountyLayer();
-
-    const stateBoundariesLayer = getStateBoundariesLayer();
-
-    const watershedsLayer = getWatershedsLayer();
-
-    const ejscreen = getEjscreen();
-
-    const allWaterbodiesLayer = getAllWaterbodiesLayer();
-
-    const landCover = getLandCoverLayer();
-
-    const wildfiresLayer = await getWildfiresLayer();
-
-    const cmraScreeningLayer = getCmraScreeningLayer();
-
-    const droughtRealtimeLayer = await getDroughtRealtimeLayer();
-
-    const inlandFloodingRealtimeLayer = getInlandFloodingRealtimeLayer();
-
-    const coastalFloodingRealtimeLayer = getCoastalFloodingRealtimeLayer();
-
-    const extremeHeatRealtimeLayer = getExtremeHeatRealtimeLayer();
-
-    const extremeColdRealtimeLayer = getExtremeColdRealtimeLayer();
-
-    const coastalFloodingLayer = getCoastalFloodingLayer();
-
-    const storageTanksLayer = getStorageTanksLayer();
-
-    const sewerOverflowsLayer = getSewerOverflowsLayer();
-
-    const damsLayer = await getDamsLayer();
-
-    const wellsLayer = await getWellsLayer();
-
-    return [
-      ejscreen,
-      wsioHealthIndexLayer,
-      wellsLayer,
-      cmraScreeningLayer,
-      landCover,
-      inlandFloodingRealtimeLayer,
-      droughtRealtimeLayer,
-      extremeHeatRealtimeLayer,
-      extremeColdRealtimeLayer,
-      coastalFloodingRealtimeLayer,
-      coastalFloodingLayer,
-      protectedAreasLayer,
-      wildScenicRiversLayer,
-      tribalLayer,
-      congressionalLayer,
-      stateBoundariesLayer,
-      mappedWaterLayer,
-      countyLayer,
-      watershedsLayer,
-      allWaterbodiesLayer,
-      storageTanksLayer,
-      damsLayer,
-      wildfiresLayer,
-      sewerOverflowsLayer,
-    ].filter((layer) => layer !== null);
+    return sharedLayers;
   };
 }
 
