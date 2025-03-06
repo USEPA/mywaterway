@@ -2011,21 +2011,6 @@ function useSharedLayers({
     }
   }
 
-  async function getDisadvantagedCommunitiesLayer() {
-    const disadvantagedCommunitiesLayer = (await Layer.fromPortalItem({
-      portalItem: new PortalItem({
-        id: configFiles.data.services.disadvantagedCommunities.portalId,
-      }),
-    })) as __esri.FeatureLayer;
-    disadvantagedCommunitiesLayer.id = 'disadvantagedCommunitiesLayer';
-    disadvantagedCommunitiesLayer.listMode = 'hide-children';
-    disadvantagedCommunitiesLayer.title =
-      'Overburdened, Underserved, and Disadvantaged Communities';
-    disadvantagedCommunitiesLayer.visible = false;
-    setLayer('disadvantagedCommunitiesLayer', disadvantagedCommunitiesLayer);
-    return disadvantagedCommunitiesLayer;
-  }
-
   // Gets the settings for the WSIO Health Index layer.
   return async function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
@@ -2076,14 +2061,10 @@ function useSharedLayers({
 
     const wellsLayer = await getWellsLayer();
 
-    const disadvantagedCommunitiesLayer =
-      await getDisadvantagedCommunitiesLayer();
-
     return [
       ejscreen,
       wsioHealthIndexLayer,
       wellsLayer,
-      disadvantagedCommunitiesLayer,
       cmraScreeningLayer,
       landCover,
       inlandFloodingRealtimeLayer,

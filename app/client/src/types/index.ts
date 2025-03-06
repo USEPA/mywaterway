@@ -559,10 +559,6 @@ export interface ServicesData {
     portalId: string;
     url: string;
   };
-  disadvantagedCommunities: {
-    portalId: string;
-    url: string;
-  };
   droughtRealtime: {
     portalId: string;
     url: string;
