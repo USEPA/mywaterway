@@ -219,10 +219,6 @@ export interface DischargerPermitComponents {
   };
 }
 
-export interface EjScreenAttributes {
-  T_OVR64PCT: string;
-}
-
 export type ExtremeWeatherQuery = {
   serviceItemId?: string;
   query: __esri.Query | __esri.QueryProperties;
@@ -509,7 +505,6 @@ export type PopupAttributes =
   | CyanWaterbodyAttributes
   | DamsAttributes
   | DischargerAttributes
-  | EjScreenAttributes
   | MonitoringLocationAttributes
   | NonProfitAttributes
   | ProtectedAreaAttributes
@@ -576,7 +571,6 @@ export interface ServicesData {
     getFacilities: string;
     metadata: string;
   };
-  ejscreen: string;
   esriWebMapBase: string;
   expertQuery: {
     apiKey: string;

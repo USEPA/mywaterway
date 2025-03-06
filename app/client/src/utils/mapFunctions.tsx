@@ -737,11 +737,6 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = attributes.Loc_Nm;
   }
 
-  // EJSCREEN
-  else if ('T_OVR64PCT' in attributes) {
-    title = '';
-  }
-
   // CyAN waterbody
   else if ('GNIS_NAME' in attributes) {
     title = attributes.GNIS_NAME;
@@ -877,11 +872,6 @@ export function getPopupContent({
     // Protected areas
     else if ('GAPCdSrc' in attributes) {
       type = 'Protected Areas';
-    }
-
-    // EJSCREEN
-    else if ('T_OVR64PCT' in attributes) {
-      type = 'Demographic Indicators';
     }
 
     // Watershed

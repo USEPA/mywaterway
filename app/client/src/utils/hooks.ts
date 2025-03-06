@@ -1316,113 +1316,6 @@ function useSharedLayers({
     return watershedsLayer;
   }
 
-  function getEjscreen() {
-    const ejOutFields = [
-      'T_MINORPCT',
-      'T_LWINCPCT',
-      'T_LESHSPCT',
-      'T_LNGISPCT',
-      'T_UNDR5PCT',
-      'T_OVR64PCT',
-      'T_VULEOPCT',
-    ];
-
-    const ejscreenPopupTemplate = {
-      title: getTitle,
-      content: getTemplate,
-      outFields: ejOutFields,
-    };
-
-    const ejDemographicIndex = new FeatureLayer({
-      id: '0',
-      url: `${configFiles.data.services.ejscreen}0`,
-      title: 'Demographic Index',
-      outFields: ejOutFields,
-      visible: true,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejUnderAge5 = new FeatureLayer({
-      id: '1',
-      url: `${configFiles.data.services.ejscreen}1`,
-      title: 'Individuals under age 5',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejOverAge64 = new FeatureLayer({
-      id: '2',
-      url: `${configFiles.data.services.ejscreen}2`,
-      title: 'Individuals over age 64',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejLowIncome = new FeatureLayer({
-      id: '3',
-      url: `${configFiles.data.services.ejscreen}3`,
-      title: 'Percent Low-Income',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejLinguistIsolated = new FeatureLayer({
-      id: '4',
-      url: `${configFiles.data.services.ejscreen}4`,
-      title: 'Linguistic Isolation',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejMinority = new FeatureLayer({
-      id: '5',
-      url: `${configFiles.data.services.ejscreen}5`,
-      title: 'Percent People of Color',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejLessThanHS = new FeatureLayer({
-      id: '6',
-      url: `${configFiles.data.services.ejscreen}6`,
-      title: 'Less than High School Education',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejscreenLayer = new GroupLayer({
-      id: 'ejscreenLayer',
-      title: 'Demographic Indicators',
-      listMode: 'show',
-      visible: false,
-      layers: [
-        ejLessThanHS,
-        ejMinority,
-        ejLinguistIsolated,
-        ejLowIncome,
-        ejOverAge64,
-        ejUnderAge5,
-        ejDemographicIndex,
-      ],
-      minScale: 577791,
-    });
-    setLayer('ejscreenLayer', ejscreenLayer);
-    return ejscreenLayer;
-  }
-
   function getAllWaterbodiesLayer() {
     const popupTemplate = {
       title: getTitle,
@@ -2046,8 +1939,6 @@ function useSharedLayers({
 
     const watershedsLayer = getWatershedsLayer();
 
-    const ejscreen = getEjscreen();
-
     const allWaterbodiesLayer = getAllWaterbodiesLayer();
 
     const landCover = getLandCoverLayer();
@@ -2080,7 +1971,6 @@ function useSharedLayers({
       await getDisadvantagedCommunitiesLayer();
 
     return [
-      ejscreen,
       wsioHealthIndexLayer,
       wellsLayer,
       disadvantagedCommunitiesLayer,

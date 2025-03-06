@@ -62,7 +62,6 @@
   },
   "wildScenicRivers": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_WildScenicRiverSegments_01/MapServer/0",
   "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus3/Protection_Mechanism_Category/MapServer/",
-  "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2020_Public/MapServer/",
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
   "cyan": {
@@ -382,11 +381,6 @@
       "urlLookup": "protectedAreasDatabase",
       "wildcardUrl": "{urlLookup}*",
       "name": "USGS - Protected Areas Database"
-    },
-    {
-      "urlLookup": "ejscreen",
-      "wildcardUrl": "{urlLookup}*",
-      "name": "EJSCREEN"
     },
     {
       "urlLookup": "sfdw",
