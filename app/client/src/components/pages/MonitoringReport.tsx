@@ -45,7 +45,7 @@ import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersProvider, useLayers } from 'contexts/Layers';
-import { LocationSearchContext } from 'contexts/locationSearch';
+import { initialBasemap, LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchParseCsv } from 'utils/fetchUtils';
@@ -2398,13 +2398,13 @@ function SiteMap({ layout, siteStatus, widthRef }) {
     if (!mapView) return;
     mapView.map.basemap = new Basemap({
       portalItem: {
-        id: '588f0e0acc514c11bc7c898fed9fc651',
+        id: '668f436dc2dc4f2c83ceb0c064380590',
       },
     });
 
     return function cleanup() {
-      mapView.map.basemap = 'gray-vector';
-      setBasemap('gray-vector');
+      mapView.map.basemap = initialBasemap();
+      setBasemap(mapView.map.basemap);
     };
   }, [mapView, setBasemap]);
 

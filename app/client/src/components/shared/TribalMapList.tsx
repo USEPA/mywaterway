@@ -40,6 +40,7 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import {
+  initialBasemap,
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
@@ -179,13 +180,13 @@ function TribalMapList({ activeState, windowHeight }: Props) {
 
     const newBasemap = new Basemap({
       portalItem: {
-        id: '1536abe5e5504e5db380ccfaa9b6fd8d',
+        id: 'd9eb1392e6504930b5fbd9689ac32ff4',
       },
     });
     mapView.map.basemap = newBasemap;
 
     return function cleanup() {
-      mapView.map.basemap = 'gray-vector';
+      mapView.map.basemap = initialBasemap();
     };
   }, [mapView]);
 

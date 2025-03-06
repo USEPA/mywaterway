@@ -1,4 +1,5 @@
 import Color from '@arcgis/core/Color';
+import Basemap from '@arcgis/core/Basemap';
 import Extent from '@arcgis/core/geometry/Extent';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import React, { Component, createContext } from 'react';
@@ -14,6 +15,13 @@ import type {
   ParameterToggleObject,
   WatershedAttributes,
 } from 'types';
+
+export const initialBasemap = () =>
+  new Basemap({
+    portalItem: {
+      id: 'c5b0e6e1ded840639b8b4ff3d9927145',
+    },
+  });
 
 export const initialMonitoringGroups = (characteristicGroupMappings) => {
   return characteristicGroupMappings.reduce((groups, next) => {
@@ -145,7 +153,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
-    basemap: 'gray-vector',
+    basemap: initialBasemap(),
     hucBoundaries: null,
     atHucBoundaries: false,
     countyBoundaries: '',
