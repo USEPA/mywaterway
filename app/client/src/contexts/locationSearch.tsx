@@ -1,9 +1,9 @@
 import Color from '@arcgis/core/Color';
-import Basemap from '@arcgis/core/Basemap';
 import Extent from '@arcgis/core/geometry/Extent';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import React, { Component, createContext } from 'react';
 // types
+import type Basemap from '@arcgis/core/Basemap';
 import type { ReactNode } from 'react';
 import type {
   DischargerPermitComponents,
@@ -15,13 +15,6 @@ import type {
   ParameterToggleObject,
   WatershedAttributes,
 } from 'types';
-
-export const initialBasemap = () =>
-  new Basemap({
-    portalItem: {
-      id: 'c5b0e6e1ded840639b8b4ff3d9927145',
-    },
-  });
 
 export const initialMonitoringGroups = (characteristicGroupMappings) => {
   return characteristicGroupMappings.reduce((groups, next) => {
@@ -50,7 +43,7 @@ const initialViewpoint = () =>
     targetGeometry: initialExtent(),
   });
 
-const initialWatershed: WatershedAttributes = () => ({
+const initialWatershed: () => WatershedAttributes = () => ({
   areaacres: 0,
   areasqkm: 0,
   huc12: '',
@@ -83,7 +76,7 @@ type State = {
   cipSummary: { status: Status; data: Huc12SummaryData };
   nonprofits: Object;
   mapView: __esri.MapView | null;
-  basemap: Object;
+  basemap: Basemap | null;
   homeWidget: Object;
   upstreamWidget: Object;
   upstreamWidgetDisabled: boolean;
@@ -153,7 +146,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
-    basemap: initialBasemap(),
+    basemap: null,
     hucBoundaries: null,
     atHucBoundaries: false,
     countyBoundaries: '',

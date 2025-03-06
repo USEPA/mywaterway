@@ -45,7 +45,7 @@ import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { LayersProvider, useLayers } from 'contexts/Layers';
-import { initialBasemap, LocationSearchContext } from 'contexts/locationSearch';
+import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchParseCsv } from 'utils/fetchUtils';
@@ -56,6 +56,7 @@ import {
   useSharedLayers,
 } from 'utils/hooks';
 import { getMedian, isAbort, toFixedFloat } from 'utils/utils';
+import { basemapFromPortalItem } from 'utils/mapFunctions';
 // styles
 import {
   boxStyles,
@@ -2384,6 +2385,7 @@ function SliderContainer({ min, max, onChange, range }) {
 function SiteMap({ layout, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
+  const services = useConfigFilesState().data.services;
 
   const getSharedLayers = useSharedLayers();
   const { homeWidget, mapView, setBasemap } = useContext(LocationSearchContext);
@@ -2396,14 +2398,10 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   useEffect(() => {
     if (!mapView) return;
-    mapView.map.basemap = new Basemap({
-      portalItem: {
-        id: '668f436dc2dc4f2c83ceb0c064380590',
-      },
-    });
+    mapView.map.basemap = basemapFromPortalItem(services.basemaps.topographic);
 
     return function cleanup() {
-      mapView.map.basemap = initialBasemap();
+      mapView.map.basemap = basemapFromPortalItem(services.basemaps.default);
       setBasemap(mapView.map.basemap);
     };
   }, [mapView, setBasemap]);

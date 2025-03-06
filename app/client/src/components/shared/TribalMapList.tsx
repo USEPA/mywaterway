@@ -40,7 +40,6 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 import {
-  initialBasemap,
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
@@ -61,6 +60,7 @@ import {
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import {
+  basemapFromPortalItem,
   createWaterbodySymbol,
   createUniqueValueInfos,
   getPopupTitle,
@@ -157,6 +157,7 @@ type Props = {
 function TribalMapList({ activeState, windowHeight }: Props) {
   const { currentReportingCycle } = useContext(StateTribalTabsContext);
   const { errorMessage, mapView } = useContext(LocationSearchContext);
+  const services = useConfigFilesState().data.services;
 
   const {
     waterbodyAreas,
@@ -180,13 +181,13 @@ function TribalMapList({ activeState, windowHeight }: Props) {
 
     const newBasemap = new Basemap({
       portalItem: {
-        id: 'd9eb1392e6504930b5fbd9689ac32ff4',
+        id: services.basemaps.terrainWithLabels,
       },
     });
     mapView.map.basemap = newBasemap;
 
     return function cleanup() {
-      mapView.map.basemap = initialBasemap();
+      mapView.map.basemap = basemapFromPortalItem(services.basemaps.default);
     };
   }, [mapView]);
 

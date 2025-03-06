@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
+import Basemap from '@arcgis/core/Basemap';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
 import Point from '@arcgis/core/geometry/Point';
@@ -56,6 +57,13 @@ const waterbodyOverallStatuses = {
 
 type WaterbodyOverallStatus =
   (typeof waterbodyOverallStatuses)[keyof typeof waterbodyOverallStatuses];
+
+export const basemapFromPortalItem = (portalId: string) =>
+  new Basemap({
+    portalItem: {
+      id: portalId,
+    },
+  });
 
 // Gets the type of symbol using the shape's attributes.
 export function getTypeFromAttributes(graphic: __esri.Graphic) {
