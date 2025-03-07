@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 
-import Basemap from '@arcgis/core/Basemap';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import { css } from '@emotion/react';

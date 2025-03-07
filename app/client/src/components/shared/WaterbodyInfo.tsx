@@ -1070,28 +1070,6 @@ function WaterbodyInfo({
   );
 
   // jsx
-  const ejscreenContent = (
-    <>
-      {labelValue('Demographic Index Percentage', attributes.T_VULEOPCT)}
-
-      {labelValue('Percent Minority', attributes.T_MINORPCT)}
-
-      {labelValue('Percent Low Income', attributes.T_LWINCPCT)}
-
-      {labelValue(
-        'Percent Less Than High School Education',
-        attributes.T_LESHSPCT,
-      )}
-
-      {labelValue('Percent Linguistically Isolated', attributes.T_LNGISPCT)}
-
-      {labelValue('Percent Individuals Under 5', attributes.T_UNDR5PCT)}
-
-      {labelValue('Percent Individuals Over 64', attributes.T_OVR64PCT)}
-    </>
-  );
-
-  // jsx
   const sewerOverflowsContent = () => {
     const echoLookups = configFiles?.extremeWeather?.echoLookups;
     if (!echoLookups) return null;
@@ -1431,7 +1409,6 @@ function WaterbodyInfo({
   if (type === 'State Watershed Health Index') content = wsioContent;
   if (type === 'Alaska Native Village') content = alaskaNativeVillageContent;
   if (type === 'Protected Areas') content = protectedAreaContent;
-  if (type === 'Demographic Indicators') content = ejscreenContent;
   if (type === 'Pollutant Storage Tank') content = storageTankContent;
   if (type === 'Combined Sewer Overflow') content = sewerOverflowsContent();
   if (type === 'Wells') content = wellsContent;
@@ -1507,9 +1484,6 @@ function MapPopup({
     if (!type || typesToSkip.includes(type)) return null;
 
     let title: string | ReactNode = type;
-    if (type === 'Demographic Indicators') {
-      title = `${type} - ${feature.layer.title}`;
-    }
     if (type === 'Restoration Plans') {
       title = 'Restoration Plans for this Waterbody';
     }

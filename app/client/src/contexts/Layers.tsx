@@ -125,7 +125,6 @@ export function useLayers() {
       damsLayer,
       dischargersLayer,
       droughtRealtimeLayer,
-      ejscreenLayer,
       extremeColdRealtimeLayer,
       extremeHeatRealtimeLayer,
       inlandFloodingRealtimeLayer,
@@ -157,7 +156,6 @@ export function useLayers() {
     } = layers;
 
     return [
-      ejscreenLayer,
       wsioHealthIndexLayer,
       wellsLayer,
       cmraScreeningLayer,
@@ -337,7 +335,6 @@ const groupLayerIds = [
   'coastalFloodingLayer',
   'coastalFloodingRealtimeLayer',
   'cyanLayer',
-  'ejscreenLayer',
   'extremeColdRealtimeLayer',
   'extremeHeatRealtimeLayer',
   'inlandFloodingRealtimeLayer',

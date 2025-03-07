@@ -230,7 +230,6 @@ const orderedLayers = [
   'protectedAreasLayer',
   'wellsLayer',
   'cmraScreeningLayer',
-  'ejscreenLayer',
   'landCoverLayer',
   'searchIconLayer',
 ];
@@ -795,9 +794,7 @@ function MapWidgets({
     setAdditionalLegendInitialized(true);
 
     const requests = [];
-    let url = `${services.ejscreen}legend?f=json`;
-    requests.push(fetchCheck(url, getSignal()));
-    url = `${services.mappedWater}/legend?f=json`;
+    let url = `${services.mappedWater}/legend?f=json`;
     requests.push(fetchCheck(url, getSignal()));
 
     Promise.all(requests)
@@ -805,8 +802,7 @@ function MapWidgets({
         additionalLegendInfoNonState = {
           status: 'success',
           data: {
-            ejscreen: responses[0],
-            mappedWaterLayer: responses[1],
+            mappedWaterLayer: responses[0],
           },
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);
@@ -867,7 +863,7 @@ function MapWidgets({
     const uniqueParentItems: string[] = [];
     function defineActions(event: { item: __esri.ListItem }) {
       const item = event.item;
-      if (!item.parent || item.parent.title === 'Demographic Indicators') {
+      if (!item.parent) {
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);
