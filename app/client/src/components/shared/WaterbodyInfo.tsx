@@ -877,9 +877,8 @@ function WaterbodyInfo({
           {
             label: (
               <>
-                Significant{' '}
-                <GlossaryTerm term="Effluent">Effluent</GlossaryTerm> Violation
-                within the last 3 years
+                Has a Significant Noncompliance Status for{' '}
+                <GlossaryTerm term="Effluent">Effluent</GlossaryTerm> Violations
               </>
             ),
             value: hasEffluentViolations ? 'Yes' : 'No',
