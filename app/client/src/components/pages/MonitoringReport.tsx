@@ -2084,7 +2084,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                     fileBaseName="wqp-results"
                     fileType={fileType}
                     setError={setDownloadError}
-                    url={`${configFiles.data.services.waterQualityPortal.resultSearch}zip=yes&mimeType=${fileType}`}
+                    url={`${configFiles.data.services.waterQualityPortal.resultSearch}zip=no&mimeType=${fileType}`}
                   />
                 </Fragment>
               ))}
