@@ -1904,98 +1904,46 @@ function useSharedLayers({
     }
   }
 
-  async function getDisadvantagedCommunitiesLayer() {
-    const disadvantagedCommunitiesLayer = (await Layer.fromPortalItem({
-      portalItem: new PortalItem({
-        id: configFiles.data.services.disadvantagedCommunities.portalId,
-      }),
-    })) as __esri.FeatureLayer;
-    disadvantagedCommunitiesLayer.id = 'disadvantagedCommunitiesLayer';
-    disadvantagedCommunitiesLayer.listMode = 'hide-children';
-    disadvantagedCommunitiesLayer.title =
-      'Overburdened, Underserved, and Disadvantaged Communities';
-    disadvantagedCommunitiesLayer.visible = false;
-    setLayer('disadvantagedCommunitiesLayer', disadvantagedCommunitiesLayer);
-    return disadvantagedCommunitiesLayer;
-  }
-
   // Gets the settings for the WSIO Health Index layer.
   return async function getSharedLayers() {
-    const wsioHealthIndexLayer = getWsioLayer();
+    const sharedLayers = (
+      await Promise.all(
+        [
+          getWsioLayer,
+          getProtectedAreasLayer,
+          getWildScenicRiversLayer,
+          getTribalLayer,
+          getCongressionalLayer,
+          getMappedWaterLayer,
+          getCountyLayer,
+          getStateBoundariesLayer,
+          getWatershedsLayer,
+          getAllWaterbodiesLayer,
+          getLandCoverLayer,
+          getWildfiresLayer,
+          getCmraScreeningLayer,
+          getDroughtRealtimeLayer,
+          getInlandFloodingRealtimeLayer,
+          getCoastalFloodingRealtimeLayer,
+          getExtremeHeatRealtimeLayer,
+          getExtremeColdRealtimeLayer,
+          getCoastalFloodingLayer,
+          getStorageTanksLayer,
+          getSewerOverflowsLayer,
+          getDamsLayer,
+          getWellsLayer,
+        ].map(async (getLayerFn) => {
+          try {
+            return await getLayerFn();
+          } catch (err) {
+            console.error('Error getting shared layer:', err);
+            return null;
+          }
+        }),
+      )
+    ).filter((layer) => layer !== null);
 
-    const protectedAreasLayer = getProtectedAreasLayer();
-
-    const wildScenicRiversLayer = getWildScenicRiversLayer();
-
-    const tribalLayer = getTribalLayer();
-
-    const congressionalLayer = getCongressionalLayer();
-
-    const mappedWaterLayer = getMappedWaterLayer();
-
-    const countyLayer = getCountyLayer();
-
-    const stateBoundariesLayer = getStateBoundariesLayer();
-
-    const watershedsLayer = getWatershedsLayer();
-
-    const allWaterbodiesLayer = getAllWaterbodiesLayer();
-
-    const landCover = getLandCoverLayer();
-
-    const wildfiresLayer = await getWildfiresLayer();
-
-    const cmraScreeningLayer = getCmraScreeningLayer();
-
-    const droughtRealtimeLayer = await getDroughtRealtimeLayer();
-
-    const inlandFloodingRealtimeLayer = getInlandFloodingRealtimeLayer();
-
-    const coastalFloodingRealtimeLayer = getCoastalFloodingRealtimeLayer();
-
-    const extremeHeatRealtimeLayer = getExtremeHeatRealtimeLayer();
-
-    const extremeColdRealtimeLayer = getExtremeColdRealtimeLayer();
-
-    const coastalFloodingLayer = getCoastalFloodingLayer();
-
-    const storageTanksLayer = getStorageTanksLayer();
-
-    const sewerOverflowsLayer = getSewerOverflowsLayer();
-
-    const damsLayer = await getDamsLayer();
-
-    const wellsLayer = await getWellsLayer();
-
-    const disadvantagedCommunitiesLayer =
-      await getDisadvantagedCommunitiesLayer();
-
-    return [
-      wsioHealthIndexLayer,
-      wellsLayer,
-      disadvantagedCommunitiesLayer,
-      cmraScreeningLayer,
-      landCover,
-      inlandFloodingRealtimeLayer,
-      droughtRealtimeLayer,
-      extremeHeatRealtimeLayer,
-      extremeColdRealtimeLayer,
-      coastalFloodingRealtimeLayer,
-      coastalFloodingLayer,
-      protectedAreasLayer,
-      wildScenicRiversLayer,
-      tribalLayer,
-      congressionalLayer,
-      stateBoundariesLayer,
-      mappedWaterLayer,
-      countyLayer,
-      watershedsLayer,
-      allWaterbodiesLayer,
-      storageTanksLayer,
-      damsLayer,
-      wildfiresLayer,
-      sewerOverflowsLayer,
-    ].filter((layer) => layer !== null);
+    return sharedLayers;
   };
 }
 

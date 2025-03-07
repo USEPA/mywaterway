@@ -123,7 +123,6 @@ export function useLayers() {
       countyLayer,
       cyanLayer,
       damsLayer,
-      disadvantagedCommunitiesLayer,
       dischargersLayer,
       droughtRealtimeLayer,
       extremeColdRealtimeLayer,
@@ -159,7 +158,6 @@ export function useLayers() {
     return [
       wsioHealthIndexLayer,
       wellsLayer,
-      disadvantagedCommunitiesLayer,
       cmraScreeningLayer,
       landCoverLayer,
       inlandFloodingRealtimeLayer,
@@ -302,7 +300,6 @@ const featureLayerIds = [
   'congressionalLayer',
   'countyLayer',
   'damsLayer',
-  'disadvantagedCommunitiesLayer',
   'dischargersLayer',
   'droughtRealtimeLayer',
   'monitoringLocationsLayer',

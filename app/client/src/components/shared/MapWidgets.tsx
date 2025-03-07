@@ -228,7 +228,6 @@ const orderedLayers = [
   'wildfiresLayer',
   'wildScenicRiversLayer',
   'protectedAreasLayer',
-  'disadvantagedCommunitiesLayer',
   'wellsLayer',
   'cmraScreeningLayer',
   'landCoverLayer',
