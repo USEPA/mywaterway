@@ -539,6 +539,12 @@ export interface RndDraggableState {
 
 export interface ServicesData {
   attains: { serviceUrl: string; serviceUrlDev: string };
+  basemaps: {
+    default: string;
+    lightGrayCanvas: string;
+    terrainWithLabels: string;
+    topographic: string;
+  };
   cmraScreeningData: string;
   coastalFloodingRealtime: {
     portalId: string;

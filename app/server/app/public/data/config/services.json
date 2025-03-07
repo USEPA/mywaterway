@@ -1,4 +1,10 @@
 {
+  "basemaps": {
+    "default": "c5b0e6e1ded840639b8b4ff3d9927145",
+    "lightGrayCanvas": "c5b0e6e1ded840639b8b4ff3d9927145",
+    "terrainWithLabels": "d9eb1392e6504930b5fbd9689ac32ff4",
+    "topographic": "668f436dc2dc4f2c83ceb0c064380590"
+  },
   "expertQuery": {
     "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
     "attains": "https://api.epa.gov/expertquery/api/attains",
