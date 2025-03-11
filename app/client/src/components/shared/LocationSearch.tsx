@@ -150,6 +150,7 @@ const searchBoxStyles = css`
     margin: 0;
     display: block;
   }
+
   .esri-search__input {
     border-radius: 4px;
     padding: 0.625rem;
