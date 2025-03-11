@@ -444,7 +444,6 @@ function WaterbodyReport() {
       } catch (err) {
         console.error(err);
         setAllReportingCycles({ status: 'failure', data: [] });
-        handleError();
       }
     }
 
@@ -492,7 +491,6 @@ function WaterbodyReport() {
   useEffect(() => {
     if (assessmentsCalled || mapLayer.status === 'fetching') return;
     if (!reportingCycle && mapLayer.status === 'fetching') return;
-    if (allReportingCycles.status !== 'success') return;
 
     let hasGisData =
       mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0;
