@@ -46,7 +46,7 @@ describe('Identified Issues Tab', () => {
     cy.findByRole('tab', { name: /Permitted Dischargers/ }).click({
       force: true,
     });
-    cy.findByRole('switch', { name: /81 Permitted Dischargers/ }).should(
+    cy.findByRole('switch', { name: /79 Permitted Dischargers/ }).should(
       'have.attr',
       'aria-checked',
       'true',
@@ -71,7 +71,7 @@ describe('Identified Issues Tab', () => {
 
   it('Verify checkboxes below tab are checked by default', () => {
     // navigate to Identified issues tab of Community page
-    cy.visit('/community/030901011204/identified-issues');
+    cy.visit('/community/020700100204/identified-issues');
 
     cy.waitForLoadFinish();
 
@@ -90,7 +90,7 @@ describe('Identified Issues Tab', () => {
     cy.findAllByLabelText('of Assessed Waters are impaired', { exact: false })
       .filter(':visible')
       .should('have.attr', 'aria-checked', 'false');
-    cy.findAllByLabelText('Mercury')
+    cy.findAllByLabelText('Algae')
       .filter(':visible')
       .should('have.attr', 'aria-checked', 'false');
 
@@ -110,14 +110,14 @@ describe('Identified Issues Tab', () => {
     cy.findAllByLabelText('of Assessed Waters are impaired', { exact: false })
       .filter(':visible')
       .should('have.attr', 'aria-checked', 'true');
-    cy.findAllByLabelText('Mercury')
+    cy.findAllByLabelText('Algae')
       .filter(':visible')
       .should('have.attr', 'aria-checked', 'true');
   });
 
   it('Permitted dischargers table filters', () => {
     // navigate to Identified issues tab of Community page
-    cy.visit('/community/030901011204/identified-issues');
+    cy.visit('/community/101900030304/identified-issues');
 
     cy.waitForLoadFinish();
 
@@ -125,7 +125,7 @@ describe('Identified Issues Tab', () => {
     cy.findByRole('tab', { name: 'Permitted Dischargers' }).click();
 
     // verify defaults
-    cy.findByText('(AL3A) INDIAN LAKES ESTATES TAP 69KV');
+    cy.findByText('1040 SANTA FE DRIVE');
     cy.findAllByLabelText('All Other Permitted Dischargers')
       .filter(':visible')
       .should('have.attr', 'aria-checked', 'true');
@@ -139,6 +139,6 @@ describe('Identified Issues Tab', () => {
       .should('have.attr', 'aria-checked', 'false');
 
     // verify other discharger is not shown in list
-    cy.findByText('(AL3A) INDIAN LAKES ESTATES TAP 69KV').should('not.exist');
+    cy.findByText('1040 SANTA FE DRIVE').should('not.exist');
   });
 });
