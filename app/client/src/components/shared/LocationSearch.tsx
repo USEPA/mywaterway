@@ -16,6 +16,9 @@ import * as locator from '@arcgis/core/rest/locator';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
 import Search from '@arcgis/core/widgets/Search';
+import SearchSource from '@arcgis/core/widgets/Search/SearchSource';
+import LocatorSearchSource from '@arcgis/core/widgets/Search/LocatorSearchSource';
+import LayerSearchSource from '@arcgis/core/widgets/Search/LayerSearchSource';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -35,6 +38,8 @@ import {
   webServiceErrorMessage,
 } from 'config/errorMessages';
 
+// --- utils ---
+
 // Finds the source of the suggestion
 function findSource(name, suggestions) {
   let source = null;
@@ -44,6 +49,8 @@ function findSource(name, suggestions) {
 
   return source;
 }
+
+// --- styles ---
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
@@ -95,15 +102,30 @@ const searchBoxStyles = css`
 
   .esri-search__form {
     display: flex;
+    flex: 1 0;
     align-items: center;
   }
 
+  .esri-search__input {
+    box-shadow: none;
+    border: none;
+    width: 100%;
+    margin: 0;
+    display: block;
+  }
   .esri-search__input {
     border-radius: 4px;
     padding: 0.625rem;
     color: ${colors.gray4};
     font-family: ${fonts.primary};
     font-size: 0.9375em;
+    width: 100%;
+  }
+
+  .esri-search__input-container {
+    display: flex;
+    flex: 2 0;
+    align-items: stretch;
   }
 
   .esri-search__input::placeholder {
@@ -142,9 +164,22 @@ const searchBoxStyles = css`
   .esri-search__sources-button {
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
+    border-right: 1px solid #6e6e6e4d;
     height: 36px;
   }
+
+  .esri-search--show-suggestions .esri-search__suggestions-menu,
+  .esri-search--sources .esri-search__sources-menu {
+    visibility: visible;
+    max-height: 300px;
+    animation: 0.25s ease-out esri-fade-in;
+    overflow: auto;
+  }
 `;
+
+// --- types ---
+
+// --- components ---
 
 type Props = {
   route: string;
@@ -166,12 +201,38 @@ function LocationSearch({ route, label }: Props) {
   const clearButton = useRef(null);
   const clearEnterPress = useKeyPress('Enter', clearButton);
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
-  const [searchWidget, setSearchWidget] = useState(null);
+  const [searchWidget, setSearchWidget] = useState<Search | null>(null);
 
   // Store the waterbody suggestions to avoid a second fetch.
   const waterbodySuggestions = useRef(null);
 
   const allPlaceholder = 'Search by address, zip code, or place...';
+
+  const sourceGroups = [];
+
+  const _allSources = useMemo(
+    () => [
+      new LocatorSearchSource({
+        url: services.locatorUrl,
+        countryCode: 'USA',
+        searchFields: ['Loc_name'],
+        suggestionTemplate: '{Loc_name}',
+        exactMatch: false,
+        outFields: [
+          'Loc_name',
+          'City',
+          'Place_addr',
+          'Region',
+          'RegionAbbr',
+          'Country',
+          'Addr_type',
+        ],
+        name: 'ArcGIS',
+      }),
+    ],
+    [],
+  );
+
   const allSources = useMemo(
     () => [
       {
@@ -386,7 +447,9 @@ function LocationSearch({ route, label }: Props) {
   const [errorMessage, setErrorMessage] = useState('');
 
   // Initialize the esri search widget
-  const [suggestions, setSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState<
+    __esri.SearchResultsSuggestions[]
+  >([]);
   useEffect(() => {
     if (searchWidget) return;
 
@@ -885,7 +948,7 @@ function LocationSearch({ route, label }: Props) {
 
   // Detect clicks outside of the search input and search suggestions list.
   // This is used for closing the suggestions list when the user clicks outside.
-  const suggestionsRef = useRef();
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -971,7 +1034,7 @@ function LocationSearch({ route, label }: Props) {
               aria-haspopup="true"
               aria-controls="search-container-source-menu"
               className="esri-search__sources-button esri-widget--button"
-              tabIndex="0"
+              tabIndex={0}
               data-node-ref="_sourceMenuButtonNode"
               ref={sourceList}
               onClick={handleSourcesClick}
@@ -982,22 +1045,10 @@ function LocationSearch({ route, label }: Props) {
                 role="presentation"
                 className="esri-icon-down-arrow esri-search__sources-button--down"
               ></span>
-              <span
-                aria-hidden="true"
-                role="presentation"
-                className="esri-icon-up-arrow esri-search__sources-button--up"
-              ></span>
-              <span
-                aria-hidden="true"
-                role="presentation"
-                className="esri-search__source-name"
-              >
-                {selectedSource.name}
-              </span>
             </div>
             <div
               id="search-container-source-menu-div"
-              tabIndex="-1"
+              tabIndex={-1}
               className="esri-menu esri-search__sources-menu"
             >
               <ul
@@ -1053,7 +1104,7 @@ function LocationSearch({ route, label }: Props) {
                   placeholder={selectedSource.placeholder}
                   aria-label="Search"
                   autoComplete="off"
-                  tabIndex="0"
+                  tabIndex={0}
                   className="esri-input esri-search__input"
                   aria-autocomplete="list"
                   aria-haspopup="true"
