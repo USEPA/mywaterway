@@ -1446,7 +1446,7 @@ function retrieveUpstreamWatershed(
   ) {
     const currentExtent = getCurrentExtent();
     currentExtent && view?.goTo(currentExtent);
-    view?.popup.close();
+    view?.popup?.close();
     upstreamLayer.visible = false;
     updateVisibleLayers({ upstreamLayer: false });
     return;
