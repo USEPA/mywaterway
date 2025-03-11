@@ -290,10 +290,6 @@ function LocationSearch({ route, label }: Props) {
 
   const allPlaceholder = 'Search by address, zip code, or place...';
 
-  /* UTILS */
-
-  /* CALCULATED VALUES */
-
   const allSources = useMemo<LocationSearchSource[]>(
     () => [
       new LocatorSearchSource({
@@ -847,24 +843,6 @@ function LocationSearch({ route, label }: Props) {
       setPrevSourceEnterPress(sourceEnterPress);
       if (!sourceEnterPress) return;
 
-      // determine if the sources menu is visible
-      const sourcesShown =
-        document
-          .getElementById('search-container-source-menu-div')
-          ?.getBoundingClientRect().height !== 0;
-
-      // determine whether or not the enter button is being used to open/close
-      // the sources menu or select a source
-      if (!sourcesShown) {
-        setSourcesVisible(true);
-        setSuggestionsVisible(false);
-        return;
-      }
-      if (sourcesShown && sourceCursor === -1) {
-        setSourcesVisible(false);
-        return;
-      }
-
       // handle selecting a source
       if (sourceCursor < 0 || sourceCursor > groups.length) return;
       const group = groups[sourceCursor];
@@ -1134,6 +1112,15 @@ function LocationSearch({ route, label }: Props) {
                     setSourcesVisible(false);
                     setSuggestionsVisible(true);
                     setCursor(-1);
+                  }}
+                  onBlur={(ev) => {
+                    if (
+                      !ev.currentTarget.contains(ev.relatedTarget) ||
+                      ev.relatedTarget?.tagName !== 'LI'
+                    ) {
+                      setSuggestionsVisible(false);
+                      setSourceCursor(-1);
+                    }
                   }}
                   aria-owns={
                     filteredSuggestions.length > 0 && suggestionsVisible
