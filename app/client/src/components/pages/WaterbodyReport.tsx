@@ -1023,7 +1023,7 @@ function WaterbodyReport() {
         {(allReportingCycles.status === 'failure' ||
           reportingCycleFetch.status === 'failure') && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{waterbodyReportError('Assessment')}</p>
+            <p>{waterbodyReportError('Other Years Reported')}</p>
           </div>
         )}
         {allReportingCycles.status === 'success' &&
@@ -1198,14 +1198,14 @@ function WaterbodyReport() {
       <div css={containerStyles} data-content="container">
         {reportingCycleFetch.status === 'success' &&
           allReportingCycles.status === 'success' &&
-          latestReportingCycle > reportingCycleFetch.year && (
+          (latestReportingCycle > reportingCycleFetch.year) || (reportingCycleGis > reportingCycleFetch.year) && (
             <div css={infoBoxContainerStyles}>
               <div css={infoBoxStyles}>
                 There is more recent data available for this waterbody. Please
                 use the following link to view the latest information:
                 <br />
                 <a
-                  href={`/waterbody-report/${orgId}/${auId}/${latestReportingCycle}`}
+                  href={`/waterbody-report/${orgId}/${auId}/${latestReportingCycle ?? reportingCycleGis}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -1214,7 +1214,7 @@ function WaterbodyReport() {
                     className="fas fa-file-alt"
                     aria-hidden="true"
                   />
-                  View Waterbody Report for {latestReportingCycle}
+                  View Waterbody Report for {latestReportingCycle ?? reportingCycleGis}
                 </a>
                 &nbsp;&nbsp;
                 <small css={disclaimerStyles}>(opens new browser tab)</small>
