@@ -121,6 +121,20 @@ const searchContainerStyles = css`
   .esri-menu__list-item-active {
     background-color: #e2f1fb;
   }
+
+  .esri-search__sources-button {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-right: 1px solid #6e6e6e4d;
+    height: 38px;
+  }
+
+  .esri-search--sources .esri-search__sources-menu {
+    visibility: visible;
+    max-height: 300px;
+    animation: 0.25s ease-out esri-fade-in;
+    overflow: auto;
+  }
 `;
 
 const searchSourceButtonStyles = css`
@@ -431,132 +445,123 @@ function StateTribal() {
             </label>
 
             <div css={formStyles}>
-              <div
-                css={searchContainerStyles}
-                role="presentation"
-                className={
-                  `esri-search-multiple-sources esri-search__container ` +
-                  `${sourcesVisible ? 'esri-search--sources' : ''} `
-                }
-                onBlur={(ev) => {
-                  if (
-                    !ev.currentTarget.contains(ev.relatedTarget) ||
-                    ev.relatedTarget?.tagName !== 'LI'
-                  ) {
-                    setSourcesVisible(false);
-                    setSourceCursor(-1);
-                  }
-                }}
-              >
+              <div css={searchContainerStyles}>
                 <div
-                  css={searchSourceButtonStyles}
-                  role="button"
-                  title="Search in"
-                  aria-haspopup="true"
-                  aria-controls="search-container-source-menu"
-                  className="esri-search__sources-button esri-widget--button "
-                  tabIndex="0"
-                  data-node-ref="_sourceMenuButtonNode"
-                  ref={sourceList}
-                  onClick={() => {
-                    setSourcesVisible(!sourcesVisible);
-                  }}
-                  onKeyDown={(ev) => {
-                    if (ev.key === 'Enter') setSourcesVisible(!sourcesVisible);
+                  role="presentation"
+                  className={
+                    `esri-search-multiple-sources esri-search__container ` +
+                    `${sourcesVisible ? 'esri-search--sources' : ''} `
+                  }
+                  onBlur={(ev) => {
+                    if (
+                      !ev.currentTarget.contains(ev.relatedTarget) ||
+                      ev.relatedTarget?.tagName !== 'LI'
+                    ) {
+                      setSourcesVisible(false);
+                      setSourceCursor(-1);
+                    }
                   }}
                 >
-                  <span
-                    aria-hidden="true"
-                    role="presentation"
-                    className="esri-icon-down-arrow esri-search__sources-button--down"
-                  ></span>
-                  <span
-                    aria-hidden="true"
-                    role="presentation"
-                    className="esri-icon-up-arrow esri-search__sources-button--up"
-                  ></span>
-                  <span
-                    aria-hidden="true"
-                    role="presentation"
-                    className="esri-search__source-name"
+                  <div
+                    css={searchSourceButtonStyles}
+                    role="button"
+                    title="Search in"
+                    aria-haspopup="true"
+                    aria-controls="search-container-source-menu"
+                    className="esri-search__sources-button esri-widget--button "
+                    tabIndex={0}
+                    data-node-ref="_sourceMenuButtonNode"
+                    ref={sourceList}
+                    onClick={() => {
+                      setSourcesVisible(!sourcesVisible);
+                    }}
+                    onKeyDown={(ev) => {
+                      if (ev.key === 'Enter')
+                        setSourcesVisible(!sourcesVisible);
+                    }}
                   >
-                    {selectedSource}
-                  </span>
-                </div>
-                <div
-                  id="search-container-source-menu-div"
-                  tabIndex="-1"
-                  className="esri-menu esri-search__sources-menu"
-                >
-                  <ul
-                    id="search-container-source-menu"
-                    role="menu"
-                    data-node-ref="_sourceListNode"
-                    className="esri-menu__list"
+                    <span
+                      aria-hidden="true"
+                      role="presentation"
+                      className="esri-icon-down-arrow esri-search__sources-button--down"
+                    ></span>
+                  </div>
+                  <div
+                    id="search-container-source-menu-div"
+                    tabIndex={-1}
+                    className="esri-menu esri-search__sources-menu"
                   >
-                    {allSources.map((source, sourceIndex) => {
-                      let secondClass = '';
-                      if (selectedSource === source) {
-                        secondClass = 'esri-menu__list-item--active';
-                      } else if (sourceIndex === sourceCursor) {
-                        secondClass = 'esri-menu__list-item-active';
-                      }
+                    <ul
+                      id="search-container-source-menu"
+                      role="menu"
+                      data-node-ref="_sourceListNode"
+                      className="esri-menu__list"
+                    >
+                      {allSources.map((source, sourceIndex) => {
+                        let secondClass = '';
+                        if (selectedSource === source) {
+                          secondClass = 'esri-menu__list-item--active';
+                        } else if (sourceIndex === sourceCursor) {
+                          secondClass = 'esri-menu__list-item-active';
+                        }
 
-                      function handleClick(
-                        ev: React.KeyboardEvent | React.MouseEvent,
-                      ) {
-                        if (!isClick(ev)) return;
+                        function handleClick(
+                          ev: React.KeyboardEvent | React.MouseEvent,
+                        ) {
+                          if (!isClick(ev)) return;
 
-                        setSelectedSource(source);
-                        setSourcesVisible(false);
+                          setSelectedSource(source);
+                          setSourcesVisible(false);
 
-                        const searchInput =
-                          document.getElementById('hmw-search-input');
-                        if (searchInput) searchInput.focus();
-                      }
+                          const searchInput =
+                            document.getElementById('hmw-search-input');
+                          if (searchInput) searchInput.focus();
+                        }
 
-                      return (
-                        <li
-                          id={`source-${sourceIndex}`}
-                          role="menuitem"
-                          className={`esri-search__source esri-menu__list-item ${secondClass}`}
-                          tabIndex="-1"
-                          key={source}
-                          onClick={handleClick}
-                          onKeyDown={handleClick}
-                        >
-                          {source}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                        return (
+                          <li
+                            id={`source-${sourceIndex}`}
+                            role="menuitem"
+                            className={`esri-search__source esri-menu__list-item ${secondClass}`}
+                            tabIndex="-1"
+                            key={source}
+                            onClick={handleClick}
+                            onKeyDown={handleClick}
+                          >
+                            {source}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                  <Select
+                    id="hmw-state-select"
+                    inputId="hmw-state-select-input"
+                    ref={statesSelect}
+                    css={selectStyles}
+                    classNamePrefix="Select"
+                    placeholder={
+                      selectedSource === 'All'
+                        ? 'Select a state, tribe or territory...'
+                        : selectedSource === 'State'
+                          ? 'Select a state or territory...'
+                          : 'Select a tribe...'
+                    }
+                    options={selectOptions}
+                    value={selectedStateTribe}
+                    onKeyDown={(ev) => {
+                      if (ev.key !== 'Enter') return;
+                      const selection =
+                        statesSelect.current.state.focusedOption;
+                      if (!selection) return;
+                      handleSubmit(statesSelect.current.state.focusedOption);
+                    }}
+                    onChange={(ev) => {
+                      setSelectedStateTribe(ev);
+                    }}
+                    styles={reactSelectStyles}
+                  />
                 </div>
-                <Select
-                  id="hmw-state-select"
-                  inputId="hmw-state-select-input"
-                  ref={statesSelect}
-                  css={selectStyles}
-                  classNamePrefix="Select"
-                  placeholder={
-                    selectedSource === 'All'
-                      ? 'Select a state, tribe or territory...'
-                      : selectedSource === 'State'
-                        ? 'Select a state or territory...'
-                        : 'Select a tribe...'
-                  }
-                  options={selectOptions}
-                  value={selectedStateTribe}
-                  onKeyDown={(ev) => {
-                    if (ev.key !== 'Enter') return;
-                    const selection = statesSelect.current.state.focusedOption;
-                    if (!selection) return;
-                    handleSubmit(statesSelect.current.state.focusedOption);
-                  }}
-                  onChange={(ev) => {
-                    setSelectedStateTribe(ev);
-                  }}
-                  styles={reactSelectStyles}
-                />
               </div>
 
               <button
