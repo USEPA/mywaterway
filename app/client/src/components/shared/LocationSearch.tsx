@@ -36,6 +36,7 @@ import { colors, fonts } from 'styles/index';
 // errors
 import {
   invalidSearchError,
+  customizedWebServiceErrorMessage,
   webServiceErrorMessage,
 } from 'config/errorMessages';
 // types
@@ -442,7 +443,8 @@ function LocationSearch({ route, label }: Readonly<Props>) {
           } catch (_err) {
             setWebserviceErrorMessages((prev) => ({
               ...prev,
-              [MONITORING_LOCATIONS]: webServiceErrorMessage,
+              [MONITORING_LOCATIONS]:
+                customizedWebServiceErrorMessage('location'),
             }));
           }
         },
@@ -486,7 +488,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
           } catch (_err) {
             setWebserviceErrorMessages((prev) => ({
               ...prev,
-              [WATERBODIES]: webServiceErrorMessage,
+              [WATERBODIES]: customizedWebServiceErrorMessage('waterbody'),
             }));
           }
         },
