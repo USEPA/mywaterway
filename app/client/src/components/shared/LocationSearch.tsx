@@ -12,6 +12,7 @@ import {
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import Collection from '@arcgis/core/core/Collection.js';
+import Error from '@arcgis/core/core/Error.js';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as locator from '@arcgis/core/rest/locator';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
@@ -49,6 +50,29 @@ function findSource(
   suggestions: __esri.SearchResultsSuggestions[],
 ) {
   return suggestions.find((item) => item.source.name === name) ?? null;
+}
+
+function getGroupTitle(
+  suggestions: __esri.SearchResultsSuggestions,
+  groups: SourceGroup[],
+) {
+  const group = groups
+    .filter((g) => g.name !== 'All')
+    .find((g) => {
+      return g.sources.some((s) => s.name === suggestions.source.name);
+    });
+  return group ? (
+    <>
+      <div>{group.name}</div>
+      {group.menuHeaderExtra && (
+        <div>
+          <small>{group.menuHeaderExtra}</small>
+        </div>
+      )}
+    </>
+  ) : (
+    <></>
+  );
 }
 
 // Splits the provided text by the searchString in a case insensitive way.
@@ -245,6 +269,16 @@ type SourceGroup = {
   menuHeaderExtra?: string;
 };
 
+type SourceGroups = {
+  [key in
+    | 'all'
+    | 'arcGis'
+    | 'monitoring'
+    | 'tribal'
+    | 'waterbody'
+    | 'watershed']: SourceGroup;
+};
+
 // --- constants ---
 
 // Source Names
@@ -261,6 +295,12 @@ const VIRGINIA_FEDERALLY_RECOGNIZED_TRIBES =
 const WATERSHEDS = 'Watersheds';
 const MONITORING_LOCATIONS = 'Monitoring Locations';
 const WATERBODIES = 'Waterbodies';
+
+// --- defaults ---
+const initialWebserviceErrorMessages: Record<string, string> = {
+  [MONITORING_LOCATIONS]: '',
+  [WATERBODIES]: '',
+};
 
 // --- components ---
 
@@ -376,6 +416,10 @@ function LocationSearch({ route, label }: Props) {
       new LocatorSearchSource({
         name: MONITORING_LOCATIONS,
         getSuggestions: async ({ maxSuggestions, suggestTerm }) => {
+          setWebserviceErrorMessages((prev) => ({
+            ...prev,
+            [MONITORING_LOCATIONS]: '',
+          }));
           try {
             const res = await fetchCheck(
               `${services.waterQualityPortal.domainValues}/monitoringlocation?text=${suggestTerm}&mimeType=json&pagesize=${maxSuggestions}`,
@@ -396,13 +440,20 @@ function LocationSearch({ route, label }: Props) {
               }),
             );
           } catch (_err) {
-            setErrorMessage(webServiceErrorMessage);
+            setWebserviceErrorMessages((prev) => ({
+              ...prev,
+              [MONITORING_LOCATIONS]: webServiceErrorMessage,
+            }));
           }
         },
       }),
       new LocatorSearchSource({
         name: WATERBODIES,
         getSuggestions: async ({ maxSuggestions, suggestTerm }) => {
+          setWebserviceErrorMessages((prev) => ({
+            ...prev,
+            [WATERBODIES]: '',
+          }));
           try {
             const res = (await fetchPost(
               `${services.expertQuery.attains}/assessmentUnits/values/assessmentUnitId`,
@@ -433,7 +484,10 @@ function LocationSearch({ route, label }: Props) {
               sourceIndex,
             }));
           } catch (_err) {
-            setErrorMessage(webServiceErrorMessage);
+            setWebserviceErrorMessages((prev) => ({
+              ...prev,
+              [WATERBODIES]: webServiceErrorMessage,
+            }));
           }
         },
       }),
@@ -441,7 +495,7 @@ function LocationSearch({ route, label }: Props) {
     [searchWidget, services],
   );
 
-  const sourceGroups: Record<string, SourceGroup> = useMemo(() => {
+  const sourceGroups: SourceGroups = useMemo(() => {
     const pickSources = pickSourcesHof(allSources);
     return {
       all: {
@@ -500,6 +554,9 @@ function LocationSearch({ route, label }: Props) {
   useEffect(() => setInputText(searchText), [searchText]);
 
   const [errorMessage, setErrorMessage] = useState('');
+  const [webserviceErrorMessages, setWebserviceErrorMessages] = useState(
+    initialWebserviceErrorMessages,
+  );
 
   // Initialize the esri search widget
   const [suggestions, setSuggestions] = useState<
@@ -549,6 +606,15 @@ function LocationSearch({ route, label }: Props) {
   const [selectedGroup, setSelectedGroup] = useState<SourceGroup>(
     sourceGroups.all,
   );
+
+  // Reset the web service error messages when the selected group changes.
+  const [prevSelectedGroup, setPrevSelectedGroup] =
+    useState<SourceGroup>(selectedGroup);
+  if (prevSelectedGroup !== selectedGroup) {
+    setPrevSelectedGroup(selectedGroup);
+    setWebserviceErrorMessages(initialWebserviceErrorMessages);
+  }
+
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
   useEffect(() => {
     if (!searchWidget) return;
@@ -575,30 +641,53 @@ function LocationSearch({ route, label }: Props) {
       .filter(([key]) => key !== 'all')
       .reduce<__esri.SearchResultsSuggestions[]>((acc1, [_key, group]) => {
         // Combine group sources into a single source, i.e. combine the 3 tribes sources into one source.
-        const { results, source, sourceIndex } = group.sources.reduce<{
+        const { results, source, sourceIndex, error } = group.sources.reduce<{
           results: __esri.SuggestResult[];
-          source: LocationSearchSource | null;
+          source: LocationSearchSource;
           sourceIndex: number;
+          error?: Error;
         }>(
-          (acc2, curSource) => {
-            const sug = findSource(curSource.name, suggestions);
+          (acc2, source) => {
+            // If the source has an error message, return an empty results array with the error message.
+            if (
+              ['All', group.name].includes(selectedGroup.name) &&
+              [MONITORING_LOCATIONS, WATERBODIES].includes(source.name) &&
+              webserviceErrorMessages[source.name]
+            ) {
+              return {
+                results: [],
+                source,
+                sourceIndex: -1,
+                error: new Error(
+                  'WebServiceError',
+                  webserviceErrorMessages[source.name],
+                ),
+              };
+            }
+
+            const sug = findSource(source.name, suggestions);
             if (!sug) return acc2;
 
             if (sug.results) {
               return {
                 results: [...acc2.results, ...sug.results],
-                source: acc2.source ?? sug.source,
+                source,
                 sourceIndex: Math.min(acc2.sourceIndex, sug.sourceIndex),
               };
             }
 
             return acc2;
           },
-          { results: [], source: null, sourceIndex: Infinity },
+          {
+            results: [],
+            source: new LocatorSearchSource(),
+            sourceIndex: Infinity,
+            error: undefined,
+          },
         );
 
-        if (source && results.length > 0) {
-          return [...acc1, { sourceIndex, source, results }];
+        if (error || (source && results.length > 0)) {
+          return [...acc1, { sourceIndex, source, results, error }];
         }
 
         return acc1;
@@ -1039,11 +1128,11 @@ function LocationSearch({ route, label }: Props) {
                 data-node-ref="_sourceListNode"
                 className="esri-menu__list"
               >
-                {groups.map((group, sourceIndex) => {
+                {groups.map((group, groupIndex) => {
                   let secondClass = '';
                   if (selectedGroup.name === group.name) {
                     secondClass = 'esri-menu__list-item--active';
-                  } else if (sourceIndex === sourceCursor) {
+                  } else if (groupIndex === sourceCursor) {
                     secondClass = 'esri-menu__list-item-active';
                   }
 
@@ -1062,7 +1151,7 @@ function LocationSearch({ route, label }: Props) {
 
                   return (
                     <li
-                      id={`source-${sourceIndex}`}
+                      id={`source-${groupIndex}`}
                       role="menuitem"
                       className={`esri-search__source esri-menu__list-item ${secondClass}`}
                       tabIndex={-1}
@@ -1139,35 +1228,10 @@ function LocationSearch({ route, label }: Props) {
                   data-node-ref="_suggestionListNode"
                 >
                   {filteredSuggestions.map((suggestions) => {
-                    const title =
-                      suggestions.source.name === ARC_GIS ? (
-                        <>{sourceGroups.arcGis.name}</>
-                      ) : (
-                        groups.reduce<ReactElement>(
-                          (cur, group) => {
-                            if (group.name === 'All') return cur;
-                            for (const source of group.sources) {
-                              if (source.name === suggestions.source.name) {
-                                return (
-                                  <>
-                                    <div>{group.name}</div>
-                                    {group.menuHeaderExtra && (
-                                      <div>
-                                        <small>{group.menuHeaderExtra}</small>
-                                      </div>
-                                    )}
-                                  </>
-                                );
-                              }
-                            }
-                            return cur;
-                          },
-                          <></>,
-                        )
-                      );
+                    const title = getGroupTitle(suggestions, groups);
 
                     const results = suggestions.results ?? [];
-                    if (results.length === 0) return null;
+                    if (!suggestions.error && results.length === 0) return null;
 
                     layerEndIndex += results.length;
 
@@ -1317,42 +1381,46 @@ function LayerSuggestions({
   return (
     <>
       <div className="esri-menu__header">{title}</div>
-      <ul
-        role="presentation"
-        className="esri-menu__list esri-search__suggestions-list"
-      >
-        {suggestions.results?.map((result, idx) => {
-          const flattenedResult: FlattenedResult = {
-            ...result,
-            source: suggestions.source,
-            sourceIndex: suggestions.sourceIndex,
-          };
-          index = startIndex + idx;
+      {suggestions.error ? (
+        <div css={errorBoxStyles}>{suggestions.error.message}</div>
+      ) : (
+        <ul
+          role="presentation"
+          className="esri-menu__list esri-search__suggestions-list"
+        >
+          {suggestions.results?.map((result, idx) => {
+            const flattenedResult: FlattenedResult = {
+              ...result,
+              source: suggestions.source,
+              sourceIndex: suggestions.sourceIndex,
+            };
+            index = startIndex + idx;
 
-          return (
-            <li
-              id={`search-suggestion-${index}`}
-              role="menuitem"
-              className={`esri-menu__list-item ${
-                index === cursor ? 'esri-menu__list-item-active' : ''
-              }`}
-              key={`suggestion-key-${index}`}
-              onClick={onSuggestionClick(flattenedResult)}
-              onKeyDown={onSuggestionClick(flattenedResult)}
-            >
-              {getHighlightParts(result.text ?? '', inputText).map(
-                (part, index) => {
-                  if (part.toLowerCase() === inputText.toLowerCase()) {
-                    return <strong key={index}>{part}</strong>;
-                  } else {
-                    return <Fragment key={index}>{part}</Fragment>;
-                  }
-                },
-              )}
-            </li>
-          );
-        })}
-      </ul>
+            return (
+              <li
+                id={`search-suggestion-${index}`}
+                role="menuitem"
+                className={`esri-menu__list-item ${
+                  index === cursor ? 'esri-menu__list-item-active' : ''
+                }`}
+                key={`suggestion-key-${index}`}
+                onClick={onSuggestionClick(flattenedResult)}
+                onKeyDown={onSuggestionClick(flattenedResult)}
+              >
+                {getHighlightParts(result.text ?? '', inputText).map(
+                  (part, index) => {
+                    if (part.toLowerCase() === inputText.toLowerCase()) {
+                      return <strong key={index}>{part}</strong>;
+                    } else {
+                      return <Fragment key={index}>{part}</Fragment>;
+                    }
+                  },
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }
