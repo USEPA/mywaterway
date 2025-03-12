@@ -309,7 +309,7 @@ type Props = {
   label: ReactNode;
 };
 
-function LocationSearch({ route, label }: Props) {
+function LocationSearch({ route, label }: Readonly<Props>) {
   const navigate = useNavigate();
 
   const services = useConfigFilesState().data.services;
@@ -1376,7 +1376,7 @@ function LayerSuggestions({
   suggestions,
   startIndex,
   title,
-}: LayerSuggestionsProps) {
+}: Readonly<LayerSuggestionsProps>) {
   let index = 0;
   return (
     <>
