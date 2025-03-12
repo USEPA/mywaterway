@@ -831,7 +831,6 @@ function getAgoLayerType(layer: LayerType): AgoLayerType | null {
   // handle layer specific type overrides
   if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(layer.id))
     layerTypeOut = 'ArcGISMapServiceLayer';
-  if (layer.id === 'ejscreenLayer') layerTypeOut = 'ArcGISMapServiceLayer';
   if (layer.id === 'tribalLayer') layerTypeOut = 'ArcGISMapServiceLayer';
   if (layer.id === 'watershedsLayer') layerTypeOut = 'ArcGISMapServiceLayer';
 
@@ -851,7 +850,6 @@ function getLayerUrl(services: any, layer: LayerType): string {
   if (layer.widgetLayer?.type === 'url') url = layer.widgetLayer.url;
   if (['allWaterbodiesLayer', 'waterbodyLayer'].includes(layer.id))
     url = services.waterbodyService.base;
-  if (layer.id === 'ejscreenLayer') url = services.ejscreen;
   if (layer.id === 'tribalLayer') url = services.tribal;
 
   return url;

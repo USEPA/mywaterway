@@ -219,10 +219,6 @@ export interface DischargerPermitComponents {
   };
 }
 
-export interface EjScreenAttributes {
-  T_OVR64PCT: string;
-}
-
 export type ExtremeWeatherQuery = {
   serviceItemId?: string;
   query: __esri.Query | __esri.QueryProperties;
@@ -509,7 +505,6 @@ export type PopupAttributes =
   | CyanWaterbodyAttributes
   | DamsAttributes
   | DischargerAttributes
-  | EjScreenAttributes
   | MonitoringLocationAttributes
   | NonProfitAttributes
   | ProtectedAreaAttributes
@@ -539,6 +534,12 @@ export interface RndDraggableState {
 
 export interface ServicesData {
   attains: { serviceUrl: string; serviceUrlDev: string };
+  basemaps: {
+    default: string;
+    lightGrayCanvas: string;
+    terrainWithLabels: string;
+    topographic: string;
+  };
   cmraScreeningData: string;
   coastalFloodingRealtime: {
     portalId: string;
@@ -559,10 +560,6 @@ export interface ServicesData {
     portalId: string;
     url: string;
   };
-  disadvantagedCommunities: {
-    portalId: string;
-    url: string;
-  };
   droughtRealtime: {
     portalId: string;
     url: string;
@@ -576,7 +573,6 @@ export interface ServicesData {
     getFacilities: string;
     metadata: string;
   };
-  ejscreen: string;
   esriWebMapBase: string;
   expertQuery: {
     apiKey: string;

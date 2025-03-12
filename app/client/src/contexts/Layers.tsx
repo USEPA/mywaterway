@@ -123,10 +123,8 @@ export function useLayers() {
       countyLayer,
       cyanLayer,
       damsLayer,
-      disadvantagedCommunitiesLayer,
       dischargersLayer,
       droughtRealtimeLayer,
-      ejscreenLayer,
       extremeColdRealtimeLayer,
       extremeHeatRealtimeLayer,
       inlandFloodingRealtimeLayer,
@@ -158,10 +156,8 @@ export function useLayers() {
     } = layers;
 
     return [
-      ejscreenLayer,
       wsioHealthIndexLayer,
       wellsLayer,
-      disadvantagedCommunitiesLayer,
       cmraScreeningLayer,
       landCoverLayer,
       inlandFloodingRealtimeLayer,
@@ -304,7 +300,6 @@ const featureLayerIds = [
   'congressionalLayer',
   'countyLayer',
   'damsLayer',
-  'disadvantagedCommunitiesLayer',
   'dischargersLayer',
   'droughtRealtimeLayer',
   'monitoringLocationsLayer',
@@ -340,7 +335,6 @@ const groupLayerIds = [
   'coastalFloodingLayer',
   'coastalFloodingRealtimeLayer',
   'cyanLayer',
-  'ejscreenLayer',
   'extremeColdRealtimeLayer',
   'extremeHeatRealtimeLayer',
   'inlandFloodingRealtimeLayer',
