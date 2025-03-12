@@ -81,6 +81,8 @@
 .esri-widget {
   font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
     'Arial', sans-serif;
+  --calcite-font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
+    'Arial', sans-serif;
 }
 
 .esri-widget--panel-height-only {
