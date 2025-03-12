@@ -331,11 +331,16 @@ describe('Add & Save Data Widget', () => {
     cy.findByTitle('Open Basemaps and Layers').click({ force: true });
     cy.get('.hmw-map-layers').within(() => {
       // toggle on a layer
-      cy.findByText('Congressional Districts').click({
-        force: true,
-      });
+      cy.get('calcite-list-item')
+        .shadow()
+        .contains('div', 'Congressional Districts')
+        .click({ force: true });
+
       // toggle off a layer
-      cy.findByText('Selected Watershed').click({ force: true });
+      cy.get('calcite-list-item')
+        .shadow()
+        .contains('div', 'Selected Watershed')
+        .click({ force: true });
     });
 
     cy.get(adwId).within(() => {
