@@ -100,9 +100,10 @@ describe('Community page map legend', () => {
 
     cy.findByTitle('Open Basemaps and Layers').click();
     cy.get('.hmw-map-layers').within(() => {
-      cy.findByText('All Mapped Water (NHD)').click({
-        force: true,
-      });
+      cy.get('calcite-list-item')
+        .shadow()
+        .contains('div', 'All Mapped Water (NHD)')
+        .click({ force: true });
     });
     cy.findByTitle('Close Basemaps and Layers').click();
     cy.findByTitle('Open Legend').click();
