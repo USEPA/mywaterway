@@ -1205,7 +1205,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
                   }}
                   onBlur={(ev) => {
                     if (
-                      !ev.currentTarget.contains(ev.relatedTarget) ||
+                      !suggestionsRef.current?.contains(ev.relatedTarget) ||
                       ev.relatedTarget?.tagName !== 'LI'
                     ) {
                       setSuggestionsVisible(false);
@@ -1403,6 +1403,7 @@ function LayerSuggestions({
                 className={`esri-menu__list-item ${
                   index === cursor ? 'esri-menu__list-item-active' : ''
                 }`}
+                tabIndex={-1}
                 key={`suggestion-key-${index}`}
                 onClick={onSuggestionClick(flattenedResult)}
                 onKeyDown={onSuggestionClick(flattenedResult)}
