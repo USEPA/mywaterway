@@ -25,7 +25,7 @@ describe('Restore Tab', () => {
 
   it('Restoration plans', () => {
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020802031302',
+      '031501100202',
     );
     cy.findByText('Go').click();
 
@@ -36,13 +36,13 @@ describe('Restore Tab', () => {
       name: 'Restoration Plans',
     }).click();
 
-    cy.findByText('AUSTIN RIVER', {
+    cy.findByText('DEVELOPMENT FOR PATHOGENS (E. COLI) TMDL, PARKERSON MILL CREEK', {
       exact: false,
     }).click();
     cy.findAllByText('Open Plan Summary').should(
       'have.attr',
       'href',
-      `/plan-summary/21VASWCB/33551`,
+      `/plan-summary/21AWIC/40958`,
     );
   });
 

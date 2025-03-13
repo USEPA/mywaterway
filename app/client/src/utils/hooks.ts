@@ -1316,113 +1316,6 @@ function useSharedLayers({
     return watershedsLayer;
   }
 
-  function getEjscreen() {
-    const ejOutFields = [
-      'T_MINORPCT',
-      'T_LWINCPCT',
-      'T_LESHSPCT',
-      'T_LNGISPCT',
-      'T_UNDR5PCT',
-      'T_OVR64PCT',
-      'T_VULEOPCT',
-    ];
-
-    const ejscreenPopupTemplate = {
-      title: getTitle,
-      content: getTemplate,
-      outFields: ejOutFields,
-    };
-
-    const ejDemographicIndex = new FeatureLayer({
-      id: '0',
-      url: `${configFiles.data.services.ejscreen}0`,
-      title: 'Demographic Index',
-      outFields: ejOutFields,
-      visible: true,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejUnderAge5 = new FeatureLayer({
-      id: '1',
-      url: `${configFiles.data.services.ejscreen}1`,
-      title: 'Individuals under age 5',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejOverAge64 = new FeatureLayer({
-      id: '2',
-      url: `${configFiles.data.services.ejscreen}2`,
-      title: 'Individuals over age 64',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejLowIncome = new FeatureLayer({
-      id: '3',
-      url: `${configFiles.data.services.ejscreen}3`,
-      title: 'Percent Low-Income',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejLinguistIsolated = new FeatureLayer({
-      id: '4',
-      url: `${configFiles.data.services.ejscreen}4`,
-      title: 'Linguistic Isolation',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejMinority = new FeatureLayer({
-      id: '5',
-      url: `${configFiles.data.services.ejscreen}5`,
-      title: 'Percent People of Color',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejLessThanHS = new FeatureLayer({
-      id: '6',
-      url: `${configFiles.data.services.ejscreen}6`,
-      title: 'Less than High School Education',
-      outFields: ejOutFields,
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: ejscreenPopupTemplate,
-    });
-
-    const ejscreenLayer = new GroupLayer({
-      id: 'ejscreenLayer',
-      title: 'Demographic Indicators',
-      listMode: 'show',
-      visible: false,
-      layers: [
-        ejLessThanHS,
-        ejMinority,
-        ejLinguistIsolated,
-        ejLowIncome,
-        ejOverAge64,
-        ejUnderAge5,
-        ejDemographicIndex,
-      ],
-      minScale: 577791,
-    });
-    setLayer('ejscreenLayer', ejscreenLayer);
-    return ejscreenLayer;
-  }
-
   function getAllWaterbodiesLayer() {
     const popupTemplate = {
       title: getTitle,
@@ -2011,101 +1904,46 @@ function useSharedLayers({
     }
   }
 
-  async function getDisadvantagedCommunitiesLayer() {
-    const disadvantagedCommunitiesLayer = (await Layer.fromPortalItem({
-      portalItem: new PortalItem({
-        id: configFiles.data.services.disadvantagedCommunities.portalId,
-      }),
-    })) as __esri.FeatureLayer;
-    disadvantagedCommunitiesLayer.id = 'disadvantagedCommunitiesLayer';
-    disadvantagedCommunitiesLayer.listMode = 'hide-children';
-    disadvantagedCommunitiesLayer.title =
-      'Overburdened, Underserved, and Disadvantaged Communities';
-    disadvantagedCommunitiesLayer.visible = false;
-    setLayer('disadvantagedCommunitiesLayer', disadvantagedCommunitiesLayer);
-    return disadvantagedCommunitiesLayer;
-  }
-
   // Gets the settings for the WSIO Health Index layer.
   return async function getSharedLayers() {
-    const wsioHealthIndexLayer = getWsioLayer();
+    const sharedLayers = (
+      await Promise.all(
+        [
+          getWsioLayer,
+          getProtectedAreasLayer,
+          getWildScenicRiversLayer,
+          getTribalLayer,
+          getCongressionalLayer,
+          getMappedWaterLayer,
+          getCountyLayer,
+          getStateBoundariesLayer,
+          getWatershedsLayer,
+          getAllWaterbodiesLayer,
+          getLandCoverLayer,
+          getWildfiresLayer,
+          getCmraScreeningLayer,
+          getDroughtRealtimeLayer,
+          getInlandFloodingRealtimeLayer,
+          getCoastalFloodingRealtimeLayer,
+          getExtremeHeatRealtimeLayer,
+          getExtremeColdRealtimeLayer,
+          getCoastalFloodingLayer,
+          getStorageTanksLayer,
+          getSewerOverflowsLayer,
+          getDamsLayer,
+          getWellsLayer,
+        ].map(async (getLayerFn) => {
+          try {
+            return await getLayerFn();
+          } catch (err) {
+            console.error('Error getting shared layer:', err);
+            return null;
+          }
+        }),
+      )
+    ).filter((layer) => layer !== null);
 
-    const protectedAreasLayer = getProtectedAreasLayer();
-
-    const wildScenicRiversLayer = getWildScenicRiversLayer();
-
-    const tribalLayer = getTribalLayer();
-
-    const congressionalLayer = getCongressionalLayer();
-
-    const mappedWaterLayer = getMappedWaterLayer();
-
-    const countyLayer = getCountyLayer();
-
-    const stateBoundariesLayer = getStateBoundariesLayer();
-
-    const watershedsLayer = getWatershedsLayer();
-
-    const ejscreen = getEjscreen();
-
-    const allWaterbodiesLayer = getAllWaterbodiesLayer();
-
-    const landCover = getLandCoverLayer();
-
-    const wildfiresLayer = await getWildfiresLayer();
-
-    const cmraScreeningLayer = getCmraScreeningLayer();
-
-    const droughtRealtimeLayer = await getDroughtRealtimeLayer();
-
-    const inlandFloodingRealtimeLayer = getInlandFloodingRealtimeLayer();
-
-    const coastalFloodingRealtimeLayer = getCoastalFloodingRealtimeLayer();
-
-    const extremeHeatRealtimeLayer = getExtremeHeatRealtimeLayer();
-
-    const extremeColdRealtimeLayer = getExtremeColdRealtimeLayer();
-
-    const coastalFloodingLayer = getCoastalFloodingLayer();
-
-    const storageTanksLayer = getStorageTanksLayer();
-
-    const sewerOverflowsLayer = getSewerOverflowsLayer();
-
-    const damsLayer = await getDamsLayer();
-
-    const wellsLayer = await getWellsLayer();
-
-    const disadvantagedCommunitiesLayer =
-      await getDisadvantagedCommunitiesLayer();
-
-    return [
-      ejscreen,
-      wsioHealthIndexLayer,
-      wellsLayer,
-      disadvantagedCommunitiesLayer,
-      cmraScreeningLayer,
-      landCover,
-      inlandFloodingRealtimeLayer,
-      droughtRealtimeLayer,
-      extremeHeatRealtimeLayer,
-      extremeColdRealtimeLayer,
-      coastalFloodingRealtimeLayer,
-      coastalFloodingLayer,
-      protectedAreasLayer,
-      wildScenicRiversLayer,
-      tribalLayer,
-      congressionalLayer,
-      stateBoundariesLayer,
-      mappedWaterLayer,
-      countyLayer,
-      watershedsLayer,
-      allWaterbodiesLayer,
-      storageTanksLayer,
-      damsLayer,
-      wildfiresLayer,
-      sewerOverflowsLayer,
-    ].filter((layer) => layer !== null);
+    return sharedLayers;
   };
 }
 

@@ -60,6 +60,7 @@ import {
   useWaterbodyHighlight,
 } from 'utils/hooks';
 import {
+  basemapFromPortalItem,
   createWaterbodySymbol,
   createUniqueValueInfos,
   getPopupTitle,
@@ -156,6 +157,7 @@ type Props = {
 function TribalMapList({ activeState, windowHeight }: Props) {
   const { currentReportingCycle } = useContext(StateTribalTabsContext);
   const { errorMessage, mapView } = useContext(LocationSearchContext);
+  const services = useConfigFilesState().data.services;
 
   const {
     waterbodyAreas,
@@ -179,13 +181,13 @@ function TribalMapList({ activeState, windowHeight }: Props) {
 
     const newBasemap = new Basemap({
       portalItem: {
-        id: '1536abe5e5504e5db380ccfaa9b6fd8d',
+        id: services.basemaps.terrainWithLabels,
       },
     });
     mapView.map.basemap = newBasemap;
 
     return function cleanup() {
-      mapView.map.basemap = 'gray-vector';
+      mapView.map.basemap = basemapFromPortalItem(services.basemaps.default);
     };
   }, [mapView]);
 

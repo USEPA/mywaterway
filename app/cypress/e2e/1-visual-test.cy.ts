@@ -83,7 +83,10 @@ describe('Community Visual Regression Testing', () => {
   it('Verify "View on Map" button works', () => {
     cy.visit('/community/dc/overview');
 
+    // wait for app to load and some additional time
+    // for the map to load and settle
     cy.waitForLoadFinish();
+    cy.wait(10_000);
 
     cy.findByText('FORT CHAPLIN RUN').click();
 
