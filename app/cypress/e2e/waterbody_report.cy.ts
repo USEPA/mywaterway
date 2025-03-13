@@ -109,7 +109,7 @@ describe('Waterbody Report page', () => {
     cy.visit('/waterbody-report/DOEE/DCANA00E_02/2020');
 
     cy.findAllByText(
-      'Assessment information is temporarily unavailable, please try again later.',
+      'Other Years Reported information is temporarily unavailable, please try again later.',
     );
   });
 

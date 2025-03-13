@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 
-import Basemap from '@arcgis/core/Basemap';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import { css } from '@emotion/react';
@@ -56,6 +55,7 @@ import {
   useSharedLayers,
 } from 'utils/hooks';
 import { getMedian, isAbort, toFixedFloat } from 'utils/utils';
+import { basemapFromPortalItem } from 'utils/mapFunctions';
 // styles
 import {
   boxStyles,
@@ -2084,7 +2084,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                     fileBaseName="wqp-results"
                     fileType={fileType}
                     setError={setDownloadError}
-                    url={`${configFiles.data.services.waterQualityPortal.resultSearch}zip=yes&mimeType=${fileType}`}
+                    url={`${configFiles.data.services.waterQualityPortal.resultSearch}zip=no&mimeType=${fileType}`}
                   />
                 </Fragment>
               ))}
@@ -2384,6 +2384,7 @@ function SliderContainer({ min, max, onChange, range }) {
 function SiteMap({ layout, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
+  const services = useConfigFilesState().data.services;
 
   const getSharedLayers = useSharedLayers();
   const { homeWidget, mapView, setBasemap } = useContext(LocationSearchContext);
@@ -2396,15 +2397,11 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
   useEffect(() => {
     if (!mapView) return;
-    mapView.map.basemap = new Basemap({
-      portalItem: {
-        id: '588f0e0acc514c11bc7c898fed9fc651',
-      },
-    });
+    mapView.map.basemap = basemapFromPortalItem(services.basemaps.topographic);
 
     return function cleanup() {
-      mapView.map.basemap = 'gray-vector';
-      setBasemap('gray-vector');
+      mapView.map.basemap = basemapFromPortalItem(services.basemaps.default);
+      setBasemap(mapView.map.basemap);
     };
   }, [mapView, setBasemap]);
 
@@ -2412,8 +2409,9 @@ function SiteMap({ layout, siteStatus, widthRef }) {
   useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
-    getSharedLayers();
-    updateVisibleLayers({ monitoringLocationsLayer: true });
+    getSharedLayers().then(() => {
+      updateVisibleLayers({ monitoringLocationsLayer: true });
+    });
     setLayersInitialized(true);
   }, [getSharedLayers, layersInitialized, updateVisibleLayers]);
 

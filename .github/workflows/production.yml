@@ -9,7 +9,7 @@ on:
 
 # Set shared environment variables
 env:
-  APP_VERSION: 2.12.1
+  APP_VERSION: 2.13.0
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -59,6 +59,7 @@ jobs:
       - name: Build front-end files and move to server
         run: |
           VITE_ARCGIS_CLIENT_ID="$VITE_ARCGIS_CLIENT_ID" \
+            NODE_OPTIONS=--max_old_space_size=6144 \
             npm run build
           cd build
           cp -r * ../../server/app/public

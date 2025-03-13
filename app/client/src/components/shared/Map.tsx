@@ -8,12 +8,15 @@ import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { initialExtent, LocationSearchContext } from 'contexts/locationSearch';
 import { useLayers } from 'contexts/Layers';
 // types
 import type { LayerId } from 'contexts/Layers';
 import type { ReactNode } from 'react';
+// utils
+import { basemapFromPortalItem } from 'utils/mapFunctions';
 
 type Props = {
   children?: ReactNode;
@@ -27,8 +30,15 @@ function Map({
   startingExtent = null,
 }: Readonly<Props>) {
   const { widgetLayers } = useAddSaveDataWidgetState();
-  const { basemap, highlightOptions, homeWidget, mapView, setMapView } =
-    useContext(LocationSearchContext);
+  const services = useConfigFilesState().data.services;
+  const {
+    basemap,
+    highlightOptions,
+    homeWidget,
+    mapView,
+    setBasemap,
+    setMapView,
+  } = useContext(LocationSearchContext);
 
   const { visibleLayers } = useLayers();
 
@@ -50,8 +60,12 @@ function Map({
   useEffect(() => {
     if (mapInitialized) return;
 
+    const mapBasemap =
+      basemap ?? basemapFromPortalItem(services.basemaps.default);
+    if (basemap !== mapBasemap) setBasemap(mapBasemap);
+
     const esriMap = new EsriMap({
-      basemap,
+      basemap: mapBasemap,
       layers: [],
     });
 

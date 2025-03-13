@@ -1,5 +1,25 @@
 # Change Log
 
+## 2.13.0 (March 2025)
+
+### Changed
+
+- Updated basemaps to US vector basemaps.
+
+- Updated the error message for the search suggestions to be tied to the search source that failed, so that it is more intuitive.
+
+- Removed deprecated CEJST layer from layer list.
+
+- Removed deprecated EJScreen layer from layer list.
+
+- Fixed issue of download not working on the monitoring report page.
+
+- Fixed issue of waterbody report page not showing any data when the Expert Query service is down.
+
+### Chores
+
+- Updated dependencies.
+
 ## 2.12.1 (December 2024)
 
 ### Added

@@ -83,7 +83,6 @@ function ExtremeWeather() {
     coastalFloodingLayer,
     coastalFloodingRealtimeLayer,
     damsLayer,
-    disadvantagedCommunitiesLayer,
     droughtRealtimeLayer,
     extremeColdRealtimeLayer,
     extremeHeatRealtimeLayer,
@@ -856,41 +855,6 @@ function ExtremeWeather() {
       },
     });
   }, [configFiles, countySelected, wellsLayer]);
-
-  // update disadvantaged communities
-  useEffect(() => {
-    if (!countySelected || !disadvantagedCommunitiesLayer) return;
-
-    const id = 'disadvantagedCommunities';
-    queryLayers({
-      id,
-      layer: disadvantagedCommunitiesLayer,
-      config: configFiles.data.extremeWeather.potentiallyVulnerableDefaults,
-      setter: setPotentiallyVulnerable,
-      whereReplacer: (where: string) => {
-        return where.replace('{HMW_COUNTY_FIPS}', countySelected.value);
-      },
-      responseParser: (responses) => {
-        // SN_C === 1 is disadvantaged
-        // SN_C === 0 and SN_T === ' ' is not disadvantaged
-        // SN_C === 0 and SN_T === '0' is partially disadvantaged
-        // SN_C === 0 and SN_T === '1' is disadvantaged
-        // else is not disadvantaged
-        const disadvantagedCommunities = responses[0].features.filter(
-          (f) =>
-            f.attributes.SN_C === 1 ||
-            (f.attributes.SN_C === 0 && ['0', '1'].includes(f.attributes.SN_T)),
-        ).length;
-
-        return [
-          {
-            id,
-            value: disadvantagedCommunities,
-          },
-        ];
-      },
-    });
-  }, [configFiles, countySelected, disadvantagedCommunitiesLayer]);
 
   return (
     <div css={containerStyles}>
