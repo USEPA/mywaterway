@@ -180,6 +180,10 @@ export const fishingAdvisoryError =
 // Add Data Widget //
 export const webServiceErrorMessage = 'An error occurred in the web service';
 
+export const customizedWebServiceErrorMessage = (label: string) => {
+  return `There was an issue obtaining ${label} data, please try again later.`;
+};
+
 export const unsupportedLayerMessage = (layerType) =>
   `The "${layerType}" layer type is unsupported`;
 

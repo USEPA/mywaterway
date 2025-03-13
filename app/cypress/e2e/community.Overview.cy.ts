@@ -20,7 +20,7 @@ describe('Overview Tab', () => {
       .findAllByRole('listitem')
       .should('have.length', 0);
 
-    cy.findByLabelText('POTW').click({ force: true });
+    cy.findByLabelText('Urban Stormwater (Medium/Large MS4)').click({ force: true });
     cy.findByRole('button', {
       name: 'DISTRICT DEPARTMENT OF ENERGY AND ENVIRONMENT NATURAL RESOURCES ADMINISTRATION',
     }).should('be.visible');
@@ -29,7 +29,7 @@ describe('Overview Tab', () => {
   it('Verify switches are checked by default', () => {
     // navigate to Monitoring tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '030901011204',
+      '030901011801',
     );
     cy.findByText('Go').click();
 
