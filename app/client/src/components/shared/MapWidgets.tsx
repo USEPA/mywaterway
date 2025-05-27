@@ -661,7 +661,7 @@ function MapWidgets({
     const syncedDiv = document.createElement('div');
 
     const syncContent = () => {
-      syncedDiv.innerHTML = legendNode?.innerHTML || '';
+      syncedDiv.innerHTML = legendNode?.innerHTML ?? '';
     }
     syncContent();
 
