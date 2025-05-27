@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { useContext, useEffect, useRef } from 'react';
-import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
+import { useOutletContext, useParams, useNavigate } from 'react-router';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useWindowSize } from '@reach/window-size';
 // components

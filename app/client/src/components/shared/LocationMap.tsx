@@ -4,7 +4,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Node } from 'react';
 import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Field from '@arcgis/core/layers/support/Field';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';

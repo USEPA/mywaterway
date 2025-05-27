@@ -2,7 +2,7 @@
 
 import type { Node } from 'react';
 import { css } from '@emotion/react';
-import { Link, matchPath } from 'react-router-dom';
+import { Link, matchPath } from 'react-router';
 // styles
 import { colors } from 'styles/index';
 

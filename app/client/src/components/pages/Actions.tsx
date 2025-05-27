@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { Fragment, useContext, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
