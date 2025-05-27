@@ -637,6 +637,9 @@ function MapWidgets({
   // manages which layers are visible in the legend
   const legendTemp = document.createElement('div');
   legendTemp.className = 'map-legend';
+  legendTemp.id = 'non-visible-legend';
+  legendTemp.classList.add('sr-only');
+  legendTemp.ariaHidden = 'true';
   const hmwLegendTemp = document.createElement('div');
   const esriLegendTemp = document.createElement('div');
   esriLegendTemp.id = 'esri-legend-container';
@@ -654,8 +657,26 @@ function MapWidgets({
   useEffect(() => {
     if (!view || legend) return;
 
+    document.body.appendChild(legendNode);
+    const syncedDiv = document.createElement('div');
+
+    const syncContent = () => {
+      syncedDiv.innerHTML = legendNode?.innerHTML || '';
+    }
+    syncContent();
+
+    // Observe changes to the source div and update the synced div
+    if (legendNode) {
+      const observer = new MutationObserver(syncContent);
+      observer.observe(legendNode, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    }
+
     const newLegend = new Expand({
-      content: legendNode,
+      content: syncedDiv,
       view,
       expanded: false,
       expandIcon: 'legend',
@@ -2247,8 +2268,11 @@ export async function generateAndDownloadPdf({
    */
   async function appendHmwLegendItems(legendItems: PdfLegendItem[]) {
     // loop through individual rows of hmw legend items
-    const listItems = document.getElementsByClassName('hmw-legend__item');
-    for (let item of listItems) {
+    const legendElm = document.getElementById('non-visible-legend');
+    if (!legendElm) return;
+
+    const listItems = legendElm.getElementsByClassName('hmw-legend__item');
+    for (const item of listItems) {
       // get the text
       await addLegendItem({
         legendItems,
@@ -2267,12 +2291,14 @@ export async function generateAndDownloadPdf({
    */
   async function appendEsriLegendItems(legendItems: PdfLegendItem[]) {
     // loop through layers of esri legend items
-    const legendServices = document.querySelectorAll(
+    const legendElm = document.getElementById('non-visible-legend');
+    if (!legendElm) return;
+    const legendServices = legendElm.querySelectorAll(
       '.esri-legend__service:not(.esri-legend__group-layer-child)',
     );
-    for (let legendService of legendServices) {
+    for (const legendService of legendServices) {
       let hasHighestLevel = false;
-      let groups = Array.from(
+      const groups = Array.from(
         legendService.getElementsByClassName('esri-legend__group-layer-child'),
       );
       if (groups.length === 0) groups.push(legendService);
@@ -2286,7 +2312,7 @@ export async function generateAndDownloadPdf({
         hasHighestLevel = true;
       }
 
-      for (let group of groups) {
+      for (const group of groups) {
         // get main title
         await addLegendItem({
           legendItems,
@@ -2297,7 +2323,7 @@ export async function generateAndDownloadPdf({
 
         // get layer level content
         const layers = group.getElementsByClassName('esri-legend__layer');
-        for (let layer of layers) {
+        for (const layer of layers) {
           // get captions
           await addLegendItem({
             legendItems,
@@ -2309,7 +2335,7 @@ export async function generateAndDownloadPdf({
 
           // get row level content
           const rows = layer.getElementsByClassName('esri-legend__layer-row');
-          for (let row of rows) {
+          for (const row of rows) {
             // get the text
             await addLegendItem({
               legendItems,
