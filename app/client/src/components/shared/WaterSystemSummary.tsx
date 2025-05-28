@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import highchartsAccessibility from 'highcharts/modules/accessibility';
-import highchartsExporting from 'highcharts/modules/exporting';
+import 'highcharts/modules/accessibility';
+import 'highcharts/modules/offline-exporting';
 import { v4 as uuid } from 'uuid';
 import { WindowSize } from '@reach/window-size';
 // components
@@ -20,12 +20,6 @@ import { formatNumber, isAbort } from 'utils/utils';
 import { useAbort } from 'utils/hooks';
 // errors
 import { grpaError } from 'config/errorMessages';
-
-// add exporting features to highcharts
-highchartsExporting(Highcharts);
-
-// add accessibility features to highcharts
-highchartsAccessibility(Highcharts);
 
 function formatValue(value?: string) {
   return value ? formatNumber(value) : '';

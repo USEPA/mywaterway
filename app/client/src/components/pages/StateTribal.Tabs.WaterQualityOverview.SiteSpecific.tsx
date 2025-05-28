@@ -4,8 +4,8 @@ import { useContext } from 'react';
 import { css } from '@emotion/react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import highchartsAccessibility from 'highcharts/modules/accessibility';
-import highchartsExporting from 'highcharts/modules/exporting';
+import 'highcharts/modules/accessibility';
+import 'highcharts/modules/offline-exporting';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
@@ -27,12 +27,6 @@ import {
   fishingAdvisoryError,
   status303dShortError,
 } from 'config/errorMessages';
-
-// add exporting features to highcharts
-highchartsExporting(Highcharts);
-
-// add accessibility features to highcharts
-highchartsAccessibility(Highcharts);
 
 const textStyles = css`
   padding-bottom: 0;
