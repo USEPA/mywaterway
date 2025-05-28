@@ -6,6 +6,7 @@ import { WindowSize } from '@reach/window-size';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import 'highcharts/modules/accessibility';
+import 'highcharts/modules/exporting';
 import 'highcharts/modules/offline-exporting';
 import Select from 'react-select';
 // components
@@ -560,6 +561,43 @@ function SurveyResults({
                       style: chartOptions.chart.style,
                       // stressors * bar height (30) + room for chart title and x-axis labels (90)
                       height: xAxisLabels.length * 30 + 90,
+                    },
+                    exporting: {
+                      buttons: {
+                        contextButton: {
+                          menuItems: [
+                            'downloadPNG',
+                            'downloadJPEG',
+                            'downloadPDF',
+                            'downloadSVG',
+                          ],
+                          theme: {
+                            fill: 'rgba(0, 0, 0, 0)',
+                            states: {
+                              hover: {
+                                fill: 'rgba(0, 0, 0, 0)',
+                              },
+                              select: {
+                                fill: 'rgba(0, 0, 0, 0)',
+                                stroke: '#666666',
+                              },
+                            },
+                          },
+                        },
+                      },
+                      chartOptions: {
+                        plotOptions: {
+                          series: {
+                            dataLabels: {
+                              enabled: true,
+                            },
+                          },
+                        },
+                      },
+                      filename: `${activeState.label.replaceAll(
+                        ' ',
+                        '_',
+                      )}_Stressors_Surveyed`,
                     },
                     tooltip: {
                       formatter: function () {

@@ -1,6 +1,7 @@
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import 'highcharts/modules/accessibility';
+import 'highcharts/modules/exporting';
 import 'highcharts/modules/offline-exporting';
 import { useCallback, useMemo } from 'react';
 // styles

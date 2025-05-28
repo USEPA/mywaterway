@@ -5,6 +5,7 @@ import { css } from '@emotion/react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import 'highcharts/modules/accessibility';
+import 'highcharts/modules/exporting';
 import 'highcharts/modules/offline-exporting';
 import { v4 as uuid } from 'uuid';
 import { WindowSize } from '@reach/window-size';
