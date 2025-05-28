@@ -43,7 +43,7 @@
     "@cypress/code-coverage": "3.14.3",
     "@testing-library/cypress": "10.0.3",
     "@types/cypress-image-snapshot": "3.1.9",
-    "@types/node": "22.15.22",
+    "@types/node": "22.15.23",
     "@types/testing-library__cypress": "5.0.13",
     "concurrently": "9.1.2",
     "cypress": "14.4.0",
