@@ -35,6 +35,7 @@ describe('The characteristic chart section', () => {
   });
 
   it('Should display a graph when a characteristic with measured results is selected', () => {
+    cy.waitForLoadFinish();
     cy.findByLabelText('Select Total dissolved solids').check({ force: true });
     cy.findAllByLabelText('XYChart').should('be.visible');
   });
@@ -81,8 +82,6 @@ describe('The Download Data section', () => {
 
     cy.findByRole('checkbox', { name: 'Nutrient' }).click();
     cy.findByRole('button', { name: /Nutrient/ }).click();
-    cy.findByRole('checkbox', { name: 'Phosphorus' }).should(
-      'not.be.checked',
-    );
+    cy.findByRole('checkbox', { name: 'Phosphorus' }).should('not.be.checked');
   });
 });

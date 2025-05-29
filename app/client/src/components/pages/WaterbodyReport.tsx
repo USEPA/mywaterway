@@ -1199,7 +1199,8 @@ function WaterbodyReport() {
       <div css={containerStyles} data-content="container">
         {reportingCycleFetch.status === 'success' &&
           allReportingCycles.status === 'success' &&
-          ((latestReportingCycle > reportingCycleYear) || (parseInt(reportingCycleGis) > reportingCycleYear)) && (
+          (latestReportingCycle > reportingCycleYear ||
+            parseInt(reportingCycleGis) > reportingCycleYear) && (
             <div css={infoBoxContainerStyles}>
               <div css={infoBoxStyles}>
                 There is more recent data available for this waterbody. Please
@@ -1215,7 +1216,8 @@ function WaterbodyReport() {
                     className="fas fa-file-alt"
                     aria-hidden="true"
                   />
-                  View Waterbody Report for {latestReportingCycle ?? reportingCycleGis}
+                  View Waterbody Report for{' '}
+                  {latestReportingCycle ?? reportingCycleGis}
                 </a>
                 &nbsp;&nbsp;
                 <small css={disclaimerStyles}>(opens new browser tab)</small>
