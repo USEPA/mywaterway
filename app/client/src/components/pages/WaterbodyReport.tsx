@@ -1190,6 +1190,7 @@ function WaterbodyReport() {
 
   const latestReportingCycle =
     allReportingCycles.data[allReportingCycles.data.length - 1];
+  const reportingCycleYear = parseInt(reportingCycleFetch.year);
 
   return (
     <Page>
@@ -1198,7 +1199,7 @@ function WaterbodyReport() {
       <div css={containerStyles} data-content="container">
         {reportingCycleFetch.status === 'success' &&
           allReportingCycles.status === 'success' &&
-          (latestReportingCycle > reportingCycleFetch.year) || (reportingCycleGis > reportingCycleFetch.year) && (
+          ((latestReportingCycle > reportingCycleYear) || (parseInt(reportingCycleGis) > reportingCycleYear)) && (
             <div css={infoBoxContainerStyles}>
               <div css={infoBoxStyles}>
                 There is more recent data available for this waterbody. Please
