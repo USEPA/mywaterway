@@ -127,7 +127,7 @@ export function useMonitoringGroups() {
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
-function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
+function useMonitoringPeriodOfRecord(filter: MonitoringLocationAttributes[] | null, enabled: boolean) {
   const configFiles = useConfigFilesState();
   const {
     setMonitoringPeriodOfRecordStatus,
@@ -155,18 +155,10 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
     setSelectedMonitoringYearsRange,
   ]);
 
-  // Craft the URL
-  let url: string | null = null;
-  if (filter) {
-    url =
-      `${configFiles.data.services.waterQualityPortal.monitoringLocation}search?` +
-      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&${filter}`;
-  }
-
   const recordsWorker = useRef<Worker | null>(null);
 
   useEffect(() => {
-    if (!enabled || !url) {
+    if (!enabled || !filter || filter.length === 0) {
       setMonitoringAnnualRecords({ status: 'idle', data: initialWorkerData() });
       return;
     }
@@ -186,7 +178,13 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
     );
     // Tell the worker to start the task
     recordsWorker.current.postMessage([
-      url,
+      `${configFiles.data.services.waterQualityPortal.monitoringLocation}search`,
+      {
+        mimeType: 'csv',
+        dataProfile: 'periodOfRecord',
+        summaryYears: 'all',
+        siteid: filter.map((loc) => loc.siteId),
+      },
       configFiles.data.characteristicGroupMappings,
     ]);
     // Handle the worker's response
@@ -198,7 +196,7 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
         setMonitoringAnnualRecords(parsedData);
       }
     };
-  }, [configFiles, enabled, url]);
+  }, [configFiles, enabled, filter]);
 
   useEffect(() => {
     return function cleanup() {
@@ -254,7 +252,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
 
   // Add annual characteristic data to the local data
   const annualData = useMonitoringPeriodOfRecord(
-    localFilter,
+    localData,
     includeAnnualData,
   );
   useEffect(() => {

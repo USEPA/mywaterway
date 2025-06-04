@@ -53,6 +53,29 @@ export function fetchParseCsv(url: string, { worker = true } = {}) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function fetchPostParseCsv(url: string, data: any = {}, { worker = true } = {}) {
+  return new Promise((resolve, reject) => {
+    fetchPost(
+      url,
+      data,
+      { 'Content-Type': 'application/json' },
+      defaultTimeout,
+      'csv',
+    )
+      .then((csvData) => {
+        Papa.parse(csvData, {
+          complete: (res) => resolve(res.data),
+          dynamicTyping: true,
+          error: (err) => reject(err),
+          header: true,
+          worker,
+        });
+      })
+      .catch((err) => reject(err));
+  });
+}
+
 export function fetchPost<T>(
   apiUrl: string,
   data: object,
@@ -184,6 +207,8 @@ export function checkResponse(response, responseType = 'json') {
         response.json().then((json) => resolve(json));
       else if (responseType === 'blob')
         response.blob().then((blob) => resolve(blob));
+      else if (responseType === 'csv')
+        response.text().then((text) => resolve(text));
     } else {
       reject(response);
     }
@@ -195,6 +220,10 @@ export function logCallToGoogleAnalytics(
   status: number,
   startTime: number,
 ) {
+  // skip this if running from a web worker
+  if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) 
+    return;
+
   const duration = performance.now() - startTime;
 
   // combine the web service and map service mappings
