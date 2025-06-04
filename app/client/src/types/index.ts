@@ -422,7 +422,35 @@ export interface MonitoringLocationGroups {
   };
 }
 
-export interface MonitoringLocationsData {
+export type MonitoringLocationData = {
+    geometry: {
+      coordinates: [number, number];
+      type: 'Point';
+    };
+    properties: {
+      CountyName: string;
+      HUCEightDigitCode: string;
+      MonitoringLocationIdentifier: string;
+      MonitoringLocationName: string;
+      MonitoringLocationTypeName: string;
+      OrganizationFormalName: string;
+      OrganizationIdentifier: string;
+      ProviderName: string;
+      ResolvedMonitoringLocationTypeName: string;
+      StateName: string;
+      activityCount: string;
+      characteristicGroupResultCount: {
+        Physical: number;
+      };
+      resultCount: string;
+      siteUrl: string;
+    };
+    type: 'Feature';
+  };
+
+export type MonitoringLocationsData = Array<MonitoringLocationData>;
+
+export interface MonitoringLocationsResponse {
   features: Array<{
     geometry: {
       coordinates: [number, number];
