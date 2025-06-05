@@ -12,6 +12,7 @@ const { exec } = require('child_process');
 const serverCoveragePath = './server/coverage/coverage-final.json';
 const cyprusCoveragePath = './coverage/coverage-final.json';
 const combinedCoverageDir = 'combined_coverage_reports';
+const combinedResultsDir = 'combined_results_reports';
 
 function copyFile(sourcePath, destinationPath, newFileName) {
   try {
@@ -62,4 +63,20 @@ function createCombinedCoverageReport() {
   );
 }
 
+function createCombinedResultsReport() {
+  exec(
+    `npx allure generate ${combinedResultsDir}/results --clean -o ${combinedResultsDir}/final_report --single-file`,
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error executing npx allure generate: ${error}`);
+      } else {
+        console.log(
+          `Combined test results report generated successfully. Please review ${combinedResultsDir}/final_report`,
+        );
+      }
+    },
+  );
+}
+
 createCombinedCoverageReport();
+createCombinedResultsReport();
