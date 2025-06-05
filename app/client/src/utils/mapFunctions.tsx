@@ -23,7 +23,7 @@ import {
   titleCaseWithExceptions,
 } from 'utils/utils';
 // types
-import type { NavigateFunction } from 'react-router-dom';
+import type { NavigateFunction } from 'react-router';
 import type {
   AttainsImpairmentField,
   AttainsActionsData,

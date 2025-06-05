@@ -1,16 +1,11 @@
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import highchartsAccessibility from 'highcharts/modules/accessibility';
-import highchartsExporting from 'highcharts/modules/exporting';
+import 'highcharts/modules/accessibility';
+import 'highcharts/modules/exporting';
+import 'highcharts/modules/offline-exporting';
 import { useCallback, useMemo } from 'react';
 // styles
 import { fonts } from 'styles/index';
-
-// add exporting features to highcharts
-highchartsExporting(Highcharts);
-
-// add accessibility features to highcharts
-highchartsAccessibility(Highcharts);
 
 const baseFontSize = '14px';
 const mediumFontSize = '16px';

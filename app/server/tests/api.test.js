@@ -67,6 +67,6 @@ describe('Test example', () => {
     await supertest(app)
       .get('/bogusRoute')
       .expect(404)
-      .expect('Content-type', 'text/html; charset=UTF-8');
+      .expect('Content-type', 'text/html; charset=utf-8');
   });
 });

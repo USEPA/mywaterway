@@ -14,7 +14,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import Select from 'react-select';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';

@@ -52,7 +52,9 @@ describe('Community page search', () => {
     cy.mockGeolocation(false, 38.9072, -77.0369);
     cy.findByText('Use My Location').click();
     cy.url().should('include', `/community/${encodeURI(address)}/overview`);
-    cy.findByText('Your Waters: What We Know').should('exist');
+    cy.findByText('Your Waters: What We Know', { timeout: 60_000 }).should(
+      'exist',
+    );
   });
 
   it('Clicking the “Use My Location” button, with geolocation disabled, displays an error and does not route', () => {

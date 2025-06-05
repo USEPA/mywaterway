@@ -4,7 +4,7 @@ import { Fragment, useCallback, useContext, useEffect, useState } from 'react';
 import { useWindowSize } from '@reach/window-size';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import Basemap from '@arcgis/core/Basemap';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';

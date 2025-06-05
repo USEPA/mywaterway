@@ -3,7 +3,7 @@ import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
 // import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 /*
   NOTE: regenerator-runtime is imported to avoid a bug with a GitHub Action
   workflow including regenerator-runtime in the build as an external dependency.
