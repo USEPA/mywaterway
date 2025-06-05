@@ -422,8 +422,7 @@ export interface MonitoringLocationGroups {
   };
 }
 
-export interface MonitoringLocationsData {
-  features: Array<{
+export type MonitoringLocationData = {
     geometry: {
       coordinates: [number, number];
       type: 'Point';
@@ -447,7 +446,12 @@ export interface MonitoringLocationsData {
       siteUrl: string;
     };
     type: 'Feature';
-  }>;
+  };
+
+export type MonitoringLocationsData = Array<MonitoringLocationData>;
+
+export interface MonitoringLocationsResponse {
+  features: Array<MonitoringLocationData>;
   type: 'FeatureCollection';
 }
 

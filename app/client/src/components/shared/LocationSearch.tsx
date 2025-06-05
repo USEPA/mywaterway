@@ -801,7 +801,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
       const url = `${services.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
       try {
         const res = (await fetchCheck(url)) as MonitoringLocationsData;
-        const feature = res.features[0];
+        const feature = res[0];
         if (!feature) {
           setErrorMessage(webServiceErrorMessage);
           return;

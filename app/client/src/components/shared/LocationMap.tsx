@@ -175,7 +175,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   useCyanWaterbodiesLayers();
   useDischargersLayers();
-  useMonitoringLocationsLayers({ filter: huc12 ? `huc=${huc12}` : null });
+  useMonitoringLocationsLayers({ filter: (hucBoundaries?.geometry as __esri.Polygon) ?? null });
   useStreamgageLayers();
 
   function matchStateCodeToAssessment(
