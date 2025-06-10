@@ -14,7 +14,7 @@ type Props = {
 
 type DataPageContentType = {
   description: string;
-  extraContent: string | null;
+  extraContent?: string;
   id: string;
   includeExit?: boolean;
   linkHref: string;
