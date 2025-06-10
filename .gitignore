@@ -21,6 +21,7 @@ app/cypress/downloads/
 app/cypress/screenshots/
 app/cypress/videos/
 app/combined_coverage_reports
+app/combined_results_reports
 cypress.env.json
 
 

@@ -1,5 +1,6 @@
 import { defineConfig } from 'cypress';
 import { addMatchImageSnapshotPlugin } from 'cypress-image-snapshot/plugin';
+import { allureCypress } from 'allure-cypress/reporter';
 
 export default defineConfig({
   chromeWebSecurity: false,
@@ -21,6 +22,9 @@ export default defineConfig({
       require('@cypress/code-coverage/task')(on, config);
 
       addMatchImageSnapshotPlugin(on, config);
+      allureCypress(on, config, {
+        resultsDir: 'combined_results_reports/results',
+      });
 
       return config;
     },
