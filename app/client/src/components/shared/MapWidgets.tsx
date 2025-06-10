@@ -372,6 +372,7 @@ function MapWidgets({
     setAddSaveDataWidgetVisible,
     setSaveAsName,
     setSaveDescription,
+    setSaveLayersList,
     widgetLayers,
   } = useAddSaveDataWidgetState();
 
@@ -1211,11 +1212,13 @@ function MapWidgets({
     setAddSaveDataWidgetVisible(false);
     setSaveAsName('');
     setSaveDescription('');
+    setSaveLayersList(null);
   }, [
     setActiveTabIndex,
     setAddSaveDataWidgetVisible,
     setSaveAsName,
     setSaveDescription,
+    setSaveLayersList,
   ]);
 
   if (!addSaveDataWidget) return null;
