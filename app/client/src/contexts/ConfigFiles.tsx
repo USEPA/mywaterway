@@ -12,11 +12,27 @@ type Props = {
   children: ReactNode;
 };
 
+type DataPageContentType = {
+  description: string;
+  extraContent: string | null;
+  id: string;
+  includeExit?: boolean;
+  linkHref: string;
+  linkLabel: string;
+  shortName: string;
+  siteLocation: string;
+  title: string;
+};
+
 export type ConfigFiles = {
   attainsTribeMapping: any;
   characteristicGroupMappings: CharacteristicGroupMappings;
   cyanMetadata: number[];
-  dataPage: any;
+  dataPage: {
+    content: DataPageContentType[];
+    footer: string;
+    intro: string;
+  };
   documentOrder: any;
   educators: any;
   eqProfileColumns: Record<string, string[]>;
