@@ -26,6 +26,22 @@ function copyFile(sourcePath, destinationPath, newFileName) {
   }
 }
 
+function deleteFilesByExtensions(folderPath, extensionsToDelete) {
+  try {
+    const files = fs.readdirSync(folderPath);
+
+    for (const file of files) {
+      const filePath = path.join(folderPath, file);
+      const fileExtension = path.extname(file).toLowerCase();
+      if (extensionsToDelete.includes(fileExtension)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  } catch (err) {
+    console.error(`Error deleting files: ${err.message}`);
+  }
+}
+
 function createCombinedCoverageReport() {
   // Remove or clear out the combined_coverage_reports directory if it exists
   if (fs.existsSync(combinedCoverageDir)) {
@@ -64,6 +80,10 @@ function createCombinedCoverageReport() {
 }
 
 function createCombinedResultsReport() {
+  // clear out video files, since they bloat the report and prevent
+  // it from loading
+  deleteFilesByExtensions(`${combinedResultsDir}/results`, ['.mp4']);
+
   exec(
     `npx allure generate ${combinedResultsDir}/results --clean -o ${combinedResultsDir}/final_report --single-file`,
     (error, stdout, stderr) => {
