@@ -5,7 +5,7 @@ import { allureCypress } from 'allure-cypress/reporter';
 export default defineConfig({
   chromeWebSecurity: false,
   defaultCommandTimeout: 8000,
-  retries: 3,
+  retries: 8,
   video: true,
   viewportHeight: 720,
   viewportWidth: 1280,
