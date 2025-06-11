@@ -14,7 +14,6 @@
     },
     {
       "description": "The Climate Mapping Resilience and Adaptation (CMRA) data provides information to help understand past, current and future exposure to various climate hazards.",
-      "extraContent": null,
       "id": "cmra",
       "linkHref": "https://resilience.climate.gov/",
       "linkLabel": "CMRA Data/System",
@@ -24,7 +23,6 @@
     },
     {
       "description": "The Cyanobacteria Assessment Network (CyAN) data provides access to <span data-glossary-term data-term='Blue-Green Algae'>blue-green algal</span> bloom satellite data for over 2,000 of the largest lakes and reservoirs across the United States.",
-      "extraContent": null,
       "id": "cyan",
       "linkHref": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
       "linkLabel": "CyAN Data/System",
@@ -34,7 +32,6 @@
     },
     {
       "description": "ECHO allows users to search for facilities in their community to assess their compliance with environmental regulations.",
-      "extraContent": null,
       "id": "echo",
       "linkHref": "https://echo.epa.gov/",
       "linkLabel": "ECHO Data/System",
@@ -44,7 +41,6 @@
     },
     {
       "description": "Expert Query provides a way to interact with public Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS) data, by allowing users to filter and download ATTAINS data either within an organization (state or tribe) or across multiple organizations.",
-      "extraContent": null,
       "id": "eq",
       "linkHref": "https://owapps.epa.gov/expertquery/attains",
       "linkLabel": "EQ Data/System",
@@ -54,7 +50,6 @@
     },
     {
       "description": "GRTS is the primary tool for management and oversight of the EPA’s <span data-glossary-term data-term='Nonpoint Source Pollution'>Nonpoint Source (NPS) Pollution</span> Control Program. Under Clean Water Act Section 319(h), EPA awards grants for implementation of state NPS management programs.",
-      "extraContent": null,
       "id": "grts",
       "linkHref": "https://iaspub.epa.gov/apex/grts/f?p=grts:95",
       "linkLabel": "GRTS Data/System",
@@ -64,7 +59,6 @@
     },
     {
       "description": "The Integrated Reporting of Wildfire Information (IRWIN) data provides information about current wildfire events.",
-      "extraContent": null,
       "id": "irwin",
       "linkHref": "https://www.wildfire.gov/application/irwin-integrated-reporting-wildfire-information",
       "linkLabel": "IRWIN Data/System",
@@ -74,7 +68,6 @@
     },
     {
       "description": "The National Digital Forecast Database (NDFD) data provides forecasts of cloud cover, maximum temperature and minimum temperature.",
-      "extraContent": null,
       "id": "ndfd",
       "linkHref": "https://vlab.noaa.gov/web/mdl/ndfd",
       "linkLabel": "NDFD Data/System",
@@ -84,7 +77,6 @@
     },
     {
       "description": "The National Interagency Fire Center (NIFC) data provides current wildfire boundaries.",
-      "extraContent": null,
       "id": "nifc",
       "includeExit": true,
       "linkHref": "https://data-nifc.opendata.arcgis.com/",
@@ -95,7 +87,6 @@
     },
     {
       "description": "The National Inventory of Dams (NID) consists of dams meeting at least one of the following criteria: <ul><li>Dams where downstream flooding would likely result in loss of human life (high hazard potential).</li><li>Dams where downstream flooding would likely result in disruption of access to critical facilities, damage to public and private facilities, and require difficult mitigation efforts (significant hazard potential).</li><li>Dams that meet minimum height and reservoir size requirements, even though they do not pose the same level of life or economic risk as those above – these dams are typically equal to or exceed 25 feet in height and exceed 15 acre-feet in storage, or equal to or exceeding 50 acre-feet storage and exceeding 6 feet in height.</li></ul>",
-      "extraContent": null,
       "id": "nid",
       "linkHref": "https://nid.sec.usace.army.mil/#/",
       "linkLabel": "NID Data/System",
@@ -105,7 +96,6 @@
     },
     {
       "description": "The National Land Cover Database (NLCD) is a land cover monitoring database, providing generalized land cover (16 classes) and impervious cover (1% increments) for the U.S.",
-      "extraContent": null,
       "id": "nlcd",
       "linkHref": "https://www.mrlc.gov/viewer",
       "linkLabel": "NLCD Data/System",
@@ -115,7 +105,6 @@
     },
     {
       "description": "The National Weather Service (NWS) data provides information about current watches, warnings and advisories within the United States.",
-      "extraContent": null,
       "id": "nws",
       "linkHref": "https://www.weather.gov/",
       "linkLabel": "NWS Data/System",
@@ -125,7 +114,6 @@
     },
     {
       "description": "The Protected Areas Database (PAD-US) is America’s official national inventory of U.S. terrestrial and marine protected areas that are dedicated to the preservation of biological diversity and to other natural, recreation and cultural uses, managed for these purposes through legal or other effective means.",
-      "extraContent": null,
       "id": "protected-areas",
       "linkHref": "https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas",
       "linkLabel": "Protected Areas Data/System",
@@ -135,7 +123,6 @@
     },
     {
       "description": "The Restoration and Protection Screening (RPS) indicator library is a free, publicly available data library of watershed indicators to assist resource managers and other users with evaluating, comparing, and prioritizing watersheds for a user-defined purpose.",
-      "extraContent": null,
       "id": "rps",
       "linkHref": "https://www.epa.gov/rps",
       "linkLabel": "RPS Data/System",
@@ -145,7 +132,6 @@
     },
     {
       "description": "The Safe Drinking Water Information System (SDWIS) contains information on public water systems, including monitoring, enforcement, and violation data related to requirements established by the Safe Drinking Water Act (SDWA).",
-      "extraContent": null,
       "id": "sdwis",
       "linkHref": "https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting",
       "linkLabel": "SDWIS Data/System",
@@ -155,7 +141,6 @@
     },
     {
       "description": "The EPA Office of Mission Support (OMS) provides six feature services depicting geographic information for federally recognized tribes. Their associated boundaries and locational information were developed by the U.S. Census Bureau (USCB) and the U.S. Bureau  of Land Management, with other field attributes enhanced by OMS to meet Agency needs and use cases.",
-      "extraContent": null,
       "id": "tribal-areas",
       "linkHref": "https://www.epa.gov/geospatial/guidance-using-tribal-boundaries-areas-and-names-resources",
       "linkLabel": "Tribal Areas Data/System",
@@ -165,7 +150,6 @@
     },
     {
       "description": "The Underground Storage Tanks (USTs) data provides information about, and locations of, leaking underground storage tanks, underground storage tank facilities, and underground storage tanks.",
-      "extraContent": null,
       "id": "ust",
       "linkHref": "https://www.epa.gov/ust/ust-finder",
       "linkLabel": "UST Data/System",
@@ -175,7 +159,6 @@
     },
     {
       "description": "The U.S. Drought Monitor data provides access to current drought intensity categories for the entire USA.",
-      "extraContent": null,
       "id": "usdm",
       "includeExit": true,
       "linkHref": "https://droughtmonitor.unl.edu/",
@@ -186,7 +169,6 @@
     },
     {
       "description": "Data and GIS files from the USGS current conditions can be found on the <a href='https://waterdata.usgs.gov/nwis/sw' target='_blank' rel='noopener noreferrer'>USGS website</a>.",
-      "extraContent": null,
       "id": "usgs-sensors",
       "linkHref": "https://waterdata.usgs.gov/nwis/rt",
       "linkLabel": "USGS Stream Gages Data/System",
@@ -196,7 +178,6 @@
     },
     {
       "description": "The U.S. Private Domestic Wells 2020 (Well Density) data provides access to private domestic well density based on the 2020 census.",
-      "extraContent": null,
       "id": "well-density",
       "linkHref": "https://cfpub.epa.gov/si/si_public_record_Report.cfm?dirEntryId=359961&Lab=CESER",
       "linkLabel": "Well Density Data/System",
@@ -206,7 +187,6 @@
     },
     {
       "description": "The Water Quality Portal (WQP) is a cooperative service sponsored by the United States Geological Survey (USGS), the Environmental Protection Agency (EPA) and the National Water Quality Monitoring Council (NWQMC) that integrates publicly available water quality monitoring data.",
-      "extraContent": null,
       "id": "wqp",
       "linkHref": "https://www.waterqualitydata.us/",
       "linkLabel": "WQP Data/System",
@@ -216,7 +196,6 @@
     },
     {
       "description": "A suite of web services that provide comprehensive information about the quality of the nation's surface water.",
-      "extraContent": null,
       "id": "waters",
       "linkHref": "https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system",
       "linkLabel": "WATERS Data/System",
@@ -226,7 +205,6 @@
     },
     {
       "description": "Data and GIS files on wild and scenic rivers can be found on the <a href='https://www.rivers.gov/mapping-gis.php' target='_blank' rel='noopener noreferrer'>National Wild and Scenic Rivers System</a> website.",
-      "extraContent": null,
       "id": "wild-scenic-rivers",
       "linkHref": "https://www.rivers.gov/",
       "linkLabel": "Wild and Scenic Rivers Data/System",
