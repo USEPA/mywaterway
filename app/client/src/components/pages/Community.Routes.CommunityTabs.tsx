@@ -2,7 +2,7 @@
 
 import { css } from '@emotion/react';
 import { useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import Switch from 'components/shared/Switch';

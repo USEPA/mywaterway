@@ -49,6 +49,7 @@ describe('Waterbody Report page', () => {
     const year = '2016';
 
     cy.visit(`/waterbody-report/${orgId}/${auId}/${year}`);
+    cy.waitForLoadFinish();
 
     cy.findByText(
       'Please use the following link to view the latest information',
