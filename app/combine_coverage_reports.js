@@ -85,7 +85,7 @@ function createCombinedResultsReport() {
   deleteFilesByExtensions(`${combinedResultsDir}/results`, ['.mp4']);
 
   exec(
-    `npx allure generate ${combinedResultsDir}/results --clean -o ${combinedResultsDir}/final_report --single-file`,
+    `npx allure generate ${combinedResultsDir}/results --clean -o ${combinedResultsDir}/final_report --single-file --name "HMW_Test_Report"`,
     (error, stdout, stderr) => {
       if (error) {
         console.error(`Error executing npx allure generate: ${error}`);
