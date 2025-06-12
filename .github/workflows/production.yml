@@ -11,6 +11,9 @@ on:
 env:
   APP_VERSION: 2.14.0
 
+permissions:
+  contents: read
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
