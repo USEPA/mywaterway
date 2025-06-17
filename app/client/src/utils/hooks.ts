@@ -1629,7 +1629,6 @@ function useSharedLayers({
     const cmraScreeningLayer = new FeatureLayer({
       id: 'cmraScreeningLayer',
       title: 'CMRA Screening',
-      legendEnabled: false,
       listMode: 'hide',
       url: configFiles.data.services.cmraScreeningData,
       visible: false,
