@@ -3,7 +3,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import type { Node } from 'react';
 import { css } from '@emotion/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';

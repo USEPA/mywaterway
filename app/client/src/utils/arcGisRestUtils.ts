@@ -1243,18 +1243,19 @@ export async function addWebMap({
     description: serviceMetaData.description,
     type: 'Web Map',
     text: {
-      version: '2.27',
+      version: '2.33',
       authoringApp: 'ArcGISMapViewer',
-      authoringAppVersion: '2023.1',
+      authoringAppVersion: '2025.1',
       operationalLayers,
       baseMap: {
         baseMapLayers: [
           {
             id: 'VectorTile_9568',
             title: 'World Topographic Map',
+            itemId: '27e89eb03c1e4341a1d75e597f0291e6',
             layerType: 'VectorTileLayer',
             styleUrl:
-              'https://cdn.arcgis.com/sharing/rest/content/items/42df0d22517e49ad84edcee4c093857d/resources/styles/root.json',
+              'https://www.arcgis.com/sharing/rest/content/items/27e89eb03c1e4341a1d75e597f0291e6/resources/styles/root.json',
           },
         ],
         title: 'Topographic',

@@ -5,8 +5,9 @@ import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import highchartsAccessibility from 'highcharts/modules/accessibility';
-import highchartsExporting from 'highcharts/modules/exporting';
+import 'highcharts/modules/accessibility';
+import 'highcharts/modules/exporting';
+import 'highcharts/modules/offline-exporting';
 import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -24,12 +25,6 @@ import {
 } from 'utils/utils';
 // styles
 import { fonts, colors, reactSelectStyles } from 'styles/index';
-
-// add exporting features to highcharts
-highchartsExporting(Highcharts);
-
-// add accessibility features to highcharts
-highchartsAccessibility(Highcharts);
 
 const chartFooterStyles = css`
   font-size: 0.75rem;
@@ -566,6 +561,43 @@ function SurveyResults({
                       style: chartOptions.chart.style,
                       // stressors * bar height (30) + room for chart title and x-axis labels (90)
                       height: xAxisLabels.length * 30 + 90,
+                    },
+                    exporting: {
+                      buttons: {
+                        contextButton: {
+                          menuItems: [
+                            'downloadPNG',
+                            'downloadJPEG',
+                            'downloadPDF',
+                            'downloadSVG',
+                          ],
+                          theme: {
+                            fill: 'rgba(0, 0, 0, 0)',
+                            states: {
+                              hover: {
+                                fill: 'rgba(0, 0, 0, 0)',
+                              },
+                              select: {
+                                fill: 'rgba(0, 0, 0, 0)',
+                                stroke: '#666666',
+                              },
+                            },
+                          },
+                        },
+                      },
+                      chartOptions: {
+                        plotOptions: {
+                          series: {
+                            dataLabels: {
+                              enabled: true,
+                            },
+                          },
+                        },
+                      },
+                      filename: `${activeState.label.replaceAll(
+                        ' ',
+                        '_',
+                      )}_Stressors_Surveyed`,
                     },
                     tooltip: {
                       formatter: function () {

@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 import uniqueId from 'lodash/uniqueId';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
 import {

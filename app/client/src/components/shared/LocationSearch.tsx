@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 import { css } from '@emotion/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import Collection from '@arcgis/core/core/Collection.js';
 import Error from '@arcgis/core/core/Error.js';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
@@ -801,7 +801,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
       const url = `${services.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
       try {
         const res = (await fetchCheck(url)) as MonitoringLocationsData;
-        const feature = res.features[0];
+        const feature = res[0];
         if (!feature) {
           setErrorMessage(webServiceErrorMessage);
           return;

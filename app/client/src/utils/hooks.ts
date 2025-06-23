@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import Color from '@arcgis/core/Color';
 import ColorVariable from '@arcgis/core/renderers/visualVariables/ColorVariable';
@@ -1629,7 +1629,6 @@ function useSharedLayers({
     const cmraScreeningLayer = new FeatureLayer({
       id: 'cmraScreeningLayer',
       title: 'CMRA Screening',
-      legendEnabled: false,
       listMode: 'hide',
       url: configFiles.data.services.cmraScreeningData,
       visible: false,

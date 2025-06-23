@@ -1,4 +1,4 @@
-import { fetchParseCsv } from '../fetchUtils';
+import { fetchPostParseCsv } from '../fetchUtils';
 // types
 import type { AnnualStationData, CharacteristicGroupMappings } from 'types';
 
@@ -109,9 +109,9 @@ export function structurePeriodOfRecordData(
 if ('function' === typeof importScripts) {
   // eslint-disable-next-line no-restricted-globals
   self.onmessage = function (message) {
-    const [target, mappings] = message.data;
+    const [target, params, mappings] = message.data;
 
-    fetchParseCsv(target, { worker: false }) // already in a worker
+    fetchPostParseCsv(target, params, { worker: false }) // already in a worker
       .then((records) => {
         if (records.length) {
           const recordsById = structurePeriodOfRecordData(records, mappings);

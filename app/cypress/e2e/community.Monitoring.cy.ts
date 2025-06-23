@@ -283,6 +283,9 @@ describe('Monitoring Tab', () => {
     cy.findAllByLabelText('USGS Sensors')
       .filter(':visible')
       .click({ force: true });
+    cy.findAllByLabelText('USGS Sensors')
+      .filter(':visible')
+      .click({ force: true });
     cy.findAllByLabelText('Potential Harmful Algal Blooms (HABs)')
       .filter(':visible')
       .click({
