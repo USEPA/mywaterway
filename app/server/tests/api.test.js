@@ -1,7 +1,7 @@
 const supertest = require('supertest');
 const app = require('../app/app');
 
-describe('Test example', () => {
+describe('API Tests', () => {
   test('GET /api/health should return UP', async () => {
     const response = await supertest(app)
       .get('/api/health')
@@ -44,14 +44,14 @@ describe('Test example', () => {
   });
 
   test('GET test checkClientRouteExists middleware', async () => {
-    const response = await supertest(app)
+    await supertest(app)
       .get('/community/lake%20okeechobee/overview')
       .expect(404);
   });
 
-  test('GET test checkClientRouteExists middleware', async () => {
+  test('POST test checkClientRouteExists middleware', async () => {
     await supertest(app)
-      .get('/communityTest/lake%20okeechobee/overview')
+      .post('/communityTest/lake%20okeechobee/overview')
       .expect(404);
   });
 
@@ -63,10 +63,10 @@ describe('Test example', () => {
     await supertest(app).delete('/api/health').expect(401);
   });
 
-  test('GET nonexistent rout', async () => {
+  test('GET nonexistent route', async () => {
     await supertest(app)
       .get('/bogusRoute')
       .expect(404)
-      .expect('Content-type', 'text/html; charset=UTF-8');
+      .expect('Content-type', 'text/html; charset=utf-8');
   });
 });

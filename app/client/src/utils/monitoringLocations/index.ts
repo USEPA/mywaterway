@@ -1,3 +1,4 @@
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
@@ -21,11 +22,12 @@ import {
   filterData,
   getExtentBoundingBox,
   getGeographicExtent,
+  getGeographicExtentPolygon,
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
 } from 'utils/boundariesToggleLayer';
-import { stringifyAttributes } from 'utils/mapFunctions';
+import { isPolygon, stringifyAttributes } from 'utils/mapFunctions';
 import { parseAttributes } from 'utils/utils';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
@@ -35,8 +37,10 @@ import type {
   Feature,
   FetchStatus,
   MonitoringLocationAttributes,
+  MonitoringLocationData,
   MonitoringLocationGroups,
   MonitoringLocationsData,
+  MonitoringLocationsResponse,
   ServicesData,
 } from 'types';
 import type { MonitoringPeriodOfRecordData } from './periodOfRecord';
@@ -53,7 +57,7 @@ export function useMonitoringLocationsLayers({
   filter = null,
 }: {
   includeAnnualData?: boolean;
-  filter?: string | null;
+  filter?: string | __esri.Polygon | null;
 } = {}) {
   const { getTemplate, getTitle } = useDynamicPopup();
 
@@ -127,7 +131,7 @@ export function useMonitoringGroups() {
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
-function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
+function useMonitoringPeriodOfRecord(filter: MonitoringLocationAttributes[] | null, enabled: boolean) {
   const configFiles = useConfigFilesState();
   const {
     setMonitoringPeriodOfRecordStatus,
@@ -155,18 +159,10 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
     setSelectedMonitoringYearsRange,
   ]);
 
-  // Craft the URL
-  let url: string | null = null;
-  if (filter) {
-    url =
-      `${configFiles.data.services.waterQualityPortal.monitoringLocation}search?` +
-      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all&${filter}`;
-  }
-
   const recordsWorker = useRef<Worker | null>(null);
 
   useEffect(() => {
-    if (!enabled || !url) {
+    if (!enabled || !filter || filter.length === 0) {
       setMonitoringAnnualRecords({ status: 'idle', data: initialWorkerData() });
       return;
     }
@@ -186,7 +182,13 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
     );
     // Tell the worker to start the task
     recordsWorker.current.postMessage([
-      url,
+      `${configFiles.data.services.waterQualityPortal.monitoringLocation}search`,
+      {
+        mimeType: 'csv',
+        dataProfile: 'periodOfRecord',
+        summaryYears: 'all',
+        siteid: filter.map((loc) => loc.siteId),
+      },
       configFiles.data.characteristicGroupMappings,
     ]);
     // Handle the worker's response
@@ -198,7 +200,7 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
         setMonitoringAnnualRecords(parsedData);
       }
     };
-  }, [configFiles, enabled, url]);
+  }, [configFiles, enabled, filter]);
 
   useEffect(() => {
     return function cleanup() {
@@ -211,7 +213,7 @@ function useMonitoringPeriodOfRecord(filter: string | null, enabled: boolean) {
 
 // Updates local data when the user chooses a new location,
 // and returns a function for updating surrounding data.
-function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
+function useUpdateData(localFilter: string | __esri.Polygon | null, includeAnnualData: boolean) {
   // Build the data update function
   const configFiles = useConfigFilesState();
   const { mapView } = useContext(LocationSearchContext);
@@ -254,7 +256,7 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
 
   // Add annual characteristic data to the local data
   const annualData = useMonitoringPeriodOfRecord(
-    localFilter,
+    localData,
     includeAnnualData,
   );
   useEffect(() => {
@@ -268,7 +270,8 @@ function useUpdateData(localFilter: string | null, includeAnnualData: boolean) {
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
-      const newExtentFilter = await getExtentFilter(mapView);
+      const extent = await getGeographicExtent(mapView);
+      const newExtentFilter = getExtentFilter(extent);
 
       // Could not create filter
       if (!newExtentFilter) return;
@@ -503,24 +506,50 @@ async function fetchAndTransformData(
 }
 
 async function fetchMonitoringLocations(
-  boundariesFilter: string,
+  boundariesFilter: string | __esri.Polygon,
   servicesData: ServicesData,
   abortSignal: AbortSignal,
 ): Promise<FetchState<MonitoringLocationsData>> {
+  let filter: string | __esri.Polygon | __esri.Extent = boundariesFilter;
+  if (typeof boundariesFilter !== 'string' && isPolygon(boundariesFilter) && boundariesFilter.extent) {
+    const extent = await getGeographicExtentPolygon(boundariesFilter);
+    filter = getExtentFilter(extent) ?? boundariesFilter;
+  }
+
   const url =
     `${servicesData.waterQualityPortal.monitoringLocation}` +
-    `search?mimeType=geojson&zip=no&${boundariesFilter}`;
+    `search?mimeType=geojson&zip=no&${filter}`;
 
   try {
-    const data = await fetchCheck(url, abortSignal);
+    const res = await fetchCheck(url, abortSignal) as MonitoringLocationsResponse;
+
+    // filter data by boundaries
+    const data: MonitoringLocationData[] = [];
+    if (typeof boundariesFilter !== 'string' && isPolygon(boundariesFilter)) {
+      res.features.forEach((feature) => {
+        const geometry = new Point({
+          longitude: feature.geometry.coordinates[0],
+          latitude: feature.geometry.coordinates[1],
+          spatialReference: {
+            wkid: 102100,
+          },
+        });
+
+        if (geometryEngine.contains(boundariesFilter, geometry)) {
+          data.push(feature);
+        }
+      });
+    } else {
+      data.push(...res.features);
+    }
+
     return { status: 'success', data };
   } catch (err) {
     return handleFetchError(err);
   }
 }
 
-async function getExtentFilter(mapView: __esri.MapView | '') {
-  const extent = await getGeographicExtent(mapView);
+function getExtentFilter(extent: __esri.Extent | null) {
   // Service requires that area of extent cannot exceed 25 degrees
   const bBox = getExtentBoundingBox(extent);
   return bBox ? `bBox=${bBox}` : null;
@@ -559,7 +588,7 @@ function transformServiceData(
   characteristicGroupMappings: CharacteristicGroupMappings,
 ): MonitoringLocationAttributes[] {
   // sort descending order so that smaller graphics show up on top
-  const stationsSorted = [...data.features];
+  const stationsSorted = [...data];
   stationsSorted.sort((a, b) => {
     return (
       parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)

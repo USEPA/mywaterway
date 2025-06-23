@@ -34,6 +34,7 @@ describe('Tribe page links', () => {
   it('Clicking the “More Information for <tribe name>” link opens a new tab for the tribe', () => {
     const linkText = 'Red Lake Nation';
 
+    cy.waitForLoadFinish();
     cy.findByText('More Information for').click();
 
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
@@ -178,6 +179,7 @@ describe('Tribe page Water Overview', () => {
   });
 
   it(`Do not display "Drinking Water Information" when water sub-tab clicked on`, () => {
+    cy.waitForLoadFinish();
     cy.findByText('Drinking Water').click();
     cy.findAllByText(/Drinking Water Information for/).should('not.be.visible');
   });

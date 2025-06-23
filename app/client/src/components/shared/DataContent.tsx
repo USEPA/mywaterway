@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { css } from '@emotion/react';
 // components
 import { linkButtonStyles } from 'components/shared/LinkButton';
+import { DisclaimerModal } from 'components/shared/Modal';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
@@ -53,6 +54,10 @@ const containerStyles = css`
 const contentsTitleStyles = css`
   padding-bottom: 16px !important;
   text-decoration: underline;
+`;
+
+const disclaimerStyles = css`
+  margin-top: 1rem;
 `;
 
 const modifiedInfoBoxStyles = css`
@@ -172,6 +177,7 @@ function DataContent() {
         (
           {
             description,
+            disclaimer,
             extraContent,
             id,
             includeExit,
@@ -210,6 +216,11 @@ function DataContent() {
               <p dangerouslySetInnerHTML={{ __html: siteLocation }} />
               {extraContent !== null && (
                 <div dangerouslySetInnerHTML={{ __html: extraContent }} />
+              )}
+              {disclaimer && (
+                <DisclaimerModal css={disclaimerStyles}>
+                  <div dangerouslySetInnerHTML={{ __html: disclaimer }} />
+                </DisclaimerModal>
               )}
               <ScrollToTop />
             </div>
