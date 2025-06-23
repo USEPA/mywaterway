@@ -2,7 +2,7 @@
 
 import { css } from '@emotion/react';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import Select from 'react-select';
 // components
 import Page from 'components/shared/Page';

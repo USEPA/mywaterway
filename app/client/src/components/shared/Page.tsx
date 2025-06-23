@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { ReactNode } from 'react';
 import { css } from '@emotion/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import esriConfig from '@arcgis/core/config';
 // components
 import NavBar from 'components/shared/NavBar';

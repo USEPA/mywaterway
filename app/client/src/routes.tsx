@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router';
 import { css } from '@emotion/react';
 // components
 import Home from 'components/pages/Home';

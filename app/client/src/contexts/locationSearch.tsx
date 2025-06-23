@@ -80,7 +80,7 @@ type State = {
   homeWidget: Object;
   upstreamWidget: Object;
   upstreamWidgetDisabled: boolean;
-  hucBoundaries: Object;
+  hucBoundaries: __esri.Graphic | null;
   atHucBoundaries: boolean;
   countyBoundaries: Object;
   waterbodyData: Array<Object>;
@@ -191,7 +191,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     setNonprofits: (nonprofits: Object) => {
       this.setState({ nonprofits });
     },
-    setHucBoundaries: (hucBoundaries) => {
+    setHucBoundaries: (hucBoundaries: __esri.Graphic | null) => {
       this.setState({ hucBoundaries });
     },
     setCurrentExtent: (currentExtent) => {

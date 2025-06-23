@@ -1,5 +1,25 @@
 # Change Log
 
+## 2.14.0 (July 2025)
+
+### Changed
+
+- Added the ability to add disclaimers to items on the data page.
+
+- Updated past water conditions section to use client side geospatial operations to get monitoring locations for the selected HUC12.
+
+- Removed unnecessary meta tags.
+
+- Fixed issue of print map widget failing to load images in the legend section.
+
+- Fixed issue of layers staying toggled on in the Save tab of the Add & Save Data widget even after changing pages.
+
+### Chores
+
+- Updated dependencies.
+
+- Updated automated testing logic to save a report of test results.
+
 ## 2.13.0 (March 2025)
 
 ### Changed

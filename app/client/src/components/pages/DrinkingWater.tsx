@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 // components
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
