@@ -302,36 +302,34 @@ describe('State page Water Overview tab', () => {
 
   it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
     const title = 'Alaska Water Stories';
-    const text = 'Community Efforts Improve Jordan Creek (PDF)';
+    const text1 =
+      'Restoring Mining Sites, Riparian Areas and the Stream Channel Reduces Turbidity in Slate Creek (PDF)';
+    const text2 = 'Community Efforts Improve Jordan Creek (PDF)';
 
     // verify text is not visible
-    cy.findByText(text).should('not.exist');
+    cy.findByText(text1).should('not.exist');
 
     // open accordion and check text is visible
     cy.get('.hmw-accordion').contains(title).click();
-    cy.findByText(text).should('be.visible');
+    cy.findByText(text1).should('be.visible');
 
     cy.findByRole('button', { name: 'View Less Stories' }).should('not.exist');
     cy.findByRole('button', { name: 'View More Stories' }).click();
 
     // verify more items are shown
-    cy.findByText(
-      "Reducing Waterfowl's Use of Cuddy Pond Results in Significantly Lower Bacteria Levels (PDF)",
-    );
+    cy.findByText(text2);
     cy.findByRole('button', { name: 'View Less Stories' }).should('be.visible');
     cy.findByRole('button', { name: 'View More Stories' }).should('be.visible');
 
     // click view less stories and verify items are hidden
     cy.findByRole('button', { name: 'View Less Stories' }).click();
-    cy.findByText(
-      "Reducing Waterfowl's Use of Cuddy Pond Results in Significantly Lower Bacteria Levels (PDF)",
-    ).should('not.exist');
+    cy.findByText(text2).should('not.exist');
     cy.findByRole('button', { name: 'View Less Stories' }).should('not.exist');
     cy.findByRole('button', { name: 'View More Stories' }).should('be.visible');
 
     // close accordion and verify text is not visible
     cy.get('.hmw-accordion').contains(title).click();
-    cy.findByText(text).should('not.exist');
+    cy.findByText(text1).should('not.exist');
   });
 });
 

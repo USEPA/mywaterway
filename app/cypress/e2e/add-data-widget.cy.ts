@@ -358,7 +358,7 @@ describe('Add & Save Data Widget', () => {
   });
 
   it("Test that the save panel includes layers added from the widget's other tabs", () => {
-    const agoSaveName = 'CYPRESS-TEST-HMW';
+    const agoSaveName = 'CYPRESS-SAVE-TEST-HMW';
 
     cy.get(adwId).within(() => {
       cy.findByRole('listitem', { name: 'USA Current Wildfires' }).within(
@@ -439,8 +439,8 @@ describe('Add & Save Data Widget', () => {
   });
 });
 
-describe('REMINDER: Manually delete ‘CYPRESS - TEST’ items from AGO', () => {
-  it('REMINDER: Manually delete ‘CYPRESS - TEST’ items from AGO', function () {
+describe('REMINDER: Manually delete ‘CYPRESS-SAVE-TEST-HMW’ items from AGO', () => {
+  it('REMINDER: Manually delete ‘CYPRESS-SAVE-TEST-HMW’ items from AGO', function () {
     // Empty test that just serves as a reminder to clean up AGO after publishing tests
   });
 });

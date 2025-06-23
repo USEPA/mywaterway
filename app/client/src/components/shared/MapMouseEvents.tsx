@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import Point from '@arcgis/core/geometry/Point';
 import * as query from '@arcgis/core/rest/query';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';

@@ -78,7 +78,7 @@ import {
 import type { SerializedStyles } from '@emotion/react';
 import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
+import type { NavigateFunction } from 'react-router';
 import type {
   AssessmentUseAttainmentByGroup,
   AssessmentUseAttainmentState,

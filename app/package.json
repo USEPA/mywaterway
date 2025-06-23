@@ -1,6 +1,6 @@
 {
   "name": "mywaterway",
-  "version": "2.12.1",
+  "version": "2.14.0",
   "description": "A tool to learn about your water resources.",
   "keywords": [
     "MyWaterway",
@@ -36,23 +36,25 @@
     "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
     "client_coverage": "npx rimraf .nyc_output/out.json && npx rimraf coverage && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron\"",
     "coverage_spec_ex": "npx rimraf .nyc_output/out.json && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron --spec 'cypress/e2e/educational-materials.cy.ts'\" && echo REMINDER Manually delete CYPRESS-TEST",
-    "coverage": "cd server && npm run test && cd .. && npm run client_coverage && node combine_coverage_reports.js && echo REMINDER Manually delete CYPRESS-TEST",
+    "coverage": "npx rimraf combined_results_reports/results && cd server && npm run test && cd .. && npm run client_coverage && node combine_coverage_reports.js && echo REMINDER Manually delete CYPRESS-TEST",
     "glossary": "cd server && npm run glossary"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "3.13.12",
+    "@cypress/code-coverage": "3.14.3",
     "@testing-library/cypress": "10.0.3",
     "@types/cypress-image-snapshot": "3.1.9",
-    "@types/node": "22.13.10",
+    "@types/node": "22.15.23",
     "@types/testing-library__cypress": "5.0.13",
+    "allure-commandline": "2.34.0",
+    "allure-cypress": "3.2.2",
     "concurrently": "9.1.2",
-    "cypress": "13.17.0",
+    "cypress": "14.4.0",
     "cypress-image-snapshot": "4.0.1",
-    "eslint-plugin-cypress": "4.2.0",
+    "eslint-plugin-cypress": "4.3.0",
     "istanbul-lib-coverage": "3.2.2",
     "nyc": "17.1.0",
     "prettier": "3.5.3",
-    "typescript": "5.8.2"
+    "typescript": "5.8.3"
   },
   "eslintConfig": {
     "extends": [
