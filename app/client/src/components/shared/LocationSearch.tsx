@@ -41,7 +41,7 @@ import {
 } from 'config/errorMessages';
 // types
 import type { ReactElement, ReactNode } from 'react';
-import { MonitoringLocationsData } from 'types';
+import { MonitoringLocationsResponse } from 'types';
 
 // --- utils ---
 
@@ -800,8 +800,8 @@ function LocationSearch({ route, label }: Readonly<Props>) {
       // query WQP's station service to get the lat/long
       const url = `${services.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
       try {
-        const res = (await fetchCheck(url)) as MonitoringLocationsData;
-        const feature = res[0];
+        const res = (await fetchCheck(url)) as MonitoringLocationsResponse;
+        const feature = res.features[0];
         if (!feature) {
           setErrorMessage(webServiceErrorMessage);
           return;
@@ -818,7 +818,8 @@ function LocationSearch({ route, label }: Readonly<Props>) {
           target: `/monitoring-report/${ProviderName}/${OrganizationIdentifier}/${MonitoringLocationIdentifier}`,
         });
         if (callback && result.text) callback(result.text);
-      } catch (_err) {
+      } catch (err) {
+        console.error(err);
         setErrorMessage(webServiceErrorMessage);
       }
     },
