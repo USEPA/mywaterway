@@ -67,6 +67,34 @@ describe('Homepage search', () => {
     cy.findByText('Go').click();
     cy.findByText('Invalid search. Please try a new search.').should('exist');
   });
+
+  it('Searching for a monitoring location correctly routes to the Monitoring Report page', () => {
+    const siteId = 'HBMI_WQX-0.5CBR';
+
+    cy.window().then((win) => {
+      cy.stub(win, 'open').as('windowOpen');
+    });
+
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(siteId);
+    cy.findByRole('menuitem', { name: (name) => name.includes(siteId) }).click();
+
+    cy.get('@windowOpen').should('have.been.called');
+    cy.get('@windowOpen').should('have.been.calledWithMatch', /\/monitoring-report/);
+  });
+
+  it('Searching for a waterbody correctly routes to the Waterbody Report page', () => {
+    const waterbodyId = 'DCAKL00L_00';
+
+    cy.window().then((win) => {
+      cy.stub(win, 'open').as('windowOpen');
+    });
+
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(waterbodyId);
+    cy.findByRole('menuitem', { name: (name) => name.includes(waterbodyId) }).click();
+
+    cy.get('@windowOpen').should('have.been.called');
+    cy.get('@windowOpen').should('have.been.calledWithMatch', /\/waterbody-report/);
+  });
 });
 
 describe('Homepage disclaimer and glossary', () => {
