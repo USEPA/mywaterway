@@ -144,8 +144,8 @@ type Props = {
   isLoading?: boolean;
   label: string;
   maxWidth?: string;
-  onConfirm?: Function;
-  onClose?: Function;
+  onConfirm?: () => void;
+  onClose?: () => void;
   triggerElm: ReactNode;
 };
 
@@ -234,12 +234,14 @@ export default function Modal({
 }
 
 type DisclaimerProps = {
+  buttonLabel?: string;
   children: ReactNode;
   css?: SerializedStyles;
   infoIcon?: boolean;
 };
 
 export function DisclaimerModal({
+  buttonLabel = 'Disclaimer',
   children,
   infoIcon = false,
   ...props
@@ -263,7 +265,7 @@ export function DisclaimerModal({
             // spread props so button’s styles (e.g. position) can be further set when used
             {...props}
           >
-            Disclaimer
+            {buttonLabel}
           </button>
         )
       }

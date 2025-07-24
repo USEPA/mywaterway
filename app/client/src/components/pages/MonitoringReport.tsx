@@ -1677,9 +1677,9 @@ function ChartContainer({
         ) : (
           <div />
         )}
-        {lineVisible ? (
-          <DisclaimerModal>
-            <div css={disclaimerModalStyles}>
+        <DisclaimerModal buttonLabel="Chart Details">
+          <div css={disclaimerModalStyles}>
+            {lineVisible ? (
               <p>
                 When multiple samples or measurements are available for the same
                 day for a single characteristic, the line shown is drawn through
@@ -1704,11 +1704,15 @@ function ChartContainer({
                 Therefore, the averaging is only performed across depth or time
                 within a single day, and for visualization purposes only.
               </p>
-            </div>
-          </DisclaimerModal>
-        ) : (
-          <div />
-        )}
+            ) : (
+              <p>
+                Quality control data, such as blanks or replicates identified
+                via the <i>Activity Type Code</i>, are not included in this
+                chart but will still be available in the data download.
+              </p>
+            )}
+          </div>
+        </DisclaimerModal>
       </div>
     </div>
   );
@@ -2150,7 +2154,8 @@ function InformationSection({ siteId, site, siteStatus }) {
           </div>
           <div css={locationRowStyles}>
             <strong>
-              <GlossaryTerm term="Monitoring Site ID">Site ID</GlossaryTerm>:{' '}
+              <GlossaryTerm term="Monitoring Site ID">Site ID</GlossaryTerm>
+              :{' '}
             </strong>
             <span>{siteId}</span>
           </div>
