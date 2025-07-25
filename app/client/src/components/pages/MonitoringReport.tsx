@@ -206,7 +206,13 @@ const containerStyles = css`
 `;
 
 const disclaimerModalStyles = css`
+  p {
+    margin-top: 0;
+  }
+
   li {
+    font-size: 0.875rem;
+    line-height: 1.375;
     padding-bottom: 0.5em;
   }
 
@@ -1677,42 +1683,14 @@ function ChartContainer({
         ) : (
           <div />
         )}
-        <DisclaimerModal buttonLabel="Chart Details">
-          <div css={disclaimerModalStyles}>
-            {lineVisible ? (
-              <p>
-                When multiple samples or measurements are available for the same
-                day for a single characteristic, the line shown is drawn through
-                the average of the results. Multiple samples or measurements for
-                a single characteristic may be available for the same day if:
-                <ul>
-                  <li>
-                    Multiple were taken over time that day (e.g. in the morning,
-                    afternoon, and at night).
-                  </li>
-                  <li>
-                    Multiple were taken at the same relative time but at varying
-                    depths (e.g. the surface, middle or bottom of a lake).
-                  </li>
-                  <li>
-                    Quality control samples or measurements were also taken.
-                  </li>
-                </ul>
-                Quality control data, such as blanks or replicates identified
-                via the <i>Activity Type Code</i>, are not included in this
-                chart but will still be available in the data download.
-                Therefore, the averaging is only performed across depth or time
-                within a single day, and for visualization purposes only.
-              </p>
-            ) : (
-              <p>
-                Quality control data, such as blanks or replicates identified
-                via the <i>Activity Type Code</i>, are not included in this
-                chart but will still be available in the data download.
-              </p>
-            )}
-          </div>
-        </DisclaimerModal>
+        <DisclaimerModal
+          contentStyles={disclaimerModalStyles}
+          disclaimerKey={
+            lineVisible
+              ? 'monitoringReport_lineGraph'
+              : 'monitoringReport_scatterPlot'
+          }
+        />
       </div>
     </div>
   );

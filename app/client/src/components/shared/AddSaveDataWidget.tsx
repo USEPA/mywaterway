@@ -358,16 +358,7 @@ function AddSaveDataWidget() {
               </Fragment>
             )}
           </div>
-          <DisclaimerModal>
-            <p>
-              <strong>Disclaimer:</strong> The following data sets may come from
-              several sources outside of EPA.
-            </p>
-            <p>
-              EPA cannot attest to the accuracy of data provided by
-              organizations outside of the federal government.
-            </p>
-          </DisclaimerModal>
+          <DisclaimerModal disclaimerKey="addSaveDataWidget" />
           <button
             css={modifiedLinkButtonStyles}
             onClick={() => {

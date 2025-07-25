@@ -584,24 +584,10 @@ function FilePanel() {
               </div>
             )}
 
-            <DisclaimerModal infoIcon={true}>
-              <span>
-                You can drop or browse for one the following file types:
-              </span>
-              <ul>
-                <li>
-                  A Shapefile (.zip, ZIP archive containing all shapefile files)
-                </li>
-                <li>
-                  A CSV File (.csv, with address or latitude, longitude and
-                  comma, semi-colon or tab delimited)
-                </li>
-                <li>A KML File (.kml)</li>
-                <li>A GPX File (.gpx, GPS Exchange Format)</li>
-                <li>A GeoJSON File (.geo.json or .geojson)</li>
-                <li>A maximum of 1000 features is allowed</li>
-              </ul>
-            </DisclaimerModal>
+            <DisclaimerModal
+              infoIcon={true}
+              disclaimerKey="addSaveDataWidget_filePanel"
+            />
           </div>
         </Fragment>
       )}
