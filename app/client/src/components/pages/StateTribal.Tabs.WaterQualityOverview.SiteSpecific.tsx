@@ -466,13 +466,7 @@ function SiteSpecific({
             }
           >
             <div css={accordionContentStyles}>
-              <DisclaimerModal>
-                <p>
-                  The impairments listed below do not necessarily affect the{' '}
-                  <strong>{useSelected}</strong> Use but are present in the
-                  water and may apply to other Uses.
-                </p>
-              </DisclaimerModal>
+              <DisclaimerModal disclaimerKey="stateTribal_overview_siteSpecific" />
               <ul>{parameters}</ul>
             </div>
           </AccordionItem>

@@ -177,7 +177,7 @@ function DataContent() {
         (
           {
             description,
-            disclaimer,
+            disclaimerKey,
             extraContent,
             id,
             includeExit,
@@ -217,10 +217,11 @@ function DataContent() {
               {extraContent !== null && (
                 <div dangerouslySetInnerHTML={{ __html: extraContent }} />
               )}
-              {disclaimer && (
-                <DisclaimerModal css={disclaimerStyles}>
-                  <div dangerouslySetInnerHTML={{ __html: disclaimer }} />
-                </DisclaimerModal>
+              {disclaimerKey && (
+                <DisclaimerModal
+                  buttonStyles={disclaimerStyles}
+                  disclaimerKey={disclaimerKey}
+                />
               )}
               <ScrollToTop />
             </div>

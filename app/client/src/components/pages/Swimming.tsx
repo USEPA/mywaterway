@@ -59,16 +59,10 @@ function Swimming() {
           real-time water quality reports.
         </p>
 
-        <DisclaimerModal css={disclaimerStyles}>
-          <p>
-            Users of this application should not rely on information relating to
-            environmental laws and regulations posted on this application.
-            Application users are solely responsible for ensuring that they are
-            in compliance with all relevant environmental laws and regulations.
-            In addition, EPA cannot attest to the accuracy of data provided by
-            organizations outside of the federal government.
-          </p>
-        </DisclaimerModal>
+        <DisclaimerModal
+          buttonStyles={disclaimerStyles}
+          disclaimerKey="swimming"
+        />
 
         <hr />
 
