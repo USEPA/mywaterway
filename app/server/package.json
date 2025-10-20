@@ -32,7 +32,8 @@
     "start": "nodemon -r dotenv/config --inspect app/server.js dotenv_config_path=./.env.local",
     "start_coverage": "nyc --silent node --env-file=./.env.local app/server.js",
     "test": "npx rimraf .nyc_output/out.json && npx rimraf coverage && jest --coverage --coverageDirectory='coverage'",
-    "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local"
+    "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local",
+    "usgs_site_types": "node -r dotenv/config --inspect app/tasks/updateUsgsSiteTypes.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.817.0",
