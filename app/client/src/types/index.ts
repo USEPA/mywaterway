@@ -632,6 +632,11 @@ export interface ServicesData {
   usgsDailyValues: string;
   usgsSensorThingsAPI: string;
   usgsWaterAlert: string;
+  usgs: {
+    daily: string;
+    latestContinuous: string;
+    monitoringLocations: string;
+  },
   watchesWarnings: string;
   waterbodyService: {
     areas: string;

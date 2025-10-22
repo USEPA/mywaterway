@@ -46,8 +46,7 @@
   "usgs": {
     "daily": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/daily/items",
     "latestContinuous": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous/items",
-    "monitoringLocations": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations/items",
-    "siteTypes": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/site-types/items"
+    "monitoringLocations": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations/items"
   },  
   "echoNPDES": {
     "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
