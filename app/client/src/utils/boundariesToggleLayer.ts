@@ -293,12 +293,20 @@ export function getExtentBoundingBox(
 
 // Converts the view's extent from a Web Mercator
 // projection to geographic coordinates
-export async function getGeographicExtent(mapView: __esri.MapView | '' | null) {
+export async function getGeographicExtentMapView(mapView: __esri.MapView | '' | null) {
   if (!mapView) return null;
 
   await reactiveUtils.whenOnce(() => mapView.stationary);
 
   const extentMercator = mapView.extent;
+  return getGeographicExtent(extentMercator);
+}
+
+// Converts the view's extent from a Web Mercator
+// projection to geographic coordinates
+export function getGeographicExtent(extentMercator: __esri.Extent | '' | null) {
+  if (!extentMercator) return null;
+
   return webMercatorUtils.webMercatorToGeographic(
     extentMercator,
   ) as __esri.Extent;

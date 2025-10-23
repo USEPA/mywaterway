@@ -9,12 +9,13 @@ import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   getExtentBoundingBox,
   getGeographicExtent,
+  getGeographicExtentMapView,
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
@@ -23,15 +24,16 @@ import {
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type {
+  Feature,
+  FetchSuccessState,
   ServicesData,
   StreamgageMeasurement,
   UsgsDailyAveragesData,
-  UsgsPrecipitationData,
-  UsgsStreamgageAttributes,
-  UsgsStreamgagesData,
-  Feature,
-  FetchSuccessState,
+  UsgsDailyData,
+  UsgsLatestContinuousData,
+  UsgsMonitoringLocationData,
   UsgsStaParameter,
+  UsgsStreamgageAttributes,
 } from 'types';
 import type { SublayerType } from 'utils/boundariesToggleLayer';
 // styles
@@ -77,7 +79,7 @@ export function useStreamgages() {
 
 function useUpdateData() {
   // Build the data update function
-  const { huc12, mapView } = useContext(LocationSearchContext);
+  const { huc12, hucBoundaries, mapView } = useContext(LocationSearchContext);
   const configFiles = useConfigFilesState();
   const services = configFiles.data.services;
   const usgsStaParameters = configFiles.data.usgsStaParameters;
@@ -88,7 +90,7 @@ function useUpdateData() {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!huc12) {
+    if (!huc12 || !hucBoundaries?.geometry) {
       setHucData([]);
       fetchedDataDispatch({
         type: 'success',
@@ -98,18 +100,28 @@ function useUpdateData() {
       return;
     }
 
-    const hucDvFilter = `huc=${huc12.substring(0, 8)}`;
-    const hucThingsFilter = `$filter=properties/locationHUCTwelveDigitCode eq '${huc12}'`;
+    // get bounding box of huc pass that and huc to next step 
+    // huc will be used to further filter monitoring-locations call
+    const extent = getGeographicExtent(hucBoundaries.geometry.extent ?? null);
+    const bbox = getExtentBoundingBox(extent, 25, true);
+    if (!bbox) {
+      setHucData([]);
+      fetchedDataDispatch({
+        type: 'success',
+        id: localFetchedDataKey,
+        payload: [],
+      });
+      return;
+    }
 
     fetchAndTransformData(
-      [
-        fetchDailyAverages(hucDvFilter, services, controller.signal),
-        fetchPrecipitation(hucDvFilter, services, controller.signal),
-        fetchStreamgages(hucThingsFilter, services, controller.signal),
-      ],
+      `bbox=${bbox}`,
+      services,
       fetchedDataDispatch,
       localFetchedDataKey,
       usgsStaParameters,
+      controller.signal,
+      huc12,
     ).then((data) => {
       setHucData(data);
     });
@@ -117,37 +129,29 @@ function useUpdateData() {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, services, usgsStaParameters]);
+  }, [fetchedDataDispatch, huc12, hucBoundaries, services, usgsStaParameters]);
 
   const extentDvFilter = useRef<string | null>(null);
-  const extentThingsFilter = useRef<string | null>(null);
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
       const newExtentDvFilter = await getExtentDvFilter(mapView);
-      const newExtentThingsFilter = await getExtentThingsFilter(mapView);
 
       // Could not create filters
-      if (!newExtentDvFilter || !newExtentThingsFilter) return;
+      if (!newExtentDvFilter) return;
 
       // Same extent, no update necessary
-      if (
-        newExtentDvFilter === extentDvFilter.current ||
-        newExtentThingsFilter === extentThingsFilter.current
-      )
-        return;
+      if (newExtentDvFilter === extentDvFilter.current) return;
       extentDvFilter.current = newExtentDvFilter;
-      extentThingsFilter.current = newExtentThingsFilter;
 
       await fetchAndTransformData(
-        [
-          fetchDailyAverages(extentDvFilter.current, services, abortSignal),
-          fetchPrecipitation(extentDvFilter.current, services, abortSignal),
-          fetchStreamgages(extentThingsFilter.current, services, abortSignal),
-        ],
+        extentDvFilter.current,
+        services,
         fetchedDataDispatch,
         surroundingFetchedDataKey,
         usgsStaParameters,
+        abortSignal,
+        null,
         hucData, // Filter out HUC data
       );
     },
@@ -240,18 +244,41 @@ function buildLayer(
 }
 
 async function fetchAndTransformData(
-  promises: UsgsFetchPromises,
+  boundariesFilter: string,
+  services: ServicesData,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'usgsStreamgages' | 'surroundingUsgsStreamgages',
   usgsStaParameters: UsgsStaParameter[],
+  abortSignal: AbortSignal,
+  huc12: string | null = null,
   additionalData?: UsgsStreamgageAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
-  const responses = await Promise.all(promises);
+  const latestContinuous = await fetchLatestContinuous(boundariesFilter, services, abortSignal);
+  if (latestContinuous.status !== 'success') {
+    dispatch({
+      type: 'failure',
+      id: fetchedDataId,
+    });
+    return null;
+  }
+
+  const monLocIdSet = new Set<string>();
+  latestContinuous.data?.features?.forEach((row) => {
+    monLocIdSet.add(row.properties.monitoring_location_id);
+  });
+
+  const responses = await Promise.all([
+    fetchMonitoringLocations(monLocIdSet, services, abortSignal, huc12),
+    fetchDaily(monLocIdSet, services, abortSignal),
+    fetchPrecipitation(monLocIdSet, services, abortSignal),
+  ]);
+
   if (responses.every((res) => res.status === 'success')) {
     const usgsStreamgageAttributes = transformServiceData(
       ...(responses.map((res) => res.data) as UsgsServiceData),
+      latestContinuous.data,
       usgsStaParameters,
     );
     const payload = additionalData
@@ -278,187 +305,271 @@ async function fetchAndTransformData(
 }
 
 function transformServiceData(
+  usgsMonitoringLocations: UsgsMonitoringLocationData,
   usgsDailyAverages: UsgsDailyAveragesData,
-  usgsPrecipitation: UsgsPrecipitationData,
-  usgsStreamgages: UsgsStreamgagesData,
+  usgsPrecipitation: UsgsDailyData,
+  usgsLatestContinuous: UsgsLatestContinuousData,
   usgsStaParameters: UsgsStaParameter[],
 ) {
-  const gages = usgsStreamgages.value.map((gage) => {
+  const gages = usgsMonitoringLocations.features.map((gage) => {
     const streamgageMeasurements: {
       primary: StreamgageMeasurement[];
       secondary: StreamgageMeasurement[];
     } = { primary: [], secondary: [] };
 
-    [...gage.Datastreams]
-      .filter((item) => item.Observations.length > 0)
-      .forEach((item) => {
-        const observation = item.Observations[0];
-        const parameterCode = item.properties.ParameterCode;
-        const parameterDesc = item.description.split(' / USGS-')[0];
-        const parameterUnit = item.unitOfMeasurement;
+    const fullSiteId = `${gage.properties.agency_code}-${gage.properties.monitoring_location_number}`;
+    const gageLatestMeasurements = usgsLatestContinuous.features
+      .filter((f) => f.properties.monitoring_location_id === fullSiteId);
 
-        let measurement = parseFloat(observation.result) || null;
-        // convert measurements recorded in celsius to fahrenheit
-        if (
-          measurement &&
-          ['00010', '00020', '85583'].includes(parameterCode)
-        ) {
-          measurement = measurement * (9 / 5) + 32;
+    gageLatestMeasurements.forEach((item) => {
+      let measurement = parseFloat(item.properties.value) || null;
+      const parameterCode = item.properties.parameter_code;
+      const parameterDesc = 'Placeholder...'; // TODO replace this with call to parameter-codes service
+      const parameterUnit = item.properties.unit_of_measure;
 
-          // round to 1 decimal place
-          measurement = Math.round(measurement * 10) / 10;
-        }
+      // convert measurements recorded in celsius to fahrenheit
+      if (
+        measurement &&
+        ['00010', '00020', '85583'].includes(parameterCode)
+      ) {
+        measurement = measurement * (9 / 5) + 32;
 
-        const matchedParam = usgsStaParameters.find((p) => {
-          return p.staParameterCode === parameterCode;
-        });
+        // round to 1 decimal place
+        measurement = Math.round(measurement * 10) / 10;
+      }
 
-        const data = {
-          parameterCategory: matchedParam?.hmwCategory ?? 'exclude',
-          parameterOrder: matchedParam?.hmwOrder ?? 0,
-          parameterName: matchedParam?.hmwName ?? parameterDesc,
-          parameterUsgsName: matchedParam?.staDescription ?? parameterDesc,
-          parameterCode,
-          measurement,
-          datetime: new Date(observation.phenomenonTime).toLocaleString(),
-          dailyAverages: [], // NOTE: will be set below
-          unitAbbr: matchedParam?.hmwUnits ?? parameterUnit.symbol,
-          unitName: parameterUnit.name,
-        };
-
-        if (data.parameterCategory === 'primary') {
-          streamgageMeasurements.primary.push(data);
-        }
-
-        if (data.parameterCategory === 'secondary') {
-          streamgageMeasurements.secondary.push(data);
-        }
+      const matchedParam = usgsStaParameters.find((p) => {
+        return p.staParameterCode === parameterCode;
       });
 
+      const data = {
+        parameterCategory: matchedParam?.hmwCategory ?? 'exclude',
+        parameterOrder: matchedParam?.hmwOrder ?? 0,
+        parameterName: matchedParam?.hmwName ?? parameterDesc,
+        parameterUsgsName: matchedParam?.staDescription ?? parameterDesc,
+        parameterCode,
+        measurement,
+        datetime: new Date(item.properties.time).toLocaleString(),
+        dailyAverages: [], // NOTE: will be set below
+        unitAbbr: matchedParam?.hmwUnits ?? parameterUnit,
+        unitName: 'Placeholder...', // TODO replace this with call to parameter-codes service
+      };
+
+      if (data.parameterCategory === 'primary') {
+        streamgageMeasurements.primary.push(data);
+      }
+
+      if (data.parameterCategory === 'secondary') {
+        streamgageMeasurements.secondary.push(data);
+      }
+    });
+
+    const orgId = gage.properties.agency_code;
+    const siteId = gage.properties.monitoring_location_number
     return {
       monitoringType: 'USGS Sensors' as const,
-      siteId: gage.properties.monitoringLocationNumber,
-      orgId: gage.properties.agencyCode,
-      orgName: gage.properties.agencyCode,
-      locationLongitude: gage.Locations[0].location.coordinates[0],
-      locationLatitude: gage.Locations[0].location.coordinates[1],
-      locationName: gage.properties.monitoringLocationName,
-      locationType: gage.properties.monitoringLocationType,
-      locationUrl: gage.properties.monitoringLocationUrl,
-      uniqueId:
-        `${gage.properties.monitoringLocationNumber}` +
-        `-${gage.properties.agencyCode}`,
+      siteId,
+      orgId,
+      orgName: orgId,
+      locationLongitude: gage.geometry.coordinates[0],
+      locationLatitude: gage.geometry.coordinates[1],
+      locationName: gage.properties.monitoring_location_name,
+      locationType: gage.properties.site_type,
+      locationUrl: `https://waterdata.usgs.gov/monitoring-location/${orgId}-${siteId}`,
+      uniqueId: `${siteId}-${orgId}`,
       // usgs streamgage specific properties:
       streamgageMeasurements,
     };
   });
 
-  const streamgageSiteIds = gages.map((gage) => gage.siteId);
+  const streamgageSiteIds = gages.map((gage) => `${gage.orgId}-${gage.siteId}`);
 
   // add precipitation data to each streamgage if it exists for the site
-  if (usgsPrecipitation.value) {
-    usgsPrecipitation.value?.timeSeries.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const observation = site.values[0].value[0];
+  usgsPrecipitation.features.forEach((site) => {
+    const siteId = site.properties.monitoring_location_id;
+    const measurement = site.properties.value;
 
-      if (streamgageSiteIds.includes(siteId)) {
-        const streamgage = gages.find((gage) => gage.siteId === siteId);
+    if (streamgageSiteIds.includes(siteId)) {
+      const streamgage = gages.find((gage) => `${gage.orgId}-${gage.siteId}` === siteId);
 
-        streamgage?.streamgageMeasurements.primary.push({
-          parameterCategory: 'primary',
-          parameterOrder: 5,
-          parameterName: 'Total Daily Rainfall',
-          parameterUsgsName: 'Precipitation (USGS Daily Value)',
-          parameterCode: '00045',
-          measurement: parseFloat(observation.value) || null,
-          datetime: new Date(observation.dateTime).toLocaleDateString(),
-          dailyAverages: [], // NOTE: will be set below
-          unitAbbr: 'in',
-          unitName: 'inches',
-        });
-      }
-    });
-  }
+      streamgage?.streamgageMeasurements.primary.push({
+        parameterCategory: 'primary',
+        parameterOrder: 5,
+        parameterName: 'Total Daily Rainfall',
+        parameterUsgsName: 'Precipitation (USGS Daily Value)',
+        parameterCode: '00045',
+        measurement: parseFloat(measurement) || null,
+        datetime: new Date(site.properties.time).toLocaleDateString(),
+        dailyAverages: [], // NOTE: will be set below
+        unitAbbr: 'in',
+        unitName: 'inches',
+      });
+    }
+  });
 
   // add daily average measurements to each streamgage if it exists for the site
-  if (
-    usgsDailyAverages.allParamsMean?.value &&
-    usgsDailyAverages.precipitationSum?.value
-  ) {
-    const usgsDailyTimeSeriesData = [
-      ...(usgsDailyAverages.allParamsMean.value?.timeSeries || []),
-      ...(usgsDailyAverages.precipitationSum.value?.timeSeries || []),
-    ];
+  const usgsDailyTimeSeriesData = [
+    ...(usgsDailyAverages.allParamsMean.features),
+    ...(usgsDailyAverages.precipitationSum.features),
+  ];
 
-    usgsDailyTimeSeriesData.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const sitesHasObservations = site.values[0].value.length > 0;
+  usgsDailyTimeSeriesData.forEach((site) => {
+    const paramCode = site.properties.parameter_code;
+    const siteId = site.properties.monitoring_location_id;
+    const streamgage = gages.find((gage) => `${gage.orgId}-${gage.siteId}` === siteId);
 
-      if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
-        const streamgage = gages.find((gage) => gage.siteId === siteId);
+    let measurement = parseFloat(site.properties.value);
+    // convert measurements recorded in celsius to fahrenheit
+    if (['00010', '00020', '85583'].includes(paramCode)) {
+      measurement = measurement * (9 / 5) + 32;
 
-        const paramCode = site.variable.variableCode[0].value;
-        const observations = site.values[0].value
-          .filter((observation) => observation.value !== null)
-          .map((observation) => {
-            let measurement = parseFloat(observation.value);
-            // convert measurements recorded in celsius to fahrenheit
-            if (['00010', '00020', '85583'].includes(paramCode)) {
-              measurement = measurement * (9 / 5) + 32;
+      // round to 1 decimal place
+      measurement = Math.round(measurement * 10) / 10;
+    }
 
-              // round to 1 decimal place
-              measurement = Math.round(measurement * 10) / 10;
-            }
+    const observation = { measurement, date: new Date(site.properties.time + 'T00:00:00') };
 
-            return { measurement, date: new Date(observation.dateTime) };
-          });
-
-        const measurements = streamgage?.streamgageMeasurements;
-        if (!measurements) return;
-        // NOTE: 'type' is either 'primary' or 'secondary' – loop over both
-        Object.values(measurements).forEach((measurementType) => {
-          measurementType.forEach((measurement) => {
-            if (measurement.parameterCode === paramCode.toString()) {
-              measurement.dailyAverages = observations;
-            }
-          });
-        });
-      }
+    const measurements = streamgage?.streamgageMeasurements;
+    if (!measurements) return;
+    // NOTE: 'type' is either 'primary' or 'secondary' – loop over both
+    Object.values(measurements).forEach((measurementType) => {
+      measurementType.forEach((measurement) => {
+        if (measurement.parameterCode === paramCode.toString()) {
+          measurement.dailyAverages.push(observation);
+        }
+      });
     });
-  }
+  });
 
   return gages as UsgsStreamgageAttributes[];
 }
 
-function fetchDailyAverages(
+function fetchPrecipitation(
+  monitoringLocations: Set<string>,
+  servicesData: ServicesData,
+  abortSignal: AbortSignal,
+): Promise<FetchState<UsgsDailyData>> {
+  // https://help.waterdata.usgs.gov/stat_code
+  const sumValues = '00006';
+
+  // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
+  const precipitation = '00045'; // Precipitation, total, inches
+
+  const url =
+    servicesData.usgs.daily +
+    `?f=json` +
+    `&limit=10000` +
+    `&time=P1D` +
+    `&sortby=time` +
+    `&statistic_id=${sumValues}` +
+    `&parameter_code=${precipitation}` +
+    `&properties=monitoring_location_id,parameter_code,time,value`;
+
+  return fetchPost(`${url}&statistic_id=${sumValues}&parameter_code=${precipitation}`, {
+      op: 'in',
+      args: [
+        { property: 'monitoring_location_id' },
+        [...monitoringLocations],
+      ]
+    }, abortSignal)
+    .then((res) => {
+      return {
+        status: 'success',
+        data: res,
+      } as FetchSuccessState<UsgsDailyData>;
+    })
+    .catch(handleFetchError);
+}
+
+function fetchLatestContinuous(
   boundariesFilter: string,
   servicesData: ServicesData,
   abortSignal: AbortSignal,
+): Promise<FetchState<UsgsLatestContinuousData>> {
+  const url =
+    servicesData.usgs.latestContinuous +
+    `?f=json` +
+    `&limit=10000` +
+    `&sortby=time` +
+    `&time=P7D` +
+    `&properties=monitoring_location_id,parameter_code,time,value,unit_of_measure` +
+    `&${boundariesFilter}`;
+
+  return fetchCheck(url, abortSignal)
+    .then((res) => {
+      return {
+        status: 'success',
+        data: res,
+      } as FetchSuccessState<UsgsLatestContinuousData>;
+    })
+    .catch(handleFetchError);
+}
+
+function fetchMonitoringLocations(
+  monitoringLocations: Set<string>,
+  servicesData: ServicesData,
+  abortSignal: AbortSignal,
+  huc12: string | null = null,
+): Promise<FetchState<UsgsMonitoringLocationData>> {
+  let url =
+    servicesData.usgs.monitoringLocations +
+    `?f=json` +
+    `&limit=10000` +
+    `&properties=agency_code,monitoring_location_number,monitoring_location_name,site_type`;
+  
+  if (huc12) url += `&hydrologic_unit_code=${huc12}`;
+
+  return fetchPost(url, {
+    op: 'in',
+    args: [
+      { property: 'monitoring_location_number' },
+      [...monitoringLocations].map((l) => l.replace('USGS-', '')),
+    ]
+  }, abortSignal)
+    .then((res) => {
+      return {
+        status: 'success',
+        data: res,
+      } as FetchSuccessState<UsgsMonitoringLocationData>;
+    })
+    .catch(handleFetchError);
+}
+
+function fetchDaily(
+  monitoringLocations: Set<string>,
+  servicesData: ServicesData,
+  abortSignal: AbortSignal,
 ): Promise<FetchState<UsgsDailyAveragesData>> {
-  // https://help.waterdata.usgs.gov/stat_code
+    // https://help.waterdata.usgs.gov/stat_code
   const meanValues = '00003';
   const sumValues = '00006';
 
   // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
-  const allParams = 'all';
   const precipitation = '00045'; // Precipitation, total, inches
 
   const url =
-    servicesData.usgsDailyValues +
-    `?format=json` +
-    `&siteStatus=active` +
-    `&period=P7D` +
-    `&${boundariesFilter}`;
+    servicesData.usgs.daily +
+    `?f=json` +
+    `&limit=10000` +
+    `&time=P7D` +
+    `&sortby=time` +
+    `&properties=monitoring_location_id,parameter_code,time,value`;
 
   return Promise.all([
-    fetchCheck(
-      `${url}&statCd=${meanValues}&parameterCd=${allParams}`,
-      abortSignal,
-    ),
-    fetchCheck(
-      `${url}&statCd=${sumValues}&parameterCd=${precipitation}`,
-      abortSignal,
-    ),
+    fetchPost(`${url}&statistic_id=${meanValues}`, {
+      op: 'in',
+      args: [
+        { property: 'monitoring_location_id' },
+        [...monitoringLocations],
+      ]
+    }, abortSignal),
+    fetchPost(`${url}&statistic_id=${sumValues}&parameter_code=${precipitation}`, {
+      op: 'in',
+      args: [
+        { property: 'monitoring_location_id' },
+        [...monitoringLocations],
+      ]
+    }, abortSignal),
   ])
     .then(([allParamsRes, precipitationRes]) => {
       return {
@@ -472,79 +583,11 @@ function fetchDailyAverages(
     .catch(handleFetchError);
 }
 
-function fetchPrecipitation(
-  boundariesFilter: string,
-  servicesData: ServicesData,
-  abortSignal: AbortSignal,
-): Promise<FetchState<UsgsPrecipitationData>> {
-  // https://help.waterdata.usgs.gov/stat_code
-  const sumValues = '00006';
-
-  // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
-  const precipitation = '00045'; // Precipitation, total, inches
-
-  const url =
-    servicesData.usgsDailyValues +
-    `?format=json` +
-    `&siteStatus=active` +
-    `&statCd=${sumValues}` +
-    `&parameterCd=${precipitation}` +
-    `&${boundariesFilter}`;
-
-  return fetchCheck(url, abortSignal)
-    .then((res) => {
-      return {
-        status: 'success',
-        data: res,
-      } as FetchSuccessState<UsgsPrecipitationData>;
-    })
-    .catch(handleFetchError);
-}
-
-function fetchStreamgages(
-  boundariesFilter: string,
-  servicesData: ServicesData,
-  abortSignal: AbortSignal,
-): Promise<FetchState<UsgsStreamgagesData>> {
-  const url =
-    `${servicesData.usgsSensorThingsAPI}?` +
-    `$select=name,properties/agencyCode,properties/monitoringLocationUrl,properties/monitoringLocationName,properties/monitoringLocationType,properties/monitoringLocationNumber,properties/locationHUCTwelveDigitCode&` +
-    `$expand=Locations($select=location),Datastreams($select=description,properties/ParameterCode,properties/WebDescription,unitOfMeasurement/name,unitOfMeasurement/symbol;` +
-    `$expand=Observations($select=phenomenonTime,result;` +
-    `$top=1;` +
-    `$orderBy=phenomenonTime desc))` +
-    `&${boundariesFilter}`;
-
-  return fetchCheck(url, abortSignal)
-    .then((res) => {
-      return {
-        status: 'success',
-        data: res,
-      } as FetchSuccessState<UsgsStreamgagesData>;
-    })
-    .catch(handleFetchError);
-}
-
 async function getExtentDvFilter(mapView: __esri.MapView | '') {
-  const extent = await getGeographicExtent(mapView);
+  const extent = await getGeographicExtentMapView(mapView);
   // Service requires that area of extent cannot exceed 25 degrees
   const bBox = getExtentBoundingBox(extent, 25, true);
-  return bBox ? `bBox=${bBox}` : null;
-}
-
-async function getExtentThingsFilter(mapView: __esri.MapView | '') {
-  const extent = await getGeographicExtent(mapView);
-  const wkt = getExtentWkt(extent);
-  return wkt
-    ? `$filter=st_within(Locations/location,geography'POLYGON(${wkt})')`
-    : null;
-}
-
-// Gets a string representation of the view's extent as Well-Known Text
-function getExtentWkt(extent: __esri.Extent | null) {
-  if (!extent) return null;
-
-  return `(${extent.xmax} ${extent.ymin}, ${extent.xmax} ${extent.ymax}, ${extent.xmin} ${extent.ymax}, ${extent.xmin} ${extent.ymin}, ${extent.xmax} ${extent.ymin})`;
+  return bBox ? `bbox=${bBox}` : null;
 }
 
 /*
@@ -558,14 +601,8 @@ const dataKeys = ['orgId', 'siteId'] as Array<keyof UsgsStreamgageAttributes>;
 /*
 ## Types
 */
-type UsgsFetchPromises = [
-  ReturnType<typeof fetchDailyAverages>,
-  ReturnType<typeof fetchPrecipitation>,
-  ReturnType<typeof fetchStreamgages>,
-];
-
 type UsgsServiceData = [
+  UsgsMonitoringLocationData,
   UsgsDailyAveragesData,
-  UsgsPrecipitationData,
-  UsgsStreamgagesData,
+  UsgsDailyData,  
 ];
