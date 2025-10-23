@@ -40,13 +40,11 @@
     "monitoringLocation": "https://www.waterqualitydata.us/data/summary/monitoringlocation/",
     "monitoringLocationDetails": "https://www.waterqualitydata.us/provider/"
   },
-  "usgsSensorThingsAPI": "https://labs.waterdata.usgs.gov/sta/v1.1/Things",
-  "usgsDailyValues": "https://waterservices.usgs.gov/nwis/dv/",
-  "usgsWaterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions",
   "usgs": {
     "daily": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/daily/items",
     "latestContinuous": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous/items",
-    "monitoringLocations": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations/items"
+    "monitoringLocations": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations/items",
+    "waterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions"
   },  
   "echoNPDES": {
     "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
@@ -270,14 +268,24 @@
       "name": "wqp - station search"
     },
     {
-      "urlLookup": "usgsSensorThingsAPI",
+      "urlLookup": "usgs.daily",
       "wildcardUrl": "{urlLookup}*",
-      "name": "usgs – SensorThings API"
+      "name": "usgs – daily"
     },
     {
-      "urlLookup": "usgsDailyValues",
+      "urlLookup": "usgs.latestContinuous",
       "wildcardUrl": "{urlLookup}*",
-      "name": "usgs – daily values"
+      "name": "usgs – latest continuous"
+    },
+    {
+      "urlLookup": "usgs.monitoringLocations",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – monitoring locations"
+    },
+    {
+      "urlLookup": "usgs.waterAlert",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "USGS Water Alert"
     },
     {
       "urlLookup": "glossaryURL",
@@ -398,11 +406,6 @@
       "urlLookup": "landCover",
       "wildcardUrl": "{urlLookup}*",
       "name": "Land Cover"
-    },
-    {
-      "urlLookup": "usgsWaterAlert",
-      "wildcardUrl": "{urlLookup}*",
-      "name": "USGS Water Alert"
     },
     {
       "urlLookup": "cyan.application",

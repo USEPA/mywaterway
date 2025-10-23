@@ -3249,7 +3249,7 @@ function UsgsStreamgagesContent({
     ...sortedSecondaryMeasurements,
   ];
 
-  const alertUrl = configFiles ? configFiles.services.usgsWaterAlert : null;
+  const alertUrl = configFiles ? configFiles.services.usgs.waterAlert : null;
 
   return (
     <>

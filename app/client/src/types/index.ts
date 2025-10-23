@@ -629,13 +629,11 @@ export interface ServicesData {
   tribal: string;
   undergroundStorageTanks: string;
   upstreamWatershed: string;
-  usgsDailyValues: string;
-  usgsSensorThingsAPI: string;
-  usgsWaterAlert: string;
   usgs: {
     daily: string;
     latestContinuous: string;
     monitoringLocations: string;
+    waterAlert: string;
   },
   watchesWarnings: string;
   waterbodyService: {
