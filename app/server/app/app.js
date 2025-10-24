@@ -9,6 +9,8 @@ const { getEnvironment } = require('./server/utilities/environment');
 const logger = require('./server/utilities/logger');
 const { getS3Config } = require('./server/utilities/s3');
 const updateGlossary = require('./tasks/updateGlossary');
+const updateUsgsParameterCodes = require('./tasks/updateUsgsParameterCodes');
+const updateUsgsSiteTypes = require('./tasks/updateUsgsSiteTypes');
 const log = logger.logger;
 
 const app = express();
@@ -71,6 +73,19 @@ if (process.env.GLOSSARY_AUTH) {
 } else {
   let msg =
     'Glossary/Terminology Services authorization variable NOT set, exiting system.';
+  log.error(msg);
+  //process.exit();
+  throw new Error('Missing Configuration');
+}
+
+/****************************************************************
+ Is USGS authorization variable set?
+****************************************************************/
+if (process.env.USGS_API_KEY) {
+  log.info('USGS_API_KEY environmental variable found, continuing.');
+} else {
+  let msg =
+    'USGS_API_KEY environmental variable NOT set, exiting system.';
   log.error(msg);
   //process.exit();
   throw new Error('Missing Configuration');
@@ -164,12 +179,16 @@ if (!isLocal && !isTest) {
 if (isLocal || process.env.CF_INSTANCE_INDEX === '0') {
   // run glossary task once at start-up
   updateGlossary();
+  updateUsgsSiteTypes();
+  updateUsgsParameterCodes();
 
   log.info('Scheduling glossary cron task to run every day at 1AM');
   cron.schedule(
     '0 1 * * *',
     () => {
       updateGlossary();
+      updateUsgsSiteTypes();
+      updateUsgsParameterCodes();
     },
     { scheduled: true },
   );

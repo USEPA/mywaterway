@@ -3249,7 +3249,7 @@ function UsgsStreamgagesContent({
     ...sortedSecondaryMeasurements,
   ];
 
-  const alertUrl = configFiles ? configFiles.services.usgsWaterAlert : null;
+  const alertUrl = configFiles ? configFiles.services.usgs.waterAlert : null;
 
   return (
     <>
@@ -3417,9 +3417,7 @@ function UsgsStreamgageParameter({
             <div css={unitStyles}>
               <strong>{data.measurement ?? 'N/A'}</strong>
               &nbsp;
-              {data.measurement && (
-                <small title={data.unitName}>{data.unitAbbr}</small>
-              )}
+              {data.measurement && <small>{data.unitAbbr}</small>}
               <br />
               <small css={additionalTextStyles}>{data.datetime}</small>
             </div>
