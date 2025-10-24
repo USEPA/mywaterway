@@ -79,6 +79,19 @@ if (process.env.GLOSSARY_AUTH) {
 }
 
 /****************************************************************
+ Is USGS authorization variable set?
+****************************************************************/
+if (process.env.USGS_API_KEY) {
+  log.info('USGS_API_KEY environmental variable found, continuing.');
+} else {
+  let msg =
+    'USGS_API_KEY environmental variable NOT set, exiting system.';
+  log.error(msg);
+  //process.exit();
+  throw new Error('Missing Configuration');
+}
+
+/****************************************************************
  Which environment
 ****************************************************************/
 const { isLocal, isTest, isDevelopment, isStaging } = getEnvironment();

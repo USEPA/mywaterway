@@ -40,6 +40,9 @@ async function updateUsgsSiteTypes(retryCount = 0) {
 
     // fetch the data
     const res = await axios.get(`${siteTypesUrl}?f=json&limit=10000`, {
+      headers: {
+        'X-Api-Key': process.env.USGS_API_KEY,
+      },
       timeout: 10_000,
     });
     if (res.status !== 200) {

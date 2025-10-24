@@ -509,6 +509,10 @@ function fetchPrecipitation(
       op: 'in',
       args: [{ property: 'monitoring_location_id' }, [...monitoringLocations]],
     },
+    {
+      'Content-Type': 'application/query-cql-json',
+      'X-Api-Key': import.meta.env.VITE_USGS_API_KEY,
+    },
     abortSignal,
   )
     .then((res) => {
@@ -535,7 +539,10 @@ function fetchLatestContinuous(
     `&properties=monitoring_location_id,parameter_code,time,value,unit_of_measure` +
     `&${boundariesFilter}`;
 
-  return fetchCheck(url, abortSignal)
+  return fetchCheck(url, abortSignal, {
+    'Content-Type': 'application/query-cql-json',
+    'X-Api-Key': import.meta.env.VITE_USGS_API_KEY,
+  })
     .then((res) => {
       return {
         status: 'success',
@@ -567,6 +574,10 @@ function fetchMonitoringLocations(
         { property: 'monitoring_location_number' },
         [...monitoringLocations].map((l) => l.replace('USGS-', '')),
       ],
+    },
+    {
+      'Content-Type': 'application/query-cql-json',
+      'X-Api-Key': import.meta.env.VITE_USGS_API_KEY,
     },
     abortSignal,
   )
@@ -610,6 +621,10 @@ function fetchDaily(
           [...monitoringLocations],
         ],
       },
+      {
+        'Content-Type': 'application/query-cql-json',
+        'X-Api-Key': import.meta.env.VITE_USGS_API_KEY,
+      },
       abortSignal,
     ),
     fetchPost(
@@ -620,6 +635,10 @@ function fetchDaily(
           { property: 'monitoring_location_id' },
           [...monitoringLocations],
         ],
+      },
+      {
+        'Content-Type': 'application/query-cql-json',
+        'X-Api-Key': import.meta.env.VITE_USGS_API_KEY,
       },
       abortSignal,
     ),

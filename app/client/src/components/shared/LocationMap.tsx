@@ -891,6 +891,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       fetchCheck(
         `${configFiles.data.services.attains.serviceUrl}plans?huc=${huc12Param}&summarize=Y`,
         null,
+        {},
         120000,
       )
         .then((res) => {

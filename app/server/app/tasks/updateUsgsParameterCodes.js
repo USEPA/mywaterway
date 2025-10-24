@@ -16,6 +16,9 @@ const log = logger.logger;
 async function retryFetch(url, retryCount = 0) {
   // fetch the data
   const res = await axios.get(url, {
+    headers: {
+      'X-Api-Key': process.env.USGS_API_KEY,
+    },
     timeout: 10_000,
   });
   if (res.status !== 200) {
