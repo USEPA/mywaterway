@@ -20,7 +20,9 @@ async function retryFetch(url, retryCount = 0) {
   });
   if (res.status !== 200) {
     if (retryCount < 3) {
-      log.info('Non-200 response returned from USGS parameter-codes service, retrying');
+      log.info(
+        'Non-200 response returned from USGS parameter-codes service, retrying',
+      );
       await setTimeout(5_000);
       return updateUsgsParameterCodes(retryCount + 1);
     } else {
@@ -32,7 +34,9 @@ async function retryFetch(url, retryCount = 0) {
 }
 
 async function updateUsgsParameterCodes(retryCount = 0) {
-  log.info(`Running USGS parameter-codes cron task on instance: ${process.env.CF_INSTANCE_INDEX}`);
+  log.info(
+    `Running USGS parameter-codes cron task on instance: ${process.env.CF_INSTANCE_INDEX}`,
+  );
 
   try {
     const { isLocal } = getEnvironment();
@@ -59,7 +63,9 @@ async function updateUsgsParameterCodes(retryCount = 0) {
     let rowsReturned = -1;
     const responses = [];
     while (rowsReturned !== 0) {
-      const res = await retryFetch(`${parameterCodesUrl}?f=json&limit=${limit}&offset=${offset}`);
+      const res = await retryFetch(
+        `${parameterCodesUrl}?f=json&limit=${limit}&offset=${offset}`,
+      );
       offset += limit;
       rowsReturned = res.numberReturned;
       responses.push(res);
@@ -72,14 +78,20 @@ async function updateUsgsParameterCodes(retryCount = 0) {
       }));
     });
 
-    const parameterCodeDictionary = parameterCodes.reduce((acc, currentItem) => {
-      // Set the parameter 'code' as the key and the parameter 'name' as the value
-      acc[currentItem.code] = currentItem.name;
-      return acc;
-    }, {}); 
-    
+    const parameterCodeDictionary = parameterCodes.reduce(
+      (acc, currentItem) => {
+        // Set the parameter 'code' as the key and the parameter 'name' as the value
+        acc[currentItem.code] = currentItem.name;
+        return acc;
+      },
+      {},
+    );
+
     // store the data in public S3 (or local FS)
-    await uploadFileS3('usgs-parameter-codes.json', JSON.stringify(parameterCodeDictionary));
+    await uploadFileS3(
+      'usgs-parameter-codes.json',
+      JSON.stringify(parameterCodeDictionary),
+    );
   } catch (err) {
     log.error(`Failed to update USGS parameter-codes: ${err}`);
   }
@@ -89,5 +101,7 @@ module.exports = updateUsgsParameterCodes;
 
 if (require.main === module) {
   log.info('Starting Task: USGS parameter-codes');
-  updateUsgsParameterCodes().then(() => log.info('Task Completed: USGS parameter-codes'));
+  updateUsgsParameterCodes().then(() =>
+    log.info('Task Completed: USGS parameter-codes'),
+  );
 }

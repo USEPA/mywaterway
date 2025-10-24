@@ -102,7 +102,7 @@ function useUpdateData() {
       return;
     }
 
-    // get bounding box of huc pass that and huc to next step 
+    // get bounding box of huc pass that and huc to next step
     // huc will be used to further filter monitoring-locations call
     const extent = getGeographicExtent(hucBoundaries.geometry.extent ?? null);
     const bbox = getExtentBoundingBox(extent, 25, true);
@@ -133,7 +133,15 @@ function useUpdateData() {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, hucBoundaries, services, usgsParameterCodes, usgsSiteTypes, usgsStaParameters]);
+  }, [
+    fetchedDataDispatch,
+    huc12,
+    hucBoundaries,
+    services,
+    usgsParameterCodes,
+    usgsSiteTypes,
+    usgsStaParameters,
+  ]);
 
   const extentDvFilter = useRef<string | null>(null);
 
@@ -161,7 +169,15 @@ function useUpdateData() {
         hucData, // Filter out HUC data
       );
     },
-    [fetchedDataDispatch, hucData, mapView, services, usgsParameterCodes, usgsSiteTypes, usgsStaParameters],
+    [
+      fetchedDataDispatch,
+      hucData,
+      mapView,
+      services,
+      usgsParameterCodes,
+      usgsSiteTypes,
+      usgsStaParameters,
+    ],
   );
 
   return updateSurroundingData;
@@ -263,7 +279,11 @@ async function fetchAndTransformData(
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
 
-  const latestContinuous = await fetchLatestContinuous(boundariesFilter, services, abortSignal);
+  const latestContinuous = await fetchLatestContinuous(
+    boundariesFilter,
+    services,
+    abortSignal,
+  );
   if (latestContinuous.status !== 'success') {
     dispatch({
       type: 'failure',
@@ -330,8 +350,9 @@ function transformServiceData(
     } = { primary: [], secondary: [] };
 
     const fullSiteId = `${gage.properties.agency_code}-${gage.properties.monitoring_location_number}`;
-    const gageLatestMeasurements = usgsLatestContinuous.features
-      .filter((f) => f.properties.monitoring_location_id === fullSiteId);
+    const gageLatestMeasurements = usgsLatestContinuous.features.filter(
+      (f) => f.properties.monitoring_location_id === fullSiteId,
+    );
 
     gageLatestMeasurements.forEach((item) => {
       let measurement = parseFloat(item.properties.value) || null;
@@ -340,10 +361,7 @@ function transformServiceData(
       const parameterUnit = item.properties.unit_of_measure;
 
       // convert measurements recorded in celsius to fahrenheit
-      if (
-        measurement &&
-        ['00010', '00020', '85583'].includes(parameterCode)
-      ) {
+      if (measurement && ['00010', '00020', '85583'].includes(parameterCode)) {
         measurement = measurement * (9 / 5) + 32;
 
         // round to 1 decimal place
@@ -403,7 +421,9 @@ function transformServiceData(
     const measurement = site.properties.value;
 
     if (streamgageSiteIds.includes(siteId)) {
-      const streamgage = gages.find((gage) => `${gage.orgId}-${gage.siteId}` === siteId);
+      const streamgage = gages.find(
+        (gage) => `${gage.orgId}-${gage.siteId}` === siteId,
+      );
 
       streamgage?.streamgageMeasurements.primary.push({
         parameterCategory: 'primary',
@@ -421,14 +441,16 @@ function transformServiceData(
 
   // add daily average measurements to each streamgage if it exists for the site
   const usgsDailyTimeSeriesData = [
-    ...(usgsDailyAverages.allParamsMean.features),
-    ...(usgsDailyAverages.precipitationSum.features),
+    ...usgsDailyAverages.allParamsMean.features,
+    ...usgsDailyAverages.precipitationSum.features,
   ];
 
   usgsDailyTimeSeriesData.forEach((site) => {
     const paramCode = site.properties.parameter_code;
     const siteId = site.properties.monitoring_location_id;
-    const streamgage = gages.find((gage) => `${gage.orgId}-${gage.siteId}` === siteId);
+    const streamgage = gages.find(
+      (gage) => `${gage.orgId}-${gage.siteId}` === siteId,
+    );
 
     let measurement = parseFloat(site.properties.value);
     // convert measurements recorded in celsius to fahrenheit
@@ -439,7 +461,10 @@ function transformServiceData(
       measurement = Math.round(measurement * 10) / 10;
     }
 
-    const observation = { measurement, date: new Date(site.properties.time + 'T00:00:00') };
+    const observation = {
+      measurement,
+      date: new Date(site.properties.time + 'T00:00:00'),
+    };
 
     const measurements = streamgage?.streamgageMeasurements;
     if (!measurements) return;
@@ -478,13 +503,14 @@ function fetchPrecipitation(
     `&skipGeometry=true` +
     `&properties=monitoring_location_id,parameter_code,time,value`;
 
-  return fetchPost(`${url}&statistic_id=${sumValues}&parameter_code=${precipitation}`, {
+  return fetchPost(
+    `${url}&statistic_id=${sumValues}&parameter_code=${precipitation}`,
+    {
       op: 'in',
-      args: [
-        { property: 'monitoring_location_id' },
-        [...monitoringLocations],
-      ]
-    }, abortSignal)
+      args: [{ property: 'monitoring_location_id' }, [...monitoringLocations]],
+    },
+    abortSignal,
+  )
     .then((res) => {
       return {
         status: 'success',
@@ -530,16 +556,20 @@ function fetchMonitoringLocations(
     `?f=json` +
     `&limit=10000` +
     `&properties=agency_code,monitoring_location_number,monitoring_location_name,site_type,site_type_code`;
-  
+
   if (huc12) url += `&hydrologic_unit_code=${huc12}`;
 
-  return fetchPost(url, {
-    op: 'in',
-    args: [
-      { property: 'monitoring_location_number' },
-      [...monitoringLocations].map((l) => l.replace('USGS-', '')),
-    ]
-  }, abortSignal)
+  return fetchPost(
+    url,
+    {
+      op: 'in',
+      args: [
+        { property: 'monitoring_location_number' },
+        [...monitoringLocations].map((l) => l.replace('USGS-', '')),
+      ],
+    },
+    abortSignal,
+  )
     .then((res) => {
       return {
         status: 'success',
@@ -554,7 +584,7 @@ function fetchDaily(
   servicesData: ServicesData,
   abortSignal: AbortSignal,
 ): Promise<FetchState<UsgsDailyAveragesData>> {
-    // https://help.waterdata.usgs.gov/stat_code
+  // https://help.waterdata.usgs.gov/stat_code
   const meanValues = '00003';
   const sumValues = '00006';
 
@@ -571,20 +601,28 @@ function fetchDaily(
     `&properties=monitoring_location_id,parameter_code,time,value`;
 
   return Promise.all([
-    fetchPost(`${url}&statistic_id=${meanValues}`, {
-      op: 'in',
-      args: [
-        { property: 'monitoring_location_id' },
-        [...monitoringLocations],
-      ]
-    }, abortSignal),
-    fetchPost(`${url}&statistic_id=${sumValues}&parameter_code=${precipitation}`, {
-      op: 'in',
-      args: [
-        { property: 'monitoring_location_id' },
-        [...monitoringLocations],
-      ]
-    }, abortSignal),
+    fetchPost(
+      `${url}&statistic_id=${meanValues}`,
+      {
+        op: 'in',
+        args: [
+          { property: 'monitoring_location_id' },
+          [...monitoringLocations],
+        ],
+      },
+      abortSignal,
+    ),
+    fetchPost(
+      `${url}&statistic_id=${sumValues}&parameter_code=${precipitation}`,
+      {
+        op: 'in',
+        args: [
+          { property: 'monitoring_location_id' },
+          [...monitoringLocations],
+        ],
+      },
+      abortSignal,
+    ),
   ])
     .then(([allParamsRes, precipitationRes]) => {
       return {
@@ -619,5 +657,5 @@ const dataKeys = ['orgId', 'siteId'] as Array<keyof UsgsStreamgageAttributes>;
 type UsgsServiceData = [
   UsgsMonitoringLocationData,
   UsgsDailyAveragesData,
-  UsgsDailyData,  
+  UsgsDailyData,
 ];

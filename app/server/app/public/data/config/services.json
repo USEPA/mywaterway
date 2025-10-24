@@ -47,7 +47,7 @@
     "parameterCodes": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/parameter-codes/items",
     "siteTypes": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/site-types/items",
     "waterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions"
-  },  
+  },
   "echoNPDES": {
     "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"

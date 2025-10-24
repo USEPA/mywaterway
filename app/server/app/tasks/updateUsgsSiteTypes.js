@@ -14,7 +14,9 @@ const {
 const log = logger.logger;
 
 async function updateUsgsSiteTypes(retryCount = 0) {
-  log.info(`Running USGS site-types cron task on instance: ${process.env.CF_INSTANCE_INDEX}`);
+  log.info(
+    `Running USGS site-types cron task on instance: ${process.env.CF_INSTANCE_INDEX}`,
+  );
 
   try {
     const { isLocal } = getEnvironment();
@@ -42,7 +44,9 @@ async function updateUsgsSiteTypes(retryCount = 0) {
     });
     if (res.status !== 200) {
       if (retryCount < 3) {
-        log.info('Non-200 response returned from USGS site-types service, retrying');
+        log.info(
+          'Non-200 response returned from USGS site-types service, retrying',
+        );
         await setTimeout(5_000);
         return updateUsgsSiteTypes(retryCount + 1);
       } else {
@@ -51,20 +55,22 @@ async function updateUsgsSiteTypes(retryCount = 0) {
     }
 
     // transform the USGS site-type data
-    const siteTypes = res.data.features
-      .map((item) => ({
-        code: item.id,
-        name: item.properties.site_type_name,
-      }));
+    const siteTypes = res.data.features.map((item) => ({
+      code: item.id,
+      name: item.properties.site_type_name,
+    }));
 
     const siteTypeDictionary = siteTypes.reduce((acc, currentItem) => {
       // Set the parameter 'code' as the key and the parameter 'name' as the value
       acc[currentItem.code] = currentItem.name;
       return acc;
-    }, {}); 
+    }, {});
 
     // store the data in public S3 (or local FS)
-    await uploadFileS3('usgs-site-types.json', JSON.stringify(siteTypeDictionary));
+    await uploadFileS3(
+      'usgs-site-types.json',
+      JSON.stringify(siteTypeDictionary),
+    );
   } catch (err) {
     log.error(`Failed to update USGS site-types: ${err}`);
   }

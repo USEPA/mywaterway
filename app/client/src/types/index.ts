@@ -423,30 +423,30 @@ export interface MonitoringLocationGroups {
 }
 
 export type MonitoringLocationData = {
-    geometry: {
-      coordinates: [number, number];
-      type: 'Point';
-    };
-    properties: {
-      CountyName: string;
-      HUCEightDigitCode: string;
-      MonitoringLocationIdentifier: string;
-      MonitoringLocationName: string;
-      MonitoringLocationTypeName: string;
-      OrganizationFormalName: string;
-      OrganizationIdentifier: string;
-      ProviderName: string;
-      ResolvedMonitoringLocationTypeName: string;
-      StateName: string;
-      activityCount: string;
-      characteristicGroupResultCount: {
-        Physical: number;
-      };
-      resultCount: string;
-      siteUrl: string;
-    };
-    type: 'Feature';
+  geometry: {
+    coordinates: [number, number];
+    type: 'Point';
   };
+  properties: {
+    CountyName: string;
+    HUCEightDigitCode: string;
+    MonitoringLocationIdentifier: string;
+    MonitoringLocationName: string;
+    MonitoringLocationTypeName: string;
+    OrganizationFormalName: string;
+    OrganizationIdentifier: string;
+    ProviderName: string;
+    ResolvedMonitoringLocationTypeName: string;
+    StateName: string;
+    activityCount: string;
+    characteristicGroupResultCount: {
+      Physical: number;
+    };
+    resultCount: string;
+    siteUrl: string;
+  };
+  type: 'Feature';
+};
 
 export type MonitoringLocationsData = Array<MonitoringLocationData>;
 
@@ -636,7 +636,7 @@ export interface ServicesData {
     parameterCodes: string;
     siteTypes: string;
     waterAlert: string;
-  },
+  };
   watchesWarnings: string;
   waterbodyService: {
     areas: string;

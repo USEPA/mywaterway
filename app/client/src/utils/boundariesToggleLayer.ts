@@ -293,7 +293,9 @@ export function getExtentBoundingBox(
 
 // Converts the view's extent from a Web Mercator
 // projection to geographic coordinates
-export async function getGeographicExtentMapView(mapView: __esri.MapView | '' | null) {
+export async function getGeographicExtentMapView(
+  mapView: __esri.MapView | '' | null,
+) {
   if (!mapView) return null;
 
   await reactiveUtils.whenOnce(() => mapView.stationary);
