@@ -633,6 +633,8 @@ export interface ServicesData {
     daily: string;
     latestContinuous: string;
     monitoringLocations: string;
+    parameterCodes: string;
+    siteTypes: string;
     waterAlert: string;
   },
   watchesWarnings: string;
@@ -686,7 +688,6 @@ export interface StreamgageMeasurement {
   datetime: string;
   dailyAverages: Array<{ measurement: number; date: Date }>;
   unitAbbr: string;
-  unitName: string;
   multiple?: boolean;
 }
 
@@ -714,10 +715,7 @@ export interface UsgsDailyAveragesData {
 
 export interface UsgsDailyData {
   features: {
-    geometry: {
-      coordinates: number[];
-      type: 'Point';
-    };
+    geometry: null;
     id: string;
     properties: {
       monitoring_location_id: string;
@@ -740,10 +738,7 @@ export interface UsgsDailyData {
 
 export interface UsgsLatestContinuousData {
   features: {
-    geometry: {
-      coordinates: number[];
-      type: 'Point';
-    };
+    geometry: null;
     id: string;
     properties: {
       monitoring_location_id: string;
@@ -777,6 +772,7 @@ export interface UsgsMonitoringLocationData {
       monitoring_location_name: string;
       monitoring_location_number: string;
       site_type: string;
+      site_type_code: string;
     };
     type: 'Feature';
   }[];

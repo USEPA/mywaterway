@@ -3418,7 +3418,7 @@ function UsgsStreamgageParameter({
               <strong>{data.measurement ?? 'N/A'}</strong>
               &nbsp;
               {data.measurement && (
-                <small title={data.unitName}>{data.unitAbbr}</small>
+                <small>{data.unitAbbr}</small>
               )}
               <br />
               <small css={additionalTextStyles}>{data.datetime}</small>

@@ -5,7 +5,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 // contexts
-import { useConfigFilesState } from 'contexts/ConfigFiles';
+import { ConfigFiles, useConfigFilesState } from 'contexts/ConfigFiles';
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
@@ -82,6 +82,8 @@ function useUpdateData() {
   const { huc12, hucBoundaries, mapView } = useContext(LocationSearchContext);
   const configFiles = useConfigFilesState();
   const services = configFiles.data.services;
+  const usgsParameterCodes = configFiles.data.usgsParameterCodes;
+  const usgsSiteTypes = configFiles.data.usgsSiteTypes;
   const usgsStaParameters = configFiles.data.usgsStaParameters;
 
   const fetchedDataDispatch = useFetchedDataDispatch();
@@ -119,6 +121,8 @@ function useUpdateData() {
       services,
       fetchedDataDispatch,
       localFetchedDataKey,
+      usgsParameterCodes,
+      usgsSiteTypes,
       usgsStaParameters,
       controller.signal,
       huc12,
@@ -129,7 +133,7 @@ function useUpdateData() {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, hucBoundaries, services, usgsStaParameters]);
+  }, [fetchedDataDispatch, huc12, hucBoundaries, services, usgsParameterCodes, usgsSiteTypes, usgsStaParameters]);
 
   const extentDvFilter = useRef<string | null>(null);
 
@@ -149,13 +153,15 @@ function useUpdateData() {
         services,
         fetchedDataDispatch,
         surroundingFetchedDataKey,
+        usgsParameterCodes,
+        usgsSiteTypes,
         usgsStaParameters,
         abortSignal,
         null,
         hucData, // Filter out HUC data
       );
     },
-    [fetchedDataDispatch, hucData, mapView, services, usgsStaParameters],
+    [fetchedDataDispatch, hucData, mapView, services, usgsParameterCodes, usgsSiteTypes, usgsStaParameters],
   );
 
   return updateSurroundingData;
@@ -248,6 +254,8 @@ async function fetchAndTransformData(
   services: ServicesData,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'usgsStreamgages' | 'surroundingUsgsStreamgages',
+  usgsParameterCodes: ConfigFiles['usgsParameterCodes'],
+  usgsSiteTypes: ConfigFiles['usgsSiteTypes'],
   usgsStaParameters: UsgsStaParameter[],
   abortSignal: AbortSignal,
   huc12: string | null = null,
@@ -279,6 +287,8 @@ async function fetchAndTransformData(
     const usgsStreamgageAttributes = transformServiceData(
       ...(responses.map((res) => res.data) as UsgsServiceData),
       latestContinuous.data,
+      usgsParameterCodes,
+      usgsSiteTypes,
       usgsStaParameters,
     );
     const payload = additionalData
@@ -309,6 +319,8 @@ function transformServiceData(
   usgsDailyAverages: UsgsDailyAveragesData,
   usgsPrecipitation: UsgsDailyData,
   usgsLatestContinuous: UsgsLatestContinuousData,
+  usgsParameterCodes: ConfigFiles['usgsParameterCodes'],
+  usgsSiteTypes: ConfigFiles['usgsSiteTypes'],
   usgsStaParameters: UsgsStaParameter[],
 ) {
   const gages = usgsMonitoringLocations.features.map((gage) => {
@@ -324,7 +336,7 @@ function transformServiceData(
     gageLatestMeasurements.forEach((item) => {
       let measurement = parseFloat(item.properties.value) || null;
       const parameterCode = item.properties.parameter_code;
-      const parameterDesc = 'Placeholder...'; // TODO replace this with call to parameter-codes service
+      const parameterDesc = usgsParameterCodes[parameterCode];
       const parameterUnit = item.properties.unit_of_measure;
 
       // convert measurements recorded in celsius to fahrenheit
@@ -352,7 +364,6 @@ function transformServiceData(
         datetime: new Date(item.properties.time).toLocaleString(),
         dailyAverages: [], // NOTE: will be set below
         unitAbbr: matchedParam?.hmwUnits ?? parameterUnit,
-        unitName: 'Placeholder...', // TODO replace this with call to parameter-codes service
       };
 
       if (data.parameterCategory === 'primary') {
@@ -365,7 +376,9 @@ function transformServiceData(
     });
 
     const orgId = gage.properties.agency_code;
-    const siteId = gage.properties.monitoring_location_number
+    const siteId = gage.properties.monitoring_location_number;
+    const siteTypeCode = gage.properties.site_type_code;
+    const siteType = gage.properties.site_type || usgsSiteTypes[siteTypeCode];
     return {
       monitoringType: 'USGS Sensors' as const,
       siteId,
@@ -374,7 +387,7 @@ function transformServiceData(
       locationLongitude: gage.geometry.coordinates[0],
       locationLatitude: gage.geometry.coordinates[1],
       locationName: gage.properties.monitoring_location_name,
-      locationType: gage.properties.site_type,
+      locationType: siteType,
       locationUrl: `https://waterdata.usgs.gov/monitoring-location/${orgId}-${siteId}`,
       uniqueId: `${siteId}-${orgId}`,
       // usgs streamgage specific properties:
@@ -402,7 +415,6 @@ function transformServiceData(
         datetime: new Date(site.properties.time).toLocaleDateString(),
         dailyAverages: [], // NOTE: will be set below
         unitAbbr: 'in',
-        unitName: 'inches',
       });
     }
   });
@@ -463,6 +475,7 @@ function fetchPrecipitation(
     `&sortby=time` +
     `&statistic_id=${sumValues}` +
     `&parameter_code=${precipitation}` +
+    `&skipGeometry=true` +
     `&properties=monitoring_location_id,parameter_code,time,value`;
 
   return fetchPost(`${url}&statistic_id=${sumValues}&parameter_code=${precipitation}`, {
@@ -492,6 +505,7 @@ function fetchLatestContinuous(
     `&limit=10000` +
     `&sortby=time` +
     `&time=P7D` +
+    `&skipGeometry=true` +
     `&properties=monitoring_location_id,parameter_code,time,value,unit_of_measure` +
     `&${boundariesFilter}`;
 
@@ -515,7 +529,7 @@ function fetchMonitoringLocations(
     servicesData.usgs.monitoringLocations +
     `?f=json` +
     `&limit=10000` +
-    `&properties=agency_code,monitoring_location_number,monitoring_location_name,site_type`;
+    `&properties=agency_code,monitoring_location_number,monitoring_location_name,site_type,site_type_code`;
   
   if (huc12) url += `&hydrologic_unit_code=${huc12}`;
 
@@ -552,6 +566,7 @@ function fetchDaily(
     `?f=json` +
     `&limit=10000` +
     `&time=P7D` +
+    `&skipGeometry=true` +
     `&sortby=time` +
     `&properties=monitoring_location_id,parameter_code,time,value`;
 

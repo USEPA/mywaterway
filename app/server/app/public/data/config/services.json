@@ -44,6 +44,8 @@
     "daily": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/daily/items",
     "latestContinuous": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous/items",
     "monitoringLocations": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations/items",
+    "parameterCodes": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/parameter-codes/items",
+    "siteTypes": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/site-types/items",
     "waterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions"
   },  
   "echoNPDES": {
@@ -281,6 +283,16 @@
       "urlLookup": "usgs.monitoringLocations",
       "wildcardUrl": "{urlLookup}*",
       "name": "usgs – monitoring locations"
+    },
+    {
+      "urlLookup": "usgs.parameterCodes",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – parameter codes"
+    },
+    {
+      "urlLookup": "usgs.siteTypes",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – site types"
     },
     {
       "urlLookup": "usgs.waterAlert",
