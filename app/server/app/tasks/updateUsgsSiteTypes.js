@@ -25,13 +25,13 @@ async function updateUsgsSiteTypes(retryCount = 0) {
     let services;
     if (isLocal) {
       services = readFileSync(
-        resolve(__dirname, '../public/data/config/services.json'),
+        resolve(__dirname, '../public/content/config/services.json'),
         'utf8',
       );
     } else {
       const command = new GetObjectCommand({
         Bucket: getS3Config().bucket,
-        Key: 'data/config/services.json',
+        Key: 'content/config/services.json',
       });
       const s3 = getS3Client();
       services = await (await s3.send(command)).Body.transformToString();

@@ -92,37 +92,37 @@ module.exports = function (app) {
 
   // --- get static content from S3
   router.get('/configFiles', (req, res) => {
-    // NOTE: static content files found in `app/server/app/public/data` directory
+    // NOTE: static content files found in `app/server/app/public/content` directory
     getFiles(
       req,
       res,
       [
-        'data/dataPage.json',
-        'data/disclaimers.json',
-        'data/educators.json',
-        'data/attains/eqProfileColumns.json',
-        'data/attains/impairmentFields.json',
-        'data/attains/parameters.json',
-        'data/attains/useFields.json',
-        'data/cache/glossary.json',
-        'data/cache/usgs-parameter-codes.json',
-        'data/cache/usgs-site-types.json',
-        'data/community/characteristicGroupMappings.json',
-        'data/community/cyan-metadata.json',
-        'data/community/extreme-weather.json',
-        'data/community/upper-content.json',
-        'data/community/usgs-sta-parameters.json',
-        'data/config/layerProps.json',
-        'data/config/services.json',
-        'data/national/NARS.json',
-        'data/notifications/messages.json',
-        'data/state/documentOrder.json',
-        'data/state/reportStatusMapping.json',
-        'data/state/stateNationalUses.json',
-        'data/state/surveyMapping.json',
-        'data/state/waterTypeOptions.json',
-        'data/tribe/attainsTribeMapping.json',
-        'data/tribe/wqxTribeMapping.json',
+        'content/dataPage.json',
+        'content/disclaimers.json',
+        'content/educators.json',
+        'content/attains/eqProfileColumns.json',
+        'content/attains/impairmentFields.json',
+        'content/attains/parameters.json',
+        'content/attains/useFields.json',
+        'content/cache/glossary.json',
+        'content/cache/usgs-parameter-codes.json',
+        'content/cache/usgs-site-types.json',
+        'content/community/characteristicGroupMappings.json',
+        'content/community/cyan-metadata.json',
+        'content/community/extreme-weather.json',
+        'content/community/upper-content.json',
+        'content/community/usgs-sta-parameters.json',
+        'content/config/layerProps.json',
+        'content/config/services.json',
+        'content/national/NARS.json',
+        'content/notifications/messages.json',
+        'content/state/documentOrder.json',
+        'content/state/reportStatusMapping.json',
+        'content/state/stateNationalUses.json',
+        'content/state/surveyMapping.json',
+        'content/state/waterTypeOptions.json',
+        'content/tribe/attainsTribeMapping.json',
+        'content/tribe/wqxTribeMapping.json',
       ],
       (data) => {
         return {
@@ -159,8 +159,8 @@ module.exports = function (app) {
 
   // --- get static content from S3
   router.get('/supportedBrowsers', (req, res) => {
-    // NOTE: static content files found in `app/server/app/public/data` directory
-    getFiles(req, res, ['data/config/supported-browsers.json']);
+    // NOTE: static content files found in `app/server/app/public/content` directory
+    getFiles(req, res, ['content/config/supported-browsers.json']);
   });
 
   router.use((req, res) => {
