@@ -77,7 +77,7 @@ async function uploadFileS3(filePath, fileToUpload, subFolder = 'cache') {
     if (isLocal) {
       const subFolderPath = resolve(
         __dirname,
-        `../../public/data/${subFolder}`,
+        `../../public/content/${subFolder}`,
       );
 
       // create the sub folder if it doesn't already exist
@@ -92,7 +92,7 @@ async function uploadFileS3(filePath, fileToUpload, subFolder = 'cache') {
       // upload the file
       const command = new PutObjectCommand({
         Bucket: getS3Config().bucket,
-        Key: `data/${subFolder}/${filePath}`,
+        Key: `content/${subFolder}/${filePath}`,
         ACL: 'public-read',
         ContentType: 'application/json',
         Body: fileToUpload,

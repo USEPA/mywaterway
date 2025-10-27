@@ -47,4 +47,4 @@ cypress.env.json
 /app/client/build
 
 # cached content
-/app/server/app/public/data/cache
+/app/server/app/public/content/cache
