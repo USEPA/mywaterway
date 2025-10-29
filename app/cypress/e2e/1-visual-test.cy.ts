@@ -51,6 +51,8 @@ describe('Community Visual Regression Testing', () => {
 
     cy.waitForLoadFinish();
 
+    cy.wait(10000);
+
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
 
     // turn the wsio layer on
