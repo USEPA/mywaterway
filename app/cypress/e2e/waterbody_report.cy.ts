@@ -46,7 +46,7 @@ describe('Waterbody Report page', () => {
   it('Viewing waterbody report for an older year', () => {
     const orgId = 'MDNR';
     const auId = 'MO_1707.02';
-    const year = '2016';
+    const year = '2018';
 
     cy.visit(`/waterbody-report/${orgId}/${auId}/${year}`);
     cy.waitForLoadFinish();

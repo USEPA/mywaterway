@@ -200,7 +200,7 @@ describe('Tribe page Water Overview', () => {
   it(`Clicking "<tribe name> Documents" opens the documents content`, () => {
     const title = 'Red Lake Band of Chippewa Indians, Minnesota Documents';
     const text = 'Documents Related to Assessment';
-    const linkText = 'Red Lake Nation Assessment Methodology (DOCX)';
+    const linkText = 'Red Lake Nation Assessment Methodology 2024 (PDF)';
 
     // verify text is not visible
     cy.findByText(text).should('not.exist');
@@ -213,7 +213,7 @@ describe('Tribe page Water Overview', () => {
     cy.findByText(linkText).should(
       'have.attr',
       'href',
-      `https://attains.epa.gov/attains-public/api/documents/cycles/12864/210250`,
+      `https://attains.epa.gov/attains-public/api/documents/cycles/19665/225170`,
     );
     cy.findByText(linkText).should('have.attr', 'target', '_blank');
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');

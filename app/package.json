@@ -40,21 +40,21 @@
     "glossary": "cd server && npm run glossary"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "3.14.3",
-    "@testing-library/cypress": "10.0.3",
+    "@cypress/code-coverage": "3.14.7",
+    "@testing-library/cypress": "10.1.0",
     "@types/cypress-image-snapshot": "3.1.9",
     "@types/node": "22.15.23",
     "@types/testing-library__cypress": "5.0.13",
-    "allure-commandline": "2.34.0",
-    "allure-cypress": "3.2.2",
-    "concurrently": "9.1.2",
-    "cypress": "14.4.0",
+    "allure-commandline": "2.34.1",
+    "allure-cypress": "3.4.1",
+    "concurrently": "9.2.1",
+    "cypress": "15.5.0",
     "cypress-image-snapshot": "4.0.1",
-    "eslint-plugin-cypress": "4.3.0",
+    "eslint-plugin-cypress": "5.2.0",
     "istanbul-lib-coverage": "3.2.2",
     "nyc": "17.1.0",
-    "prettier": "3.5.3",
-    "typescript": "5.8.3"
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
   },
   "eslintConfig": {
     "extends": [
