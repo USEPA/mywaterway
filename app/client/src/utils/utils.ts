@@ -115,6 +115,20 @@ function isNotEmpty<T>(v: T | null | undefined | [] | {}): v is T {
   return true;
 }
 
+// Determines if the datetime passed in is within the number
+// of days passed in.
+export function isWithinDays(datetime: Date, days: number) {
+  const now = new Date();
+  const diffMilliseconds = now.getTime() - datetime.getTime();
+  
+  // convert days to milliseconds
+  const milliseconds = 1_000 * 60 * 60 * 24 * days;
+  const maxBuffered = 1_000 * 60 * 60 * 2; // 2 hour buffer
+  const maxMilliseconds = milliseconds + maxBuffered;
+
+  return diffMilliseconds > 0 && diffMilliseconds < maxMilliseconds
+}
+
 // Gets the file extension from a url or path. The backup parameter was added
 // because the state page documents section sometimes has the file extension
 // on the documentFileName and other times its on the documentURL attribute.

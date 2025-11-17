@@ -36,6 +36,7 @@ import type {
   UsgsStreamgageAttributes,
 } from 'types';
 import type { SublayerType } from 'utils/boundariesToggleLayer';
+import { isWithinDays } from 'utils/utils';
 // styles
 import { colors } from 'styles';
 
@@ -372,6 +373,7 @@ function transformServiceData(
         return p.staParameterCode === parameterCode;
       });
 
+      const datetime = new Date(item.properties.time);
       const data = {
         parameterCategory: matchedParam?.hmwCategory ?? 'exclude',
         parameterOrder: matchedParam?.hmwOrder ?? 0,
@@ -379,17 +381,19 @@ function transformServiceData(
         parameterUsgsName: matchedParam?.staDescription ?? parameterDesc,
         parameterCode,
         measurement,
-        datetime: new Date(item.properties.time).toLocaleString(),
+        datetime: datetime.toLocaleString(),
         dailyAverages: [], // NOTE: will be set below
         unitAbbr: matchedParam?.hmwUnits ?? parameterUnit,
       };
 
-      if (data.parameterCategory === 'primary') {
-        streamgageMeasurements.primary.push(data);
-      }
+      if (isWithinDays(datetime, 7)) {
+        if (data.parameterCategory === 'primary') {
+          streamgageMeasurements.primary.push(data);
+        }
 
-      if (data.parameterCategory === 'secondary') {
-        streamgageMeasurements.secondary.push(data);
+        if (data.parameterCategory === 'secondary') {
+          streamgageMeasurements.secondary.push(data);
+        }
       }
     });
 
@@ -419,24 +423,25 @@ function transformServiceData(
   usgsPrecipitation.features.forEach((site) => {
     const siteId = site.properties.monitoring_location_id;
     const measurement = site.properties.value;
+    const datetime = new Date(site.properties.time);
+    if (!streamgageSiteIds.includes(siteId) || !isWithinDays(datetime, 7))
+      return;
 
-    if (streamgageSiteIds.includes(siteId)) {
-      const streamgage = gages.find(
-        (gage) => `${gage.orgId}-${gage.siteId}` === siteId,
-      );
+    const streamgage = gages.find(
+      (gage) => `${gage.orgId}-${gage.siteId}` === siteId,
+    );
 
-      streamgage?.streamgageMeasurements.primary.push({
-        parameterCategory: 'primary',
-        parameterOrder: 5,
-        parameterName: 'Total Daily Rainfall',
-        parameterUsgsName: 'Precipitation (USGS Daily Value)',
-        parameterCode: '00045',
-        measurement: parseFloat(measurement) || null,
-        datetime: new Date(site.properties.time).toLocaleDateString(),
-        dailyAverages: [], // NOTE: will be set below
-        unitAbbr: 'in',
-      });
-    }
+    streamgage?.streamgageMeasurements.primary.push({
+      parameterCategory: 'primary',
+      parameterOrder: 5,
+      parameterName: 'Total Daily Rainfall',
+      parameterUsgsName: 'Precipitation (USGS Daily Value)',
+      parameterCode: '00045',
+      measurement: parseFloat(measurement) || null,
+      datetime: new Date(site.properties.time).toLocaleDateString(),
+      dailyAverages: [], // NOTE: will be set below
+      unitAbbr: 'in',
+    });
   });
 
   // add daily average measurements to each streamgage if it exists for the site
@@ -452,7 +457,7 @@ function transformServiceData(
       (gage) => `${gage.orgId}-${gage.siteId}` === siteId,
     );
 
-    let measurement = parseFloat(site.properties.value);
+    let measurement = parseFloat(site.properties.value) || 0;
     // convert measurements recorded in celsius to fahrenheit
     if (['00010', '00020', '85583'].includes(paramCode)) {
       measurement = measurement * (9 / 5) + 32;
@@ -534,7 +539,7 @@ function fetchLatestContinuous(
     `?f=json` +
     `&limit=10000` +
     `&sortby=time` +
-    `&time=P7D` +
+    `&time=P1095D` +
     `&skipGeometry=true` +
     `&properties=monitoring_location_id,parameter_code,time,value,unit_of_measure` +
     `&${boundariesFilter}`;
