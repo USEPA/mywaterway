@@ -1,6 +1,6 @@
 {
   "name": "mywaterway-server",
-  "version": "2.14.0",
+  "version": "2.14.1",
   "description": "A tool to learn about your water resources.",
   "keywords": [
     "MyWaterway",
@@ -25,7 +25,7 @@
     "Max Diebold <max.diebold@erg.com>"
   ],
   "engines": {
-    "node": "22.x"
+    "node": ">=24.x"
   },
   "main": "app/server.js",
   "scripts": {
@@ -37,8 +37,8 @@
     "usgs_site_types": "node -r dotenv/config --inspect app/tasks/updateUsgsSiteTypes.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.918.0",
-    "axios": "1.13.0",
+    "@aws-sdk/client-s3": "3.934.0",
+    "axios": "1.13.2",
     "dotenv": "17.2.3",
     "express": "5.1.0",
     "express-basic-auth": "1.2.1",
@@ -49,12 +49,12 @@
   },
   "devDependencies": {
     "@cypress/code-coverage": "3.14.7",
-    "allure-jest": "3.4.1",
+    "allure-jest": "3.4.2",
     "browser-sync": "3.0.4",
     "husky": "9.1.7",
     "jest": "30.2.0",
     "lint-staged": "16.2.6",
-    "nodemon": "3.1.10",
+    "nodemon": "3.1.11",
     "nyc": "17.1.0",
     "prettier": "3.6.2",
     "supertest": "7.1.4"
