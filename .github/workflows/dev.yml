@@ -64,7 +64,7 @@ jobs:
       GLOSSARY_AUTH: ${{ secrets.GLOSSARY_AUTH }}
       HMW_BASIC_USER_NAME: ${{ secrets.HMW_BASIC_USER_NAME }}
       HMW_BASIC_USER_PWD: ${{ secrets.HMW_BASIC_USER_PWD }}
-      USGS_API_KEY: ${{ secrets.USGS_API_KEY_DEV }}
+      USGS_API_KEY: ${{ secrets.USGS_API_KEY }}
       VITE_ARCGIS_CLIENT_ID: ${{ secrets.VITE_ARCGIS_CLIENT_ID_DEV }}
       SERVER_URL: https://mywaterway-dev.app.cloud.gov
 
