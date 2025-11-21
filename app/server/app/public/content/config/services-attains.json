@@ -1,4 +1,10 @@
 {
+  "basemaps": {
+    "default": "c5b0e6e1ded840639b8b4ff3d9927145",
+    "lightGrayCanvas": "c5b0e6e1ded840639b8b4ff3d9927145",
+    "terrainWithLabels": "d9eb1392e6504930b5fbd9689ac32ff4",
+    "topographic": "668f436dc2dc4f2c83ceb0c064380590"
+  },
   "expertQuery": {
     "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
     "attains": "https://api.epa.gov/expertquery/api/attains",
@@ -15,8 +21,8 @@
   "upstreamWatershed": "https://gispub.epa.gov/arcgis/rest/services/OW/CatchmentFabric/MapServer/2/",
   "nonprofits": "https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/",
   "tribal": "https://geopub.epa.gov/arcgis/rest/services/EMEF/Tribal/MapServer",
-  "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_116th_Congressional_Districts_all/FeatureServer",
-  "wsio": "https://gispub.epa.gov/arcgis/rest/services/r4/wsio/MapServer/0",
+  "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_119th_Congressional_Districts/FeatureServer",
+  "wsio": "https://gispub.epa.gov/arcgis/rest/services/OW/RPS/MapServer/0",
   "waterbodyService": {
     "base": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer",
     "points": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/0",
@@ -53,7 +59,7 @@
   },
   "grts": {
     "getGRTSHUC12": "https://ordspub.epa.gov/ords/grts_rest/grts_rest_apex/grts_rest_apex/GetProjectsByHUC12/",
-    "getSSByState": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/ss/GetSSByState/",
+    "getSSByState": "https://ordspub.epa.gov/ords/grts_rest/grts_rest_apex/ss/GetSSByState/",
     "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
@@ -66,7 +72,7 @@
     "queryStringSecondPart": "%29&outFields=*&returnGeometry=false&returnTrueCurves=false&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&returnExtentsOnly=false&f=json"
   },
   "wildScenicRivers": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_WildScenicRiverSegments_01/MapServer/0",
-  "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus3/Protection_Mechanism_Category/MapServer/",
+  "protectedAreasDatabase": "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Protection_Mechanism_Category_PADUS/FeatureServer/0",
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
   "cyan": {
