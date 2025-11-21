@@ -122,7 +122,6 @@ function Community() {
 
   // reset searchText and data when navigating away from '/community'
   const {
-    errorMessage,
     resetData,
     setErrorMessage,
     setLastSearchText,
@@ -208,12 +207,6 @@ function Community() {
             return (
               <div css={columnsStyles} data-content="community">
                 <div css={leftColumnStyles} data-column="left">
-                  {errorMessage && (
-                    <div css={modifiedErrorBoxStyles}>
-                      <p>{errorMessage}</p>
-                    </div>
-                  )}
-
                   {searchMarkup}
 
                   <div css={rightColumnStyles} data-column="right">
@@ -248,12 +241,6 @@ function Community() {
             return (
               <div css={columnsStyles} data-content="community">
                 <div css={leftColumnStyles} data-column="left">
-                  {errorMessage && (
-                    <div css={modifiedErrorBoxStyles}>
-                      <p>{errorMessage}</p>
-                    </div>
-                  )}
-
                   <LocationMap windowHeight={height} layout="wide">
                     {searchMarkup}
                   </LocationMap>

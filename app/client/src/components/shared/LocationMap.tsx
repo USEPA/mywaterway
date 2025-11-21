@@ -152,6 +152,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyCountMismatch,
     resetData,
     setNoDataAvailable,
+    setNoGeocodeResults,
   } = useContext(LocationSearchContext);
 
   const {
@@ -1469,6 +1470,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           if (candidates.length === 0 || !location?.attributes) {
             const newAddress = coordinatesPart ? searchPart : searchText;
             setAddress(newAddress); // preserve the user's search so it is displayed
+            setNoGeocodeResults(true);
             handleNoDataAvailable(noDataAvailableError);
             return;
           }
@@ -1580,6 +1582,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setCountyBoundaries,
       setDrinkingWater,
       setFIPS,
+      setNoGeocodeResults,
       handleNoDataAvailable,
       providersLayer,
     ],
@@ -1641,6 +1644,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     resetData();
     resetLayers();
     setMapLoading(true);
+    setNoGeocodeResults(false);
     setHucResponse(null);
     setErrorMessage('');
     setLastSearchText(searchText);
@@ -1655,6 +1659,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLastSearchText,
     queryGeocodeServer,
     setErrorMessage,
+    setNoGeocodeResults,
   ]);
 
   // reset map when searchText is cleared (when navigating away from '/community')

@@ -44,6 +44,10 @@ export const geocodeError =
 export const noDataAvailableError =
   'Data is not available for this location. Please try a new search.';
 
+// no data available for selected location
+export const noGeocodeDataAvailableError =
+  'Data is not available for this location. If you were looking for one of the items below, click the corresponding item; otherwise, please try a new search.';
+
 // invalid search
 export const invalidSearchError = 'Invalid search. Please try a new search.';
 

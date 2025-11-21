@@ -35,8 +35,9 @@ import { splitSuggestedSearch } from 'utils/mapFunctions';
 import { colors, fonts } from 'styles/index';
 // errors
 import {
-  invalidSearchError,
   customizedWebServiceErrorMessage,
+  invalidSearchError,
+  noGeocodeDataAvailableError,
   webServiceErrorMessage,
 } from 'config/errorMessages';
 // types
@@ -324,7 +325,9 @@ function LocationSearch({ route, label }: Readonly<Props>) {
   const sourceEnterPress = useKeyPress('Enter', sourceList);
   const clearButton = useRef(null);
   const clearEnterPress = useKeyPress('Enter', clearButton);
-  const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
+  const { errorMessage, huc12, noGeocodeResults, searchText, watershed } = useContext(
+    LocationSearchContext,
+  );
   const [searchWidget, setSearchWidget] = useState<Search | null>(null);
 
   // Store the waterbody suggestions to avoid a second fetch.
@@ -555,7 +558,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
   // update inputText whenever searchText changes (i.e. form onSubmit)
   useEffect(() => setInputText(searchText), [searchText]);
 
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessageLocal, setErrorMessageLocal] = useState('');
   const [webserviceErrorMessages, setWebserviceErrorMessages] = useState(
     initialWebserviceErrorMessages,
   );
@@ -601,7 +604,8 @@ function LocationSearch({ route, label }: Readonly<Props>) {
 
     // Remove coordinates if search text was from non-esri suggestions
     searchWidget.searchTerm = splitSuggestedSearch(searchText).searchPart;
-  }, [searchWidget, searchText]);
+    if (noGeocodeResults) searchWidget.suggest();
+  }, [noGeocodeResults, searchWidget, searchText]);
 
   // Updates the search widget sources whenever the user selects a source.
   const [sourcesVisible, setSourcesVisible] = useState(false);
@@ -768,7 +772,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         const newSearchTerm = searchTerm.replace(/[\n\r\t/]/g, ' ');
 
         if (containsScriptTag(newSearchTerm)) {
-          setErrorMessage(invalidSearchError);
+          setErrorMessageLocal(invalidSearchError);
           return;
         }
 
@@ -784,7 +788,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
 
         // navigate if the urlSearch value is available
         if (urlSearch) {
-          setErrorMessage('');
+          setErrorMessageLocal('');
           setGeolocationError(false);
 
           // only navigate if search box contains text
@@ -803,7 +807,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         const res = (await fetchCheck(url)) as MonitoringLocationsResponse;
         const feature = res.features[0];
         if (!feature) {
-          setErrorMessage(webServiceErrorMessage);
+          setErrorMessageLocal(webServiceErrorMessage);
           return;
         }
         const {
@@ -820,7 +824,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         if (callback && result.text) callback(result.text);
       } catch (err) {
         console.error(err);
-        setErrorMessage(webServiceErrorMessage);
+        setErrorMessageLocal(webServiceErrorMessage);
       }
     },
     [formSubmit, services],
@@ -832,7 +836,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         (wb) => wb.assessmentUnitId === result.key,
       );
       if (!item) {
-        setErrorMessage(webServiceErrorMessage);
+        setErrorMessageLocal(webServiceErrorMessage);
         return;
       }
       const { assessmentUnitId, organizationId } = item;
@@ -1055,7 +1059,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
             searchWidget.search(result.text);
           }
         } catch (_err) {
-          setErrorMessage(webServiceErrorMessage);
+          setErrorMessageLocal(webServiceErrorMessage);
         }
       }
     };
@@ -1063,9 +1067,14 @@ function LocationSearch({ route, label }: Readonly<Props>) {
 
   return (
     <>
-      {errorMessage && (
+      {(errorMessage || noGeocodeResults) && (
         <div css={modifiedErrorBoxStyles}>
-          <p>{errorMessage}</p>
+          <p>{noGeocodeResults && filteredSuggestions.length > 0 ? noGeocodeDataAvailableError : errorMessage}</p>
+        </div>
+      )}
+      {errorMessageLocal && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{errorMessageLocal}</p>
         </div>
       )}
 
@@ -1223,35 +1232,37 @@ function LocationSearch({ route, label }: Readonly<Props>) {
                 />
               </div>
 
-              {filteredSuggestions.length > 0 && suggestionsVisible && (
-                <div
-                  id="search-container-suggest-menu"
-                  className="esri-menu esri-search__suggestions-menu"
-                  role="menu"
-                  data-node-ref="_suggestionListNode"
-                >
-                  {filteredSuggestions.map((suggestions) => {
-                    const title = getGroupTitle(suggestions, groups);
+              {filteredSuggestions.length > 0 &&
+                (suggestionsVisible || noGeocodeResults) && (
+                  <div
+                    id="search-container-suggest-menu"
+                    className="esri-menu esri-search__suggestions-menu"
+                    role="menu"
+                    data-node-ref="_suggestionListNode"
+                  >
+                    {filteredSuggestions.map((suggestions) => {
+                      const title = getGroupTitle(suggestions, groups);
 
-                    const results = suggestions.results ?? [];
-                    if (!suggestions.error && results.length === 0) return null;
+                      const results = suggestions.results ?? [];
+                      if (!suggestions.error && results.length === 0)
+                        return null;
 
-                    layerEndIndex += results.length;
+                      layerEndIndex += results.length;
 
-                    return (
-                      <LayerSuggestions
-                        cursor={cursor}
-                        inputText={inputText}
-                        key={`layer-suggestions-key-${suggestions.source.name}`}
-                        onSuggestionClick={handleSuggestionClick}
-                        title={title}
-                        suggestions={suggestions}
-                        startIndex={layerEndIndex - (results.length - 1)}
-                      />
-                    );
-                  })}
-                </div>
-              )}
+                      return (
+                        <LayerSuggestions
+                          cursor={cursor}
+                          inputText={inputText}
+                          key={`layer-suggestions-key-${suggestions.source.name}`}
+                          onSuggestionClick={handleSuggestionClick}
+                          title={title}
+                          suggestions={suggestions}
+                          startIndex={layerEndIndex - (results.length - 1)}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
 
               {inputText && (
                 <div
