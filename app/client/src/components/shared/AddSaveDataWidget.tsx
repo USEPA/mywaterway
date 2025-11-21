@@ -160,6 +160,7 @@ const layerIconButtonStyles = css`
   margin: 0;
   color: black;
   background-color: transparent;
+  padding: 0.5882em 0.2875em;
 `;
 
 // --- components (AddData) ---
@@ -358,16 +359,7 @@ function AddSaveDataWidget() {
               </Fragment>
             )}
           </div>
-          <DisclaimerModal>
-            <p>
-              <strong>Disclaimer:</strong> The following data sets may come from
-              several sources outside of EPA.
-            </p>
-            <p>
-              EPA cannot attest to the accuracy of data provided by
-              organizations outside of the federal government.
-            </p>
-          </DisclaimerModal>
+          <DisclaimerModal disclaimerKey="addSaveDataWidget" />
           <button
             css={modifiedLinkButtonStyles}
             onClick={() => {

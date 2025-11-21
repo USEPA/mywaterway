@@ -12,7 +12,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { fetchCheck } from 'utils/fetchUtils';
 import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
-  getGeographicExtent,
+  getGeographicExtentMapView,
   filterData,
   handleFetchError,
   useAllFeaturesLayers,
@@ -311,7 +311,7 @@ async function fetchPermittedDischargers(
 }
 
 async function getExtentFilter(mapView: __esri.MapView | '') {
-  const extent = await getGeographicExtent(mapView);
+  const extent = await getGeographicExtentMapView(mapView);
   if (!extent) return null;
   return `p_c1lat=${extent.ymin}&p_c1lon=${extent.xmin}&p_c2lat=${extent.ymax}&p_c2lon=${extent.xmax}`;
 }

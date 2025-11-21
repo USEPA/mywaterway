@@ -95,6 +95,11 @@ describe('National Water Quality tab', () => {
     cy.intercept('http://localhost:3002/api/configFiles', {
       statusCode: 200,
       body: {
+        disclaimers: {
+          national: {
+            content: '',
+          },
+        },
         services: {
           waterbodyService: {},
           dwmaps: {},

@@ -124,7 +124,7 @@ function UpperContent({
   const {
     data: {
       upperContent: {
-        [tabKey]: { body, disclaimer },
+        [tabKey]: { body, disclaimerKey },
       },
     },
   } = useConfigFilesState();
@@ -133,15 +133,7 @@ function UpperContent({
     <div css={upperContentStyles}>
       <div dangerouslySetInnerHTML={{ __html: body }} ref={bodyRef} />
 
-      {disclaimer && (
-        <DisclaimerModal>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: disclaimer,
-            }}
-          />
-        </DisclaimerModal>
-      )}
+      {disclaimerKey && <DisclaimerModal disclaimerKey={disclaimerKey} />}
     </div>
   );
 }

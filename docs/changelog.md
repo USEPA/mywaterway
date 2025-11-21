@@ -1,5 +1,29 @@
 # Change Log
 
+## 2.15.0 (December 2025) 
+
+### Changed
+
+- Updated to the latest version of the USGS web services.
+
+- Updated to the latest version of FontAwesome.
+
+- Updated links to have underlines, per SiteImprove.
+
+- Updated the search to popup the suggestion list, if the Esri service is unable to find a location matching the user's search. 
+
+- Updated the scatter plot disclaimers on the Monitoring Report to explain quality control data.
+
+- Updated all disclaimers to be configurable.
+
+- Fixed a 301 redirect issue, due to the S3 buckets having the same folder name as the data page.
+
+- Fixed an error with selecting a monitoring station from the search suggestions menu.
+
+### Chores
+
+- Updated dependencies.
+
 ## 2.14.0 (July 2025)
 
 ### Changed

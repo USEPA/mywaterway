@@ -197,13 +197,10 @@ function Protect() {
   // draw the waterbody on the map
   useWaterbodyOnMap('hasprotectionplan', 'overallstatus');
 
-  const { setSelectedGraphic } = useMapHighlightState();
   const {
-    mapView,
     attainsPlans,
     grts,
     watershed,
-    highlightOptions,
     huc12,
     statesData,
     wsioHealthIndexData,

@@ -9,7 +9,7 @@ on:
 
 # Set shared environment variables
 env:
-  APP_VERSION: 2.14.0
+  APP_VERSION: 2.15.0
 
 permissions:
   contents: read
@@ -23,6 +23,7 @@ jobs:
 
     # Set environment variables
     env:
+      USGS_API_KEY: ${{ secrets.USGS_API_KEY }}
       VITE_ARCGIS_CLIENT_ID: ${{ secrets.VITE_ARCGIS_CLIENT_ID }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -33,7 +34,7 @@ jobs:
       # Set up node and npm
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
 
       # Run back-end processes (install, lint, test, bundle)
       - name: Cache server app node modules
@@ -62,6 +63,7 @@ jobs:
       - name: Build front-end files and move to server
         run: |
           VITE_ARCGIS_CLIENT_ID="$VITE_ARCGIS_CLIENT_ID" \
+            VITE_USGS_API_KEY="$USGS_API_KEY" \
             NODE_OPTIONS=--max_old_space_size=6144 \
             npm run build
           cd build
