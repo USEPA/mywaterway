@@ -124,7 +124,7 @@ jobs:
           cf set-env $APP_NAME "HMW_BASIC_USER_NAME" "$HMW_BASIC_USER_NAME" > /dev/null
           cf set-env $APP_NAME "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
           cf set-env $APP_NAME "TZ" "America/New_York" > /dev/null
-          cf set-env $APP_NAME "USGS_API_KEY_SERVER" "$USGS_API_KEY_SERVER" > /dev/null
+          cf set-env $APP_NAME "USGS_API_KEY" "$USGS_API_KEY_SERVER" > /dev/null
 
       - name: Configure Public AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -168,7 +168,7 @@ jobs:
           cf set-env $APP_NAME_ATTAINS "HMW_BASIC_USER_NAME" "$HMW_BASIC_USER_NAME" > /dev/null
           cf set-env $APP_NAME_ATTAINS "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
           cf set-env $APP_NAME "TZ" "America/New_York" > /dev/null
-          cf set-env $APP_NAME "USGS_API_KEY_SERVER" "$USGS_API_KEY_SERVER" > /dev/null
+          cf set-env $APP_NAME "USGS_API_KEY" "$USGS_API_KEY_SERVER" > /dev/null
 
       - name: Configure Public AWS Credentials for ATTAINS version
         uses: aws-actions/configure-aws-credentials@v4
