@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Node } from 'react';
 import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
@@ -1813,9 +1813,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // calculate height of div holding searchText
   const [searchTextHeight, setSearchTextHeight] = useState(0);
-  const measuredRef = useCallback((node) => {
-    if (!node) return;
-    setSearchTextHeight(node.getBoundingClientRect().height);
+  const searchTextRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!searchTextRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const footer = entries.pop();
+      if (footer) setSearchTextHeight(footer.contentRect.height);
+    });
+
+    resizeObserver.observe(searchTextRef.current);
+
+    return function cleaup() {
+      resizeObserver.disconnect();
+    };
   }, []);
 
   // Used for shutting off the loading spinner after the waterbodyLayer is
@@ -1836,7 +1848,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const mapContent = (
     <>
       {/* for wide screens, LocationMap's children is searchText */}
-      <div ref={measuredRef}>{children}</div>
+      <div ref={searchTextRef}>{children}</div>
 
       <div
         css={containerStyles}
