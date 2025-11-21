@@ -166,6 +166,8 @@ jobs:
           cf set-env $APP_NAME_ATTAINS "GLOSSARY_AUTH" "$GLOSSARY_AUTH" > /dev/null
           cf set-env $APP_NAME_ATTAINS "HMW_BASIC_USER_NAME" "$HMW_BASIC_USER_NAME" > /dev/null
           cf set-env $APP_NAME_ATTAINS "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
+          cf set-env $APP_NAME "TZ" "America/New_York" > /dev/null
+          cf set-env $APP_NAME "USGS_API_KEY" "$USGS_API_KEY" > /dev/null
 
       - name: Configure Public AWS Credentials for ATTAINS version
         uses: aws-actions/configure-aws-credentials@v4
