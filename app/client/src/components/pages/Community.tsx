@@ -125,6 +125,7 @@ function Community() {
     resetData,
     setErrorMessage,
     setLastSearchText,
+    setNoGeocodeResults,
     setSearchText,
   } = useContext(LocationSearchContext);
 
@@ -134,6 +135,7 @@ function Community() {
     return function cleanup() {
       fetchedDataDispatch({ type: 'reset' });
       resetData();
+      setNoGeocodeResults(false);
       setErrorMessage('');
       setSearchText('');
       setLastSearchText('');
@@ -143,6 +145,7 @@ function Community() {
     resetData,
     setErrorMessage,
     setLastSearchText,
+    setNoGeocodeResults,
     setSearchText,
   ]);
 
