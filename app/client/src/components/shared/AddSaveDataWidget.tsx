@@ -160,6 +160,7 @@ const layerIconButtonStyles = css`
   margin: 0;
   color: black;
   background-color: transparent;
+  padding: 0.5882em 0.2875em;
 `;
 
 // --- components (AddData) ---

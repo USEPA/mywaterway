@@ -106,8 +106,11 @@ const fileIconTextColorDivStyles = css`
 const fileIconTextStyles = css`
   ${fileIconTextColor}
   font-size: 16px;
-  margin-top: 5px;
+  margin-top: 16px;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const checkBoxStyles = css`

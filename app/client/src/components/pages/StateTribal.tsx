@@ -568,7 +568,7 @@ function StateTribal() {
                 onClick={() => handleSubmit(selectedStateTribe)}
                 css={buttonStyles}
               >
-                <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
+                <i className="fas fa-angle-double-right" style={{ display: 'inline' }} aria-hidden="true" />{' '}
                 Go
               </button>
             </div>
