@@ -65,6 +65,7 @@ jobs:
       HMW_BASIC_USER_NAME: ${{ secrets.HMW_BASIC_USER_NAME }}
       HMW_BASIC_USER_PWD: ${{ secrets.HMW_BASIC_USER_PWD }}
       USGS_API_KEY: ${{ secrets.USGS_API_KEY }}
+      USGS_API_KEY_SERVER: ${{ secrets.USGS_API_KEY_SERVER }}
       VITE_ARCGIS_CLIENT_ID: ${{ secrets.VITE_ARCGIS_CLIENT_ID_DEV }}
       SERVER_URL: https://mywaterway-dev.app.cloud.gov
 
@@ -117,7 +118,7 @@ jobs:
           cf set-env $APP_NAME "HMW_BASIC_USER_NAME" "$HMW_BASIC_USER_NAME" > /dev/null
           cf set-env $APP_NAME "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
           cf set-env $APP_NAME "TZ" "America/New_York" > /dev/null
-          cf set-env $APP_NAME "USGS_API_KEY" "$USGS_API_KEY" > /dev/null
+          cf set-env $APP_NAME "USGS_API_KEY" "$USGS_API_KEY_SERVER" > /dev/null
 
       - name: Configure Public AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
