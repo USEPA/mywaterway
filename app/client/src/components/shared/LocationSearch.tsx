@@ -674,7 +674,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
             const sug = findSource(source.name, suggestions);
             if (!sug) return acc2;
 
-            if (sug.results) {
+            if (sug.results && sug.results.length > 0) {
               return {
                 results: [...acc2.results, ...sug.results],
                 source,
