@@ -95,6 +95,23 @@ describe('Homepage search', () => {
     cy.get('@windowOpen').should('have.been.called');
     cy.get('@windowOpen').should('have.been.calledWithMatch', /\/waterbody-report/);
   });
+
+  it('Searching for a tribal location routes to the correct location on the Community page', () => {
+    const tribeName = 'Red Lake Band of Chippewa Indians, Minnesota';
+
+    cy.on('url:changed', (newUrl) => {
+      expect(newUrl).to.contain('95.14628076639758');
+      expect(newUrl).to.contain('48.00973038592249');
+    });
+
+    cy.location('href').then((beforeUrl) => {
+      cy.findByPlaceholderText('Search by address', { exact: false }).type(tribeName);
+      cy.findByRole('menuitem', { name: (name) => name.includes(tribeName) }).click();
+      cy.location('href').should((afterUrl) => {
+        expect(afterUrl).to.not.equal(beforeUrl);
+      });
+    });
+  });
 });
 
 describe('Homepage disclaimer and glossary', () => {
