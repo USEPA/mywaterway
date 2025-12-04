@@ -568,7 +568,7 @@ function StateTribal() {
                 onClick={() => handleSubmit(selectedStateTribe)}
                 css={buttonStyles}
               >
-                <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
+                <i className="fas fa-angle-double-right" style={{ display: 'inline' }} aria-hidden="true" />{' '}
                 Go
               </button>
             </div>
@@ -669,26 +669,10 @@ function StateTribal() {
                           </>
                         )}
 
-                        <DisclaimerModal css={disclaimerStyles}>
-                          <p>
-                            The condition of a waterbody is dynamic and can
-                            change at any time, and the information in How’s My
-                            Waterway should only be used for general reference.
-                            If available, refer to local, state, or tribal
-                            real-time water quality reports.
-                          </p>
-                          <p>
-                            Furthermore, users of this application should not
-                            rely on information relating to environmental laws
-                            and regulations posted on this application.
-                            Application users are solely responsible for
-                            ensuring that they are in compliance with all
-                            relevant environmental laws and regulations. In
-                            addition, EPA cannot attest to the accuracy of data
-                            provided by organizations outside of the federal
-                            government.
-                          </p>
-                        </DisclaimerModal>
+                        <DisclaimerModal
+                          buttonStyles={disclaimerStyles}
+                          disclaimerKey="stateTribal"
+                        />
                       </>
                     )}
                   </>

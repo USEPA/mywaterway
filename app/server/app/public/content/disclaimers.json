@@ -1,0 +1,58 @@
+{
+  "addSaveDataWidget": {
+    "content": "<p><strong>Disclaimer:</strong> The following data sets may come from several sources outside of EPA.</p><p>EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "addSaveDataWidget_filePanel": {
+    "content": "<span>You can drop or browse for one the following file types:</span><ul><li>A Shapefile (.zip, ZIP archive containing all shapefile files)</li><li>A CSV File (.csv, with address or latitude, longitude and comma, semi-colon or tab delimited)</li><li>A KML File (.kml)</li><li>A GPX File (.gpx, GPS Exchange Format)</li><li>A GeoJSON File (.geo.json or .geojson)</li><li>A maximum of 1000 features is allowed</li></ul>"
+  },
+  "aquaticLife": {
+    "content": "<p>Users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "community_aquaticLife_upperContent": {
+    "content": "<p>Users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "community_eatingFish_upperContent": {
+    "content": "<p>Users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "community_extremeWeather_upperContent": {
+    "content": "<p>The condition of a waterbody is dynamic and can change at any time, and the information in How’s My Waterway should only be used for general reference. This monitoring section only displays data that has been shared with EPA and doesn’t represent all data collected on a specific waterbody. For the most current data, refer to local or state real-time water quality reports.</p> <p>Furthermore, users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "community_identifiedIssues_mainContent": {
+    "content": "<p>The condition of a waterbody is dynamic and can change at any time, and the information in How’s My Waterway should only be used for general reference. If available, refer to local or state real-time water quality reports.</p><p>Furthermore, users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "community_monitoring_upperContent": {
+    "content": "<p>The condition of a waterbody is dynamic and can change at any time, and the information in How’s My Waterway should only be used for general reference. This monitoring section only displays data that has been shared with EPA and doesn’t represent all data collected on a specific waterbody. For the most current data, refer to local or state real-time water quality reports.</p> <p>Furthermore, users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "community_overview_upperContent": {
+    "content": "<p>Users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "community_swimming_upperContent": {
+    "content": "<p>Users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "eatingFish": {
+    "content": "<p>Users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "home": {
+    "content": "<p><strong>Disclaimer:</strong> EPA has posted information through this application as a convenience to the application’s users. Although EPA has made every effort to ensure the accuracy of the information posted through this application, users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "monitoringReport_scatterPlot": {
+    "buttonLabel": "Chart Details",
+    "content": "<p>Quality control data, such as blanks or replicates identified via the <i>Activity Type Code</i>, are not included in this chart but will still be available in the data download.</p>"
+  },
+  "monitoringReport_lineGraph": {
+    "buttonLabel": "Chart Details",
+    "content": "<p>When multiple samples or measurements are available for the same day for a single characteristic, the line shown is drawn through the average of the results. Multiple samples or measurements for a single characteristic may be available for the same day if:</p><ul><li>Multiple were taken over time that day (e.g. in the morning, afternoon, and at night).</li><li>Multiple were taken at the same relative time but at varying depths (e.g. the surface, middle or bottom of a lake).</li><li>Quality control samples or measurements were also taken.</li></ul><p>Quality control data, such as blanks or replicates identified via the <i>Activity Type Code</i>, are not included in this chart but will still be available in the data download. Therefore, the averaging is only performed across depth or time within a single day, and for visualization purposes only.</p>"
+  },
+  "national": {
+    "content": "<p><strong>Disclaimer:</strong> EPA has posted information through this application as a convenience to the application’s users. Although EPA has made every effort to ensure the accuracy of the information posted through this application, users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "stateTribal": {
+    "content": "<p>The condition of a waterbody is dynamic and can change at any time, and the information in How’s My Waterway should only be used for general reference. If available, refer to local, state, or tribal real-time water quality reports.</p><p>Furthermore, users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  },
+  "stateTribal_overview_siteSpecific": {
+    "content": "<p>The impairments listed below do not necessarily affect the selected Use but are present in the water and may apply to other Uses.</p>"
+  },
+  "swimming": {
+    "content": "<p>Users of this application should not rely on information relating to environmental laws and regulations posted on this application. Application users are solely responsible for ensuring that they are in compliance with all relevant environmental laws and regulations. In addition, EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.</p>"
+  }
+}

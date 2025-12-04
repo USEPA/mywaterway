@@ -3,7 +3,7 @@
 How’s My Waterway is a responsive, map-centric, mobile ready web application that pulls data from several different systems at EPA and beyond via web services to provide a user with an overall picture of water quality on 3 levels: community, state and national.
 
 <p align="center">
-      <img height="50%" width="50%" src="/docs/img/v2.0/Landing-Page.png" alt="Screenshot of Landing Page">
+      <img height="250" src="/docs/img/v2.0/Landing-Page.png" alt="Screenshot of Landing Page">
 </p>
 
 ## Documentation

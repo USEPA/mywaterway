@@ -124,12 +124,10 @@ Cypress.Commands.add(
     longitude: number = -77.0369,
   ) => {
     cy.window().then(($window) => {
-      cy.stub(
-        $window.navigator.geolocation,
-        'getCurrentPosition',
-        (resolve, reject) => {
-          if (shouldFail) return reject(Error('1')); // 1: rejected, 2: unable, 3: timeout
-          return resolve({ coords: { latitude, longitude } });
+      cy.stub($window.navigator.geolocation, 'getCurrentPosition').callsFake(
+        (successCallback, errorCallback) => {
+          if (shouldFail) return errorCallback({ code: 1 }); // 1: rejected, 2: unable, 3: timeout
+          return successCallback({ coords: { latitude, longitude } });
         },
       );
     });

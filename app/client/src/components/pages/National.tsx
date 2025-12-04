@@ -481,20 +481,7 @@ function National() {
           </Tabs>
         </div>
 
-        <DisclaimerModal>
-          <p>
-            <strong>Disclaimer:</strong> EPA has posted information through this
-            application as a convenience to the application’s users. Although
-            EPA has made every effort to ensure the accuracy of the information
-            posted through this application, users of this application should
-            not rely on information relating to environmental laws and
-            regulations posted on this application. Application users are solely
-            responsible for ensuring that they are in compliance with all
-            relevant environmental laws and regulations. In addition, EPA cannot
-            attest to the accuracy of data provided by organizations outside of
-            the federal government.
-          </p>
-        </DisclaimerModal>
+        <DisclaimerModal disclaimerKey="national" />
       </div>
     </Page>
   );
