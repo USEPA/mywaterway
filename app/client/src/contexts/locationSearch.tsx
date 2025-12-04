@@ -91,6 +91,7 @@ type State = {
   waterbodyCountMismatch: boolean;
   upstreamWatershedResponse: { status: Status; data: __esri.FeatureSet | null };
   errorMessage: string;
+  noGeocodeResults: boolean;
   summaryLayerMaxRecordCount?: number;
   watershedsLayerMaxRecordCount?: number;
   FIPS: Object;
@@ -160,6 +161,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     upstreamWatershedResponse: { status: 'idle', data: null },
     errorMessage: '',
+    noGeocodeResults: false,
     summaryLayerMaxRecordCount: null,
     watershedsLayerMaxRecordCount: null,
 
@@ -199,6 +201,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setErrorMessage: (errorMessage) => {
       this.setState({ errorMessage });
+    },
+    setNoGeocodeResults: (noGeocodeResults) => {
+      this.setState({ noGeocodeResults });
     },
     setUpstreamExtent: (upstreamExtent) => {
       this.setState({ upstreamExtent });

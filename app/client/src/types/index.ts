@@ -423,30 +423,30 @@ export interface MonitoringLocationGroups {
 }
 
 export type MonitoringLocationData = {
-    geometry: {
-      coordinates: [number, number];
-      type: 'Point';
-    };
-    properties: {
-      CountyName: string;
-      HUCEightDigitCode: string;
-      MonitoringLocationIdentifier: string;
-      MonitoringLocationName: string;
-      MonitoringLocationTypeName: string;
-      OrganizationFormalName: string;
-      OrganizationIdentifier: string;
-      ProviderName: string;
-      ResolvedMonitoringLocationTypeName: string;
-      StateName: string;
-      activityCount: string;
-      characteristicGroupResultCount: {
-        Physical: number;
-      };
-      resultCount: string;
-      siteUrl: string;
-    };
-    type: 'Feature';
+  geometry: {
+    coordinates: [number, number];
+    type: 'Point';
   };
+  properties: {
+    CountyName: string;
+    HUCEightDigitCode: string;
+    MonitoringLocationIdentifier: string;
+    MonitoringLocationName: string;
+    MonitoringLocationTypeName: string;
+    OrganizationFormalName: string;
+    OrganizationIdentifier: string;
+    ProviderName: string;
+    ResolvedMonitoringLocationTypeName: string;
+    StateName: string;
+    activityCount: string;
+    characteristicGroupResultCount: {
+      Physical: number;
+    };
+    resultCount: string;
+    siteUrl: string;
+  };
+  type: 'Feature';
+};
 
 export type MonitoringLocationsData = Array<MonitoringLocationData>;
 
@@ -629,9 +629,14 @@ export interface ServicesData {
   tribal: string;
   undergroundStorageTanks: string;
   upstreamWatershed: string;
-  usgsDailyValues: string;
-  usgsSensorThingsAPI: string;
-  usgsWaterAlert: string;
+  usgs: {
+    daily: string;
+    latestContinuous: string;
+    monitoringLocations: string;
+    parameterCodes: string;
+    siteTypes: string;
+    waterAlert: string;
+  };
   watchesWarnings: string;
   waterbodyService: {
     areas: string;
@@ -683,7 +688,6 @@ export interface StreamgageMeasurement {
   datetime: string;
   dailyAverages: Array<{ measurement: number; date: Date }>;
   unitAbbr: string;
-  unitName: string;
   multiple?: boolean;
 }
 
@@ -702,6 +706,85 @@ export interface TribeAttributes {
 
 export interface UpstreamWatershedAttributes {
   xwalk_huc12: string;
+}
+
+export interface UsgsDailyAveragesData {
+  allParamsMean: UsgsDailyData;
+  precipitationSum: UsgsDailyData;
+}
+
+export interface UsgsDailyData {
+  features: {
+    geometry: null;
+    id: string;
+    properties: {
+      monitoring_location_id: string;
+      parameter_code: string;
+      time: string;
+      value: string;
+    };
+    type: 'Feature';
+  }[];
+  links: {
+    href: string;
+    rel: string;
+    title: string;
+    type: string;
+  }[];
+  numberReturned: number;
+  timeStamp: string;
+  type: 'FeatureCollection';
+}
+
+export interface UsgsLatestContinuousData {
+  features: {
+    geometry: null;
+    id: string;
+    properties: {
+      monitoring_location_id: string;
+      parameter_code: string;
+      unit_of_measure: string;
+      time: string;
+      value: string;
+    };
+    type: 'Feature';
+  }[];
+  links: {
+    href: string;
+    rel: string;
+    title: string;
+    type: string;
+  }[];
+  numberReturned: number;
+  timeStamp: string;
+  type: 'FeatureCollection';
+}
+
+export interface UsgsMonitoringLocationData {
+  features: {
+    geometry: {
+      coordinates: number[];
+      type: 'Point';
+    };
+    id: string;
+    properties: {
+      agency_code: string;
+      monitoring_location_name: string;
+      monitoring_location_number: string;
+      site_type: string;
+      site_type_code: string;
+    };
+    type: 'Feature';
+  }[];
+  links: {
+    href: string;
+    rel: string;
+    title: string;
+    type: string;
+  }[];
+  numberReturned: number;
+  timeStamp: string;
+  type: 'FeatureCollection';
 }
 
 export type UsgsStaParameter = {
@@ -728,112 +811,6 @@ export interface UsgsStreamgageAttributes {
     secondary: StreamgageMeasurement[];
   };
   uniqueId: string;
-}
-
-export interface UsgsDailyAveragesData {
-  allParamsMean: UsgsPrecipitationData;
-  precipitationSum: UsgsPrecipitationData;
-}
-
-export interface UsgsPrecipitationData {
-  declaredType: 'org.cuahsi.waterml.TimeSeriesResponseType';
-  globalScope: true;
-  name: 'ns1:timeSeriesResponseType';
-  nil: false;
-  scope: 'javax.xml.bind.JAXBElement$GlobalScope';
-  typeSubstituted: false;
-  value: {
-    queryInfo: Object;
-    timeSeries: {
-      name: string;
-      sourceInfo: {
-        siteName: string;
-        siteCode: [
-          {
-            agencyCode: string;
-            network: string;
-            value: string; // number
-          },
-        ];
-        timeZoneInfo: Object;
-        geoLocation: Object;
-        note: [];
-        siteType: [];
-        siteProperty: Object[];
-      };
-      values: {
-        censorCode: [];
-        method: [Object];
-        offset: [];
-        qualifier: [Object];
-        qualityControlLevel: [];
-        sample: [];
-        source: [];
-        value: [
-          {
-            dateTime: string; // ISO format datetime
-            qualifiers: ['P'];
-            value: string; // number
-          },
-        ];
-      }[];
-      variable: {
-        noDataValue: number;
-        note: [];
-        oid: string;
-        options: Object;
-        unit: Object;
-        valueType: string;
-        variableCode: {
-          default: boolean;
-          network: string;
-          value: string;
-          variableID: number;
-          vocabulary: string;
-        }[];
-        variableDescription: string;
-        variableName: string;
-        variableProperty: [];
-      };
-    }[];
-  };
-}
-
-export interface UsgsStreamgagesData {
-  value: {
-    name: string;
-    properties: {
-      active: boolean;
-      agency: string;
-      agencyCode: string;
-      hydrologicUnit: string;
-      monitoringLocationName: string;
-      monitoringLocationNumber: string;
-      monitoringLocationType: string;
-      monitoringLocationUrl: string;
-    };
-    Locations: {
-      location: {
-        coordinates: [number, number];
-        type: 'Point';
-      };
-    }[];
-    Datastreams: {
-      description: string;
-      properties: {
-        ParameterCode: string;
-        WebDescription: string;
-      };
-      unitOfMeasurement: {
-        name: string;
-        symbol: string;
-      };
-      Observations: {
-        phenomenonTime: string; // ISO format datetime
-        result: string; // number
-      }[];
-    }[];
-  }[];
 }
 
 export interface VillageAttributes extends TribeAttributes {

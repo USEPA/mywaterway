@@ -167,8 +167,17 @@ const sortOrderStyles = css`
   padding: 0;
   margin: 0 5px;
 
+  &:hover {
+    background-color: white !important;
+    color: black !important;
+  }
+
   &:disabled {
     cursor: default;
+  }
+
+  i { 
+    display: inline;
   }
 `;
 
@@ -435,7 +444,7 @@ function SearchPanel() {
                 type="submit"
                 onClick={(_ev) => setSearch(searchText)}
               >
-                <i className="fas fa-search"></i>
+                <i className="fas fa-search" style={{ display: 'inline' }}></i>
                 <span css={buttonHiddenTextStyles}>Search</span>
               </button>
             </form>

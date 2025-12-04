@@ -204,7 +204,7 @@
       "title": "Watershed Assessment, Tracking & Environmental Results System (WATERS)"
     },
     {
-      "description": "Data and GIS files on wild and scenic rivers can be found on the <a href='https://www.rivers.gov/mapping-gis.php' target='_blank' rel='noopener noreferrer'>National Wild and Scenic Rivers System</a> website.",
+      "description": "Data and GIS files on wild and scenic rivers can be found on the <a href='https://www.rivers.gov/' target='_blank' rel='noopener noreferrer'>National Wild and Scenic Rivers System</a> website.",
       "id": "wild-scenic-rivers",
       "linkHref": "https://www.rivers.gov/",
       "linkLabel": "Wild and Scenic Rivers Data/System",

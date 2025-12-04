@@ -24,12 +24,12 @@
   "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_119th_Congressional_Districts/FeatureServer",
   "wsio": "https://gispub.epa.gov/arcgis/rest/services/OW/RPS/MapServer/0",
   "waterbodyService": {
-    "base": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer",
-    "points": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/0",
-    "lines": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1",
-    "areas": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2",
-    "summary": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4",
-    "controlTable": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/5"
+    "base": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer",
+    "points": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/0",
+    "lines": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/1",
+    "areas": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/2",
+    "summary": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/4",
+    "controlTable": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/5"
   },
   "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/HMW%20Glossary/terms/full",
   "waterQualityPortal": {
@@ -40,9 +40,14 @@
     "monitoringLocation": "https://www.waterqualitydata.us/data/summary/monitoringlocation/",
     "monitoringLocationDetails": "https://www.waterqualitydata.us/provider/"
   },
-  "usgsSensorThingsAPI": "https://labs.waterdata.usgs.gov/sta/v1.1/Things",
-  "usgsDailyValues": "https://waterservices.usgs.gov/nwis/dv/",
-  "usgsWaterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions",
+  "usgs": {
+    "daily": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/daily/items",
+    "latestContinuous": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous/items",
+    "monitoringLocations": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations/items",
+    "parameterCodes": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/parameter-codes/items",
+    "siteTypes": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/site-types/items",
+    "waterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions"
+  },
   "echoNPDES": {
     "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
@@ -59,7 +64,7 @@
   },
   "attains": {
     "serviceUrlDev": "https://attains-demo.epa-ow-cloud.com/attains-public/api/",
-    "serviceUrl": "https://attains.epa.gov/attains-public/api/"
+    "serviceUrl": "https://attains-demo.epa-ow-cloud.com/attains-public/api/"
   },
   "fishingInformationService": {
     "serviceUrl": "https://watersgeo.epa.gov/arcgis/rest/services/NLFA/FISH_GEN/MapServer/13/",
@@ -265,14 +270,34 @@
       "name": "wqp - station search"
     },
     {
-      "urlLookup": "usgsSensorThingsAPI",
+      "urlLookup": "usgs.daily",
       "wildcardUrl": "{urlLookup}*",
-      "name": "usgs – SensorThings API"
+      "name": "usgs – daily"
     },
     {
-      "urlLookup": "usgsDailyValues",
+      "urlLookup": "usgs.latestContinuous",
       "wildcardUrl": "{urlLookup}*",
-      "name": "usgs – daily values"
+      "name": "usgs – latest continuous"
+    },
+    {
+      "urlLookup": "usgs.monitoringLocations",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – monitoring locations"
+    },
+    {
+      "urlLookup": "usgs.parameterCodes",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – parameter codes"
+    },
+    {
+      "urlLookup": "usgs.siteTypes",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – site types"
+    },
+    {
+      "urlLookup": "usgs.waterAlert",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "USGS Water Alert"
     },
     {
       "urlLookup": "glossaryURL",
@@ -393,11 +418,6 @@
       "urlLookup": "landCover",
       "wildcardUrl": "{urlLookup}*",
       "name": "Land Cover"
-    },
-    {
-      "urlLookup": "usgsWaterAlert",
-      "wildcardUrl": "{urlLookup}*",
-      "name": "USGS Water Alert"
     },
     {
       "urlLookup": "cyan.application",

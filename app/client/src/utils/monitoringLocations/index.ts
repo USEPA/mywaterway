@@ -21,7 +21,7 @@ import { GetTemplateType, useDynamicPopup } from 'utils/hooks';
 import {
   filterData,
   getExtentBoundingBox,
-  getGeographicExtent,
+  getGeographicExtentMapView,
   getGeographicExtentPolygon,
   handleFetchError,
   useAllFeaturesLayers,
@@ -270,7 +270,7 @@ function useUpdateData(localFilter: string | __esri.Polygon | null, includeAnnua
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
-      const extent = await getGeographicExtent(mapView);
+      const extent = await getGeographicExtentMapView(mapView);
       const newExtentFilter = getExtentFilter(extent);
 
       // Could not create filter
