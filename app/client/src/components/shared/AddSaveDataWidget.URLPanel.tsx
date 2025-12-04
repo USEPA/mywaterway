@@ -67,13 +67,8 @@ const urlInputStyles = css`
 const modifiedLinkButtonStyles = css`
   ${linkButtonStyles}
   text-transform: uppercase;
-  text-decoration: none;
   font-weight: normal;
   padding: 5px;
-
-  &:hover {
-    text-decoration: underline;
-  }
 `;
 
 // --- components (URLPanel) ---

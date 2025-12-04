@@ -70,6 +70,8 @@ jobs:
       GLOSSARY_AUTH: ${{ secrets.GLOSSARY_AUTH }}
       HMW_BASIC_USER_NAME: ${{ secrets.HMW_BASIC_USER_NAME }}
       HMW_BASIC_USER_PWD: ${{ secrets.HMW_BASIC_USER_PWD }}
+      USGS_API_KEY: ${{ secrets.USGS_API_KEY }}
+      USGS_API_KEY_SERVER: ${{ secrets.USGS_API_KEY_SERVER }}
       VITE_ARCGIS_CLIENT_ID: ${{ secrets.VITE_ARCGIS_CLIENT_ID_STAGING }}
       SERVER_URL: https://mywaterway-stage.app.cloud.gov
 
@@ -81,7 +83,7 @@ jobs:
       # Set up node and npm
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
 
       # Run front-end processes (install, lint, test, bundle)
       - name: Cache node modules
@@ -98,6 +100,7 @@ jobs:
       - name: Build front-end files and move to server
         run: |
           VITE_ARCGIS_CLIENT_ID="$VITE_ARCGIS_CLIENT_ID" \
+            VITE_USGS_API_KEY="$USGS_API_KEY" \
             NODE_OPTIONS=--max_old_space_size=6144 \
             npm run build
           cd build
@@ -121,6 +124,7 @@ jobs:
           cf set-env $APP_NAME "HMW_BASIC_USER_NAME" "$HMW_BASIC_USER_NAME" > /dev/null
           cf set-env $APP_NAME "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
           cf set-env $APP_NAME "TZ" "America/New_York" > /dev/null
+          cf set-env $APP_NAME "USGS_API_KEY" "$USGS_API_KEY_SERVER" > /dev/null
 
       - name: Configure Public AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -131,8 +135,8 @@ jobs:
 
       # Sync static content to public S3 bucket
       - name: Sync static content to S3
-        run: aws s3 sync . s3://$CF_S3_PUB_BUCKET_ID/data
-        working-directory: app/server/app/public/data
+        run: aws s3 sync . s3://$CF_S3_PUB_BUCKET_ID/content
+        working-directory: app/server/app/public/content
 
       # Set CORS configuration for public S3 bucket
       - name: Set public S3 CORS configuration
@@ -156,13 +160,15 @@ jobs:
 
       - name: Copy ATTAINS NCC endpoints over
         run: cp -rf services-attains.json services.json
-        working-directory: app/server/app/public/data/config
+        working-directory: app/server/app/public/content/config
 
       - name: Set ATTAINS version application-level variables
         run: |
           cf set-env $APP_NAME_ATTAINS "GLOSSARY_AUTH" "$GLOSSARY_AUTH" > /dev/null
           cf set-env $APP_NAME_ATTAINS "HMW_BASIC_USER_NAME" "$HMW_BASIC_USER_NAME" > /dev/null
           cf set-env $APP_NAME_ATTAINS "HMW_BASIC_USER_PWD" "$HMW_BASIC_USER_PWD" > /dev/null
+          cf set-env $APP_NAME_ATTAINS "TZ" "America/New_York" > /dev/null
+          cf set-env $APP_NAME_ATTAINS "USGS_API_KEY" "$USGS_API_KEY_SERVER" > /dev/null
 
       - name: Configure Public AWS Credentials for ATTAINS version
         uses: aws-actions/configure-aws-credentials@v4
@@ -173,8 +179,8 @@ jobs:
 
       # Sync ATTAINS version static content to public S3 bucket
       - name: Sync static content to S3 for ATTAINS version
-        run: aws s3 sync . s3://$CF_ATTAINS_S3_PUB_BUCKET_ID/data
-        working-directory: app/server/app/public/data
+        run: aws s3 sync . s3://$CF_ATTAINS_S3_PUB_BUCKET_ID/content
+        working-directory: app/server/app/public/content
 
       # Set CORS configuration for public ATTAINS version S3 bucket
       - name: Set public S3 CORS configuration for ATTAINS version

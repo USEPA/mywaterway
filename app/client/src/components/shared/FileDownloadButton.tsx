@@ -52,6 +52,7 @@ export function FileDownloadButton({
         url,
         data,
         { ...headers, 'Content-Type': 'application/json' },
+        null,
         60000,
         'blob',
       );
