@@ -1211,7 +1211,7 @@ export async function getPollutantsFromAction(
 ) {
   try {
     const url = services.attains.serviceUrl + `actions?${parameters}`;
-    const res: AttainsActionsData = await fetchCheck(url, null, 120_000);
+    const res: AttainsActionsData = await fetchCheck(url, null, {}, 120_000);
 
     return res.items[0].actions.map((action) => {
       // get water with matching assessment unit identifier

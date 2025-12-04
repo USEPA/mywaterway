@@ -7,7 +7,7 @@ const linkButtonStyles = css`
   padding: 0;
   border: none;
   font-size: 87.5%;
-  text-decoration: none;
+  text-decoration: underline;
   color: #0071bc;
   background-color: transparent;
   cursor: pointer;

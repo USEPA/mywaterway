@@ -12,7 +12,7 @@ describe('API Tests', () => {
   });
 
   test('GET /api/configFiles should return config json', async () => {
-    const response = await supertest(app)
+    await supertest(app)
       .get('/api/configFiles')
       .expect(200)
       .expect('Content-Type', /json/);

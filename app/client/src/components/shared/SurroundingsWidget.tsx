@@ -353,7 +353,8 @@ const widgetContentStyles = (visible: boolean) => css`
   margin-right: 7px;
   max-height: 420px;
   opacity: ${visible ? 1 : 0};
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: absolute;
   transition:
     opacity 250ms ease-in-out,

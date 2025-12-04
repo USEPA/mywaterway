@@ -247,7 +247,7 @@ const headerStyles = css`
   }
 
   .fa-angle-down {
-    margin-left: 0.75em;
+    margin-left: 0.875em;
   }
 
   .fa-angle-right {

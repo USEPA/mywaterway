@@ -876,7 +876,7 @@ function useSharedLayers({
   };
 } = {}) {
   const configFiles = useConfigFilesState();
-  const { setLayer, setResetHandler } = useLayers();
+  const { setLayer } = useLayers();
 
   const { getTitle, getTemplate } = useDynamicPopup();
 

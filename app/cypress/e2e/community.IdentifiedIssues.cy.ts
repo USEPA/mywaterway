@@ -46,7 +46,7 @@ describe('Identified Issues Tab', () => {
     cy.findByRole('tab', { name: /Permitted Dischargers/ }).click({
       force: true,
     });
-    cy.findByRole('switch', { name: /84 Permitted Dischargers/ }).should(
+    cy.findByRole('switch', { name: /97 Permitted Dischargers/ }).should(
       'have.attr',
       'aria-checked',
       'true',
@@ -116,6 +116,8 @@ describe('Identified Issues Tab', () => {
   });
 
   it('Permitted dischargers table filters', () => {
+    const nonViolationDischarger = '10TH & CHEROKEE';
+
     // navigate to Identified issues tab of Community page
     cy.visit('/community/101900030304/identified-issues');
 
@@ -125,7 +127,7 @@ describe('Identified Issues Tab', () => {
     cy.findByRole('tab', { name: 'Permitted Dischargers' }).click();
 
     // verify defaults
-    cy.findByText('1040 SANTA FE DRIVE');
+    cy.findByText(nonViolationDischarger);
     cy.findAllByLabelText('All Other Permitted Dischargers')
       .filter(':visible')
       .should('have.attr', 'aria-checked', 'true');
@@ -139,6 +141,6 @@ describe('Identified Issues Tab', () => {
       .should('have.attr', 'aria-checked', 'false');
 
     // verify other discharger is not shown in list
-    cy.findByText('1040 SANTA FE DRIVE').should('not.exist');
+    cy.findByText(nonViolationDischarger).should('not.exist');
   });
 });

@@ -4,16 +4,15 @@ describe('ServerCheck', () => {
     delete process.env.GLOSSARY_AUTH;
 
     expect(() => {
-      const app = require('../app/app');
+      require('../app/app');
     }).toThrow(Error);
 
     process.env = originalEnv;
   });
 
   test('Test2', function () {
-    let app;
     expect(() => {
-      app = require('../app/app');
+      require('../app/app');
     }).not.toThrow(Error);
   });
 
