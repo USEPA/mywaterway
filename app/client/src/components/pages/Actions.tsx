@@ -5,6 +5,7 @@ import { useParams } from 'react-router';
 import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
+import IconFileAlt from '~icons/fa7-solid/file-alt';
 // components
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
@@ -50,6 +51,7 @@ import { chunkArrayCharLength, getExtensionFromPath } from 'utils/utils';
 import { colors, noMapDataWarningStyles } from 'styles/index';
 // errors
 import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
+import { WarningIcon } from 'components/shared/Icons';
 
 const echoUrl = 'https://echo.epa.gov/detailed-facility-report?fid=';
 
@@ -458,11 +460,7 @@ function Actions() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <i
-                    css={iconStyles}
-                    className="fas fa-file-alt"
-                    aria-hidden="true"
-                  />
+                  <IconFileAlt css={iconStyles} aria-hidden="true" />
                   View Waterbody Report
                 </a>
                 &nbsp;&nbsp;
@@ -757,7 +755,7 @@ function Actions() {
                                           <>
                                             <br />
                                             <span css={noMapDataWarningStyles}>
-                                              <i className="fas fa-exclamation-triangle" />
+                                              <WarningIcon />
                                               <strong>
                                                 [Waterbody not visible on map.]
                                               </strong>

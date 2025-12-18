@@ -15,6 +15,10 @@ import Portal from '@arcgis/core/portal/Portal';
 import PortalItem from '@arcgis/core/portal/PortalItem';
 import PortalQueryParams from '@arcgis/core/portal/PortalQueryParams';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
+import IconCaretDown from '~icons/fa7-solid/caret-down';
+import IconLongArrowAltDown from '~icons/fa7-solid/long-arrow-alt-down';
+import IconLongArrowAltUp from '~icons/fa7-solid/long-arrow-alt-up';
+import IconSearch from '~icons/fa7-solid/search';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -45,6 +49,7 @@ const searchFlexItemStyles = css`
 `;
 
 const searchContainerStyles = css`
+  display: flex;
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -117,11 +122,14 @@ const filterContainerStyles = css`
 `;
 
 const filterOptionStyles = css`
+  display: flex;
   margin: 5px;
 `;
 
 const textSelectStyles = css`
   cursor: pointer;
+  display: flex;
+  gap: 4px;
 `;
 
 const typeSelectStyles = css`
@@ -162,7 +170,8 @@ const buttonSelectStyles = css`
 
 const sortOrderStyles = css`
   color: black;
-  width: 10px;
+  height: 15px;
+  width: 20px;
   background-color: white;
   padding: 0;
   margin: 0 5px;
@@ -174,10 +183,6 @@ const sortOrderStyles = css`
 
   &:disabled {
     cursor: default;
-  }
-
-  i { 
-    display: inline;
   }
 `;
 
@@ -444,7 +449,7 @@ function SearchPanel() {
                 type="submit"
                 onClick={(_ev) => setSearch(searchText)}
               >
-                <i className="fas fa-search" style={{ display: 'inline' }}></i>
+                <IconSearch style={{ display: 'inline' }} />
                 <span css={buttonHiddenTextStyles}>Search</span>
               </button>
             </form>
@@ -458,7 +463,7 @@ function SearchPanel() {
               onClick={handleTypeClick}
               onKeyDown={handleTypeClick}
             >
-              Type <i className="fas fa-caret-down"></i>
+              Type <IconCaretDown />
             </span>
             {showFilterOptions && (
               <div css={typeSelectStyles}>
@@ -544,7 +549,7 @@ function SearchPanel() {
               onClick={handleSortClick}
               onKeyDown={handleSortClick}
             >
-              {sortBy.label} <i className="fas fa-caret-down"></i>
+              {sortBy.label} <IconCaretDown />
             </span>
             {showSortOptions && (
               <div css={typeSelectStyles}>
@@ -647,11 +652,11 @@ function SearchPanel() {
                   setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
                 }
               >
-                <i
-                  className={`fas fa-long-arrow-alt-${
-                    sortOrder === 'desc' ? 'up' : 'down'
-                  }`}
-                ></i>
+                {sortOrder === 'desc' ? (
+                  <IconLongArrowAltUp />
+                ) : (
+                  <IconLongArrowAltDown />
+                )}
                 <span css={buttonHiddenTextStyles}>
                   {sortOrder === 'desc' ? 'Sort Ascending' : 'Sort Descending'}
                 </span>
@@ -720,8 +725,8 @@ const cardThumbnailStyles = css`
 const cardTitleStyles = css`
   margin: 0;
   padding: 0;
-  font-family: 'Merriweather Web', 'Georgia', 'Cambria', 'Times New Roman',
-    'Times', serif;
+  font-family:
+    'Merriweather Web', 'Georgia', 'Cambria', 'Times New Roman', 'Times', serif;
   font-size: 12px;
   font-weight: 500;
   overflow: hidden;

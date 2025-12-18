@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import { TooltipPopup, useTooltip } from '@reach/tooltip';
 import { css } from '@emotion/react';
+import IconQuestionCircle from '~icons/fa7-solid/question-circle';
 // styles
 import '@reach/tooltip/styles.css';
 import { colors, iconButtonStyles } from 'styles';
@@ -78,14 +79,14 @@ type HelpTooltipProps = {
   description?: string;
   children?: ReactElement;
   label: ReactNode;
-  iconClass?: string;
+  Icon?: typeof IconQuestionCircle;
 };
 
 function HelpTooltip({
   description,
   children,
   label,
-  iconClass = 'fas fa-question-circle',
+  Icon = IconQuestionCircle,
 }: Readonly<HelpTooltipProps>) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   return (
@@ -95,11 +96,7 @@ function HelpTooltip({
         onClick={(_ev) => triggerRef.current?.focus()}
         ref={triggerRef}
       >
-        {children ? (
-          children
-        ) : (
-          <i aria-hidden css={helpIconStyles} className={iconClass} />
-        )}
+        {children || <Icon aria-hidden css={helpIconStyles} />}
         <span className="sr-only">{description ?? 'Information Tooltip'}</span>
       </button>
     </Tooltip>

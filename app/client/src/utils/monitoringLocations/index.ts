@@ -1,4 +1,4 @@
-import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import * as containsOperator from '@arcgis/core/geometry/operators/containsOperator.js';
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
@@ -131,7 +131,10 @@ export function useMonitoringGroups() {
 
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
-function useMonitoringPeriodOfRecord(filter: MonitoringLocationAttributes[] | null, enabled: boolean) {
+function useMonitoringPeriodOfRecord(
+  filter: MonitoringLocationAttributes[] | null,
+  enabled: boolean,
+) {
   const configFiles = useConfigFilesState();
   const {
     setMonitoringPeriodOfRecordStatus,
@@ -213,7 +216,10 @@ function useMonitoringPeriodOfRecord(filter: MonitoringLocationAttributes[] | nu
 
 // Updates local data when the user chooses a new location,
 // and returns a function for updating surrounding data.
-function useUpdateData(localFilter: string | __esri.Polygon | null, includeAnnualData: boolean) {
+function useUpdateData(
+  localFilter: string | __esri.Polygon | null,
+  includeAnnualData: boolean,
+) {
   // Build the data update function
   const configFiles = useConfigFilesState();
   const { mapView } = useContext(LocationSearchContext);
@@ -255,10 +261,7 @@ function useUpdateData(localFilter: string | __esri.Polygon | null, includeAnnua
   }, [configFiles, fetchedDataDispatch, localFilter]);
 
   // Add annual characteristic data to the local data
-  const annualData = useMonitoringPeriodOfRecord(
-    localData,
-    includeAnnualData,
-  );
+  const annualData = useMonitoringPeriodOfRecord(localData, includeAnnualData);
   useEffect(() => {
     if (!localData?.length) return;
     if (annualData.status !== 'success') return;
@@ -470,7 +473,7 @@ function buildLayer(
           complexProps,
           feature.graphic.attributes,
         );
-        return getTemplate(feature, type === 'surrounding');
+        return getTemplate(feature);
       },
     },
     visible: type === 'enclosed',
@@ -511,7 +514,11 @@ async function fetchMonitoringLocations(
   abortSignal: AbortSignal,
 ): Promise<FetchState<MonitoringLocationsData>> {
   let filter: string | __esri.Polygon | __esri.Extent = boundariesFilter;
-  if (typeof boundariesFilter !== 'string' && isPolygon(boundariesFilter) && boundariesFilter.extent) {
+  if (
+    typeof boundariesFilter !== 'string' &&
+    isPolygon(boundariesFilter) &&
+    boundariesFilter.extent
+  ) {
     const extent = await getGeographicExtentPolygon(boundariesFilter);
     filter = getExtentFilter(extent) ?? boundariesFilter;
   }
@@ -521,7 +528,10 @@ async function fetchMonitoringLocations(
     `search?mimeType=geojson&zip=no&${filter}`;
 
   try {
-    const res = await fetchCheck(url, abortSignal) as MonitoringLocationsResponse;
+    const res = (await fetchCheck(
+      url,
+      abortSignal,
+    )) as MonitoringLocationsResponse;
 
     // filter data by boundaries
     const data: MonitoringLocationData[] = [];
@@ -535,7 +545,7 @@ async function fetchMonitoringLocations(
           },
         });
 
-        if (geometryEngine.contains(boundariesFilter, geometry)) {
+        if (containsOperator.execute(boundariesFilter, geometry)) {
           data.push(feature);
         }
       });

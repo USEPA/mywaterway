@@ -2,6 +2,8 @@
 
 import { css } from '@emotion/react';
 import { useRef, useState } from 'react';
+import IconFileCsv from '~icons/fa7-solid/file-csv';
+import IconFileExcel from '~icons/fa7-solid/file-excel';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { Tooltip } from 'components/shared/HelpTooltip';
@@ -17,13 +19,6 @@ import { fetchPost } from 'utils/fetchUtils';
 const fileLinkStyles = css`
   ${iconButtonStyles}
   color: #0071bc;
-
-  svg {
-    display: inline-block;
-    height: auto;
-    margin: 0;
-    width: 12px;
-  }
 `;
 
 /*
@@ -78,12 +73,10 @@ export function FileDownloadButton({
   };
 
   if (disabled)
-    return (
-      <i
-        className={`fas fa-file-${fileType === 'xlsx' ? 'excel' : 'csv'}`}
-        aria-hidden="true"
-        style={{ color: '#ccc' }}
-      />
+    return fileType === 'xlsx' ? (
+      <IconFileExcel aria-hidden="true" style={{ color: '#ccc' }} />
+    ) : (
+      <IconFileCsv aria-hidden="true" style={{ color: '#ccc' }} />
     );
   else if (fetching)
     return (
@@ -98,10 +91,11 @@ export function FileDownloadButton({
       triggerRef={triggerRef}
     >
       <button css={fileLinkStyles} onClick={fetchFile} ref={triggerRef}>
-        <i
-          className={`fas fa-file-${fileType === 'xlsx' ? 'excel' : 'csv'}`}
-          aria-hidden="true"
-        />
+        {fileType === 'xlsx' ? (
+          <IconFileExcel aria-hidden="true" />
+        ) : (
+          <IconFileCsv aria-hidden="true" />
+        )}
         <span className="sr-only">
           {`Download selected data as ${
             fileType === 'xlsx' ? 'an' : 'a'

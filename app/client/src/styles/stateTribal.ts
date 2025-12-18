@@ -7,7 +7,7 @@ export const h2Styles = css`
   font-size: 1.625em;
   font-weight: normal;
 
-  i {
+  svg {
     margin-right: 0.3125em;
     color: #2c72b5;
   }

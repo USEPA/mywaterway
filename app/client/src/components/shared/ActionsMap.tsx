@@ -20,6 +20,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  useDynamicPopup,
   useSharedLayers,
   useMonitoringLocationsLayers,
   useWaterbodyHighlight,
@@ -27,8 +28,6 @@ import {
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
   createWaterbodySymbol,
-  getPopupTitle,
-  getPopupContent,
   getWaterbodyCondition,
 } from 'utils/mapFunctions';
 // errors
@@ -37,6 +36,9 @@ import {
   actionMapNoData,
   esriMapLoadingFailure,
 } from 'config/errorMessages';
+// types
+import type { ReactNode } from 'react';
+import type { Feature } from 'types';
 
 const containerStyles = css`
   display: flex;
@@ -77,6 +79,8 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
   const { surroundingMonitoringLocationsLayer } =
     useMonitoringLocationsLayers();
+
+  const { getTemplate, getTitle } = useDynamicPopup();
 
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
@@ -216,64 +220,47 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
             });
           }
 
-          async function createGraphic(feature: Object, type: string) {
-            const symbol = getWaterbodySymbol(feature, type);
+          async function createGraphic(graphic: Graphic, type: string) {
+            const symbol = getWaterbodySymbol(graphic, type);
 
-            const auId = feature.attributes.assessmentunitidentifier;
-            const reportingCycle = feature.attributes.reportingcycle;
-            let content;
+            const auId = graphic.attributes.assessmentunitidentifier;
+            const reportingCycle = graphic.attributes.reportingcycle;
+            let extraContent: ReactNode;
 
             // add additional attributes
             if (unitIds[auId]) {
-              feature.attributes = {
-                ...feature.attributes,
+              graphic.attributes = {
+                ...graphic.attributes,
                 layerType: 'actions',
                 fieldName: 'hmw-extra-content',
               };
 
-              content = getPopupContent({
-                feature,
-                extraContent: unitIds[auId](reportingCycle, true),
-                navigate,
-              });
+              extraContent = unitIds[auId](reportingCycle, true)
             } else if (includePhoto) {
               const photoLink = await getPhotoLink(
-                feature.attributes.organizationid,
-                feature.attributes.assessmentunitidentifier,
+                graphic.attributes.organizationid,
+                graphic.attributes.assessmentunitidentifier,
               );
 
-              const extraContent = photoLink && (
+              extraContent = photoLink && (
                 <div css={imageContainerStyles}>
                   <img
                     css={imageStyles}
                     src={photoLink}
-                    alt={feature.attributes.assessmentunitname}
+                    alt={graphic.attributes.assessmentunitname}
                   />
                 </div>
               );
-              content = getPopupContent({
-                configFiles: configFiles.data,
-                feature,
-                extraContent,
-                navigate,
-              });
-            } else {
+            }
               // when no content is provided just display the normal community
               // waterbody content
-              content = getPopupContent({
-                configFiles: configFiles.data,
-                feature,
-                navigate,
-              });
-            }
-
             return new Graphic({
-              geometry: feature.geometry,
+              geometry: graphic.geometry,
               symbol,
-              attributes: feature.attributes,
+              attributes: graphic.attributes,
               popupTemplate: {
-                title: getPopupTitle(feature.attributes),
-                content,
+                title: getTitle,
+                content: (feature: Feature) => getTemplate(feature, extraContent),
               },
             });
           }

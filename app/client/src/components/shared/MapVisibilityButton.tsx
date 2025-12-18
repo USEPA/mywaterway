@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { css } from '@emotion/react';
+import IconEye from '~icons/fa7-regular/eye';
+import IconEyeSlash from '~icons/fa7-regular/eye-slash';
 // contexts
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
@@ -36,7 +38,7 @@ function MapVisibilityButton({
   const { selectedGraphic } = useMapHighlightState();
   const [mapShown, setMapShown] = useState(value);
 
-  const iconClassName = mapShown ? 'far fa-eye-slash' : 'far fa-eye';
+  const Icon = mapShown ? IconEyeSlash : IconEye;
 
   // show the map if the View on Map button is clicked
   // (i.e. when the selected graphic changes)
@@ -60,7 +62,7 @@ function MapVisibilityButton({
           }}
         >
           {mapShown ? `Hide ${text}` : `Show ${text}`}&nbsp;&nbsp;
-          <i className={iconClassName} aria-hidden="true" />
+          <Icon aria-hidden="true" />
         </button>
       </div>
 

@@ -1,6 +1,9 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
+import IconMapMarkedAlt from '~icons/fa7-solid/map-marker-alt';
+// components
+import { WarningIcon } from 'components/shared/Icons';
 // contexts
 import { useLayers } from 'contexts/Layers';
 import { useMapHighlightState } from 'contexts/MapHighlight';
@@ -8,6 +11,8 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import { noMapDataWarningStyles } from 'styles/index';
 
 const buttonStyles = css`
+  display: flex;
+  align-items: center;
   margin-bottom: 0;
   font-size: 0.875em;
 
@@ -118,7 +123,7 @@ function ViewOnMapButton({
   if (disabled) {
     return (
       <span css={noMapDataWarningStyles}>
-        <i className="fas fa-exclamation-triangle" />
+        <WarningIcon />
         <strong>No map data available for this waterbody.</strong>
       </span>
     );
@@ -141,7 +146,7 @@ function ViewOnMapButton({
         }
       }}
     >
-      <i className="fas fa-map-marker-alt" aria-hidden="true" />
+      <IconMapMarkedAlt aria-hidden="true" />
       &nbsp;&nbsp;View on Map
     </button>
   );

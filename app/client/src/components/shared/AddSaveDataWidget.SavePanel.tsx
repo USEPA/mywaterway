@@ -7,6 +7,9 @@ import IdentityManager from '@arcgis/core/identity/IdentityManager';
 import OAuthInfo from '@arcgis/core/identity/OAuthInfo';
 import Portal from '@arcgis/core/portal/Portal';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
+import IconAsterisk from '~icons/fa7-solid/asterisk';
+import IconCoins from '~icons/fa7-solid/coins';
+import IconPlus from '~icons/fa7-solid/plus';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -53,7 +56,7 @@ type PublishType = {
 };
 
 const tooltipCost = {
-  icon: 'fas fa-coins',
+  icon: IconCoins,
   text: 'Saving this layer may incur storage credits in ArcGIS online.',
   richText: (
     <>
@@ -70,11 +73,11 @@ const tooltipCost = {
   ),
 };
 const tooltipFiltered = {
-  icon: 'fas fa-asterisk',
+  icon: IconAsterisk,
   text: 'Only the selections you have made on the map will be saved.',
 };
 const tooltipNotLoaded = {
-  icon: 'fas fa-plus',
+  icon: IconPlus,
   text: 'Check to make sure this layer is loaded on your map.',
 };
 
@@ -857,19 +860,19 @@ function SavePanel({ visible }: Readonly<Props>) {
                   {value.requiresFeatureService && (
                     <HelpTooltip
                       label={tooltipCost.text}
-                      iconClass={tooltipCost.icon}
+                      Icon={tooltipCost.icon}
                     />
                   )}
                   {layersMayBeFiltered.includes(key) && (
                     <HelpTooltip
                       label={tooltipFiltered.text}
-                      iconClass={tooltipFiltered.icon}
+                      Icon={tooltipFiltered.icon}
                     />
                   )}
                   {layersMayNotHaveLoaded.includes(key) && (
                     <HelpTooltip
                       label={tooltipNotLoaded.text}
-                      iconClass={tooltipNotLoaded.icon}
+                      Icon={tooltipNotLoaded.icon}
                     />
                   )}
                 </div>

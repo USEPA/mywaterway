@@ -3,6 +3,10 @@
 import { Children, cloneElement, useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 import Select from 'react-select';
+import IconAngleDown from '~icons/fa7-solid/angle-down';
+import IconAngleRight from '~icons/fa7-solid/angle-right';
+import IconCaretSquareDown from '~icons/fa7-regular/caret-square-down';
+import IconCaretSquareRight from '~icons/fa7-regular/caret-square-right';
 // styles
 import { colors, reactSelectStyles } from 'styles/index';
 // types
@@ -56,6 +60,8 @@ const selectStyles = css`
 `;
 
 const expandButtonStyles = (includeSort: boolean) => css`
+  display: inline-flex;
+  align-items: center;
   margin: 0 0 0 0.625rem;
   padding: 0.5rem;
   ${includeSort ? 'padding-bottom: 0;' : ''}
@@ -137,9 +143,7 @@ function AccordionList({
   );
   const [allExpanded, setAllExpanded] = useState(false);
 
-  const iconClassName = allExpanded
-    ? 'far fa-caret-square-right'
-    : 'far fa-caret-square-down';
+  const Icon = allExpanded ? IconCaretSquareRight : IconCaretSquareDown;
 
   // generate unique id for sorting label and dropdown
   const uniqueID = Date.now() + Math.random();
@@ -208,7 +212,7 @@ function AccordionList({
                   }}
                 >
                   {allExpanded ? 'Collapse All' : 'Expand All'}&nbsp;&nbsp;
-                  <i className={iconClassName} aria-hidden="true" />
+                  <Icon aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -245,14 +249,6 @@ const headerStyles = css`
   &:focus {
     background-color: #f0f6f9;
   }
-
-  .fa-angle-down {
-    margin-left: 0.875em;
-  }
-
-  .fa-angle-right {
-    margin-left: 0.875em;
-  }
 `;
 
 const iconStyles = css`
@@ -273,6 +269,7 @@ const subtitleStyles = css`
 const arrowStyles = css`
   font-size: 1.25em;
   color: #526571;
+  margin-left: 0.875em;
 `;
 
 const colorMap = {
@@ -371,11 +368,11 @@ function AccordionItem({
           )}
         </div>
 
-        <i
-          css={arrowStyles}
-          className={`fa fa-angle-${isOpen ? 'down' : 'right'}`}
-          aria-hidden="true"
-        />
+        {isOpen ? (
+          <IconAngleDown css={arrowStyles} aria-hidden="true" />
+        ) : (
+          <IconAngleRight css={arrowStyles} aria-hidden="true" />
+        )}
       </div>
 
       <div

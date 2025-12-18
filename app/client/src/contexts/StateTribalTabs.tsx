@@ -27,7 +27,7 @@ type State = {
   };
   introText: object;
   stateAndOrganization: object;
-  errorType: '' | 'invalid-page' | 'invalid-org-id';
+  errorType: '' | 'invalid-page' | 'invalid-org-id' | 'service-error';
 };
 
 export class StateTribalTabsProvider extends Component<Props, State> {

@@ -12,6 +12,8 @@ import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
+import IconList from '~icons/fa7-solid/list';
+import IconMapMarkedAlt from '~icons/fa7-solid/map-marked-alt';
 // components
 import {
   AccordionList,
@@ -53,6 +55,7 @@ import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import {
   useCyanWaterbodiesLayers,
   useDischargersLayers,
+  useDynamicPopup,
   useMonitoringLocations,
   useMonitoringLocationsLayers,
   useSharedLayers,
@@ -63,8 +66,6 @@ import {
   basemapFromPortalItem,
   createWaterbodySymbol,
   createUniqueValueInfos,
-  getPopupTitle,
-  getPopupContent,
 } from 'utils/mapFunctions';
 import {
   browserIsCompatibleWithArcGIS,
@@ -91,6 +92,8 @@ const accordionContentStyles = css`
 `;
 
 const buttonStyles = css`
+  display: flex;
+  align-items: center;
   margin-bottom: 0;
   font-size: 0.9375em;
   &.active {
@@ -140,7 +143,6 @@ const mapFooterStatusStyles = css`
   align-items: center;
 
   svg {
-    margin: 0 -0.875rem;
     height: 0.6875rem;
   }
 `;
@@ -462,7 +464,7 @@ function TribalMapList({ activeState, windowHeight }: Props) {
               setMapShown(true);
             }}
           >
-            <i className="fas fa-map-marked-alt" aria-hidden="true" />
+            <IconMapMarkedAlt aria-hidden="true" />
             &nbsp;&nbsp;Map
           </button>
           <button
@@ -476,7 +478,7 @@ function TribalMapList({ activeState, windowHeight }: Props) {
               setListShown(true);
             }}
           >
-            <i className="fas fa-list" aria-hidden="true" />
+            <IconList aria-hidden="true" />
             &nbsp;&nbsp;List
           </button>
         </div>
@@ -660,6 +662,9 @@ function TribalMap({
       },
     },
   });
+
+  const { getTemplate, getTitle } = useDynamicPopup();
+
   const [layers, setLayers] = useState(null);
 
   // Initially sets up the layers
@@ -672,13 +677,8 @@ function TribalMap({
 
     const popupTemplate = {
       outFields: ['*'],
-      title: (feature) => getPopupTitle(feature.graphic.attributes),
-      content: (feature) =>
-        getPopupContent({
-          configFiles: configFiles.data,
-          feature: feature.graphic,
-          navigate,
-        }),
+      title: getTitle,
+      content: getTemplate,
     };
 
     const { attainsId } = activeState;

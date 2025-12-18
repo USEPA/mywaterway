@@ -2,6 +2,9 @@
 
 import { useEffect } from 'react';
 import { css } from '@emotion/react';
+import IconArrowUp from '~icons/fa7-solid/arrow-up';
+import IconDatabase from '~icons/fa7-solid/database';
+import IconEnvelope from '~icons/fa7-solid/envelope';
 // components
 import { linkButtonStyles } from 'components/shared/LinkButton';
 import { DisclaimerModal } from 'components/shared/Modal';
@@ -36,10 +39,6 @@ const containerStyles = css`
 
   li {
     margin-bottom: 0.25em;
-  }
-
-  i {
-    padding-right: 0.75rem;
   }
 
   @media (min-width: 30em) {
@@ -83,12 +82,18 @@ const modifiedLinkButtonStyles = css`
 `;
 
 const titleStyles = css`
-  display: inline;
+  display: flex;
+  align-items: center;
   line-height: 1.125;
   font-family: ${fonts.primary};
 
   @media (min-width: 30em) {
     font-size: 1.375em;
+  }
+
+  svg {
+    font-size: 1.75rem;
+    padding-right: 0.5rem;
   }
 `;
 
@@ -109,8 +114,7 @@ const itemStyles = css`
     margin-top: 2rem;
   }
 
-  a,
-  i {
+  a {
     display: inline;
   }
 `;
@@ -191,8 +195,9 @@ function DataContent() {
         ) => (
           <div key={id}>
             <div css={itemStyles} id={id}>
-              <i className="fas fa-database" aria-hidden="true" />{' '}
-              <h3 css={titleStyles}>{title}</h3>
+              <h3 css={titleStyles}>
+                <IconDatabase aria-hidden="true" /> {title}
+              </h3>
               <div css={marginBoxStyles(textBoxStyles)}>
                 <a href={linkHref} target="_blank" rel="noopener noreferrer">
                   {linkLabel}
@@ -230,10 +235,13 @@ function DataContent() {
           </div>
         ),
       )}
-      <div
-        css={modifiedInfoBoxStyles}
-        dangerouslySetInnerHTML={{ __html: data.footer }}
-      />
+      <div css={modifiedInfoBoxStyles}>
+        <h3 css={titleStyles}>
+          <IconEnvelope aria-hidden="true" />
+          <span dangerouslySetInnerHTML={{ __html: data.footerTitle }} />
+        </h3>
+        <span dangerouslySetInnerHTML={{ __html: data.footer }} />
+      </div>
     </div>
   );
 }
@@ -248,8 +256,8 @@ const scrollToTopContainerStyles = css`
 function ScrollToTop() {
   return (
     <div css={scrollToTopContainerStyles}>
-      <div style={{ float: 'right' }}>
-        <i className="fas fa-arrow-up" aria-hidden="true"></i>
+      <div style={{ display: 'flex', float: 'right' }}>
+        <IconArrowUp aria-hidden="true" />
         <button
           css={modifiedLinkButtonStyles}
           onClick={() => scrollToItem('hmw-nav-bar')}

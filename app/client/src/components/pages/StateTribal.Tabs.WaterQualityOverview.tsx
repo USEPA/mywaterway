@@ -4,6 +4,11 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
+import IconFileAlt from '~icons/fa7-solid/file-alt';
+import IconGlobe from '~icons/fa7-solid/globe-americas';
+import IconInfoCircle from '~icons/fa7-solid/info-circle';
+import IconNewspaper from '~icons/fa7-solid/newspaper';
+import IconTint from '~icons/fa7-solid/tint';
 // components
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
@@ -148,8 +153,10 @@ const topicIconStyles = css`
 const headingStyles = css`
   ${h2Styles}
   margin-top: 0 !important;
+  display: flex;
+  align-items: center;
 
-  i {
+  svg {
     margin-right: 0.3125em;
     color: #2c72b5;
   }
@@ -885,7 +892,7 @@ function WaterQualityOverview() {
     tabs.push({
       id: 'cultural',
       title: 'Cultural',
-      icon: <i className="fas fa-globe-americas fa-align-center" />,
+      icon: <IconGlobe height="2.5em" width="2.5em" />,
     });
   }
 
@@ -925,8 +932,10 @@ function WaterQualityOverview() {
   return (
     <div css={containerStyles}>
       <h2 css={headingStyles}>
-        <i className="fas fa-tint" aria-hidden="true" />
-        <strong>{activeState.label}</strong> Water Quality
+        <IconTint aria-hidden="true" />
+        <span>
+          <strong>{activeState.label}</strong> Water Quality
+        </span>
       </h2>
 
       <h3 css={h3Styles}>Choose a Topic:</h3>
@@ -1099,16 +1108,12 @@ function WaterQualityOverview() {
       <AccordionList css={activeState.source !== 'Tribe' && accordionsStyles}>
         <AccordionItem
           highlightContent={false}
-          icon={
-            <i
-              css={accordionIconStyles}
-              className="fas fa-file-alt"
-              aria-hidden="true"
-            />
-          }
+          icon={<IconFileAlt css={accordionIconStyles} aria-hidden="true" />}
           title={
             <h2 css={headingStyles}>
-              <strong>{activeState.label}</strong> Documents
+              <span>
+                <strong>{activeState.label}</strong> Documents
+              </span>
             </h2>
           }
         >
@@ -1129,15 +1134,13 @@ function WaterQualityOverview() {
           <AccordionItem
             highlightContent={false}
             icon={
-              <i
-                css={accordionIconStyles}
-                className="fas fa-newspaper"
-                aria-hidden="true"
-              />
+              <IconNewspaper css={accordionIconStyles} aria-hidden="true" />
             }
             title={
               <h2 css={headingStyles}>
-                <strong>{activeState.label}</strong> Water Stories
+                <span>
+                  <strong>{activeState.label}</strong> Water Stories
+                </span>
               </h2>
             }
           >
@@ -1151,16 +1154,12 @@ function WaterQualityOverview() {
         )}
         <AccordionItem
           highlightContent={false}
-          icon={
-            <i
-              css={accordionIconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-          }
+          icon={<IconInfoCircle css={accordionIconStyles} aria-hidden="true" />}
           title={
             <h2 css={headingStyles}>
-              More Information for <strong>{activeState.label}</strong>
+              <span>
+                More Information for <strong>{activeState.label}</strong>
+              </span>
             </h2>
           }
         >
