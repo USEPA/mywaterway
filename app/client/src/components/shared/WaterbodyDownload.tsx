@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import { css } from '@emotion/react';
+import IconFilter from '~icons/fa7-solid/filter';
 // components
 import FileDownloadButton from 'components/shared/FileDownloadButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -26,6 +27,11 @@ const filterAndDownloadStyles = css`
     gap: 0.5em;
     justify-content: flex-end;
     text-align: right;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
   }
 `;
 
@@ -77,7 +83,7 @@ export function WaterbodyDownload({
             rel="noopener noreferrer"
             data-cy="portal"
           >
-            <i css={iconStyles} className="fas fa-filter" aria-hidden="true" />
+            <IconFilter css={iconStyles} aria-hidden="true" />
             Advanced Filtering
           </a>
           &nbsp;&nbsp;

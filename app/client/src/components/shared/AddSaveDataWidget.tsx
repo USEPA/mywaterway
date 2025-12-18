@@ -3,6 +3,11 @@
 import { Fragment, useContext, useState } from 'react';
 import { css } from '@emotion/react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
+import IconAngleLeft from '~icons/fa7-solid/angle-left';
+import IconAngleRight from '~icons/fa7-solid/angle-right';
+import IconDoubleAngleLeft from '~icons/fa7-solid/angles-left';
+import IconDoubleAngleRight from '~icons/fa7-solid/angles-right';
+import IconLayerGroup from '~icons/fa7-solid/layer-group';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
 import { DisclaimerModal } from 'components/shared/Modal';
@@ -90,11 +95,16 @@ const footerBarStyles = css`
   background-color: #f8f8f8;
 `;
 
+const footerBarPageStyles = css`
+  display: flex;
+  align-items: center;
+`;
+
 const pageControlStyles = css`
   color: black;
   background-color: transparent;
-  padding: 3px;
-  margin: 0 3px;
+  padding: 0;
+  margin: 0;
 
   &:disabled {
     background-color: inherit;
@@ -319,7 +329,7 @@ function AddSaveDataWidget() {
           </div>
         </div>
         <div css={footerBarStyles}>
-          <div>
+          <div css={footerBarPageStyles}>
             {activeTabIndex === 0 && !layerPanelVisible && (
               <Fragment>
                 <button
@@ -327,7 +337,7 @@ function AddSaveDataWidget() {
                   disabled={pageNumber === 1 || !searchResults?.data}
                   onClick={() => setPageNumber(1)}
                 >
-                  <i className="fas fa-angle-double-left"></i>
+                  <IconDoubleAngleLeft />
                   <span css={buttonHiddenTextStyles}>Go to first page</span>
                 </button>
                 <button
@@ -335,7 +345,7 @@ function AddSaveDataWidget() {
                   disabled={pageNumber === 1 || !searchResults?.data}
                   onClick={() => setPageNumber(pageNumber - 1)}
                 >
-                  <i className="fas fa-angle-left"></i>
+                  <IconAngleLeft />
                   <span css={buttonHiddenTextStyles}>Previous</span>
                 </button>
                 <span>{pageNumber}</span>
@@ -347,7 +357,7 @@ function AddSaveDataWidget() {
                   }
                   onClick={() => setPageNumber(pageNumber + 1)}
                 >
-                  <i className="fas fa-angle-right"></i>
+                  <IconAngleRight />
                   <span css={buttonHiddenTextStyles}>Next</span>
                 </button>
                 <span css={totalStyles}>
@@ -368,11 +378,11 @@ function AddSaveDataWidget() {
           >
             {layerPanelVisible ? (
               <Fragment>
-                Back <i className="fas fa-angle-double-right"></i>
+                Back <IconDoubleAngleRight />
               </Fragment>
             ) : (
               <Fragment>
-                <i className="fas fa-layer-group"></i> Layers
+                <IconLayerGroup /> Layers
               </Fragment>
             )}
           </button>

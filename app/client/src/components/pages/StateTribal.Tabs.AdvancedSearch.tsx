@@ -5,6 +5,9 @@ import { css } from '@emotion/react';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import * as query from '@arcgis/core/rest/query';
+import IconList from '~icons/fa7-solid/list';
+import IconMapMarkedAlt from '~icons/fa7-solid/map-marked-alt';
+import IconSearch from '~icons/fa7-solid/search';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -194,6 +197,8 @@ const searchStyles = css`
 `;
 
 const buttonStyles = css`
+  display: inline-flex;
+  align-items: center;
   margin-bottom: 0;
   font-size: 0.9375em;
   &.active {
@@ -215,7 +220,6 @@ const mapFooterStatusStyles = css`
   align-items: center;
 
   svg {
-    margin: 0 -0.875rem;
     height: 0.6875rem;
   }
 `;
@@ -975,7 +979,7 @@ function AdvancedSearch() {
                 executeFilter();
               }}
             >
-              <i className="fas fa-search" aria-hidden="true" />
+              <IconSearch aria-hidden="true" />
               &nbsp;&nbsp;Search
             </button>
           }
@@ -1073,7 +1077,7 @@ function AdvancedSearch() {
                 className={`btn btn-secondary${showMap ? ' active' : ''}`}
                 onClick={(_ev) => setShowMap(true)}
               >
-                <i className="fas fa-map-marked-alt" aria-hidden="true" />
+                <IconMapMarkedAlt aria-hidden="true" />
                 &nbsp;&nbsp;Map
               </button>
               <button
@@ -1082,7 +1086,7 @@ function AdvancedSearch() {
                 className={`btn btn-secondary${!showMap ? ' active' : ''}`}
                 onClick={(_ev) => setShowMap(false)}
               >
-                <i className="fas fa-list" aria-hidden="true" />
+                <IconList aria-hidden="true" />
                 &nbsp;&nbsp;List
               </button>
             </div>

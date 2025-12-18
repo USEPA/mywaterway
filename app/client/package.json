@@ -1,6 +1,6 @@
 {
   "name": "mywaterway-client",
-  "version": "2.15.0",
+  "version": "2.16.0",
   "description": "A tool to learn about your water resources.",
   "keywords": [
     "MyWaterway",
@@ -73,11 +73,15 @@
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@esri/calcite-components-react": "3.3.3",
+    "@iconify-json/fa7-regular": "1.2.2",
+    "@iconify-json/fa7-solid": "1.2.3",
     "@mui/material": "7.3.5",
     "@radix-ui/react-dialog": "1.1.15",
     "@reach/tabs": "0.18.0",
     "@reach/tooltip": "0.18.0",
     "@reach/window-size": "0.18.0",
+    "@svgr/core": "8.1.0",
+    "@svgr/plugin-jsx": "8.1.0",
     "@visx/curve": "3.12.0",
     "@visx/glyph": "3.12.0",
     "@visx/legend": "3.12.0",
@@ -104,6 +108,7 @@
     "react-virtuoso": "4.14.1",
     "regenerator-runtime": "0.14.1",
     "smoothscroll-polyfill": "0.4.4",
+    "unplugin-icons": "22.5.0",
     "uuid": "13.0.0"
   }
 }

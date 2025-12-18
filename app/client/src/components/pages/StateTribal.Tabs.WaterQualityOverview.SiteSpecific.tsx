@@ -52,7 +52,6 @@ const chartFooterStyles = css`
   padding-bottom: 0;
 
   svg {
-    margin: 0 -0.875rem;
     height: 0.6875rem;
   }
 `;

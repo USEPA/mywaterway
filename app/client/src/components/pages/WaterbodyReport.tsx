@@ -5,6 +5,7 @@ import { Fragment, useContext, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { WindowSize } from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
+import IconFileAlt from '~icons/fa7-solid/file-alt';
 // components
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
@@ -140,7 +141,6 @@ const inlineBoxSectionStyles = css`
   /* loading icon */
   svg {
     display: inline-block;
-    margin: -0.5rem;
     height: 1.25rem;
   }
 
@@ -232,6 +232,16 @@ const iconStyles = css`
 
 const disclaimerStyles = css`
   display: inline-block;
+`;
+
+const viewWaterbodyReportStyles = css`
+  display: flex;
+  align-items: center;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+  }
 `;
 
 const conditions = {
@@ -1206,21 +1216,19 @@ function WaterbodyReport() {
                 There is more recent data available for this waterbody. Please
                 use the following link to view the latest information:
                 <br />
-                <a
-                  href={`/waterbody-report/${orgId}/${auId}/${latestReportingCycle ?? reportingCycleGis}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <i
-                    css={iconStyles}
-                    className="fas fa-file-alt"
-                    aria-hidden="true"
-                  />
-                  View Waterbody Report for{' '}
-                  {latestReportingCycle ?? reportingCycleGis}
-                </a>
-                &nbsp;&nbsp;
-                <small css={disclaimerStyles}>(opens new browser tab)</small>
+                <span css={viewWaterbodyReportStyles}>
+                  <a
+                    href={`/waterbody-report/${orgId}/${auId}/${latestReportingCycle ?? reportingCycleGis}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <IconFileAlt css={iconStyles} aria-hidden="true" />
+                    View Waterbody Report for{' '}
+                    {latestReportingCycle ?? reportingCycleGis}
+                  </a>
+                  &nbsp;&nbsp;
+                  <small css={disclaimerStyles}>(opens new browser tab)</small>
+                </span>
               </div>
             </div>
           )}

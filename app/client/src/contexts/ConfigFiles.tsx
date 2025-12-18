@@ -43,6 +43,7 @@ export type ConfigFiles = {
   dataPage: {
     content: DataPageContentType[];
     footer: string;
+    footerTitle: string;
     intro: string;
   };
   disclaimers: {
@@ -56,6 +57,7 @@ export type ConfigFiles = {
     title: string;
     content: string;
     footer: string;
+    footerTitle: string;
   };
   eqProfileColumns: Record<string, string[]>;
   extremeWeather: ExtremeWeatherConfig;

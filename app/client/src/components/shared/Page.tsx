@@ -6,6 +6,11 @@ import type { ReactNode } from 'react';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router';
 import esriConfig from '@arcgis/core/config';
+import IconBook from '~icons/fa7-solid/book';
+import IconDatabase from '~icons/fa7-solid/database';
+import IconEnvelope from '~icons/fa7-solid/envelope';
+import IconGraduationCap from '~icons/fa7-solid/graduation-cap';
+import IconInfoCircle from '~icons/fa7-solid/info-circle';
 // components
 import NavBar from 'components/shared/NavBar';
 import DataContent from 'components/shared/DataContent';
@@ -60,6 +65,8 @@ const topLinksStyles = css`
   }
 
   button {
+    display: flex;
+    align-items: center;
     margin-bottom: 0;
     font-weight: normal;
   }
@@ -89,17 +96,16 @@ const topLinksStyles = css`
       pointer-events: none;
     }
 
-    i {
+    svg {
       width: 2rem;
       font-size: 1rem;
       text-align: center;
     }
 
     @media (min-width: 35em) {
-      display: inline-block;
       font-size: 0.8125rem;
 
-      i {
+      svg {
         width: auto;
         margin-right: 0.5em;
         font-size: 0.75rem;
@@ -111,7 +117,8 @@ const topLinksStyles = css`
 const bannerStyles = css`
   position: relative;
   height: 10em;
-  background-image: linear-gradient(
+  background-image:
+    linear-gradient(
       ${colors.black(0.875)} 25%,
       ${colors.black(0.625)} 50%,
       ${colors.black(0.375)} 75%
@@ -380,7 +387,7 @@ function Page({ children }: Props) {
         <ul>
           <li>
             <button className="js-glossary-toggle">
-              <i className="fas fa-book" aria-hidden="true" />
+              <IconBook aria-hidden="true" />
               Glossary
             </button>
           </li>
@@ -395,7 +402,7 @@ function Page({ children }: Props) {
                 }
               }}
             >
-              <i className="fas fa-database" aria-hidden="true" />
+              <IconDatabase aria-hidden="true" />
               Data
             </button>
           </li>
@@ -410,7 +417,7 @@ function Page({ children }: Props) {
                 }
               }}
             >
-              <i className="fas fa-info-circle" aria-hidden="true" />
+              <IconInfoCircle aria-hidden="true" />
               About
             </button>
           </li>
@@ -425,7 +432,7 @@ function Page({ children }: Props) {
                 }
               }}
             >
-              <i className="fas fa-graduation-cap" aria-hidden="true" />
+              <IconGraduationCap aria-hidden="true" />
               Educators
             </button>
           </li>
@@ -436,7 +443,7 @@ function Page({ children }: Props) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <i className="fas fa-envelope" aria-hidden="true" />
+              <IconEnvelope aria-hidden="true" />
               Contact Us
             </a>
           </li>

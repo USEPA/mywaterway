@@ -186,7 +186,7 @@ function MapMouseEvents({ view }: Props) {
       view.closePopup();
       view.popup = new Popup({
         location: point,
-        title: 'Change to this location?',
+        title: 'Change to this watershed?',
         visible: true,
         visibleElements: {
           collapseButton: false,
@@ -266,7 +266,6 @@ function MapMouseEvents({ view }: Props) {
           // user clicked outside of the selected huc boundaries
           if (
             !graphic &&
-            !onTribePage &&
             !hucBoundaries?.geometry.contains(location)
           ) {
             //get the huc boundaries of where the user clicked

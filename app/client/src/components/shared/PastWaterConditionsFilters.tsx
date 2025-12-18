@@ -2,7 +2,10 @@
 
 import { css } from '@emotion/react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-
+import IconFileCsv from '~icons/fa7-solid/file-csv';
+import IconFileExcel from '~icons/fa7-solid/file-excel';
+import IconFilter from '~icons/fa7-solid/filter';
+// components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Slider from 'components/shared/Slider';
@@ -487,11 +490,7 @@ export function PastWaterConditionsFilters({
                 data-cy="portal"
                 style={{ fontWeight: 'normal' }}
               >
-                <i
-                  css={iconStyles}
-                  className="fas fa-filter"
-                  aria-hidden="true"
-                />
+                <IconFilter css={iconStyles} aria-hidden="true" />
                 Advanced Filtering
               </a>
               &nbsp;&nbsp;
@@ -510,15 +509,11 @@ export function PastWaterConditionsFilters({
                       label="Download XLSX"
                       description="Download selected data as an XLSX file."
                     >
-                      <i className="fas fa-file-excel" aria-hidden="true" />
+                      <IconFileExcel aria-hidden="true" />
                     </HelpTooltip>
                   </a>
                 ) : (
-                  <i
-                    className="fas fa-file-excel"
-                    aria-hidden="true"
-                    style={{ color: '#ccc' }}
-                  />
+                  <IconFileExcel aria-hidden="true" style={{ color: '#ccc' }} />
                 )}
                 &nbsp;&nbsp;
                 {filteredLocations.length > 0 ? (
@@ -527,15 +522,11 @@ export function PastWaterConditionsFilters({
                       label="Download CSV"
                       description="Download selected data as a CSV file."
                     >
-                      <i className="fas fa-file-csv" aria-hidden="true" />
+                      <IconFileCsv aria-hidden="true" />
                     </HelpTooltip>
                   </a>
                 ) : (
-                  <i
-                    className="fas fa-file-csv"
-                    aria-hidden="true"
-                    style={{ color: '#ccc' }}
-                  />
+                  <IconFileCsv aria-hidden="true" style={{ color: '#ccc' }} />
                 )}
               </span>
             </td>

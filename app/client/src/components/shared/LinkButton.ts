@@ -2,7 +2,9 @@ import { colors } from 'styles/index';
 import { css } from '@emotion/react';
 
 const linkButtonStyles = css`
-  display: inline;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
   margin: 0;
   padding: 0;
   border: none;

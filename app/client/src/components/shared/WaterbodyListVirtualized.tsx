@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 // components
+import { WarningIcon } from 'components/shared/Icons';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
@@ -186,7 +187,7 @@ function WaterbodyListVirtualized({
                       <>
                         <br />
                         <span css={noMapDataWarningStyles}>
-                          <i className="fas fa-exclamation-triangle" />
+                          <WarningIcon />
                           <strong>[Waterbody not visible on map.]</strong>
                         </span>
                       </>

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { css } from '@emotion/react';
+import IconAngleDown from '~icons/fa7-solid/angle-down';
+import IconAngleRight from '~icons/fa7-solid/angle-right';
 // types
 import type { ReactNode } from 'react';
 
@@ -53,11 +55,11 @@ export function TogglePanel({
       <div css={controlStyles}>
         <button onClick={(_ev) => setIsOpen((prev) => !prev)}>
           {title}{' '}
-          <i
-            css={arrowStyles}
-            className={`fa fa-angle-${isOpen ? 'down' : 'right'}`}
-            aria-hidden="true"
-          />
+          {isOpen ? (
+            <IconAngleDown css={arrowStyles} aria-hidden="true" />
+          ) : (
+            <IconAngleRight css={arrowStyles} aria-hidden="true" />
+          )}
         </button>
       </div>
       {isOpen && <div css={childrenContainerStyles}>{children}</div>}

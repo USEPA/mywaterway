@@ -100,7 +100,7 @@ const rowCellStyles = css`
 
   /* loading icon */
   svg {
-    margin: -0.5em;
+    margin: 0;
     height: 1.25em;
   }
 

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { css } from '@emotion/react';
+import IconGraduationCap from '~icons/fa7-solid/graduation-cap';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 // styles
@@ -14,6 +15,8 @@ const containerStyles = css`
 
   h3,
   h4 {
+    display: flex;
+    align-items: center;
     margin-bottom: 0;
     padding-bottom: 0;
     font-family: ${fonts.primary};
@@ -52,9 +55,10 @@ const containerStyles = css`
     margin-bottom: 0.5rem;
   }
 
-  i {
-    padding-right: 0.75rem;
+  svg {
+    padding-right: 0.5rem;
     color: ${colors.navyBlue()};
+    font-size: 2.25rem;
   }
 `;
 
@@ -104,7 +108,10 @@ function EducatorsContent() {
 
   return (
     <div css={containerStyles} className="container">
-      <h3 dangerouslySetInnerHTML={{ __html: data.title }} />
+      <h3>
+        <IconGraduationCap aria-hidden="true" />
+        <span dangerouslySetInnerHTML={{ __html: data.title }} />
+      </h3>
 
       <hr />
 
@@ -115,10 +122,13 @@ function EducatorsContent() {
         dangerouslySetInnerHTML={{ __html: data.content }}
       />
 
-      <div
-        css={modifiedInfoBoxStyles}
-        dangerouslySetInnerHTML={{ __html: data.footer }}
-      />
+      <div css={modifiedInfoBoxStyles}>
+        <h4>
+          <IconGraduationCap aria-hidden="true" />
+          <span dangerouslySetInnerHTML={{ __html: data.footerTitle }} />
+        </h4>
+        <span dangerouslySetInnerHTML={{ __html: data.footer }} />
+      </div>
     </div>
   );
 }
