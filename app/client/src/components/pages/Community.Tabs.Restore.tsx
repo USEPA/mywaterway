@@ -3,6 +3,7 @@
 import { useContext, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
+import IconFileAlt from '~icons/fa7-solid/file-alt';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { ListContent } from 'components/shared/BoxContent';
@@ -60,7 +61,15 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
-const linkBoxStyles = css``;
+const linkBoxStyles = css`
+  display: flex;
+  align-items: center;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+  }
+`;
 
 const waterbodyDownloadContainerStyles = css`
   padding: 0 0.75rem;
@@ -602,9 +611,8 @@ function Restore() {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >
-                                  <i
+                                  <IconFileAlt
                                     css={iconStyles}
-                                    className="fas fa-file-alt"
                                     aria-hidden="true"
                                   />
                                   Full Story{' '}

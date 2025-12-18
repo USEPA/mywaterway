@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { css } from '@emotion/react';
 import * as Dialog from '@radix-ui/react-dialog';
+import IconQuestionCircle from '~icons/fa7-solid/question-circle';
+import IconTimes from '~icons/fa7-solid/times';
 // contexts
 import { useConfigFilesState } from 'contexts/ConfigFiles';
 // types
@@ -185,7 +187,7 @@ export default function Modal({
               title={closeTitle ?? 'Close'}
               onClick={close}
             >
-              <i className="fas fa-times" aria-hidden="true" />
+              <IconTimes aria-hidden="true" />
             </button>
 
             {children}
@@ -268,11 +270,7 @@ export function DisclaimerModal({
       triggerElm={
         infoIcon ? (
           <button aria-label="Disclaimer" css={iconButtonStyles}>
-            <i
-              aria-hidden
-              css={helpIconStyles}
-              className="fas fa-question-circle"
-            ></i>
+            <IconQuestionCircle aria-hidden css={helpIconStyles} />
           </button>
         ) : (
           <button

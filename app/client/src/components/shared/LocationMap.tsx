@@ -1,16 +1,23 @@
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { Node } from 'react';
 import { css } from '@emotion/react';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Field from '@arcgis/core/layers/support/Field';
-import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import * as intersectsOperator from '@arcgis/core/geometry/operators/intersectsOperator.js';
 import * as locator from '@arcgis/core/rest/locator';
 import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
 import Point from '@arcgis/core/geometry/Point';
@@ -176,7 +183,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   useCyanWaterbodiesLayers();
   useDischargersLayers();
-  useMonitoringLocationsLayers({ filter: (hucBoundaries?.geometry as __esri.Polygon) ?? null });
+  useMonitoringLocationsLayers({
+    filter: (hucBoundaries?.geometry as __esri.Polygon) ?? null,
+  });
   useStreamgageLayers();
 
   function matchStateCodeToAssessment(
@@ -736,7 +745,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           const features =
             geometryType === 'point'
               ? res.features
-              : await cropGeometryToHuc(
+              : cropGeometryToHuc(
                   res.features,
                   boundaries.features[0].geometry,
                 );
@@ -779,6 +788,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [
       cropGeometryToHuc,
       handleMapServiceError,
+      popupTemplate,
       setLayer,
       setResetHandler,
       updateErroredLayers,
@@ -1360,7 +1370,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               // check if location intersects
               let visible = false;
               if (
-                geometryEngine.intersects(location, feature.geometry) &&
+                feature.geometry &&
+                intersectsOperator.execute(location, feature.geometry) &&
                 feature.attributes
               ) {
                 const stateCode = feature.attributes.STATE_FIPS;

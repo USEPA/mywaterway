@@ -3,8 +3,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from '@emotion/react';
-import * as query from '@arcgis/core/rest/query';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import IconInfoCircle from '~icons/fa7-solid/info-circle';
 // components
 import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -73,6 +72,10 @@ const containerStyles = css`
 const accordionContentStyles = css`
   padding-top: 0.875em;
   padding-bottom: 0.875em;
+
+  a > svg {
+    margin-bottom: 2px;
+  }
 `;
 
 const switchStyles = css`
@@ -685,8 +688,7 @@ function Protect() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <i className="fas fa-info-circle" aria-hidden="true" />{' '}
-                        More Information
+                        <IconInfoCircle aria-hidden="true" /> More Information
                       </a>{' '}
                       <small css={disclaimerStyles}>
                         (opens new browser tab)
@@ -930,11 +932,8 @@ function Protect() {
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            <i
-                              className="fas fa-info-circle"
-                              aria-hidden="true"
-                            />{' '}
-                            More Information
+                            <IconInfoCircle aria-hidden="true" /> More
+                            Information
                           </a>{' '}
                           <small css={disclaimerStyles}>
                             (opens new browser tab)

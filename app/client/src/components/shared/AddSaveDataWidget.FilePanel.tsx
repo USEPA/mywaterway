@@ -7,6 +7,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Field from '@arcgis/core/layers/support/Field';
 import Graphic from '@arcgis/core/Graphic';
 import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
+import IconFile from '~icons/fa7-solid/file';
 // components
 import { DisclaimerModal } from 'components/shared/Modal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -76,23 +77,20 @@ function getLayerName(layers, desiredName) {
 }
 
 // --- styles (FileIcon) ---
-const fileIconOuterContainerStyles = css`
-  width: 2em;
-  line-height: 1;
-  margin: 2px;
-`;
-
+const fileIconSize = '90px';
 const fileIconContainerStyles = css`
+  position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
-  height: 100%;
-  vertical-align: middle;
+  height: ${fileIconSize};
+  width: ${fileIconSize};
+  line-height: 1;
 `;
 
 const fileIconIStyles = css`
   color: #e6e8ed;
-  width: 100%;
+  height: ${fileIconSize};
+  width: ${fileIconSize};
 `;
 
 const fileIconTextColor = `
@@ -101,16 +99,33 @@ const fileIconTextColor = `
 
 const fileIconTextColorDivStyles = css`
   ${fileIconTextColor}
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-size: 16px;
+  margin-top: 16px;
+`;
+
+const fileIconGridStyles = css`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
 `;
 
 const fileIconTextStyles = css`
   ${fileIconTextColor}
-  font-size: 16px;
-  margin-top: 16px;
-  width: 100%;
+  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 75px;
+  margin-top: 20px;
+  margin-left: 8px;
+  font-size: 16px;
+  inset: 0;
 `;
 
 const checkBoxStyles = css`
@@ -124,13 +139,9 @@ type FileIconProps = {
 
 function FileIcon({ label }: FileIconProps) {
   return (
-    <span css={fileIconOuterContainerStyles} className="fa-stack fa-2x">
-      <span css={fileIconContainerStyles}>
-        <i css={fileIconIStyles} className="fas fa-file fa-stack-2x"></i>
-        <span css={fileIconTextStyles} className="fa-stack-text fa-stack-1x">
-          {label}
-        </span>
-      </span>
+    <span css={fileIconContainerStyles}>
+      <IconFile css={fileIconIStyles} />
+      <span css={fileIconTextStyles}>{label}</span>
     </span>
   );
 }
@@ -574,16 +585,18 @@ function FilePanel() {
               <p>Drop the files here ...</p>
             ) : (
               <div css={fileIconTextColorDivStyles}>
-                <div>
+                <div css={fileIconGridStyles}>
                   <FileIcon label="Shape File" />
                   <FileIcon label="CSV" />
                   <FileIcon label="KML" />
                   <FileIcon label="GPX" />
                   <FileIcon label="Geo JSON" />
                 </div>
-                <label htmlFor="hmw-dropzone">Drop or Browse</label>
-                <br />
-                <button onClick={open}>Browse</button>
+                <div>
+                  <label htmlFor="hmw-dropzone">Drop or Browse</label>
+                  <br />
+                  <button onClick={open}>Browse</button>
+                </div>
               </div>
             )}
 

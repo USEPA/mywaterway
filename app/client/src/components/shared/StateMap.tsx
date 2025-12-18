@@ -14,8 +14,6 @@ import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
-  getPopupContent,
-  getPopupTitle,
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
@@ -30,6 +28,7 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import {
   useCyanWaterbodiesLayers,
   useDischargersLayers,
+  useDynamicPopup,
   useMonitoringLocationsLayers,
   useSharedLayers,
   useStreamgageLayers,
@@ -104,6 +103,8 @@ function StateMap({
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
 
+  const { getTemplate, getTitle } = useDynamicPopup();
+
   // Initializes the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
   useEffect(() => {
@@ -111,13 +112,8 @@ function StateMap({
 
     const popupTemplate = {
       outFields: ['*'],
-      title: (feature) => getPopupTitle(feature.graphic.attributes),
-      content: (feature) =>
-        getPopupContent({
-          feature: feature.graphic,
-          navigate,
-          configFiles: configFiles.data,
-        }),
+      title: getTitle,
+      content: getTemplate,
     };
 
     // Build the feature layers that will make up the waterbody layer

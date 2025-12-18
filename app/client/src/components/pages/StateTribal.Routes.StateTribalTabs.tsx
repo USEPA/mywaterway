@@ -1,9 +1,12 @@
 /** @jsxImportSource @emotion/react */
 
+import * as query from '@arcgis/core/rest/query';
 import { useContext, useEffect, useRef } from 'react';
+import { css } from '@emotion/react';
 import { useOutletContext, useParams, useNavigate } from 'react-router';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useWindowSize } from '@reach/window-size';
+import IconMapMarkedAlt from '~icons/fa7-solid/map-marked-alt';
 // components
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import WaterQualityOverview from 'components/pages/StateTribal.Tabs.WaterQualityOverview';
@@ -14,11 +17,26 @@ import TribalMapList from 'components/shared/TribalMapList';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 import { h2Styles } from 'styles/stateTribal';
 // contexts
+import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
+
+const headingStyles = css`
+  ${h2Styles}
+  margin-top: 0 !important;
+  display: flex;
+  align-items: center;
+
+  svg {
+    margin-right: 0.3125em;
+    color: #2c72b5;
+  }
+`;
 
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
   const navigate = useNavigate();
+
+  const services = useConfigFilesState().data.services;
 
   const {
     activeState,
@@ -71,18 +89,80 @@ function StateTribalTabs() {
   useEffect(() => {
     if (tribes.status !== 'success' || states.status !== 'success') return;
     if (activeState.value === '' || activeState.value !== stateCode) {
-      const match = [...tribes.data, ...states.data].find((stateTribe) => {
-        return stateTribe.value === stateCode.toUpperCase();
-      });
-      if (match) setActiveState(match);
-      else {
-        setErrorType('invalid-org-id');
-        navigate('/state-and-tribal', { replace: true });
-      }
+      const findStateTribeMapping = async (code: string) => {
+        const findByAttainsIdOrStateCode = (c: string) =>
+          [...tribes.data, ...states.data].find((stateTribe) => {
+            return stateTribe.value === c.toUpperCase();
+          });
+
+        const findByEpaId = (c: number) =>
+          tribes.data.find((tribe) => tribe.epaId === c);
+
+        const queryTribalLayerByEpaId = async (c: number) => {
+          for (let i = 1; i <= 5; i++) {
+            const response = await query.executeQueryJSON(
+              `${services.tribal}/${i}`,
+              {
+                where: `EPA_ID = ${c}`,
+                outFields: ['*'],
+                returnGeometry: false,
+              },
+            );
+            if (response.features.length > 0) {
+              const feature = response.features[0];
+              return {
+                attainsId: null,
+                biaTribeCode: feature.attributes.BIA_CODE,
+                epaId: feature.attributes.EPA_ID,
+                epaRegion: feature.attributes.REGION,
+                label: feature.attributes.TRIBE_NAME,
+                name: feature.attributes.TRIBE_NAME,
+                source: 'Tribe' as const,
+                state: feature.attributes.STATE,
+                stateList: [feature.attributes.STATE],
+                value: feature.attributes.EPA_ID,
+              };
+            }
+          }
+        };
+
+        let match = null;
+
+        // Try to find the matching state or tribe mapping by ATTAINS ID or state code
+        match = findByAttainsIdOrStateCode(code);
+
+        if (!match) {
+          const epaId = Number(code);
+          if (!Number.isNaN(epaId)) {
+            // If no match, try to find the mapping by EPA ID
+            match = findByEpaId(epaId);
+
+            // If still no match, query the tribal layers by EPA ID and generate a mapping
+            if (!match) match = await queryTribalLayerByEpaId(epaId);
+          }
+        }
+
+        return match;
+      };
+
+      findStateTribeMapping(stateCode)
+        .then((match) => {
+          if (match) setActiveState(match);
+          else {
+            setErrorType('invalid-org-id');
+            navigate('/state-and-tribal', { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          setErrorType('service-error');
+          navigate('/state-and-tribal', { replace: true });
+        });
     }
   }, [
     activeState.value,
     navigate,
+    services,
     setActiveState,
     setErrorType,
     stateCode,
@@ -90,7 +170,7 @@ function StateTribalTabs() {
     tribes,
   ]);
 
-  // reset the error after a successfull search
+  // reset the error after a successful search
   useEffect(() => {
     if (activeState.value) setErrorType('');
   }, [activeState.value, setErrorType]);
@@ -120,8 +200,8 @@ function StateTribalTabs() {
 
     return (
       <div>
-        <h2 css={h2Styles}>
-          <i className="fas fa-map-marked-alt" aria-hidden="true" />
+        <h2 css={headingStyles}>
+          <IconMapMarkedAlt aria-hidden="true" />
           <strong>{activeState.label}</strong> at a Glance
         </h2>
         <div>{mapContent}</div>

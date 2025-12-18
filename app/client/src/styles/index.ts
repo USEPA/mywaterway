@@ -100,14 +100,7 @@ export const groupHeadingStyles: CSSObjectWithLabel = {
 export const noMapDataWarningStyles = css`
   font-size: 0.875rem;
 
-  i {
-    text-shadow:
-      -1px 0 #000,
-      0 1px #000,
-      1px 0 #000,
-      0 -1px #000;
-    color: ${colors.yellow()};
-    font-size: 0.95rem;
+  svg {
     margin-right: 5px;
   }
 `;

@@ -1,5 +1,19 @@
 # Change Log
 
+## 2.16.0 (December 2025)
+
+### Changed
+
+- Updated USGS service calls to not use the HUC12 value at all.
+
+- Updated the tribe page to have a change to this watershed popup.
+
+- Updated the tribe search suggestions to link to the tribe page.
+
+- Fixed issue of searching for a tribe redirecting to the wrong location.
+
+- Fixed issue of icons not showing up by, switching icons over to Iconify from FontAwesome.
+
 ## 2.15.0 (December 2025) 
 
 ### Changed

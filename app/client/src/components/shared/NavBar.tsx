@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
+import IconChevronLeft from '~icons/fa7-solid/chevron-left';
 
 const containerStyles = css`
   display: flex;
@@ -15,6 +16,8 @@ const groupStyles = css`
 `;
 
 const backButtonStyles = css`
+  display: flex;
+  align-items: center;
   margin: 0;
   padding: 0;
   font-weight: normal;
@@ -42,7 +45,7 @@ function NavBar({ title, onBackClick = null }: Props) {
       <div css={groupStyles}>
         {onBackClick && (
           <button css={backButtonStyles} onClick={(ev) => onBackClick(ev)}>
-            <i className="fas fa-chevron-left" aria-hidden="true" />
+            <IconChevronLeft aria-hidden="true" />
             &nbsp; Back
           </button>
         )}

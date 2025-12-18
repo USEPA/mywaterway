@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
+import IconTint from '~icons/fa7-solid/tint';
 // styled components
 import {
   introBoxStyles,
@@ -25,7 +26,7 @@ const headerStyles = css`
     padding: 0;
   }
 
-  i {
+  svg {
     margin-right: 0.3125em;
     font-size: 1.625em;
     color: #2c72b5;
@@ -36,7 +37,7 @@ function StateTribalIntro() {
   return (
     <div css={introBoxStyles}>
       <header css={headerStyles}>
-        <i className="fas fa-tint" aria-hidden="true" />
+        <IconTint aria-hidden="true" />
         <h2>
           States and Tribes Play a Primary Role in Protecting Water Quality
         </h2>

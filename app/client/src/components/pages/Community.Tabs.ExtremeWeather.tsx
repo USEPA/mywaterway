@@ -17,6 +17,7 @@ import Select, {
   SingleValueProps,
 } from 'react-select';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
+import IconInfoCircle from '~icons/fa7-solid/info-circle';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -1302,7 +1303,7 @@ function SelectionTable({
                         title={`View additional information for ${item.label}`}
                         css={modifiedIconButtonStyles}
                       >
-                        <i aria-hidden className="fas fa-info-circle"></i>
+                        <IconInfoCircle aria-hidden />
                       </button>
                     }
                   >

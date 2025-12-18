@@ -1,3 +1,5 @@
+import { colors } from 'styles';
+
 type Props = {
   height: string;
 };
@@ -153,6 +155,34 @@ function SwimmingIcon({ height = '5rem' }: Readonly<Props>) {
   );
 }
 
+function WarningIcon({ ...props }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 40 40"
+      width="20px"
+      height="20px"
+      {...props}
+    >
+      <path
+        d="M20 4c0.919 0 1.763 0.506 2.2 1.312l13.5 25c0.419 0.775 0.4 1.713-0.05 2.469S34.381 34 33.5 34H6.5c-0.881 0-1.7-0.463-2.15-1.219s-0.469-1.694-0.05-2.469l13.5-25c0.437-0.805 1.281-1.312 2.2-1.312z"
+        fill={colors.yellow()} // Fill the interior with yellow
+        stroke="#000000" // Add the black border
+        strokeWidth="2.5" // Border thickness
+        strokeLinejoin="round" // Ensures clean, sharp corners
+      />
+      <path
+        d="M 20 12.5 c -1.138 0 -2.044 0.969 -1.963 2.106 l 0.463 6.5 c 0.056 0.781 0.713 1.394 1.494 1.394 c 0.788 0 1.437 -0.606 1.494 -1.394 l 0.463 -6.5 c 0.081 -1.138 -0.819 -2.106 -1.963 -2.106 z"
+        fill="#000000"
+      />
+      <path
+        d="M 20 26.125 c -1.106 0 -2 0.894 -2 2 s 0.894 2 2 2 s 2 -0.894 2 -2 s -0.894 -2 -2 -2 z"
+        fill="#000000"
+      />
+    </svg>
+  );
+}
+
 export {
   AquaticLifeIcon,
   DrinkingWaterIcon,
@@ -160,4 +190,5 @@ export {
   OtherIcon,
   PinIcon,
   SwimmingIcon,
+  WarningIcon,
 };

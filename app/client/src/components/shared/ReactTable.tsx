@@ -10,6 +10,8 @@ import {
   useFlexLayout,
   useFilters,
 } from 'react-table';
+import IconArrowDown from '~icons/fa7-solid/arrow-down';
+import IconArrowUp from '~icons/fa7-solid/arrow-up';
 // components
 import { linkButtonStyles } from 'components/shared/LinkButton';
 
@@ -281,9 +283,9 @@ function ReactTable({
                             <span>
                               {column.isSorted ? (
                                 column.isSortedDesc ? (
-                                  <i className="fas fa-arrow-down" />
+                                  <IconArrowDown />
                                 ) : (
-                                  <i className="fas fa-arrow-up" />
+                                  <IconArrowUp />
                                 )
                               ) : (
                                 ''
