@@ -9,7 +9,7 @@ on:
 
 # Set shared environment variables
 env:
-  APP_VERSION: 2.16.0
+  APP_VERSION: 2.17.0
 
 permissions:
   contents: read

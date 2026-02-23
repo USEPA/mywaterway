@@ -191,7 +191,7 @@ function ExtremeWeather() {
       Object.entries(visibleLayers).forEach(([layerId, visible]) => {
         const layer = !additionalTest
           ? null
-          : mapView.map.layers.find((l: __esri.Layer) => l.id === layerId);
+          : mapView?.map?.layers.find((l: __esri.Layer) => l.id === layerId);
 
         const row = config.items.find(
           (l) =>
@@ -251,7 +251,7 @@ function ExtremeWeather() {
 
   // ensures the correct county is shown on the map
   useEffect(() => {
-    if (!countySelected) return;
+    if (!countySelected || !mapView) return;
 
     let countyGraphic: __esri.Graphic | null = null;
     providersLayer?.graphics.forEach((graphic) => {

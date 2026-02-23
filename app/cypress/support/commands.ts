@@ -215,8 +215,10 @@ Cypress.Commands.add(
  * from the session storage into the cypress.env.json file.
  */
 Cypress.Commands.add('login', () => {
-  sessionStorage.setItem(
-    'esriJSAPIOAuth',
-    JSON.stringify({ '/': Cypress.env()['/'] }),
-  );
+  cy.env(['/']).then((envData) => {
+    sessionStorage.setItem(
+      'esriJSAPIOAuth',
+      JSON.stringify({ '/': envData['/'] }),
+    );
+  });
 });
