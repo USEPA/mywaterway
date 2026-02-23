@@ -12,7 +12,7 @@ describe('Community page search', () => {
   });
 
   it('searching for gibberish displays an error', () => {
-    const search = 'jkljl';
+    const search = 'gtregfdbfdgnfghg';
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       search,
     );

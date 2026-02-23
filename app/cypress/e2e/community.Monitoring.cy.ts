@@ -253,7 +253,7 @@ describe('Monitoring Tab', () => {
 
     cy.findByText('Water Monitoring').click();
 
-    cy.findByText('ANACOSTIA RIVER AT KENILWORTH AT WASHINGTON, DC').click();
+    cy.findByText('Anacostia River nr Buzzard Point at Washington, DC').click();
 
     cy.findAllByText('Water temperature')
       .filter(':visible')

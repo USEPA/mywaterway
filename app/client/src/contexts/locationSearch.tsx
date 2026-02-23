@@ -131,7 +131,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     assessmentUnitIDs: [],
     watershed: initialWatershed(),
     address: '',
-    fishingInfo: { status: 'fetching', data: [] },
     statesData: { status: 'fetching', data: [] },
     wsioHealthIndexData: { status: 'fetching', data: [] },
     wildScenicRiversData: { status: 'fetching', data: [] },
@@ -225,9 +224,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setWatershed: (watershed) => {
       this.setState({ watershed });
-    },
-    setFishingInfo: (fishingInfo) => {
-      this.setState({ fishingInfo });
     },
     setStatesData: (statesData) => {
       this.setState({ statesData });

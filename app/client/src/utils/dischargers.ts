@@ -1,3 +1,4 @@
+import * as containsOperator from '@arcgis/core/geometry/operators/containsOperator.js';
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Point from '@arcgis/core/geometry/Point';
@@ -17,6 +18,7 @@ import {
   handleFetchError,
   useAllFeaturesLayers,
   useLocalData,
+  getGeographicExtent,
 } from 'utils/boundariesToggleLayer';
 // types
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
@@ -71,7 +73,7 @@ export function useDischargers() {
 
 function useUpdateData() {
   // Build the data update function
-  const { huc12, mapView } = useContext(LocationSearchContext);
+  const { hucBoundaries, mapView } = useContext(LocationSearchContext);
   const services = useConfigFilesState().data.services;
 
   const fetchedDataDispatch = useFetchedDataDispatch();
@@ -80,18 +82,29 @@ function useUpdateData() {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!huc12) {
+    const handleNoData = () => {
       setHucData([]);
       fetchedDataDispatch({
         type: 'success',
         id: localFetchedDataKey,
         payload: [],
       });
+    }
+
+    if (!hucBoundaries?.geometry) {
+      handleNoData();
+      return;
+    }
+
+    const extent = getGeographicExtent(hucBoundaries.geometry.extent ?? null);
+    const extentFilter = getExtentFilter(extent);
+    if (!extentFilter) {
+      handleNoData();
       return;
     }
 
     const fetchPromise = fetchPermittedDischargers(
-      `p_wbd=${huc12}`,
+      extentFilter,
       services,
       controller.signal,
     );
@@ -100,6 +113,7 @@ function useUpdateData() {
       fetchPromise,
       fetchedDataDispatch,
       localFetchedDataKey,
+      (hucBoundaries?.geometry as __esri.Polygon) ?? null,
       null,
     ).then((data) => {
       setHucData(data);
@@ -108,13 +122,14 @@ function useUpdateData() {
     return function cleanup() {
       controller.abort();
     };
-  }, [fetchedDataDispatch, huc12, services]);
+  }, [fetchedDataDispatch, hucBoundaries, services]);
 
   const extentFilter = useRef<string | null>(null);
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
-      const newExtentFilter = await getExtentFilter(mapView);
+      const extent = await getGeographicExtentMapView(mapView);
+      const newExtentFilter = getExtentFilter(extent);
 
       // Could not create filter
       if (!newExtentFilter) return;
@@ -127,6 +142,7 @@ function useUpdateData() {
         fetchPermittedDischargers(extentFilter.current, services, abortSignal),
         fetchedDataDispatch,
         surroundingFetchedDataKey,
+        null,
         hucData, // Filter out HUC data
       );
     },
@@ -146,8 +162,8 @@ function buildFeatures(data: DischargerAttributes[]) {
     return new Graphic({
       attributes: datum,
       geometry: new Point({
-        latitude: parseFloat(datum['FacLat']),
-        longitude: parseFloat(datum['FacLong']),
+        latitude: Number.parseFloat(datum['FacLat']),
+        longitude: Number.parseFloat(datum['FacLong']),
         spatialReference: {
           wkid: 102100,
         },
@@ -225,6 +241,7 @@ async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'dischargers' | 'surroundingDischargers',
+  huc12Boundaries: __esri.Polygon | null = null,
   dataToExclude?: DischargerAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -233,9 +250,22 @@ async function fetchAndTransformData(
   if (response.status === 'success') {
     const permittedDischargers = transformServiceData(response.data) ?? [];
 
+    // filter to huc boundaries if provided
+    const permittedDischargersHuc = permittedDischargers.filter((discharger) => {
+      if (!huc12Boundaries) return true;
+      const geometry = new Point({
+        longitude: Number.parseFloat(discharger.FacLong),
+        latitude: Number.parseFloat(discharger.FacLat),
+        spatialReference: {
+          wkid: 102100,
+        },
+      });
+      return containsOperator.execute(huc12Boundaries, geometry);
+    });
+
     const payload = dataToExclude
-      ? filterData(permittedDischargers, dataToExclude, dataKeys)
-      : permittedDischargers;
+      ? filterData(permittedDischargersHuc, dataToExclude, dataKeys)
+      : permittedDischargersHuc;
 
     dispatch({
       type: 'success',
@@ -310,8 +340,7 @@ async function fetchPermittedDischargers(
   }
 }
 
-async function getExtentFilter(mapView: __esri.MapView | '') {
-  const extent = await getGeographicExtentMapView(mapView);
+function getExtentFilter(extent: __esri.Extent | null) {
   if (!extent) return null;
   return `p_c1lat=${extent.ymin}&p_c1lon=${extent.xmin}&p_c2lat=${extent.ymax}&p_c2lon=${extent.xmax}`;
 }

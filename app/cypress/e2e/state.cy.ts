@@ -159,6 +159,13 @@ describe('State page Water Quality Overview sub tabs', () => {
     cy.waitForLoadFinish({ timeout: 20000 });
   });
 
+  const fishAdvisoryTestId = 'hmw-fish-advisory-section';
+  const location = window.location;
+  const origin =
+    location.hostname === 'localhost'
+      ? `${location.protocol}//${location.hostname}:3002`
+      : window.location.origin;
+
   it('Navigating to a sub-tab selection that has no data results in “Water Type” dropdown saying “No Available Water Types” and the “Use” dropdown saying “No Available Uses”', () => {
     const noWaterTypes = 'No Available Water Types';
     const noUses = 'No Available Uses';
@@ -205,6 +212,63 @@ describe('State page Water Quality Overview sub tabs', () => {
     cy.findByTestId('hmw-ecological-tab-panel')
       .contains(siteSpecificText)
       .should('exist');
+  });
+
+  it('Eating Fish sub-tab selection fish advisory link shown', () => {
+    // intercept config files and inject fish advisory link
+    cy.intercept(`${origin}/api/configFiles`, (req) => {
+      req.continue((res) => {
+        console.log('res: ', res);
+        res.body.statePage.fishAdvisory =
+          '<h3 style="display: inline-block; font-size: 1.375em; font-weight: normal;">Fish consumption advisories for <a href="http://www.oehha.ca.gov/fish.html" target="_blank" rel="noopener noreferrer">California</a>.</h3> <a class="exit-disclaimer" href="https://www.epa.gov/home/exit-epa" target="_blank" rel="noopener noreferrer">EXIT</a>';
+      });
+    }).as('fish-link');
+
+    cy.visit(`/state/CA/water-quality-overview`);
+    cy.waitForLoadFinish();
+
+    // go to fishing tab
+    cy.findByTestId('hmw-fishing-tab-button').click();
+
+    cy.findAllByTestId(fishAdvisoryTestId)
+      .filter(':visible')
+      .findByText('Fish consumption advisories for', { exact: false })
+      .should('be.visible');
+
+    // check the injected link
+    cy.findAllByTestId(fishAdvisoryTestId)
+      .filter(':visible')
+      .findByText('California')
+      .should('be.visible')
+      .should('have.attr', 'href', 'http://www.oehha.ca.gov/fish.html')
+      .should('have.attr', 'target', '_blank')
+      .should('have.attr', 'rel', 'noopener noreferrer');
+
+    // check the injected exit disclaimer
+    cy.findAllByTestId(fishAdvisoryTestId)
+      .filter(':visible')
+      .findByText('EXIT')
+      .should('be.visible')
+      .should('have.attr', 'href', 'https://www.epa.gov/home/exit-epa')
+      .should('have.attr', 'target', '_blank')
+      .should('have.attr', 'rel', 'noopener noreferrer');
+  });
+
+  it('Eating Fish sub-tab selection no fish advisory link', () => {
+    // intercept config files and remove any fish advisory link
+    cy.intercept(`${origin}/api/configFiles`, (req) => {
+      req.continue((res) => {
+        res.body.statePage.fishAdvisory = '';
+      });
+    }).as('fish-link');
+
+    cy.visit(`/state/CA/water-quality-overview`);
+    cy.waitForLoadFinish();
+
+    // go to fishing tab
+    cy.findByTestId('hmw-fishing-tab-button').click();
+
+    cy.findAllByTestId(fishAdvisoryTestId).should('be.empty');
   });
 });
 
