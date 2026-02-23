@@ -142,7 +142,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setStatesData,
     setGrts,
     setGrtsStories,
-    setFishingInfo,
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
@@ -928,49 +927,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     }
   }, [mapServiceFailure]);
 
-  const getFishingLinkData = useCallback(
-    (states) => {
-      setFishingInfo({ status: 'fetching', data: [] });
-
-      // Turn the returned string "VA,MA,AL" into an array [VA, MA, AL]
-      const statesList = states.split(',');
-
-      // Map the array to a format for querying and join it as a string 'VA','MA','AL'
-      // Service returns lowercase state codes for some locations so .toUpperCase() them
-      const stateQueryString = statesList
-        .map((stateCode) => `'${stateCode.toUpperCase()}'`)
-        .join();
-
-      const { queryStringFirstPart, queryStringSecondPart, serviceUrl } =
-        configFiles.data.services.fishingInformationService;
-      const url =
-        serviceUrl +
-        queryStringFirstPart +
-        stateQueryString +
-        queryStringSecondPart;
-
-      fetchCheck(url)
-        .then((res) => {
-          if (!res?.features || res.features.length <= 0) {
-            setFishingInfo({ status: 'success', data: [] });
-            return;
-          }
-
-          const fishingInfo = res.features.map((feature) => ({
-            url: feature.attributes.STATEURL,
-            stateCode: feature.attributes.STATE,
-          }));
-
-          setFishingInfo({ status: 'success', data: fishingInfo });
-        })
-        .catch((err) => {
-          console.error(err);
-          setFishingInfo({ status: 'failure', data: [] });
-        });
-    },
-    [configFiles, setFishingInfo],
-  );
-
   const getWsioHealthIndexData = useCallback(
     (huc12Param) => {
       const url =
@@ -1185,9 +1141,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // boundaries data, also has attributes for watershed
       setWatershed(boundaries.features[0].attributes);
 
-      // pass all of the states that the HUC12 is in
-      getFishingLinkData(boundaries.features[0].attributes.states);
-
       // get wsio health index data for the current huc
       getWsioHealthIndexData(huc12Param);
 
@@ -1223,7 +1176,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [
       boundariesLayer,
       configFiles,
-      getFishingLinkData,
       getProtectedAreas,
       getSignal,
       getTemplate,

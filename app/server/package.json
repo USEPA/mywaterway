@@ -1,6 +1,6 @@
 {
   "name": "mywaterway-server",
-  "version": "2.16.0",
+  "version": "2.17.0",
   "description": "A tool to learn about your water resources.",
   "keywords": [
     "MyWaterway",
@@ -33,14 +33,13 @@
     "start_coverage": "nyc --silent node --env-file=./.env.local app/server.js",
     "test": "npx rimraf .nyc_output/out.json && npx rimraf coverage && jest --coverage --coverageDirectory=coverage",
     "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local",
-    "usgs_parameter_codes": "node -r dotenv/config --inspect app/tasks/updateUsgsParameterCodes.js dotenv_config_path=./.env.local",
     "usgs_site_types": "node -r dotenv/config --inspect app/tasks/updateUsgsSiteTypes.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.934.0",
-    "axios": "1.13.2",
-    "dotenv": "17.2.3",
-    "express": "5.1.0",
+    "@aws-sdk/client-s3": "3.991.0",
+    "axios": "1.13.5",
+    "dotenv": "17.3.1",
+    "express": "5.2.1",
     "express-basic-auth": "1.2.1",
     "helmet": "8.1.0",
     "log4js": "6.9.1",
@@ -48,16 +47,16 @@
     "serve-favicon": "2.5.1"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "3.14.7",
-    "allure-jest": "3.4.2",
+    "@cypress/code-coverage": "4.0.0",
+    "allure-jest": "3.4.5",
     "browser-sync": "3.0.4",
     "husky": "9.1.7",
     "jest": "30.2.0",
-    "lint-staged": "16.2.6",
+    "lint-staged": "16.2.7",
     "nodemon": "3.1.11",
     "nyc": "17.1.0",
-    "prettier": "3.6.2",
-    "supertest": "7.1.4"
+    "prettier": "3.8.1",
+    "supertest": "7.2.2"
   },
   "husky": {
     "hooks": {

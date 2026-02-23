@@ -592,11 +592,6 @@ export interface ServicesData {
     portalId: string;
     url: string;
   };
-  fishingInformationService: {
-    queryStringFirstPart: string;
-    queryStringSecondPart: string;
-    serviceUrl: string;
-  };
   glossaryURL: string;
   googleAnalyticsMapping: {
     name: string;

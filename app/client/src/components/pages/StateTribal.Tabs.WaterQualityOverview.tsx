@@ -288,11 +288,6 @@ function WaterQualityOverview() {
 
   const [surveyData, setSurveyData] = useState(null);
 
-  const [fishingAdvisoryData, setFishingAdvisoryData] = useState({
-    status: 'fetching',
-    data: [],
-  });
-
   // user selections
   const [userSelectedWaterType, setUserSelectedWaterType] = useState('');
   const [userSelectedUse, setUserSelectedUse] = useState('');
@@ -464,48 +459,6 @@ function WaterQualityOverview() {
     usesStateSummaryCalled,
   ]);
 
-  // Get fishing advisory information
-  const fetchFishingAdvisoryData = useCallback(
-    (stateCode) => {
-      setFishingAdvisoryData({ status: 'fetching', data: [] });
-
-      const { queryStringFirstPart, queryStringSecondPart, serviceUrl } =
-        configFiles.data.services.fishingInformationService;
-      const url =
-        serviceUrl +
-        queryStringFirstPart +
-        `'${stateCode}'` +
-        queryStringSecondPart;
-
-      fetchCheck(url, getSignal())
-        .then((res) => {
-          if (!res?.features?.length) {
-            setFishingAdvisoryData({ status: 'success', data: [] });
-            return;
-          }
-
-          try {
-            const url = new URL(res.features[0].attributes.STATEURL);
-            const fishingInfo = [
-              {
-                url: url.href,
-              },
-            ];
-
-            setFishingAdvisoryData({ status: 'success', data: fishingInfo });
-          } catch (ex) {
-            setFishingAdvisoryData({ status: 'success', data: [] });
-          }
-        })
-        .catch((err) => {
-          if (isAbort(err)) return;
-          console.error(err);
-          setFishingAdvisoryData({ status: 'failure', data: [] });
-        });
-    },
-    [configFiles, getSignal, setFishingAdvisoryData],
-  );
-
   // Get the survey data and survey documents
   const fetchSurveyData = useCallback(
     (orgID) => {
@@ -622,7 +575,6 @@ function WaterQualityOverview() {
 
       setCurrentState(activeState.value);
       fetchStateOrgId(activeState.value);
-      fetchFishingAdvisoryData(activeState.value);
 
       setCurrentSummary({
         status: 'fetching',
@@ -647,7 +599,6 @@ function WaterQualityOverview() {
     setIntroText,
     setOrganizationData,
     fetchStateOrgId,
-    fetchFishingAdvisoryData,
   ]);
 
   // fetch the stories from the provided url. This also saves the next stories
@@ -1058,7 +1009,6 @@ function WaterQualityOverview() {
                   useSelected={useSelected}
                   waterType={waterType}
                   waterTypeData={waterTypeData}
-                  fishingAdvisoryData={fishingAdvisoryData}
                 />
 
                 <div
