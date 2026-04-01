@@ -2033,6 +2033,7 @@ function CyanContent({
     const imagePromise = fetcher(
       imageUrl,
       abortController.signal,
+      {},
       undefined,
       'blob',
     );
