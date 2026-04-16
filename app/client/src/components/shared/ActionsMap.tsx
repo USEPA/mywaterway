@@ -131,7 +131,9 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
         configFiles.data.services.attains.serviceUrl +
         `assessmentUnits?organizationId=${orgId}` +
         `&assessmentUnitIdentifier=${auId}`;
-      const results = await fetchCheck(url);
+      const results = await fetchCheck(url, null, {
+        'X-Api-Key': configFiles.data.services.attains.apiKey,
+      });
       if (!results.items?.length) return null;
       const documents = results.items[0]?.assessmentUnits[0]?.documents;
       const allowedTypes = [
@@ -235,7 +237,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 fieldName: 'hmw-extra-content',
               };
 
-              extraContent = unitIds[auId](reportingCycle, true)
+              extraContent = unitIds[auId](reportingCycle, true);
             } else if (includePhoto) {
               const photoLink = await getPhotoLink(
                 graphic.attributes.organizationid,
@@ -252,15 +254,16 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 </div>
               );
             }
-              // when no content is provided just display the normal community
-              // waterbody content
+            // when no content is provided just display the normal community
+            // waterbody content
             return new Graphic({
               geometry: graphic.geometry,
               symbol,
               attributes: graphic.attributes,
               popupTemplate: {
                 title: getTitle,
-                content: (feature: Feature) => getTemplate(feature, extraContent),
+                content: (feature: Feature) =>
+                  getTemplate(feature, extraContent),
               },
             });
           }

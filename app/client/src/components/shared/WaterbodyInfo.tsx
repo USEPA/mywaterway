@@ -400,7 +400,7 @@ const waterbodyDownloadContainerStyles = css`
 `;
 
 const waterbodyInfoContainerStyles = css`
-  a > svg { 
+  a > svg {
     margin-bottom: 3px;
   }
 `;
@@ -524,7 +524,9 @@ function WaterbodyInfo({
 
     setUseAttainments({ data: null, status: 'fetching' });
 
-    fetchCheck(url)
+    fetchCheck(url, null, {
+      'X-Api-Key': configFiles.data.services.attains.apiKey,
+    })
       .then((res) => {
         if (!res?.items || res.items.length === 0) {
           setUseAttainments({ data: null, status: 'failure' });

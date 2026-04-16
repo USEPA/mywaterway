@@ -307,7 +307,9 @@ function WaterQualityOverview() {
       // use the excludeAsssessments flag to improve performance, since we only
       // need the documents and reportStatusCode
       const url = `${configFiles.data.services.attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
-      fetchCheck(url, getSignal())
+      fetchCheck(url, getSignal(), {
+        'X-Api-Key': configFiles.data.services.attains.apiKey,
+      })
         .then((res) => {
           const orgData = res.items[0];
           setOrganizationData({ status: 'success', data: orgData ?? {} });
@@ -325,7 +327,9 @@ function WaterQualityOverview() {
   const fetchIntroText = useCallback(
     (orgID) => {
       const url = `${configFiles.data.services.attains.serviceUrl}metrics?organizationId=${orgID}`;
-      fetchCheck(url, getSignal())
+      fetchCheck(url, getSignal(), {
+        'X-Api-Key': configFiles.data.services.attains.apiKey,
+      })
         .then((res) => {
           // check for missing data
           if (res.length === 0) {
@@ -380,7 +384,9 @@ function WaterQualityOverview() {
       `?organizationId=${stateAndOrganization.organizationId}` +
       reportingCycleParam;
 
-    fetchCheck(url, getSignal())
+    fetchCheck(url, getSignal(), {
+      'X-Api-Key': configFiles.data.services.attains.apiKey,
+    })
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
@@ -463,7 +469,9 @@ function WaterQualityOverview() {
   const fetchSurveyData = useCallback(
     (orgID) => {
       const url = `${configFiles.data.services.attains.serviceUrl}surveys?organizationId=${orgID}`;
-      fetchCheck(url, getSignal())
+      fetchCheck(url, getSignal(), {
+        'X-Api-Key': configFiles.data.services.attains.apiKey,
+      })
         .then((res) => {
           setSurveyLoading(false);
 
@@ -506,7 +514,9 @@ function WaterQualityOverview() {
       }
 
       const url = `${configFiles.data.services.attains.serviceUrl}states/${stateID}/organizations`;
-      fetchCheck(url, getSignal())
+      fetchCheck(url, getSignal(), {
+        'X-Api-Key': configFiles.data.services.attains.apiKey,
+      })
         .then((res) => {
           let orgID;
 

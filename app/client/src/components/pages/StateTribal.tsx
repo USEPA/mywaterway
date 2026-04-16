@@ -261,7 +261,9 @@ function StateTribal() {
 
     setStatesInitialized(true);
 
-    fetchCheck(`${configFiles.data.services.attains.serviceUrl}states`)
+    fetchCheck(`${configFiles.data.services.attains.serviceUrl}states`, null, {
+      'X-Api-Key': configFiles.data.services.attains.apiKey,
+    })
       .then((res) => {
         setStates({
           status: 'success',

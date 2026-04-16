@@ -416,7 +416,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             `${configFiles.data.services.attains.serviceUrl}` +
             `assessments?organizationId=${orgId}&reportingCycle=${reportingCycle}&assessmentUnitIdentifier=${chunk}`;
 
-          requests.push(fetchCheck(url));
+          requests.push(
+            fetchCheck(url, null, {
+              'X-Api-Key': configFiles.data.services.attains.apiKey,
+            }),
+          );
         });
       });
 
@@ -505,6 +509,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         // fetch the ATTAINS Domains service Parameter Names so we can populate the Waterbody Parameters later on
         fetchCheck(
           `${configFiles.data.services.attains.serviceUrl}domains?domainName=ParameterName`,
+          null,
+          { 'X-Api-Key': configFiles.data.services.attains.apiKey },
         )
           .then((res) => {
             if (!res || res.length === 0) {
@@ -524,7 +530,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 `${configFiles.data.services.attains.serviceUrl}` +
                 `assessmentUnits?assessmentUnitIdentifier=${chunk}`;
 
-              requests.push(fetchCheck(url));
+              requests.push(
+                fetchCheck(url, null, {
+                  'X-Api-Key': configFiles.data.services.attains.apiKey,
+                }),
+              );
             });
 
             Promise.all(requests)
@@ -901,7 +911,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       fetchCheck(
         `${configFiles.data.services.attains.serviceUrl}plans?huc=${huc12Param}&summarize=Y`,
         null,
-        {},
+        { 'X-Api-Key': configFiles.data.services.attains.apiKey },
         120000,
       )
         .then((res) => {
@@ -1155,7 +1165,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       if (statesData.status !== 'success') {
         setStatesData({ status: 'fetching', data: [] });
 
-        fetchCheck(`${configFiles.data.services.attains.serviceUrl}states`)
+        fetchCheck(
+          `${configFiles.data.services.attains.serviceUrl}states`,
+          null,
+          { 'X-Api-Key': configFiles.data.services.attains.apiKey },
+        )
           .then((res) => {
             setStatesData({ status: 'success', data: res.data });
           })
@@ -1168,6 +1182,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       fetchCheck(
         `${configFiles.data.services.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
         getSignal(),
+        { 'X-Api-Key': configFiles.data.services.attains.apiKey },
       ).then(
         (res) => handleMapServices(res, boundaries),
         handleMapServiceError,

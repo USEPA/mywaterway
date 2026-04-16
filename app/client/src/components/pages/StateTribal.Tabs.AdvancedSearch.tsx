@@ -636,6 +636,8 @@ function AdvancedSearch() {
           requests.push(
             fetchCheck(
               `${configFiles.data.services.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
+              null,
+              { 'X-Api-Key': configFiles.data.services.attains.apiKey },
             ),
           );
         }
