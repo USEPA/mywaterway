@@ -400,7 +400,6 @@ function StateTribal() {
 
   const handleSubmit = (selection) => {
     if (!selection) return;
-    setActiveState(selection);
 
     if (selection.source === 'State') {
       navigate(`/state/${selection.value}/water-quality-overview`);
