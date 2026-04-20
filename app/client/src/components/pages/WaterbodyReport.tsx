@@ -324,7 +324,16 @@ function WaterbodyReport() {
       `assessmentUnits?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}`;
 
-    fetchCheck(url).then(
+    const apiKey = configFiles.data.services.attains.apiKey;
+    fetchCheck(
+      url,
+      null,
+      apiKey
+        ? {
+            'X-Api-Key': apiKey,
+          }
+        : {},
+    ).then(
       (res) => {
         if (res.items.length < 1) {
           setNoWaterbodies(true);
@@ -529,8 +538,17 @@ function WaterbodyReport() {
       `assessments?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}` +
       (reportingCycleParam ? `&reportingCycle=${reportingCycleParam}` : '');
+    const apiKey = configFiles.data.services.attains.apiKey;
 
-    fetchCheck(url).then(
+    fetchCheck(
+      url,
+      null,
+      apiKey
+        ? {
+            'X-Api-Key': apiKey,
+          }
+        : {},
+    ).then(
       (res) => {
         if (res.items.length === 0) {
           handleNoAssessments();

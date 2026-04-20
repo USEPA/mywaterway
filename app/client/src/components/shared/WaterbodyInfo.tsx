@@ -400,7 +400,7 @@ const waterbodyDownloadContainerStyles = css`
 `;
 
 const waterbodyInfoContainerStyles = css`
-  a > svg { 
+  a > svg {
     margin-bottom: 3px;
   }
 `;
@@ -521,10 +521,19 @@ function WaterbodyInfo({
       `&organizationId=${organizationid}` +
       `&reportingCycle=${reportingcycle}` +
       `&summarize=Y`;
+    const apiKey = configFiles.services.attains.apiKey;
 
     setUseAttainments({ data: null, status: 'fetching' });
 
-    fetchCheck(url)
+    fetchCheck(
+      url,
+      null,
+      apiKey
+        ? {
+            'X-Api-Key': apiKey,
+          }
+        : {},
+    )
       .then((res) => {
         if (!res?.items || res.items.length === 0) {
           setUseAttainments({ data: null, status: 'failure' });

@@ -537,7 +537,7 @@ export interface RndDraggableState {
 }
 
 export interface ServicesData {
-  attains: { serviceUrl: string; serviceUrlDev: string };
+  attains: { apiKey: string, serviceUrl: string; serviceUrlDev: string };
   basemaps: {
     default: string;
     lightGrayCanvas: string;
