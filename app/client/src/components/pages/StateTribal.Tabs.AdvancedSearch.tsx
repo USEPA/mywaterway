@@ -633,11 +633,12 @@ function AdvancedSearch() {
         // Fire off requests for any watersheds that we don't already have data for
         if (!watershedResults.hasOwnProperty(watershed.value)) {
           // run a fetch to get the assessments in the huc
+          const apiKey = configFiles.data.services.attains.apiKey;
           requests.push(
             fetchCheck(
               `${configFiles.data.services.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
               null,
-              { 'X-Api-Key': configFiles.data.services.attains.apiKey },
+              apiKey ? { 'X-Api-Key': apiKey } : {},
             ),
           );
         }

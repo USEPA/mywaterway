@@ -131,9 +131,16 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
         configFiles.data.services.attains.serviceUrl +
         `assessmentUnits?organizationId=${orgId}` +
         `&assessmentUnitIdentifier=${auId}`;
-      const results = await fetchCheck(url, null, {
-        'X-Api-Key': configFiles.data.services.attains.apiKey,
-      });
+      const apiKey = configFiles.data.services.attains.apiKey;
+      const results = await fetchCheck(
+        url,
+        null,
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      );
       if (!results.items?.length) return null;
       const documents = results.items[0]?.assessmentUnits[0]?.documents;
       const allowedTypes = [

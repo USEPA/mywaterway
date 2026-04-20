@@ -79,10 +79,17 @@ function Attains() {
     const url =
       configFiles.data.services.attains.serviceUrl +
       'domains?domainName=ParameterName';
+    const apiKey = configFiles.data.services.attains.apiKey;
 
-    fetchCheck(url, null, {
-      'X-Api-Key': configFiles.data.services.attains.apiKey,
-    })
+    fetchCheck(
+      url,
+      null,
+      apiKey
+        ? {
+            'X-Api-Key': apiKey,
+          }
+        : {},
+    )
       .then((res) => {
         setLoading(false);
         setAttainsData(res.sort(compareContextName)); // sorted alphabetically by ATTAINS context

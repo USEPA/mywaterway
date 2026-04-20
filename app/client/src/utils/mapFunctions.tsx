@@ -1211,10 +1211,11 @@ export async function getPollutantsFromAction(
 ) {
   try {
     const url = services.attains.serviceUrl + `actions?${parameters}`;
+    const apiKey = services.attains.apiKey;
     const res: AttainsActionsData = await fetchCheck(
       url,
       null,
-      { 'X-Api-Key': services.attains.apiKey },
+      apiKey ? { 'X-Api-Key': services.attains.apiKey } : {},
       120_000,
     );
 

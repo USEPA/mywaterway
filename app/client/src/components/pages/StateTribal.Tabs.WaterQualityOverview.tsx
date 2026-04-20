@@ -307,9 +307,16 @@ function WaterQualityOverview() {
       // use the excludeAsssessments flag to improve performance, since we only
       // need the documents and reportStatusCode
       const url = `${configFiles.data.services.attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
-      fetchCheck(url, getSignal(), {
-        'X-Api-Key': configFiles.data.services.attains.apiKey,
-      })
+      const apiKey = configFiles.data.services.attains.apiKey;
+      fetchCheck(
+        url,
+        getSignal(),
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      )
         .then((res) => {
           const orgData = res.items[0];
           setOrganizationData({ status: 'success', data: orgData ?? {} });
@@ -327,9 +334,16 @@ function WaterQualityOverview() {
   const fetchIntroText = useCallback(
     (orgID) => {
       const url = `${configFiles.data.services.attains.serviceUrl}metrics?organizationId=${orgID}`;
-      fetchCheck(url, getSignal(), {
-        'X-Api-Key': configFiles.data.services.attains.apiKey,
-      })
+      const apiKey = configFiles.data.services.attains.apiKey;
+      fetchCheck(
+        url,
+        getSignal(),
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      )
         .then((res) => {
           // check for missing data
           if (res.length === 0) {
@@ -383,10 +397,17 @@ function WaterQualityOverview() {
       `${configFiles.data.services.attains.serviceUrl}usesStateSummary` +
       `?organizationId=${stateAndOrganization.organizationId}` +
       reportingCycleParam;
+    const apiKey = configFiles.data.services.attains.apiKey;
 
-    fetchCheck(url, getSignal(), {
-      'X-Api-Key': configFiles.data.services.attains.apiKey,
-    })
+    fetchCheck(
+      url,
+      getSignal(),
+      apiKey
+        ? {
+            'X-Api-Key': apiKey,
+          }
+        : {},
+    )
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
@@ -469,8 +490,9 @@ function WaterQualityOverview() {
   const fetchSurveyData = useCallback(
     (orgID) => {
       const url = `${configFiles.data.services.attains.serviceUrl}surveys?organizationId=${orgID}`;
+      const apiKey = configFiles.data.services.attains.apiKey;
       fetchCheck(url, getSignal(), {
-        'X-Api-Key': configFiles.data.services.attains.apiKey,
+        'X-Api-Key': apiKey,
       })
         .then((res) => {
           setSurveyLoading(false);
@@ -514,9 +536,16 @@ function WaterQualityOverview() {
       }
 
       const url = `${configFiles.data.services.attains.serviceUrl}states/${stateID}/organizations`;
-      fetchCheck(url, getSignal(), {
-        'X-Api-Key': configFiles.data.services.attains.apiKey,
-      })
+      const apiKey = configFiles.data.services.attains.apiKey;
+      fetchCheck(
+        url,
+        getSignal(),
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      )
         .then((res) => {
           let orgID;
 
