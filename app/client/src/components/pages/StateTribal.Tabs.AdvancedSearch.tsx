@@ -125,16 +125,16 @@ function retrieveFeatures({
         // parse the requests
         Promise.all(requests)
           .then((responses) => {
+            if (!responses || responses.length === 0) resolve({ features: [] });
+
             // save the first response to get the metadata
             let combinedObject = responses[0];
 
-            const features = responses.reduce((acc, cur) => {
-              return {
-                ...acc,
-                features: acc.features.concat(cur.features),
-              };
-            });
-            combinedObject.features = features.features;
+            const features = responses.reduce(
+              (acc, cur) => acc.concat(cur.features),
+              [],
+            );
+            combinedObject.features = features;
 
             // resolve the promise
             resolve(combinedObject);
