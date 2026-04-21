@@ -20,6 +20,16 @@
     "epaRegion": 8
   },
   {
+    "name": "Catawba Indian Nation",
+    "attainsId": null,
+    "wqxIds": ["CATAWBA"],
+    "biaTribeCode": "032",
+    "epaId": 100000033,
+    "state": "SC",
+    "stateList": ["SC"],
+    "epaRegion": 4
+  },
+  {
     "name": "Eastern Band of Cherokee Indians",
     "attainsId": null,
     "wqxIds": ["EBCI"],
