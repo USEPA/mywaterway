@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { css } from '@emotion/react';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
@@ -346,7 +346,7 @@ function WaterQualityOverview() {
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
-  const [usesStateSummaryCalled, setUsesStateSummaryCalled] = useState(false);
+  const usesStateSummaryCalled = useRef(false);
   useEffect(() => {
     if (
       !stateAndOrganization ||
@@ -355,7 +355,7 @@ function WaterQualityOverview() {
           activeState.value !== stateAndOrganization.state)) ||
       (activeState.source === 'Tribe' &&
         activeState.attainsId !== stateAndOrganization.organizationId) ||
-      usesStateSummaryCalled
+      usesStateSummaryCalled.current
     ) {
       return;
     }
@@ -445,7 +445,7 @@ function WaterQualityOverview() {
         });
       });
 
-    setUsesStateSummaryCalled(true);
+    usesStateSummaryCalled.current = true;
   }, [
     activeState,
     configFiles,
@@ -456,7 +456,6 @@ function WaterQualityOverview() {
     setCurrentSummary,
     setUsesStateSummaryServiceError,
     stateAndOrganization,
-    usesStateSummaryCalled,
   ]);
 
   // Get the survey data and survey documents
@@ -567,7 +566,7 @@ function WaterQualityOverview() {
       setNoDataError(false);
       setSurveyData(null);
       setOrganizationData({ status: 'fetching', data: {} });
-      setUsesStateSummaryCalled(false);
+      usesStateSummaryCalled.current = false;
       setCurrentReportingCycle({
         status: 'fetching',
         reportingCycle: '',

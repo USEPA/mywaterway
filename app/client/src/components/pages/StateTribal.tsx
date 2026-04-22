@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from '@emotion/react';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import Select from 'react-select';
 import IconDoubleAngleRight from '~icons/fa7-solid/angles-right';
@@ -198,15 +198,9 @@ function StateTribal() {
   }, [navigate, setErrorType]);
 
   // get tribes from the tribeMapping data
-  const [tribes, setTribes] = useState({ status: 'fetching', data: [] });
-  useEffect(() => {
-    if (organizations.status === 'failure') {
-      setTribes({ status: 'failure', data: [] });
-      return;
-    }
-    if (organizations.status !== 'success') {
-      return;
-    }
+  const tribes = useMemo(() => {
+    if (organizations.status === 'failure') return { status: 'failure', data: [] };
+    if (organizations.status !== 'success') return { status: 'fetching', data: [] };
 
     const tribeMapping = Object.values(
       [
@@ -230,8 +224,7 @@ function StateTribal() {
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    const tempTribes = [];
-    tribeMapping.forEach((tribe) => {
+    const data = tribeMapping.map((tribe) => {
       const { attainsId } = tribe;
       const tribeAttains = attainsId
         ? organizations.data.find(
@@ -241,25 +234,25 @@ function StateTribal() {
           )
         : null;
 
-      tempTribes.push({
+      return {
         ...tribe,
         attainsId: tribeAttains ? attainsId : null,
         value: tribe.attainsId ?? tribe.wqxIds[0],
         label: tribe.name,
-        source: 'Tribe',
-      });
+        source: 'Tribe' as const,
+      };
     });
 
-    setTribes({ status: 'success', data: tempTribes });
+    return { status: 'success', data };
   }, [configFiles, organizations]);
 
   // query attains for the list of states
   const [states, setStates] = useState({ status: 'fetching', data: [] });
-  const [statesInitialized, setStatesInitialized] = useState(false);
+  const statesInitialized = useRef(false);
   useEffect(() => {
-    if (statesInitialized) return;
+    if (statesInitialized.current) return;
 
-    setStatesInitialized(true);
+    statesInitialized.current = true;
 
     fetchCheck(`${configFiles.data.services.attains.serviceUrl}states`)
       .then((res) => {
@@ -271,7 +264,7 @@ function StateTribal() {
         });
       })
       .catch((_err) => setStates({ status: 'failure', data: [] }));
-  }, [configFiles, statesInitialized]);
+  }, [configFiles]);
 
   // reset active state if on state intro page
   useEffect(() => {
@@ -288,13 +281,12 @@ function StateTribal() {
   // selectedState used for the HTML select menu, so we don't immediately
   // update activeState every time the user changes the selected state
   const [selectedSource, setSelectedSource] = useState('All');
-  const [selectOptions, setSelectOptions] = useState([]);
   const [selectedStateTribe, setSelectedStateTribe] = useState(
     activeState.value ? activeState : null,
   );
 
-  // updates the selectOptions based on the selectedSource
-  useEffect(() => {
+  // derives the selectOptions based on the selectedSource
+  const selectOptions = useMemo(() => {
     const options = [];
     if (selectedSource === 'All') {
       options.push({
@@ -308,8 +300,7 @@ function StateTribal() {
     }
     if (selectedSource === 'State') options.push(...states.data);
     if (selectedSource === 'Tribe') options.push(...tribes.data);
-
-    setSelectOptions(options);
+    return options;
   }, [selectedSource, states, tribes]);
 
   // update selectedState whenever activeState changes
