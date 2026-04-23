@@ -561,6 +561,7 @@ function WaterQualityOverview() {
       setSurveyLoading(true);
       setSurveyDocuments([]);
       setYearSelected('');
+      setUsesStateSummaryServiceError(false);
       setServiceError(false);
       setSurveyServiceError(false);
       setNoDataError(false);
@@ -597,6 +598,7 @@ function WaterQualityOverview() {
     setCurrentSummary,
     setIntroText,
     setOrganizationData,
+    setUsesStateSummaryServiceError,
     fetchStateOrgId,
   ]);
 
