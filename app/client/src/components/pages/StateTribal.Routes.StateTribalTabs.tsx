@@ -25,9 +25,10 @@ const headingStyles = css`
   margin-top: 0 !important;
   display: flex;
   align-items: center;
+  gap: 0.3125em;
 
   svg {
-    margin-right: 0.3125em;
+    margin-right: 0;
     color: #2c72b5;
   }
 `;
