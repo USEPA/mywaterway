@@ -170,7 +170,6 @@ function StateTribal() {
     setActiveState,
     setErrorType,
     setIntroText,
-    setUsesStateSummaryServiceError,
     usesStateSummaryServiceError,
   } = useContext(StateTribalTabsContext);
 
