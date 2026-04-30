@@ -65,7 +65,7 @@
   "attains": {
     "apiKey": "HbKMDkKyzWJoihZMdbYeRq4jubuBBo5ghuV8vn0d",
     "serviceUrlDev": "https://attains-demo.epa-ow-cloud.com/attains-public/api/",
-    "serviceUrl": "https://api.epa.gov/attains-demo/"
+    "serviceUrl": "https://api.epa.gov/attains/"
   },
   "wildScenicRivers": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_WildScenicRiverSegments_01/MapServer/0",
   "protectedAreasDatabase": "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Protection_Mechanism_Category_PADUS/FeatureServer/0",
