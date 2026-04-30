@@ -996,7 +996,7 @@ export function GradientIcon({
   return (
     <div style={{ display: 'flex', margin: 'auto' }}>
       <div style={{ margin: '15px 0' }}>
-        <svg width={50} height={25 * divisions + 20}>
+        <svg width={56} height={25 * divisions + 20}>
           <defs>
             <linearGradient
               id={id}
@@ -1031,7 +1031,8 @@ export function GradientIcon({
               y={25 * index + 14}
               fontSize="smaller"
             >
-              -{stop.label}
+              <tspan>-</tspan>
+              <tspan dx={6}>{stop.label}</tspan>
             </text>
           ))}
         </svg>
