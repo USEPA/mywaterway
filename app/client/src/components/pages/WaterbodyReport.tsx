@@ -274,6 +274,9 @@ function WaterbodyReport() {
     status: 'fetching',
     layer: null,
   });
+  const [photoLinks, setPhotoLinks] = useState<Record<string, string | null>>(
+    {},
+  );
 
   function handleError() {
     setAllParameterActionIds({
@@ -342,10 +345,29 @@ function WaterbodyReport() {
 
         const {
           assessmentUnitName,
+          documents,
           locationDescriptionText,
           waterTypes,
           monitoringStations,
         } = res.items[0].assessmentUnits[0];
+
+        const allowedImageTypes = [
+          'apng',
+          'bmp',
+          'gif',
+          'jpeg',
+          'png',
+          'svg+xml',
+          'tiff',
+          'x-tiff',
+          'x-windows-bmp',
+        ].map((imageType) => `image/${imageType}`);
+        const photo = documents?.find((document) =>
+          allowedImageTypes.includes(document.documentFileType),
+        );
+        setPhotoLinks({
+          [`${orgId}-${auId}`]: photo ? photo.documentUrl : null,
+        });
 
         setWaterbodyName(assessmentUnitName);
         setWaterbodyLocation({

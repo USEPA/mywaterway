@@ -61,10 +61,10 @@ type Props = {
   layout: 'narrow' | 'wide';
   unitIds: Array<string>;
   onLoad?: Function;
-  includePhoto?: boolean;
+  photoLinks?: Record<string, string | null>;  // Keyed by `${organizationId}-${assessmentUnitIdentifier}`
 };
 
-function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
+function ActionsMap({ layout, unitIds, onLoad, photoLinks }: Props) {
   const navigate = useNavigate();
 
   const { homeWidget, mapView } = useContext(LocationSearchContext);
@@ -123,44 +123,6 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
   // Queries the Gis service and plots the waterbodies on the map
   const [noMapData, setNoMapData] = useState(null);
-
-  const getPhotoLink = useCallback(
-    async (orgId, auId) => {
-      if (!auId || !orgId) return null;
-      const url =
-        configFiles.data.services.attains.serviceUrl +
-        `assessmentUnits?organizationId=${orgId}` +
-        `&assessmentUnitIdentifier=${auId}`;
-      const apiKey = configFiles.data.services.attains.apiKey;
-      const results = await fetchCheck(
-        url,
-        null,
-        apiKey
-          ? {
-              'X-Api-Key': apiKey,
-            }
-          : {},
-      );
-      if (!results.items?.length) return null;
-      const documents = results.items[0]?.assessmentUnits[0]?.documents;
-      const allowedTypes = [
-        'apng',
-        'bmp',
-        'gif',
-        'jpeg',
-        'png',
-        'svg+xml',
-        'tiff',
-        'x-tiff',
-        'x-windows-bmp',
-      ].map((imageType) => `image/${imageType}`);
-      const photo = documents?.find((document) =>
-        allowedTypes.includes(document.documentFileType),
-      );
-      return photo ? photo.documentURL : null;
-    },
-    [configFiles],
-  );
 
   // Plots the assessments. Also re-plots if the layout changes
   useEffect(() => {
@@ -245,11 +207,9 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
               };
 
               extraContent = unitIds[auId](reportingCycle, true);
-            } else if (includePhoto) {
-              const photoLink = await getPhotoLink(
-                graphic.attributes.organizationid,
-                graphic.attributes.assessmentunitidentifier,
-              );
+            } else if (photoLinks) {
+              const key = `${graphic.attributes.organizationid}-${graphic.attributes.assessmentunitidentifier}`;
+              const photoLink = photoLinks[key];
 
               extraContent = photoLink && (
                 <div css={imageContainerStyles}>
@@ -329,10 +289,9 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     actionsWaterbodies,
     configFiles,
     fetchStatus,
-    getPhotoLink,
     navigate,
     onLoad,
-    includePhoto,
+    photoLinks,
     unitIds,
   ]);
 
