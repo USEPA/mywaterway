@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router';
 import Graphic from '@arcgis/core/Graphic';
@@ -18,7 +18,6 @@ import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // helpers
-import { fetchCheck } from 'utils/fetchUtils';
 import {
   useDynamicPopup,
   useSharedLayers,
@@ -38,7 +37,7 @@ import {
 } from 'config/errorMessages';
 // types
 import type { ReactNode } from 'react';
-import type { Feature } from 'types';
+import type { Feature, FetchState } from 'types';
 
 const containerStyles = css`
   display: flex;
@@ -61,7 +60,7 @@ type Props = {
   layout: 'narrow' | 'wide';
   unitIds: Array<string>;
   onLoad?: Function;
-  photoLinks?: Record<string, string | null>;  // Keyed by `${organizationId}-${assessmentUnitIdentifier}`
+  photoLinks?: FetchState<Record<string, string | null>>;  // Data keyed by `${organizationId}-${assessmentUnitIdentifier}`
 };
 
 function ActionsMap({ layout, unitIds, onLoad, photoLinks }: Props) {
@@ -127,6 +126,7 @@ function ActionsMap({ layout, unitIds, onLoad, photoLinks }: Props) {
   // Plots the assessments. Also re-plots if the layout changes
   useEffect(() => {
     if (!unitIds || !actionsWaterbodies) return;
+    if (photoLinks && ['idle', 'fetching'].includes(photoLinks.status)) return; // wait to plot until photo links are fetched
     if (fetchStatus) return; // only do a fetch if there is no status
 
     function plotAssessments(unitIds: Array<string>) {
@@ -207,9 +207,9 @@ function ActionsMap({ layout, unitIds, onLoad, photoLinks }: Props) {
               };
 
               extraContent = unitIds[auId](reportingCycle, true);
-            } else if (photoLinks) {
+            } else if (photoLinks?.status === 'success') {
               const key = `${graphic.attributes.organizationid}-${graphic.attributes.assessmentunitidentifier}`;
-              const photoLink = photoLinks[key];
+              const photoLink = photoLinks.data[key];
 
               extraContent = photoLink && (
                 <div css={imageContainerStyles}>

@@ -49,6 +49,8 @@ import {
   status303dShortError,
   waterbodyReportError,
 } from 'config/errorMessages';
+// types
+import { FetchState } from 'types';
 
 const containerStyles = css`
   ${splitLayoutContainerStyles};
@@ -274,8 +276,8 @@ function WaterbodyReport() {
     status: 'fetching',
     layer: null,
   });
-  const [photoLinks, setPhotoLinks] = useState<Record<string, string | null>>(
-    {},
+  const [photoLinks, setPhotoLinks] = useState<FetchState<Record<string, string | null>>>(
+    { status: 'idle', data: {} },
   );
 
   function handleError() {
@@ -328,6 +330,7 @@ function WaterbodyReport() {
       `&assessmentUnitIdentifier=${auId}`;
 
     const apiKey = configFiles.data.services.attains.apiKey;
+    setPhotoLinks({ status: 'fetching', data: {} });
     fetchCheck(
       url,
       null,
@@ -365,9 +368,9 @@ function WaterbodyReport() {
         const photo = documents?.find((document) =>
           allowedImageTypes.includes(document.documentFileType),
         );
-        setPhotoLinks({
+        setPhotoLinks({ status: 'success', data: {
           [`${orgId}-${auId}`]: photo ? photo.documentUrl : null,
-        });
+        }});
 
         setWaterbodyName(assessmentUnitName);
         setWaterbodyLocation({
@@ -443,6 +446,7 @@ function WaterbodyReport() {
       },
       (err) => {
         console.error(err);
+        setPhotoLinks({ status: 'failure', data: {} });
         setWaterbodyTypes({ status: 'failure', data: [] });
         setWaterbodyLocation({ status: 'failure', text: '' });
       },
@@ -1294,7 +1298,7 @@ function WaterbodyReport() {
                                 layout="narrow"
                                 unitIds={unitIds}
                                 onLoad={setMapLayer}
-                                includePhoto
+                                photoLinks={photoLinks}
                               />
                             </div>
                           </Fragment>
@@ -1316,7 +1320,7 @@ function WaterbodyReport() {
                           layout="wide"
                           unitIds={unitIds}
                           onLoad={setMapLayer}
-                          includePhoto
+                          photoLinks={photoLinks}
                         />
                       </div>
                     </StickyBox>
