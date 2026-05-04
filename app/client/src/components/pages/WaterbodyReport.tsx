@@ -49,6 +49,8 @@ import {
   status303dShortError,
   waterbodyReportError,
 } from 'config/errorMessages';
+// types
+import { FetchState } from 'types';
 
 const containerStyles = css`
   ${splitLayoutContainerStyles};
@@ -274,6 +276,9 @@ function WaterbodyReport() {
     status: 'fetching',
     layer: null,
   });
+  const [photoLinks, setPhotoLinks] = useState<FetchState<Record<string, string | null>>>(
+    { status: 'idle', data: {} },
+  );
 
   function handleError() {
     setAllParameterActionIds({
@@ -325,6 +330,7 @@ function WaterbodyReport() {
       `&assessmentUnitIdentifier=${auId}`;
 
     const apiKey = configFiles.data.services.attains.apiKey;
+    setPhotoLinks({ status: 'fetching', data: {} });
     fetchCheck(
       url,
       null,
@@ -342,10 +348,29 @@ function WaterbodyReport() {
 
         const {
           assessmentUnitName,
+          documents,
           locationDescriptionText,
           waterTypes,
           monitoringStations,
         } = res.items[0].assessmentUnits[0];
+
+        const allowedImageTypes = [
+          'apng',
+          'bmp',
+          'gif',
+          'jpeg',
+          'png',
+          'svg+xml',
+          'tiff',
+          'x-tiff',
+          'x-windows-bmp',
+        ].map((imageType) => `image/${imageType}`);
+        const photo = documents?.find((document) =>
+          allowedImageTypes.includes(document.documentFileType),
+        );
+        setPhotoLinks({ status: 'success', data: {
+          [`${orgId}-${auId}`]: photo ? photo.documentUrl : null,
+        }});
 
         setWaterbodyName(assessmentUnitName);
         setWaterbodyLocation({
@@ -421,6 +446,7 @@ function WaterbodyReport() {
       },
       (err) => {
         console.error(err);
+        setPhotoLinks({ status: 'failure', data: {} });
         setWaterbodyTypes({ status: 'failure', data: [] });
         setWaterbodyLocation({ status: 'failure', text: '' });
       },
@@ -1272,7 +1298,7 @@ function WaterbodyReport() {
                                 layout="narrow"
                                 unitIds={unitIds}
                                 onLoad={setMapLayer}
-                                includePhoto
+                                photoLinks={photoLinks}
                               />
                             </div>
                           </Fragment>
@@ -1294,7 +1320,7 @@ function WaterbodyReport() {
                           layout="wide"
                           unitIds={unitIds}
                           onLoad={setMapLayer}
-                          includePhoto
+                          photoLinks={photoLinks}
                         />
                       </div>
                     </StickyBox>
