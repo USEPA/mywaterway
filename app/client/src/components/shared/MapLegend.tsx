@@ -76,6 +76,12 @@ const legendItemStyles = css`
   align-items: center;
 `;
 
+const legendItemGradientStyles = css`
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+`;
+
 const imageContainerBaseStyles = css`
   margin-right: 0.25rem;
 `;
@@ -590,7 +596,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   // jsx
   const healthIndexLegend = (
     <li className="hmw-legend__item">
-      <div css={legendItemStyles}>
+      <div css={legendItemGradientStyles}>
         <div className="hmw-legend__symbol">
           <GradientIcon
             id="health-index-gradient"
