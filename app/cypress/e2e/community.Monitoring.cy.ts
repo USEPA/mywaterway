@@ -237,7 +237,7 @@ describe('Monitoring Tab', () => {
 
     cy.findAllByText((_content, element) => {
       return element.textContent.includes(
-        '20 of 289 water monitoring sample locations',
+        '20 of 290 water monitoring sample locations',
       );
     })
       .filter(':visible')
