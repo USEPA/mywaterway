@@ -63,8 +63,9 @@
     "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
+    "apiKey": "HbKMDkKyzWJoihZMdbYeRq4jubuBBo5ghuV8vn0d",
     "serviceUrlDev": "https://attains-demo.epa-ow-cloud.com/attains-public/api/",
-    "serviceUrl": "https://attains.epa.gov/attains-public/api/"
+    "serviceUrl": "https://api.epa.gov/attains-demo/"
   },
   "wildScenicRivers": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_WildScenicRiverSegments_01/MapServer/0",
   "protectedAreasDatabase": "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Protection_Mechanism_Category_PADUS/FeatureServer/0",

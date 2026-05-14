@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { css } from '@emotion/react';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
@@ -307,7 +307,16 @@ function WaterQualityOverview() {
       // use the excludeAsssessments flag to improve performance, since we only
       // need the documents and reportStatusCode
       const url = `${configFiles.data.services.attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
-      fetchCheck(url, getSignal())
+      const apiKey = configFiles.data.services.attains.apiKey;
+      fetchCheck(
+        url,
+        getSignal(),
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      )
         .then((res) => {
           const orgData = res.items[0];
           setOrganizationData({ status: 'success', data: orgData ?? {} });
@@ -325,7 +334,16 @@ function WaterQualityOverview() {
   const fetchIntroText = useCallback(
     (orgID) => {
       const url = `${configFiles.data.services.attains.serviceUrl}metrics?organizationId=${orgID}`;
-      fetchCheck(url, getSignal())
+      const apiKey = configFiles.data.services.attains.apiKey;
+      fetchCheck(
+        url,
+        getSignal(),
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      )
         .then((res) => {
           // check for missing data
           if (res.length === 0) {
@@ -346,7 +364,7 @@ function WaterQualityOverview() {
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
-  const [usesStateSummaryCalled, setUsesStateSummaryCalled] = useState(false);
+  const usesStateSummaryCalled = useRef(false);
   useEffect(() => {
     if (
       !stateAndOrganization ||
@@ -355,7 +373,7 @@ function WaterQualityOverview() {
           activeState.value !== stateAndOrganization.state)) ||
       (activeState.source === 'Tribe' &&
         activeState.attainsId !== stateAndOrganization.organizationId) ||
-      usesStateSummaryCalled
+      usesStateSummaryCalled.current
     ) {
       return;
     }
@@ -379,8 +397,17 @@ function WaterQualityOverview() {
       `${configFiles.data.services.attains.serviceUrl}usesStateSummary` +
       `?organizationId=${stateAndOrganization.organizationId}` +
       reportingCycleParam;
+    const apiKey = configFiles.data.services.attains.apiKey;
 
-    fetchCheck(url, getSignal())
+    fetchCheck(
+      url,
+      getSignal(),
+      apiKey
+        ? {
+            'X-Api-Key': apiKey,
+          }
+        : {},
+    )
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
@@ -445,7 +472,7 @@ function WaterQualityOverview() {
         });
       });
 
-    setUsesStateSummaryCalled(true);
+    usesStateSummaryCalled.current = true;
   }, [
     activeState,
     configFiles,
@@ -456,14 +483,16 @@ function WaterQualityOverview() {
     setCurrentSummary,
     setUsesStateSummaryServiceError,
     stateAndOrganization,
-    usesStateSummaryCalled,
   ]);
 
   // Get the survey data and survey documents
   const fetchSurveyData = useCallback(
     (orgID) => {
       const url = `${configFiles.data.services.attains.serviceUrl}surveys?organizationId=${orgID}`;
-      fetchCheck(url, getSignal())
+      const apiKey = configFiles.data.services.attains.apiKey;
+      fetchCheck(url, getSignal(), apiKey ? {
+        'X-Api-Key': apiKey,
+      } : {})
         .then((res) => {
           setSurveyLoading(false);
 
@@ -506,7 +535,16 @@ function WaterQualityOverview() {
       }
 
       const url = `${configFiles.data.services.attains.serviceUrl}states/${stateID}/organizations`;
-      fetchCheck(url, getSignal())
+      const apiKey = configFiles.data.services.attains.apiKey;
+      fetchCheck(
+        url,
+        getSignal(),
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      )
         .then((res) => {
           let orgID;
 
@@ -562,12 +600,13 @@ function WaterQualityOverview() {
       setSurveyLoading(true);
       setSurveyDocuments([]);
       setYearSelected('');
+      setUsesStateSummaryServiceError(false);
       setServiceError(false);
       setSurveyServiceError(false);
       setNoDataError(false);
       setSurveyData(null);
       setOrganizationData({ status: 'fetching', data: {} });
-      setUsesStateSummaryCalled(false);
+      usesStateSummaryCalled.current = false;
       setCurrentReportingCycle({
         status: 'fetching',
         reportingCycle: '',
@@ -598,6 +637,7 @@ function WaterQualityOverview() {
     setCurrentSummary,
     setIntroText,
     setOrganizationData,
+    setUsesStateSummaryServiceError,
     fetchStateOrgId,
   ]);
 

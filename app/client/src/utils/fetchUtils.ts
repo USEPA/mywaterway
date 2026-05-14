@@ -30,6 +30,7 @@ export function fetchCheck(
 export function proxyFetch(
   apiUrl: string,
   signal: AbortSignal | null = null,
+  headers: object = {},
   timeout: number = defaultTimeout,
   responseType = 'json',
 ) {
