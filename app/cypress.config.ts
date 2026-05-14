@@ -1,5 +1,5 @@
 import { defineConfig } from 'cypress';
-import { addMatchImageSnapshotPlugin } from 'cypress-image-snapshot/plugin';
+import { addMatchImageSnapshotPlugin } from '@simonsmith/cypress-image-snapshot/plugin';
 import { allureCypress } from 'allure-cypress/reporter';
 
 export default defineConfig({

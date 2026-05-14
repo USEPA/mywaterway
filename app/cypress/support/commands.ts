@@ -25,8 +25,8 @@
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
 import '@testing-library/cypress/add-commands';
-import { Options } from 'cypress-image-snapshot';
-import { addMatchImageSnapshotCommand } from 'cypress-image-snapshot/command';
+import type { CypressImageSnapshotOptions } from '@simonsmith/cypress-image-snapshot/types';
+import { addMatchImageSnapshotCommand } from '@simonsmith/cypress-image-snapshot/command';
 
 addMatchImageSnapshotCommand();
 
@@ -39,7 +39,10 @@ declare global {
        */
       isInsideViewport(): Chainable<Element>;
       login(): Chainable<Element>;
-      matchSnapshot(name?: string, options?: Options): Chainable<Element>;
+      matchSnapshot(
+        name?: string,
+        options?: CypressImageSnapshotOptions,
+      ): Chainable<Element>;
       mockGeolocation(
         shouldFail: boolean,
         latitude?: number,
@@ -184,7 +187,7 @@ Cypress.Commands.add(
   {
     prevSubject: 'element',
   },
-  (subject, name: string, options: Options) => {
+  (subject, name: string, options: CypressImageSnapshotOptions) => {
     cy.wrap(subject).matchImageSnapshot(name, {
       comparisonMethod: 'ssim',
       failureThresholdType: 'percent',
