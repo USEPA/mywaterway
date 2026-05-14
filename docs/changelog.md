@@ -1,5 +1,25 @@
 # Change Log
 
+## 2.18.0
+
+### Changed
+
+- Updated ATTAINS API calls to go through api.epa.gov with an API key.
+
+- Updated the Watershed Health Scores (RPS) legend to have more space between the color gradient box and the numeric labels.
+
+- Fixed issue of duplicate ATTAINS calls on the Waterbody Report page.
+
+- Fixed issue of duplicate API calls being issued on the State page.
+
+- Fixed issue of missing space between the tribe name and "at a glance" on the tribe pages.
+
+- Fixed issue with Cyan imagery not loading.
+
+### Chores
+
+- Updated dependencies.
+
 ## 2.17.0
 
 ### Changed

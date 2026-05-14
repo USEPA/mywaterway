@@ -72,7 +72,16 @@ function getAssessmentUnitNames(services: any, orgId: string, action: Object) {
         `${services.attains.serviceUrl}` +
         `assessmentUnits?organizationId=${orgId}` +
         `&assessmentUnitIdentifier=${chunk}`;
-      const request = fetchCheck(url);
+      const apiKey = services.attains.apiKey;
+      const request = fetchCheck(
+        url,
+        null,
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      );
       requests.push(request);
     });
 
@@ -288,6 +297,7 @@ function Actions() {
       configFiles.data.services.attains.serviceUrl +
       `actions?ActionIdentifier=${actionId}` +
       `&organizationIdentifier=${orgId}`;
+    const apiKey = configFiles.data.services.attains.apiKey;
 
     function onError(err) {
       setLoading(false);
@@ -295,7 +305,15 @@ function Actions() {
       console.error(err);
     }
 
-    fetchCheck(url)
+    fetchCheck(
+      url,
+      null,
+      apiKey
+        ? {
+            'X-Api-Key': apiKey,
+          }
+        : {},
+    )
       .then((res) => {
         if (res.items.length < 1) {
           setLoading(false);
