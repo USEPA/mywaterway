@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "baseUrl": "./",
+    "target": "es6",
     "sourceMap": true,
-    "lib": ["es5", "dom"],
+    "lib": ["es6", "dom"],
     "types": ["cypress", "node"]
   },
   "include": ["cypress/**/*.ts"]

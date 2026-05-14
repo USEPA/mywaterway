@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router';
 import Graphic from '@arcgis/core/Graphic';
@@ -18,7 +18,6 @@ import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // helpers
-import { fetchCheck } from 'utils/fetchUtils';
 import {
   useDynamicPopup,
   useSharedLayers,
@@ -38,7 +37,7 @@ import {
 } from 'config/errorMessages';
 // types
 import type { ReactNode } from 'react';
-import type { Feature } from 'types';
+import type { Feature, FetchState } from 'types';
 
 const containerStyles = css`
   display: flex;
@@ -61,10 +60,10 @@ type Props = {
   layout: 'narrow' | 'wide';
   unitIds: Array<string>;
   onLoad?: Function;
-  includePhoto?: boolean;
+  photoLinks?: FetchState<Record<string, string | null>>;  // Data keyed by `${organizationId}-${assessmentUnitIdentifier}`
 };
 
-function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
+function ActionsMap({ layout, unitIds, onLoad, photoLinks }: Props) {
   const navigate = useNavigate();
 
   const { homeWidget, mapView } = useContext(LocationSearchContext);
@@ -124,38 +123,10 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   // Queries the Gis service and plots the waterbodies on the map
   const [noMapData, setNoMapData] = useState(null);
 
-  const getPhotoLink = useCallback(
-    async (orgId, auId) => {
-      if (!auId || !orgId) return null;
-      const url =
-        configFiles.data.services.attains.serviceUrl +
-        `assessmentUnits?organizationId=${orgId}` +
-        `&assessmentUnitIdentifier=${auId}`;
-      const results = await fetchCheck(url);
-      if (!results.items?.length) return null;
-      const documents = results.items[0]?.assessmentUnits[0]?.documents;
-      const allowedTypes = [
-        'apng',
-        'bmp',
-        'gif',
-        'jpeg',
-        'png',
-        'svg+xml',
-        'tiff',
-        'x-tiff',
-        'x-windows-bmp',
-      ].map((imageType) => `image/${imageType}`);
-      const photo = documents?.find((document) =>
-        allowedTypes.includes(document.documentFileType),
-      );
-      return photo ? photo.documentURL : null;
-    },
-    [configFiles],
-  );
-
   // Plots the assessments. Also re-plots if the layout changes
   useEffect(() => {
     if (!unitIds || !actionsWaterbodies) return;
+    if (photoLinks && ['idle', 'fetching'].includes(photoLinks.status)) return; // wait to plot until photo links are fetched
     if (fetchStatus) return; // only do a fetch if there is no status
 
     function plotAssessments(unitIds: Array<string>) {
@@ -235,12 +206,10 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 fieldName: 'hmw-extra-content',
               };
 
-              extraContent = unitIds[auId](reportingCycle, true)
-            } else if (includePhoto) {
-              const photoLink = await getPhotoLink(
-                graphic.attributes.organizationid,
-                graphic.attributes.assessmentunitidentifier,
-              );
+              extraContent = unitIds[auId](reportingCycle, true);
+            } else if (photoLinks?.status === 'success') {
+              const key = `${graphic.attributes.organizationid}-${graphic.attributes.assessmentunitidentifier}`;
+              const photoLink = photoLinks.data[key];
 
               extraContent = photoLink && (
                 <div css={imageContainerStyles}>
@@ -252,15 +221,16 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 </div>
               );
             }
-              // when no content is provided just display the normal community
-              // waterbody content
+            // when no content is provided just display the normal community
+            // waterbody content
             return new Graphic({
               geometry: graphic.geometry,
               symbol,
               attributes: graphic.attributes,
               popupTemplate: {
                 title: getTitle,
-                content: (feature: Feature) => getTemplate(feature, extraContent),
+                content: (feature: Feature) =>
+                  getTemplate(feature, extraContent),
               },
             });
           }
@@ -319,10 +289,9 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     actionsWaterbodies,
     configFiles,
     fetchStatus,
-    getPhotoLink,
     navigate,
     onLoad,
-    includePhoto,
+    photoLinks,
     unitIds,
   ]);
 

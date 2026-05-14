@@ -25,11 +25,6 @@ const headingStyles = css`
   margin-top: 0 !important;
   display: flex;
   align-items: center;
-
-  svg {
-    margin-right: 0.3125em;
-    color: #2c72b5;
-  }
 `;
 
 function StateTribalTabs() {
@@ -202,7 +197,7 @@ function StateTribalTabs() {
       <div>
         <h2 css={headingStyles}>
           <IconMapMarkedAlt aria-hidden="true" />
-          <strong>{activeState.label}</strong> at a Glance
+          <span><strong>{activeState.label}</strong> at a Glance</span>
         </h2>
         <div>{mapContent}</div>
         {activeState.attainsId && (

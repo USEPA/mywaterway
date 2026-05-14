@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from '@emotion/react';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
@@ -125,16 +125,16 @@ function retrieveFeatures({
         // parse the requests
         Promise.all(requests)
           .then((responses) => {
+            if (!responses || responses.length === 0) resolve({ features: [] });
+
             // save the first response to get the metadata
             let combinedObject = responses[0];
 
-            const features = responses.reduce((acc, cur) => {
-              return {
-                ...acc,
-                features: acc.features.concat(cur.features),
-              };
-            });
-            combinedObject.features = features.features;
+            const features = responses.reduce(
+              (acc, cur) => acc.concat(cur.features),
+              [],
+            );
+            combinedObject.features = features;
 
             // resolve the promise
             resolve(combinedObject);
@@ -266,24 +266,15 @@ function AdvancedSearch() {
   const [serviceError, setServiceError] = useState(false);
   const [showMap, setShowMap] = useState(false);
 
-  const [
-    parameterGroupOptions,
-    setParameterGroupOptions, //
-  ] = useState(null);
-
   // Get the list of parameters available for this state.
   // This data comes from the usesStateSummary service response
   // which is called from WaterQualityOverview.
-  useEffect(() => {
-    if (currentSummary.status === 'fetching') return;
-    if (currentSummary.status === 'failure') {
-      setParameterGroupOptions([]);
-      setServiceError(true);
-      return;
-    }
+  // null = still loading (drives isLoading prop on Select)
+  const parameterGroupOptions = useMemo(() => {
+    if (currentSummary.status !== 'success') return null;
 
     // get a unique list of parameterGroups as they are in attains
-    const uniqueParameterGroups = [];
+    const uniqueParameterGroups: string[] = [];
     currentSummary.data?.waterTypes?.forEach((waterType) => {
       waterType.useAttainments.forEach((useAttainment) => {
         useAttainment.parameters.forEach((parameter) => {
@@ -295,19 +286,18 @@ function AdvancedSearch() {
       });
     });
 
-    // get the public friendly versions of the parameterGroups
-    let parameterGroupOptions = configFiles.data.impairmentFields.filter(
-      (field) =>
+    // get the public friendly versions of the parameterGroups, sorted
+    return configFiles.data.impairmentFields
+      .filter((field) =>
         uniqueParameterGroups.includes(field.parameterGroup.toUpperCase()),
-    );
-
-    // sort the options
-    parameterGroupOptions = parameterGroupOptions.sort((a, b) => {
-      return a.label.toUpperCase() > b.label.toUpperCase() ? 1 : -1;
-    });
-
-    setParameterGroupOptions(parameterGroupOptions);
+      )
+      .sort((a, b) => (a.label.toUpperCase() > b.label.toUpperCase() ? 1 : -1));
   }, [configFiles, currentSummary]);
+
+  // Set serviceError when summary fetch fails
+  useEffect(() => {
+    if (currentSummary.status === 'failure') setServiceError(true);
+  }, [currentSummary.status]);
 
   // Get the maxRecordCount of the watersheds layer
   const [watershedMrcError, setWatershedMrcError] = useState(false);
@@ -419,6 +409,11 @@ function AdvancedSearch() {
       return;
     }
 
+    // Guard against stale stateAndOrganization from a previous state/tribe.
+    // fetchStateOrgId always sets stateAndOrganization.state = activeState.value,
+    // so a mismatch means the context hasn't updated yet for the new selection.
+    if (stateAndOrganization.state !== activeState.value) return;
+
     // query for initial load
     if (!currentFilter) {
       const queryParams = {
@@ -496,6 +491,7 @@ function AdvancedSearch() {
         });
     }
   }, [
+    activeState,
     configFiles,
     currentFilter,
     getSignal,
@@ -633,9 +629,12 @@ function AdvancedSearch() {
         // Fire off requests for any watersheds that we don't already have data for
         if (!watershedResults.hasOwnProperty(watershed.value)) {
           // run a fetch to get the assessments in the huc
+          const apiKey = configFiles.data.services.attains.apiKey;
           requests.push(
             fetchCheck(
               `${configFiles.data.services.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
+              null,
+              apiKey ? { 'X-Api-Key': apiKey } : {},
             ),
           );
         }
@@ -1097,9 +1096,9 @@ function AdvancedSearch() {
   );
 
   const { width, height } = useWindowSize();
-  const [mapShownInitialized, setMapShownInitialized] = useState(false);
+  const mapShownInitialized = useRef(false);
   useEffect(() => {
-    if (mapShownInitialized || !width) return;
+    if (mapShownInitialized.current || !width) return;
 
     if (width > 960) {
       setShowMap(true);
@@ -1107,8 +1106,8 @@ function AdvancedSearch() {
       setShowMap(false);
     }
 
-    setMapShownInitialized(true);
-  }, [mapShownInitialized, width]);
+    mapShownInitialized.current = true;
+  }, [width]);
 
   const mapContent = (
     <StateMap
