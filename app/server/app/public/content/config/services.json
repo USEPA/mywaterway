@@ -6,7 +6,7 @@
     "topographic": "668f436dc2dc4f2c83ceb0c064380590"
   },
   "expertQuery": {
-    "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
+    "apiKey": "",
     "attains": "https://api.epa.gov/expertquery/api/attains",
     "userInterface": "https://owapps.epa.gov/expertquery",
     "valuesLimit": 100
@@ -63,7 +63,7 @@
     "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
-    "apiKey": "HbKMDkKyzWJoihZMdbYeRq4jubuBBo5ghuV8vn0d",
+    "apiKey": "",
     "serviceUrlDev": "https://api.epa.gov/attains/",
     "serviceUrl": "https://api.epa.gov/attains/"
   },
