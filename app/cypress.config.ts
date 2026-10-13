@@ -9,7 +9,7 @@ export default defineConfig({
   video: true,
   viewportHeight: 720,
   viewportWidth: 1280,
-  env: {
+  expose: {
     failOnSnapshotDiff: false,
     codeCoverage: {
       url: 'http://localhost:3002/__coverage__',

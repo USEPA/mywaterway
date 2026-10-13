@@ -32,8 +32,8 @@
     "server": "cd server && npm start",
     "server_coverage": "cd server && npm run start_coverage",
     "dev": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
-    "setup": "echo \"Installing project dependencies...\" && npm ci --legacy-peer-deps && echo \"Installing client dependencies...\" && cd client && npm ci --legacy-peer-deps && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
-    "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
+    "setup": "echo \"Installing project dependencies...\" && npm ci && echo \"Installing client dependencies...\" && cd client && npm ci --legacy-peer-deps && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
+    "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --expose coverage=false\"",
     "client_coverage": "npx rimraf .nyc_output/out.json && npx rimraf coverage && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron\"",
     "coverage_spec_ex": "npx rimraf .nyc_output/out.json && concurrently -s first -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server_coverage\" \"npm:client\" \"cypress run --browser electron --spec 'cypress/e2e/educational-materials.cy.ts'\" && echo REMINDER Manually delete CYPRESS-TEST",
     "coverage": "npx rimraf combined_results_reports/results && cd server && npm run test && cd .. && npm run client_coverage && node combine_coverage_reports.js && echo REMINDER Manually delete CYPRESS-TEST",
@@ -41,24 +41,22 @@
   },
   "devDependencies": {
     "@cypress/code-coverage": "4.0.3",
-    "@simonsmith/cypress-image-snapshot": "^10.0.3",
+    "@simonsmith/cypress-image-snapshot": "11.0.0",
     "@testing-library/cypress": "10.1.3",
-    "@types/node": "25.6.0",
+    "@types/node": "26.6.4",
     "@types/testing-library__cypress": "5.0.13",
-    "allure-commandline": "2.38.1",
-    "allure-cypress": "3.7.2",
-    "concurrently": "9.2.1",
-    "cypress": "15.14.2",
-    "eslint-plugin-cypress": "6.4.1",
+    "allure-commandline": "2.46.1",
+    "allure-cypress": "3.13.0",
+    "concurrently": "10.0.6",
+    "cypress": "16.1.1",
+    "eslint-plugin-cypress": "7.0.2",
     "istanbul-lib-coverage": "3.2.2",
     "nyc": "18.0.0",
-    "prettier": "3.8.3",
+    "prettier": "3.9.9",
     "rimraf": "6.1.3",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   },
-  "eslintConfig": {
-    "extends": [
-      "plugin:cypress/recommended"
-    ]
+  "allowScripts": {
+    "cypress@16.1.1": true
   }
 }

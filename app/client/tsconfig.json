@@ -2,9 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "src",
     "checkJs": true,
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
@@ -14,6 +12,7 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
+    "paths": { "*": ["./src/*"] },
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,

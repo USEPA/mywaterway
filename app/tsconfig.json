@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "sourceMap": true,
     "lib": ["es6", "dom"],
+    "noEmit": true,
+    "skipLibCheck": true,
+    "target": "es6",
     "types": ["cypress", "node"]
   },
   "include": ["cypress/**/*.ts"]

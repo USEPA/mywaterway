@@ -29,34 +29,35 @@
   },
   "main": "app/server.js",
   "scripts": {
-    "start": "nodemon -r dotenv/config --inspect app/server.js dotenv_config_path=./.env.local",
+    "start": "cross-env DOTENV_PATH=./.env.local npx dotenv run -- nodemon --inspect app/server.js",
     "start_coverage": "nyc --silent node --env-file=./.env.local app/server.js",
     "test": "npx rimraf .nyc_output/out.json && npx rimraf coverage && jest --coverage --coverageDirectory=coverage",
-    "glossary": "node -r dotenv/config --inspect app/tasks/updateGlossary.js dotenv_config_path=./.env.local",
-    "usgs_site_types": "node -r dotenv/config --inspect app/tasks/updateUsgsSiteTypes.js dotenv_config_path=./.env.local"
+    "glossary": "cross-env DOTENV_PATH=./.env.local npx dotenv run -- node --inspect app/tasks/updateGlossary.js",
+    "usgs_site_types": "cross-env DOTENV_PATH=./.env.local npx dotenv run -- node --inspect app/tasks/updateUsgsSiteTypes.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1043.0",
-    "axios": "1.16.0",
-    "dotenv": "17.4.2",
-    "express": "5.2.1",
+    "@aws-sdk/client-s3": "3.1148.0",
+    "axios": "1.20.0",
+    "dotenv": "18.0.6",
+    "express": "5.3.0",
     "express-basic-auth": "1.2.1",
-    "helmet": "8.1.0",
+    "helmet": "8.3.0",
     "log4js": "6.9.1",
-    "node-cron": "4.2.1",
+    "node-cron": "4.6.0",
     "serve-favicon": "2.5.1"
   },
   "devDependencies": {
     "@cypress/code-coverage": "4.0.3",
-    "allure-jest": "3.7.2",
+    "allure-jest": "3.13.0",
     "browser-sync": "3.0.4",
+    "cross-env": "10.1.0",
     "husky": "9.1.7",
-    "jest": "30.3.0",
-    "lint-staged": "17.0.2",
+    "jest": "30.5.2",
+    "lint-staged": "17.6.0",
     "nodemon": "3.1.14",
     "nyc": "18.0.0",
-    "prettier": "3.8.3",
-    "supertest": "7.2.2"
+    "prettier": "3.9.9",
+    "supertest": "7.3.1"
   },
   "husky": {
     "hooks": {
