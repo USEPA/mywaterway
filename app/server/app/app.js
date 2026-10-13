@@ -25,6 +25,7 @@ app.use(
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: false,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   }),
 );
 app.use(
