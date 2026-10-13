@@ -66,29 +66,17 @@ app.use(function (req, res, next) {
 });
 
 /****************************************************************
- Is Glossary/Terminology Services authorization variable set?
+ Are required environment variables set?
 ****************************************************************/
-if (process.env.GLOSSARY_AUTH) {
-  log.info('GLOSSARY_AUTH environmental variable found, continuing.');
-} else {
-  let msg =
-    'Glossary/Terminology Services authorization variable NOT set, exiting system.';
-  log.error(msg);
-  //process.exit();
-  throw new Error('Missing Configuration');
-}
-
-/****************************************************************
- Is USGS authorization variable set?
-****************************************************************/
-if (process.env.USGS_API_KEY) {
-  log.info('USGS_API_KEY environmental variable found, continuing.');
-} else {
-  let msg = 'USGS_API_KEY environmental variable NOT set, exiting system.';
-  log.error(msg);
-  //process.exit();
-  throw new Error('Missing Configuration');
-}
+const requiredEnvs = ['GLOSSARY_AUTH', 'USGS_API_KEY'];
+requiredEnvs.forEach((env) => {
+  if (!process.env[env]) {
+    log.error(`${env} environmental variable NOT set, exiting system.`);
+    throw new Error('Missing Configuration');
+  } else {
+    log.info(`${env} environmental variable found, continuing.`);
+  }
+});
 
 /****************************************************************
  Which environment
