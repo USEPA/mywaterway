@@ -201,7 +201,6 @@ export function VisxGraph({
     );
   };
 
-  console.log(XYChart);
   return (
     <>
       <Global styles={glyphStyles} />

@@ -29,11 +29,11 @@
   },
   "main": "app/server.js",
   "scripts": {
-    "start": "DOTENV_PATH=./.env.local npx dotenv run -- nodemon --inspect app/server.js",
+    "start": "cross-env DOTENV_PATH=./.env.local npx dotenv run -- nodemon --inspect app/server.js",
     "start_coverage": "nyc --silent node --env-file=./.env.local app/server.js",
     "test": "npx rimraf .nyc_output/out.json && npx rimraf coverage && jest --coverage --coverageDirectory=coverage",
-    "glossary": "DOTENV_PATH=./.env.local npx dotenv run -- node --inspect app/tasks/updateGlossary.js",
-    "usgs_site_types": "DOTENV_PATH=./.env.local npx dotenv run -- node --inspect app/tasks/updateUsgsSiteTypes.js"
+    "glossary": "cross-env DOTENV_PATH=./.env.local npx dotenv run -- node --inspect app/tasks/updateGlossary.js",
+    "usgs_site_types": "cross-env DOTENV_PATH=./.env.local npx dotenv run -- node --inspect app/tasks/updateUsgsSiteTypes.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1148.0",
@@ -50,6 +50,7 @@
     "@cypress/code-coverage": "4.0.3",
     "allure-jest": "3.13.0",
     "browser-sync": "3.0.4",
+    "cross-env": "10.1.0",
     "husky": "9.1.7",
     "jest": "30.5.2",
     "lint-staged": "17.6.0",
