@@ -361,7 +361,7 @@ describe('Add & Save Data Widget', () => {
     });
   });
 
-  it.only("Test that the save panel includes layers added from the widget's other tabs", () => {
+  it("Test that the save panel includes layers added from the widget's other tabs", () => {
     const agoSaveName = `CYPRESS-SAVE-TEST-HMW-${Date.now().toString(36)}`;
 
     cy.get(adwId).within(() => {

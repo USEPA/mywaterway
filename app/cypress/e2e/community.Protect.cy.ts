@@ -199,7 +199,7 @@ describe('Protect Tab', () => {
     );
   });
 
-  it.only('Check the protected areas section', () => {
+  it('Check the protected areas section', () => {
     // navigate to Protect tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       '121002030202',
