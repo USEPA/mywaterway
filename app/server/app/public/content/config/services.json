@@ -6,30 +6,30 @@
     "topographic": "668f436dc2dc4f2c83ceb0c064380590"
   },
   "expertQuery": {
-    "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
+    "apiKey": "",
     "attains": "https://api.epa.gov/expertquery/api/attains",
     "userInterface": "https://owapps.epa.gov/expertquery",
     "valuesLimit": 100
   },
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
   "esriWebMapBase": "https://www.arcgis.com/sharing/rest/content/items",
-  "wbd": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6",
-  "wbdUnconstrained": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19",
+  "wbd": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Hydrologic_Units_F3/FeatureServer/6",
+  "wbdUnconstrained": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Hydrologic_Units_F3/FeatureServer/19",
   "counties": "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Census_Counties/FeatureServer/0",
   "stateBoundaries": "https://enviroatlas.epa.gov/arcgis/rest/services/Supplemental/Reference_Boundaries/MapServer",
-  "mappedWater": "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus/NHDPlus/MapServer",
+  "mappedWater": "https://hydro.nationalmap.gov/arcgis/rest/services/NHDPlus_HR/MapServer",
   "upstreamWatershed": "https://gispub.epa.gov/arcgis/rest/services/OW/CatchmentFabric/MapServer/2/",
   "nonprofits": "https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/",
   "tribal": "https://geopub.epa.gov/arcgis/rest/services/EMEF/Tribal/MapServer",
   "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_119th_Congressional_Districts/FeatureServer",
   "wsio": "https://gispub.epa.gov/arcgis/rest/services/OW/RPS/MapServer/0",
   "waterbodyService": {
-    "base": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer",
-    "points": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/0",
-    "lines": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1",
-    "areas": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2",
-    "summary": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4",
-    "controlTable": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/5"
+    "base": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer",
+    "points": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/0",
+    "lines": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/1",
+    "areas": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/2",
+    "summary": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/4",
+    "controlTable": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/5"
   },
   "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/HMW%20Glossary/terms/full",
   "waterQualityPortal": {
@@ -63,7 +63,7 @@
     "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
-    "apiKey": "HbKMDkKyzWJoihZMdbYeRq4jubuBBo5ghuV8vn0d",
+    "apiKey": "",
     "serviceUrlDev": "https://api.epa.gov/attains/",
     "serviceUrl": "https://api.epa.gov/attains/"
   },
@@ -368,7 +368,7 @@
     {
       "urlLookup": "mappedWater",
       "wildcardUrl": "{urlLookup}*",
-      "name": "watersgeo - NHDPlus mapped water"
+      "name": "USGS - NHDPlus mapped water"
     },
     {
       "urlLookup": "wsio",

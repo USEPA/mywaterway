@@ -20,13 +20,13 @@ describe('Extreme Weather tab', () => {
     );
 
     cy.findByRole('combobox', { name: 'County' }).click({ force: true });
-    cy.findByText("Prince George's County").click();
+    cy.findByText("Arlington County").click();
     cy.findByText('Change in annual consecutive (dry days):', { exact: false });
 
-    cy.findByText('Annual days with no rain (dry days): 189.6');
+    cy.findByText('Annual days with no rain (dry days): 195');
     cy.findByRole('combobox', { name: 'Timeframe' }).click({ force: true });
     cy.findByRole('option', { name: 'Mid Century (2035 - 2064)' }).click();
-    cy.findByText('Annual days with no rain (dry days): 190.8');
+    cy.findByText('Annual days with no rain (dry days): 196.2');
 
     cy.findByRole('radio', { name: 'Fire' }).should('not.be.checked');
     cy.findByRole('radio', { name: 'Drought' }).should('not.be.checked');

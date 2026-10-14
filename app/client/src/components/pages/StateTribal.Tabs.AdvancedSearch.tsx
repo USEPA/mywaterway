@@ -29,7 +29,7 @@ import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
 import { getWaterbodyCondition } from 'utils/mapFunctions';
-import { chunkArray, isAbort } from 'utils/utils';
+import { isAbort } from 'utils/utils';
 import {
   useAbort,
   useWaterbodyFeaturesState,
@@ -83,7 +83,7 @@ function retrieveMaxRecordCount(url, signal) {
 
 // Gets the features without geometry for quickly displaying in the
 // waterbody list component.
-function retrieveFeatures({
+async function retrieveFeatures({
   url,
   queryParams,
   maxRecordCount,
@@ -92,57 +92,40 @@ function retrieveFeatures({
   queryParams: Object;
   maxRecordCount: number;
 }) {
-  return new Promise((resolve, reject) => {
-    // query to get just the ids since there is a maxRecordCount
-    query
-      .executeForIds(url, queryParams)
-      .then((objectIds) => {
-        // this block sometimes still executes when the request is aborted
-        if (queryParams.signal?.aborted)
-          reject(new DOMException('The query was aborted.', 'AbortError'));
-        // set the features value of the data to an empty array if no objectIds
-        // were returned.
-        if (!objectIds) {
-          resolve({ features: [] });
-          return;
-        }
+  // get the total up front so the pages can all be requested in parallel
+  const count = await query.executeForCount(url, queryParams);
 
-        // Break the data up into chunks of 5000 or the max record count
-        const chunkedObjectIds = chunkArray(objectIds, maxRecordCount);
+  // this block sometimes still executes when the request is aborted
+  if (queryParams.signal?.aborted)
+    throw new DOMException('The query was aborted.', 'AbortError');
 
-        // request data with each chunk of objectIds
-        const requests = [];
+  if (!count) return { features: [] };
 
-        chunkedObjectIds.forEach((chunk: Array<string>) => {
-          const queryChunk = {
-            ...queryParams,
-            where: `OBJECTID in (${chunk.join(',')})`,
-          };
-          const request = query.executeQueryJSON(url, queryChunk);
-          requests.push(request);
-        });
+  // Request a page per maxRecordCount. orderByFields is required, since
+  // the service makes no guarantee that the ordering is stable between pages.
+  const requests = [];
+  for (let start = 0; start < count; start += maxRecordCount) {
+    requests.push(
+      query.executeQueryJSON(url, {
+        ...queryParams,
+        num: maxRecordCount,
+        orderByFields: ['OBJECTID'],
+        start,
+      }),
+    );
+  }
 
-        // parse the requests
-        Promise.all(requests)
-          .then((responses) => {
-            if (!responses || responses.length === 0) resolve({ features: [] });
+  const responses = await Promise.all(requests);
+  if (responses.length === 0) return { features: [] };
 
-            // save the first response to get the metadata
-            let combinedObject = responses[0];
+  // save the first response to get the metadata
+  const combinedObject = responses[0];
+  combinedObject.features = responses.reduce<__esri.Graphic[]>(
+    (acc, cur) => acc.concat(cur.features),
+    [],
+  );
 
-            const features = responses.reduce(
-              (acc, cur) => acc.concat(cur.features),
-              [],
-            );
-            combinedObject.features = features;
-
-            // resolve the promise
-            resolve(combinedObject);
-          })
-          .catch((err) => reject(err));
-      })
-      .catch((err) => reject(err));
-  });
+  return combinedObject;
 }
 
 const inputsStyles = css`

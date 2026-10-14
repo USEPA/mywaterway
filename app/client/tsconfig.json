@@ -2,9 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "src",
     "checkJs": true,
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
@@ -14,12 +12,18 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
+    "paths": { "*": ["./src/*"] },
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "es2020",
-    "types": ["vite/client", "unplugin-icons/types/react"]
+    "types": [
+      "vite/client",
+      "unplugin-icons/types/react",
+      "@arcgis/map-components",
+      "@esri/calcite-components/types/react"
+    ]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

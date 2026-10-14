@@ -116,7 +116,7 @@ describe('Waterbody Report page', () => {
 
   it('Test assessments service failure', () => {
     cy.intercept(
-      'https://attains.epa.gov/attains-public/api/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
+      'https://api.epa.gov/attains/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
       {
         statusCode: 500,
         body: {},
@@ -133,7 +133,7 @@ describe('Waterbody Report page', () => {
 
   it('Test assessments no data version 1', () => {
     cy.intercept(
-      'https://attains.epa.gov/attains-public/api/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
+      'https://api.epa.gov/attains/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
       {
         statusCode: 200,
         body: {
@@ -151,7 +151,7 @@ describe('Waterbody Report page', () => {
 
   it('Test assessments no data version 2', () => {
     cy.intercept(
-      'https://attains.epa.gov/attains-public/api/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
+      'https://api.epa.gov/attains/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
       {
         statusCode: 200,
         body: {
@@ -173,7 +173,7 @@ describe('Waterbody Report page', () => {
 
   it('Test assessments no data version 3', () => {
     cy.intercept(
-      'https://attains.epa.gov/attains-public/api/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
+      'https://api.epa.gov/attains/assessments?organizationId=DOEE&assessmentUnitIdentifier=DCANA00E_02&reportingCycle=2020',
       {
         statusCode: 200,
         body: {
@@ -216,5 +216,78 @@ describe('Waterbody Report page', () => {
     cy.findByText(
       'No probable sources of impairment identified for this waterbody.',
     );
+  });
+});
+
+describe('Waterbody Report page Assessment Documents section', () => {
+  // the section is the div wrapping the "Assessment Documents" heading
+  const documentsSection = () => cy.findByText('Assessment Documents').parent();
+
+  it('Displays an informational message for an assessment without documents', () => {
+    cy.visit('/waterbody-report/21GAEPD/GAR031501010119/2020');
+
+    cy.waitForLoadFinish();
+
+    documentsSection().within(() => {
+      cy.findByText('No documents are available').should('be.visible');
+      cy.get('table').should('not.exist');
+    });
+  });
+
+  it('Displays a table of documents for an assessment with documents', () => {
+    const documentName = 'Sugar Creek 2019 Data Summary';
+    const documentType = 'Monitoring Data';
+    const documentUrl =
+      'https://api.epa.gov/attains/documents/assessments/16624/TN03150101012_0100/135100';
+
+    cy.visit('/waterbody-report/TDECWR/TN03150101012_0100/2020');
+
+    cy.waitForLoadFinish();
+
+    documentsSection().within(() => {
+      cy.findByText('No documents are available').should('not.exist');
+      cy.findByText('Links below open in a new browser tab.').should(
+        'be.visible',
+      );
+
+      // verify the table column headers
+      cy.findByText('Assessment').should('be.visible');
+      cy.findByText('Type').should('be.visible');
+
+      // verify the single document row
+      cy.get('tbody tr').should('have.length', 1);
+      cy.findByText(documentType).should('be.visible');
+
+      // verify the document link opens in a new tab and is flagged as a PDF
+      cy.findByText(documentName)
+        .should('have.attr', 'href', documentUrl)
+        .and('have.attr', 'target', '_blank')
+        .and('have.attr', 'rel', 'noopener noreferrer')
+        .and('have.attr', 'data-hmw-extension', '(PDF)');
+
+      // the document is hosted on epa.gov, so no exit disclaimer is shown
+      cy.get('.exit-disclaimer').should('not.exist');
+    });
+  });
+
+  it('Displays an error message when the assessments service fails', () => {
+    cy.intercept(
+      'https://api.epa.gov/attains/assessments?organizationId=TDECWR&assessmentUnitIdentifier=TN03150101012_0100&reportingCycle=2020',
+      {
+        statusCode: 500,
+        body: {},
+      },
+    );
+
+    cy.visit('/waterbody-report/TDECWR/TN03150101012_0100/2020');
+
+    cy.waitForLoadFinish();
+
+    documentsSection().within(() => {
+      cy.findByText(
+        'Assessment information is temporarily unavailable, please try again later.',
+      ).should('be.visible');
+      cy.get('table').should('not.exist');
+    });
   });
 });

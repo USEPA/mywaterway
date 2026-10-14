@@ -183,7 +183,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useCyanWaterbodiesLayers();
   useDischargersLayers();
   useMonitoringLocationsLayers({
-    filter: (hucBoundaries?.geometry as __esri.Polygon) ?? null,
+    filter: (hucBoundaries?.geometry as Polygon) ?? null,
   });
   useStreamgageLayers();
 
@@ -1667,7 +1667,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [searchText, setHuc12]);
 
   useEffect(() => {
-    if (!mapView || !hucBoundaries || atHucBoundaries) {
+    if (!mapView || !hucBoundaries || !homeWidget || atHucBoundaries) {
       return;
     }
 
@@ -1840,9 +1840,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setMapLoading(false);
   }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
 
-  // jsx
-  const mapContent = (
-    <>
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  if (!browserIsCompatibleWithArcGIS()) {
+    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
+  }
+
+  return (
+    <StickyBox 
+      offsetTop={layout === 'wide' ? mapPadding : 0}
+      offsetBottom={layout === 'wide' ? mapPadding : 0}
+    >
       {/* for wide screens, LocationMap's children is searchText */}
       <div ref={searchTextRef}>{children}</div>
 
@@ -1857,24 +1864,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         <Map layers={layers} />
         {mapView && mapLoading && <MapLoadingSpinner />}
       </div>
-    </>
+    </StickyBox>
   );
-
-  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  if (!browserIsCompatibleWithArcGIS()) {
-    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
-  }
-
-  if (layout === 'wide') {
-    return (
-      <StickyBox offsetTop={mapPadding} offsetBottom={mapPadding}>
-        {mapContent}
-      </StickyBox>
-    );
-  }
-
-  // layout defaults to 'narrow'
-  return mapContent;
 }
 
 export default function LocationMapContainer({ ...props }: Props) {

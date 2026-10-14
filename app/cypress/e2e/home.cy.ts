@@ -75,11 +75,18 @@ describe('Homepage search', () => {
       cy.stub(win, 'open').as('windowOpen');
     });
 
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(siteId);
-    cy.findByRole('menuitem', { name: (name) => name.includes(siteId) }).click();
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      siteId,
+    );
+    cy.findByRole('menuitem', {
+      name: (name) => name.includes(siteId),
+    }).click();
 
     cy.get('@windowOpen').should('have.been.called');
-    cy.get('@windowOpen').should('have.been.calledWithMatch', /\/monitoring-report/);
+    cy.get('@windowOpen').should(
+      'have.been.calledWithMatch',
+      /\/monitoring-report/,
+    );
   });
 
   it('Searching for a waterbody correctly routes to the Waterbody Report page', () => {
@@ -90,15 +97,22 @@ describe('Homepage search', () => {
     });
 
     cy.location('href').then((beforeUrl) => {
-      cy.findByPlaceholderText('Search by address', { exact: false }).type(waterbodyId);
-      cy.findByRole('menuitem', { name: (name) => name.includes(waterbodyId) }).click();
+      cy.findByPlaceholderText('Search by address', { exact: false }).type(
+        waterbodyId,
+      );
+      cy.findByRole('menuitem', {
+        name: (name) => name.includes(waterbodyId),
+      }).click();
       cy.location('href').should((afterUrl) => {
         expect(afterUrl).to.equal(beforeUrl);
       });
     });
 
     cy.get('@windowOpen').should('have.been.called');
-    cy.get('@windowOpen').should('have.been.calledWithMatch', /\/waterbody-report/);
+    cy.get('@windowOpen').should(
+      'have.been.calledWithMatch',
+      /\/waterbody-report/,
+    );
   });
 
   it('Searching for a tribal location correctly routes to the Tribal page', () => {
@@ -108,11 +122,18 @@ describe('Homepage search', () => {
       cy.stub(win, 'open').as('windowOpen');
     });
 
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(tribeName);
-    cy.findByRole('menuitem', { name: (name) => name.includes(tribeName) }).click();
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      tribeName,
+    );
+    cy.findByRole('menuitem', {
+      name: (name) => name.includes(tribeName),
+    }).click();
 
     cy.get('@windowOpen').should('have.been.called');
-    cy.get('@windowOpen').should('have.been.calledWithMatch', /\/tribe\/100000237/);
+    cy.get('@windowOpen').should(
+      'have.been.calledWithMatch',
+      /\/tribe\/100000237/,
+    );
   });
 });
 
@@ -134,13 +155,15 @@ describe('Homepage disclaimer and glossary', () => {
   });
 
   it(`Glossary button toggles slide content`, () => {
-    cy.findAllByText('Glossary').filter(':visible').click();
+    cy.findByRole('button', { name: 'Glossary' }).click();
     cy.findByPlaceholderText('Search for a term...').should('be.visible');
   });
 
   it(`Glossary close button closes slide content`, () => {
-    cy.findAllByText('Glossary').filter(':visible').click();
+    cy.findByRole('button', { name: 'Glossary' }).click();
     cy.findByRole('button', { name: 'Close glossary' }).click();
-    cy.findByPlaceholderText('Search for a term...').should('not.be.visible');
+    cy.findByRole('searchbox', {
+      name: 'Search for a glossary term...',
+    }).should('not.exist');
   });
 });

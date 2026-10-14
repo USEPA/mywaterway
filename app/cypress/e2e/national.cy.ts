@@ -154,9 +154,11 @@ describe('National Drinking Water tab', () => {
   });
 
   it('Clicking a Glossary Term opens the Glossary panel', () => {
-    cy.findAllByText(/Drinking Water Health-based Violations/)
-      .filter(':visible')
-      .click();
+    cy.findByRole('tabpanel', { name: 'National Drinking Water' }).within(
+      () => {
+        cy.findByText(/Drinking Water Health-based Violations/).click();
+      },
+    );
     cy.findByText(/Violations of maximum contaminant levels/).should(
       'be.visible',
     );

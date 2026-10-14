@@ -1,3 +1,8 @@
+import type SpatialReference from "@arcgis/core/geometry/SpatialReference";
+import type Portal from "@arcgis/core/portal/Portal";
+import type Extent from "@arcgis/core/geometry/Extent";
+import type Layer from "@arcgis/core/layers/Layer";
+import type FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 import {
   IFeature,
   ILayer,
@@ -60,10 +65,10 @@ export interface IServiceNameAvailableExtended extends IServiceNameAvailable {
 }
 
 export type LayerType = {
-  associatedData?: __esri.FeatureSet | null;
+  associatedData?: FeatureSet | null;
   id: string;
   label: string;
-  layer: __esri.Layer;
+  layer: Layer;
   requiresFeatureService: boolean;
   toggled: boolean;
   widgetLayer?: WidgetLayer;
@@ -84,7 +89,7 @@ export type PortalService = {
   culture: string;
   description: string | null;
   displayName: string;
-  extent: __esri.Extent | null;
+  extent: Extent | null;
   groupCategories: any;
   iconUrl: string;
   id: string;
@@ -104,12 +109,12 @@ export type PortalService = {
   numViews: number;
   owner: string;
   ownerFolder: string | null;
-  portal: __esri.Portal;
+  portal: Portal;
   screenshots: any[];
   size: number;
   snippet: any;
   sourceJSON: Object;
-  spatialReference: __esri.SpatialReference;
+  spatialReference: SpatialReference;
   tags: any[];
   thumbnail: any;
   thumbnailUrl: string | null;

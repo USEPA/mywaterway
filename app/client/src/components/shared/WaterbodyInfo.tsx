@@ -83,6 +83,13 @@ import {
   tableStyles,
 } from 'styles/index';
 // types
+import type Graphic from "@arcgis/core/Graphic";
+import type LocalMediaElementSource from "@arcgis/core/layers/support/LocalMediaElementSource";
+import type { ResourceHandle } from "@arcgis/core/core/Handles";
+import type MapView from "@arcgis/core/views/MapView";
+import type Field from "@arcgis/core/layers/support/Field";
+import type UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
+import type Renderer from "@arcgis/core/renderers/Renderer";
 import type { SerializedStyles } from '@emotion/react';
 import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
@@ -112,7 +119,7 @@ function bool(value: string) {
 }
 
 function isChangeLocationPopup(
-  feature: __esri.Graphic | ChangeLocationPopup,
+  feature: Graphic | ChangeLocationPopup,
 ): feature is ChangeLocationPopup {
   return 'changelocationpopup' in (feature as ChangeLocationPopup).attributes;
 }
@@ -429,11 +436,11 @@ type ChangeLocationPopup = {
 
 type WaterbodyInfoProps = {
   extraContent?: ReactNode | null;
-  feature: __esri.Graphic;
+  feature: Graphic;
   fieldName?: string | null;
-  fields?: __esri.Field[] | null;
+  fields?: Field[] | null;
   configFiles?: ConfigFiles;
-  mapView?: __esri.MapView;
+  mapView?: MapView;
   type: string;
 };
 
@@ -585,7 +592,7 @@ function WaterbodyInfo({
       // For map clicks we need to get the field from the feature layer renderer.
       // This allows us to differentiate between fishconsumption_use and ecological_use
       // which are both on the fishing tab.
-      const renderer: __esri.Renderer = feature.layer.renderer;
+      const renderer: Renderer = feature.layer.renderer;
       if (isClassBreaksRenderer(renderer) || isUniqueValueRenderer(renderer))
         field = renderer?.field ?? null;
     }
@@ -1203,7 +1210,7 @@ function WaterbodyInfo({
     const iconElement = document.createElement('span');
     if (layer && isFeatureLayer(layer)) {
       const symbol = (
-        layer.renderer as __esri.UniqueValueRenderer
+        layer.renderer as UniqueValueRenderer
       ).uniqueValueInfos.find(
         (v) => v.value.toString().toLowerCase() === hazardKey,
       )?.symbol;
@@ -1447,12 +1454,12 @@ function WaterbodyInfo({
 
 type MapPopupProps = {
   extraContent?: ReactNode | null;
-  feature: __esri.Graphic | ChangeLocationPopup;
+  feature: Graphic | ChangeLocationPopup;
   fieldName?: string | null;
-  fields?: __esri.Field[] | null;
+  fields?: Field[] | null;
   getClickedHuc?: Promise<ClickedHucState> | null;
   configFiles?: ConfigFiles;
-  mapView?: __esri.MapView;
+  mapView?: MapView;
   navigate: NavigateFunction;
   resetData?: () => void;
   type: string;
@@ -1889,8 +1896,8 @@ function CyanDailyContent({
 
 type CyanContentProps = {
   configFiles: ConfigFiles;
-  feature: __esri.Graphic;
-  mapView?: __esri.MapView;
+  feature: Graphic;
+  mapView?: MapView;
 };
 
 function CyanContent({
@@ -2031,7 +2038,7 @@ function CyanContent({
     const imageTimeout = setTimeout(() => abortController.abort(), timeout);
 
     const cyanImageSource =
-      cyanImageLayer.source as __esri.LocalMediaElementSource;
+      cyanImageLayer.source as LocalMediaElementSource;
     cyanImageSource.elements.removeAll();
     setImageStatus('pending');
 
@@ -2075,7 +2082,7 @@ function CyanContent({
             });
             const webMercatorExtent = webMercatorUtils.geographicToWebMercator(
               geographicExtent,
-            ) as __esri.Extent;
+            ) as Extent;
 
             // convert the extent to control points for AGO support
             const swCorner = {
@@ -2151,8 +2158,8 @@ function CyanContent({
     );
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
-    let popupVisibilityWatchHandle: __esri.WatchHandle | null = null;
-    let popupFeaturesWatchHandle: __esri.WatchHandle | null = null;
+    let popupVisibilityWatchHandle: ResourceHandle | null = null;
+    let popupFeaturesWatchHandle: ResourceHandle | null = null;
 
     reactiveUtils
       .once(() => mapView.popup)
@@ -2168,7 +2175,7 @@ function CyanContent({
                 feature.layer?.id === 'surroundingCyanWaterbodies'
               ) {
                 (
-                  cyanImageLayer.source as __esri.LocalMediaElementSource
+                  cyanImageLayer.source as LocalMediaElementSource
                 ).elements.removeAll();
               }
             });
@@ -2180,7 +2187,7 @@ function CyanContent({
           () => mapView.popup.features,
           () => {
             (
-              cyanImageLayer.source as __esri.LocalMediaElementSource
+              cyanImageLayer.source as LocalMediaElementSource
             ).elements.removeAll();
           },
         );
@@ -2188,7 +2195,7 @@ function CyanContent({
 
     return function cleanup() {
       (
-        cyanImageLayer.source as __esri.LocalMediaElementSource
+        cyanImageLayer.source as LocalMediaElementSource
       ).elements.removeAll();
       popupVisibilityWatchHandle?.remove();
       popupFeaturesWatchHandle?.remove();
@@ -2639,7 +2646,7 @@ function checkIfGroupInMapping(
 
 type MonitoringLocationsContentProps = {
   configFiles?: ConfigFiles;
-  feature: __esri.Graphic;
+  feature: Graphic;
 };
 
 type SelectedType = { [Property in keyof MappedGroups]: boolean };
@@ -3177,7 +3184,7 @@ function MonitoringLocationsContent({
 
 type UsgsStreamgagesContentProps = {
   configFiles?: ConfigFiles;
-  feature: __esri.Graphic;
+  feature: Graphic;
 };
 
 function UsgsStreamgagesContent({

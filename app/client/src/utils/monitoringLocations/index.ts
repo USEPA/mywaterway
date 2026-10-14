@@ -30,6 +30,8 @@ import {
 import { isPolygon, stringifyAttributes } from 'utils/mapFunctions';
 import { parseAttributes } from 'utils/utils';
 // types
+import type Extent from "@arcgis/core/geometry/Extent";
+import type Polygon from "@arcgis/core/geometry/Polygon";
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch, SetStateAction } from 'react';
 import type {
@@ -57,7 +59,7 @@ export function useMonitoringLocationsLayers({
   filter = null,
 }: {
   includeAnnualData?: boolean;
-  filter?: string | __esri.Polygon | null;
+  filter?: string | Polygon | null;
 } = {}) {
   const { getTemplate, getTitle } = useDynamicPopup();
 
@@ -217,7 +219,7 @@ function useMonitoringPeriodOfRecord(
 // Updates local data when the user chooses a new location,
 // and returns a function for updating surrounding data.
 function useUpdateData(
-  localFilter: string | __esri.Polygon | null,
+  localFilter: string | Polygon | null,
   includeAnnualData: boolean,
 ) {
   // Build the data update function
@@ -509,11 +511,11 @@ async function fetchAndTransformData(
 }
 
 async function fetchMonitoringLocations(
-  boundariesFilter: string | __esri.Polygon,
+  boundariesFilter: string | Polygon,
   servicesData: ServicesData,
   abortSignal: AbortSignal,
 ): Promise<FetchState<MonitoringLocationsData>> {
-  let filter: string | __esri.Polygon | __esri.Extent = boundariesFilter;
+  let filter: string | Polygon | Extent = boundariesFilter;
   if (
     typeof boundariesFilter !== 'string' &&
     isPolygon(boundariesFilter) &&
@@ -559,7 +561,7 @@ async function fetchMonitoringLocations(
   }
 }
 
-function getExtentFilter(extent: __esri.Extent | null) {
+function getExtentFilter(extent: Extent | null) {
   // Service requires that area of extent cannot exceed 25 degrees
   const bBox = getExtentBoundingBox(extent);
   return bBox ? `bBox=${bBox}` : null;

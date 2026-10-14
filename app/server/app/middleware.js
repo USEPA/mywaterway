@@ -29,7 +29,11 @@ function checkClientRouteExists(req, res, next) {
       return regex.test(req.path);
     })
   ) {
-    return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+    // sendFile dotfile-checks every segment of an absolute path, so pass the
+    // directory as root to keep it from rejecting dotted parent directories
+    return res
+      .status(404)
+      .sendFile('404.html', { root: path.join(__dirname, 'public') });
   }
 
   next();

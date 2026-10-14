@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState } from 'react';
+import type Graphic from "@arcgis/core/Graphic";
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { ExtendedGraphic } from 'types';
 
@@ -17,8 +18,8 @@ type Props = { children: ReactNode };
 
 export function MapHighlightProvider({ children }: Readonly<Props>) {
   const [highlightedGraphic, setHighlightedGraphic] =
-    useState<__esri.Graphic | null>(null);
-  const [selectedGraphic, setSelectedGraphic] = useState<__esri.Graphic | null>(
+    useState<Graphic | null>(null);
+  const [selectedGraphic, setSelectedGraphic] = useState<Graphic | null>(
     null,
   );
   const [viewOnMapClickCount, setViewOnMapClickCount] = useState(0);

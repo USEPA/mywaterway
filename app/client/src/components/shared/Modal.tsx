@@ -1,7 +1,8 @@
 /** @jsxImportSource @emotion/react */
 
 import { useState } from 'react';
-import { css } from '@emotion/react';
+import { css, CacheProvider } from '@emotion/react';
+import createCache from '@emotion/cache';
 import * as Dialog from '@radix-ui/react-dialog';
 import IconQuestionCircle from '~icons/fa7-solid/question-circle';
 import IconTimes from '~icons/fa7-solid/times';
@@ -13,6 +14,12 @@ import type { ReactNode } from 'react';
 import { colors, iconButtonStyles } from 'styles/index';
 // types
 import type { SerializedStyles } from '@emotion/react';
+
+// A portal moves the DOM but not the React context, so a modal opened from the
+// map popups would resolve its css props against the popup's shadow root cache
+// and insert the rules there, while the elements render in document.body. This
+// cache inserts into the head, where the portal content actually is.
+const portalCache = createCache({ key: 'hmw-modal' });
 
 const buttonContainerStyles = css`
   margin-top: 15px;
@@ -178,7 +185,8 @@ export default function Modal({
     <Dialog.Root open={dialogShown} onOpenChange={setDialogShown}>
       <Dialog.Trigger asChild>{triggerElm}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay css={overlayStyles}>
+        <CacheProvider value={portalCache}>
+          <Dialog.Overlay css={overlayStyles}>
           <Dialog.Content css={contentStyles(maxWidth)} aria-label={label}>
             <Dialog.Title className="sr-only">{label}</Dialog.Title>
             <Dialog.Description className="sr-only">{label}</Dialog.Description>
@@ -232,8 +240,9 @@ export default function Modal({
                 )}
               </div>
             )}
-          </Dialog.Content>
-        </Dialog.Overlay>
+            </Dialog.Content>
+          </Dialog.Overlay>
+        </CacheProvider>
       </Dialog.Portal>
     </Dialog.Root>
   );

@@ -2121,7 +2121,9 @@ function InformationSection({ siteId, site, siteStatus }) {
           <div css={locationRowStyles}>
             <strong>Location Name:</strong>
             <span>
-              {siteStatus === 'pending' && <LoadingSpinner css={loadingIconStyles} />}
+              {siteStatus === 'pending' && (
+                <LoadingSpinner css={loadingIconStyles} />
+              )}
               {siteStatus === 'success' && site.locationName}
             </span>
           </div>
@@ -2365,7 +2367,9 @@ function SiteMap({ layout, siteStatus, widthRef }) {
   const services = useConfigFilesState().data.services;
 
   const getSharedLayers = useSharedLayers();
-  const { homeWidget, mapView, setBasemap } = useContext(LocationSearchContext);
+  const { homeWidget, mapView, setBasemapId } = useContext(
+    LocationSearchContext,
+  );
 
   const {
     monitoringLocationsLayer,
@@ -2379,9 +2383,9 @@ function SiteMap({ layout, siteStatus, widthRef }) {
 
     return function cleanup() {
       mapView.map.basemap = basemapFromPortalItem(services.basemaps.default);
-      setBasemap(mapView.map.basemap);
+      setBasemapId(services.basemaps.default);
     };
-  }, [mapView, setBasemap]);
+  }, [mapView, services, setBasemapId]);
 
   // Initialize the layers
   useEffect(() => {

@@ -223,13 +223,15 @@ export function checkResponse(response, responseType = 'json') {
 export function logCallToGoogleAnalytics(
   url: string,
   status: number,
-  startTime: number,
+  startTime?: number,
 ) {
   // skip this if running from a web worker
   if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) 
     return;
 
-  const duration = performance.now() - startTime;
+  // reported as 'unknown' rather than NaN when the caller has no start time
+  const duration =
+    startTime === undefined ? 'unknown' : performance.now() - startTime;
 
   // combine the web service and map service mappings
   let mapping = window.googleAnalyticsMapping;

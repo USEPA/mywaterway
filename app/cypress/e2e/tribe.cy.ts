@@ -154,21 +154,28 @@ describe('Tribe page Water Quality Overview sub tabs', () => {
 
   it('Clicking Map and List buttons show correct content', () => {
     // verify map is visible and the list view is hidden
-    cy.findByTitle('Open Basemaps and Layers').should('be.visible');
+    cy.get('button[aria-label="Open Basemaps and Layers"]', {
+      includeShadowDom: true,
+    }).click();
     cy.findByText('Alaska Lake').should('not.exist');
 
     // click "List" tab
     cy.findByRole('button', { name: 'List' }).click();
 
     // verify the map is hidden and the list view is visible
-    cy.findByTitle('Open Basemaps and Layers').should('not.be.visible');
+    cy.get('button[aria-label="Open Basemaps and Layers"]', {
+      includeShadowDom: true,
+    }).should('not.exist');
+
     cy.findAllByText('Alaska Lake').should('be.visible');
 
     // click "Map" tab
     cy.findByRole('button', { name: 'Map' }).click();
 
     // verify map is visible and the list view is hidden
-    cy.findByTitle('Open Basemaps and Layers').should('be.visible');
+    cy.get('button[aria-label="Open Basemaps and Layers"]', {
+      includeShadowDom: true,
+    }).should('be.visible');
     cy.findByText('Alaska Lake').should('not.exist');
   });
 });
@@ -213,7 +220,7 @@ describe('Tribe page Water Overview', () => {
     cy.findByText(linkText).should(
       'have.attr',
       'href',
-      `https://attains.epa.gov/attains-public/api/documents/cycles/19665/225170`,
+      `https://api.epa.gov/attains/documents/cycles/19645/225170`,
     );
     cy.findByText(linkText).should('have.attr', 'target', '_blank');
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
