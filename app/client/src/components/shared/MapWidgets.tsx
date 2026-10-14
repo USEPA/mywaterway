@@ -1137,17 +1137,7 @@ function ShowAddSaveDataWidget({
   const clickHandler = useCallback(
     (ev: React.MouseEvent | React.KeyboardEvent) => {
       if (!isClick(ev)) return;
-      const widget = document.getElementById('add-save-data-widget');
-      if (!widget) return;
-
-      const widgetHidden = widget.classList.contains('hidden');
-      if (widgetHidden) {
-        widget.classList.remove('hidden');
-        setAddSaveDataWidgetVisible(true);
-      } else {
-        widget.classList.add('hidden');
-        setAddSaveDataWidgetVisible(false);
-      }
+      setAddSaveDataWidgetVisible((visible) => !visible);
     },
     [setAddSaveDataWidgetVisible],
   );
@@ -1292,6 +1282,9 @@ function retrieveUpstreamWatershed(
   if (!upstreamLayer) return;
 
   const currentHuc12 = huc12 ?? getHuc12();
+  // location hasn't resolved yet - an empty filter would disable the widget
+  if (!currentHuc12) return;
+
   // if location changed since last widget click, update lastHuc12 state
   if (currentHuc12 !== lastHuc12) {
     setLastHuc12(currentHuc12);

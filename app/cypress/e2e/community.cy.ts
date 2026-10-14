@@ -100,15 +100,22 @@ describe('Community page map legend', () => {
     // workaround for this test failing while running cypress in headless mode.
     cy.wait(2000);
 
-    cy.findByTitle('Open Basemaps and Layers').click();
-    cy.findByTestId('hmw-map-layers').within(() => {
-      cy.get('calcite-list-item')
-        .shadow()
-        .contains('div', 'All Mapped Water (NHD)')
-        .click({ force: true });
-    });
-    cy.findByTitle('Close Basemaps and Layers').click();
-    cy.findByTitle('Open Legend').click();
+    cy.get('button[aria-label="Open Basemaps and Layers"]', {
+      includeShadowDom: true,
+    }).click();
+    cy.findByTestId('hmw-map-layers')
+      .shadow()
+      .within(() => {
+        cy.get('button[aria-label="Show All Mapped Water (NHD)"]', {
+          includeShadowDom: true,
+        }).click();
+      });
+    cy.get('button[aria-label="Close Basemaps and Layers"]', {
+      includeShadowDom: true,
+    }).click();
+    cy.get('button[aria-label="Open Legend"]', {
+      includeShadowDom: true,
+    }).click();
     cy.findAllByText('All Mapped Water (NHD)').should('be.visible');
   });
 });

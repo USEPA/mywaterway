@@ -201,9 +201,13 @@ app.use(express.static(__dirname + '/public'));
 // Ensure that requested client route exists (otherwise send 404).
 app.use(checkClientRouteExists);
 
+// sendFile dotfile-checks every segment of an absolute path, so pass the
+// directory as root to keep it from rejecting dotted parent directories
+const publicDir = path.join(__dirname, 'public');
+
 // setup client routes (built React app)
 app.use(function (req, res) {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+  res.sendFile('index.html', { root: publicDir });
 });
 
 app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
@@ -214,11 +218,11 @@ app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
 /* Note, the React app should be handling 404 at this point 
    but we're leaving the below 404 check in for now */
 app.use(function (req, res, next) {
-  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  res.status(404).sendFile('404.html', { root: publicDir });
 });
 
 app.use(function (err, req, res, next) {
-  res.status(404).sendFile(path.join(__dirname, 'public', '500.html'));
+  res.status(404).sendFile('500.html', { root: publicDir });
 });
 
 module.exports = app;

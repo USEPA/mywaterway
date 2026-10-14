@@ -165,11 +165,13 @@ Cypress.Commands.add(
       // cypress overwrites File and this is not compatible with our change handlers in React Code
       const testFile = new window.File([contents], fileName);
 
+      // react-dropzone reads dataTransfer.items, not dataTransfer.files, so
+      // this has to be a real DataTransfer rather than an object literal
+      const dataTransfer = new window.DataTransfer();
+      dataTransfer.items.add(testFile);
+
       // trigger the drop event on the react-dropzone component
-      cy.wrap(subject).trigger('drop', {
-        force: true,
-        dataTransfer: { files: [testFile], types: ['Files'] },
-      });
+      cy.wrap(subject).trigger('drop', { force: true, dataTransfer });
     });
   },
 );

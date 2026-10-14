@@ -47,7 +47,7 @@ describe('Restore Tab', () => {
   });
 
   it('GRTS Success Stories', () => {
-    cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
+    cy.findByPlaceholderText('Search by address', { exact: false }).type('020700100204');
     cy.findByText('Go').click();
 
     cy.waitForLoadFinish();
