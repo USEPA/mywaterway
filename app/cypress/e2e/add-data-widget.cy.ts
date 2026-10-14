@@ -328,14 +328,22 @@ describe('Add & Save Data Widget', () => {
   });
 
   it('Test that save panel switches align with currently visible layers', () => {
-    cy.get('button[aria-label="Open Basemaps and Layers"]', { includeShadowDom: true }).click();
-    cy.findByTestId('hmw-map-layers').shadow().within(() => {
-      // toggle on a layer
-      cy.get('button[aria-label="Show Congressional Districts"]', { includeShadowDom: true }).click();
+    cy.get('button[aria-label="Open Basemaps and Layers"]', {
+      includeShadowDom: true,
+    }).click();
+    cy.findByTestId('hmw-map-layers')
+      .shadow()
+      .within(() => {
+        // toggle on a layer
+        cy.get('button[aria-label="Show Congressional Districts"]', {
+          includeShadowDom: true,
+        }).click();
 
-      // toggle off a layer
-      cy.get('button[aria-label="Hide Selected Watershed"]', { includeShadowDom: true }).click();
-    });
+        // toggle off a layer
+        cy.get('button[aria-label="Hide Selected Watershed"]', {
+          includeShadowDom: true,
+        }).click();
+      });
 
     cy.waitForLoadFinish({ skipExists: true });
 
@@ -353,8 +361,8 @@ describe('Add & Save Data Widget', () => {
     });
   });
 
-  it("Test that the save panel includes layers added from the widget's other tabs", () => {
-    const agoSaveName = 'CYPRESS-SAVE-TEST-HMW';
+  it.only("Test that the save panel includes layers added from the widget's other tabs", () => {
+    const agoSaveName = `CYPRESS-SAVE-TEST-HMW-${Date.now().toString(36)}`;
 
     cy.get(adwId).within(() => {
       cy.findByRole('listitem', { name: 'USA Current Wildfires' }).within(
