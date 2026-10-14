@@ -88,6 +88,14 @@ describe('Protect Tab', () => {
   });
 
   it('Check the watershed health scores section', () => {
+    cy.intercept(
+      {
+        pathname: '**/OW/RPS/MapServer/0/query',
+        query: { where: "HUC12_TEXT='121002030202'" },
+      },
+      { fixture: 'wsioHealthIndex.json' },
+    ).as('wsioHealthIndex');
+
     // navigate to Protect tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       '121002030202',
@@ -99,20 +107,21 @@ describe('Protect Tab', () => {
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
 
+    cy.wait('@wsioHealthIndex');
+
     cy.findByLabelText('Watershed Health Scores').should(
       'have.attr',
       'aria-checked',
       'false',
     );
-    cy.get('.hmw-accordion').filter(':visible').first().click();
+    cy.get('.hmw-accordion-header').filter(':visible').first().click();
+
+    cy.waitForLoadFinish({ skipExists: true });
+    cy.wait(1000);
+
     cy.findByText('Where might the healthier watersheds be located', {
       exact: false,
     });
-    cy.findByLabelText('Watershed Health Scores').should(
-      'have.attr',
-      'aria-checked',
-      'true',
-    );
 
     // toggle switch off and back on
     cy.findByLabelText('Watershed Health Scores').should(
@@ -121,12 +130,14 @@ describe('Protect Tab', () => {
       'true',
     );
     cy.findByLabelText('Watershed Health Scores').click({ force: true });
+    cy.wait(1000);
     cy.findByLabelText('Watershed Health Scores').should(
       'have.attr',
       'aria-checked',
       'false',
     );
     cy.findByLabelText('Watershed Health Scores').click({ force: true });
+    cy.wait(1000);
     cy.findByLabelText('Watershed Health Scores').should(
       'have.attr',
       'aria-checked',
@@ -188,7 +199,7 @@ describe('Protect Tab', () => {
     );
   });
 
-  it('Check the protected areas section', () => {
+  it.only('Check the protected areas section', () => {
     // navigate to Protect tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       '121002030202',

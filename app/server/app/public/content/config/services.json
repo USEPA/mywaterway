@@ -33,11 +33,11 @@
   },
   "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/HMW%20Glossary/terms/full",
   "waterQualityPortal": {
-    "domainValues": "https://wqp.dmap-stage.aws.epa.gov/Codes",
+    "domainValues": "https://www.waterqualitydata.us/Codes",
     "userInterface": "https://www.waterqualitydata.us/",
-    "stationSearch": "https://wqp.dmap-stage.aws.epa.gov/data/Station/search?",
-    "resultSearch": "https://wqp.dmap-stage.aws.epa.gov/data/Result/search?",
-    "monitoringLocation": "https://wqp.dmap-stage.aws.epa.gov/data/summary/monitoringlocation/",
+    "stationSearch": "https://www.waterqualitydata.us/data/Station/search?",
+    "resultSearch": "https://www.waterqualitydata.us/data/Result/search?",
+    "monitoringLocation": "https://www.waterqualitydata.us/data/summary/monitoringlocation/",
     "monitoringLocationDetails": "https://www.waterqualitydata.us/provider/"
   },
   "usgs": {

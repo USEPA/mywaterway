@@ -47,7 +47,6 @@ describe('Plan Summary (Actions) page', () => {
   it('The "View Waterbody Report" link should navigate to a waterbody report page', () => {
     const orgId = '21AWIC';
     const actionId = '40958';
-    const reportingCycle = '2022';
 
     cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
@@ -56,12 +55,11 @@ describe('Plan Summary (Actions) page', () => {
     // test the waterbody report link
     const linkText = 'View Waterbody Report';
     const auId = 'AL03150110-0202-200';
+    // the reporting cycle advances as ATTAINS publishes new cycles
+    const href = new RegExp(`^/waterbody-report/${orgId}/${auId}/20\\d{2}$`);
+
     cy.findByText(`State Waterbody ID: ${auId}`).first().click();
-    cy.findByText(linkText).should(
-      'have.attr',
-      'href',
-      `/waterbody-report/${orgId}/${auId}/${reportingCycle}`,
-    );
+    cy.findByText(linkText).should('have.attr', 'href').and('match', href);
     cy.findByText(linkText).should('have.attr', 'target', '_blank');
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
   });

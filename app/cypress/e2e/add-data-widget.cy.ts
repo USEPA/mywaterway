@@ -3,12 +3,8 @@ describe('Add & Save Data Widget', () => {
   const dropzoneId = 'hmw-dropzone';
 
   function openWidget() {
-    // this a work around to an issue where doing
-    // "cy.findByTitle('Add & Save Data Widget').click()" does not work for esri
-    // widget buttons
-    cy.get('div[title="Open Add & Save Data Widget"]').then((button) => {
-      button.click();
-    });
+    // the widget is slotted into the map, so it can be covered
+    cy.get('div[title="Open Add & Save Data Widget"]').click({ force: true });
 
     cy.get(adwId).should('be.visible');
   }
@@ -34,7 +30,7 @@ describe('Add & Save Data Widget', () => {
       // verify the disclaimer text is visible
       cy.findByText(disclaimerText).should('be.visible');
 
-      // close the disclaimr and verify it is no longer visible
+      // close the disclaimer and verify it is no longer visible
       if (useEscape) cy.get('body').type('{esc}');
       else cy.findByTitle('Close disclaimer').click();
 
@@ -46,6 +42,10 @@ describe('Add & Save Data Widget', () => {
     cy.findByTitle('Enter Fullscreen Map View');
     cy.findByRole('button', { name: 'Enter Fullscreen Map View' }).click();
     cy.findByTitle('Exit Fullscreen Map View');
+
+    // toggling fullscreen clears the map view, which reloads the map
+    cy.waitForLoadFinish();
+
     openWidget();
 
     runDisclaimerTests(true);
@@ -328,20 +328,16 @@ describe('Add & Save Data Widget', () => {
   });
 
   it('Test that save panel switches align with currently visible layers', () => {
-    cy.findByTitle('Open Basemaps and Layers').click({ force: true });
-    cy.findByTestId('hmw-map-layers').within(() => {
+    cy.get('button[aria-label="Open Basemaps and Layers"]', { includeShadowDom: true }).click();
+    cy.findByTestId('hmw-map-layers').shadow().within(() => {
       // toggle on a layer
-      cy.get('calcite-list-item')
-        .shadow()
-        .contains('div', 'Congressional Districts')
-        .click({ force: true });
+      cy.get('button[aria-label="Show Congressional Districts"]', { includeShadowDom: true }).click();
 
       // toggle off a layer
-      cy.get('calcite-list-item')
-        .shadow()
-        .contains('div', 'Selected Watershed')
-        .click({ force: true });
+      cy.get('button[aria-label="Hide Selected Watershed"]', { includeShadowDom: true }).click();
     });
+
+    cy.waitForLoadFinish({ skipExists: true });
 
     cy.get(adwId).within(() => {
       cy.findByRole('tab', { name: 'Save' }).click();

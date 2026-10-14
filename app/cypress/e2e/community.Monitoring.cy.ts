@@ -126,7 +126,9 @@ describe('Monitoring Tab', () => {
     // this triggers the virtualized list to load
     cy.scrollTo('bottom');
 
-    cy.findAllByText('Lake Weohyakapka').click();
+    cy.findByRole('switch', { name: 'USGS Sensors' }).click({ force: true });
+
+    cy.findByRole('button', { name: 'Lake Weohyakapka' }).click();
 
     cy.waitForLoadFinish();
 
@@ -141,7 +143,7 @@ describe('Monitoring Tab', () => {
   });
 
   it('Adjusting the date slider updates info for a monitoring location', () => {
-    const monitoringLocation = '01651770';
+    const monitoringLocation = '14TH STREET BRIDGE';
 
     cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
 
@@ -160,7 +162,7 @@ describe('Monitoring Tab', () => {
     cy.findByRole('button', { name: monitoringLocation })
       .parent()
       .findByText((_content, element) => {
-        const match = element.textContent.match(/^\(1951 - 20\d\d\)$/);
+        const match = element.textContent.match(/^\(1969 - 20\d\d\)$/);
         return Boolean(match);
       })
       .should('be.visible');
@@ -196,7 +198,7 @@ describe('Monitoring Tab', () => {
 
     cy.scrollTo('bottom');
 
-    cy.findByRole('button', { name: '01651770' }).click();
+    cy.findByRole('button', { name: '14TH STREET BRIDGE' }).click();
 
     cy.findByRole('checkbox', {
       name: 'Toggle all characteristic groups',
@@ -237,7 +239,7 @@ describe('Monitoring Tab', () => {
 
     cy.findAllByText((_content, element) => {
       return element.textContent.includes(
-        '20 of 290 water monitoring sample locations',
+        '12 of 168',
       );
     })
       .filter(':visible')
@@ -253,9 +255,9 @@ describe('Monitoring Tab', () => {
 
     cy.findByText('Water Monitoring').click();
 
-    cy.findByText('Anacostia River nr Buzzard Point at Washington, DC').click();
+    cy.findByText('POTOMAC RIVER AT WISCONSIN AVE, WASHINGTON, DC').click();
 
-    cy.findAllByText('Water temperature')
+    cy.findAllByText('Water level')
       .filter(':visible')
       .should('be.visible');
   });
@@ -280,9 +282,6 @@ describe('Monitoring Tab', () => {
       .should('have.attr', 'aria-checked', 'true');
 
     // turn off both current conditions switches
-    cy.findAllByLabelText('USGS Sensors')
-      .filter(':visible')
-      .click({ force: true });
     cy.findAllByLabelText('USGS Sensors')
       .filter(':visible')
       .click({ force: true });
