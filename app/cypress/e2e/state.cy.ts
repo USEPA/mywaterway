@@ -362,10 +362,11 @@ describe('State page Water Overview tab', () => {
   });
 
   it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
-    const title = 'Alaska Water Stories';
+    const title = 'Arizona Water Stories';
     const text1 =
-      'Restoring Mining Sites, Riparian Areas and the Stream Channel Reduces Turbidity in Slate Creek (PDF)';
-    const text2 = 'Community Efforts Improve Jordan Creek (PDF)';
+      'Implementing Septic and Cesspool Upgrade Projects Reduces Total Nitrogen Levels in Tonto Creek (PDF)';
+    const text2 =
+      'Fish Return to Boulder Creek After Legacy Mine Remediation (PDF)';
 
     // verify text is not visible
     cy.findByText(text1).should('not.exist');
