@@ -92,6 +92,35 @@ describe('Plan Summary (Actions) page', () => {
     );
   });
 
+  it('Clicking “View on Map” for a plan waterbody → opens that waterbody’s map popup', () => {
+    const orgId = '21AWIC';
+    const actionId = '40958';
+    const auId = 'AL03150110-0202-200';
+
+    cy.visit(`/plan-summary/${orgId}/${actionId}`);
+
+    // attains/plans is sometimes slow, so use the same timeout as its fetch
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // expand the waterbody's accordion item
+    cy.findByText(`State Waterbody ID: ${auId}`).first().click();
+
+    // the plan page passes a feature with no geometry, so this queries the
+    // map layer for the geometry before selecting it
+    cy.findByRole('button', { name: 'View on Map' }).should('be.enabled');
+    cy.findByRole('button', { name: 'View on Map' }).click();
+
+    // the popup opens only after the map finishes zooming to the waterbody
+    cy.findByTestId('hmw-actions-map')
+      .find('h2.esri-widget__heading', {
+        includeShadowDom: true,
+        timeout: 30000,
+      })
+      .should('contain.text', `State Waterbody ID: ${auId}`);
+  });
+
   it('Displays links to download waterbody data', () => {
     let orgIdA = '21AWIC';
     let actionIdA = '40958';
