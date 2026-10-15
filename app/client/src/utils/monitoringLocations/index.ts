@@ -205,6 +205,15 @@ function useMonitoringPeriodOfRecord(
         setMonitoringAnnualRecords(parsedData);
       }
     };
+    // A worker that fails to load or throws never posts a message,
+    // which would otherwise leave consumers pending indefinitely
+    recordsWorker.current.onerror = (err) => {
+      console.error('Period of record worker error', err.message);
+      setMonitoringAnnualRecords({
+        status: 'failure',
+        data: initialWorkerData(),
+      });
+    };
   }, [configFiles, enabled, filter]);
 
   useEffect(() => {

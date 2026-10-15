@@ -51,7 +51,7 @@ import { LayersProvider, useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
-import { fetchParseCsv } from 'utils/fetchUtils';
+import { fetchParseCsvInWorker } from 'utils/fetchUtils';
 import {
   useAbort,
   useMonitoringLocations,
@@ -996,7 +996,7 @@ function useCharacteristics(provider, orgId, siteId, characteristicsByGroup) {
       )}&organization=${encodeURIComponent(orgId)}&siteid=${encodeURIComponent(
         siteId,
       )}`;
-    fetchParseCsv(url)
+    fetchParseCsvInWorker(url)
       .then((results) => structureRecords(results, characteristicsByGroup))
       .catch((_err) => {
         setStatus('failure');
