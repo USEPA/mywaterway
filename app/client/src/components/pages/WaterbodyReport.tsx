@@ -546,7 +546,7 @@ function WaterbodyReport() {
 
     let reportingCycleParam = '';
     if (reportingCycle) {
-      const reportingCycleInEq = reportingCycle && allReportingCycles.data.includes(parseInt(reportingCycle));
+      const reportingCycleInEq = reportingCycle && allReportingCycles.data.includes(Number.parseInt(reportingCycle));
       if (!reportingCycleInEq) {
         handleNoAssessments();
         return;
