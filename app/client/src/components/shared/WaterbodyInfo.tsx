@@ -51,7 +51,11 @@ import {
   isUniqueValueRenderer,
   mapRestorationPlanToGlossary,
 } from 'utils/mapFunctions';
-import { fetchCheck, fetchParseCsv, proxyFetch } from 'utils/fetchUtils';
+import {
+  fetchCheck,
+  fetchParseCsvInWorker,
+  proxyFetch,
+} from 'utils/fetchUtils';
 import {
   addAnnualData,
   complexProps,
@@ -2827,7 +2831,7 @@ function MonitoringLocationsContent({
         status: 'pending',
         data: characteristicsDefaultData(),
       });
-      fetchParseCsv(url)
+      fetchParseCsvInWorker(url)
         .then((records) => {
           const { sites } = structurePeriodOfRecordData(
             records,
