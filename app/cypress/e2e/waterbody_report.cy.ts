@@ -217,6 +217,26 @@ describe('Waterbody Report page', () => {
       'No probable sources of impairment identified for this waterbody.',
     );
   });
+
+  it('Test reporting cycle in attains but not in expert query', () => {
+    cy.intercept(
+      'https://api.epa.gov/expertquery/api/attains/assessments/values/reportingCycle',
+      {
+        statusCode: 200,
+        body: [
+          { reportingCycle: 2018 },
+          { reportingCycle: 2020 },
+          { reportingCycle: 2022 },
+          { reportingCycle: 2024 },
+        ],
+      },
+    );
+
+    cy.visit('/waterbody-report/21OHIO/OH050600012302/2026');
+    cy.waitForLoadFinish();
+
+    cy.findAllByText('has no data available for 2026.', { exact: false });
+  });
 });
 
 describe('Waterbody Report page Assessment Documents section', () => {
