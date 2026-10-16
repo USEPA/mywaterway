@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { css, CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -175,6 +175,7 @@ export default function Modal({
   triggerElm,
 }: Readonly<Props>) {
   const [dialogShown, setDialogShown] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const close = () => {
     setDialogShown(false);
@@ -183,11 +184,23 @@ export default function Modal({
 
   return (
     <Dialog.Root open={dialogShown} onOpenChange={setDialogShown}>
-      <Dialog.Trigger asChild>{triggerElm}</Dialog.Trigger>
+      <Dialog.Trigger asChild ref={triggerRef}>
+        {triggerElm}
+      </Dialog.Trigger>
       <Dialog.Portal>
         <CacheProvider value={portalCache}>
           <Dialog.Overlay css={overlayStyles}>
-          <Dialog.Content css={contentStyles(maxWidth)} aria-label={label}>
+          <Dialog.Content
+            css={contentStyles(maxWidth)}
+            aria-label={label}
+            // Radix returns focus to the trigger with a plain focus() call,
+            // which scrolls it into view and undoes any scrolling the modal
+            // did on close. preventDefault skips that handler.
+            onCloseAutoFocus={(ev) => {
+              ev.preventDefault();
+              triggerRef.current?.focus({ preventScroll: true });
+            }}
+          >
             <Dialog.Title className="sr-only">{label}</Dialog.Title>
             <Dialog.Description className="sr-only">{label}</Dialog.Description>
             <button
