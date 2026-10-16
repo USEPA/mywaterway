@@ -17,7 +17,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as locator from '@arcgis/core/rest/locator';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
-import Search from '@arcgis/core/widgets/Search';
+import SearchViewModel from '@arcgis/core/widgets/Search/SearchViewModel';
 import LocatorSearchSource from '@arcgis/core/widgets/Search/LocatorSearchSource';
 import LayerSearchSource from '@arcgis/core/widgets/Search/LayerSearchSource';
 import IconCrosshairs from '~icons/fa7-solid/crosshairs';
@@ -359,7 +359,9 @@ function LocationSearch({ route, label }: Readonly<Props>) {
   const clearEnterPress = useKeyPress('Enter', clearButton);
   const { errorMessage, huc12, noGeocodeResults, searchText, watershed } =
     useContext(LocationSearchContext);
-  const [searchWidget, setSearchWidget] = useState<Search | null>(null);
+  const [searchWidget, setSearchWidget] = useState<SearchViewModel | null>(
+    null,
+  );
 
   // Store the waterbody suggestions to avoid a second fetch.
   const waterbodySuggestions = useRef<WaterbodyCodesResult | null>(null);
@@ -602,18 +604,17 @@ function LocationSearch({ route, label }: Readonly<Props>) {
     initialWebserviceErrorMessages,
   );
 
-  // Initialize the esri search widget
+  // Initialize the esri search view model
   const [suggestions, setSuggestions] = useState<SearchResultsSuggestions[]>(
     [],
   );
   useEffect(() => {
     if (searchWidget) return;
 
-    const search = new Search({
+    const search = new SearchViewModel({
       allPlaceholder,
       includeDefaultSources: false,
       locationEnabled: false,
-      label: 'Search',
       sources: allSources,
     });
 
@@ -639,7 +640,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
     setSearchWidget(search);
   }, [searchWidget, services, searchText, allSources]);
 
-  // Initialize the esri search widget value with the search text.
+  // Initialize the esri search view model value with the search text.
   useEffect(() => {
     if (!searchWidget) return;
 
@@ -648,7 +649,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
     if (noGeocodeResults) searchWidget.suggest();
   }, [noGeocodeResults, searchWidget, searchText]);
 
-  // Updates the search widget sources whenever the user selects a source.
+  // Updates the search view model sources whenever the user selects a source.
   const [sourcesVisible, setSourcesVisible] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<SourceGroup>(
     allSourceGroup,
