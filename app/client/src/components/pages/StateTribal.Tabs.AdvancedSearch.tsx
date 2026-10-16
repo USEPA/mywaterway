@@ -703,7 +703,6 @@ function AdvancedSearch() {
       }
     } else {
       setSearchLoading(false);
-      scrollToMap();
     }
   };
 
@@ -936,8 +935,14 @@ function AdvancedSearch() {
           isLoading={searchLoading}
           label="Warning about potentially slow search"
           onConfirm={() => {
-            setCurrentFilter(nextFilter);
-            setWaterbodyData(null);
+            // Only discard the results when the filter actually changed.
+            if (nextFilter !== currentFilter) {
+              setCurrentFilter(nextFilter);
+              setWaterbodyData(null);
+            } else {
+              // Defer until the modal has closed and released its scroll lock.
+              requestAnimationFrame(scrollToMap);
+            }
             setServiceError(false);
             // update the possible display options
             setDisplayOptions(newDisplayOptions);
