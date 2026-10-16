@@ -454,7 +454,7 @@ function WaterbodyReport() {
   }, [auId, configFiles, orgId]);
 
   // get all reporting cycles for the waterbody
-  const [allReportingCycles, setAllReportingCycles] = useState({
+  const [allReportingCycles, setAllReportingCycles] = useState<{ status: string; data: number[] }>({
     status: 'fetching',
     data: [],
   });
@@ -546,12 +546,17 @@ function WaterbodyReport() {
 
     let reportingCycleParam = '';
     if (reportingCycle) {
+      const reportingCycleInEq = reportingCycle && allReportingCycles.data.includes(parseInt(reportingCycle));
+      if (!reportingCycleInEq) {
+        handleNoAssessments();
+        return;
+      }
       reportingCycleParam = reportingCycle;
     } else if (hasGisData) {
       reportingCycleParam = gisCycle;
     } else if (allReportingCycles.data.length > 0) {
       reportingCycleParam =
-        allReportingCycles.data[allReportingCycles.data.length - 1];
+        allReportingCycles.data[allReportingCycles.data.length - 1].toString();
     } else {
       handleNoAssessments();
       return;
