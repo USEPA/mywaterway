@@ -463,7 +463,7 @@ function WaterbodyReport() {
     async function fetchCycles(acc = []) {
       try {
         const res = await fetchPost(
-          `${configFiles.data.services.expertQuery.attains}/assessmentUnits/values/reportingCycle`,
+          `${configFiles.data.services.expertQuery.attains}/assessments/values/reportingCycle`,
           {
             direction: 'asc',
             filters: { assessmentUnitId: auId },
