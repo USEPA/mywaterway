@@ -100,7 +100,7 @@ describe('Waterbody Report page', () => {
 
   it('Test expert query service failure', () => {
     cy.intercept(
-      'https://api.epa.gov/expertquery/api/attains/assessmentUnits/values/reportingCycle',
+      'https://api.epa.gov/expertquery/api/attains/assessments/values/reportingCycle',
       {
         statusCode: 500,
         body: {},

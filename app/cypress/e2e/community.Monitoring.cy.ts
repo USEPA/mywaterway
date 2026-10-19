@@ -239,7 +239,7 @@ describe('Monitoring Tab', () => {
 
     cy.findAllByText((_content, element) => {
       return element.textContent.includes(
-        '12 of 168',
+        '10 of 168',
       );
     })
       .filter(':visible')

@@ -496,7 +496,7 @@ describe('State page service failure tests', () => {
 
   it('Failure to get max record count', () => {
     cy.intercept(
-      'https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Hydrologic_Units_F3/FeatureServer/6?f=json&onlocalhost=1',
+      'https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Hydrologic_Units_F3/FeatureServer/19?f=json&onlocalhost=1',
       {
         statusCode: 500,
         body: {},

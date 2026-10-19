@@ -228,6 +228,8 @@ describe('Tribe Visual Regression Testing', () => {
 
       cy.visit('/tribe/ABSHAWNEE');
 
+      cy.wait(10000);
+
       cy.waitForLoadFinish();
 
       cy.wait(10000);
