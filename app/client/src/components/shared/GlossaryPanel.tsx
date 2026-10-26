@@ -174,16 +174,45 @@ const listStyles = css`
   }
 `;
 
+function createGlossary(terms: ConstructorParameters<typeof Glossary>[0]) {
+  try {
+    return new Glossary(terms);
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 // --- components ---
 function GlossaryPanel() {
   const configFiles = useConfigFilesState();
 
   useEffect(() => {
-    try {
-      new Glossary(configFiles.data.glossary);
-    } catch (err) {
-      console.error(err);
-    }
+    const glossary = createGlossary(configFiles.data.glossary);
+    if (!glossary) return;
+
+    // Take the term off the composed path instead for terms inside a shadow root, and let glossary-panel handle the rest.
+    const handleShadowTerm = (ev: MouseEvent | KeyboardEvent) => {
+      if (ev.type === 'keyup' && (ev as KeyboardEvent).key !== 'Enter') return;
+
+      // no boundary crossed, so glossary-panel already handled it
+      const [target] = ev.composedPath();
+      if (!(target instanceof HTMLElement) || target === ev.target) return;
+
+      const term = target.closest<HTMLElement>('[data-term]')?.dataset.term;
+      if (!term) return;
+
+      glossary.show();
+      glossary.findTerm(term, true);
+    };
+
+    document.addEventListener('click', handleShadowTerm);
+    document.addEventListener('keyup', handleShadowTerm);
+
+    return () => {
+      document.removeEventListener('click', handleShadowTerm);
+      document.removeEventListener('keyup', handleShadowTerm);
+    };
   }, [configFiles]);
 
   return (
@@ -259,4 +288,4 @@ function GlossaryTerm({ term, className, id, style, children }: Props) {
   );
 }
 
-export { GlossaryTerm };
+export { GlossaryTerm, termStyles };

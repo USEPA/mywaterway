@@ -27,6 +27,9 @@ import {
   uploadSuccessMessage,
   webServiceErrorMessage,
 } from 'config/errorMessages';
+// types
+import type { FeatureLayerProperties } from "@arcgis/core/layers/FeatureLayer";
+import type Renderer from "@arcgis/core/renderers/Renderer";
 
 /**
  * Gets the number from the last parentheses. If the value
@@ -401,14 +404,14 @@ function FilePanel() {
       if (!layer?.featureSet?.features?.length) return;
 
       // get the list of fields
-      let fields: __esri.Field[] = [];
-      layer.layerDefinition.fields.forEach((field: __esri.Field) => {
+      let fields: Field[] = [];
+      layer.layerDefinition.fields.forEach((field: Field) => {
         // Using Field.fromJSON to convert the Rest fields to the ArcGIS JS fields
         fields.push(Field.fromJSON(field));
       });
 
       // get the features from the response and add the correct type value
-      const features: __esri.Graphic[] = [];
+      const features: Graphic[] = [];
       layer.featureSet.features.forEach((feature: any) => {
         if (
           !feature?.geometry?.spatialReference &&
@@ -422,7 +425,7 @@ function FilePanel() {
       });
 
       // use jsonUtils to convert the REST API renderer to an ArcGIS JS renderer
-      const renderer: __esri.Renderer = rendererJsonUtils.fromJSON(
+      const renderer: Renderer = rendererJsonUtils.fromJSON(
         layer.layerDefinition.drawingInfo.renderer,
       );
 
@@ -445,7 +448,7 @@ function FilePanel() {
         );
       }
 
-      const layerProps: __esri.FeatureLayerProperties = {
+      const layerProps: FeatureLayerProperties = {
         fields,
         objectIdField: layer.layerDefinition.objectIdField,
         outFields: ['*'],

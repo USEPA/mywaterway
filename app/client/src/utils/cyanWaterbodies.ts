@@ -27,6 +27,7 @@ import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type { CyanWaterbodyAttributes, Feature, ServicesData } from 'types';
 import type { SublayerType } from 'utils/boundariesToggleLayer';
+import type FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 
 /*
 ## Hooks
@@ -104,7 +105,7 @@ function useUpdateData() {
     };
   }, [fetchedDataDispatch, hucBoundaries, services]);
 
-  const extent = useRef<__esri.Polygon | null>(null);
+  const extent = useRef<Polygon | null>(null);
 
   const updateSurroundingData = useCallback(
     async (abortSignal: AbortSignal) => {
@@ -263,10 +264,10 @@ async function fetchAndTransformData(
 }
 
 async function fetchCyanWaterbodies(
-  boundaries: __esri.Polygon,
+  boundaries: Polygon,
   servicesData: ServicesData,
   abortSignal: AbortSignal,
-): Promise<FetchState<__esri.FeatureSet>> {
+): Promise<FetchState<FeatureSet>> {
   const url = servicesData.cyan.waterbodies;
   const queryParams = {
     outFields: ['*'],
@@ -287,13 +288,13 @@ async function fetchCyanWaterbodies(
 }
 
 function transformServiceData(
-  serviceData: __esri.FeatureSet,
+  serviceData: FeatureSet,
 ): CyanWaterbodyAttributes[] {
   return serviceData.features.map((feature) => ({
     AREASQKM: feature.attributes.AREASQKM,
     FID: feature.attributes.FID,
     GNIS_NAME: feature.attributes.GNIS_NAME,
-    geometry: feature.geometry as __esri.Polygon,
+    geometry: feature.geometry as Polygon,
     locationName: feature.attributes.GNIS_NAME,
     monitoringType: 'Blue-Green Algae',
     oid: feature.attributes.OBJECTID,
@@ -302,13 +303,13 @@ function transformServiceData(
 }
 
 async function updateCyanFeatureLayer(
-  layer: __esri.GroupLayer | null,
-  features?: __esri.Graphic[] | null,
+  layer: GroupLayer | null,
+  features?: Graphic[] | null,
 ) {
   if (!layer) return;
 
   const featureLayer = (layer.layers.find((l) => l.type === 'feature') ??
-    null) as __esri.FeatureLayer | null;
+    null) as FeatureLayer | null;
   return await updateFeatureLayer(featureLayer, features);
 }
 

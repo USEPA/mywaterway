@@ -30,6 +30,12 @@ const axisTitleStyles = {
   fontWeight: 'bold',
 };
 
+// visx's ParentSize is height:100% and positions children absolutely, so it
+// collapses unless an ancestor sets an explicit height.
+const chartWrapperStyles = (height: number) => css`
+  height: ${height}px;
+`;
+
 const legendContainerStyles = css`
   display: flex;
   flex-direction: row;
@@ -198,86 +204,88 @@ export function VisxGraph({
   return (
     <>
       <Global styles={glyphStyles} />
-      <XYChart
-        height={height}
-        margin={{ top: 20, bottom: 55, left: 100, right: 50 }}
-        theme={theme}
-        xScale={{
-          type: 'linear',
-          paddingInner: 1,
-          paddingOuter: 0.5,
-          zero: false,
-        }}
-        yScale={{
-          type: yScale,
-        }}
-      >
-        <Axis
-          label={xTitle}
-          labelProps={{
-            dy: 15,
-            fill: '#2C2E43',
-            verticalAnchor: 'start',
-            ...axisTitleStyles,
+      <div css={chartWrapperStyles(height)}>
+        <XYChart
+          height={height}
+          margin={{ top: 20, bottom: 55, left: 100, right: 50 }}
+          theme={theme}
+          xScale={{
+            type: 'linear',
+            paddingInner: 1,
+            paddingOuter: 0.5,
+            zero: false,
           }}
-          numTicks={width ? Math.floor(width / 120) : 4}
-          orientation="bottom"
-          strokeWidth={2}
-          tickFormat={xTickFormat}
-          tickLabelProps={{
-            angle: 15,
-            dx: -5,
-            textAnchor: 'start',
-            y: 15,
-            ...tickLabelStyles,
+          yScale={{
+            type: yScale,
           }}
-          tickLength={3}
-        />
-        <Axis
-          label={yTitle}
-          labelProps={{
-            fill: '#2C2E43',
-            dx: -45,
-            lineHeight: '1.2em',
-            scaleToFit: false,
-            textAnchor: 'middle',
-            width: height,
-            ...axisTitleStyles,
-          }}
-          orientation="left"
-          strokeWidth={2}
-          tickFormat={yTickFormat}
-          tickLabelProps={tickLabelStyles}
-          tickLength={5}
-        />
-        {lineVisible && (
-          <LineSeries
-            colorAccessor={lineColorAccessor}
-            data={lineData}
-            dataKey="line"
-            xAccessor={xAccessor}
-            yAccessor={yAccessor}
+        >
+          <Axis
+            label={xTitle}
+            labelProps={{
+              dy: 15,
+              fill: '#2C2E43',
+              verticalAnchor: 'start',
+              ...axisTitleStyles,
+            }}
+            numTicks={width ? Math.floor(width / 120) : 4}
+            orientation="bottom"
+            strokeWidth={2}
+            tickFormat={xTickFormat}
+            tickLabelProps={{
+              angle: 15,
+              dx: -5,
+              textAnchor: 'start',
+              y: 15,
+              ...tickLabelStyles,
+            }}
+            tickLength={3}
           />
-        )}
-        {pointsVisible &&
-          Object.entries(pointData).map(([dataKey, data]) => (
-            <GlyphSeries
-              colorAccessor={pointColorAccessor}
-              data={data}
-              dataKey={dataKey}
-              key={dataKey}
+          <Axis
+            label={yTitle}
+            labelProps={{
+              fill: '#2C2E43',
+              dx: -45,
+              lineHeight: '1.2em',
+              scaleToFit: false,
+              textAnchor: 'middle',
+              width: height,
+              ...axisTitleStyles,
+            }}
+            orientation="left"
+            strokeWidth={2}
+            tickFormat={yTickFormat}
+            tickLabelProps={tickLabelStyles}
+            tickLength={5}
+          />
+          {lineVisible && (
+            <LineSeries
+              colorAccessor={lineColorAccessor}
+              data={lineData}
+              dataKey="line"
               xAccessor={xAccessor}
               yAccessor={yAccessor}
             />
-          ))}
-        <Tooltip<Datum>
-          showDatumGlyph
-          showVerticalCrosshair
-          snapTooltipToDatumX
-          renderGlyph={renderTooltipGlyph}
-          renderTooltip={({ tooltipData }) => renderTooltip(tooltipData)}
-        />
-      </XYChart>
+          )}
+          {pointsVisible &&
+            Object.entries(pointData).map(([dataKey, data]) => (
+              <GlyphSeries
+                colorAccessor={pointColorAccessor}
+                data={data}
+                dataKey={dataKey}
+                key={dataKey}
+                xAccessor={xAccessor}
+                yAccessor={yAccessor}
+              />
+            ))}
+          <Tooltip<Datum>
+            showDatumGlyph
+            showVerticalCrosshair
+            snapTooltipToDatumX
+            renderGlyph={renderTooltipGlyph}
+            renderTooltip={({ tooltipData }) => renderTooltip(tooltipData)}
+          />
+        </XYChart>
+      </div>
     </>
   );
 }

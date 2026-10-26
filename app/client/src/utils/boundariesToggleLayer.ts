@@ -18,6 +18,12 @@ import {
 import { useAbort } from 'utils/hooks';
 import { isAbort, isClick, toFixedFloat } from 'utils/utils';
 // types
+import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import type GroupLayer from "@arcgis/core/layers/GroupLayer";
+import type GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import type Extent from "@arcgis/core/geometry/Extent";
+import type Polygon from "@arcgis/core/geometry/Polygon";
+import type MapView from "@arcgis/core/views/MapView";
 import type {
   EmptyFetchState,
   FetchedData,
@@ -56,7 +62,7 @@ export function useAllFeaturesLayers<
 }
 
 export function useBoundariesToggleLayer<
-  T extends __esri.FeatureLayer | __esri.GraphicsLayer | __esri.GroupLayer,
+  T extends FeatureLayer | GraphicsLayer | GroupLayer,
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 >({
@@ -267,7 +273,7 @@ export function useBoundariesToggleLayer<
 ## Utils
 */
 
-function getExtentArea(extent: __esri.Extent) {
+function getExtentArea(extent: Extent) {
   return (
     Math.abs(extent.xmax - extent.xmin) * Math.abs(extent.ymax - extent.ymin)
   );
@@ -275,7 +281,7 @@ function getExtentArea(extent: __esri.Extent) {
 
 // Gets a string representation of the view's extent as a bounding box
 export function getExtentBoundingBox(
-  extent: __esri.Extent | null,
+  extent: Extent | null,
   maxArea = Infinity,
   truncate = false,
 ) {
@@ -294,7 +300,7 @@ export function getExtentBoundingBox(
 // Converts the view's extent from a Web Mercator
 // projection to geographic coordinates
 export async function getGeographicExtentMapView(
-  mapView: __esri.MapView | '' | null,
+  mapView: MapView | '' | null,
 ) {
   if (!mapView) return null;
 
@@ -306,23 +312,23 @@ export async function getGeographicExtentMapView(
 
 // Converts the view's extent from a Web Mercator
 // projection to geographic coordinates
-export function getGeographicExtent(extentMercator: __esri.Extent | '' | null) {
+export function getGeographicExtent(extentMercator: Extent | '' | null) {
   if (!extentMercator) return null;
 
   return webMercatorUtils.webMercatorToGeographic(
     extentMercator,
-  ) as __esri.Extent;
+  ) as Extent;
 }
 
 // Converts the view's extent from a Web Mercator
 // projection to geographic coordinates
-export async function getGeographicExtentPolygon(polygon: __esri.Polygon) {
+export async function getGeographicExtentPolygon(polygon: Polygon) {
   if (!polygon?.extent) return null;
 
   const extentMercator = polygon.extent;
   return webMercatorUtils.webMercatorToGeographic(
     extentMercator,
-  ) as __esri.Extent;
+  ) as Extent;
 }
 
 export function handleFetchError(err: unknown): EmptyFetchState {
@@ -348,15 +354,15 @@ export function filterData<T>(
 }
 
 export async function updateFeatureLayer(
-  layer: __esri.FeatureLayer | null,
-  features?: __esri.Graphic[] | null,
+  layer: FeatureLayer | null,
+  features?: Graphic[] | null,
 ) {
   if (!layer) return;
 
   const featureSet = await layer.queryFeatures({ where: '1=1' });
   const edits: {
-    addFeatures?: __esri.Graphic[];
-    deleteFeatures: __esri.Graphic[];
+    addFeatures?: Graphic[];
+    deleteFeatures: Graphic[];
   } = {
     deleteFeatures: featureSet.features,
   };
@@ -377,7 +383,7 @@ const defaultMinScale = 577791;
 export type SublayerType = 'enclosed' | 'surrounding';
 
 type UseBoundariesToggleLayerParams<
-  T extends __esri.FeatureLayer | __esri.GraphicsLayer | __esri.GroupLayer,
+  T extends FeatureLayer | GraphicsLayer | GroupLayer,
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = {
@@ -387,13 +393,13 @@ type UseBoundariesToggleLayerParams<
   minScale?: number;
   surroundingFetchedDataKey: S;
   updateSurroundingData: (abortSignal: AbortSignal) => Promise<void>;
-  updateLayer: (layer: T | null, features?: __esri.Graphic[]) => Promise<void>;
+  updateLayer: (layer: T | null, features?: Graphic[]) => Promise<void>;
 };
 
 type UseAllFeaturesLayersParams<
   E extends keyof FetchedDataState,
   S extends keyof FetchedDataState,
 > = Omit<
-  UseBoundariesToggleLayerParams<__esri.FeatureLayer, E, S>,
+  UseBoundariesToggleLayerParams<FeatureLayer, E, S>,
   'updateLayer'
 >;

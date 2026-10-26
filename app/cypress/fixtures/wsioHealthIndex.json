@@ -1,0 +1,36 @@
+{
+  "objectIdFieldName": "OBJECTID",
+  "uniqueIdField": {
+    "name": "OBJECTID",
+    "isSystemMaintained": true
+  },
+  "globalIdFieldName": "",
+  "fields": [
+    {
+      "name": "HUC12_TEXT",
+      "type": "esriFieldTypeString",
+      "alias": "HUC12_TEXT",
+      "length": 12
+    },
+    {
+      "name": "STATES_ALL",
+      "type": "esriFieldTypeString",
+      "alias": "STATES_ALL",
+      "length": 50
+    },
+    {
+      "name": "PHWA_HEALTH_NDX_ST",
+      "type": "esriFieldTypeDouble",
+      "alias": "PHWA_HEALTH_NDX_ST"
+    }
+  ],
+  "features": [
+    {
+      "attributes": {
+        "HUC12_TEXT": "121002030202",
+        "STATES_ALL": "TX",
+        "PHWA_HEALTH_NDX_ST": 0.52
+      }
+    }
+  ]
+}

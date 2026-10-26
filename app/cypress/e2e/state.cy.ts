@@ -123,13 +123,10 @@ describe('State page routes', () => {
     }).should('not.exist');
 
     // test page when metrics service fails
-    cy.intercept(
-      'https://attains.epa.gov/attains-public/api/metrics?organizationId=AKDECWQ',
-      {
-        statusCode: 500,
-        body: {},
-      },
-    ).as('attains-metrics');
+    cy.intercept('https://api.epa.gov/attains/metrics?organizationId=AKDECWQ', {
+      statusCode: 500,
+      body: {},
+    }).as('attains-metrics');
     cy.visit('/state/AK/water-quality-overview');
     cy.findByText(
       'State information is temporarily unavailable, please try again later.',
@@ -274,10 +271,10 @@ describe('State page Water Quality Overview sub tabs', () => {
 
 describe('State page Water Overview tab', () => {
   beforeEach(() => {
-    cy.visit('/state/AK/water-quality-overview');
+    cy.visit('/state/AZ/water-quality-overview');
   });
 
-  const title = 'Alaska Documents';
+  const title = 'Arizona Documents';
   const text = 'Documents Related to Integrated Report';
 
   it(`Display "Drinking Water Information" when water sub-tab clicked on`, () => {
@@ -289,7 +286,7 @@ describe('State page Water Overview tab', () => {
 
   it(`Clicking "Expand All/Collapse All" expands/collapses the state documents and state water stories menu`, () => {
     const documentsText = 'Documents Related to Integrated Report';
-    const waterText = '2024 Integrated Report Fact Sheet (PDF)';
+    const waterText = '2026 Clean Water Act Assessment (PDF)';
 
     cy.waitForLoadFinish();
 
@@ -307,9 +304,9 @@ describe('State page Water Overview tab', () => {
   });
 
   it(`Clicking "<state name> Documents" opens the documents content`, () => {
-    const firstTableLinkText =
-      'AK 2024 IR EPA Approval Letter and Decision Document (PDF)';
-    const secondTableLinkText = '2015 NPR-A Estuary Report (PDF)';
+    const firstTableLinkText = '2026 Clean Water Act Assessment (PDF)';
+    const secondTableLinkText =
+      'An Assessment of Arizona’s Intermittent Streams (PDF)';
 
     // verify text is not visible
     cy.findByText(text).should('not.exist');
@@ -322,7 +319,7 @@ describe('State page Water Overview tab', () => {
     cy.findByText(firstTableLinkText).should(
       'have.attr',
       'href',
-      `https://attains.epa.gov/attains-public/api/documents/cycles/18564/223234`,
+      'https://api.epa.gov/attains/documents/cycles/20165/227722',
     );
     cy.findByText(firstTableLinkText).should('have.attr', 'target', '_blank');
     cy.findByText(firstTableLinkText).should(
@@ -335,7 +332,7 @@ describe('State page Water Overview tab', () => {
     cy.findByText(secondTableLinkText).should(
       'have.attr',
       'href',
-      `https://attains.epa.gov/attains-public/api/documents/surveys/AKDECWQ/2015/136021`,
+      'http://static.azdeq.gov/wqd/reports/int_streams_2018.pdf',
     );
     cy.findByText(secondTableLinkText).should('have.attr', 'target', '_blank');
     cy.findByText(secondTableLinkText).should(
@@ -365,10 +362,11 @@ describe('State page Water Overview tab', () => {
   });
 
   it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
-    const title = 'Alaska Water Stories';
+    const title = 'Arizona Water Stories';
     const text1 =
-      'Restoring Mining Sites, Riparian Areas and the Stream Channel Reduces Turbidity in Slate Creek (PDF)';
-    const text2 = 'Community Efforts Improve Jordan Creek (PDF)';
+      'Implementing Septic and Cesspool Upgrade Projects Reduces Total Nitrogen Levels in Tonto Creek (PDF)';
+    const text2 =
+      'Fish Return to Boulder Creek After Legacy Mine Remediation (PDF)';
 
     // verify text is not visible
     cy.findByText(text1).should('not.exist');
@@ -409,9 +407,7 @@ describe('State page Advanced Search tab', () => {
     cy.findByRole('button', { name: 'List' }).click();
 
     // wait for the waterbody list to load
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 5000 }).should(
-      'not.be.visible',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('button', { name: 'Alamo Lake' }).should('exist');
 
@@ -428,19 +424,19 @@ describe('State page Advanced Search tab', () => {
       force: true,
     });
     cy.findAllByText('Loading...').should('not.exist');
-    cy.findAllByText('Algae').filter(':visible').click({ force: true });
+    cy.findByRole('option', { name: 'Algae' }).click();
 
     // select use group filter
     cy.findByRole('combobox', { name: 'Use Groups' }).click({ force: true });
-    cy.findAllByText('Swimming and Boating')
-      .filter(':visible')
-      .click({ force: true });
+    cy.findByRole('option', { name: 'Swimming and Boating' }).click();
 
     // select watershed filter
     cy.findByRole('combobox', { name: 'Watershed Names (HUC12)' }).type(
       '200700000103',
     );
-    cy.findByText('Hanalei River (200700000103)').click({ force: true });
+    cy.findByText('Hanalei River-Frontal Pacific Ocean (200700000103)').click({
+      force: true,
+    });
 
     // select waterbody filter
     cy.findByRole('combobox', { name: 'Waterbody Names (IDs):' }).type(
@@ -462,9 +458,7 @@ describe('State page Advanced Search tab', () => {
 
     // verify Hanalei River is found
     cy.findByRole('button', { name: 'List' }).click();
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 5000 }).should(
-      'not.be.visible',
-    );
+    cy.waitForLoadFinish();
     cy.findByText('State Waterbody ID: HI385259');
 
     // maybe?? check if items are in map display menus
@@ -475,7 +469,15 @@ describe('State page service failure tests', () => {
   it(`Documents fail to load due to attains assessments service failure`, () => {
     // test documents failure to load
     cy.intercept(
-      'https://attains.epa.gov/attains-public/api/assessments?organizationId=AKDECWQ&reportingCycle=2024&excludeAssessments=Y',
+      {
+        hostname: 'api.epa.gov',
+        pathname: '/attains/assessments',
+        // reportingCycle is left off so it matches whichever cycle is current
+        query: {
+          organizationId: 'AKDECWQ',
+          excludeAssessments: 'Y',
+        },
+      },
       {
         statusCode: 500,
         body: {},
@@ -484,6 +486,7 @@ describe('State page service failure tests', () => {
     cy.visit('/state/AK/water-quality-overview');
 
     cy.waitForLoadFinish();
+    cy.wait('@attains-assessments');
 
     cy.get('.hmw-accordion').contains('Alaska Documents').click();
     cy.findByText(
@@ -493,7 +496,7 @@ describe('State page service failure tests', () => {
 
   it('Failure to get max record count', () => {
     cy.intercept(
-      'https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6?f=json&onlocalhost=1',
+      'https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Hydrologic_Units_F3/FeatureServer/19?f=json&onlocalhost=1',
       {
         statusCode: 500,
         body: {},
@@ -508,7 +511,11 @@ describe('State page service failure tests', () => {
 
   it('Failure to get summary info', () => {
     cy.intercept(
-      'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4/query?f=json&returnIdsOnly=true&returnGeometry=false&spatialRel=esriSpatialRelIntersects&where=state%20%3D%20%27AL%27%20AND%20organizationid%20%3D%20%2721AWIC%27*',
+      {
+        hostname: 'services.arcgis.com',
+        pathname:
+          '/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/4/query',
+      },
       {
         statusCode: 500,
         body: {},
@@ -523,7 +530,11 @@ describe('State page service failure tests', () => {
 
   it('UsesStateSummary service failure', () => {
     cy.intercept(
-      'https://attains.epa.gov/attains-public/api/usesStateSummary?organizationId=AKDECWQ&reportingCycle=2024',
+      {
+        hostname: 'api.epa.gov',
+        pathname: '/attains/usesStateSummary',
+        query: { organizationId: 'AKDECWQ' },
+      },
       {
         statusCode: 500,
         body: {},
@@ -537,13 +548,10 @@ describe('State page service failure tests', () => {
   });
 
   it('Surveys service failure', () => {
-    cy.intercept(
-      'https://attains.epa.gov/attains-public/api/surveys?organizationId=AKDECWQ',
-      {
-        statusCode: 500,
-        body: {},
-      },
-    );
+    cy.intercept('https://api.epa.gov/attains/surveys?organizationId=AKDECWQ', {
+      statusCode: 500,
+      body: {},
+    });
     cy.visit('/state/AK/water-quality-overview');
 
     cy.findAllByText(
@@ -552,13 +560,10 @@ describe('State page service failure tests', () => {
   });
 
   it('Organizations service failure', () => {
-    cy.intercept(
-      'https://attains.epa.gov/attains-public/api/states/AK/organizations',
-      {
-        statusCode: 500,
-        body: {},
-      },
-    );
+    cy.intercept('https://api.epa.gov/attains/states/AK/organizations', {
+      statusCode: 500,
+      body: {},
+    });
     cy.visit('/state/AK/water-quality-overview');
 
     cy.findAllByText(
@@ -567,16 +572,13 @@ describe('State page service failure tests', () => {
   });
 
   it('Organizations no data for state', () => {
-    cy.intercept(
-      'https://attains.epa.gov/attains-public/api/states/AK/organizations',
-      {
-        statusCode: 200,
-        body: {
-          data: [],
-          messages: [],
-        },
+    cy.intercept('https://api.epa.gov/attains/states/AK/organizations', {
+      statusCode: 200,
+      body: {
+        data: [],
+        messages: [],
       },
-    );
+    });
     cy.visit('/state/AK/water-quality-overview');
 
     cy.findAllByText('No data available for Alaska.');

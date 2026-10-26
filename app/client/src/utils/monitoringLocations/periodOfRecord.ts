@@ -111,12 +111,11 @@ if ('function' === typeof importScripts) {
   self.onmessage = function (message) {
     const [target, params, mappings] = message.data;
 
-    fetchPostParseCsv(target, params, { worker: false }) // already in a worker
+    fetchPostParseCsv(target, params)
       .then((records) => {
-        if (records.length) {
-          const recordsById = structurePeriodOfRecordData(records, mappings);
-          postMessage(JSON.stringify({ status: 'success', data: recordsById }));
-        }
+        // always post, so zero records doesn't leave the caller pending
+        const recordsById = structurePeriodOfRecordData(records, mappings);
+        postMessage(JSON.stringify({ status: 'success', data: recordsById }));
       })
       .catch((_err) => {
         postMessage(

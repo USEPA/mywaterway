@@ -22,6 +22,8 @@ import {
   useLocalData,
 } from 'utils/boundariesToggleLayer';
 // types
+import type MapView from "@arcgis/core/views/MapView";
+import type Polygon from "@arcgis/core/geometry/Polygon";
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type {
@@ -125,7 +127,7 @@ function useUpdateData() {
       usgsSiteTypes,
       usgsStaParameters,
       controller.signal,
-      (hucBoundaries?.geometry as __esri.Polygon) ?? null,
+      (hucBoundaries?.geometry as Polygon) ?? null,
     ).then((data) => {
       setHucData(data);
     });
@@ -269,7 +271,7 @@ async function fetchAndTransformData(
   usgsSiteTypes: ConfigFiles['usgsSiteTypes'],
   usgsStaParameters: UsgsStaParameter[],
   abortSignal: AbortSignal,
-  huc12Boundaries: __esri.Polygon | null = null,
+  huc12Boundaries: Polygon | null = null,
   additionalData?: UsgsStreamgageAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -557,7 +559,7 @@ function fetchMonitoringLocations(
   monitoringLocations: Set<string>,
   servicesData: ServicesData,
   abortSignal: AbortSignal,
-  huc12Boundaries: __esri.Polygon | null = null,
+  huc12Boundaries: Polygon | null = null,
 ): Promise<FetchState<UsgsMonitoringLocationData>> {
   let url =
     servicesData.usgs.monitoringLocations +
@@ -669,7 +671,7 @@ function fetchDaily(
     .catch(handleFetchError);
 }
 
-async function getExtentDvFilter(mapView: __esri.MapView | '') {
+async function getExtentDvFilter(mapView: MapView | '') {
   const extent = await getGeographicExtentMapView(mapView);
   // Service requires that area of extent cannot exceed 25 degrees
   const bBox = getExtentBoundingBox(extent, 25, true);

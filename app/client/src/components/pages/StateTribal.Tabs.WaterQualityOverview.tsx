@@ -379,7 +379,7 @@ function WaterQualityOverview() {
     }
 
     if (currentReportingCycle.status === 'failure') {
-      setUsesStateSummaryCalled(true);
+      usesStateSummaryCalled.current = true;
       setServiceError(true);
       setLoading(false);
       setCurrentSummary({
@@ -490,9 +490,15 @@ function WaterQualityOverview() {
     (orgID) => {
       const url = `${configFiles.data.services.attains.serviceUrl}surveys?organizationId=${orgID}`;
       const apiKey = configFiles.data.services.attains.apiKey;
-      fetchCheck(url, getSignal(), apiKey ? {
-        'X-Api-Key': apiKey,
-      } : {})
+      fetchCheck(
+        url,
+        getSignal(),
+        apiKey
+          ? {
+              'X-Api-Key': apiKey,
+            }
+          : {},
+      )
         .then((res) => {
           setSurveyLoading(false);
 

@@ -61,8 +61,15 @@ describe('Community Visual Regression Testing', () => {
     });
 
     // jostle the map view to workaround WSIO service performance issues
-    cy.findByTitle('Zoom out').click({ force: true }).click({ force: true });
-    cy.findByTitle('Default map view').click({ force: true });
+    cy.get('arcgis-zoom')
+      .shadow()
+      .find('calcite-button.zoom-out')
+      .click({ force: true })
+      .click({ force: true });
+    cy.get('arcgis-home')
+      .shadow()
+      .find('calcite-button')
+      .click({ force: true });
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
@@ -90,14 +97,19 @@ describe('Community Visual Regression Testing', () => {
     cy.waitForLoadFinish();
     cy.wait(10_000);
 
-    cy.findByText('FORT CHAPLIN RUN').click();
+    cy.findByText('BATTERY KEMBLE CREEK').click();
 
     cy.findByText('View on Map').click();
 
     cy.get(mapId).within(($el) => {
-      cy.findByText('FORT CHAPLIN RUN (District Waterbody ID: DCTFC01R_00)');
+      cy.get('h2.esri-widget__heading', { includeShadowDom: true }).should(
+        'have.text',
+        'BATTERY KEMBLE CREEK (District Waterbody ID: DCTBK01R_00)',
+      );
 
-      cy.findByText('District of Columbia (DOEE)');
+      cy.get('hmw-popup-content', { includeShadowDom: true }).findByText(
+        'District of Columbia (DOEE)',
+      );
     });
     cy.get(mapId).matchSnapshot('verify-view-on-map-button-waterbody-popup');
   });
@@ -135,6 +147,9 @@ describe('Community Visual Regression Testing', () => {
     cy.visit('/community/dc/overview');
 
     cy.waitForLoadFinish();
+
+    // the huc12 must be in context before the widget can query upstream of it
+    cy.wait(10000);
 
     cy.findByRole('button', { name: 'View Upstream Watershed' }).click();
 
@@ -212,6 +227,8 @@ describe('Tribe Visual Regression Testing', () => {
       ).as('upstream-watershed-query');
 
       cy.visit('/tribe/ABSHAWNEE');
+
+      cy.wait(10000);
 
       cy.waitForLoadFinish();
 
