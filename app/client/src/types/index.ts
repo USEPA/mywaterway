@@ -1,3 +1,22 @@
+import type Graphic from "@arcgis/core/Graphic";
+import type { RendererProperties } from "@arcgis/core/renderers/Renderer";
+import type { PopupTemplateProperties } from "@arcgis/core/PopupTemplate";
+import type Layer from "@arcgis/core/layers/Layer";
+import type { FieldProperties } from "@arcgis/core/layers/support/Field";
+import type PortalItem from "@arcgis/core/portal/PortalItem";
+import type WMTSLayer from "@arcgis/core/layers/WMTSLayer";
+import type WMSLayer from "@arcgis/core/layers/WMSLayer";
+import type TileLayer from "@arcgis/core/layers/TileLayer";
+import type SubtypeGroupLayer from "@arcgis/core/layers/SubtypeGroupLayer";
+import type MapImageLayer from "@arcgis/core/layers/MapImageLayer";
+import type KMLLayer from "@arcgis/core/layers/KMLLayer";
+import type BuildingSceneLayer from "@arcgis/core/layers/BuildingSceneLayer";
+import type GroupLayer from "@arcgis/core/layers/GroupLayer";
+import type Geometry from "@arcgis/core/geometry/Geometry";
+import type { QueryProperties } from "@arcgis/core/rest/support/Query";
+import type Query from "@arcgis/core/rest/support/Query";
+import type Polygon from "@arcgis/core/geometry/Polygon";
+
 export interface ActionAttributes extends WaterbodyAttributes {
   layerType: 'actions';
   type?: 'Action';
@@ -169,7 +188,7 @@ export interface CountyAttributes {
 export interface CyanWaterbodyAttributes {
   AREASQKM: number;
   FID: number;
-  geometry: __esri.Polygon;
+  geometry: Polygon;
   GNIS_NAME: string;
   locationName: string;
   monitoringType: 'Blue-Green Algae';
@@ -221,7 +240,7 @@ export interface DischargerPermitComponents {
 
 export type ExtremeWeatherQuery = {
   serviceItemId?: string;
-  query: __esri.Query | __esri.QueryProperties;
+  query: Query | QueryProperties;
 };
 
 export type ExtremeWeatherRow = {
@@ -272,7 +291,7 @@ export type ExtremeWeatherConfig = {
 };
 
 export interface Feature {
-  graphic: __esri.Graphic;
+  graphic: Graphic;
 }
 
 interface FetchEmptyState {
@@ -301,8 +320,8 @@ export type EffluentToggleObject = {
   violating: boolean;
 };
 
-export interface ExtendedGraphic extends __esri.Graphic {
-  originalGeometry?: __esri.Geometry;
+export interface ExtendedGraphic extends Graphic {
+  originalGeometry?: Geometry;
 }
 
 export interface Huc12SummaryData {
@@ -375,6 +394,17 @@ export type InfoText = {
   text: string;
   [key: string]: string;
 };
+
+export type MapSlot =
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'top-start'
+  | 'top-end'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'popup';
 
 export interface MonitoringFeatureUpdate {
   characteristicsByGroup: { [group: string]: string[] };
@@ -470,7 +500,7 @@ export type Option = {
 
 export type ParameterToggleObject = { [key: string]: boolean };
 
-export type ParentLayer = __esri.GroupLayer | SuperLayer;
+export type ParentLayer = GroupLayer | SuperLayer;
 
 export type PermittedDischargersData = {
   Results:
@@ -537,7 +567,7 @@ export interface RndDraggableState {
 }
 
 export interface ServicesData {
-  attains: { apiKey: string, serviceUrl: string; serviceUrlDev: string };
+  attains: { apiKey: string; serviceUrl: string; serviceUrlDev: string };
   basemaps: {
     default: string;
     lightGrayCanvas: string;
@@ -687,13 +717,13 @@ export interface StreamgageMeasurement {
 }
 
 export type SuperLayer =
-  | __esri.BuildingSceneLayer
-  | __esri.KMLLayer
-  | __esri.MapImageLayer
-  | __esri.SubtypeGroupLayer
-  | __esri.TileLayer
-  | __esri.WMSLayer
-  | __esri.WMTSLayer;
+  | BuildingSceneLayer
+  | KMLLayer
+  | MapImageLayer
+  | SubtypeGroupLayer
+  | TileLayer
+  | WMSLayer
+  | WMTSLayer;
 
 export interface TribeAttributes {
   TRIBE_NAME: string;
@@ -827,8 +857,8 @@ export type WaterbodyCondition =
   | 'nostatus'
   | 'hidden';
 
-interface PortalLayer extends __esri.Layer {
-  portalItem?: __esri.PortalItem;
+interface PortalLayer extends Layer {
+  portalItem?: PortalItem;
 }
 
 export type PortalLayerTypes =
@@ -861,22 +891,22 @@ export type WidgetLayer =
     }
   | {
       type: 'url';
-      layer: __esri.Layer;
+      layer: Layer;
       layerType: string;
       url: string;
       urlType: 'ArcGIS' | 'CSV' | 'GeoRSS' | 'KML' | 'WCS' | 'WFS' | 'WMS';
     }
   | {
       type: 'file';
-      fields: __esri.FieldProperties[];
-      layer: __esri.Layer;
+      fields: FieldProperties[];
+      layer: Layer;
       layerId: string;
       layerType?: string;
       objectIdField: string;
       outFields: string[];
-      popupTemplate: __esri.PopupTemplateProperties;
-      renderer: __esri.RendererProperties;
-      source: __esri.Graphic[];
+      popupTemplate: PopupTemplateProperties;
+      renderer: RendererProperties;
+      source: Graphic[];
       title: string;
       rawLayer: any;
     };

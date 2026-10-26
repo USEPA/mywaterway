@@ -24,8 +24,9 @@ const containerStyles = css`
   h2 {
     margin-bottom: 8px;
     margin-top: 0;
-    font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
-      'Arial', sans-serif;
+    font-family:
+      'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial',
+      sans-serif;
     font-size: 1.25em;
   }
   .esri-feature & p {
@@ -725,10 +726,6 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         <GlossaryTerm
           term={layerName}
           className="esri-widget__heading esri-legend__service-label"
-          style={{
-            fontFamily:
-              '"Merriweather Web", "Georgia", "Cambria", "Times New Roman", "Times", serif',
-          }}
         >
           {layerName}
         </GlossaryTerm>

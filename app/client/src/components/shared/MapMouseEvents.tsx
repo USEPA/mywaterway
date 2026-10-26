@@ -12,6 +12,10 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useLayers } from 'contexts/Layers';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // types
+import type MapView from "@arcgis/core/views/MapView";
+import type Graphic from "@arcgis/core/Graphic";
+import type { ViewHitTestResult, SceneViewGraphicHit } from "@arcgis/core/views/types";
+import type FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 import type {
   MonitoringFeatureUpdate,
   MonitoringFeatureUpdates,
@@ -49,7 +53,7 @@ interface PointerMoveEvent {
 
 // --- helpers ---
 function getGraphicsFromResponse(
-  res: __esri.HitTestResult,
+  res: ViewHitTestResult,
   additionalLayers: Array<string> = [],
 ) {
   if (!res.results || res.results.length === 0) return null;
@@ -84,13 +88,13 @@ function getGraphicsFromResponse(
     if (result.graphic.layer.type === 'vector-tile') return null;
 
     return result;
-  }) as __esri.GraphicHit[];
+  }) as SceneViewGraphicHit[];
 
   return matches.map((match) => match.graphic);
 }
 
 function getGraphicFromResponse(
-  res: __esri.HitTestResult,
+  res: ViewHitTestResult,
   additionalLayers: Array<string> = [],
 ) {
   const graphics = getGraphicsFromResponse(res, additionalLayers);
@@ -98,7 +102,7 @@ function getGraphicFromResponse(
 }
 
 function prioritizePopup(
-  graphics: __esri.Graphic[] | null,
+  graphics: Graphic[] | null,
   onTribePage = false,
 ) {
   // Show waterbodies ahead of monitoring locations on the Tribe page.
@@ -131,9 +135,9 @@ function prioritizePopup(
 }
 
 function updateAttributes(
-  graphic: __esri.Graphic,
+  graphic: Graphic,
   updates: MonitoringFeatureUpdates,
-): __esri.Graphic | null {
+): Graphic | null {
   const graphicId = graphic?.attributes?.uniqueId;
   if (updates?.[graphicId]) {
     const stationUpdates = updates[graphicId];
@@ -151,7 +155,7 @@ function updateAttributes(
 }
 
 function updateGraphics(
-  graphics: __esri.Graphic[] | null,
+  graphics: Graphic[] | null,
   updates: MonitoringFeatureUpdates | null,
 ) {
   if (!updates || !graphics) return;
@@ -182,7 +186,7 @@ function MapMouseEvents({ view }: Props) {
 
   // Opens the change location popup
   const openChangeLocationPopup = useCallback(
-    (point: __esri.Point, boundaries: __esri.FeatureSet) => {
+    (point: Point, boundaries: FeatureSet) => {
       view.closePopup();
       view.popup = new Popup({
         location: point,
@@ -222,7 +226,7 @@ function MapMouseEvents({ view }: Props) {
   }, [monitoringFeatureUpdates, view]);
 
   const handleMapClick = useCallback(
-    (event: ClickEvent, view: __esri.MapView) => {
+    (event: ClickEvent, view: MapView) => {
       // get the point location of the user's click
       const point = new Point({
         x: event.mapPoint.longitude,
@@ -236,7 +240,7 @@ function MapMouseEvents({ view }: Props) {
       // perform a hittest on the click location
       view
         .hitTest(event)
-        .then((res: __esri.HitTestResult) => {
+        .then((res: ViewHitTestResult) => {
           // get and update the selected graphic
           const extraLayersToIgnore = ['selectedTribeLayer'];
           const graphics =
@@ -303,12 +307,12 @@ function MapMouseEvents({ view }: Props) {
     // by the hitTest async events occurring out of order. The global scoped variables
     // are needed because the esri hit test event won't be able to read react state
     // variables.
-    let lastFeature: __esri.Graphic | null = null;
+    let lastFeature: Graphic | null = null;
     let lastEventId = -1;
 
     const handleMapMouseOver = (
       event: PointerMoveEvent,
-      view: __esri.MapView,
+      view: MapView,
     ) => {
       view
         .hitTest(event)

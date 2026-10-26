@@ -1,51 +1,105 @@
-/* community map layers */
-.esri-expand__content--expanded {
-  overflow: auto;
-  background-color: white;
+/*
+ * ---------------------------------------------------------------------------
+ * ArcGIS web components (5.x) and the shadow DOM
+ * ---------------------------------------------------------------------------
+ * <arcgis-map> assigns the MapView container to a <div> inside its own shadow
+ * root, so the whole view tree -- UI corners, attribution and the popup -- is
+ * encapsulated. Every other component we use (expand, layer-list, legend,
+ * scale-bar, basemap-gallery, home, zoom) is shadow as well, and as of
+ * @arcgis/map-components 5.1.19 none of them expose a single ::part(). Only
+ * <arcgis-map> declares any CSS custom properties of its own.
+ *
+ * That leaves three ways to style them:
+ *   1. Target the component tag -- it is still in our light DOM.
+ *   2. Set calcite design tokens -- custom properties inherit through the
+ *      shadow boundary, so they reach component internals.
+ *   3. Adopt this file into a shadow root, which utils/popupStyles.ts does for
+ *      the map's root and the popup content's. Selectors written against Esri's
+ *      markup work again inside whichever root they were adopted into, and a
+ *      rule from there outranks a component's own :host rules.
+ *
+ * A rule targeting an .esri-* class inside a root we do not adopt into still
+ * matches nothing. Those are collected at the bottom of this file.
+ */
+
+/* --------------------------------------------------------------------------
+ * Component hosts (light DOM -- these work)
+ * ------------------------------------------------------------------------ */
+
+arcgis-basemap-gallery {
+  max-height: 100%;
+  overflow: visible;
+  width: 225px;
 }
 
-@media screen {
-  .esri-expand__content-container {
-    max-height: 540px;
-    overflow: auto;
-  }
-}
-
-.esri-view-height-xsmall .esri-expand__popover-content {
-  max-height: 240px;
-}
-
-.esri-view-height-small .esri-expand__popover-content {
-  max-height: 420px;
-}
-
-.hmw-map-layers,
-.esri-view-root .esri-basemap-gallery {
-  min-width: 225px;
-  max-width: 225px;
-}
-
-.esri-basemap-gallery {
-  overflow: visible !important;
-  max-height: 100% !important;
-}
-
-.esri-basemap-gallery:focus-within {
+arcgis-basemap-gallery:focus-within {
   outline: none;
 }
 
-.esri-basemap-gallery__item-thumbnail {
-  height: 31px;
-  width: 64px;
-  min-width: 64px;
-}
-
-.esri-layer-list {
+arcgis-layer-list {
+  max-height: 100%;
+  overflow: visible;
   padding-top: 5px;
-  overflow: visible !important;
-  max-height: 100% !important;
+  width: 225px;
 }
 
+arcgis-legend {
+  max-height: none;
+  max-width: 240px;
+}
+
+arcgis-scale-bar {
+  z-index: 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Theming tokens (inherit through the shadow boundary)
+ * ------------------------------------------------------------------------ */
+
+arcgis-basemap-gallery,
+arcgis-expand,
+arcgis-layer-list,
+arcgis-legend,
+arcgis-map,
+arcgis-scale-bar,
+.esri-widget {
+  --calcite-font-family:
+    'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial',
+    sans-serif;
+  --calcite-color-text-1: #4a4a4a;
+}
+
+/*
+ * Zebra striping for <arcgis-feature-fields>' own attribute table.
+ * Our popup content is custom markup and is striped by the hmw-popup-content rules below.
+ */
+arcgis-map {
+  --arcgis-table-row-background-color: #f0f5f9;
+  --arcgis-table-row-alt-background-color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+ * Our own classes (light DOM -- these work)
+ * ------------------------------------------------------------------------ */
+
+/*
+ * We apply .esri-widget ourselves (see MapWidgets.tsx). It no longer reaches
+ * anything inside a component, the token block above handles that.
+ */
+.esri-widget {
+  font-family:
+    'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial',
+    sans-serif;
+}
+
+.esri-widget--panel-height-only {
+  width: 225px !important;
+}
+
+/*
+ * The mapped water legend is our markup, borrowing the class names of the
+ * widget arcgis-legend replaced.
+ */
 .esri-legend__symbol {
   margin: unset;
 }
@@ -54,17 +108,102 @@
   display: none;
 }
 
-.esri-print__header-title {
+.hmw-map-legend {
+  font-size: 0.875rem;
+  min-width: max-content;
+}
+
+.hmw-map-toggle {
+  padding: 10px 0 0;
+  background-color: #fff;
+}
+
+.hmw-map-toggle h2 {
+  margin: 0 10px;
+  padding: 0;
+  font-family:
+    'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial',
+    sans-serif;
   font-size: 1.25em;
-  font-weight: 500;
-  line-height: 1.2;
 }
 
-.esri-scale-bar {
-  z-index: 0;
+.hmw-map-toggle hr {
+  margin: 10px;
+  width: calc(100% - 20px);
 }
 
-.esri-scale-bar__label {
+.hidden {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+ * Popup content
+ *
+ * <hmw-popup-content> is our wrapper around the React popup content (see
+ * mapFunctions.tsx). These rules reach it only because utils/popupStyles.ts
+ * adopts this file into the shadow root the wrapper lands in.
+ * ------------------------------------------------------------------------ */
+
+/*
+ * Do not set font-size here. The em units in the popup content are relative to
+ * a 14px base, which <arcgis-feature-content> now supplies via font-size: var(--calcite-font-size).
+ */
+hmw-popup-content {
+  display: block;
+}
+
+hmw-popup-content p {
+  margin: 0; /* override esri's default margin */
+  margin-bottom: 0.5rem;
+}
+
+hmw-popup-content a {
+  color: #0071bc;
+}
+
+/*
+ * The .table variants are needed to outrank bootstrap's `.table td, .table th` padding,
+ * and .row-cell is repeated to outrank the padding BoxContent sets on its container.
+ */
+hmw-popup-content th,
+hmw-popup-content td,
+hmw-popup-content span.row-cell.row-cell,
+hmw-popup-content .table th,
+hmw-popup-content .table td {
+  padding: 0.35rem;
+}
+
+hmw-popup-content tr:nth-child(even),
+hmw-popup-content .row-cell:nth-of-type(4n + 3),
+hmw-popup-content .row-cell:nth-of-type(4n + 3) + * {
+  background-color: #f0f5f9;
+}
+
+/* --------------------------------------------------------------------------
+ * Esri's own markup in the <arcgis-map> shadow root
+ *
+ * The popup header, action bar and pointer render in the map's shadow root.
+ * adoptMapStyles() (utils/popupStyles.ts) adopts this file into that root
+ * on view ready, so these selectors match again. They do nothing in the
+ * document, where this file is also loaded.
+ * ------------------------------------------------------------------------ */
+
+/*
+ * The popup renders inside the view container, while the widgets are slotted
+ * into the overlay <section> that paints above it.
+ * Esri's `z-index: 0` here is a stacking context sealing the popup in; auto
+ * keeps the positioning without it, so .esri-ui can outrank the overlay.
+ */
+.arcgis-map {
+  z-index: auto;
+}
+
+.esri-ui {
+  z-index: calc(var(--calcite-z-index, 1) + 1);
+}
+
+/* attribution renders in this root too */
+.esri-attribution__powered-by {
   overflow: auto;
 }
 
@@ -78,22 +217,19 @@
   padding: 0;
 }
 
-.esri-widget {
-  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
-    'Arial', sans-serif;
-  --calcite-font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
-    'Arial', sans-serif;
-  --calcite-color-text-1: #4a4a4a;
-}
-
-.esri-widget--panel-height-only {
-  width: 225px !important;
-}
-
-/* esri popup styles*/
-.esri-popup__main-container calcite-flow,
+/*
+ * These actions are appearance="transparent", which paints from
+ * --calcite-action-background-color.
+ *
+ * Scoping to .esri-popup__main-container keeps them off the calcite-actions
+ * in the layer list, legend and gallery.
+ */
 .esri-popup__main-container calcite-action,
 .esri-popup__main-container calcite-action-bar {
+  --calcite-action-background-color: #0674ba;
+  --calcite-action-background-color-hover: #0674ba;
+  --calcite-action-background-color-press: #0674ba;
+  --calcite-action-corner-radius: 0;
   --calcite-color-border-3: #0674ba;
   --calcite-color-foreground-1: #0674ba;
   --calcite-color-foreground-2: #0674ba;
@@ -101,6 +237,32 @@
   --calcite-color-text-1: white;
   --calcite-color-text-2: white;
   --calcite-color-text-3: white;
+}
+
+/*
+ * Zero, so the bar's own background does not show around the actions. Calcite
+ * sets this per scale on :host and exposes no public token for it; a rule from
+ * this root outranks :host, so it has to live here, not on <arcgis-map>.
+ */
+.esri-popup__main-container calcite-action-bar {
+  --calcite-internal-action-bar-padding: 0;
+}
+
+/*
+ * The title row (feature name and dock button). calcite-flow-item maps the
+ * --calcite-panel-* tokens from its own --calcite-flow-* family, so these are
+ * the ones that reach the header. Scoped to the content item, which leaves the
+ * feature-picker item alone.
+ */
+.esri-features__content-feature {
+  --calcite-flow-border-color: #0674ba;
+  --calcite-flow-header-background-color: #0674ba;
+  --calcite-flow-header-action-background-color: #0674ba;
+  --calcite-flow-header-action-background-color-hover: #0674ba;
+  --calcite-flow-header-action-background-color-press: #0674ba;
+  --calcite-flow-header-action-text-color: white;
+  --calcite-flow-header-action-text-color-press: white;
+  --calcite-flow-heading-text-color: white;
 }
 
 .esri-features__container:not(:empty) {
@@ -123,74 +285,6 @@
 .esri-popup--aligned-bottom-center .esri-popup__pointer-direction,
 .esri-popup--aligned-bottom-left .esri-popup__pointer-direction,
 .esri-popup--aligned-bottom-right .esri-popup__pointer-direction,
-.esri-popup__pointer-direction.blue-popup-pointer,
 .esri-popup:has(.esri-features__footer) .esri-popup__pointer-direction {
   background-color: #0674ba;
-}
-
-.esri-popup__pointer-direction.blue-popup-pointer {
-  background-color: #0674ba;
-}
-
-.esri-popup th {
-  padding: 0.35rem;
-}
-
-.esri-popup tr:nth-child(even),
-.esri-popup .row-cell:nth-of-type(4n + 3),
-.esri-popup .row-cell:nth-of-type(4n + 3) + * {
-  background-color: #f0f5f9;
-}
-
-.esri-popup td,
-.esri-popup span.row-cell {
-  padding: 0.35rem;
-}
-
-.esri-feature p {
-  margin: 0; /* override esri's default margin */
-  margin-bottom: 0.5rem;
-}
-
-.esri-feature a {
-  color: #0071bc;
-}
-
-.hmw-map-toggle {
-  padding: 10px 0 0;
-  background-color: #fff;
-}
-
-.hmw-map-toggle h2 {
-  margin: 0 10px;
-  padding: 0;
-  font-family: 'Source Sans Pro Web', 'Helvetica Neue', 'Helvetica', 'Roboto',
-    'Arial', sans-serif;
-  font-size: 1.25em;
-}
-
-.hmw-map-toggle hr {
-  margin: 10px;
-  width: calc(100% - 20px);
-}
-
-.esri-legend {
-  min-height: auto !important;
-  max-height: none !important;
-}
-
-.esri-legend-hidden {
-  display: none;
-}
-
-.esri-legend__message {
-  display: none;
-}
-
-.esri-attribution__powered-by {
-  overflow: auto;
-}
-
-.hidden {
-  display: none !important;
 }

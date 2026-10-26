@@ -169,9 +169,9 @@
       "title": "U.S. Drought Monitor"
     },
     {
-      "description": "Data and GIS files from the USGS current conditions can be found on the <a href='https://waterdata.usgs.gov/nwis/sw' target='_blank' rel='noopener noreferrer'>USGS website</a>.",
+      "description": "Data and GIS files from the USGS current conditions can be found on the <a href='https://waterdata.usgs.gov/blog/wdfn-centralized-water-data' target='_blank' rel='noopener noreferrer'>USGS website</a>.",
       "id": "usgs-sensors",
-      "linkHref": "https://waterdata.usgs.gov/nwis/rt",
+      "linkHref": "https://waterdata.usgs.gov",
       "linkLabel": "USGS Stream Gages Data/System",
       "shortName": "USGS Stream Gage",
       "siteLocation": "Information from the USGS databases can be found on the Community page on the Overview tab under Water Monitoring Locations, Current Water Conditions, USGS Sensors and in the Water Monitoring tab under current water conditions, USGS Sensors.",
