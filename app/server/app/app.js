@@ -25,6 +25,7 @@ app.use(
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: false,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   }),
 );
 app.use(
@@ -66,29 +67,17 @@ app.use(function (req, res, next) {
 });
 
 /****************************************************************
- Is Glossary/Terminology Services authorization variable set?
+ Are required environment variables set?
 ****************************************************************/
-if (process.env.GLOSSARY_AUTH) {
-  log.info('GLOSSARY_AUTH environmental variable found, continuing.');
-} else {
-  let msg =
-    'Glossary/Terminology Services authorization variable NOT set, exiting system.';
-  log.error(msg);
-  //process.exit();
-  throw new Error('Missing Configuration');
-}
-
-/****************************************************************
- Is USGS authorization variable set?
-****************************************************************/
-if (process.env.USGS_API_KEY) {
-  log.info('USGS_API_KEY environmental variable found, continuing.');
-} else {
-  let msg = 'USGS_API_KEY environmental variable NOT set, exiting system.';
-  log.error(msg);
-  //process.exit();
-  throw new Error('Missing Configuration');
-}
+const requiredEnvs = ['GLOSSARY_AUTH', 'USGS_API_KEY'];
+requiredEnvs.forEach((env) => {
+  if (!process.env[env]) {
+    log.error(`${env} environmental variable NOT set, exiting system.`);
+    throw new Error('Missing Configuration');
+  } else {
+    log.info(`${env} environmental variable found, continuing.`);
+  }
+});
 
 /****************************************************************
  Which environment
@@ -212,9 +201,13 @@ app.use(express.static(__dirname + '/public'));
 // Ensure that requested client route exists (otherwise send 404).
 app.use(checkClientRouteExists);
 
+// sendFile dotfile-checks every segment of an absolute path, so pass the
+// directory as root to keep it from rejecting dotted parent directories
+const publicDir = path.join(__dirname, 'public');
+
 // setup client routes (built React app)
 app.use(function (req, res) {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+  res.sendFile('index.html', { root: publicDir });
 });
 
 app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
@@ -225,11 +218,11 @@ app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
 /* Note, the React app should be handling 404 at this point 
    but we're leaving the below 404 check in for now */
 app.use(function (req, res, next) {
-  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  res.status(404).sendFile('404.html', { root: publicDir });
 });
 
 app.use(function (err, req, res, next) {
-  res.status(404).sendFile(path.join(__dirname, 'public', '500.html'));
+  res.status(404).sendFile('500.html', { root: publicDir });
 });
 
 module.exports = app;

@@ -9,7 +9,7 @@ on:
 
 # Set shared environment variables
 env:
-  APP_VERSION: 2.18.0
+  APP_VERSION: 2.19.0
 
 permissions:
   contents: read
@@ -29,16 +29,16 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Set up node and npm
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
 
       # Run back-end processes (install, lint, test, bundle)
       - name: Cache server app node modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/server/.npm
           key: v1-npm-server-deps-${{ hashFiles('**/server/package-lock.json') }}
@@ -50,7 +50,7 @@ jobs:
 
       # Run front-end processes (install, lint, test, bundle)
       - name: Cache client app node modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/client/.npm
           key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
@@ -80,7 +80,7 @@ jobs:
         working-directory: app
 
       - name: Create production artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: hmw_v${{ env.APP_VERSION }}
           path: app/server

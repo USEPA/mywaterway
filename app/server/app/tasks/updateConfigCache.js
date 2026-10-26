@@ -105,6 +105,11 @@ async function updateCache(s3BucketUrl) {
           'content/tribe/wqxTribeMapping.json',
         ],
         (data) => {
+          // replace api keys
+          const services = data[15];
+          services.attains.apiKey = process.env.ATTAINS_API_KEY ?? '';
+          services.expertQuery.apiKey = process.env.EXPERTQUERY_API_KEY ?? '';
+
           return {
             dataPage: data[0],
             disclaimers: data[1],
@@ -121,7 +126,7 @@ async function updateCache(s3BucketUrl) {
             upperContent: data[12],
             usgsStaParameters: data[13],
             layerProps: data[14],
-            services: data[15],
+            services,
             NARS: data[16],
             notifications: data[17],
             documentOrder: data[18],

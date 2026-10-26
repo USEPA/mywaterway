@@ -1,24 +1,28 @@
 /** @jsxImportSource @emotion/react */
 
+import '@arcgis/map-components/components/arcgis-basemap-gallery';
+import { ArcgisBasemapGalleryItem } from '@arcgis/map-components/components/arcgis-basemap-gallery-item';
+import '@arcgis/map-components/components/arcgis-expand';
+import '@arcgis/map-components/components/arcgis-home';
+import '@arcgis/map-components/components/arcgis-layer-list';
+import '@arcgis/map-components/components/arcgis-legend';
+import { LegendClassicView } from '@arcgis/map-components/components/arcgis-legend-classic-view';
+import '@arcgis/map-components/components/arcgis-scale-bar';
+import '@arcgis/map-components/components/arcgis-zoom';
 import Polygon from '@arcgis/core/geometry/Polygon';
-import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
-import Expand from '@arcgis/core/widgets/Expand';
 import Graphic from '@arcgis/core/Graphic';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
-import Home from '@arcgis/core/widgets/Home';
-import LayerList from '@arcgis/core/widgets/LayerList';
-import Legend from '@arcgis/core/widgets/Legend';
 import Point from '@arcgis/core/geometry/Point';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import * as query from '@arcgis/core/rest/query';
-import ScaleBar from '@arcgis/core/widgets/ScaleBar';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
-import { CalciteIcon } from '@esri/calcite-components-react';
+import '@esri/calcite-components/components/calcite-icon';
 import { css } from '@emotion/react';
 import React, {
+  Fragment,
   useCallback,
   useContext,
   useEffect,
@@ -39,7 +43,7 @@ import {
   errorBoxStyles,
   successBoxStyles,
 } from 'components/shared/MessageBoxes';
-import { useSurroundingsWidget } from 'components/shared/SurroundingsWidget';
+import SurroundingsWidget from 'components/shared/SurroundingsWidget';
 // contexts
 import { useAddSaveDataWidgetState } from 'contexts/AddSaveDataWidget';
 import { useConfigFilesState } from 'contexts/ConfigFiles';
@@ -61,6 +65,18 @@ import { GetTemplateType, useAbort, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
+import type MapView from '@arcgis/core/views/MapView';
+import type { ClickEvent } from '@arcgis/core/views/input/types';
+import type FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import type Extent from '@arcgis/core/geometry/Extent';
+import type Map from '@arcgis/core/Map';
+import type FeatureSet from '@arcgis/core/rest/support/FeatureSet';
+import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import type ListItem from '@arcgis/core/widgets/LayerList/ListItem';
+import type Layer from '@arcgis/core/layers/Layer';
+import type GroupLayer from '@arcgis/core/layers/GroupLayer';
+import type Popup from '@arcgis/core/widgets/Popup';
+import type { ResourceHandle } from '@arcgis/core/core/Handles';
 import type PrintTemplateType from '@arcgis/core/rest/support/PrintTemplate';
 import type PrintVMType from '@arcgis/core/widgets/Print/PrintViewModel';
 import type { LayersState } from 'contexts/Layers';
@@ -73,6 +89,7 @@ import type {
 } from 'pdf-lib';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
+  MapSlot,
   RndDraggableState,
   ServicesData,
   WatershedAttributes,
@@ -83,6 +100,35 @@ import { fonts } from 'styles';
 /*
 ## Styles
 */
+
+// Appended to elementStyles so it is adopted after the component's own sheet in
+// every item's shadow root.
+const thumbnailStyles = new CSSStyleSheet();
+thumbnailStyles.replaceSync(`
+  .item-thumbnail {
+    aspect-ratio: auto;
+    height: 31px;
+    width: 64px;
+    min-width: 64px;
+  }
+`);
+ArcgisBasemapGalleryItem.elementStyles = [
+  ...ArcgisBasemapGalleryItem.elementStyles,
+  thumbnailStyles,
+];
+
+// We show our own message, so hide the message the legend
+// falls back to when it has nothing to draw.
+const noLegendStyles = new CSSStyleSheet();
+noLegendStyles.replaceSync(`
+  .no-legend {
+    display: none;
+  }
+`);
+LegendClassicView.elementStyles = [
+  ...LegendClassicView.elementStyles,
+  noLegendStyles,
+];
 
 const instructionContainerStyles = (isVisible: boolean) => css`
   display: ${isVisible ? 'flex' : 'none'};
@@ -235,16 +281,16 @@ const orderedLayers = [
 ];
 
 function updateLegend(
-  view: __esri.MapView,
+  view: MapView,
   displayEsriLegend: boolean,
-  hmwLegendRoot: Root | null,
+  hmwLegendRoots: Root[],
   additionalLegendInfo: Object,
 ) {
-  if (!hmwLegendRoot) return;
+  if (!hmwLegendRoots.length) return;
   if (!view?.map?.layers) return;
 
   // build an array of layers that are visible based on the ordering above
-  const visibleLayers: __esri.Layer[] = [];
+  const visibleLayers: Layer[] = [];
   orderedLayers.forEach((layerId) => {
     // get the esri layer from the map view
     let layer = view.map.findLayerById(layerId);
@@ -288,36 +334,16 @@ function updateLegend(
     }
   });
 
-  hmwLegendRoot.render(
+  // One copy for the panel and one off-screen for the PDF export, see LegendWidget
+  const legend = (
     <MapLegend
       view={view}
       displayEsriLegend={displayEsriLegend}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
-    />,
+    />
   );
-}
-
-// colors the popup pointer according to position and number of features
-function updatePopupPointerStyles(
-  features: Graphic[],
-  currentAlignment: CurrentAlignment,
-) {
-  const pointers = document.getElementsByClassName(
-    'esri-popup__pointer-direction',
-  );
-
-  for (let pointer of pointers) {
-    let isPointerTop = [
-      'bottom-center',
-      'bottom-left',
-      'bottom-right',
-    ].includes(currentAlignment);
-
-    if (features.length <= 1 && !isPointerTop)
-      pointer.classList.remove('blue-popup-pointer');
-    else pointer.classList.add('blue-popup-pointer');
-  }
+  hmwLegendRoots.forEach((root) => root.render(legend));
 }
 
 const resizeHandleStyles = css`
@@ -330,25 +356,17 @@ const resizeHandleStyles = css`
 /*
 ## Components
 */
-type CurrentAlignment =
-  | 'bottom-center'
-  | 'bottom-left'
-  | 'bottom-right'
-  | 'top-center'
-  | 'top-left'
-  | 'top-right';
-interface PopupExt extends __esri.Popup {
-  currentAlignment: CurrentAlignment;
+interface PopupExt extends Popup {
   featureMenuOpen: boolean;
 }
 
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
-  map: __esri.Map;
+  map: Map;
   mapRef: MutableRefObject<HTMLDivElement | null>;
-  view: __esri.MapView;
-  layers: Array<__esri.Layer> | null;
-  onHomeWidgetRendered?: (homeWidget: __esri.Home) => void;
+  view: MapView;
+  layers: Array<Layer> | null;
+  onHomeWidgetRendered?: (homeWidget: HTMLArcgisHomeElement) => void;
 };
 
 function MapWidgets({
@@ -370,25 +388,20 @@ function MapWidgets({
 
   const pathname = window.location.pathname;
   const { getSignal } = useAbort();
-  const watchHandles = useMemo<IHandle[]>(() => [], []);
-  const observers = useMemo<MutationObserver[]>(() => [], []);
+  const watchHandles = useMemo<ResourceHandle[]>(() => [], []);
   useEffect(() => {
     return function cleanup() {
       watchHandles.forEach((handle) => handle.remove());
-      observers.forEach((observer) => observer.disconnect());
     };
-  }, [observers, watchHandles]);
+  }, [watchHandles]);
 
   const {
+    basemapId,
+    setBasemapId,
     homeWidget,
     setHomeWidget,
-    upstreamWidget,
-    upstreamWidgetDisabled,
     setUpstreamWidgetDisabled,
     getUpstreamWidgetDisabled,
-    setUpstreamWidget,
-    setBasemap,
-    basemap,
     setUpstreamWatershedResponse,
     getCurrentExtent,
     setCurrentExtent,
@@ -421,16 +434,6 @@ function MapWidgets({
 
   useEffect(() => {
     if (!view?.popup) return;
-    // adjust popup pointer styles according to
-    const popupAlignementWatcher = reactiveUtils.watch(
-      () => (view.popup as PopupExt).currentAlignment,
-      () => {
-        updatePopupPointerStyles(
-          view.popup.features,
-          (view.popup as PopupExt).currentAlignment,
-        );
-      },
-    );
 
     // revert calcite styles when feature list menu is opened
     const popupFeatureMenuWatcher = reactiveUtils.watch(
@@ -465,17 +468,12 @@ function MapWidgets({
         const features = view.popup.features;
         if (features.length === 0) return;
 
-        updatePopupPointerStyles(
-          features,
-          (view.popup as PopupExt).currentAlignment,
-        );
-
-        function getSortIndex(graphic: __esri.Graphic) {
-          const parentId = (graphic?.layer?.parent as __esri.GroupLayer)?.id;
+        function getSortIndex(graphic: Graphic) {
+          const parentId = (graphic?.layer?.parent as GroupLayer)?.id;
           return parentId === 'allWaterbodiesLayer' ? 1 : 0;
         }
 
-        const newFeatures: __esri.Graphic[] = [];
+        const newFeatures: Graphic[] = [];
         const idsAdded: string[] = [];
         [...features]
           .sort((a, b) => getSortIndex(a) - getSortIndex(b))
@@ -506,7 +504,6 @@ function MapWidgets({
     );
 
     return function cleanup() {
-      popupAlignementWatcher.remove();
       popupFeatureMenuWatcher.remove();
       popupWatcher.remove();
     };
@@ -521,7 +518,7 @@ function MapWidgets({
     map.addMany(widgetLayers.map((layer) => layer.layer));
 
     // gets a layer type value used for sorting
-    function getLayerType(layer: __esri.Layer) {
+    function getLayerType(layer: Layer) {
       // if the layer is in orderedLayers, then classify it as an hmw
       // layer
       if (orderedLayers.indexOf(layer.id) > -1) return 'hmw';
@@ -566,20 +563,28 @@ function MapWidgets({
     // otherLayers
     // imageryLayers (bottom)
     const sortBy = ['other', 'imagery', 'feature', 'graphics', 'hmw'];
-    map.layers.sort((a: __esri.Layer, b: __esri.Layer) => {
+    map.layers.sort((a: Layer, b: Layer) => {
       return sortBy.indexOf(getLayerType(a)) - sortBy.indexOf(getLayerType(b));
     });
+
+    return function cleanup() {
+      // These layers are shared through context and outlive this map. When
+      // <arcgis-map> unmounts it destroys the view, and view.destroy()
+      // destroys the map and everything still on it.
+      map.removeAll();
+    };
   }, [layers, map, widgetLayers]);
 
-  // put the home widget back on the ui after the window is resized
+  const homeWidgetRef = useRef<HTMLArcgisHomeElement | null>(null);
   useEffect(() => {
-    if (homeWidget) {
-      const newHomeWidget = new Home({ view, viewpoint: homeWidget.viewpoint });
-      view.ui.add(newHomeWidget, { position: 'top-left', index: 1 });
-      view.ui.move('zoom', 'top-left');
-      setHomeWidget(newHomeWidget);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const newHomeWidget = homeWidgetRef.current;
+    if (!newHomeWidget || newHomeWidget === homeWidget) return;
+
+    if (homeWidget?.viewpoint) newHomeWidget.viewpoint = homeWidget.viewpoint;
+    else onHomeWidgetRendered(newHomeWidget);
+
+    setHomeWidget(newHomeWidget);
+  }, [homeWidget, onHomeWidgetRendered, setHomeWidget]);
 
   // Keeps the layer visiblity in sync with the layer list widget visibilities
   const [toggledLayer, setToggledLayer] = useState({
@@ -600,136 +605,8 @@ function MapWidgets({
     updateVisibleLayers({ [toggledLayer.layerId]: toggledLayer.visible });
   }, [toggledLayer, lastToggledLayer, updateVisibleLayers]);
 
-  // Creates and adds the home widget to the map
-  useEffect(() => {
-    if (!view || homeWidget) return;
-
-    // create the home widget
-    const newHomeWidget = new Home({ view });
-    view.ui.add(newHomeWidget, { position: 'top-left', index: 1 });
-    view.ui.move('zoom', 'top-left');
-    // pass the home widget up to the consumer of this component,
-    // so it can modify it as needed (e.g. update the viewpoint)
-    onHomeWidgetRendered(newHomeWidget);
-    setHomeWidget(newHomeWidget);
-  }, [onHomeWidgetRendered, setHomeWidget, view, homeWidget]);
-
-  // Creates and adds the scale bar widget to the map
-  const [scaleBar, setScaleBar] = useState<__esri.ScaleBar | null>(null);
-  useEffect(() => {
-    if (!view || scaleBar) return;
-
-    const newScaleBar = new ScaleBar({
-      view: view,
-      unit: 'dual',
-    });
-    view.ui.add(newScaleBar, { position: 'bottom-left', index: 0 });
-    setScaleBar(newScaleBar);
-  }, [view, scaleBar]);
-
-  // manages which layers are visible in the legend
-  const legendTemp = document.createElement('div');
-  legendTemp.className = 'map-legend';
-  legendTemp.id = 'non-visible-legend';
-  legendTemp.classList.add('sr-only');
-  legendTemp.ariaHidden = 'true';
-  const hmwLegendTemp = document.createElement('div');
-  const esriLegendTemp = document.createElement('div');
-  esriLegendTemp.id = 'esri-legend-container';
-  esriLegendTemp.style.maxWidth = '240px';
-  legendTemp.appendChild(hmwLegendTemp);
-  legendTemp.appendChild(esriLegendTemp);
-  const [hmwLegendNode] = useState(hmwLegendTemp);
-  const [esriLegendNode] = useState(esriLegendTemp);
-  const [legendNode] = useState(legendTemp);
-  const legendRoot = useRef<Root | null>(null);
-  if (!legendRoot.current) legendRoot.current = createRoot(hmwLegendNode);
-
-  // Creates and adds the legend widget to the map
-  const [legend, setLegend] = useState<__esri.Expand | null>(null);
-  useEffect(() => {
-    if (!view || legend) return;
-
-    document.body.appendChild(legendNode);
-    const syncedDiv = document.createElement('div');
-
-    const syncContent = () => {
-      syncedDiv.innerHTML = legendNode?.innerHTML ?? '';
-    }
-    syncContent();
-
-    // Observe changes to the source div and update the synced div
-    if (legendNode) {
-      const observer = new MutationObserver(syncContent);
-      observer.observe(legendNode, {
-        childList: true,
-        subtree: true,
-        characterData: true
-      });
-    }
-
-    const newLegend = new Expand({
-      content: syncedDiv,
-      view,
-      expanded: false,
-      expandIcon: 'legend',
-      expandTooltip: 'Open Legend',
-      collapseTooltip: 'Close Legend',
-      autoCollapse: true,
-      mode: 'floating',
-    });
-    view.ui.add(newLegend, { position: 'top-left', index: 0 });
-    setLegend(newLegend);
-  }, [view, legend, legendNode]);
-
-  // Create the layer list toolbar widget
-  const [esriLegend, setEsriLegend] = useState<__esri.Legend | null>(null);
+  const legendRoots = useRef<Root[]>([]);
   const [displayEsriLegend, setDisplayEsriLegend] = useState(false);
-  useEffect(() => {
-    if (!view || esriLegend) return;
-
-    // create the layer list using the same styles and structure as the
-    // esri version.
-    const tempLegend = new Legend({
-      view,
-      container: esriLegendNode,
-      layerInfos: [],
-    });
-
-    // Create an observer instance linked to the callback function
-    const observer = new MutationObserver((_mutationsList, _observerParam) => {
-      const esriMessages = esriLegendNode
-        ? esriLegendNode.querySelectorAll('.esri-legend__message')
-        : [];
-
-      setDisplayEsriLegend(esriMessages.length === 0);
-    });
-
-    // Start observing the target node for configured mutations
-    observer.observe(esriLegendNode, {
-      childList: true,
-      characterData: true,
-      subtree: true,
-    });
-
-    observers.push(observer);
-    setEsriLegend(tempLegend);
-  }, [view, esriLegend, esriLegendNode, observers]);
-
-  const surroundingsWidget = useSurroundingsWidget();
-  useEffect(() => {
-    if (!view?.ui) return;
-
-    view.ui.add({
-      component: surroundingsWidget,
-      position: 'top-right',
-      index: 1,
-    });
-
-    return function cleanup() {
-      view?.ui.remove(surroundingsWidget);
-    };
-  }, [surroundingsWidget, view]);
 
   // Creates and adds the add/save data widget to the map
   const rnd = useRef<Rnd | null>(null);
@@ -764,35 +641,17 @@ function MapWidgets({
     });
   }, []);
 
-  const [addSaveDataWidget, setAddSaveDataWidget] =
-    useState<HTMLDivElement | null>(null);
+  const [addSaveDataWidgetInitialized, setAddSaveDataWidgetInitialized] =
+    useState<boolean>(false);
   useEffect(() => {
-    if (!view?.ui) return;
-
-    const node = document.createElement('div');
-    view.ui.add(node, { position: 'top-right', index: 2 });
-
-    createRoot(node).render(
-      <ShowAddSaveDataWidget
-        addSaveDataWidgetVisible={addSaveDataWidgetVisible}
-        setAddSaveDataWidgetVisible={setAddSaveDataWidgetVisible}
-      />,
-    );
-
+    if (addSaveDataWidgetInitialized) return;
     window.addEventListener('resize', handleResize);
-
-    setAddSaveDataWidget(node);
+    setAddSaveDataWidgetInitialized(true);
 
     return function cleanup() {
-      view?.ui.remove(node);
       window.removeEventListener('resize', handleResize);
     };
-  }, [
-    view,
-    addSaveDataWidgetVisible,
-    setAddSaveDataWidgetVisible,
-    handleResize,
-  ]);
+  }, [addSaveDataWidgetInitialized, handleResize]);
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
@@ -832,129 +691,6 @@ function MapWidgets({
       });
   }, [additionalLegendInitialized, getSignal, services]);
 
-  // Creates and adds the basemap/layer list widget to the map
-  const [layerListWidget, setLayerListWidget] =
-    useState<__esri.LayerList | null>(null);
-  useEffect(() => {
-    if (
-      !view ||
-      additionalLegendInfo.status === 'fetching' ||
-      layerListWidget
-    ) {
-      return;
-    }
-
-    // create the basemap/layers widget
-    const basemapsSource = new PortalBasemapsSource({
-      filterFunction: function (basemap) {
-        return basemapNames.indexOf(basemap.portalItem.title) !== -1;
-      },
-      updateBasemapsCallback: function (originalBasemaps) {
-        // sort the basemaps based on the ordering of basemapNames
-        return originalBasemaps.sort(
-          (a, b) =>
-            basemapNames.indexOf(a.portalItem.title) -
-            basemapNames.indexOf(b.portalItem.title),
-        );
-      },
-    });
-
-    // basemaps
-    const basemapContainer = document.createElement('div');
-    basemapContainer.className = 'hmw-map-basemaps';
-
-    const basemapWidget = new BasemapGallery({
-      container: basemapContainer,
-      view: view,
-      source: basemapsSource,
-    });
-
-    // layers
-    const layersContainer = document.createElement('div');
-    layersContainer.className = 'hmw-map-layers';
-
-    // Creates actions in the LayerList to monitor layer visibility
-    const uniqueParentItems: string[] = [];
-    function defineActions(event: { item: __esri.ListItem }) {
-      const item = event.item;
-      if (!item.parent) {
-        //only add the item if it has not been added before
-        if (!uniqueParentItems.includes(item.title)) {
-          uniqueParentItems.push(item.title);
-          updateLegend(
-            view,
-            displayEsriLegend,
-            legendRoot.current,
-            additionalLegendInfoNonState,
-          );
-
-          watchHandles.push(
-            item.watch('visible', function (_ev) {
-              updateLegend(
-                view,
-                displayEsriLegend,
-                legendRoot.current,
-                additionalLegendInfoNonState,
-              );
-              const dict = {
-                layerId: item.layer.id,
-                visible: item.layer.visible,
-              };
-              setToggledLayer(dict);
-            }),
-          );
-        }
-      }
-    }
-
-    const layerlist = new LayerList({
-      container: layersContainer,
-      view: view,
-      // executes for each ListItem in the LayerList
-      listItemCreatedFunction: defineActions,
-    });
-
-    // container
-    const container = document.createElement('div');
-    container.className = 'hmw-map-toggle';
-
-    const basemapHeader = document.createElement('h2');
-    basemapHeader.innerHTML = 'Basemaps:';
-
-    const layerListHeader = document.createElement('h2');
-    layerListHeader.innerHTML = 'Layers:';
-
-    container.appendChild(basemapHeader);
-    if (basemapWidget.container instanceof HTMLElement)
-      container.appendChild(basemapWidget.container);
-    container.appendChild(document.createElement('hr'));
-    container.appendChild(layerListHeader);
-    if (layerlist.container instanceof HTMLElement)
-      container.appendChild(layerlist.container);
-
-    const expandWidget = new Expand({
-      expandIcon: 'layers',
-      expandTooltip: 'Open Basemaps and Layers',
-      collapseTooltip: 'Close Basemaps and Layers',
-      view: view,
-      mode: 'floating',
-      autoCollapse: true,
-      content: container,
-    });
-
-    view.ui.add(expandWidget, { position: 'top-right', index: 0 });
-    setLayerListWidget(layerlist);
-  }, [
-    additionalLegendInfo,
-    displayEsriLegend,
-    hmwLegendNode,
-    layerListWidget,
-    view,
-    watchHandles,
-  ]);
-
-  // Sets up the zoom event handler that is used for determining if layers
-  // should be visible at the current zoom level.
   useEffect(() => {
     if (!view) return;
 
@@ -965,91 +701,28 @@ function MapWidgets({
         updateLegend(
           view,
           displayEsriLegend,
-          legendRoot.current,
+          legendRoots.current,
           additionalLegendInfoNonState,
         );
       },
     );
 
-    // when basemap changes, update the basemap in context for persistent basemaps
-    // across fullscreen and mobile/desktop layout changes
+    // when basemap changes, record the portal item in context for persistent
+    // basemaps across fullscreen and mobile/desktop layout changes
     const basemapHandle = view.map.allLayers.on('change', function (_ev) {
-      if (view.map.basemap !== basemap) {
-        setBasemap(view.map.basemap);
-      }
+      const id = view.map.basemap?.portalItem?.id;
+      if (id && id !== basemapId) setBasemapId(id);
     });
 
     return function cleanup() {
       basemapHandle.remove();
       zoomHandle.remove();
     };
-  }, [
-    additionalLegendInfo,
-    basemap,
-    setBasemap,
-    hmwLegendNode,
-    view,
-    displayEsriLegend,
-  ]);
-
-  // create the home widget, layers widget, and setup map zoom change listener
-  const [
-    fullScreenWidgetCreated,
-    setFullScreenWidgetCreated, //
-  ] = useState(false);
-  useEffect(() => {
-    if (fullScreenWidgetCreated) return;
-
-    // create the basemap/layers widget
-    const node = document.createElement('div');
-    view.ui.add(node, { position: 'bottom-right', index: 0 });
-    createRoot(node).render(
-      <ExpandCollapse
-        fullscreenActive={fullscreenActive}
-        setFullscreenActive={setFullscreenActive}
-        mapViewSetter={setMapView}
-      />,
-    );
-    setFullScreenWidgetCreated(true);
-  }, [
-    fullscreenActive,
-    setFullscreenActive,
-    view,
-    setMapView,
-    fullScreenWidgetCreated,
-  ]);
-
-  // create the download widget
-  useEffect(() => {
-    if (!view) return;
-
-    const container = document.createElement('div');
-    createRoot(container).render(
-      <DownloadWidget services={services} view={view} />,
-    );
-
-    const downloadWidget = new Expand({
-      expandIcon: 'print',
-      expandTooltip: 'Open Printable Map Widget',
-      collapseTooltip: 'Close Printable Map Widget',
-      view,
-      mode: 'floating',
-      autoCollapse: true,
-      content: container,
-    });
-
-    view?.ui.add(downloadWidget, { position: 'top-right', index: 3 });
-
-    return function cleanup() {
-      if (downloadWidget) view?.ui.remove(downloadWidget);
-    };
-  }, [services, view]);
+  }, [additionalLegendInfo, basemapId, setBasemapId, view, displayEsriLegend]);
 
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on Tribal page or valid Community page location
   useEffect(() => {
-    if (!upstreamWidget) return;
-
     if (
       pathname === '/community' ||
       (pathname.includes('/community') && !huc12)
@@ -1061,21 +734,7 @@ function MapWidgets({
 
     // display and enable the upstream widget
     setUpstreamWidgetDisabled(false);
-  }, [huc12, upstreamWidget, setUpstreamWidgetDisabled, pathname]);
-
-  useEffect(() => {
-    if (!upstreamWidget) {
-      return;
-    }
-
-    if (upstreamWidgetDisabled) {
-      upstreamWidget.style.opacity = '0.5';
-      upstreamWidget.style.cursor = 'default';
-    } else {
-      upstreamWidget.style.opacity = '1';
-      upstreamWidget.style.cursor = 'pointer';
-    }
-  }, [upstreamWidget, upstreamWidgetDisabled]);
+  }, [huc12, setUpstreamWidgetDisabled, pathname]);
 
   const setUpstreamLayerErrored = useCallback(
     (isErrored: boolean) => {
@@ -1086,92 +745,6 @@ function MapWidgets({
 
   const { upstreamLayer: upstreamLayerErrored } = erroredLayers;
 
-  // create upstream widget
-  useEffect(() => {
-    if (!pathname.includes('/community') && !pathname.includes('/tribe'))
-      return;
-    if (!map || !view?.ui) return;
-
-    const node = document.createElement('div');
-
-    const widget = pathname.includes('/community') ? (
-      <ShowCurrentUpstreamWatershed
-        abortSignal={getSignal()}
-        getCurrentExtent={getCurrentExtent}
-        getHuc12={getHuc12}
-        getTemplate={getTemplate}
-        getUpstreamExtent={getUpstreamExtent}
-        getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
-        getWatershed={getWatershed}
-        services={services}
-        setErrorMessage={setErrorMessage}
-        setUpstreamExtent={setUpstreamExtent}
-        setUpstreamLayerErrored={setUpstreamLayerErrored}
-        setUpstreamWatershedResponse={setUpstreamWatershedResponse}
-        setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
-        updateVisibleLayers={updateVisibleLayers}
-        upstreamLayer={upstreamLayer}
-        upstreamLayerErrored={upstreamLayerErrored}
-        view={view}
-      />
-    ) : (
-      <ShowSelectedUpstreamWatershed
-        abortSignal={getSignal()}
-        getCurrentExtent={getCurrentExtent}
-        getHuc12={getHuc12}
-        getTemplate={getTemplate}
-        getUpstreamExtent={getUpstreamExtent}
-        getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
-        getWatershed={getWatershed}
-        map={map}
-        mapRef={mapRef}
-        services={services}
-        setErrorMessage={setErrorMessage}
-        setUpstreamExtent={setUpstreamExtent}
-        setUpstreamLayerErrored={setUpstreamLayerErrored}
-        setUpstreamWatershedResponse={setUpstreamWatershedResponse}
-        setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
-        setCurrentExtent={setCurrentExtent}
-        updateVisibleLayers={updateVisibleLayers}
-        upstreamLayer={upstreamLayer}
-        upstreamLayerErrored={upstreamLayerErrored}
-        upstreamWidget={node}
-        view={view}
-      />
-    );
-
-    createRoot(node).render(widget);
-    setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
-    view.ui.add(node, { position: 'top-right', index: 4 });
-
-    return function cleanup() {
-      view?.ui.remove(node);
-    };
-  }, [
-    getCurrentExtent,
-    getHuc12,
-    getSignal,
-    getTemplate,
-    getUpstreamExtent,
-    getUpstreamWidgetDisabled,
-    getWatershed,
-    map,
-    mapRef,
-    pathname,
-    services,
-    setCurrentExtent,
-    setErrorMessage,
-    setUpstreamExtent,
-    setUpstreamLayerErrored,
-    setUpstreamWatershedResponse,
-    setUpstreamWidget,
-    setUpstreamWidgetDisabled,
-    updateVisibleLayers,
-    upstreamLayer,
-    upstreamLayerErrored,
-    view,
-  ]);
-
   const { visible: surroundingsVisible } = useSurroundingsState();
 
   // watch for changes to all waterbodies layer visibility and update visible
@@ -1180,14 +753,13 @@ function MapWidgets({
     updateLegend(
       view,
       displayEsriLegend,
-      legendRoot.current,
+      legendRoots.current,
       additionalLegendInfo,
     );
   }, [
     additionalLegendInfo,
     surroundingsVisible,
     displayEsriLegend,
-    hmwLegendNode,
     view,
     visibleLayers,
   ]);
@@ -1213,98 +785,359 @@ function MapWidgets({
     setSaveLayersList,
   ]);
 
-  if (!addSaveDataWidget) return null;
+  // Creates actions in the LayerList to monitor layer visibility
+  function defineActions(event: { item: ListItem }) {
+    const item = event.item;
+    if (!item.parent) {
+      updateLegend(
+        item.view,
+        displayEsriLegend,
+        legendRoots.current,
+        additionalLegendInfoNonState,
+      );
 
-  const mapWidth = document
-    .getElementById('hmw-map-container')
-    ?.getBoundingClientRect().width;
-  if (!mapWidth) return null;
+      watchHandles.push(
+        reactiveUtils.watch(
+          () => item.visible,
+          () => {
+            updateLegend(
+              view,
+              displayEsriLegend,
+              legendRoots.current,
+              additionalLegendInfoNonState,
+            );
+            const dict = {
+              layerId: item.layer.id,
+              visible: item.layer.visible,
+            };
+            setToggledLayer(dict);
+          },
+        ),
+      );
+    }
+  }
+
+  const [basemapSource] = useState(
+    new PortalBasemapsSource({
+      filterFunction: function (basemap) {
+        return basemapNames.indexOf(basemap.portalItem.title) !== -1;
+      },
+      updateBasemapsCallback: function (originalBasemaps) {
+        // sort the basemaps based on the ordering of basemapNames
+        return originalBasemaps.sort(
+          (a, b) =>
+            basemapNames.indexOf(a.portalItem.title) -
+            basemapNames.indexOf(b.portalItem.title),
+        );
+      },
+    }),
+  );
+
+  // Measured so the widget is laid out again when a hidden map is shown and goes back to a non-zero width.
+  const [mapWidth, setMapWidth] = useState(0);
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const map = entries.pop();
+      if (map) setMapWidth(map.contentRect.width);
+    });
+
+    resizeObserver.observe(mapRef.current);
+
+    return function cleanup() {
+      resizeObserver.disconnect();
+    };
+  }, [mapRef]);
+
+  if (!addSaveDataWidgetInitialized) return null;
 
   const viewportWidth = window.innerWidth;
 
   return (
-    <div
-      style={{
-        display: addSaveDataWidgetVisible ? 'block' : 'none',
-        position: 'absolute',
-        top: '0',
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-      }}
-    >
-      {viewportWidth < 960 ? (
-        <div
-          id="add-save-data-widget"
-          className={addSaveDataWidgetVisible ? '' : 'hidden'}
-          role="region"
-          style={{
-            backgroundColor: 'white',
-            pointerEvents: 'all',
-            height: '410px',
-            width: `${mapWidth}px`,
-            position: 'absolute',
-            bottom: 0,
-          }}
-          tabIndex={0}
-        >
-          <AddSaveDataWidget />
+    <Fragment>
+      <arcgis-expand
+        autoCollapse={true}
+        closeOnEscDisabled={false}
+        collapseTooltip="Close Legend"
+        expanded={false}
+        expandIcon="legend"
+        expandTooltip="Open Legend"
+        mode="floating"
+        slot="top-left"
+        style={{ marginBottom: '10px' }}
+      >
+        <LegendWidget
+          legendRoots={legendRoots}
+          setDisplayEsriLegend={setDisplayEsriLegend}
+          view={view}
+        />
+      </arcgis-expand>
+
+      <arcgis-home ref={homeWidgetRef} slot="top-left" />
+      <arcgis-zoom slot="top-left" />
+
+      <arcgis-expand
+        autoCollapse={true}
+        closeOnEscDisabled={false}
+        collapseTooltip="Close Basemaps and Layers"
+        expanded={false}
+        expandIcon="layers"
+        expandTooltip="Open Basemaps and Layers"
+        mode="floating"
+        slot="top-right"
+        style={{ marginBottom: '10px' }}
+      >
+        <div className="hmw-map-toggle">
+          <h2>Basemaps:</h2>
+          <arcgis-basemap-gallery source={basemapSource} />
+          <hr />
+          <h2>Layers:</h2>
+          <arcgis-layer-list
+            data-testid="hmw-map-layers"
+            listItemCreatedFunction={defineActions}
+          />
         </div>
-      ) : (
-        <Rnd
-          id="add-save-data-widget"
-          className={addSaveDataWidgetVisible ? '' : 'hidden'}
-          style={{ backgroundColor: 'white', pointerEvents: 'all' }}
-          ref={rnd}
-          default={{
-            x: (mapWidth - 400 - 60) / 2,
-            y: 7.5,
-            width: '400px',
-            height: '410px',
-          }}
-          minWidth="275px"
-          minHeight="410px"
-          bounds="parent"
-          enableResizing={{
-            bottomRight: true,
-          }}
-          dragHandleClassName="drag-handle"
-          role="region"
-          tabIndex={0}
-        >
-          <AddSaveDataWidget />
-          <div css={resizeHandleStyles}>
-            <img src={resizeIcon} alt="Resize Handle"></img>
-          </div>
-        </Rnd>
+      </arcgis-expand>
+
+      <SurroundingsWidget slot="top-right" />
+
+      <ShowAddSaveDataWidget
+        addSaveDataWidgetVisible={addSaveDataWidgetVisible}
+        setAddSaveDataWidgetVisible={setAddSaveDataWidgetVisible}
+        slot="top-right"
+      />
+
+      <arcgis-expand
+        autoCollapse={true}
+        closeOnEscDisabled={false}
+        collapseTooltip="Close Printable Map Widget"
+        expanded={false}
+        expandIcon="print"
+        expandTooltip="Open Printable Map Widget"
+        mode="floating"
+        slot="top-right"
+        style={{ marginBottom: '10px 0' }}
+      >
+        <DownloadWidget services={services} view={view} />
+      </arcgis-expand>
+
+      {pathname.includes('/community') && (
+        <ShowCurrentUpstreamWatershed
+          abortSignal={getSignal()}
+          getCurrentExtent={getCurrentExtent}
+          getHuc12={getHuc12}
+          getTemplate={getTemplate}
+          getUpstreamExtent={getUpstreamExtent}
+          getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+          getWatershed={getWatershed}
+          services={services}
+          setErrorMessage={setErrorMessage}
+          setUpstreamExtent={setUpstreamExtent}
+          setUpstreamLayerErrored={setUpstreamLayerErrored}
+          setUpstreamWatershedResponse={setUpstreamWatershedResponse}
+          setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
+          slot="top-right"
+          updateVisibleLayers={updateVisibleLayers}
+          upstreamLayer={upstreamLayer}
+          upstreamLayerErrored={upstreamLayerErrored}
+          view={view}
+        />
       )}
-    </div>
+      {pathname.includes('/tribe') && (
+        <ShowSelectedUpstreamWatershed
+          abortSignal={getSignal()}
+          getCurrentExtent={getCurrentExtent}
+          getHuc12={getHuc12}
+          getTemplate={getTemplate}
+          getUpstreamExtent={getUpstreamExtent}
+          getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+          getWatershed={getWatershed}
+          map={map}
+          mapRef={mapRef}
+          services={services}
+          setErrorMessage={setErrorMessage}
+          setUpstreamExtent={setUpstreamExtent}
+          setUpstreamLayerErrored={setUpstreamLayerErrored}
+          setUpstreamWatershedResponse={setUpstreamWatershedResponse}
+          setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
+          setCurrentExtent={setCurrentExtent}
+          slot="top-right"
+          updateVisibleLayers={updateVisibleLayers}
+          upstreamLayer={upstreamLayer}
+          upstreamLayerErrored={upstreamLayerErrored}
+          view={view}
+        />
+      )}
+
+      <arcgis-scale-bar slot="bottom-left" unit="dual" />
+
+      <ExpandCollapse
+        fullscreenActive={fullscreenActive}
+        setFullscreenActive={setFullscreenActive}
+        mapViewSetter={setMapView}
+        slot="bottom-right"
+      />
+
+      {/* Rnd reads mapWidth once, on mount, so wait for a real measurement */}
+      {mapWidth > 0 && (
+        <div
+          style={{
+            display: addSaveDataWidgetVisible ? 'block' : 'none',
+            position: 'absolute',
+            top: '0',
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+        >
+          {viewportWidth < 960 ? (
+            <div
+              id="add-save-data-widget"
+              className={addSaveDataWidgetVisible ? '' : 'hidden'}
+              role="region"
+              style={{
+                backgroundColor: 'white',
+                pointerEvents: 'all',
+                height: '410px',
+                width: `${mapWidth}px`,
+                position: 'absolute',
+                bottom: 0,
+              }}
+              tabIndex={0}
+            >
+              <AddSaveDataWidget />
+            </div>
+          ) : (
+            <Rnd
+              id="add-save-data-widget"
+              className={addSaveDataWidgetVisible ? '' : 'hidden'}
+              style={{ backgroundColor: 'white', pointerEvents: 'all' }}
+              ref={rnd}
+              default={{
+                x: (mapWidth - 400 - 60) / 2,
+                y: 7.5,
+                width: '400px',
+                height: '410px',
+              }}
+              minWidth="275px"
+              minHeight="410px"
+              bounds="parent"
+              enableResizing={{
+                bottomRight: true,
+              }}
+              dragHandleClassName="drag-handle"
+              role="region"
+              tabIndex={0}
+            >
+              <AddSaveDataWidget />
+              <div css={resizeHandleStyles}>
+                <img src={resizeIcon} alt="Resize Handle"></img>
+              </div>
+            </Rnd>
+          )}
+        </div>
+      )}
+    </Fragment>
+  );
+}
+
+// Builds the legend twice, once for the expand panel and once for the PDF
+// export to read.
+function LegendWidget({
+  legendRoots,
+  setDisplayEsriLegend,
+  view,
+}: {
+  legendRoots: MutableRefObject<Root[]>;
+  setDisplayEsriLegend: React.Dispatch<React.SetStateAction<boolean>>;
+  view: MapView;
+}) {
+  const panelHmwLegend = useRef<HTMLDivElement | null>(null);
+  const offscreenHmwLegend = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (legendRoots.current.length) return;
+    if (!panelHmwLegend.current || !offscreenHmwLegend.current) return;
+
+    legendRoots.current = [
+      createRoot(panelHmwLegend.current),
+      createRoot(offscreenHmwLegend.current),
+    ];
+  }, [legendRoots]);
+
+  const esriLegendWatcher = useRef<ResourceHandle | null>(null);
+  useEffect(() => {
+    return function cleanup() {
+      esriLegendWatcher.current?.remove();
+    };
+  }, []);
+
+  return (
+    <Fragment>
+      {/*
+        <arcgis-expand> caps the height of each slotted child and scrolls it on its own,
+        so put both legends in one element.
+      */}
+      <div className="hmw-map-legend">
+        <div ref={panelHmwLegend} />
+
+        {/* inside <arcgis-expand> this finds the view on its own */}
+        <arcgis-legend
+          layerInfos={[]}
+          onarcgisReady={(event) => {
+            const legend = event.target;
+            esriLegendWatcher.current?.remove();
+
+            // Counting the layers the legend was handed, rather than asking
+            // whether it drew anything, keeps this from toggling as those
+            // legends load.
+            esriLegendWatcher.current = reactiveUtils.watch(
+              () => legend.activeLayerInfos.length > 0,
+              (hasLayers) => setDisplayEsriLegend(hasLayers),
+              { initial: true },
+            );
+          }}
+        />
+      </div>
+
+      {/*
+        Portaled out of the panel, because <arcgis-expand> renders its slot in a
+        calcite-popover that is display: none while collapsed. The PDF export
+        measures and rasterizes these nodes, so they have to keep their layout;
+        sr-only leaves it intact.
+      */}
+      {createPortal(
+        <div
+          aria-hidden={true}
+          className="hmw-map-legend sr-only"
+          id="non-visible-legend"
+        >
+          <div ref={offscreenHmwLegend} />
+          {/* set the view, since there is no ancestor out here to find it on */}
+          <arcgis-legend layerInfos={[]} view={view} />
+        </div>,
+        document.body,
+      )}
+    </Fragment>
   );
 }
 
 function ShowAddSaveDataWidget({
   addSaveDataWidgetVisible,
   setAddSaveDataWidgetVisible,
+  slot,
 }: Readonly<{
   addSaveDataWidgetVisible: boolean;
   setAddSaveDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
+  slot: MapSlot;
 }>) {
   const [hover, setHover] = useState(false);
 
   const clickHandler = useCallback(
     (ev: React.MouseEvent | React.KeyboardEvent) => {
       if (!isClick(ev)) return;
-      const widget = document.getElementById('add-save-data-widget');
-      if (!widget) return;
-
-      const widgetHidden = widget.classList.contains('hidden');
-      if (widgetHidden) {
-        widget.classList.remove('hidden');
-        setAddSaveDataWidgetVisible(true);
-      } else {
-        widget.classList.add('hidden');
-        setAddSaveDataWidgetVisible(false);
-      }
+      setAddSaveDataWidgetVisible((visible) => !visible);
     },
     [setAddSaveDataWidgetVisible],
   );
@@ -1325,9 +1158,10 @@ function ShowAddSaveDataWidget({
       onClick={clickHandler}
       onKeyDown={clickHandler}
       role="button"
+      slot={slot}
       tabIndex={0}
     >
-      <CalciteIcon
+      <calcite-icon
         icon={addSaveDataWidgetVisible ? 'chevrons-right' : 'plus-square'}
         scale="s"
       />
@@ -1338,6 +1172,8 @@ function ShowAddSaveDataWidget({
 const divStyle = (disabled: boolean, hover: boolean) => css`
   align-items: center;
   background-color: ${!disabled && hover ? '#F0F0F0' : 'white'};
+  /* matches the shadow Esri applies to .esri-component.esri-widget */
+  box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
   cursor: ${disabled ? 'default' : 'pointer'};
   display: flex;
   height: 32px;
@@ -1354,12 +1190,14 @@ type ExpandeCollapseProps = {
   fullscreenActive: boolean;
   setFullscreenActive: Function;
   mapViewSetter: Function;
+  slot: MapSlot;
 };
 
 function ExpandCollapse({
   fullscreenActive,
   setFullscreenActive,
   mapViewSetter,
+  slot,
 }: Readonly<ExpandeCollapseProps>) {
   const [hover, setHover] = useState(false);
 
@@ -1386,6 +1224,7 @@ function ExpandCollapse({
 
   return (
     <div
+      slot={slot}
       title={
         fullscreenActive
           ? 'Exit Fullscreen Map View'
@@ -1401,7 +1240,7 @@ function ExpandCollapse({
       role="button"
       tabIndex={0}
     >
-      <CalciteIcon
+      <calcite-icon
         icon={fullscreenActive ? 'zoom-in-fixed' : 'zoom-out-fixed'}
         scale="s"
       />
@@ -1411,28 +1250,28 @@ function ExpandCollapse({
 
 function retrieveUpstreamWatershed(
   abortSignal: AbortSignal,
-  getCurrentExtent: () => __esri.Extent,
+  getCurrentExtent: () => Extent,
   getHuc12: () => string,
   getTemplate: GetTemplateType,
-  getUpstreamExtent: () => __esri.Extent,
-  upstreamLayer: __esri.GraphicsLayer | null,
+  getUpstreamExtent: () => Extent,
+  upstreamLayer: GraphicsLayer | null,
   getUpstreamWidgetDisabled: () => boolean,
   getWatershed: () => WatershedAttributes,
   lastHuc12: string,
   services: ServicesData,
   setErrorMessage: Dispatch<SetStateAction<string>>,
   setLastHuc12: Dispatch<SetStateAction<string>>,
-  setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>,
+  setUpstreamExtent: Dispatch<SetStateAction<Viewpoint>>,
   setUpstreamLayerErrored: (isErrored: boolean) => void,
   updateVisibleLayers: (
     updates?: Partial<LayersState['visible']>,
     merge?: boolean,
   ) => void,
   setUpstreamWatershedResponse: Dispatch<
-    SetStateAction<{ status: Status; data: __esri.FeatureSet | null }>
+    SetStateAction<{ status: Status; data: FeatureSet | null }>
   >,
   setUpstreamWidgetDisabled: Dispatch<SetStateAction<boolean>>,
-  view: __esri.MapView | null,
+  view: MapView | null,
   setUpstreamLoading: Dispatch<SetStateAction<boolean>>,
   upstreamLayerErrored: boolean,
   huc12 = null,
@@ -1443,6 +1282,9 @@ function retrieveUpstreamWatershed(
   if (!upstreamLayer) return;
 
   const currentHuc12 = huc12 ?? getHuc12();
+  // location hasn't resolved yet - an empty filter would disable the widget
+  if (!currentHuc12) return;
+
   // if location changed since last widget click, update lastHuc12 state
   if (currentHuc12 !== lastHuc12) {
     setLastHuc12(currentHuc12);
@@ -1587,7 +1429,7 @@ interface ShowUpstreamWatershedProps {
   getUpstreamWidgetDisabled: () => boolean;
   onClick: (ev: React.MouseEvent | React.KeyboardEvent) => void;
   selectionActive?: boolean;
-  upstreamLayer: __esri.GraphicsLayer | null;
+  upstreamLayer: GraphicsLayer | null;
   upstreamLoading: boolean;
 }
 
@@ -1605,7 +1447,7 @@ function ShowUpstreamWatershed({
   // This useEffect/watcher is here to ensure the correct title and icon
   // are being shown. Without this the icon/title don't change until
   // the user moves the mouse off of the button.
-  const [watcher, setWatcher] = useState<IHandle | null>(null);
+  const [watcher, setWatcher] = useState<ResourceHandle | null>(null);
   const [upstreamVisible, setUpstreamVisible] = useState(false);
   useEffect(() => {
     if (!upstreamLayer || watcher) return;
@@ -1647,7 +1489,7 @@ function ShowUpstreamWatershed({
             ${!upstreamVisible && 'transform: rotate(-45deg);'}
           `}
         >
-          <CalciteIcon
+          <calcite-icon
             icon={upstreamVisible ? 'chevrons-right' : 'arrow-bold-up'}
             scale="s"
           />
@@ -1662,27 +1504,28 @@ type ShowCurrentUpstreamWatershedProps = Omit<
   'onClick' | 'selectionActive' | 'upstreamLoading'
 > & {
   abortSignal: AbortSignal;
-  getCurrentExtent: () => __esri.Extent;
+  getCurrentExtent: () => Extent;
   getHuc12: () => string;
   getTemplate: GetTemplateType;
-  getUpstreamExtent: () => __esri.Extent;
-  upstreamLayer: __esri.GraphicsLayer | null;
+  getUpstreamExtent: () => Extent;
+  upstreamLayer: GraphicsLayer | null;
   getUpstreamWidgetDisabled: () => boolean;
   getWatershed: () => WatershedAttributes;
   services: ServicesData;
   setErrorMessage: Dispatch<SetStateAction<string>>;
-  setUpstreamExtent: Dispatch<SetStateAction<__esri.Viewpoint>>;
+  setUpstreamExtent: Dispatch<SetStateAction<Viewpoint>>;
   setUpstreamLayerErrored: (isErrored: boolean) => void;
   setUpstreamWatershedResponse: Dispatch<
-    SetStateAction<{ status: Status; data: __esri.FeatureSet | null }>
+    SetStateAction<{ status: Status; data: FeatureSet | null }>
   >;
   setUpstreamWidgetDisabled: Dispatch<SetStateAction<boolean>>;
+  slot: MapSlot;
   updateVisibleLayers: (
     updates?: Partial<LayersState['visible']>,
     merge?: boolean,
   ) => void;
   upstreamLayerErrored: boolean;
-  view: __esri.MapView | null;
+  view: MapView | null;
 };
 
 function ShowCurrentUpstreamWatershed({
@@ -1701,6 +1544,7 @@ function ShowCurrentUpstreamWatershed({
   updateVisibleLayers,
   setUpstreamWatershedResponse,
   setUpstreamWidgetDisabled,
+  slot,
   upstreamLayerErrored,
   view,
 }: ShowCurrentUpstreamWatershedProps) {
@@ -1756,20 +1600,21 @@ function ShowCurrentUpstreamWatershed({
     ],
   );
   return (
-    <ShowUpstreamWatershed
-      getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
-      onClick={handleClick}
-      upstreamLayer={upstreamLayer}
-      upstreamLoading={upstreamLoading}
-    />
+    <div slot={slot}>
+      <ShowUpstreamWatershed
+        getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+        onClick={handleClick}
+        upstreamLayer={upstreamLayer}
+        upstreamLoading={upstreamLoading}
+      />
+    </div>
   );
 }
 
 type ShowSelectedUpstreamWatershedProps = ShowCurrentUpstreamWatershedProps & {
-  map: __esri.Map;
+  map: Map;
   mapRef: MutableRefObject<HTMLDivElement | null>;
-  setCurrentExtent: Dispatch<SetStateAction<__esri.Extent>>;
-  upstreamWidget: HTMLDivElement;
+  setCurrentExtent: Dispatch<SetStateAction<Extent>>;
 };
 
 function ShowSelectedUpstreamWatershed({
@@ -1792,22 +1637,24 @@ function ShowSelectedUpstreamWatershed({
   map,
   mapRef,
   setCurrentExtent,
+  slot,
   upstreamLayerErrored,
-  upstreamWidget,
 }: ShowSelectedUpstreamWatershedProps) {
+  const { upstreamWidgetDisabled } = useContext(LocationSearchContext);
   // Record visibility state of watersheds layer to restore later
   const [watershedsVisible, setWatershedsVisible] = useState(false);
 
   // Store the watersheds layer instance for later access
-  const [watershedsLayer, setWatershedsLayer] =
-    useState<__esri.FeatureLayer | null>(null);
+  const [watershedsLayer, setWatershedsLayer] = useState<FeatureLayer | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!map) return;
 
     const newWatershedsLayer = map.findLayerById(
       'watershedsLayer',
-    ) as __esri.FeatureLayer | null;
+    ) as FeatureLayer | null;
     setWatershedsLayer(newWatershedsLayer);
     newWatershedsLayer && setWatershedsVisible(newWatershedsLayer.visible);
   }, [map]);
@@ -1820,10 +1667,7 @@ function ShowSelectedUpstreamWatershed({
   // Show/hide instruction dialogue when watershed selection activity changes
   useEffect(() => {
     setInstructionsVisible(selectionActive);
-    upstreamWidget.style.filter = selectionActive
-      ? 'invert(0.8) brightness(1.5) contrast(1.5)'
-      : 'none';
-  }, [selectionActive, upstreamWidget]);
+  }, [selectionActive]);
 
   // Disable "selection mode" and/or restore the
   // initial visibility of the watersheds layer
@@ -1849,7 +1693,7 @@ function ShowSelectedUpstreamWatershed({
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
   const handleHucSelection = useCallback(
-    (ev: __esri.ViewClickEvent) => {
+    (ev: ClickEvent) => {
       setSelectionActive(false);
 
       if (!view) return;
@@ -2038,7 +1882,16 @@ function ShowSelectedUpstreamWatershed({
   }
 
   return (
-    <>
+    <div
+      slot={slot}
+      style={{
+        cursor: upstreamWidgetDisabled ? 'default' : 'pointer',
+        filter: selectionActive
+          ? 'invert(0.8) brightness(1.5) contrast(1.5)'
+          : 'none',
+        opacity: upstreamWidgetDisabled ? '0.5' : '1',
+      }}
+    >
       {mapRef.current &&
         createPortal(
           <div css={instructionContainerStyles(instructionsVisible)}>
@@ -2066,7 +1919,7 @@ function ShowSelectedUpstreamWatershed({
         upstreamLayer={upstreamLayer}
         upstreamLoading={upstreamLoading}
       />
-    </>
+    </div>
   );
 }
 
@@ -2087,6 +1940,12 @@ type PdfLegendItem = {
 const leftMargin = 10;
 const topMargin = 10;
 
+// html-to-image rasterizes at the display's devicePixelRatio unless told
+// otherwise, which would tie the printed size of a legend symbol to the screen
+// it was exported from. Pinned, so it does not, and left above 1 to keep the
+// symbols sharp in print.
+const symbolPixelRatio = 2;
+
 function handleError(error: unknown) {
   if (error instanceof Error || typeof error === 'object') {
     return (error as any)?.message;
@@ -2095,6 +1954,33 @@ function handleError(error: unknown) {
   } else {
     return 'Unknown error. Check developer tools console.';
   }
+}
+
+/**
+ * querySelectorAll stops at every shadow boundary, and arcgis-legend opens a
+ * new root for each layer and each of its sublayers.
+ *
+ * @param root Node to search under
+ * @param selector Selector to match
+ * @returns The outermost match of each branch. A layer block nests another for
+ *   each sublayer, and returning both would count the inner one's rows twice.
+ */
+function queryShadowAll(root: ParentNode, selector: string) {
+  const matches: Element[] = [];
+
+  const walk = (node: ParentNode) => {
+    for (const child of node.children) {
+      if (child.matches(selector)) {
+        matches.push(child);
+        continue;
+      }
+      walk(child);
+      if (child.shadowRoot) walk(child.shadowRoot);
+    }
+  };
+  walk(root);
+
+  return matches;
 }
 
 export async function generateAndDownloadPdf({
@@ -2115,7 +2001,7 @@ export async function generateAndDownloadPdf({
   northArrowVisible: boolean;
   scale: number;
   services: ServicesData;
-  view: __esri.MapView;
+  view: MapView;
   includeLegend: boolean;
 }) {
   const {
@@ -2201,40 +2087,42 @@ export async function generateAndDownloadPdf({
 
   /**
    * Gets the symbol and text for the provided combination of
-   * element, symbolClass and textClass.
+   * element, symbolSelector and textSelector.
    *
    * @param legendItems Array to add legend item to
    * @param element Element to search in
-   * @param symbolClass Class for selecting the symbol part
-   * @param textClass Class for selecting the text part
+   * @param symbolSelector Selector for the symbol part
+   * @param textSelector Selector for the text part
    * @param type Type of legend item (h1, h2, h3 or item)
    * @param firstOnly Only include the first text item
    */
   async function addLegendItem({
     legendItems,
     element,
-    symbolClass,
-    textClass,
+    symbolSelector,
+    textSelector,
     type,
     firstOnly = true,
   }: {
     legendItems: PdfLegendItem[];
     element: Element;
-    symbolClass?: string;
-    textClass: string;
+    symbolSelector?: string;
+    textSelector: string;
     type: PdfLegendItemType;
     firstOnly?: boolean;
   }) {
-    const image = !symbolClass ? null : await getImage(element, symbolClass);
+    const image = !symbolSelector
+      ? null
+      : await getImage(element, symbolSelector);
     let itemsAdded = 0;
 
     // skip adding text if the png was generated from a div
-    const symbols = !symbolClass
+    const symbols = !symbolSelector
       ? null
-      : element.getElementsByClassName(symbolClass);
-    if (!symbolClass || (symbols && symbols.length > 0)) {
+      : queryShadowAll(element, symbolSelector);
+    if (!symbolSelector || (symbols && symbols.length > 0)) {
       // get captions
-      const textItems = element.getElementsByClassName(textClass);
+      const textItems = queryShadowAll(element, textSelector);
 
       for (let textItem of textItems) {
         const text = textItem.textContent;
@@ -2275,12 +2163,29 @@ export async function generateAndDownloadPdf({
       await addLegendItem({
         legendItems,
         element: item,
-        symbolClass: 'hmw-legend__symbol',
-        textClass: 'hmw-legend__info',
+        symbolSelector: '.hmw-legend__symbol',
+        textSelector: '.hmw-legend__info',
         type: 'imageItem',
       });
     }
   }
+
+  /*
+   * Two shapes end up under #non-visible-legend, so every selector below pairs
+   * them: our own markup for the mapped water legend, which borrows the class
+   * names of the widget arcgis-legend replaced (see MapLegend.tsx), and the
+   * component's own markup for everything else.
+   */
+  const legendSelectors = {
+    service: '.esri-legend__service, .layers > .layer',
+    group: '.esri-legend__group-layer-child, .layer-child',
+    title: '.esri-legend__service-label, .esri-widget__heading',
+    layer: '.esri-legend__layer, .layer-table',
+    caption: '.esri-legend__layer-caption, .layer-caption',
+    row: '.esri-legend__layer-row, .layer-row',
+    symbol: '.esri-legend__symbol, .symbol',
+    info: '.esri-legend__layer-cell--info, .layer-cell-info',
+  };
 
   /**
    * Parses the dom and adds the Esri portion of the legend to the
@@ -2291,20 +2196,16 @@ export async function generateAndDownloadPdf({
     // loop through layers of esri legend items
     const legendElm = document.getElementById('non-visible-legend');
     if (!legendElm) return;
-    const legendServices = legendElm.querySelectorAll(
-      '.esri-legend__service:not(.esri-legend__group-layer-child)',
-    );
+    const legendServices = queryShadowAll(legendElm, legendSelectors.service);
     for (const legendService of legendServices) {
       let hasHighestLevel = false;
-      const groups = Array.from(
-        legendService.getElementsByClassName('esri-legend__group-layer-child'),
-      );
+      const groups = queryShadowAll(legendService, legendSelectors.group);
       if (groups.length === 0) groups.push(legendService);
       else {
         await addLegendItem({
           legendItems,
           element: legendService,
-          textClass: 'esri-legend__service-label',
+          textSelector: legendSelectors.title,
           type: 'h1',
         });
         hasHighestLevel = true;
@@ -2315,31 +2216,31 @@ export async function generateAndDownloadPdf({
         await addLegendItem({
           legendItems,
           element: group,
-          textClass: 'esri-legend__service-label',
+          textSelector: legendSelectors.title,
           type: hasHighestLevel ? 'h2' : 'h1',
         });
 
         // get layer level content
-        const layers = group.getElementsByClassName('esri-legend__layer');
+        const layers = queryShadowAll(group, legendSelectors.layer);
         for (const layer of layers) {
           // get captions
           await addLegendItem({
             legendItems,
             element: layer,
-            textClass: 'esri-legend__layer-caption',
+            textSelector: legendSelectors.caption,
             type: hasHighestLevel ? 'h3' : 'h2',
             firstOnly: false,
           });
 
           // get row level content
-          const rows = layer.getElementsByClassName('esri-legend__layer-row');
+          const rows = queryShadowAll(layer, legendSelectors.row);
           for (const row of rows) {
             // get the text
             await addLegendItem({
               legendItems,
               element: row,
-              symbolClass: 'esri-legend__symbol',
-              textClass: 'esri-legend__layer-cell--info',
+              symbolSelector: legendSelectors.symbol,
+              textSelector: legendSelectors.info,
               type: 'item',
             });
           }
@@ -2488,11 +2389,13 @@ export async function generateAndDownloadPdf({
    *
    * @param doc PDFDocument adding to
    * @param image Image to embed in PDF
+   * @param maxWidth Widest the image may be drawn
    * @returns The pdfImage, scaled height and scaled width
    */
   async function embedImage(
     doc: PDFDocumentType,
-    image?: PdfLegendImage | null,
+    image: PdfLegendImage | null | undefined,
+    maxWidth: number,
   ) {
     if (!image)
       return { pdfImage: null, imageScaledHeight: 0, imageScaledWidth: 0 };
@@ -2506,7 +2409,15 @@ export async function generateAndDownloadPdf({
 
       // embed, scale and draw the image
       const pdfImage = await doc.embedPng(image.code);
-      const dimensions = pdfImage.scale(imageScaleFactor);
+
+      // Some services publish a legend as one wide swatch with its labels drawn
+      // in. Left at the usual factor those run into the next column.
+      const dimensions = pdfImage.scale(
+        Math.min(
+          imageScaleFactor / symbolPixelRatio,
+          maxWidth / pdfImage.width,
+        ),
+      );
 
       return {
         pdfImage,
@@ -2527,20 +2438,32 @@ export async function generateAndDownloadPdf({
    * Gets a symbol and converts it to a base64 PNG.
    *
    * @param parentElement Element to find symbol in.
-   * @param searchClass Class of symbol being searched for.
+   * @param searchSelector Selector for the symbol being searched for.
    * @returns code as base64 PNG and height/width of image.
    */
-  async function getImage(parentElement: Element, searchClass: string) {
+  async function getImage(parentElement: Element, searchSelector: string) {
     const htmltoimage = await import('html-to-image');
     // get the symbol
-    const symbols = parentElement.getElementsByClassName(searchClass);
+    const symbols = queryShadowAll(parentElement, searchSelector);
     const symbol = (
       symbols.length > 0 ? symbols[0] : parentElement
     ) as HTMLElement;
+
+    // An <img> that has not loaded measures 0 wide, and html-to-image sizes its
+    // canvas from that, so toPng hands back "data:," and embedPng rejects it.
+    await Promise.all(
+      [symbol, ...queryShadowAll(symbol, 'img')]
+        .filter((el): el is HTMLImageElement => el instanceof HTMLImageElement)
+        .map((img) => img.decode().catch(() => {})),
+    );
+
     // set div to visible to avoid blank image
     const lastVisibility = symbol.style.visibility;
     symbol.style.visibility = 'visible';
-    const img = await htmltoimage.toPng(symbol, { skipFonts: true });
+    const img = await htmltoimage.toPng(symbol, {
+      pixelRatio: symbolPixelRatio,
+      skipFonts: true,
+    });
     symbol.style.visibility = lastVisibility;
     return {
       code: img,
@@ -2693,12 +2616,23 @@ export async function generateAndDownloadPdf({
         ? helveticaBoldFont
         : helveticaFont;
 
+      const indent = leftMargin * numberOfIndents;
+
       // set x starting position
-      let x = horizontalPosition + pageMargin + leftMargin * numberOfIndents;
+      let x = horizontalPosition + pageMargin + indent;
 
       // get image dimensions after scaling
       const { pdfImage, imageScaledHeight, imageScaledWidth } =
-        await embedImage(doc, image);
+        await embedImage(doc, image, columnWidth - indent);
+
+      // the text is drawn a leftMargin to the right of the image, so the column
+      // has that much less room for it
+      const textWidth = Math.max(
+        columnWidth -
+          indent -
+          (imageScaledWidth ? leftMargin + imageScaledWidth : 0),
+        0,
+      );
 
       // wrap text and calculate height of text
       const { multiLineText, textHeight } = getMultilineText({
@@ -2708,7 +2642,7 @@ export async function generateAndDownloadPdf({
         bounds: {
           x,
           y: verticalPosition - topMargin,
-          width: columnWidth - imageScaledWidth - leftMargin * numberOfIndents,
+          width: textWidth,
           height,
         },
       });
@@ -2927,7 +2861,7 @@ type LayoutOptionType =
 
 type DownloadWidgetProps = {
   services: ServicesData;
-  view: __esri.MapView;
+  view: MapView;
 };
 
 function DownloadWidget({ services, view }: Readonly<DownloadWidgetProps>) {

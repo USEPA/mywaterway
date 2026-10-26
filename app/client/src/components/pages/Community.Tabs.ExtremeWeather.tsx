@@ -56,6 +56,16 @@ import {
 } from 'styles/index';
 // types
 import { ExtremeWeatherQuery, ExtremeWeatherRow, FetchStatus } from 'types';
+import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import type FeatureSet from "@arcgis/core/rest/support/FeatureSet";
+import type GroupLayer from "@arcgis/core/layers/GroupLayer";
+import type Geometry from "@arcgis/core/geometry/Geometry";
+import type { QueryProperties } from "@arcgis/core/rest/support/Query";
+import type Query from "@arcgis/core/rest/support/Query";
+import type MapView from "@arcgis/core/views/MapView";
+import type Layer from "@arcgis/core/layers/Layer";
+import type ClassBreaksRenderer from "@arcgis/core/renderers/ClassBreaksRenderer";
+import type Graphic from "@arcgis/core/Graphic";
 
 const historicalTooltip =
   'The displayed statistics are generated from official U.S. climate projections for the greenhouse gas business as usual "Higher Emissions Scenario (RCP 8.5)".';
@@ -186,12 +196,12 @@ function ExtremeWeather() {
 
     function handleSetting(
       config: SwitchTableConfig,
-      additionalTest?: (layer: __esri.Layer, id: string) => boolean,
+      additionalTest?: (layer: Layer, id: string) => boolean,
     ) {
       Object.entries(visibleLayers).forEach(([layerId, visible]) => {
         const layer = !additionalTest
           ? null
-          : mapView?.map?.layers.find((l: __esri.Layer) => l.id === layerId);
+          : mapView?.map?.layers.find((l: Layer) => l.id === layerId);
 
         const row = config.items.find(
           (l) =>
@@ -253,7 +263,7 @@ function ExtremeWeather() {
   useEffect(() => {
     if (!countySelected || !mapView) return;
 
-    let countyGraphic: __esri.Graphic | null = null;
+    let countyGraphic: Graphic | null = null;
     providersLayer?.graphics.forEach((graphic) => {
       if (graphic.attributes.FIPS === countySelected.value) {
         graphic.visible = true;
@@ -271,7 +281,7 @@ function ExtremeWeather() {
   }, [countyBoundaries, countySelected, mapView, providersLayer]);
 
   // gets the geometry of the hucBoundaries
-  const [hucGeometry, setHucGeometry] = useState<__esri.Geometry | null>(null);
+  const [hucGeometry, setHucGeometry] = useState<Geometry | null>(null);
   useEffect(() => {
     setHucGeometry(hucBoundaries?.geometry ?? null);
   }, [hucBoundaries]);
@@ -983,7 +993,7 @@ function ExtremeWeather() {
               'Historical Risk and Potential Future Scenarios',
               'Status Within County',
             ]}
-            callback={(row: ExtremeWeatherRow, layer: __esri.Layer) => {
+            callback={(row: ExtremeWeatherRow, layer: Layer) => {
               if (!layer || !isFeatureLayer(layer)) return;
 
               if (row.id !== 'coastalFlooding') {
@@ -996,11 +1006,11 @@ function ExtremeWeather() {
                 layer.title = `${row.label} ${timeframeSelection.label}`;
 
                 // update field renderer
-                (layer.renderer as __esri.ClassBreaksRenderer).field = field;
+                (layer.renderer as ClassBreaksRenderer).field = field;
 
                 // update field visual variables
                 (
-                  layer.renderer as __esri.ClassBreaksRenderer
+                  layer.renderer as ClassBreaksRenderer
                 ).visualVariables.forEach((variable) => {
                   if (variable.type === 'color') variable.field = field;
                 });
@@ -1127,11 +1137,11 @@ const toggleStyles = css`
 `;
 
 type SelectionTableProps = {
-  callback?: (row: ExtremeWeatherRow, layer: __esri.Layer) => void;
+  callback?: (row: ExtremeWeatherRow, layer: Layer) => void;
   columns: string[];
   hideHeader?: boolean;
   id: string;
-  mapView: __esri.MapView;
+  mapView: MapView;
   timeframe?: number;
   type?: 'radio' | 'switch';
   value: SwitchTableConfig;
@@ -1362,7 +1372,7 @@ const SingleValue = ({ children, ...props }: SingleValueProps<any>) => {
 
 // checks if all layers are in group layer
 function allLayersAdded(
-  layer: __esri.FeatureLayer | __esri.GroupLayer,
+  layer: FeatureLayer | GroupLayer,
   queries: ExtremeWeatherQuery[],
 ) {
   if (isFeatureLayer(layer)) return true;
@@ -1374,7 +1384,7 @@ function allLayersAdded(
 }
 
 // finds a layer by itemId, serviceItemId or layerId
-function findByItemId(layer: __esri.GroupLayer, itemId: string) {
+function findByItemId(layer: GroupLayer, itemId: string) {
   return layer.layers.find(
     (l: any) =>
       l.itemId === itemId ||
@@ -1512,10 +1522,10 @@ async function queryLayer({
   layer,
   query,
 }: {
-  layer: __esri.FeatureLayer;
-  query: __esri.Query | __esri.QueryProperties;
+  layer: FeatureLayer;
+  query: Query | QueryProperties;
 }) {
-  return new Promise<__esri.FeatureSet>((resolve, reject) => {
+  return new Promise<FeatureSet>((resolve, reject) => {
     if (['failed', 'loaded'].includes(layer.loadStatus)) {
       queryLayerInner({
         layer,
@@ -1549,9 +1559,9 @@ async function queryLayerInner({
   resolve,
   reject,
 }: {
-  layer: __esri.FeatureLayer;
-  query: __esri.Query | __esri.QueryProperties;
-  resolve: (value: __esri.FeatureSet | PromiseLike<__esri.FeatureSet>) => void;
+  layer: FeatureLayer;
+  query: Query | QueryProperties;
+  resolve: (value: FeatureSet | PromiseLike<FeatureSet>) => void;
   reject: (reason?: any) => void;
 }) {
   if (layer.loadStatus === 'failed')
@@ -1577,12 +1587,12 @@ async function queryLayers({
   whereReplacer,
 }: {
   config: ExtremeWeatherRow[];
-  geometry?: __esri.Geometry;
+  geometry?: Geometry;
   id: string;
-  layer: __esri.FeatureLayer | __esri.GroupLayer;
+  layer: FeatureLayer | GroupLayer;
   outIds?: string[];
   responseParser: (
-    response: __esri.FeatureSet[],
+    response: FeatureSet[],
   ) => { id: string; value?: RowValue }[];
   setter: Dispatch<SetStateAction<SwitchTableConfig>>;
   whereReplacer?: (where: string) => string;
@@ -1607,7 +1617,7 @@ async function queryLayers({
       whereReplacer,
     });
   } else {
-    const groupLayer = layer as __esri.GroupLayer;
+    const groupLayer = layer as GroupLayer;
 
     // setup the watch event to see when the layer finishes loading
     const newWatcher = reactiveUtils.watch(
@@ -1654,10 +1664,10 @@ async function queryLayersInner({
   defaultValues: {
     id: string;
   }[];
-  geometry?: __esri.Geometry;
-  layer: __esri.FeatureLayer | __esri.GroupLayer;
+  geometry?: Geometry;
+  layer: FeatureLayer | GroupLayer;
   responseParser: (
-    response: __esri.FeatureSet[],
+    response: FeatureSet[],
   ) => { checked?: boolean; id: string; value?: RowValue }[];
   setter: Dispatch<SetStateAction<SwitchTableConfig>>;
   whereReplacer?: (where: string) => string;
@@ -1669,12 +1679,12 @@ async function queryLayersInner({
   });
 
   try {
-    const promises: Promise<__esri.FeatureSet>[] = [];
+    const promises: Promise<FeatureSet>[] = [];
     configRow.queries.forEach((q) => {
       let childLayer = layer;
       if (isGroupLayer(layer) && q.serviceItemId) {
         const temp = findByItemId(layer, q.serviceItemId);
-        if (temp) childLayer = temp as __esri.FeatureLayer;
+        if (temp) childLayer = temp as FeatureLayer;
       }
 
       if (isFeatureLayer(childLayer)) {

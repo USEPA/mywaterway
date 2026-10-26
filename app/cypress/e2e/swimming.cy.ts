@@ -9,7 +9,7 @@ describe('Swimming page', () => {
   });
 
   it(`"Aquatic Life" button links to the aquatic life page`, () => {
-    cy.findAllByText('Aquatic Life').filter(':visible').click();
+    cy.findByRole('link', { name: 'Aquatic Life' }).click();
     cy.url().should('include', '/aquatic-life');
   });
 

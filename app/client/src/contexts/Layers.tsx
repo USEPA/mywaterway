@@ -6,6 +6,11 @@ import {
   useReducer,
 } from 'react';
 // types
+import type WMSLayer from "@arcgis/core/layers/WMSLayer";
+import type MapImageLayer from "@arcgis/core/layers/MapImageLayer";
+import type GroupLayer from "@arcgis/core/layers/GroupLayer";
+import type GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import type { Dispatch, ReactNode } from 'react';
 
 const StateContext = createContext<LayersState | undefined>(undefined);
@@ -436,15 +441,15 @@ export type LayersState = {
   };
   initialized: boolean;
   layers: {
-    [F in (typeof featureLayerIds)[number]]: __esri.FeatureLayer | null;
+    [F in (typeof featureLayerIds)[number]]: FeatureLayer | null;
   } & {
-    [G in (typeof graphicsLayerIds)[number]]: __esri.GraphicsLayer | null;
+    [G in (typeof graphicsLayerIds)[number]]: GraphicsLayer | null;
   } & {
-    [G in (typeof groupLayerIds)[number]]: __esri.GroupLayer | null;
+    [G in (typeof groupLayerIds)[number]]: GroupLayer | null;
   } & {
-    [M in (typeof mapImageLayerIds)[number]]: __esri.MapImageLayer | null;
+    [M in (typeof mapImageLayerIds)[number]]: MapImageLayer | null;
   } & {
-    [W in (typeof wmsLayerIds)[number]]: __esri.WMSLayer | null;
+    [W in (typeof wmsLayerIds)[number]]: WMSLayer | null;
   };
   resetters: {
     [L in LayerId]: () => void;

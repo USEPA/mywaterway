@@ -21,6 +21,8 @@ import {
   getGeographicExtent,
 } from 'utils/boundariesToggleLayer';
 // types
+import type Extent from "@arcgis/core/geometry/Extent";
+import type Polygon from "@arcgis/core/geometry/Polygon";
 import type { FetchedDataAction, FetchState } from 'contexts/FetchedData';
 import type { Dispatch } from 'react';
 import type {
@@ -113,7 +115,7 @@ function useUpdateData() {
       fetchPromise,
       fetchedDataDispatch,
       localFetchedDataKey,
-      (hucBoundaries?.geometry as __esri.Polygon) ?? null,
+      (hucBoundaries?.geometry as Polygon) ?? null,
       null,
     ).then((data) => {
       setHucData(data);
@@ -241,7 +243,7 @@ async function fetchAndTransformData(
   promise: ReturnType<typeof fetchPermittedDischargers>,
   dispatch: Dispatch<FetchedDataAction>,
   fetchedDataId: 'dischargers' | 'surroundingDischargers',
-  huc12Boundaries: __esri.Polygon | null = null,
+  huc12Boundaries: Polygon | null = null,
   dataToExclude?: DischargerAttributes[] | null,
 ) {
   dispatch({ type: 'pending', id: fetchedDataId });
@@ -340,7 +342,7 @@ async function fetchPermittedDischargers(
   }
 }
 
-function getExtentFilter(extent: __esri.Extent | null) {
+function getExtentFilter(extent: Extent | null) {
   if (!extent) return null;
   return `p_c1lat=${extent.ymin}&p_c1lon=${extent.xmin}&p_c2lat=${extent.ymax}&p_c2lon=${extent.xmax}`;
 }

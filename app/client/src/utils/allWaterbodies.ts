@@ -9,6 +9,8 @@ import {
 } from 'contexts/Surroundings';
 // utils
 import { isClick } from 'utils/utils';
+// types
+import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 
 export function useAllWaterbodiesLayer(minScale = 577791) {
   const { huc12, mapView } = useContext(LocationSearchContext);
@@ -23,7 +25,7 @@ export function useAllWaterbodiesLayer(minScale = 577791) {
     if (!allWaterbodiesLayer) return;
     allWaterbodiesLayer.minScale = minScale;
     allWaterbodiesLayer.layers.forEach((layer) => {
-      (layer as __esri.FeatureLayer).minScale = minScale;
+      (layer as FeatureLayer).minScale = minScale;
     });
   }, [minScale, allWaterbodiesLayer]);
 

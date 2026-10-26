@@ -54,6 +54,12 @@ import {
   hideShowGraphicsFill,
 } from 'utils/mapFunctions';
 // types
+import type Geometry from "@arcgis/core/geometry/Geometry";
+import type Renderer from "@arcgis/core/renderers/Renderer";
+import type Field from "@arcgis/core/layers/support/Field";
+import type Collection from "@arcgis/core/core/Collection";
+import type HighlightOptions from "@arcgis/core/views/support/HighlightOptions";
+import type MapView from "@arcgis/core/views/MapView";
 import type {
   Dispatch,
   MutableRefObject,
@@ -68,7 +74,7 @@ import type {
   WatershedAttributes,
 } from 'types';
 
-let dynamicPopupFields: __esri.Field[] = [];
+let dynamicPopupFields: Field[] = [];
 
 const allWaterbodiesAlpha = {
   base: 1,
@@ -81,9 +87,9 @@ const allWaterbodiesAlpha = {
 // tab changes) and from the use useWaterbodyOnMap hook (handles sub tab changes
 // and the "Display By" dropdown on the state page).
 interface ClosePopupParams {
-  mapView: __esri.MapView;
-  setHighlightedGraphic: Dispatch<SetStateAction<__esri.Graphic | null>>;
-  setSelectedGraphic: Dispatch<SetStateAction<__esri.Graphic | null>>;
+  mapView: MapView;
+  setHighlightedGraphic: Dispatch<SetStateAction<Graphic | null>>;
+  setSelectedGraphic: Dispatch<SetStateAction<Graphic | null>>;
 }
 
 function closePopup({
@@ -124,13 +130,13 @@ function getMatchingFeatures(
 // indicates that this feature has been clipped and the highlighting should
 // use the full original feature.
 interface HighlightFeatureParams {
-  mapView: __esri.MapView;
+  mapView: MapView;
   features: Array<ExtendedGraphic>;
-  highlightOptions: __esri.HighlightOptions;
+  highlightOptions: HighlightOptions;
   handles: Handles;
   group: string;
-  layer?: __esri.Layer | null;
-  callback?: ((feature: __esri.Graphic) => void) | null;
+  layer?: Layer | null;
+  callback?: ((feature: Graphic) => void) | null;
 }
 
 function highlightFeature({
@@ -210,7 +216,7 @@ function useWaterbodyFeatures() {
   } = useContext(LocationSearchContext);
   const { erroredLayers } = useLayers();
 
-  const [features, setFeatures] = useState<__esri.Graphic[] | null>(null);
+  const [features, setFeatures] = useState<Graphic[] | null>(null);
 
   const [lastHuc12, setLastHuc12] = useState<string | null>(null);
   useEffect(() => {
@@ -247,7 +253,7 @@ function useWaterbodyFeatures() {
     setLastHuc12(huc12);
 
     // combine lines, area, and points features
-    let featuresArray: Array<__esri.Graphic> = [];
+    let featuresArray: Array<Graphic> = [];
     if (linesData.features?.length > 0) {
       featuresArray = featuresArray.concat(linesData.features);
     }
@@ -284,7 +290,7 @@ function useWaterbodyFeatures() {
 function useWaterbodyFeaturesState() {
   const { waterbodyData } = useContext(LocationSearchContext);
 
-  const [features, setFeatures] = useState<__esri.Graphic[] | null>(null);
+  const [features, setFeatures] = useState<Graphic[] | null>(null);
 
   useEffect(() => {
     // if features has already been set, don't set again
@@ -297,7 +303,7 @@ function useWaterbodyFeaturesState() {
     }
 
     // combine lines, area, and points features
-    let featuresArray: Array<__esri.Graphic> = [];
+    let featuresArray: Array<Graphic> = [];
     if (waterbodyData.features && waterbodyData.features.length > 0) {
       featuresArray = featuresArray.concat(waterbodyData.features);
     }
@@ -371,7 +377,7 @@ function useWaterbodyOnMap(
         ).map((info) => new UniqueValueInfo(info));
       }
 
-      layer.renderer = renderer;
+      if (layer) layer.renderer = renderer;
 
       // close popup and clear highlights when the renderer changes
       closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
@@ -404,7 +410,7 @@ function useWaterbodyOnMap(
     if (!allWaterbodiesLayer) return;
 
     const layers =
-      allWaterbodiesLayer.layers as __esri.Collection<__esri.FeatureLayer>;
+      allWaterbodiesLayer.layers as Collection<FeatureLayer>;
     const attribute = allWaterbodiesAttribute || attributeName;
 
     setRenderer(layers.at(2), 'point', attribute, allWaterbodiesAlpha);
@@ -461,7 +467,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       selectedGraphic.originalGeometry ?? selectedGraphic.geometry;
     if (!geometry) return;
 
-    let params: __esri.Geometry | { target: __esri.Geometry; zoom: number } =
+    let params: Geometry | { target: Geometry; zoom: number } =
       geometry;
     if (isPoint(geometry)) {
       params = {
@@ -783,12 +789,12 @@ function useDynamicPopup() {
     resetLayers();
   }, [resetData, resetLayers]);
 
-  const setDynamicPopupFields = (fields: __esri.Field[]) => {
+  const setDynamicPopupFields = (fields: Field[]) => {
     dynamicPopupFields = fields;
   };
 
   const getClickedHuc = useCallback(
-    (location: __esri.Point) => {
+    (location: Point) => {
       if (!configFiles?.data) return null;
       return new Promise<ClickedHucState>((resolve, reject) => {
         //get the huc boundaries of where the user clicked
@@ -977,7 +983,7 @@ function useSharedLayers({
     });
 
     // return the layer properties object
-    const wsioHealthIndexLayer: __esri.FeatureLayer = new FeatureLayer({
+    const wsioHealthIndexLayer: FeatureLayer = new FeatureLayer({
       id: 'wsioHealthIndexLayer',
       url: configFiles.data.services.wsio,
       title: 'State Watershed Health Index',
@@ -1006,8 +1012,8 @@ function useSharedLayers({
       () => wsioHealthIndexLayer.visible,
       () => {
         const parent = wsioHealthIndexLayer.parent as
-          | __esri.GroupLayer
-          | __esri.Map;
+          | GroupLayer
+          | Map;
         if (!parent || (!(parent instanceof Map) && !isGroupLayer(parent)))
           return;
 
@@ -1246,12 +1252,15 @@ function useSharedLayers({
   function getMappedWaterLayer() {
     const mappedWaterLayer = new MapImageLayer({
       id: 'mappedWaterLayer',
-      // sublayers have minScale of 288896,
-      // but this doesn't match the actual behavior
-      minScale: 144448,
+      minScale: 100_000,
       url: configFiles.data.services.mappedWater,
       title: 'All Mapped Water (NHD)',
-      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      sublayers: [
+        { id: 3 },
+        { id: 4 },
+        { id: 8 },
+        { id: 9 },
+      ],
       legendEnabled: false,
       listMode: 'hide-children',
       visible: false,
@@ -1513,7 +1522,7 @@ function useSharedLayers({
       portalItem: new PortalItem({
         id: configFiles.data.services.dams.portalId,
       }),
-    })) as __esri.FeatureLayer;
+    })) as FeatureLayer;
     damsLayer.id = 'damsLayer';
     damsLayer.listMode = 'hide-children';
     damsLayer.title = 'Dams';
@@ -1557,7 +1566,7 @@ function useSharedLayers({
       portalItem: new PortalItem({
         id: configFiles.data.services.wildfires.portalId,
       }),
-    })) as __esri.GroupLayer;
+    })) as GroupLayer;
     wildfiresLayer.id = 'wildfiresLayer';
     wildfiresLayer.listMode = 'hide-children';
     wildfiresLayer.title = 'USA Wildfires';
@@ -1671,7 +1680,7 @@ function useSharedLayers({
       portalItem: new PortalItem({
         id: configFiles.data.services.droughtRealtime.portalId,
       }),
-    })) as __esri.FeatureLayer;
+    })) as FeatureLayer;
     layer.id = 'droughtRealtimeLayer';
     layer.listMode = 'show';
     layer.title = 'Drought Real-Time';
@@ -1836,9 +1845,9 @@ function useSharedLayers({
   // loads sublayers from a webmap portalid
   async function getSubLayerDefinitions(
     portalId: string,
-    groupLayer: __esri.GroupLayer,
+    groupLayer: GroupLayer,
   ) {
-    const layers: __esri.Layer[] = [];
+    const layers: Layer[] = [];
     try {
       // get webmap definition
       const webMapDef = await fetchCheck(
@@ -1856,7 +1865,7 @@ function useSharedLayers({
         );
 
         // use jsonUtils to convert the REST API renderer to an ArcGIS JS renderer
-        let renderer: __esri.Renderer | undefined = undefined;
+        let renderer: Renderer | undefined = undefined;
         if (webMapLayerDef?.layerDefinition?.drawingInfo?.renderer) {
           renderer = rendererJsonUtils.fromJSON(
             webMapLayerDef.layerDefinition.drawingInfo.renderer,
@@ -1868,7 +1877,7 @@ function useSharedLayers({
           );
         }
 
-        let popupTemplate: __esri.PopupTemplate | undefined = undefined;
+        let popupTemplate: PopupTemplate | undefined = undefined;
         if (webMapLayerDef?.popupInfo) {
           popupTemplate = PopupTemplate.fromJSON(webMapLayerDef.popupInfo);
         }
@@ -1991,14 +2000,14 @@ function useGeometryUtils() {
   // a hole in it that is in the shape of the huc. Finally we subtract this
   // box from the waterbodies graphics.
   const cropGeometryToHuc = function (
-    resFeatures: __esri.Graphic[],
-    hucGeometry: __esri.Geometry,
+    resFeatures: Graphic[],
+    hucGeometry: Geometry,
   ) {
     // start by getting the extend of the huc boundaries
     const extent = hucGeometry.extent ?? new Extent();
 
     // add the extent of all of the waterbodies
-    const features: __esri.Graphic[] = [];
+    const features: Graphic[] = [];
     resFeatures.forEach((feature) => {
       if (!feature.geometry?.extent) return;
       extent.union(feature.geometry.extent);
@@ -2021,7 +2030,7 @@ function useGeometryUtils() {
     // subtract the huc from the full extent
     const subtractor = differenceOperator.execute(
       extentGeometry,
-      hucGeometry as __esri.Polygon,
+      hucGeometry as Polygon,
     );
 
     resFeatures.forEach((feature, index) => {

@@ -230,8 +230,20 @@ function Page({ children }: Props) {
   useEffect(() => {
     if (interceptorsInitialized) return;
 
-    let callId = 0;
-    const callDurations = {};
+    // Correlated on the requestOptions object, which esri passes by reference
+    // to before/after/error.
+    const callStartTimes = new WeakMap<object, number>();
+
+    function getStartTime(requestOptions: object | undefined) {
+      const startTime = requestOptions
+        ? callStartTimes.get(requestOptions)
+        : undefined;
+      // likely means esri stopped passing requestOptions by reference
+      if (startTime === undefined) {
+        console.error('Esri request could not be matched to a start time.');
+      }
+      return startTime;
+    }
 
     // intercept esri calls to gispub
     const urls = [
@@ -257,14 +269,7 @@ function Page({ children }: Props) {
           params.requestOptions.query[envString] = 1;
         }
 
-        // add the callId to the query so we can tie the response back
-        params.requestOptions.query['callId'] = callId;
-
-        // add the call's start time to the dictionary
-        callDurations[callId] = performance.now();
-
-        // increment the callId
-        callId = callId + 1;
+        callStartTimes.set(params.requestOptions, performance.now());
 
         // This is for the search widget on the home page and community page.
         // This intercepts the request and changes the query from 'LIKE (<text>%)'
@@ -289,30 +294,21 @@ function Page({ children }: Props) {
 
       // Log esri api calls to Google Analytics
       after: function (response) {
-        // get the execution time for the call
-        const callIdResponse = response.requestOptions.query.callId;
-        const startTime = callDurations[callIdResponse];
-
-        logCallToGoogleAnalytics(response.url, 200, startTime);
-
-        // delete the execution time from the dictionary
-        delete callDurations[callIdResponse];
+        logCallToGoogleAnalytics(
+          response.url,
+          200,
+          getStartTime(response.requestOptions),
+        );
       },
 
       error: function (error) {
-        // get the execution time for the call
         const details = error.details;
-        const callIdResponse = details.requestOptions.query.callId;
-        const startTime = callDurations[callIdResponse];
 
         logCallToGoogleAnalytics(
           details.url,
           details.httpStatus ? details.httpStatus : error.message,
-          startTime,
+          getStartTime(details.requestOptions),
         );
-
-        // delete the execution time from the dictionary
-        delete callDurations[callIdResponse];
       },
     });
 

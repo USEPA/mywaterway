@@ -1,4 +1,7 @@
 import { Global, css } from '@emotion/react';
+import Highcharts from 'highcharts';
+import { jsPDF } from 'jspdf';
+import { svg2pdf } from 'svg2pdf.js';
 import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
 // import { StrictMode } from 'react';
@@ -27,10 +30,22 @@ import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 // styles
 import { fonts } from 'styles';
 import '@arcgis/core/assets/esri/themes/light/main.css';
-import '@esri/calcite-components/dist/components/calcite-icon';
+import '@esri/calcite-components/components/calcite-icon';
 import 'styles/mapStyles.css';
 
 smoothscroll.polyfill();
+
+// Expose jsPDF and svg2pdf to the global window object so that highcharts can
+// access it for exporting charts to PDF.
+const pdfWindow = window as Window & {
+  jspdf?: { jsPDF: typeof jsPDF };
+  svg2pdf?: typeof svg2pdf;
+};
+pdfWindow.jspdf = { jsPDF };
+pdfWindow.svg2pdf = svg2pdf;
+
+// Highcharts defaults to the OS color scheme; HMW is light only.
+Highcharts.setOptions({ palette: { colorScheme: 'light' } });
 
 const globalStyles = css`
   #root {

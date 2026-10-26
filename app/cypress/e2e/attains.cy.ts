@@ -19,7 +19,7 @@ describe('ATTAINS page', () => {
 
   it('Domains service failure', () => {
     cy.intercept(
-      'https://attains.epa.gov/attains-public/api/domains?domainName=ParameterName',
+      'https://api.epa.gov/attains/domains?domainName=ParameterName',
       {
         statusCode: 500,
         body: [],

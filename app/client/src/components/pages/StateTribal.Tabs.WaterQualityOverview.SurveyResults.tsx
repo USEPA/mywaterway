@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { css } from '@emotion/react';
 import { WindowSize } from '@reach/window-size';
 import Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
+import { HighchartsReact } from 'utils/highchartsReact';
 import 'highcharts/modules/accessibility';
 import 'highcharts/modules/exporting';
 import 'highcharts/modules/offline-exporting';

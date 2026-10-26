@@ -21,6 +21,8 @@ import { useConfigFilesState } from 'contexts/ConfigFiles';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
 import { noMapDataWarningStyles } from 'styles/index';
+// types
+import type Graphic from "@arcgis/core/Graphic";
 
 const textStyles = css`
   margin: 1em;
@@ -54,7 +56,7 @@ interface SortOption {
 }
 
 type Props = {
-  waterbodies: __esri.Graphic[];
+  waterbodies: Graphic[];
   fieldName: string | null;
 };
 
