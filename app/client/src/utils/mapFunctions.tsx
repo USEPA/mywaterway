@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
+import createCache from '@emotion/cache';
+import { CacheProvider, Global } from '@emotion/react';
 import Basemap from '@arcgis/core/Basemap';
 import Color from '@arcgis/core/Color';
 import Graphic from '@arcgis/core/Graphic';
@@ -10,19 +12,41 @@ import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Popup from '@arcgis/core/widgets/Popup';
 // components
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { GlossaryTerm, termStyles } from 'components/shared/GlossaryPanel';
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles';
 // contexts
 import { ConfigFiles } from 'contexts/ConfigFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
+import { adoptGlobalStyles } from 'utils/popupStyles';
 import {
   getSelectedCommunityTab,
   titleCase,
   titleCaseWithExceptions,
 } from 'utils/utils';
 // types
+import type Symbol from '@arcgis/core/symbols/Symbol';
+import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import type Layer from '@arcgis/core/layers/Layer';
+import type HighlightOptions from '@arcgis/core/views/support/HighlightOptions';
+import type Geometry from '@arcgis/core/geometry/Geometry';
+import type Field from '@arcgis/core/layers/support/Field';
+import type MapView from '@arcgis/core/views/MapView';
+import type UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
+import type Renderer from '@arcgis/core/renderers/Renderer';
+import type TileLayer from '@arcgis/core/layers/TileLayer';
+import type Polyline from '@arcgis/core/geometry/Polyline';
+import type Polygon from '@arcgis/core/geometry/Polygon';
+import type Multipoint from '@arcgis/core/geometry/Multipoint';
+import type MediaLayer from '@arcgis/core/layers/MediaLayer';
+import type MapImageLayer from '@arcgis/core/layers/MapImageLayer';
+import type LayerView from '@arcgis/core/views/layers/LayerView';
+import type GraphicsLayerView from '@arcgis/core/views/layers/GraphicsLayerView';
+import type FeatureLayerView from '@arcgis/core/views/layers/FeatureLayerView';
+import type GroupLayer from '@arcgis/core/layers/GroupLayer';
+import type FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import type ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
 import type { NavigateFunction } from 'react-router';
 import type {
   AttainsImpairmentField,
@@ -66,7 +90,7 @@ export const basemapFromPortalItem = (portalId: string) =>
   });
 
 // Gets the type of symbol using the shape's attributes.
-export function getTypeFromAttributes(graphic: __esri.Graphic) {
+export function getTypeFromAttributes(graphic: Graphic) {
   if (graphic?.geometry?.type) return graphic.geometry.type;
 
   let type = 'point';
@@ -363,7 +387,7 @@ export function createWaterbodySymbol({
 }) {
   // handle Actions page
   if (window.location.pathname.includes('/plan-summary')) {
-    let color: __esri.Color = new Color(colors.skyBlue());
+    let color: Color = new Color(colors.skyBlue());
     if (geometryType === 'polygon') color.a = 0.75;
 
     let planSummarySymbol;
@@ -473,36 +497,32 @@ export function createWaterbodySymbol({
 }
 
 // Functions used for narrowing types
-export function hasSublayers(layer: __esri.Layer): layer is SuperLayer {
+export function hasSublayers(layer: Layer): layer is SuperLayer {
   return 'sublayers' in layer;
 }
 
 export function isClassBreaksRenderer(
-  renderer: __esri.Renderer,
-): renderer is __esri.ClassBreaksRenderer {
-  return (renderer as __esri.ClassBreaksRenderer).type === 'class-breaks';
+  renderer: Renderer,
+): renderer is ClassBreaksRenderer {
+  return (renderer as ClassBreaksRenderer).type === 'class-breaks';
 }
 
-export function isFeatureLayer(
-  layer: __esri.Layer | null,
-): layer is __esri.FeatureLayer {
-  return layer !== null && (layer as __esri.FeatureLayer).type === 'feature';
+export function isFeatureLayer(layer: Layer | null): layer is FeatureLayer {
+  return layer !== null && (layer as FeatureLayer).type === 'feature';
 }
 
-export function isGraphicsLayer(
-  layer: __esri.Layer,
-): layer is __esri.GraphicsLayer {
-  return (layer as __esri.GraphicsLayer).type === 'graphics';
+export function isGraphicsLayer(layer: Layer): layer is GraphicsLayer {
+  return (layer as GraphicsLayer).type === 'graphics';
 }
 
-export function isGroupLayer(layer: __esri.Layer): layer is __esri.GroupLayer {
+export function isGroupLayer(layer: Layer): layer is GroupLayer {
   return layer.type === 'group';
 }
 
-type HighlightLayerView = __esri.FeatureLayerView | __esri.GraphicsLayerView;
+type HighlightLayerView = FeatureLayerView | GraphicsLayerView;
 
 export function isHighlightLayerView(
-  layerView: __esri.LayerView,
+  layerView: LayerView,
 ): layerView is HighlightLayerView {
   return (
     (layerView as HighlightLayerView).layer.type === 'feature' ||
@@ -510,46 +530,38 @@ export function isHighlightLayerView(
   );
 }
 
-export function isMapImageLayer(
-  layer: __esri.Layer,
-): layer is __esri.MapImageLayer {
-  return (layer as __esri.MapImageLayer).type === 'map-image';
+export function isMapImageLayer(layer: Layer): layer is MapImageLayer {
+  return (layer as MapImageLayer).type === 'map-image';
 }
 
-export function isMediaLayer(layer: __esri.Layer): layer is __esri.MediaLayer {
-  return (layer as __esri.MediaLayer).type === 'media';
+export function isMediaLayer(layer: Layer): layer is MediaLayer {
+  return (layer as MediaLayer).type === 'media';
 }
 
-export function isMultipoint(
-  geometry: __esri.Geometry,
-): geometry is __esri.Multipoint {
-  return (geometry as __esri.Multipoint).type === 'multipoint';
+export function isMultipoint(geometry: Geometry): geometry is Multipoint {
+  return (geometry as Multipoint).type === 'multipoint';
 }
 
-export function isPoint(geometry: __esri.Geometry): geometry is __esri.Point {
-  return (geometry as __esri.Point).type === 'point';
+export function isPoint(geometry: Geometry): geometry is Point {
+  return (geometry as Point).type === 'point';
 }
 
-export function isPolygon(
-  geometry: __esri.Geometry,
-): geometry is __esri.Polygon {
+export function isPolygon(geometry: Geometry): geometry is Polygon {
   return geometry.type === 'polygon';
 }
 
-export function isPolyline(
-  geometry: __esri.Geometry,
-): geometry is __esri.Polyline {
-  return (geometry as __esri.Polyline).type === 'polyline';
+export function isPolyline(geometry: Geometry): geometry is Polyline {
+  return (geometry as Polyline).type === 'polyline';
 }
 
-export function isTileLayer(layer: __esri.Layer): layer is __esri.TileLayer {
-  return (layer as __esri.TileLayer).type === 'tile';
+export function isTileLayer(layer: Layer): layer is TileLayer {
+  return (layer as TileLayer).type === 'tile';
 }
 
 export function isUniqueValueRenderer(
-  renderer: __esri.Renderer,
-): renderer is __esri.UniqueValueRenderer {
-  return (renderer as __esri.UniqueValueRenderer).type === 'unique-value';
+  renderer: Renderer,
+): renderer is UniqueValueRenderer {
+  return (renderer as UniqueValueRenderer).type === 'unique-value';
 }
 
 function isVillage(
@@ -560,7 +572,7 @@ function isVillage(
 
 // plot issues on map
 export function plotIssues(
-  features: __esri.Graphic[],
+  features: Graphic[],
   layer: any,
   configFiles: ConfigFiles,
   navigate: NavigateFunction,
@@ -600,9 +612,9 @@ export function plotIssues(
 }
 
 export const openPopup = (
-  view: __esri.MapView,
-  feature: __esri.Graphic,
-  fields: __esri.Field[],
+  view: MapView,
+  feature: Graphic,
+  fields: Field[],
   navigate: NavigateFunction,
   configFiles?: ConfigFiles,
 ) => {
@@ -779,6 +791,55 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
   return title;
 }
 
+// Emotion puts its <style> tags in document.head, which a shadow root cannot see.
+// Resolve the root off the node itself. One cache per root.
+const emotionCaches = new WeakMap<Node, ReturnType<typeof createCache>>();
+
+function getShadowCache(node: Node) {
+  const root = node.getRootNode();
+  if (!(root instanceof ShadowRoot)) return null;
+
+  let cache = emotionCaches.get(root);
+  if (!cache) {
+    cache = createCache({ key: 'hmw-popup', container: root });
+    emotionCaches.set(root, cache);
+  }
+  return cache;
+}
+
+// A custom element gives us a connectedCallback to hook, so the cache is resolved against the real shadow root.
+class HmwPopupContent extends HTMLElement {
+  content: ReactNode = null;
+  private reactRoot: ReturnType<typeof createRoot> | null = null;
+
+  connectedCallback() {
+    // esri can move the node; only render the first time it connects
+    if (this.reactRoot) return;
+
+    const root = this.getRootNode();
+    if (root instanceof ShadowRoot) adoptGlobalStyles(root);
+
+    this.reactRoot = createRoot(this);
+
+    const cache = getShadowCache(this);
+    this.reactRoot.render(
+      cache ? (
+        <CacheProvider value={cache}>
+          {/* the copy in document.head does not reach this root */}
+          <Global styles={termStyles} />
+          {this.content}
+        </CacheProvider>
+      ) : (
+        this.content
+      ),
+    );
+  }
+}
+
+if (!customElements.get('hmw-popup-content')) {
+  customElements.define('hmw-popup-content', HmwPopupContent);
+}
+
 export function getPopupContent({
   feature,
   fieldName,
@@ -790,14 +851,14 @@ export function getPopupContent({
   fields,
   navigate,
 }: {
-  feature: __esri.Graphic | { attributes: ChangeLocationAttributes };
+  feature: Graphic | { attributes: ChangeLocationAttributes };
   fieldName?: string;
   extraContent?: ReactNode;
   getClickedHuc?: Promise<ClickedHucState> | null;
-  mapView?: __esri.MapView;
+  mapView?: MapView;
   resetData?: () => void;
   configFiles?: ConfigFiles;
-  fields?: __esri.Field[] | null;
+  fields?: Field[] | null;
   navigate: NavigateFunction;
 }) {
   let type = 'Unknown';
@@ -923,15 +984,17 @@ export function getPopupContent({
     />
   );
 
-  // wrap the content for esri
-  const contentContainer = document.createElement('div') as HTMLElement;
-  createRoot(contentContainer).render(content);
+  // wrap the content for esri -- rendered on connect, see HmwPopupContent
+  const contentContainer = document.createElement(
+    'hmw-popup-content',
+  ) as HmwPopupContent;
+  contentContainer.content = content;
 
   // return an esri popup item
   return contentContainer;
 }
 
-export function getUniqueWaterbodies(waterbodies: __esri.Graphic[]) {
+export function getUniqueWaterbodies(waterbodies: Graphic[]) {
   if (!waterbodies) return [];
 
   const flags: { [key: string]: boolean } = {};
@@ -968,8 +1031,8 @@ export function shallowCompare(obj1: MaybeObject, obj2: MaybeObject) {
 
 // used for shallow comparing graphics attributes to see if the are the same.
 export function graphicComparison(
-  graphic1?: __esri.Graphic | null,
-  graphic2?: __esri.Graphic | null,
+  graphic1?: Graphic | null,
+  graphic2?: Graphic | null,
 ) {
   if (!graphic1 && !graphic2) return true; // no change
 
@@ -1055,10 +1118,10 @@ export function getCountySymbol(color = colors.yellow()) {
 
 // Gets the highlight symbol styles based on the provided geometry.
 export function getHighlightSymbol(
-  geometry: __esri.Geometry,
-  options: __esri.HighlightOptions,
+  geometry: Geometry,
+  options: HighlightOptions,
 ) {
-  let symbol: __esri.Symbol | null = null;
+  let symbol: Symbol | null = null;
   if (isPolyline(geometry)) {
     return new SimpleLineSymbol({
       width: 5,
@@ -1087,7 +1150,7 @@ export function getHighlightSymbol(
 }
 
 // Helper method used to determine if the layer is in the MapView's scale range.
-export function isInScale(layer: __esri.Layer | ParentLayer, scale: number) {
+export function isInScale(layer: Layer | ParentLayer, scale: number) {
   let inScale = true;
 
   // get the extreme min and max scales of the layer
@@ -1130,7 +1193,7 @@ export function stringifyAttributes(
 
 // checks if a feature layer or any feature layers in a group layer
 // have a definitionExpression defined
-export function hasDefinitionExpression(layer: __esri.Layer) {
+export function hasDefinitionExpression(layer: Layer) {
   let hasDefinitionExpression = false;
   const layersToIgnore = ['dischargersLayer', 'monitoringLocationsLayer'];
 
@@ -1190,9 +1253,9 @@ export function hideShowGraphicsFill({
   symbol = null,
 }: {
   alpha?: number;
-  layer: __esri.GraphicsLayer;
+  layer: GraphicsLayer;
   showFill: boolean;
-  symbol?: __esri.Symbol | null;
+  symbol?: Symbol | null;
 }) {
   const newGraphics = layer.graphics.clone();
   newGraphics.forEach((graphic) => {

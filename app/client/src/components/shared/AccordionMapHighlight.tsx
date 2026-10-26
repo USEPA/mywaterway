@@ -9,13 +9,14 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 // types
 import type { ReactNode } from 'react';
+import type Graphic from "@arcgis/core/Graphic";
 
 type AccordionItemProps = {
   ariaLabel?: string;
   icon?: ReactNode;
   title: ReactNode;
   subTitle?: ReactNode;
-  feature?: __esri.Graphic;
+  feature?: Graphic;
   idKey?: string;
   allExpanded?: boolean;
   onChange?: (isOpen: boolean) => void;

@@ -221,8 +221,6 @@ function AddSaveDataWidget() {
         </div>
         <button
           onClick={() => {
-            const widget = document.getElementById('add-save-data-widget');
-            widget.classList.add('hidden');
             setAddSaveDataWidgetVisible(false);
           }}
         >

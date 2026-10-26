@@ -1,5 +1,5 @@
 import Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
+import { HighchartsReact } from 'utils/highchartsReact';
 import 'highcharts/modules/accessibility';
 import 'highcharts/modules/exporting';
 import 'highcharts/modules/offline-exporting';
@@ -57,7 +57,7 @@ type ColumnChartProps = Omit<Props, 'xUnit' | 'yUnit'> & {
   pointPadding?: number;
   reversedStacks?: boolean;
   stacking?: 'normal' | 'percent';
-  tooltipFormatter: (this: Highcharts.TooltipFormatterContextObject) => string;
+  tooltipFormatter: (this: Highcharts.Point) => string;
   tooltipShared?: boolean;
   xLabelFontSize?: string;
   zoomType?: 'x' | 'y' | 'xy';
@@ -305,11 +305,11 @@ export function StackedColumnChart({
   ...props
 }: Readonly<Props>) {
   const tooltipFormatter = useCallback(
-    function (this: Highcharts.TooltipFormatterContextObject) {
+    function (this: Highcharts.Point) {
       return (
         this.points?.reverse().reduce(
           (s, point) => {
-            const customText = point.point.options.custom?.text;
+            const customText = point.options.custom?.text;
             return (
               s +
               `<tr>
@@ -351,9 +351,9 @@ export function StackedColumnChart({
 
 export function Histogram({ xUnit, yUnit, ...props }: Readonly<Props>) {
   const tooltipFormatter = useCallback(
-    function (this: Highcharts.TooltipFormatterContextObject) {
-      const customText = this.point.options.custom?.text;
-      return `<span style="color:${this.point.color}">${
+    function (this: Highcharts.Point) {
+      const customText = this.options.custom?.text;
+      return `<span style="color:${this.color}">${
         xUnit ? this.x + ' ' + xUnit : this.x
       }:</span> ${yUnit ? this.y + ' ' + yUnit : this.y}${
         customText ? ' | ' + customText : ''

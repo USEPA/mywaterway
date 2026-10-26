@@ -20,7 +20,9 @@ describe('Overview Tab', () => {
       .findAllByRole('listitem')
       .should('have.length', 0);
 
-    cy.findByLabelText('Urban Stormwater (Medium/Large MS4)').click({ force: true });
+    cy.findByLabelText('Urban Stormwater (Medium/Large MS4)').click({
+      force: true,
+    });
     cy.findByRole('button', {
       name: 'DISTRICT DEPARTMENT OF ENERGY AND ENVIRONMENT NATURAL RESOURCES ADMINISTRATION',
     }).should('be.visible');
@@ -105,10 +107,7 @@ describe('Overview Tab', () => {
     cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
     cy.findByText('Go').click();
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.waitForLoadFinish();
 
     cy.findByRole('tab', { name: 'Waterbodies' }).click();
 
@@ -163,6 +162,42 @@ describe('Overview Tab', () => {
             .to.have.property('columns')
             .that.is.an('array');
         });
+      });
+  });
+
+  it('Expanding a waterbody with no spatial data → shows a warning in place of the “View on Map” button', () => {
+    // force the ATTAINS lines layer to return no features, which marks the
+    // waterbodies it would have drawn as limited (no map representation)
+    cy.intercept(
+      'https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/ATTAINS_Assessment/FeatureServer/1/query?f=json&outFields=*',
+      {
+        statusCode: 200,
+        body: { features: [] },
+      },
+    ).as('attains-lines');
+
+    // Navigate to the Overview tab of the Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type('dc');
+    cy.findByText('Go').click();
+
+    cy.wait('@attains-lines', { timeout: 120000 });
+
+    cy.waitForLoadFinish();
+
+    cy.findByRole('tab', { name: 'Waterbodies' }).click();
+
+    cy.findByRole('list', { name: 'List of Waterbodies' })
+      .findAllByRole('listitem')
+      .filter(':contains("[Waterbody not visible on map.]")')
+      .first()
+      .within(() => {
+        // expand the accordion item to render its contents
+        cy.findByRole('button').click();
+
+        cy.findByText('No map data available for this waterbody.').should(
+          'be.visible',
+        );
+        cy.findByRole('button', { name: 'View on Map' }).should('not.exist');
       });
   });
 });

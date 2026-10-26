@@ -14,6 +14,7 @@ import type {
 } from 'types';
 import { fetchCheck } from 'utils/fetchUtils';
 import { useConfigFilesState } from './ConfigFiles';
+import type Graphic from "@arcgis/core/Graphic";
 
 const StateContext = createContext<FetchedDataState | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<FetchedDataAction> | undefined>(
@@ -114,7 +115,7 @@ export function useOrganizationsData() {
         fetchedDataDispatch({
           type: 'success',
           id: 'organizations',
-          payload: data.features.map((feat: __esri.Graphic) => feat.attributes),
+          payload: data.features.map((feat: Graphic) => feat.attributes),
         });
       })
       .catch((err) => {

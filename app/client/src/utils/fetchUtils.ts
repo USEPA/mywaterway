@@ -42,7 +42,7 @@ export function proxyFetch(
   return fetchCheck(url, signal, {}, timeout, responseType);
 }
 
-export function fetchParseCsv(url: string, { worker = true } = {}) {
+export function fetchParseCsv(url: string) {
   return new Promise((resolve, reject) => {
     Papa.parse(url, {
       complete: (res) => resolve(res.data),
@@ -50,13 +50,35 @@ export function fetchParseCsv(url: string, { worker = true } = {}) {
       dynamicTyping: true,
       error: (err) => reject(err),
       header: true,
-      worker,
+      // Papa builds its worker from its own stringified source, which
+      // minification breaks, so the parse silently never finishes
+      // https://github.com/mholt/PapaParse/issues/1122
+      worker: false,
     });
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function fetchPostParseCsv(url: string, data: any = {}, { worker = true } = {}) {
+// Parses CSV to JSON in one of our own workers
+export function fetchParseCsvInWorker<T = unknown>(url: string) {
+  return new Promise<T>((resolve, reject) => {
+    const worker = new Worker(new URL('./parseCsv', import.meta.url), {
+      type: 'module',
+    });
+    worker.onmessage = (message) => {
+      worker.terminate();
+      if (message.data?.status === 'success') resolve(message.data.records);
+      else reject(new Error(`Failed to parse CSV from ${url}`));
+    };
+    // a worker that fails to load or throws never posts a message
+    worker.onerror = (err) => {
+      worker.terminate();
+      reject(new Error(err.message));
+    };
+    worker.postMessage(url);
+  });
+}
+
+export function fetchPostParseCsv(url: string, data: any = {}) {
   return new Promise((resolve, reject) => {
     fetchPost(
       url,
@@ -72,7 +94,7 @@ export function fetchPostParseCsv(url: string, data: any = {}, { worker = true }
           dynamicTyping: true,
           error: (err) => reject(err),
           header: true,
-          worker,
+          worker: false, // see fetchParseCsv
         });
       })
       .catch((err) => reject(err));
@@ -223,13 +245,18 @@ export function checkResponse(response, responseType = 'json') {
 export function logCallToGoogleAnalytics(
   url: string,
   status: number,
-  startTime: number,
+  startTime?: number,
 ) {
   // skip this if running from a web worker
-  if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) 
+  if (
+    typeof WorkerGlobalScope !== 'undefined' &&
+    self instanceof WorkerGlobalScope
+  )
     return;
 
-  const duration = performance.now() - startTime;
+  // reported as 'unknown' rather than NaN when the caller has no start time
+  const duration =
+    startTime === undefined ? 'unknown' : performance.now() - startTime;
 
   // combine the web service and map service mappings
   let mapping = window.googleAnalyticsMapping;

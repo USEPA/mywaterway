@@ -39,6 +39,10 @@ import {
   ParameterToggleObject,
 } from 'types/index';
 import { LayerType, ServiceMetaDataType } from 'types/arcGisOnline';
+import type Layer from "@arcgis/core/layers/Layer";
+import type FeatureSet from "@arcgis/core/rest/support/FeatureSet";
+import type MapView from "@arcgis/core/views/MapView";
+import type { ResourceHandle } from "@arcgis/core/core/Handles";
 
 type PublishType = {
   status:
@@ -262,7 +266,7 @@ function SavePanel({ visible }: Readonly<Props>) {
   const effluentToggleObject = useContext(LocationSearchContext)
     .effluentToggleObject as EffluentToggleObject | null;
   const mapView = useContext(LocationSearchContext)
-    .mapView as __esri.MapView | null;
+    .mapView as MapView | null;
   const monitoringPeriodOfRecordStatus = useContext(LocationSearchContext)
     .monitoringPeriodOfRecordStatus as FetchStatus;
   const monitoringGroups = useContext(LocationSearchContext)
@@ -276,10 +280,10 @@ function SavePanel({ visible }: Readonly<Props>) {
   const upstreamWatershedResponse = useContext(LocationSearchContext)
     .upstreamWatershedResponse as {
     status: Status;
-    data: __esri.FeatureSet | null;
+    data: FeatureSet | null;
   };
-  const [oAuthInfo, setOAuthInfo] = useState<__esri.OAuthInfo | null>(null);
-  const [userPortal, setUserPortal] = useState<__esri.Portal | null>(null);
+  const [oAuthInfo, setOAuthInfo] = useState<OAuthInfo | null>(null);
+  const [userPortal, setUserPortal] = useState<Portal | null>(null);
 
   const [saveLayerFilter, setSaveLayerFilter] = useState(
     layerFilterOptions[0].value,
@@ -303,18 +307,13 @@ function SavePanel({ visible }: Readonly<Props>) {
   const [mapLayerCount, setMapLayerCount] = useState(
     mapView?.map.layers.length,
   );
-  const [layerWatcher, setLayerWatcher] = useState<IHandle | null>(null);
+  const [layerWatcherInitialized, setLayerWatcherInitialized] = useState(false);
   useEffect(() => {
-    if (!mapView || layerWatcher) return;
+    if (!mapView || layerWatcherInitialized) return;
 
-    const watcher = reactiveUtils.watch(
-      () => mapView.map.layers.length,
-      () => setMapLayerCount(mapView.map.layers.length),
-    );
+    const layerWatchers: { [id: string]: ResourceHandle } = {};
 
-    const layerWatchers: { [id: string]: IHandle } = {};
-
-    function watchLayerVisibility(layer: __esri.Layer) {
+    function watchLayerVisibility(layer: Layer) {
       const visibilityWatcher = reactiveUtils.watch(
         () => layer.visible,
         () => {
@@ -334,7 +333,7 @@ function SavePanel({ visible }: Readonly<Props>) {
       layerWatchers[layer.id] = visibilityWatcher;
     }
 
-    function watchLayerLoaded(layer: __esri.Layer) {
+    function watchLayerLoaded(layer: Layer) {
       const loadedWatcher = reactiveUtils.watch(
         () => layer.loaded,
         () => {
@@ -355,6 +354,7 @@ function SavePanel({ visible }: Readonly<Props>) {
     mapView.map.layers.forEach((layer) => watchLayerVisibility(layer));
 
     mapView.map.layers.on('change', (e) => {
+      setMapLayerCount(mapView.map.layers.length);
       if (e.added.length > 0) {
         e.added.forEach((layer) => {
           watchLayerVisibility(layer);
@@ -378,8 +378,8 @@ function SavePanel({ visible }: Readonly<Props>) {
       }
     });
 
-    setLayerWatcher(watcher);
-  }, [layerWatcher, mapView, setSaveLayersList]);
+    setLayerWatcherInitialized(true);
+  }, [layerWatcherInitialized, mapView, setSaveLayersList]);
 
   // Build the list of switches
   useEffect(() => {
@@ -470,7 +470,7 @@ function SavePanel({ visible }: Readonly<Props>) {
   }
 
   async function runPublish(
-    portal: __esri.Portal,
+    portal: Portal,
     serviceMetaData: ServiceMetaDataType,
     layersToPublish: LayerType[],
   ) {

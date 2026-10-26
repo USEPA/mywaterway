@@ -1,5 +1,27 @@
 # Change Log
 
+## 2.19.0
+
+### Changed
+
+- Moved map widgets to Esri Map Components.
+
+- Removed all remaining references to legacy USGS web services.
+
+- Updated the "All Mapped Water (NHD)" layer to use the USGS National Map service as its source.
+
+- Updated HUC boundaries to the F3 ArcGIS Online service.
+
+- Updated the ATTAINS services to ones hosted on ArcGIS Online.
+
+- Moved API keys from a config file to server-side environment variables.
+
+### Chores
+
+- Updated client, server, and testing framework dependencies, including ArcGIS, Vite, Cypress, & TypeScript.
+
+- Updated GitHub workflow dependencies.
+
 ## 2.18.0
 
 ### Changed
@@ -30,7 +52,7 @@
 
 - Removed the USGS parameter lookup cache as it wasn't being used.
 
-- Removed the fish advisory links from the community and state pages, since NLFA services are being taken down. 
+- Removed the fish advisory links from the community and state pages, since NLFA services are being taken down.
 
 - Fixed issue with the extreme weather tab breaking after turning off the full screen map mode while on the extreme weather tab.
 
@@ -62,7 +84,7 @@
 
 - Updated links to have underlines, per SiteImprove.
 
-- Updated the search to popup the suggestion list, if the Esri service is unable to find a location matching the user's search. 
+- Updated the search to popup the suggestion list, if the Esri service is unable to find a location matching the user's search.
 
 - Updated the scatter plot disclaimers on the Monitoring Report to explain quality control data.
 
@@ -134,7 +156,7 @@
 
 - Updated WSIO entries to RPS for rebranding effort.
 
-- Updated County layer to use the latest authoritative version of the layer. 
+- Updated County layer to use the latest authoritative version of the layer.
 
 - Renamed the "Boundaries" layer to "Selected Watershed".
 

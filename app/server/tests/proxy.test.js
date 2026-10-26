@@ -5,7 +5,7 @@ describe('Proxy tests', () => {
   test('GET /proxy should return data', async () => {
     await supertest(app)
       .get(
-        '/proxy?url=https://attains.epa.gov/attains-public/api/huc12summary?huc=030902010200',
+        '/proxy?url=https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6?f=json',
       )
       .expect(200)
       .expect('Content-Type', /json/);
@@ -31,9 +31,7 @@ describe('Proxy tests', () => {
 
   test('Get /proxy Proxy Request Error', async () => {
     const response = await supertest(app)
-      .get(
-        '/proxy?url=https://attains.epa.gov/attains-public/api/nonExistentRoute',
-      )
+      .get('/proxy?url=https://gispub.epa.gov/nonExistentRoute')
       .expect(503)
       .expect('Content-Type', /json/);
 

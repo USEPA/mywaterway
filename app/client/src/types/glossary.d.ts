@@ -23,7 +23,7 @@ declare module 'glossary-panel' {
     initList: void;
     linkTerms: void;
     populate: void;
-    show: void;
+    show(): void;
     toggle: void;
   }
 

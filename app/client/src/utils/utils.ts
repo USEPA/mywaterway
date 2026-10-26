@@ -1,4 +1,7 @@
 // types
+import type Graphic from "@arcgis/core/Graphic";
+import type CodedValueDomain from "@arcgis/core/layers/support/CodedValueDomain";
+import type Field from "@arcgis/core/layers/support/Field";
 import type { KeyboardEvent, MouseEvent } from 'react';
 import type { FetchStatus, InfoText } from 'types';
 
@@ -358,7 +361,7 @@ export function convertAgencyCode(agencyShortCode: string) {
 // Lookup the value of an attribute using domain coded values from
 // the arcgis feature layer fields.
 export function convertDomainCode(
-  fields: __esri.Field[] | null | undefined,
+  fields: Field[] | null | undefined,
   name: string,
   value: string,
 ) {
@@ -368,7 +371,7 @@ export function convertDomainCode(
   for (const field of fields) {
     if (field.name === name && field.domain) {
       // look for the code using value
-      const codedValues = (field.domain as __esri.CodedValueDomain).codedValues;
+      const codedValues = (field.domain as CodedValueDomain).codedValues;
       for (const codedValue of codedValues) {
         if (codedValue.code === value) {
           return codedValue.name;
@@ -414,7 +417,7 @@ export function normalizeString(str: string) {
 
 // Summarizes assessment counts by the status of the provided fieldname.
 export function summarizeAssessments(
-  waterbodies: __esri.Graphic[],
+  waterbodies: Graphic[],
   fieldName: string,
 ) {
   const summary = {

@@ -1,10 +1,12 @@
+import babel from '@rolldown/plugin-babel';
 import { defineConfig, loadEnv } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import Icons from 'unplugin-icons/vite';
 import istanbul from 'vite-plugin-istanbul';
 import react from '@vitejs/plugin-react';
-import viteTsconfigPaths from 'vite-tsconfig-paths';
-import { version } from './package.json';
+import pkg from './package.json' with { type: 'json' };
+
+const { version } = pkg;
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -32,7 +34,7 @@ export default ({ mode }) => {
     build: {
       outDir: 'build',
       sourcemap: true,
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           entryFileNames: `static/js/[name]-[hash].${version}.js`,
           chunkFileNames: `static/js/[name]-[hash].${version}.js`,
@@ -52,12 +54,15 @@ export default ({ mode }) => {
     optimizeDeps: {
       include: ['react', 'react-dom'],
     },
+    resolve: {
+      tsconfigPaths: true,
+    },
     plugins: [
       react({
         jsxImportSource: '@emotion/react',
-        babel: {
-          plugins: ['@emotion/babel-plugin'],
-        },
+      }),
+      babel({
+        plugins: ['@emotion/babel-plugin'],
       }),
       Icons({
         compiler: 'jsx',
@@ -67,7 +72,6 @@ export default ({ mode }) => {
         cypress: true,
         requireEnv: false,
       }),
-      viteTsconfigPaths(),
       ...productionOnlyPlugins,
     ],
     server: {

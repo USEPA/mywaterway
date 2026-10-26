@@ -6,18 +6,18 @@
     "topographic": "668f436dc2dc4f2c83ceb0c064380590"
   },
   "expertQuery": {
-    "apiKey": "bNb8SnGYVFouUMF8SnIsQGwb3y5ywIhJBZXnrDy7",
+    "apiKey": "",
     "attains": "https://api.epa.gov/expertquery/api/attains",
     "userInterface": "https://owapps.epa.gov/expertquery",
     "valuesLimit": 100
   },
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
   "esriWebMapBase": "https://www.arcgis.com/sharing/rest/content/items",
-  "wbd": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6",
-  "wbdUnconstrained": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19",
+  "wbd": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Hydrologic_Units_F3/FeatureServer/19",
+  "wbdUnconstrained": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/Hydrologic_Units_F3/FeatureServer/19",
   "counties": "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Census_Counties/FeatureServer/0",
   "stateBoundaries": "https://enviroatlas.epa.gov/arcgis/rest/services/Supplemental/Reference_Boundaries/MapServer",
-  "mappedWater": "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus/NHDPlus/MapServer",
+  "mappedWater": "https://hydro.nationalmap.gov/arcgis/rest/services/NHDPlus_HR/MapServer",
   "upstreamWatershed": "https://gispub.epa.gov/arcgis/rest/services/OW/CatchmentFabric/MapServer/2/",
   "nonprofits": "https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/",
   "tribal": "https://geopub.epa.gov/arcgis/rest/services/EMEF/Tribal/MapServer",
@@ -63,8 +63,9 @@
     "getSSByHUC12": "https://ordspub.epa.gov/ords/grts/grtsadm/grts_rest_apex/GetSSByHUC12"
   },
   "attains": {
-    "serviceUrlDev": "https://attains-demo.epa-ow-cloud.com/attains-public/api/",
-    "serviceUrl": "https://attains-demo.epa-ow-cloud.com/attains-public/api/"
+    "apiKey": "",
+    "serviceUrlDev": "https://api.epa.gov/attains/",
+    "serviceUrl": "https://api.epa.gov/attains/"
   },
   "wildScenicRivers": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_WildScenicRiverSegments_01/MapServer/0",
   "protectedAreasDatabase": "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Protection_Mechanism_Category_PADUS/FeatureServer/0",
@@ -367,7 +368,7 @@
     {
       "urlLookup": "mappedWater",
       "wildcardUrl": "{urlLookup}*",
-      "name": "watersgeo - NHDPlus mapped water"
+      "name": "USGS - NHDPlus mapped water"
     },
     {
       "urlLookup": "wsio",

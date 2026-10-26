@@ -24,6 +24,18 @@ import {
   IFeature,
   IFieldInfo,
 } from '@esri/arcgis-rest-types';
+import type MapView from "@arcgis/core/views/MapView";
+import type Portal from "@arcgis/core/portal/Portal";
+import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import type GroupLayer from "@arcgis/core/layers/GroupLayer";
+import type GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import type ControlPointsGeoreference from "@arcgis/core/layers/support/ControlPointsGeoreference";
+import type LocalMediaElementSource from "@arcgis/core/layers/support/LocalMediaElementSource";
+import type MediaLayer from "@arcgis/core/layers/MediaLayer";
+import type { FieldProperties } from "@arcgis/core/layers/support/Field";
+import type Field from "@arcgis/core/layers/support/Field";
+import type Layer from "@arcgis/core/layers/Layer";
+import type Extent from "@arcgis/core/geometry/Extent";
 import {
   AddItemResponseType,
   AddToDefinitionResponseType,
@@ -79,7 +91,7 @@ export function appendEnvironmentObjectParam(params: any) {
  * @returns Promise with availability
  */
 export async function isServiceNameAvailable(
-  portal: __esri.Portal,
+  portal: Portal,
   serviceName: string,
 ): Promise<IServiceNameAvailableExtended> {
   try {
@@ -112,7 +124,7 @@ export async function isServiceNameAvailable(
  * @returns A promise that resolves to the hosted feature service object
  */
 export async function getFeatureService(
-  portal: __esri.Portal,
+  portal: Portal,
   serviceMetaData: ServiceMetaDataType,
 ): Promise<FeatureServiceType> {
   try {
@@ -139,7 +151,7 @@ export async function getFeatureService(
  *  null if the service does not exist
  */
 async function getFeatureServiceWrapped(
-  portal: __esri.Portal,
+  portal: Portal,
   serviceMetaData: ServiceMetaDataType,
 ): Promise<FeatureServiceType | null> {
   try {
@@ -174,7 +186,7 @@ async function getFeatureServiceWrapped(
  * @returns A promise that resolves to the hosted feature service object
  */
 export async function createFeatureService(
-  portal: __esri.Portal,
+  portal: Portal,
   serviceMetaData: ServiceMetaDataType,
 ) {
   try {
@@ -255,7 +267,7 @@ export async function createFeatureService(
  * @param field Esri field object
  * @returns JSON representation of the field
  */
-function convertFieldToJSON(field: __esri.Field) {
+function convertFieldToJSON(field: Field) {
   const fieldJson = field.toJSON();
   if (fieldJson.type !== 'esriFieldTypeOID') return fieldJson;
   else
@@ -286,7 +298,7 @@ function addSubLayer({
   properties,
   overrideName,
 }: {
-  layer: __esri.FeatureLayer;
+  layer: FeatureLayer;
   layersParams: ILayerDefinition[];
   layerProps: any;
   properties: any;
@@ -344,8 +356,8 @@ function addSubLayer({
  * @returns A promise that resolves to the layers that were saved
  */
 export async function createFeatureLayers(
-  portal: __esri.Portal,
-  mapView: __esri.MapView,
+  portal: Portal,
+  mapView: MapView,
   serviceUrl: string,
   layers: LayerType[],
   serviceMetaData: ServiceMetaDataType,
@@ -382,15 +394,15 @@ export async function createFeatureLayers(
       } else if (
         ['boundariesLayer', 'providersLayer'].includes(layer.layer.id)
       ) {
-        let refFeatureLayer: __esri.FeatureLayer | null = null;
+        let refFeatureLayer: FeatureLayer | null = null;
         if (layer.layer.id === 'boundariesLayer')
           refFeatureLayer = mapView.map.findLayerById(
             'watershedsLayer',
-          ) as __esri.FeatureLayer;
+          ) as FeatureLayer;
         if (layer.layer.id === 'providersLayer')
           refFeatureLayer = mapView.map.findLayerById(
             'countyLayer',
-          ) as __esri.FeatureLayer;
+          ) as FeatureLayer;
         if (!refFeatureLayer) continue;
 
         layerIds.push(layer.layer.id);
@@ -427,10 +439,10 @@ export async function createFeatureLayers(
       } else if (
         ['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)
       ) {
-        const graphicsLayer = layer.layer as __esri.GraphicsLayer;
+        const graphicsLayer = layer.layer as GraphicsLayer;
         const allWaterbodiesLayer = mapView.map.layers.find(
           (l) => l.id === 'allWaterbodiesLayer',
-        ) as __esri.GroupLayer;
+        ) as GroupLayer;
 
         // add the layer id 3 times to cover splitting this layer into 3
         layerIds.push(graphicsLayer.id);
@@ -440,7 +452,7 @@ export async function createFeatureLayers(
         // add areas layer
         const areasLayer = allWaterbodiesLayer.findLayerById(
           'allWaterbodyAreas',
-        ) as __esri.FeatureLayer;
+        ) as FeatureLayer;
         addSubLayer({
           layer: areasLayer,
           layersParams,
@@ -452,7 +464,7 @@ export async function createFeatureLayers(
         // add lines layer
         const linesLayer = allWaterbodiesLayer.findLayerById(
           'allWaterbodyLines',
-        ) as __esri.FeatureLayer;
+        ) as FeatureLayer;
         addSubLayer({
           layer: linesLayer,
           layersParams,
@@ -464,7 +476,7 @@ export async function createFeatureLayers(
         // add points layer
         const pointsLayer = allWaterbodiesLayer.findLayerById(
           'allWaterbodyPoints',
-        ) as __esri.FeatureLayer;
+        ) as FeatureLayer;
         addSubLayer({
           layer: pointsLayer,
           layersParams,
@@ -475,10 +487,10 @@ export async function createFeatureLayers(
 
         continue;
       } else if (layer.layer.id === 'cyanLayer') {
-        const groupLayer = layer.layer as __esri.GroupLayer;
+        const groupLayer = layer.layer as GroupLayer;
         const waterbodiesLayer = groupLayer.findLayerById(
           'cyanWaterbodies',
-        ) as __esri.FeatureLayer;
+        ) as FeatureLayer;
 
         layerIds.push(groupLayer.id);
         addSubLayer({
@@ -495,8 +507,8 @@ export async function createFeatureLayers(
         // be published directly to the web map with a definitionExpression applied
         if (hasDefinitionExpression(layer.layer)) continue;
 
-        const groupLayer = layer.layer as __esri.GroupLayer;
-        const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
+        const groupLayer = layer.layer as GroupLayer;
+        const subLayers = groupLayer.layers.toArray() as FeatureLayer[];
         for (const subLayer of subLayers) {
           layerIds.push(layer.layer.id);
           addSubLayer({
@@ -512,7 +524,7 @@ export async function createFeatureLayers(
       layerIds.push(layer.layer.id);
 
       // get the extent
-      let graphicsExtent: __esri.Extent | null = null;
+      let graphicsExtent: Extent | null = null;
       if (isGraphicsLayer(layer.layer)) {
         layer.layer.graphics.forEach((graphic) => {
           if (graphicsExtent === null) graphicsExtent = graphic.geometry.extent;
@@ -594,7 +606,7 @@ export async function createFeatureLayers(
  * @param layer Layer to get graphics/features from
  * @param adds Array to add graphics/features to
  */
-async function processLayerFeatures(layer: __esri.Layer, adds: IFeature[]) {
+async function processLayerFeatures(layer: Layer, adds: IFeature[]) {
   if (isGraphicsLayer(layer)) {
     layer.graphics.forEach((graphic) => {
       adds.push({
@@ -631,7 +643,7 @@ async function applyEdits({
   layers,
   layersRes,
 }: {
-  portal: __esri.Portal;
+  portal: Portal;
   services: any;
   serviceUrl: string;
   layers: LayerType[];
@@ -649,15 +661,15 @@ async function applyEdits({
 
       let adds: IFeature[] = [];
       if (layer.id === 'waterbodyLayer') {
-        const groupLayer = layer.layer as __esri.GroupLayer;
-        const subLayers = groupLayer.layers.toArray() as __esri.FeatureLayer[];
+        const groupLayer = layer.layer as GroupLayer;
+        const subLayers = groupLayer.layers.toArray() as FeatureLayer[];
         const subLayer = subLayers.find((s) => s.title === layerRes.name);
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
       } else if (
         ['actionsWaterbodies', 'issuesLayer'].includes(layer.layer.id)
       ) {
-        const graphicsLayer = layer.layer as __esri.GraphicsLayer;
+        const graphicsLayer = layer.layer as GraphicsLayer;
 
         // filter features down to just areas, lines, or points
         // depending on which geometry layer we are adding to
@@ -678,10 +690,10 @@ async function applyEdits({
           }
         });
       } else if (layer.id === 'cyanLayer') {
-        const groupLayer = layer.layer as __esri.GroupLayer;
+        const groupLayer = layer.layer as GroupLayer;
         const subLayer = groupLayer.findLayerById(
           'cyanWaterbodies',
-        ) as __esri.FeatureLayer;
+        ) as FeatureLayer;
 
         if (subLayer) await processLayerFeatures(subLayer, adds);
       } else if (layer.widgetLayer?.type === 'file') {
@@ -878,8 +890,8 @@ export async function addWebMap({
   layerProps,
   layersRes,
 }: {
-  portal: __esri.Portal;
-  mapView: __esri.MapView;
+  portal: Portal;
+  mapView: MapView;
   service?: FeatureServiceType;
   services: any;
   serviceMetaData: ServiceMetaDataType;
@@ -893,7 +905,7 @@ export async function addWebMap({
   function buildPopupFieldsList(
     objectIdField: string,
     globalIdField: string | null,
-    fields: __esri.Field[] | __esri.FieldProperties[],
+    fields: Field[] | FieldProperties[],
   ) {
     return fields?.map((field) => ({
       fieldName: field.name,
@@ -959,13 +971,13 @@ export async function addWebMap({
 
         const groupLayer = mapView.map.layers.find(
           (sl) => sl.id === 'cyanLayer',
-        ) as __esri.GroupLayer;
+        ) as GroupLayer;
         const waterbodiesLayer = groupLayer.findLayerById(
           'cyanWaterbodies',
-        ) as __esri.FeatureLayer;
+        ) as FeatureLayer;
         const imagesLayer = groupLayer.findLayerById(
           'cyanImages',
-        ) as __esri.MediaLayer;
+        ) as MediaLayer;
 
         const layers: any[] = [];
 
@@ -1000,11 +1012,11 @@ export async function addWebMap({
         });
 
         const imagesSource =
-          imagesLayer.source as __esri.LocalMediaElementSource;
+          imagesLayer.source as LocalMediaElementSource;
         if (imagesSource.elements.length > 0) {
           const element = imagesSource.elements.getItemAt(0);
           const georeference =
-            element.georeference as __esri.ControlPointsGeoreference;
+            element.georeference as ControlPointsGeoreference;
 
           // get the extension from the base64 image and generate a unique filename
           const extension = element.content.src.split(';')[0].split('/')[1];
@@ -1072,7 +1084,7 @@ export async function addWebMap({
           layerType: 'GroupLayer',
           layers: lResponses.map((lRes) => {
             const layer = isGroupLayer(l.layer)
-              ? (l.layer as __esri.GroupLayer).layers.find(
+              ? (l.layer as GroupLayer).layers.find(
                   (l) => l.title === lRes.name,
                 )
               : l.layer;
@@ -1080,24 +1092,24 @@ export async function addWebMap({
             // build fields here
             let popupFields: IFieldInfo[] = [];
             if (['actionsWaterbodies', 'issuesLayer'].includes(layer.id)) {
-              const graphicsLayer = layer as __esri.GraphicsLayer;
+              const graphicsLayer = layer as GraphicsLayer;
               const allWaterbodiesLayer = mapView.map.layers.find(
                 (sl) => sl.id === 'allWaterbodiesLayer',
-              ) as __esri.GroupLayer;
+              ) as GroupLayer;
 
-              let associatedLayer: __esri.FeatureLayer | null = null;
+              let associatedLayer: FeatureLayer | null = null;
               if (lRes.name === `${graphicsLayer.title} Areas`) {
                 associatedLayer = allWaterbodiesLayer.findLayerById(
                   'allWaterbodyAreas',
-                ) as __esri.FeatureLayer;
+                ) as FeatureLayer;
               } else if (lRes.name === `${graphicsLayer.title} Lines`) {
                 associatedLayer = allWaterbodiesLayer.findLayerById(
                   'allWaterbodyLines',
-                ) as __esri.FeatureLayer;
+                ) as FeatureLayer;
               } else if (lRes.name === `${graphicsLayer.title} Points`) {
                 associatedLayer = allWaterbodiesLayer.findLayerById(
                   'allWaterbodyPoints',
-                ) as __esri.FeatureLayer;
+                ) as FeatureLayer;
               }
 
               if (associatedLayer) {
@@ -1331,8 +1343,8 @@ export async function publish({
   layerProps,
   serviceMetaData,
 }: {
-  portal: __esri.Portal;
-  mapView: __esri.MapView;
+  portal: Portal;
+  mapView: MapView;
   services: any;
   layers: LayerType[];
   layerProps: any;

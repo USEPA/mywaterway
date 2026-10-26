@@ -17,7 +17,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as locator from '@arcgis/core/rest/locator';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
-import Search from '@arcgis/core/widgets/Search';
+import SearchViewModel from '@arcgis/core/widgets/Search/SearchViewModel';
 import LocatorSearchSource from '@arcgis/core/widgets/Search/LocatorSearchSource';
 import LayerSearchSource from '@arcgis/core/widgets/Search/LayerSearchSource';
 import IconCrosshairs from '~icons/fa7-solid/crosshairs';
@@ -46,6 +46,8 @@ import {
 // types
 import type { ReactElement, ReactNode } from 'react';
 import { MonitoringLocationsResponse } from 'types';
+import type { SuggestResult } from "@arcgis/core/widgets/Search/types";
+import type Layer from "@arcgis/core/layers/Layer";
 
 // --- utils ---
 
@@ -258,14 +260,14 @@ const searchBoxStyles = css`
 `;
 
 // --- types ---
-type FlattenedResult = __esri.SuggestResult & {
+type FlattenedResult = SuggestResult & {
   source: LocationSearchSource;
   sourceIndex: number;
 };
 
 type LocationSearchSource =
-  | __esri.LayerSearchSource
-  | __esri.LocatorSearchSource;
+  | LayerSearchSource
+  | LocatorSearchSource;
 
 type MonitoringLocationCodesResult = {
   codes: Array<{
@@ -282,7 +284,7 @@ type WaterbodyCodesResult = Array<{
 
 type SearchResultsSuggestions = {
   error?: Error;
-  results: __esri.SuggestResult[];
+  results: SuggestResult[];
   source: LocationSearchSource;
   sourceIndex: number;
 };
@@ -357,7 +359,9 @@ function LocationSearch({ route, label }: Readonly<Props>) {
   const clearEnterPress = useKeyPress('Enter', clearButton);
   const { errorMessage, huc12, noGeocodeResults, searchText, watershed } =
     useContext(LocationSearchContext);
-  const [searchWidget, setSearchWidget] = useState<Search | null>(null);
+  const [searchWidget, setSearchWidget] = useState<SearchViewModel | null>(
+    null,
+  );
 
   // Store the waterbody suggestions to avoid a second fetch.
   const waterbodySuggestions = useRef<WaterbodyCodesResult | null>(null);
@@ -385,7 +389,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         layer: new FeatureLayer({
           url: `${services.tribal}/1`,
           listMode: 'hide',
-        }) as __esri.Layer,
+        }) as Layer,
         searchFields: ['TRIBE_NAME'],
         suggestionTemplate: '{TRIBE_NAME}',
         exactMatch: false,
@@ -396,7 +400,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         layer: new FeatureLayer({
           url: `${services.tribal}/2`,
           listMode: 'hide',
-        }) as __esri.Layer,
+        }) as Layer,
         searchFields: ['TRIBE_NAME'],
         suggestionTemplate: '{TRIBE_NAME}',
         exactMatch: false,
@@ -407,7 +411,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         layer: new FeatureLayer({
           url: `${services.tribal}/3`,
           listMode: 'hide',
-        }) as __esri.Layer,
+        }) as Layer,
         searchFields: ['TRIBE_NAME'],
         suggestionTemplate: '{TRIBE_NAME}',
         exactMatch: false,
@@ -418,7 +422,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         layer: new FeatureLayer({
           url: `${services.tribal}/4`,
           listMode: 'hide',
-        }) as __esri.Layer,
+        }) as Layer,
         searchFields: ['TRIBE_NAME'],
         suggestionTemplate: '{TRIBE_NAME}',
         exactMatch: false,
@@ -429,7 +433,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         layer: new FeatureLayer({
           url: `${services.tribal}/5`,
           listMode: 'hide',
-        }) as __esri.Layer,
+        }) as Layer,
         searchFields: ['TRIBE_NAME'],
         suggestionTemplate: '{TRIBE_NAME}',
         exactMatch: false,
@@ -440,7 +444,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
         layer: new FeatureLayer({
           url: services.wbdUnconstrained,
           listMode: 'hide',
-        }) as __esri.Layer,
+        }) as Layer,
         searchFields: ['name', 'huc12'],
         suggestionTemplate: '{name} ({huc12})',
         exactMatch: false,
@@ -600,18 +604,17 @@ function LocationSearch({ route, label }: Readonly<Props>) {
     initialWebserviceErrorMessages,
   );
 
-  // Initialize the esri search widget
+  // Initialize the esri search view model
   const [suggestions, setSuggestions] = useState<SearchResultsSuggestions[]>(
     [],
   );
   useEffect(() => {
     if (searchWidget) return;
 
-    const search = new Search({
+    const search = new SearchViewModel({
       allPlaceholder,
       includeDefaultSources: false,
       locationEnabled: false,
-      label: 'Search',
       sources: allSources,
     });
 
@@ -637,7 +640,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
     setSearchWidget(search);
   }, [searchWidget, services, searchText, allSources]);
 
-  // Initialize the esri search widget value with the search text.
+  // Initialize the esri search view model value with the search text.
   useEffect(() => {
     if (!searchWidget) return;
 
@@ -646,7 +649,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
     if (noGeocodeResults) searchWidget.suggest();
   }, [noGeocodeResults, searchWidget, searchText]);
 
-  // Updates the search widget sources whenever the user selects a source.
+  // Updates the search view model sources whenever the user selects a source.
   const [sourcesVisible, setSourcesVisible] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<SourceGroup>(
     allSourceGroup,
@@ -713,7 +716,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
               return {
                 results: [
                   ...acc2.results,
-                  ...sug.results.map((result: __esri.SuggestResult) => ({
+                  ...sug.results.map((result: SuggestResult) => ({
                     ...result,
                     source,
                     sourceIndex: i,
@@ -832,7 +835,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
   );
 
   const openMonitoringReport = useCallback(
-    async (result: __esri.SuggestResult, callback?: (text: string) => void) => {
+    async (result: SuggestResult, callback?: (text: string) => void) => {
       // query WQP's station service to get the lat/long
       const url = `${services.waterQualityPortal.stationSearch}mimeType=geojson&zip=no&siteid=${result.key}`;
       try {
@@ -863,7 +866,7 @@ function LocationSearch({ route, label }: Readonly<Props>) {
   );
 
   const openWaterbodyReport = useCallback(
-    (result: __esri.SuggestResult, callback?: (text: string) => void) => {
+    (result: SuggestResult, callback?: (text: string) => void) => {
       const item = waterbodySuggestions.current?.find(
         (wb) => wb.assessmentUnitId === result.key,
       );

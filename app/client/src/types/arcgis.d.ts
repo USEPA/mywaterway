@@ -1,51 +1,12 @@
-declare namespace __esri {
-  interface FeatureLayer {
-    addHandles(
-      handleOrHandles: __esri.WatchHandle | __esri.WatchHandle[],
-      groupKey: any,
-    ): void;
-    globalIdField: string | null;
-    hasHandles(groupKey?: any): boolean;
-    removeHandles(groupKey?: any): void;
-  }
+import type Credential from '@arcgis/core/identity/Credential';
 
-  interface GraphicsLayer {
-    addHandles(
-      handleOrHandles: __esri.WatchHandle | __esri.WatchHandle[],
-      groupKey: any,
-    ): void;
-    hasHandles(groupKey?: any): boolean;
-    removeHandles(groupKey?: any): void;
-  }
-
-  interface GroupLayer {
-    addHandles(
-      handleOrHandles: __esri.WatchHandle | __esri.WatchHandle[],
-      groupKey: any,
-    ): void;
-    hasHandles(groupKey?: any): boolean;
-    removeHandles(groupKey?: any): void;
-  }
-
-  interface Layer {
-    portalItem?: __esri.PortalItem;
-    url?: string;
-  }
-
-  interface Portal {
-    credential: {
-      creationTime: number;
-      expires: Date;
-      isAdmin?: boolean;
-      oAuthState: string;
-      resources: string[];
-      scope: string;
-      server: string;
-      ssl: boolean;
-      token: string;
-      tokenRefreshBuffer: number;
-      userId: string;
-      validity: any;
-    };
+/*
+  As of @arcgis/core 5.0 the `__esri` members are type aliases, so augmenting them
+  with `declare namespace __esri` shadows the real class types instead of merging.
+  Augment the individual modules instead.
+*/
+declare module '@arcgis/core/portal/Portal' {
+  export default interface Portal {
+    credential: Credential;
   }
 }

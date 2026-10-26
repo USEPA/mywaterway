@@ -30,6 +30,9 @@ import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
 import { colors, reactSelectStyles } from 'styles/index';
 // types
+import type Sublayer from "@arcgis/core/layers/support/Sublayer";
+import type TileLayer from "@arcgis/core/layers/TileLayer";
+import type { ResourceHandle } from "@arcgis/core/core/Handles";
 import type { WidgetLayer } from 'types';
 // utilities
 import { isGroupLayer, isTileLayer } from 'utils/mapFunctions';
@@ -793,7 +796,7 @@ function ResultCard({ result }: Readonly<ResultCardProps>) {
 
   // removes the esri watch handle when the card is removed from the DOM.
   const [status, setStatus] = useState('');
-  const [watcher, setWatcher] = useState<__esri.WatchHandle | null>(null);
+  const [watcher, setWatcher] = useState<ResourceHandle | null>(null);
   useEffect(() => {
     return function cleanup() {
       if (watcher) watcher.remove();
@@ -838,8 +841,8 @@ function ResultCard({ result }: Readonly<ResultCardProps>) {
               });
             }
             if ('sublayers' in layer) {
-              (layer as __esri.TileLayer).sublayers.forEach(
-                (tempLayer: __esri.Sublayer) => {
+              (layer as TileLayer).sublayers.forEach(
+                (tempLayer: Sublayer) => {
                   tempLayer.visible = true;
                 },
               );
